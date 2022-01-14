@@ -9,4 +9,10 @@ pub enum ManagerError {
 
     #[error("{0}")]
     Admin(#[from] AdminError),
+
+    #[error("Cannot add two internal dapps of the same kind")]
+    InternalDappAlreadyAdded {},
+
+    #[error("Contract got an unexpected Reply")]
+    UnexpectedReply(),
 }

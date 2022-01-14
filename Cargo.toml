@@ -2,8 +2,8 @@
 members = [
     "packages/*", 
     "contracts/version_control",
-    "contracts/core/*"
-    # "contracts/dapps/external/*",
+    "contracts/core/*",
+    "contracts/dapps/external/terraswap",
     # "contracts/dapps/internal/vault",
     # "contracts/dapps/template",
     # "contracts/governance/token_weighted",

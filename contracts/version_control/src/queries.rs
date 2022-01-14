@@ -1,6 +1,9 @@
+use cosmwasm_std::Env;
 use cosmwasm_std::QueryRequest;
 use cosmwasm_std::Uint64;
 use cosmwasm_std::WasmQuery;
+use serde::de::DeserializeOwned;
+use serde::Serialize;
 
 use crate::state::{MODULE_CODE_IDS, OS_ADDRESSES};
 use cosmwasm_std::Addr;
@@ -9,6 +12,7 @@ use cw_storage_plus::U32Key;
 
 use dao_os::manager::msg::{EnabledModulesResponse, QueryMsg};
 use dao_os::version_control::msg::CodeIdResponse;
+use dao_os::version_control::queries::query_code_id as raw_query;
 
 pub fn query_enabled_modules(deps: Deps, manager_addr: Addr) -> StdResult<Binary> {
     let response: EnabledModulesResponse =
@@ -26,6 +30,21 @@ pub fn query_os_address(deps: Deps, os_id: u32) -> StdResult<Binary> {
 
 pub fn query_code_id(deps: Deps, module: String, version: String) -> StdResult<Binary> {
     let code_id = MODULE_CODE_IDS.load(deps.storage, (&module, &version))?;
+
+    to_binary(&CodeIdResponse {
+        code_id: Uint64::from(code_id),
+    })
+}
+
+// Is there a way to get this generic ar
+pub fn query_code_id_raw(
+    deps: Deps,
+    env: Env,
+    module: String,
+    version: String,
+) -> StdResult<Binary> {
+    let code_id: u64 = raw_query(deps, &env.contract.address, (module, version))?;
+
     to_binary(&CodeIdResponse {
         code_id: Uint64::from(code_id),
     })

@@ -28,18 +28,21 @@ treasury = TreasuryContract(deployer)
 factory = OsFactoryContract(deployer)
 
 create_vc = False
-create_manager = False
-create_factory = True
+create_manager = True
+create_factory = False
+
 
 if create_vc:
     version_control.upload()
     version_control.instantiate()
+    
+    version_control.add_module_code_id(name="Terraswap", version= "v0.1.0",code_id= version_control.get("terraswap_dapp", True))
     version_control.add_module_code_id(name="Treasury", version= "v0.1.0",code_id= version_control.get("treasury", True))
-    version_control.add_module_code_id(name="Manager", version= "v0.1.0",code_id= version_control.get("manager", True))
 
 if create_manager:
     manager.upload()
-    treasury.upload()
+    # treasury.upload()
+    version_control.add_module_code_id(name="Manager", version= "v0.1.0",code_id= version_control.get("manager", True))
 
 if create_factory:
     factory.upload()

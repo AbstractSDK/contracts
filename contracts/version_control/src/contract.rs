@@ -1,6 +1,8 @@
 use crate::error::VersionError;
 use crate::state::FACTORY;
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use serde::de::DeserializeOwned;
+use serde::Serialize;
 
 use crate::commands::*;
 use crate::queries;
@@ -30,7 +32,7 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         // TODO: Add query to get latest version and code_id for some module
         // That way we don't need to hard-code versions in factory contract
@@ -39,5 +41,8 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         }
         QueryMsg::QueryOsAddress { os_id } => queries::query_os_address(deps, os_id),
         QueryMsg::QueryCodeId { module, version } => queries::query_code_id(deps, module, version),
+        QueryMsg::QueryCodeIdRaw { module, version } => {
+            queries::query_code_id_raw(deps, env, module, version)
+        }
     }
 }

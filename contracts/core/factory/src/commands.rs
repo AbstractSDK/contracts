@@ -73,6 +73,7 @@ pub fn execute_create_os(
                 msg: to_binary(&ManagerInstantiateMsg {
                     os_id: config.os_id_sequence,
                     root_user: root_user.to_string(),
+                    vc_addr: config.version_control_contract.to_string()
                 })?,
             }
             .into(),
