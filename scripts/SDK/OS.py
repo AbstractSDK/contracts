@@ -19,8 +19,8 @@ from cw_os.deploy import get_deployer
 mnemonic = "man goddess right advance aim into sentence crime style salad enforce kind matrix inherit omit entry brush never flat strategy entire outside hedgehog umbrella"
 
 # deployer = get_deployer(mnemonic=mnemonic, chain_id="columbus-5", fee=None)
-# deployer = get_deployer(mnemonic=mnemonic, chain_id="bombay-12", fee=None)
-deployer = get_deployer(mnemonic=mnemonic, chain_id="localterra", fee=None)
+deployer = get_deployer(mnemonic=mnemonic, chain_id="bombay-12", fee=None)
+# deployer = get_deployer(mnemonic=mnemonic, chain_id="localterra", fee=None)
 
 version_control = VersionControlContract(deployer)
 manager = OSManager(deployer)
@@ -56,4 +56,4 @@ terraswap_init_msg =  {
 # manager.update_config()
 manager.query_os_config()
 
-# manager.add_internal_dapp("Terraswap", terraswap_init_msg)
+manager.add_internal_dapp("Terraswap", terraswap_init_msg)

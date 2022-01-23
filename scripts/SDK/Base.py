@@ -19,22 +19,22 @@ from cw_os.deploy import get_deployer
 mnemonic = "man goddess right advance aim into sentence crime style salad enforce kind matrix inherit omit entry brush never flat strategy entire outside hedgehog umbrella"
 # localterra
 # deployer = get_deployer(mnemonic=mnemonic, chain_id="columbus-5", fee=None)
-# deployer = get_deployer(mnemonic=mnemonic, chain_id="bombay-12", fee=None)
-deployer = get_deployer(mnemonic=mnemonic, chain_id="localterra", fee=None)
+deployer = get_deployer(mnemonic=mnemonic, chain_id="bombay-12", fee=None)
+# deployer = get_deployer(mnemonic=mnemonic, chain_id="localterra", fee=None)
 
 version_control = VersionControlContract(deployer)
 manager = OSManager(deployer)
 treasury = TreasuryContract(deployer)
 factory = OsFactoryContract(deployer)
 
-create_vc = False
+create_vc = True
 create_manager = True
-create_factory = False
+create_factory = True
 
 
 if create_vc:
-    version_control.upload()
-    version_control.instantiate()
+    # version_control.upload()
+    # version_control.instantiate()
     
     version_control.add_module_code_id(name="Terraswap", version= "v0.1.0",code_id= version_control.get("terraswap_dapp", True))
     version_control.add_module_code_id(name="Treasury", version= "v0.1.0",code_id= version_control.get("treasury", True))
