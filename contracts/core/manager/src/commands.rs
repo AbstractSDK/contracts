@@ -41,12 +41,9 @@ pub fn handle_message(
 /// TODO: Add functionality to version_control (or some other contract) to add and upgrade contracts.
 pub fn update_module_addresses(
     deps: DepsMut,
-    msg_info: MessageInfo,
     to_add: Option<Vec<(String, String)>>,
     to_remove: Option<Vec<String>>,
 ) -> ManagerResult {
-    // Only Admin can call this method
-    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
     if let Some(modules_to_add) = to_add {
         for (name, new_address) in modules_to_add.into_iter() {
