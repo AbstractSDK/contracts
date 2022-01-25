@@ -41,17 +41,28 @@ pub fn handle_message(
 /// TODO: Add functionality to version_control (or some other contract) to add and upgrade contracts.
 pub fn update_module_addresses(
     deps: DepsMut,
-    to_add: Vec<(String, String)>,
-    to_remove: Vec<String>,
+    msg_info: MessageInfo,
+    to_add: Option<Vec<(String, String)>>,
+    to_remove: Option<Vec<String>>,
 ) -> ManagerResult {
-    for (name, new_address) in to_add.into_iter() {
-        // validate addr
-        deps.as_ref().api.addr_validate(&new_address)?;
-        OS_MODULES.save(deps.storage, name.as_str(), &new_address)?;
+    // Only Admin can call this method
+    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
+
+    if let Some(modules_to_add) = to_add {
+        for (name, new_address) in modules_to_add.into_iter() {
+            if name.len() == 0 {
+                return Err(ManagerError::InvalidModuleName {});
+            };
+            // validate addr
+            deps.as_ref().api.addr_validate(&new_address)?;
+            OS_MODULES.save(deps.storage, name.as_str(), &new_address)?;
+        }
     }
 
-    for name in to_remove {
-        OS_MODULES.remove(deps.storage, name.as_str());
+    if let Some(modules_to_remove) = to_remove {
+        for name in modules_to_remove.into_iter() {
+            OS_MODULES.remove(deps.storage, name.as_str());
+        }
     }
 
     Ok(Response::new().add_attribute("action", "update OS module addresses"))

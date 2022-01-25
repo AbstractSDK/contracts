@@ -21,11 +21,9 @@ use dao_os::version_control::msg::{
 const TREASURY_VERSION: &str = "v0.1.0";
 const MANAGER_VERSION: &str = "v0.1.0";
 
-pub const MANAGER_CREATE_ID: u64 = 1u64;
-pub const TREASURY_CREATE_ID: u64 = 2u64;
-
-pub const TREASURY_NAME: &str = "Treasury";
-pub const MANAGER_NAME: &str = "Manager";
+pub const CREATE_OS_MANAGER_MSG_ID: u64 = 1u64;
+pub const CREATE_OS_TREASURY_MSG_ID: u64 = 2u64;
+use dao_os::registery::{MANAGER, TREASURY};
 
 /// Function that starts the creation of the OS
 pub fn execute_create_os(
@@ -37,7 +35,7 @@ pub fn execute_create_os(
 
     // Get address of OS root user, depends on gov-type
     let root_user: Addr = match governance {
-        GovernanceDetails::Monarchy { owner } => deps.api.addr_validate(&owner)?,
+        GovernanceDetails::Monarchy { monarch } => deps.api.addr_validate(&monarch)?,
         _ => return Err(StdError::generic_err("Not Implemented").into()),
     };
 
@@ -49,7 +47,7 @@ pub fn execute_create_os(
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: config.version_control_contract.to_string(),
             msg: to_binary(&VCQuery::QueryCodeId {
-                module: String::from(MANAGER_NAME),
+                module: String::from(MANAGER),
                 version: String::from(MANAGER_VERSION),
             })?,
         }))?;
@@ -61,7 +59,7 @@ pub fn execute_create_os(
         ])
         // Create manager
         .add_submessage(SubMsg {
-            id: MANAGER_CREATE_ID,
+            id: CREATE_OS_MANAGER_MSG_ID,
             gas_limit: None,
             msg: WasmMsg::Instantiate {
                 code_id: manager_code_id_response.code_id.u64(),
@@ -112,7 +110,7 @@ pub fn after_manager_create_treasury(
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: config.version_control_contract.to_string(),
             msg: to_binary(&VCQuery::QueryCodeId {
-                module: String::from(TREASURY_NAME),
+                module: String::from(TREASURY),
                 version: String::from(TREASURY_VERSION),
             })?,
         }))?;
@@ -121,7 +119,7 @@ pub fn after_manager_create_treasury(
         .add_attribute("Manager Address:", &manager_address.to_string())
         // Instantiate Treasury contract
         .add_submessage(SubMsg {
-            id: TREASURY_CREATE_ID,
+            id: CREATE_OS_TREASURY_MSG_ID,
             gas_limit: None,
             msg: WasmMsg::Instantiate {
                 code_id: treasury_code_id_response.code_id.u64(),
@@ -165,7 +163,7 @@ pub fn after_treasury_add_to_manager(
         .add_attribute("Treasury Address: ", res.get_contract_address())
         .add_message(register_module_on_manager(
             manager_address,
-            TREASURY_NAME.to_string(),
+            TREASURY.to_string(),
             res.get_contract_address().to_string(),
         )?))
 }

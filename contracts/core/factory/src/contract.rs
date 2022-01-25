@@ -4,11 +4,15 @@ use cosmwasm_std::{
 };
 
 use crate::error::OsFactoryError;
+use cw2::set_contract_version;
+use dao_os::registery::FACTORY;
 
 use crate::state::*;
 use crate::{commands, msg::*};
 
 pub type OsFactoryResult = Result<Response, OsFactoryError>;
+
+const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 
@@ -24,6 +28,8 @@ pub fn instantiate(
         creation_fee: msg.creation_fee,
         os_id_sequence: 0u32,
     };
+
+    set_contract_version(deps.storage, FACTORY, CONTRACT_VERSION)?;
 
     CONFIG.save(deps.storage, &config)?;
     ADMIN.set(deps, Some(info.sender))?;
@@ -56,11 +62,11 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> O
 pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> OsFactoryResult {
     match msg {
         Reply {
-            id: commands::MANAGER_CREATE_ID,
+            id: commands::CREATE_OS_MANAGER_MSG_ID,
             result,
         } => commands::after_manager_create_treasury(deps, result),
         Reply {
-            id: commands::TREASURY_CREATE_ID,
+            id: commands::CREATE_OS_TREASURY_MSG_ID,
             result,
         } => commands::after_treasury_add_to_manager(deps, result),
         _ => Err(OsFactoryError::UnexpectedReply {}),

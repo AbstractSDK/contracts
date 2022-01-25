@@ -3,6 +3,7 @@ use cosmwasm_std::{
     StdResult, Addr, Uint64,
 };
 use protobuf::Message;
+use cw2::set_contract_version;
 
 use crate::commands::{self, *};
 use crate::error::ManagerError;
@@ -10,8 +11,13 @@ use crate::queries;
 use crate::response::MsgInstantiateContractResponse;
 use crate::state::{ADMIN, NEW_MODULE, OS_ID, ROOT, VC_ADDRESS};
 use dao_os::manager::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, ConfigQueryResponse};
+use crate::state::{ADMIN, OS_ID};
+use dao_os::manager::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use dao_os::registery::MANAGER;
 
 pub type ManagerResult = Result<Response, ManagerError>;
+
+const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -20,6 +26,8 @@ pub fn instantiate(
     info: MessageInfo,
     msg: InstantiateMsg,
 ) -> ManagerResult {
+    set_contract_version(deps.storage, MANAGER, CONTRACT_VERSION)?;
+
     OS_ID.save(deps.storage, &msg.os_id)?;
     VC_ADDRESS.save(deps.storage, &msg.vc_addr)?;
     // Set root
@@ -55,8 +63,8 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> ManagerResult {
             let module = NEW_MODULE.load(deps.storage)?;
             commands::update_module_addresses(
                 deps,
-                vec![(module, module_address.to_string())],
-                vec![],
+                Some(vec![(module, module_address.to_string())]),
+                None,
             )
         }
         _ => Err(ManagerError::UnexpectedReply {}),
