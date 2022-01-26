@@ -40,7 +40,7 @@ pub fn query_code_id(
     version: Option<String>,
 ) -> StdResult<Binary> {
 
-    let code_id = if let Some(version) = version {
+    let code_id = if let Some(version) = version.clone() {
         MODULE_CODE_IDS.load(deps.storage, (&module, &version))
     } else {
         // get latest
@@ -56,7 +56,7 @@ pub fn query_code_id(
     match code_id {
         Err(_) => {
             return Err(StdError::generic_err(
-                VersionError::MissingCodeId { module, version }.to_string(),
+                VersionError::MissingCodeId { module, version: version.unwrap_or("".to_string()) }.to_string(),
             ))
         }
         Ok(id) => to_binary(&CodeIdResponse {

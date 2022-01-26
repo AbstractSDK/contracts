@@ -89,7 +89,7 @@ pub fn remove_code_id(
     if MODULE_CODE_IDS.has(deps.storage, (&module, &version)) {
         MODULE_CODE_IDS.remove(deps.storage, (&module, &version));
     } else {
-        return Err(VersionError::MissingCodeId { module, version });
+        return Err(VersionError::MissingCodeId { module, version});
     }
 
     Ok(Response::new().add_attributes(vec![
