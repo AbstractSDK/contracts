@@ -12,10 +12,10 @@ pub enum VersionError {
 
     #[error(
         "Version {} of module {} does not have a stored code id",
-        version,
+        version.unwrap_or_default(),
         module
     )]
-    MissingCodeId { version: String, module: String },
+    MissingCodeId { version: Option<String>, module: String },
 
     #[error("OS ID {} is not in version control register", id)]
     MissingOsId { id: u32 },

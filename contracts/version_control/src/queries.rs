@@ -1,3 +1,4 @@
+use cosmwasm_std::Order;
 use cosmwasm_std::QueryRequest;
 use cosmwasm_std::StdError;
 use cosmwasm_std::Uint64;
@@ -36,9 +37,21 @@ pub fn query_os_address(deps: Deps, os_id: u32) -> StdResult<Binary> {
 pub fn query_code_id(
     deps: Deps,
     module: String,
-    version: String,
+    version: Option<String>,
 ) -> StdResult<Binary> {
-    let code_id = MODULE_CODE_IDS.load(deps.storage, (&module, &version));
+
+    let code_id = if let Some(version) = version {
+        MODULE_CODE_IDS.load(deps.storage, (&module, &version))
+    } else {
+        // get latest
+        let versions: StdResult<Vec<(Vec<u8>, u64)>> = MODULE_CODE_IDS
+        .prefix(&module)
+        .range(deps.storage, None, None, Order::Descending)
+        .take(1)
+        .collect();
+        let id = versions?[0].1;
+        Ok(id)
+    };
 
     match code_id {
         Err(_) => {

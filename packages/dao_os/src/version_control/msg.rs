@@ -53,11 +53,7 @@ pub enum QueryMsg {
     /// Queries contract code_id
     QueryCodeId {
         module: String,
-        version: String,
-    },
-    QueryCodeIdRaw {
-        module: String,
-        version: String,
+        version: Option<String>,
     },
 }
 

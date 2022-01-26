@@ -39,8 +39,5 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         }
         QueryMsg::QueryOsAddress { os_id } => queries::query_os_address(deps, os_id),
         QueryMsg::QueryCodeId { module, version } => queries::query_code_id(deps, module, version),
-        QueryMsg::QueryCodeIdRaw { module, version } => {
-            queries::query_code_id(deps, module, version)
-        }
     }
 }
