@@ -1,4 +1,3 @@
-use cosmwasm_std::Env;
 use cosmwasm_std::QueryRequest;
 use cosmwasm_std::StdError;
 use cosmwasm_std::Uint64;

@@ -7,8 +7,6 @@ use dao_os::version_control::msg::CodeIdResponse;
 use crate::contract::ManagerResult;
 use crate::error::ManagerError;
 use crate::state::*;
-use dao_os::manager::msg::ExecuteMsg;
-// use semver::Version;
 use dao_os::version_control::msg::QueryMsg as VCQuery;
 
 pub const DAPP_CREATE_ID: u64 = 1u64;
