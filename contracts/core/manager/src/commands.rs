@@ -68,7 +68,7 @@ pub fn add_internal_dapp(
             contract_addr: vc_addr,
             msg: to_binary(&VCQuery::QueryCodeId {
                 module: module.clone(),
-                version: "v0.1.0".to_string(),
+                version: None,
             })?,
         }))?;
 

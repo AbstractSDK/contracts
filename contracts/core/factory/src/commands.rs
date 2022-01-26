@@ -18,9 +18,6 @@ use dao_os::version_control::msg::{
     CodeIdResponse, ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery,
 };
 
-const TREASURY_VERSION: &str = "v0.1.0";
-const MANAGER_VERSION: &str = "v0.1.0";
-
 pub const CREATE_OS_MANAGER_MSG_ID: u64 = 1u64;
 pub const CREATE_OS_TREASURY_MSG_ID: u64 = 2u64;
 use dao_os::registery::{MANAGER, TREASURY};
@@ -48,7 +45,7 @@ pub fn execute_create_os(
             contract_addr: config.version_control_contract.to_string(),
             msg: to_binary(&VCQuery::QueryCodeId {
                 module: String::from(MANAGER),
-                version: String::from(MANAGER_VERSION),
+                version: None,
             })?,
         }))?;
 
@@ -111,7 +108,7 @@ pub fn after_manager_create_treasury(
             contract_addr: config.version_control_contract.to_string(),
             msg: to_binary(&VCQuery::QueryCodeId {
                 module: String::from(TREASURY),
-                version: String::from(TREASURY_VERSION),
+                version: None,
             })?,
         }))?;
 
