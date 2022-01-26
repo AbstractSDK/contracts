@@ -11,8 +11,6 @@ use crate::queries;
 use crate::response::MsgInstantiateContractResponse;
 use crate::state::{ADMIN, NEW_MODULE, OS_ID, ROOT, VC_ADDRESS};
 use dao_os::manager::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, ConfigQueryResponse};
-use crate::state::{ADMIN, OS_ID};
-use dao_os::manager::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 use dao_os::registery::MANAGER;
 
 pub type ManagerResult = Result<Response, ManagerError>;
@@ -40,7 +38,20 @@ pub fn instantiate(
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> ManagerResult {
-    handle_message(deps, info, env, msg)
+    match msg {
+        ExecuteMsg::SetAdmin { admin } => set_admin(deps, info, admin),
+        ExecuteMsg::UpdateConfig { vc_addr, root,  } => execute_update_config(deps, info, vc_addr, root),
+        ExecuteMsg::UpdateModuleAddresses { to_add, to_remove } => {
+            // Only Admin can call this method
+            ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
+            update_module_addresses(deps, to_add, to_remove)
+        }
+        ExecuteMsg::AddInternalDapp {
+            module,
+            version,
+            init_msg,
+        } => add_internal_dapp(deps, info, env, module, version, init_msg),
+    }
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]

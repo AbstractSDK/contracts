@@ -13,28 +13,6 @@ use dao_os::version_control::msg::QueryMsg as VCQuery;
 
 pub const DAPP_CREATE_ID: u64 = 1u64;
 
-pub fn handle_message(
-    deps: DepsMut,
-    info: MessageInfo,
-    env: Env,
-    message: ExecuteMsg,
-) -> ManagerResult {
-    match message {
-        ExecuteMsg::SetAdmin { admin } => set_admin(deps, info, admin),
-        ExecuteMsg::UpdateConfig { vc_addr, root,  } => execute_update_config(deps, info, vc_addr, root),
-        ExecuteMsg::UpdateModuleAddresses { to_add, to_remove } => {
-            // Only Admin can call this method
-            ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
-            update_module_addresses(deps, to_add, to_remove)
-        }
-        ExecuteMsg::AddInternalDapp {
-            module,
-            version,
-            init_msg,
-        } => add_internal_dapp(deps, info, env, module, version, init_msg),
-    }
-}
-
 /// Adds, updates or removes provided addresses.
 /// Should only be called by contract that adds/removes modules.
 /// Factory is admin on init
