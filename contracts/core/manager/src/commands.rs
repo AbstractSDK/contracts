@@ -2,12 +2,12 @@ use cosmwasm_std::{
     to_binary, Binary, DepsMut, Env, MessageInfo, QueryRequest, ReplyOn, Response, SubMsg, WasmMsg,
     WasmQuery,
 };
-use dao_os::version_control::msg::CodeIdResponse;
+use pandora::version_control::msg::CodeIdResponse;
 
 use crate::contract::ManagerResult;
 use crate::error::ManagerError;
 use crate::state::*;
-use dao_os::version_control::msg::QueryMsg as VCQuery;
+use pandora::version_control::msg::QueryMsg as VCQuery;
 
 pub const DAPP_CREATE_ID: u64 = 1u64;
 
@@ -20,10 +20,9 @@ pub fn update_module_addresses(
     to_add: Option<Vec<(String, String)>>,
     to_remove: Option<Vec<String>>,
 ) -> ManagerResult {
-
     if let Some(modules_to_add) = to_add {
         for (name, new_address) in modules_to_add.into_iter() {
-            if name.len() == 0 {
+            if name.is_empty() {
                 return Err(ManagerError::InvalidModuleName {});
             };
             // validate addr
@@ -53,10 +52,9 @@ pub fn add_internal_dapp(
     ROOT.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
     // Check if dapp is already enabled.
-    match OS_MODULES.may_load(deps.storage, &module)? {
-        Some(_) => return Err(ManagerError::InternalDappAlreadyAdded {}),
-        None => (),
-    };
+    if OS_MODULES.may_load(deps.storage, &module)?.is_some() {
+        return Err(ManagerError::InternalDappAlreadyAdded {});
+    }
 
     // https://github.com/CosmWasm/cosmwasm/blob/879465910cb0958195e51707cb2b3412de302bbd/packages/vm/src/serde.rs
 

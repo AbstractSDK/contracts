@@ -43,13 +43,9 @@ pub enum ExecuteMsg {
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     /// Queries enabled modules of some OS
-    QueryEnabledModules {
-        os_address: String,
-    },
+    QueryEnabledModules { os_address: String },
     /// Queries address of OS manager module
-    QueryOsAddress {
-        os_id: u32,
-    },
+    QueryOsAddress { os_id: u32 },
     /// Queries contract code_id
     QueryCodeId {
         module: String,

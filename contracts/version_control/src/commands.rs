@@ -4,7 +4,7 @@ use cw_storage_plus::U32Key;
 use crate::contract::VCResult;
 use crate::error::VersionError;
 use crate::state::*;
-use dao_os::version_control::msg::ExecuteMsg;
+use pandora::version_control::msg::ExecuteMsg;
 
 /// Handles the common base execute messages
 pub fn handle_message(deps: DepsMut, info: MessageInfo, message: ExecuteMsg) -> VCResult {
@@ -89,7 +89,7 @@ pub fn remove_code_id(
     if MODULE_CODE_IDS.has(deps.storage, (&module, &version)) {
         MODULE_CODE_IDS.remove(deps.storage, (&module, &version));
     } else {
-        return Err(VersionError::MissingCodeId { module, version});
+        return Err(VersionError::MissingCodeId { module, version });
     }
 
     Ok(Response::new().add_attributes(vec![

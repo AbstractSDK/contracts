@@ -10,8 +10,8 @@ use cosmwasm_std::Addr;
 use cosmwasm_std::{to_binary, Binary, Deps, StdResult};
 use cw_storage_plus::U32Key;
 
-use dao_os::manager::msg::{EnabledModulesResponse, QueryMsg};
-use dao_os::version_control::msg::CodeIdResponse;
+use pandora::manager::msg::{EnabledModulesResponse, QueryMsg};
+use pandora::version_control::msg::CodeIdResponse;
 
 pub fn query_enabled_modules(deps: Deps, manager_addr: Addr) -> StdResult<Binary> {
     let response: EnabledModulesResponse =
@@ -25,40 +25,35 @@ pub fn query_enabled_modules(deps: Deps, manager_addr: Addr) -> StdResult<Binary
 pub fn query_os_address(deps: Deps, os_id: u32) -> StdResult<Binary> {
     let os_address = OS_ADDRESSES.load(deps.storage, U32Key::new(os_id));
     match os_address {
-        Err(_) => {
-            return Err(StdError::generic_err(
-                VersionError::MissingOsId { id: os_id }.to_string(),
-            ))
-        }
+        Err(_) => Err(StdError::generic_err(
+            VersionError::MissingOsId { id: os_id }.to_string(),
+        )),
         Ok(address) => to_binary(&address),
     }
 }
 
-pub fn query_code_id(
-    deps: Deps,
-    module: String,
-    version: Option<String>,
-) -> StdResult<Binary> {
-
+pub fn query_code_id(deps: Deps, module: String, version: Option<String>) -> StdResult<Binary> {
     let code_id = if let Some(version) = version.clone() {
         MODULE_CODE_IDS.load(deps.storage, (&module, &version))
     } else {
         // get latest
         let versions: StdResult<Vec<(Vec<u8>, u64)>> = MODULE_CODE_IDS
-        .prefix(&module)
-        .range(deps.storage, None, None, Order::Descending)
-        .take(1)
-        .collect();
+            .prefix(&module)
+            .range(deps.storage, None, None, Order::Descending)
+            .take(1)
+            .collect();
         let id = versions?[0].1;
         Ok(id)
     };
 
     match code_id {
-        Err(_) => {
-            return Err(StdError::generic_err(
-                VersionError::MissingCodeId { module, version: version.unwrap_or("".to_string()) }.to_string(),
-            ))
-        }
+        Err(_) => Err(StdError::generic_err(
+            VersionError::MissingCodeId {
+                module,
+                version: version.unwrap_or_else(|| "".to_string()),
+            }
+            .to_string(),
+        )),
         Ok(id) => to_binary(&CodeIdResponse {
             code_id: Uint64::from(id),
         }),

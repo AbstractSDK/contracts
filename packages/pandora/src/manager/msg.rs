@@ -28,7 +28,7 @@ pub enum ExecuteMsg {
     UpdateConfig {
         vc_addr: Option<String>,
         root: Option<String>,
-    }
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

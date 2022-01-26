@@ -1,17 +1,17 @@
 use cosmwasm_std::{
-    entry_point, to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdError,
-    StdResult, Addr, Uint64,
+    entry_point, to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response,
+    StdError, StdResult, Uint64,
 };
-use protobuf::Message;
 use cw2::set_contract_version;
+use protobuf::Message;
 
 use crate::commands::{self, *};
 use crate::error::ManagerError;
 use crate::queries;
 use crate::response::MsgInstantiateContractResponse;
 use crate::state::{ADMIN, NEW_MODULE, OS_ID, ROOT, VC_ADDRESS};
-use dao_os::manager::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, ConfigQueryResponse};
-use dao_os::registery::MANAGER;
+use pandora::manager::msg::{ConfigQueryResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
+use pandora::registery::MANAGER;
 
 pub type ManagerResult = Result<Response, ManagerError>;
 
@@ -40,7 +40,9 @@ pub fn instantiate(
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> ManagerResult {
     match msg {
         ExecuteMsg::SetAdmin { admin } => set_admin(deps, info, admin),
-        ExecuteMsg::UpdateConfig { vc_addr, root,  } => execute_update_config(deps, info, vc_addr, root),
+        ExecuteMsg::UpdateConfig { vc_addr, root } => {
+            execute_update_config(deps, info, vc_addr, root)
+        }
         ExecuteMsg::UpdateModuleAddresses { to_add, to_remove } => {
             // Only Admin can call this method
             ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
@@ -95,13 +97,16 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
         QueryMsg::QueryOsConfig {} => {
             let os_id = Uint64::from(OS_ID.load(deps.storage)?);
-            let root = ROOT.get(deps)?.unwrap_or(Addr::unchecked("")).to_string();
+            let root = ROOT
+                .get(deps)?
+                .unwrap_or_else(|| Addr::unchecked(""))
+                .to_string();
             let vc_addr = VC_ADDRESS.load(deps.storage)?;
 
             to_binary(&ConfigQueryResponse {
                 root,
                 os_id,
-                vc_addr
+                vc_addr,
             })
         }
     }
