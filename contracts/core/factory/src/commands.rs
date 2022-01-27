@@ -5,6 +5,7 @@ use cosmwasm_std::{
 use cosmwasm_std::{ContractResult, CosmosMsg, SubMsgExecutionResponse};
 use pandora::governance::gov_type::GovernanceDetails;
 use pandora::manager::helper::register_module_on_manager;
+use pandora::modules::ModuleInfo;
 use protobuf::Message;
 
 use crate::contract::OsFactoryResult;
@@ -44,8 +45,10 @@ pub fn execute_create_os(
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: config.version_control_contract.to_string(),
             msg: to_binary(&VCQuery::QueryCodeId {
-                module: String::from(MANAGER),
-                version: None,
+                module: ModuleInfo {
+                    name: String::from(MANAGER),
+                    version: None,
+                },
             })?,
         }))?;
 
@@ -107,8 +110,10 @@ pub fn after_manager_create_treasury(
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: config.version_control_contract.to_string(),
             msg: to_binary(&VCQuery::QueryCodeId {
-                module: String::from(TREASURY),
-                version: None,
+                module: ModuleInfo {
+                    name: String::from(TREASURY),
+                    version: None,
+                },
             })?,
         }))?;
 
