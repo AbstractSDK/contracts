@@ -15,7 +15,7 @@ pub enum ManagerError {
 
     #[error("Contract got an unexpected Reply")]
     UnexpectedReply(),
-    
+
     #[error("The name of the proposed module can not have length 0.")]
     InvalidModuleName {},
 }

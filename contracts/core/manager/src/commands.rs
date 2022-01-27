@@ -2,6 +2,7 @@ use cosmwasm_std::{
     to_binary, Binary, DepsMut, Env, MessageInfo, QueryRequest, ReplyOn, Response, SubMsg, WasmMsg,
     WasmQuery,
 };
+use pandora::modules::ModuleInfo;
 use pandora::version_control::msg::CodeIdResponse;
 
 use crate::contract::ManagerResult;
@@ -65,8 +66,10 @@ pub fn add_internal_dapp(
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: vc_addr,
             msg: to_binary(&VCQuery::QueryCodeId {
-                module: module.clone(),
-                version: None,
+                module: ModuleInfo {
+                    name: module.clone(),
+                    version: None,
+                },
             })?,
         }))?;
 
