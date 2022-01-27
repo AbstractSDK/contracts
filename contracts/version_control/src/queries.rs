@@ -3,6 +3,8 @@ use cosmwasm_std::QueryRequest;
 use cosmwasm_std::StdError;
 use cosmwasm_std::Uint64;
 use cosmwasm_std::WasmQuery;
+use cw2::ContractVersion;
+use pandora::modules::ModuleInfo;
 
 use crate::error::VersionError;
 use crate::state::{MODULE_CODE_IDS, OS_ADDRESSES};
@@ -32,30 +34,39 @@ pub fn query_os_address(deps: Deps, os_id: u32) -> StdResult<Binary> {
     }
 }
 
-pub fn query_code_id(deps: Deps, module: String, version: Option<String>) -> StdResult<Binary> {
-    let code_id = if let Some(version) = version.clone() {
-        MODULE_CODE_IDS.load(deps.storage, (&module, &version))
+pub fn query_code_id(deps: Deps, module: ModuleInfo) -> StdResult<Binary> {
+    // Will store actual version of returned module code id
+    let resulting_version: String;
+
+    let code_id = if let Some(version) = module.version.clone() {
+        resulting_version = version.clone();
+        MODULE_CODE_IDS.load(deps.storage, (&module.name, &version))
     } else {
         // get latest
         let versions: StdResult<Vec<(Vec<u8>, u64)>> = MODULE_CODE_IDS
-            .prefix(&module)
+            .prefix(&module.name)
             .range(deps.storage, None, None, Order::Descending)
             .take(1)
             .collect();
-        let id = versions?[0].1;
-        Ok(id)
+        let (latest_version, id) = &versions?[0];
+        resulting_version = std::str::from_utf8(latest_version)?.to_owned();
+        Ok(*id)
     };
 
     match code_id {
         Err(_) => Err(StdError::generic_err(
             VersionError::MissingCodeId {
-                module,
-                version: version.unwrap_or_else(|| "".to_string()),
+                module: module.name,
+                version: module.version.unwrap_or_else(|| "".to_string()),
             }
             .to_string(),
         )),
         Ok(id) => to_binary(&CodeIdResponse {
             code_id: Uint64::from(id),
+            info: ContractVersion {
+                version: resulting_version,
+                contract: module.name,
+            },
         }),
     }
 }
