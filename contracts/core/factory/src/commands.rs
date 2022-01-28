@@ -71,7 +71,8 @@ pub fn execute_create_os(
                 msg: to_binary(&ManagerInstantiateMsg {
                     os_id: config.os_id_sequence,
                     root_user: root_user.to_string(),
-                    vc_addr: config.version_control_contract.to_string(),
+                    version_control_address: config.version_control_contract.to_string(),
+                    module_factory_address: config.module_factory_address.to_string(),
                 })?,
             }
             .into(),
@@ -171,6 +172,7 @@ pub fn after_treasury_add_to_manager(
 }
 
 // Only owner can execute it
+#[allow(clippy::too_many_arguments)]
 pub fn execute_update_config(
     deps: DepsMut,
     _env: Env,
@@ -178,6 +180,7 @@ pub fn execute_update_config(
     admin: Option<String>,
     memory_contract: Option<String>,
     version_control_contract: Option<String>,
+    module_factory_address: Option<String>,
     creation_fee: Option<u32>,
 ) -> OsFactoryResult {
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
@@ -192,6 +195,11 @@ pub fn execute_update_config(
     if let Some(version_control_contract) = version_control_contract {
         // validate address format
         config.version_control_contract = deps.api.addr_validate(&version_control_contract)?;
+    }
+
+    if let Some(module_factory_address) = module_factory_address {
+        // validate address format
+        config.module_factory_address = deps.api.addr_validate(&module_factory_address)?;
     }
 
     if let Some(creation_fee) = creation_fee {
