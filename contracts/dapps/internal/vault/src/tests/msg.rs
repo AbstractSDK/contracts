@@ -10,7 +10,7 @@ use crate::tests::instantiate::mock_instantiate;
 #[test]
 fn unsuccessful_set_fee_unauthorized() {
     let mut deps = mock_dependencies(&[]);
-    let mut env = mock_env();
+    let env = mock_env();
     mock_instantiate(deps.as_mut(), env.clone());
 
     let msg = ExecuteMsg::SetFee {
@@ -38,7 +38,7 @@ fn successful_update_fee() {
     // update fees
     let info = mock_info(TEST_CREATOR, &[]);
     let mut deps = mock_dependencies(&[]);
-    let mut env = mock_env();
+    let env = mock_env();
     mock_instantiate(deps.as_mut(), env.clone());
 
     let msg = ExecuteMsg::SetFee {
@@ -59,7 +59,7 @@ fn successful_update_pool() {
     // update fees
     let info = mock_info(TEST_CREATOR, &[]);
     let mut deps = mock_dependencies(&[]);
-    let mut env = mock_env();
+    let env = mock_env();
     mock_instantiate(deps.as_mut(), env.clone());
     let msg = ExecuteMsg::UpdatePool {
         deposit_asset: Some("whale".to_string()),
@@ -78,7 +78,7 @@ fn successful_update_pool() {
 fn unsuccessful_update_pool() {
     let info = mock_info("someone", &[]);
     let mut deps = mock_dependencies(&[]);
-    let mut env = mock_env();
+    let env = mock_env();
     mock_instantiate(deps.as_mut(), env.clone());
     let msg = ExecuteMsg::UpdatePool {
         deposit_asset: Some("whale".to_string()),

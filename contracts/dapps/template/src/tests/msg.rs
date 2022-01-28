@@ -26,7 +26,7 @@ fn deps() -> (MockDeps, Env) {
  * BaseExecuteMsg::UpdateConfig
  */
 #[rstest]
-pub fn test_unsuccessfully_update_config_msg(mut deps: (MockDeps, Env)) {
+pub fn test_unsuccessfully_update_config_msg(deps: (MockDeps, Env)) {
     let (mut deps, env) = deps;
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
         treasury_address: None,
@@ -43,7 +43,7 @@ pub fn test_unsuccessfully_update_config_msg(mut deps: (MockDeps, Env)) {
 }
 
 #[rstest]
-pub fn test_successfully_update_config_msg_with_treasury_address(mut deps: (MockDeps, Env)) {
+pub fn test_successfully_update_config_msg_with_treasury_address(deps: (MockDeps, Env)) {
     let (mut deps, env) = deps;
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
         treasury_address: Some("new_treasury_address".to_string()),
@@ -63,7 +63,7 @@ pub fn test_successfully_update_config_msg_with_treasury_address(mut deps: (Mock
 }
 
 #[rstest]
-pub fn test_successfully_update_config_msg_with_all_parameters(mut deps: (MockDeps, Env)) {
+pub fn test_successfully_update_config_msg_with_all_parameters(deps: (MockDeps, Env)) {
     let (mut deps, env) = deps;
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
         treasury_address: Some("new_treasury_address".to_string()),
@@ -83,7 +83,7 @@ pub fn test_successfully_update_config_msg_with_all_parameters(mut deps: (MockDe
 }
 
 #[rstest]
-pub fn test_successfully_update_config_msg_with_no_parameters(mut deps: (MockDeps, Env)) {
+pub fn test_successfully_update_config_msg_with_no_parameters(deps: (MockDeps, Env)) {
     let (mut deps, env) = deps;
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
         treasury_address: None,
@@ -106,7 +106,7 @@ pub fn test_successfully_update_config_msg_with_no_parameters(mut deps: (MockDep
  * BaseExecuteMsg::SetAdmin
  */
 #[rstest]
-pub fn test_unsuccessfully_set_admin_msg(mut deps: (MockDeps, Env)) {
+pub fn test_unsuccessfully_set_admin_msg(deps: (MockDeps, Env)) {
     let (mut deps, env) = deps;
     let msg = ExecuteMsg::Base(BaseExecuteMsg::SetAdmin {
         admin: "new_admin".to_string(),
@@ -123,7 +123,7 @@ pub fn test_unsuccessfully_set_admin_msg(mut deps: (MockDeps, Env)) {
 }
 
 #[rstest]
-pub fn test_successfully_set_admin_msg(mut deps: (MockDeps, Env)) {
+pub fn test_successfully_set_admin_msg(deps: (MockDeps, Env)) {
     let (mut deps, env) = deps;
 
     // check original admin
@@ -144,7 +144,7 @@ pub fn test_successfully_set_admin_msg(mut deps: (MockDeps, Env)) {
 }
 
 #[rstest]
-pub fn test_successfully_update_traders_add(mut deps: (MockDeps, Env)) {
+pub fn test_successfully_update_traders_add(deps: (MockDeps, Env)) {
     let (mut deps, env) = deps;
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateTraders {
         to_add: Some(vec![
@@ -209,7 +209,7 @@ pub fn test_successfully_update_traders_add_many(deps: (MockDeps, Env)) {
 }
 
 #[rstest]
-pub fn test_unsuccessfully_update_traders_add_already_present(mut deps: (MockDeps, Env)) {
+pub fn test_unsuccessfully_update_traders_add_already_present(deps: (MockDeps, Env)) {
     let (mut deps, env) = deps;
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateTraders {
         to_add: Some(vec![TRADER_CONTRACT.to_string()]),
@@ -235,7 +235,7 @@ pub fn test_unsuccessfully_update_traders_add_already_present(mut deps: (MockDep
 }
 
 #[rstest]
-pub fn test_successfully_update_traders_remove(mut deps: (MockDeps, Env)) {
+pub fn test_successfully_update_traders_remove(deps: (MockDeps, Env)) {
     let (mut deps, env) = deps;
     // lets add some traders to start
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateTraders {
@@ -284,7 +284,7 @@ pub fn test_successfully_update_traders_remove(mut deps: (MockDeps, Env)) {
 }
 
 #[rstest]
-pub fn test_unsuccessfully_update_traders_remove_not_present(mut deps: (MockDeps, Env)) {
+pub fn test_unsuccessfully_update_traders_remove_not_present(deps: (MockDeps, Env)) {
     let (mut deps, env) = deps;
     // now try and remove some traders that were not there
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateTraders {
@@ -312,7 +312,7 @@ pub fn test_unsuccessfully_update_traders_remove_not_present(mut deps: (MockDeps
 }
 
 #[rstest]
-pub fn test_successfully_update_traders_replace_existing(mut deps: (MockDeps, Env)) {
+pub fn test_successfully_update_traders_replace_existing(deps: (MockDeps, Env)) {
     let (mut deps, env) = deps;
     // now try and remove some traders that were not there
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateTraders {
@@ -334,7 +334,7 @@ pub fn test_successfully_update_traders_replace_existing(mut deps: (MockDeps, En
 }
 
 #[rstest]
-pub fn test_unsuccessfully_update_traders_no_traders_left(mut deps: (MockDeps, Env)) {
+pub fn test_unsuccessfully_update_traders_no_traders_left(deps: (MockDeps, Env)) {
     let (mut deps, env) = deps;
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateTraders {
         to_add: None,

@@ -1,4 +1,4 @@
-use crate::dapp_base::common::{MEMORY_CONTRACT, TRADER_CONTRACT, TREASURY_CONTRACT};
+use crate::dapp_base::common::MEMORY_CONTRACT;
 use pandora::treasury::dapp_base::msg::BaseInstantiateMsg;
 
 #[allow(dead_code)]
