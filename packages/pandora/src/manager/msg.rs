@@ -3,11 +3,14 @@ use cw2::ContractVersion;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use crate::modules::Module;
+
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
     pub os_id: u32,
     pub root_user: String,
-    pub vc_addr: String,
+    pub version_control_address: String,
+    pub module_factory_address: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -19,11 +22,16 @@ pub enum ExecuteMsg {
         to_remove: Option<Vec<String>>,
     },
     /// Sets a new Admin
-    SetAdmin { admin: String },
-    AddInternalDapp {
-        module: String,
-        version: Option<String>,
-        init_msg: Binary,
+    SetAdmin {
+        admin: String,
+    },
+    CreateModule {
+        module: Module,
+        init_msg: Option<Binary>,
+    },
+    RegisterModule {
+        module_addr: String,
+        module: Module,
     },
     UpdateConfig {
         vc_addr: Option<String>,
@@ -64,6 +72,7 @@ pub struct EnabledModulesResponse {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ConfigQueryResponse {
     pub root: String,
-    pub vc_addr: String,
+    pub version_control_address: String,
+    pub module_factory_address: String,
     pub os_id: Uint64,
 }
