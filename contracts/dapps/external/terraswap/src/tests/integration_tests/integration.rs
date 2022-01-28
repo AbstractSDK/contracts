@@ -29,8 +29,6 @@ fn init_terraswap_dapp(app: &mut App, owner: Addr, base_contracts: &BaseContract
     let tswap_dapp_code_id = app.store_code(tswap_dapp_contract);
 
     let tswap_dapp_instantiate_msg = InstantiateMsg {
-        trader: owner.to_string(),
-        treasury_address: base_contracts.treasury.to_string(),
         memory_addr: base_contracts.memory.to_string(),
     };
 

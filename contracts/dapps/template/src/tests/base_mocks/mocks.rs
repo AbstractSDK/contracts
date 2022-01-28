@@ -1,26 +1,42 @@
 use cosmwasm_std::testing::{mock_env, mock_info};
-use cosmwasm_std::DepsMut;
+use cosmwasm_std::{DepsMut, Env};
 
-use crate::dapp_base::common::{MEMORY_CONTRACT, TEST_CREATOR, TRADER_CONTRACT, TREASURY_CONTRACT};
-use pandora::treasury::dapp_base::msg::BaseInstantiateMsg;
+use crate::dapp_base::common::{MEMORY_CONTRACT, TEST_CREATOR, TRADER_CONTRACT};
+use crate::msg::ExecuteMsg;
+use pandora::treasury::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg};
 
-use crate::contract::instantiate;
+use crate::contract::{execute, instantiate};
 
 pub(crate) fn instantiate_msg() -> BaseInstantiateMsg {
     BaseInstantiateMsg {
         memory_addr: MEMORY_CONTRACT.to_string(),
-        treasury_address: TREASURY_CONTRACT.to_string(),
-        trader: TRADER_CONTRACT.to_string(),
     }
 }
 
 /**
  * Mocks instantiation of the contract.
  */
-pub fn mock_instantiate(deps: DepsMut) {
+pub fn mock_instantiate(mut deps: DepsMut) -> Env {
     let info = mock_info(TEST_CREATOR, &[]);
-    let _res = instantiate(deps, mock_env(), info, instantiate_msg())
+    let env = mock_env();
+    let _res = instantiate(deps.branch(), mock_env(), info.clone(), instantiate_msg())
         .expect("contract successfully handles InstantiateMsg");
+
+    // Add one trader
+    let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateTraders {
+        to_add: Some(vec![TRADER_CONTRACT.to_string()]),
+        to_remove: None,
+    });
+
+    execute(deps.branch(), env.clone(), info.clone(), msg).unwrap();
+
+    // Set treasury addr
+    let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
+        treasury_address: Some("new_treasury_address".to_string()),
+    });
+
+    execute(deps, env.clone(), info, msg).unwrap();
+    env
 }
 
 // /**

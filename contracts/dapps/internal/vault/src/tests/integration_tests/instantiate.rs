@@ -32,8 +32,6 @@ pub fn init_vault_dapp(app: &mut App, owner: Addr, base_contracts: &BaseContract
 
     let vault_dapp_instantiate_msg = InstantiateMsg {
         base: BaseInstantiateMsg {
-            trader: owner.to_string(),
-            treasury_address: base_contracts.treasury.to_string(),
             memory_addr: base_contracts.memory.to_string(),
         },
         token_code_id: lp_contract_code_id,

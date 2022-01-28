@@ -1,5 +1,5 @@
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info, MockApi, MockQuerier};
-use cosmwasm_std::{Addr, MemoryStorage, OwnedDeps};
+use cosmwasm_std::{Addr, Env, MemoryStorage, OwnedDeps};
 
 use pandora::memory::item::Memory;
 use pandora::treasury::dapp_base::error::BaseDAppError;
@@ -15,10 +15,10 @@ use rstest::*;
 type MockDeps = OwnedDeps<MemoryStorage, MockApi, MockQuerier>;
 
 #[fixture]
-fn deps() -> MockDeps {
+fn deps() -> (MockDeps, Env) {
     let mut deps = mock_dependencies(&[]);
-    mock_instantiate(deps.as_mut());
-    deps
+    let env = mock_instantiate(deps.as_mut());
+    (deps, env)
 }
 
 /**
@@ -29,7 +29,6 @@ pub fn test_unsuccessfully_update_config_msg(mut deps: MockDeps) {
     let env = mock_env();
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
         treasury_address: None,
-        memory: None,
     });
 
     let info = mock_info("unauthorized", &[]);
@@ -47,7 +46,6 @@ pub fn test_successfully_update_config_msg_with_treasury_address(mut deps: MockD
     let env = mock_env();
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
         treasury_address: Some("new_treasury_address".to_string()),
-        memory: None,
     });
 
     let info = mock_info(TEST_CREATOR, &[]);
@@ -68,7 +66,6 @@ pub fn test_successfully_update_config_msg_with_memory(mut deps: MockDeps) {
     let env = mock_env();
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
         treasury_address: None,
-        memory: Some("new_memory_address".to_string()),
     });
 
     let info = mock_info(TEST_CREATOR, &[]);
@@ -89,7 +86,6 @@ pub fn test_successfully_update_config_msg_with_all_parameters(mut deps: MockDep
     let env = mock_env();
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
         treasury_address: Some("new_treasury_address".to_string()),
-        memory: Some("new_memory_address".to_string()),
     });
 
     let info = mock_info(TEST_CREATOR, &[]);
@@ -110,7 +106,6 @@ pub fn test_successfully_update_config_msg_with_no_parameters(mut deps: MockDeps
     let env = mock_env();
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
         treasury_address: None,
-        memory: None,
     });
 
     let info = mock_info(TEST_CREATOR, &[]);
