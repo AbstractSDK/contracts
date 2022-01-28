@@ -1,4 +1,4 @@
-use cosmwasm_std::entry_point;
+use cosmwasm_std::{entry_point, Addr};
 use cosmwasm_std::{
     to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
@@ -7,8 +7,9 @@ use crate::error::ModuleFactoryError;
 use cw2::set_contract_version;
 use pandora::registery::FACTORY;
 
+use crate::commands;
 use crate::state::*;
-use crate::{commands, msg::*};
+use pandora::module_factory::msg::*;
 
 pub type ModuleFactoryResult = Result<Response, ModuleFactoryError>;
 
@@ -30,6 +31,13 @@ pub fn instantiate(
     set_contract_version(deps.storage, FACTORY, CONTRACT_VERSION)?;
 
     CONFIG.save(deps.storage, &config)?;
+    // Set context for after init
+    CONTEXT.save(
+        deps.storage,
+        &Context {
+            manager: Addr::unchecked(""),
+        },
+    )?;
     ADMIN.set(deps, Some(info.sender))?;
     Ok(Response::new())
 }
@@ -57,19 +65,18 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
 
 /// This just stores the result for future query
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn reply(_deps: DepsMut, _env: Env, _msg: Reply) -> ModuleFactoryResult {
-    // match msg {
-    //     Reply {
-    //         id: commands::CREATE_OS_MANAGER_MSG_ID,
-    //         result,
-    //     } => commands::after_manager_create_treasury(deps, result),
-    //     Reply {
-    //         id: commands::CREATE_OS_TREASURY_MSG_ID,
-    //         result,
-    //     } => commands::after_treasury_add_to_manager(deps, result),
-    //     _ => Err(ModuleFactoryError::UnexpectedReply {}),
-    // }
-    Ok(Response::default())
+pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> ModuleFactoryResult {
+    match msg {
+        Reply {
+            id: commands::CREATE_INTERNAL_DAPP_RESPONSE_ID,
+            result,
+        } => commands::handle_internal_dapp_init_result(deps, result),
+        Reply {
+            id: commands::CREATE_EXTERNAL_DAPP_RESPONSE_ID,
+            result,
+        } => commands::handle_external_dapp_init_result(deps, result),
+        _ => Err(ModuleFactoryError::UnexpectedReply {}),
+    }
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]

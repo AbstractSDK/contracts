@@ -12,4 +12,7 @@ pub enum ModuleFactoryError {
 
     #[error("Calling contract is not a registered OS Manager")]
     UnknownCaller(),
+
+    #[error("Reply ID does not match any known Reply ID")]
+    UnexpectedReply(),
 }
