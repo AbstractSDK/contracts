@@ -17,7 +17,8 @@ type MockDeps = OwnedDeps<MemoryStorage, MockApi, MockQuerier>;
 #[fixture]
 fn deps() -> (MockDeps, Env) {
     let mut deps = mock_dependencies(&[]);
-    let env = mock_instantiate(deps.as_mut());
+    let env = mock_env();
+    mock_instantiate(deps.as_mut(), env.clone());
     (deps, env)
 }
 
@@ -25,8 +26,8 @@ fn deps() -> (MockDeps, Env) {
  * BaseExecuteMsg::UpdateConfig
  */
 #[rstest]
-pub fn test_unsuccessfully_update_config_msg(mut deps: MockDeps) {
-    let env = mock_env();
+pub fn test_unsuccessfully_update_config_msg(mut deps: (MockDeps, Env)) {
+    let (mut deps, env) = deps;
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
         treasury_address: None,
     });
@@ -42,8 +43,8 @@ pub fn test_unsuccessfully_update_config_msg(mut deps: MockDeps) {
 }
 
 #[rstest]
-pub fn test_successfully_update_config_msg_with_treasury_address(mut deps: MockDeps) {
-    let env = mock_env();
+pub fn test_successfully_update_config_msg_with_treasury_address(mut deps: (MockDeps, Env)) {
+    let (mut deps, env) = deps;
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
         treasury_address: Some("new_treasury_address".to_string()),
     });
@@ -62,28 +63,8 @@ pub fn test_successfully_update_config_msg_with_treasury_address(mut deps: MockD
 }
 
 #[rstest]
-pub fn test_successfully_update_config_msg_with_memory(mut deps: MockDeps) {
-    let env = mock_env();
-    let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
-        treasury_address: None,
-    });
-
-    let info = mock_info(TEST_CREATOR, &[]);
-    execute(deps.as_mut(), env.clone(), info, msg).unwrap();
-
-    let state = BASESTATE.load(deps.as_mut().storage).unwrap();
-
-    assert_equal_base_state(
-        &state,
-        TREASURY_CONTRACT,
-        vec![TRADER_CONTRACT],
-        "new_memory_address",
-    );
-}
-
-#[rstest]
-pub fn test_successfully_update_config_msg_with_all_parameters(mut deps: MockDeps) {
-    let env = mock_env();
+pub fn test_successfully_update_config_msg_with_all_parameters(mut deps: (MockDeps, Env)) {
+    let (mut deps, env) = deps;
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
         treasury_address: Some("new_treasury_address".to_string()),
     });
@@ -97,13 +78,13 @@ pub fn test_successfully_update_config_msg_with_all_parameters(mut deps: MockDep
         &state,
         "new_treasury_address",
         vec![TRADER_CONTRACT],
-        "new_memory_address",
+        MEMORY_CONTRACT,
     );
 }
 
 #[rstest]
-pub fn test_successfully_update_config_msg_with_no_parameters(mut deps: MockDeps) {
-    let env = mock_env();
+pub fn test_successfully_update_config_msg_with_no_parameters(mut deps: (MockDeps, Env)) {
+    let (mut deps, env) = deps;
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
         treasury_address: None,
     });
@@ -125,8 +106,8 @@ pub fn test_successfully_update_config_msg_with_no_parameters(mut deps: MockDeps
  * BaseExecuteMsg::SetAdmin
  */
 #[rstest]
-pub fn test_unsuccessfully_set_admin_msg(mut deps: MockDeps) {
-    let env = mock_env();
+pub fn test_unsuccessfully_set_admin_msg(mut deps: (MockDeps, Env)) {
+    let (mut deps, env) = deps;
     let msg = ExecuteMsg::Base(BaseExecuteMsg::SetAdmin {
         admin: "new_admin".to_string(),
     });
@@ -142,8 +123,8 @@ pub fn test_unsuccessfully_set_admin_msg(mut deps: MockDeps) {
 }
 
 #[rstest]
-pub fn test_successfully_set_admin_msg(mut deps: MockDeps) {
-    let env = mock_env();
+pub fn test_successfully_set_admin_msg(mut deps: (MockDeps, Env)) {
+    let (mut deps, env) = deps;
 
     // check original admin
     let admin = ADMIN.get(deps.as_ref()).unwrap().unwrap();
@@ -163,8 +144,8 @@ pub fn test_successfully_set_admin_msg(mut deps: MockDeps) {
 }
 
 #[rstest]
-pub fn test_successfully_update_traders_add(mut deps: MockDeps) {
-    let env = mock_env();
+pub fn test_successfully_update_traders_add(mut deps: (MockDeps, Env)) {
+    let (mut deps, env) = deps;
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateTraders {
         to_add: Some(vec![
             "new_trader_address1".to_string(),
@@ -191,14 +172,14 @@ pub fn test_successfully_update_traders_add(mut deps: MockDeps) {
 }
 
 #[rstest]
-pub fn test_successfully_update_traders_add_many(mut deps: MockDeps) {
+pub fn test_successfully_update_traders_add_many(deps: (MockDeps, Env)) {
+    let (mut deps, env) = deps;
     let mut new_traders: Vec<String> = vec![];
     for i in 1..=100 {
         new_traders.push(format!("new_trader_{}", i));
     }
     // let aoeu = new_traders.clone();
 
-    let env = mock_env();
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateTraders {
         to_add: Some(new_traders.clone()),
         to_remove: None,
@@ -228,8 +209,8 @@ pub fn test_successfully_update_traders_add_many(mut deps: MockDeps) {
 }
 
 #[rstest]
-pub fn test_unsuccessfully_update_traders_add_already_present(mut deps: MockDeps) {
-    let env = mock_env();
+pub fn test_unsuccessfully_update_traders_add_already_present(mut deps: (MockDeps, Env)) {
+    let (mut deps, env) = deps;
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateTraders {
         to_add: Some(vec![TRADER_CONTRACT.to_string()]),
         to_remove: None,
@@ -254,9 +235,9 @@ pub fn test_unsuccessfully_update_traders_add_already_present(mut deps: MockDeps
 }
 
 #[rstest]
-pub fn test_successfully_update_traders_remove(mut deps: MockDeps) {
+pub fn test_successfully_update_traders_remove(mut deps: (MockDeps, Env)) {
+    let (mut deps, env) = deps;
     // lets add some traders to start
-    let env = mock_env();
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateTraders {
         to_add: Some(vec![
             "new_trader_address1".to_string(),
@@ -303,8 +284,8 @@ pub fn test_successfully_update_traders_remove(mut deps: MockDeps) {
 }
 
 #[rstest]
-pub fn test_unsuccessfully_update_traders_remove_not_present(mut deps: MockDeps) {
-    let env = mock_env();
+pub fn test_unsuccessfully_update_traders_remove_not_present(mut deps: (MockDeps, Env)) {
+    let (mut deps, env) = deps;
     // now try and remove some traders that were not there
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateTraders {
         to_add: None,
@@ -331,8 +312,8 @@ pub fn test_unsuccessfully_update_traders_remove_not_present(mut deps: MockDeps)
 }
 
 #[rstest]
-pub fn test_successfully_update_traders_replace_existing(mut deps: MockDeps) {
-    let env = mock_env();
+pub fn test_successfully_update_traders_replace_existing(mut deps: (MockDeps, Env)) {
+    let (mut deps, env) = deps;
     // now try and remove some traders that were not there
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateTraders {
         to_add: Some(vec!["new_trader".to_string()]),
@@ -353,8 +334,8 @@ pub fn test_successfully_update_traders_replace_existing(mut deps: MockDeps) {
 }
 
 #[rstest]
-pub fn test_unsuccessfully_update_traders_no_traders_left(mut deps: MockDeps) {
-    let env = mock_env();
+pub fn test_unsuccessfully_update_traders_no_traders_left(mut deps: (MockDeps, Env)) {
+    let (mut deps, env) = deps;
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateTraders {
         to_add: None,
         to_remove: Some(vec![TRADER_CONTRACT.to_string()]),

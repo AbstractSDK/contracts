@@ -16,10 +16,9 @@ pub(crate) fn instantiate_msg() -> BaseInstantiateMsg {
 /**
  * Mocks instantiation of the contract.
  */
-pub fn mock_instantiate(mut deps: DepsMut) -> Env {
+pub fn mock_instantiate(mut deps: DepsMut, env: Env) {
     let info = mock_info(TEST_CREATOR, &[]);
-    let env = mock_env();
-    let _res = instantiate(deps.branch(), mock_env(), info.clone(), instantiate_msg())
+    let _res = instantiate(deps.branch(), env.clone(), info.clone(), instantiate_msg())
         .expect("contract successfully handles InstantiateMsg");
 
     // Add one trader
@@ -32,27 +31,8 @@ pub fn mock_instantiate(mut deps: DepsMut) -> Env {
 
     // Set treasury addr
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
-        treasury_address: Some("new_treasury_address".to_string()),
+        treasury_address: Some("treasury_contract_address".to_string()),
     });
 
     execute(deps, env.clone(), info, msg).unwrap();
-    env
 }
-
-// /**
-//  * Mocks adding asset to the [ADDRESS_BOOK].
-//  */
-// #[allow(dead_code)]
-// pub fn mock_add_to_address_book(deps: DepsMut, asset_address_pair: (String, String)) {
-//     let env = mock_env();
-
-//     let (asset, address) = asset_address_pair;
-//     // add address
-//     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateAddressBook {
-//         to_add: vec![(asset, address)],
-//         to_remove: vec![],
-//     });
-
-//     let info = mock_info(TEST_CREATOR, &[]);
-//     execute(deps, env.clone(), info, msg).unwrap();
-// }

@@ -11,7 +11,7 @@ use pandora::memory::msg as MemoryMsg;
 use pandora::treasury::msg as TreasuryMsg;
 use pandora::treasury::vault_assets::{ValueRef, VaultAsset};
 
-use pandora::treasury::dapp_base::msg::BaseInstantiateMsg;
+use pandora::treasury::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg};
 
 use super::common_integration::{whitelist_dapp, BaseContracts};
 const MILLION: u64 = 1_000_000u64;
@@ -130,6 +130,23 @@ pub fn init_vault_dapp(app: &mut App, owner: Addr, base_contracts: &BaseContract
         Uint128::from(2_000u64 * MILLION),
         base_contracts.whale_ust_pair.to_string(),
     );
+
+    // Add one trader
+    let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateTraders {
+        to_add: Some(vec![owner.to_string()]),
+        to_remove: None,
+    });
+
+    app.execute_contract(owner.clone(), vault_dapp_instance.clone(), &msg, &[])
+        .unwrap();
+
+    // Set treasury addr
+    let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
+        treasury_address: Some(base_contracts.treasury.to_string()),
+    });
+
+    app.execute_contract(owner.clone(), vault_dapp_instance.clone(), &msg, &[])
+        .unwrap();
 
     (vault_dapp_instance, Addr::unchecked(liquidity_token))
 }

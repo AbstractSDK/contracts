@@ -13,7 +13,7 @@ use pandora::treasury::msg as TreasuryMsg;
 use terra_multi_test::Executor;
 use terraswap::pair::PoolResponse;
 
-use pandora::treasury::dapp_base::msg::BaseInstantiateMsg as InstantiateMsg;
+use pandora::treasury::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg as InstantiateMsg};
 
 use super::common_integration::{whitelist_dapp, BaseContracts};
 const MILLION: u64 = 1_000_000u64;
@@ -42,6 +42,23 @@ fn init_terraswap_dapp(app: &mut App, owner: Addr, base_contracts: &BaseContract
             "Tswap_dapp",
             None,
         )
+        .unwrap();
+
+    // Add one trader
+    let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateTraders {
+        to_add: Some(vec![owner.to_string()]),
+        to_remove: None,
+    });
+
+    app.execute_contract(owner.clone(), tswap_dapp_instance.clone(), &msg, &[])
+        .unwrap();
+
+    // Set treasury addr
+    let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
+        treasury_address: Some(base_contracts.treasury.to_string()),
+    });
+
+    app.execute_contract(owner.clone(), tswap_dapp_instance.clone(), &msg, &[])
         .unwrap();
 
     whitelist_dapp(app, &owner, &base_contracts.treasury, &tswap_dapp_instance);
