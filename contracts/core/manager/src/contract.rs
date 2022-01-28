@@ -1,15 +1,14 @@
 use cosmwasm_std::{
-    entry_point, to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response,
-    StdError, StdResult, Uint64,
+    entry_point, to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
+    Uint64,
 };
 use cw2::set_contract_version;
-use protobuf::Message;
 
-use crate::commands::{self, *};
+use crate::commands::*;
 use crate::error::ManagerError;
 use crate::queries;
-use crate::response::MsgInstantiateContractResponse;
-use crate::state::{ADMIN, NEW_MODULE, OS_ID, ROOT, VC_ADDRESS};
+
+use crate::state::{Config, ADMIN, CONFIG, OS_ID, ROOT};
 use pandora::manager::msg::{ConfigQueryResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
 use pandora::registery::MANAGER;
 
@@ -27,7 +26,13 @@ pub fn instantiate(
     set_contract_version(deps.storage, MANAGER, CONTRACT_VERSION)?;
 
     OS_ID.save(deps.storage, &msg.os_id)?;
-    VC_ADDRESS.save(deps.storage, &msg.vc_addr)?;
+    CONFIG.save(
+        deps.storage,
+        &Config {
+            version_control_address: deps.api.addr_validate(&msg.version_control_address)?,
+            module_factory_address: deps.api.addr_validate(&msg.module_factory_address)?,
+        },
+    )?;
     // Set root
     let root = deps.api.addr_validate(&msg.root_user)?;
     ROOT.set(deps.branch(), Some(root))?;
@@ -45,44 +50,46 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
         }
         ExecuteMsg::UpdateModuleAddresses { to_add, to_remove } => {
             // Only Admin can call this method
+            // TODO: do we want Root here too?
             ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
             update_module_addresses(deps, to_add, to_remove)
         }
-        ExecuteMsg::AddInternalDapp {
-            module,
-            version,
-            init_msg,
-        } => add_internal_dapp(deps, info, env, module, version, init_msg),
-    }
-}
-
-#[cfg_attr(not(feature = "library"), entry_point)]
-pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> ManagerResult {
-    match msg {
-        Reply {
-            id: commands::DAPP_CREATE_ID,
-            result,
-        } => {
-            // Get address of new dApp
-            let res: MsgInstantiateContractResponse = Message::parse_from_bytes(
-                result.unwrap().data.unwrap().as_slice(),
-            )
-            .map_err(|_| {
-                StdError::parse_err("MsgInstantiateContractResponse", "failed to parse data")
-            })?;
-            let module_address = res.get_contract_address();
-
-            // Save new module details
-            let module = NEW_MODULE.load(deps.storage)?;
-            commands::update_module_addresses(
-                deps,
-                Some(vec![(module, module_address.to_string())]),
-                None,
-            )
+        ExecuteMsg::CreateModule { module, init_msg } => {
+            create_module(deps, info, env, module, init_msg)
         }
-        _ => Err(ManagerError::UnexpectedReply {}),
+        ExecuteMsg::RegisterModule {
+            module,
+            module_addr,
+        } => register_module(deps, info, env, module, module_addr),
     }
 }
+
+// #[cfg_attr(not(feature = "library"), entry_point)]
+// pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> ManagerResult {
+//     match msg {
+//         Reply {
+//             id: commands::DAPP_CREATE_ID,
+//             result,
+//         } => {
+//             // Get address of new dApp
+//             let res: MsgInstantiateContractResponse = Message::parse_from_bytes(
+//                 result.unwrap().data.unwrap().as_slice(),
+//             )
+//             .map_err(|_| {
+//                 StdError::parse_err("MsgInstantiateContractResponse", "failed to parse data")
+//             })?;
+//             let module_address = res.get_contract_address();
+
+//             // Save new module details
+//             commands::update_module_addresses(
+//                 deps,
+//                 Some(vec![(module, module_address.to_string())]),
+//                 None,
+//             )
+//         }
+//         _ => Err(ManagerError::UnexpectedReply {}),
+//     }
+// }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
@@ -101,12 +108,14 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
                 .get(deps)?
                 .unwrap_or_else(|| Addr::unchecked(""))
                 .to_string();
-            let vc_addr = VC_ADDRESS.load(deps.storage)?;
+
+            let config = CONFIG.load(deps.storage)?;
 
             to_binary(&ConfigQueryResponse {
                 root,
                 os_id,
-                vc_addr,
+                version_control_address: config.version_control_address.to_string(),
+                module_factory_address: config.module_factory_address.into_string(),
             })
         }
     }

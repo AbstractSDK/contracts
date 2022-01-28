@@ -18,4 +18,7 @@ pub enum ManagerError {
 
     #[error("The name of the proposed module can not have length 0.")]
     InvalidModuleName {},
+
+    #[error("Registering module fails because caller is not module factory")]
+    CallerNotFactory {},
 }
