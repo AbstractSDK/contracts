@@ -33,6 +33,10 @@ pub enum ExecuteMsg {
         module_addr: String,
         module: Module,
     },
+    ConfigureModule {
+        module_name: String,
+        config_msg: Binary,
+    },
     UpdateConfig {
         vc_addr: Option<String>,
         root: Option<String>,
