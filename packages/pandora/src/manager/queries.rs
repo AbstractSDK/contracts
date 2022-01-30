@@ -35,7 +35,7 @@ pub fn query_module_versions(
 pub fn query_os_id(deps: Deps, manager_addr: &Addr) -> StdResult<u32> {
     let req = QueryRequest::Wasm(WasmQuery::Raw {
         contract_addr: manager_addr.into(),
-        key: to_length_prefixed(b"module_code_ids").into(),
+        key: "\u{0}{5}os_id".as_bytes().into(),
     });
     deps.querier.query::<u32>(&req)
 }
