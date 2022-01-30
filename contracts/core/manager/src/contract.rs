@@ -61,6 +61,10 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
             module,
             module_addr,
         } => register_module(deps, info, env, module, module_addr),
+        ExecuteMsg::ConfigureModule {
+            module_name,
+            config_msg,
+        } => configure_module(deps, info, module_name, config_msg),
     }
 }
 
