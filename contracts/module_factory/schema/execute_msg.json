@@ -1,9 +1,9 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "ExecuteMsg",
-  "anyOf": [
+  "oneOf": [
     {
-      "description": "UpdateConfig update relevant code IDs",
+      "description": "Update config",
       "type": "object",
       "required": [
         "update_config"
@@ -12,27 +12,23 @@
         "update_config": {
           "type": "object",
           "properties": {
-            "owner": {
+            "admin": {
               "type": [
                 "string",
                 "null"
               ]
             },
-            "pair_code_id": {
+            "memory_contract": {
               "type": [
-                "integer",
+                "string",
                 "null"
-              ],
-              "format": "uint64",
-              "minimum": 0.0
+              ]
             },
-            "token_code_id": {
+            "version_control_contract": {
               "type": [
-                "integer",
+                "string",
                 "null"
-              ],
-              "format": "uint64",
-              "minimum": 0.0
+              ]
             }
           }
         }
@@ -40,26 +36,95 @@
       "additionalProperties": false
     },
     {
-      "description": "CreatePair instantiates pair contract",
+      "description": "Creates the core contracts for the OS",
       "type": "object",
       "required": [
-        "create_pair"
+        "create_module"
       ],
       "properties": {
-        "create_pair": {
+        "create_module": {
           "type": "object",
           "required": [
-            "asset_infos"
+            "module"
           ],
           "properties": {
-            "asset_infos": {
-              "description": "Asset infos",
+            "init_msg": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Binary"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "module": {
+              "description": "Module details",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Module"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "update_factory_binary_msgs"
+      ],
+      "properties": {
+        "update_factory_binary_msgs": {
+          "type": "object",
+          "required": [
+            "to_add",
+            "to_remove"
+          ],
+          "properties": {
+            "to_add": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/AssetInfo"
-              },
-              "maxItems": 2,
-              "minItems": 2
+                "type": "array",
+                "items": [
+                  {
+                    "type": "array",
+                    "items": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ],
+                    "maxItems": 2,
+                    "minItems": 2
+                  },
+                  {
+                    "$ref": "#/definitions/Binary"
+                  }
+                ],
+                "maxItems": 2,
+                "minItems": 2
+              }
+            },
+            "to_remove": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "maxItems": 2,
+                "minItems": 2
+              }
             }
           }
         }
@@ -68,49 +133,49 @@
     }
   ],
   "definitions": {
-    "AssetInfo": {
-      "description": "AssetInfo contract_addr is usually passed from the cw20 hook so we can trust the contract_addr is properly validated.",
-      "anyOf": [
-        {
-          "type": "object",
-          "required": [
-            "token"
-          ],
-          "properties": {
-            "token": {
-              "type": "object",
-              "required": [
-                "contract_addr"
-              ],
-              "properties": {
-                "contract_addr": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "additionalProperties": false
+    "Binary": {
+      "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>",
+      "type": "string"
+    },
+    "Module": {
+      "type": "object",
+      "required": [
+        "info",
+        "kind"
+      ],
+      "properties": {
+        "info": {
+          "$ref": "#/definitions/ModuleInfo"
         },
-        {
-          "type": "object",
-          "required": [
-            "native_token"
-          ],
-          "properties": {
-            "native_token": {
-              "type": "object",
-              "required": [
-                "denom"
-              ],
-              "properties": {
-                "denom": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "additionalProperties": false
+        "kind": {
+          "$ref": "#/definitions/ModuleKind"
         }
+      }
+    },
+    "ModuleInfo": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "ModuleKind": {
+      "type": "string",
+      "enum": [
+        "internal",
+        "external",
+        "service",
+        "perk"
       ]
     }
   }

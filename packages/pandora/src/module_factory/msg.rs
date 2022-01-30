@@ -26,6 +26,10 @@ pub enum ExecuteMsg {
         module: Module,
         init_msg: Option<Binary>,
     },
+    UpdateFactoryBinaryMsgs {
+        to_add: Vec<((String, String), Binary)>,
+        to_remove: Vec<(String, String)>,
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

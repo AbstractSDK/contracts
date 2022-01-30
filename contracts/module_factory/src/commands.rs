@@ -1,6 +1,6 @@
 use cosmwasm_std::{
     to_binary, Binary, ContractResult, CosmosMsg, DepsMut, Env, MessageInfo, QueryRequest, ReplyOn,
-    Response, StdError, SubMsg, SubMsgExecutionResponse, WasmMsg, WasmQuery,
+    Response, StdError, StdResult, SubMsg, SubMsgExecutionResponse, WasmMsg, WasmQuery,
 };
 
 use cw2::ContractVersion;
@@ -335,4 +335,26 @@ pub fn execute_update_config(
     }
 
     Ok(Response::new().add_attribute("action", "update_config"))
+}
+
+// Only owner can execute it
+pub fn update_factory_binaries(
+    deps: DepsMut,
+    info: MessageInfo,
+    to_add: Vec<((String, String), Binary)>,
+    to_remove: Vec<(String, String)>,
+) -> ModuleFactoryResult {
+    // Only Admin can call this method
+    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
+
+    for (key, binary) in to_add.into_iter() {
+        // Update function for new or existing keys
+        let insert = |_| -> StdResult<Binary> { Ok(binary) };
+        MODULE_INIT_BINARIES.update(deps.storage, (&key.0, &key.1), insert)?;
+    }
+
+    for key in to_remove {
+        MODULE_INIT_BINARIES.remove(deps.storage, (&key.0, &key.1));
+    }
+    Ok(Response::new().add_attribute("Action: ", "update binaries"))
 }
