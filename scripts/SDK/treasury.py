@@ -45,7 +45,7 @@ create = True
 if create:
     # treasury.create()
     terraswap_dapp.upload()
-    # terraswap_dapp.instantiate()
+    terraswap_dapp.instantiate()
     # treasury.add_dapp(terraswap_dapp.address)
     # treasury.add_dapp(deployer.wallet.key.acc_address)
 
