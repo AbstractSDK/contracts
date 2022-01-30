@@ -68,33 +68,6 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
     }
 }
 
-// #[cfg_attr(not(feature = "library"), entry_point)]
-// pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> ManagerResult {
-//     match msg {
-//         Reply {
-//             id: commands::DAPP_CREATE_ID,
-//             result,
-//         } => {
-//             // Get address of new dApp
-//             let res: MsgInstantiateContractResponse = Message::parse_from_bytes(
-//                 result.unwrap().data.unwrap().as_slice(),
-//             )
-//             .map_err(|_| {
-//                 StdError::parse_err("MsgInstantiateContractResponse", "failed to parse data")
-//             })?;
-//             let module_address = res.get_contract_address();
-
-//             // Save new module details
-//             commands::update_module_addresses(
-//                 deps,
-//                 Some(vec![(module, module_address.to_string())]),
-//                 None,
-//             )
-//         }
-//         _ => Err(ManagerError::UnexpectedReply {}),
-//     }
-// }
-
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
