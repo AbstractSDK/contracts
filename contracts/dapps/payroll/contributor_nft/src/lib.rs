@@ -7,11 +7,10 @@ pub use cw721_base::{ContractError, InstantiateMsg, MintMsg, MinterResponse, Que
 // see: https://docs.opensea.io/docs/metadata-standards
 #[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug, Default)]
 pub struct Metadata {
-    pub project_name: String,
     pub base_income: Uint64,
-    pub project_url: Option<String>,
-    pub contributor_id: Option<String>,
-    pub project_token: Option<String>,
+    pub weight: Uint64,
+    pub first_payday: Uint64,
+    pub expiration: Uint64,
     pub description: Option<String>,
 }
 
