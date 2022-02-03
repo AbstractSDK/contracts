@@ -8,17 +8,16 @@ use cosmwasm_std::{
 use crate::error::TreasuryError;
 use cw2::{get_contract_version, set_contract_version};
 use pandora::query::terraswap::query_asset_balance;
+use pandora::registery::TREASURY;
 use pandora::treasury::msg::{
     ConfigResponse, ExecuteMsg, HoldingValueResponse, InstantiateMsg, MigrateMsg, QueryMsg,
     TotalValueResponse,
 };
-use pandora::registery::TREASURY;
 use pandora::treasury::state::{State, ADMIN, STATE, VAULT_ASSETS};
 use pandora::treasury::vault_assets::{get_identifier, VaultAsset};
 use semver::Version;
 use terraswap::asset::AssetInfo;
 type TreasuryResult = Result<Response, TreasuryError>;
-
 /*
     The treasury is the bank account of the protocol. It owns the liquidity and acts as a proxy contract.
     Whitelisted dApps construct messages for this contract. The dApps are controlled by Governance.
@@ -64,21 +63,6 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> TreasuryResult {
-    // let data = deps
-    //     .storage
-    //     .get(CONFIG_KEY)
-    //     .ok_or_else(|| StdError::not_found("State"))?;
-    // // We can start a new State object from the old one
-    // let mut config: State = from_slice(&data)?;
-    // // And use something provided in MigrateMsg to update the state of the migrated contract
-    // config.verifier = deps.api.addr_validate(&msg.verifier)?;
-    // // Then store our modified State
-    // deps.storage.set(CONFIG_KEY, &to_vec(&config)?);
-    // If we have no need to update the State of the contract then just Response::default() should suffice
-    // in this case, the code is still updated, the migration does not change the contract addr or funds
-    // if this is the case you desire, consider making the new Addr part of the MigrateMsg and then doing
-    // a payout
-
     let version: Version = CONTRACT_VERSION.parse()?;
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse()?;
 
