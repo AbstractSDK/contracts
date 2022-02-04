@@ -18,13 +18,23 @@ pub struct Config {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct State {
     pub income: Uint128,
+    pub expense: Uint128,
     pub total_weight: Uint128,
     pub next_pay_day: Uint64,
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct Compensation {
+    pub base: u32,
+    pub weight: u32,
+    pub first_pay_day: Uint64,
+    pub expiration: Uint64,
+}
+
+pub const MONTH: u64 = 60 * 60 * 24 * 30;
 pub const CONFIG: Item<Config> = Item::new("\u{0}{6}config");
 pub const STATE: Item<State> = Item::new("\u{0}{5}state");
 
-pub const CUSTOMERS: PagedMap<Deposit> = PagedMap::new("\u{0}{11}paging_info", "customers");
-// List of nft ids that already got paid
-pub const PAID_CONTRIBUTORS: Item<Vec<String>> = Item::new("\u{0}{17}paid_contributors");
+pub const CUSTOMERS: PagedMap<Deposit> = PagedMap::new("\u{0}{19}customers_page_info", "customers");
+// List contributors
+pub const CONTRIBUTORS: PagedMap<Compensation> =PagedMap::new("\u{0}{22}contributors_page_info", "contributors");

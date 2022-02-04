@@ -24,7 +24,7 @@ use crate::response::MsgInstantiateContractResponse;
 
 use crate::error::PayrollError;
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse};
-use crate::state::{Config, State, CONFIG, CUSTOMERS, STATE};
+use crate::state::{Config, State, CONFIG, CUSTOMERS, STATE, MONTH};
 use crate::{commands, queries};
 pub type PayrollResult = Result<Response, PayrollError>;
 
@@ -33,7 +33,6 @@ const INSTANTIATE_REPLY_ID: u8 = 1u8;
 const DEFAULT_LP_TOKEN_NAME: &str = "Vault LP token";
 const DEFAULT_LP_TOKEN_SYMBOL: &str = "uvLP";
 
-const MONTH: u64 = 60 * 60 * 24 * 30;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -54,6 +53,7 @@ pub fn instantiate(
 
     let state: State = State {
         income: Uint128::zero(),
+        expense: Uint128::zero(),
         total_weight: Uint128::zero(),
         next_pay_day: Uint64::from(env.block.time.seconds() + MONTH),
     };

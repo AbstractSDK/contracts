@@ -7,7 +7,7 @@ const DEFAULT_LIMIT: u32 = 10;
 const MAX_LIMIT: u32 = 30;
 
 pub struct PagedMap<'a, T> {
-    pub data: Map<'a, &'a str, T>,
+    pub data: Map<'a, &'a [u8], T>,
     pub status: Item<'a, PaginationInfo>,
 }
 

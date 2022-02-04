@@ -1,13 +1,13 @@
-use cosmwasm_std::{from_binary, Addr, DepsMut, Env, MessageInfo, Response};
+use cosmwasm_std::{from_binary, Addr, DepsMut, Env, MessageInfo, Response, Uint128, Uint64};
 use cw20::Cw20ReceiveMsg;
 use terraswap::asset::{Asset, AssetInfo};
 
-use pandora::treasury::dapp_base::state::{BaseState, BASESTATE};
+use pandora::treasury::dapp_base::state::{BaseState, BASESTATE, ADMIN};
 
 use crate::contract::PayrollResult;
 use crate::error::PayrollError;
 use crate::msg::DepositHookMsg;
-use crate::state::{CONFIG, CUSTOMERS};
+use crate::state::{CONFIG, CUSTOMERS, Compensation, STATE, CONTRIBUTORS, MONTH};
 
 /// handler function invoked when the vault dapp contract receives
 /// a transaction. In this case it is triggered when either a LP tokens received
@@ -43,11 +43,9 @@ pub fn try_pay(
 ) -> PayrollResult {
     // Load all needed states
     let config = CONFIG.load(deps.storage)?;
-    let base_state: BaseState = BASESTATE.load(deps.storage)?;
-    let _memory = base_state.memory;
 
     // Get the liquidity provider address
-    let _liq_provider = match sender {
+    match sender {
         Some(addr) => Addr::unchecked(addr),
         None => {
             // Check if deposit matches claimed deposit.
@@ -70,11 +68,11 @@ pub fn try_pay(
         return Err(PayrollError::WrongToken {});
     }
 
-    let mut customer_balance = CUSTOMERS.data.load(deps.storage, &os_id.to_string())?;
+    let mut customer_balance = CUSTOMERS.data.load(deps.storage, &os_id.to_be_bytes())?;
     customer_balance.increase(asset.amount);
     CUSTOMERS
         .data
-        .save(deps.storage, &os_id.to_string(), &customer_balance)?;
+        .save(deps.storage, &os_id.to_be_bytes(), &customer_balance)?;
 
     // Init vector for logging
     let attrs = vec![
@@ -84,6 +82,50 @@ pub fn try_pay(
 
     Ok(Response::new().add_attributes(attrs))
 }
+
+/// Called when either paying with a native token or when paying
+/// with a CW20.
+pub fn update_contributor(
+    deps: DepsMut,
+    msg_info: MessageInfo,
+    contributor_addr: String,
+    mut compensation: Compensation,
+) -> PayrollResult {
+    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
+
+    // Load all needed states
+    let mut state = STATE.load(deps.storage)?;
+
+    let maybe_compensation = CONTRIBUTORS.data.may_load(deps.storage, &contributor_addr.as_bytes())?;
+
+    match maybe_compensation {
+        Some(current_compensation) => {
+            let weight_diff: i32 = current_compensation.weight as i32 - compensation.weight as i32;
+            let base_diff: i32 = current_compensation.base as i32 - compensation.base as i32;
+            state.total_weight = Uint128::from((state.total_weight.u128() as i128 + weight_diff as i128) as u128);
+            state.expense = Uint128::from((state.expense.u128() as i128 + base_diff as i128) as u128);
+        }
+        None => {
+            state.total_weight += Uint128::from(compensation.weight);
+            state.expense += Uint128::from(compensation.base);
+            // Can only get paid on pay day after next pay day
+            compensation.first_pay_day = state.next_pay_day + Uint64::from(MONTH);
+        }
+    };
+    
+    CONTRIBUTORS.data.save(deps.storage, &contributor_addr.as_bytes(), &compensation)?;
+    STATE.save(deps.storage, &state)?;
+
+    // Init vector for logging
+    let attrs = vec![
+        ("Action:", String::from("Update Compensation")),
+        ("For:", contributor_addr.to_string()),
+    ];
+
+    Ok(Response::new().add_attributes(attrs))
+}
+
+
 
 // /// Attempt to withdraw deposits. Fees are calculated and deducted in liquidity tokens.
 // /// This allowes the war-chest to accumulate a stake in the vault.
