@@ -79,6 +79,7 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> ModuleFactoryResult {
             result,
         } => commands::handle_external_dapp_init_result(deps, result),
         _ => Err(ModuleFactoryError::UnexpectedReply {}),
+        // TODO: add admin setters for services and perks
     }
 }
 
