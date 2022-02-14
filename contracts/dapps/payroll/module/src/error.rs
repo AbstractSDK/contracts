@@ -4,7 +4,7 @@ use pandora::treasury::dapp_base::error::BaseDAppError;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
-pub enum PayrollError {
+pub enum PaymentError {
     #[error("{0}")]
     Std(#[from] StdError),
 
@@ -31,4 +31,7 @@ pub enum PayrollError {
 
     #[error("The actual amount of tokens transfered is different from the claimed amount.")]
     InvalidAmount {},
+
+    #[error("The contributor you wanted to remove is not registered.")]
+    ContributorNotRegistered,
 }

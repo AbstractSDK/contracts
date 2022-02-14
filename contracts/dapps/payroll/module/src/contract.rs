@@ -22,11 +22,11 @@ use pandora::treasury::dapp_base::state::{BaseState, ADMIN, BASESTATE};
 
 use crate::response::MsgInstantiateContractResponse;
 
-use crate::error::PayrollError;
+use crate::error::PaymentError;
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse};
-use crate::state::{Config, State, CONFIG, CUSTOMERS, STATE, MONTH};
+use crate::state::{Config, State, CONFIG, CLIENTS, STATE, MONTH};
 use crate::{commands, queries};
-pub type PayrollResult = Result<Response, PayrollError>;
+pub type PaymentResult = Result<Response, PaymentError>;
 
 const INSTANTIATE_REPLY_ID: u8 = 1u8;
 
@@ -40,7 +40,7 @@ pub fn instantiate(
     env: Env,
     info: MessageInfo,
     msg: InstantiateMsg,
-) -> PayrollResult {
+) -> PaymentResult {
     let base_state: BaseState = dapp_base_commands::handle_base_init(deps.as_ref(), msg.base)?;
 
     let config: Config = Config {
@@ -67,7 +67,7 @@ pub fn instantiate(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> PayrollResult {
+pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> PaymentResult {
     match msg {
         ExecuteMsg::Base(message) => {
             from_base_dapp_result(dapp_base_commands::handle_base_message(deps, info, message))
@@ -101,7 +101,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
 /// Required to convert BaseDAppResult into TerraswapResult
 /// Can't implement the From trait directly
-fn from_base_dapp_result(result: BaseDAppResult) -> PayrollResult {
+fn from_base_dapp_result(result: BaseDAppResult) -> PaymentResult {
     match result {
         Err(e) => Err(e.into()),
         Ok(r) => Ok(r),

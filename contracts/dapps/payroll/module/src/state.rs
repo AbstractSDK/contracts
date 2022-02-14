@@ -35,6 +35,6 @@ pub const MONTH: u64 = 60 * 60 * 24 * 30;
 pub const CONFIG: Item<Config> = Item::new("\u{0}{6}config");
 pub const STATE: Item<State> = Item::new("\u{0}{5}state");
 
-pub const CUSTOMERS: PagedMap<Deposit> = PagedMap::new("\u{0}{19}customers_page_info", "customers");
+pub const CLIENTS: PagedMap<Deposit> = PagedMap::new("\u{0}{16}client_page_info", "clients");
 // List contributors
 pub const CONTRIBUTORS: PagedMap<Compensation> =PagedMap::new("\u{0}{22}contributors_page_info", "contributors");
