@@ -24,8 +24,8 @@ pub fn instantiate(
     msg: InstantiateMsg,
 ) -> ModuleFactoryResult {
     let config = Config {
-        version_control_contract: deps.api.addr_validate(&msg.version_control_contract)?,
-        memory_contract: deps.api.addr_validate(&msg.memory_contract)?,
+        version_control_address: deps.api.addr_validate(&msg.version_control_address)?,
+        memory_address: deps.api.addr_validate(&msg.memory_address)?,
     };
 
     set_contract_version(deps.storage, FACTORY, CONTRACT_VERSION)?;
@@ -47,15 +47,15 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
     match msg {
         ExecuteMsg::UpdateConfig {
             admin,
-            memory_contract,
-            version_control_contract,
+            memory_address,
+            version_control_address,
         } => commands::execute_update_config(
             deps,
             env,
             info,
             admin,
-            memory_contract,
-            version_control_contract,
+            memory_address,
+            version_control_address,
         ),
         ExecuteMsg::CreateModule { module, init_msg } => {
             commands::execute_create_module(deps, env, info, module, init_msg)
@@ -95,8 +95,8 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
     let admin = ADMIN.get(deps)?.unwrap();
     let resp = ConfigResponse {
         owner: admin.into(),
-        version_control_contract: state.version_control_contract.into(),
-        memory_contract: state.memory_contract.into(),
+        version_control_address: state.version_control_address.into(),
+        memory_address: state.memory_address.into(),
     };
 
     Ok(resp)

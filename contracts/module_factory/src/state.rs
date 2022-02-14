@@ -6,8 +6,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Config {
-    pub version_control_contract: Addr,
-    pub memory_contract: Addr,
+    pub version_control_address: Addr,
+    pub memory_address: Addr,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]

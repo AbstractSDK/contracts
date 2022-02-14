@@ -5,10 +5,10 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
-    /// Version control contract used to get code-ids and register OS
-    pub version_control_contract: String,
-    /// Memory contract
-    pub memory_contract: String,
+    /// Version control address used to get code-ids and register OS
+    pub version_control_address: String,
+    /// Memory address
+    pub memory_address: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -17,8 +17,8 @@ pub enum ExecuteMsg {
     /// Update config
     UpdateConfig {
         admin: Option<String>,
-        memory_contract: Option<String>,
-        version_control_contract: Option<String>,
+        memory_address: Option<String>,
+        version_control_address: Option<String>,
     },
     /// Creates the core contracts for the OS
     CreateModule {
@@ -42,8 +42,8 @@ pub enum QueryMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ConfigResponse {
     pub owner: String,
-    pub memory_contract: String,
-    pub version_control_contract: String,
+    pub memory_address: String,
+    pub version_control_address: String,
 }
 
 /// We currently take no arguments for migrations

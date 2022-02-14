@@ -40,7 +40,7 @@ pub fn execute_create_module(
     let os_id = query_os_id(deps.as_ref(), &info.sender)?;
 
     let maybe_os_manager_addr =
-        try_raw_os_manager_query(deps.as_ref(), &config.version_control_contract, os_id);
+        try_raw_os_manager_query(deps.as_ref(), &config.version_control_address, os_id);
     match maybe_os_manager_addr {
         Ok(addr) => {
             if !info.sender.eq(&addr) {
@@ -54,7 +54,7 @@ pub fn execute_create_module(
     // Query version_control for code_id Module
     let module_code_id_response: CodeIdResponse =
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-            contract_addr: config.version_control_contract.to_string(),
+            contract_addr: config.version_control_address.to_string(),
             msg: to_binary(&VCQuery::QueryCodeId {
                 module: module.info,
             })?,
@@ -310,21 +310,21 @@ pub fn execute_update_config(
     _env: Env,
     info: MessageInfo,
     admin: Option<String>,
-    memory_contract: Option<String>,
-    version_control_contract: Option<String>,
+    memory_address: Option<String>,
+    version_control_address: Option<String>,
 ) -> ModuleFactoryResult {
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
 
     let mut config: Config = CONFIG.load(deps.storage)?;
 
-    if let Some(memory_contract) = memory_contract {
+    if let Some(memory_address) = memory_address {
         // validate address format
-        config.memory_contract = deps.api.addr_validate(&memory_contract)?;
+        config.memory_address = deps.api.addr_validate(&memory_address)?;
     }
 
-    if let Some(version_control_contract) = version_control_contract {
+    if let Some(version_control_address) = version_control_address {
         // validate address format
-        config.version_control_contract = deps.api.addr_validate(&version_control_contract)?;
+        config.version_control_address = deps.api.addr_validate(&version_control_address)?;
     }
 
     CONFIG.save(deps.storage, &config)?;
