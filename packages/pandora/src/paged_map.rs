@@ -1,5 +1,4 @@
-#![allow(dead_code)]
-use cosmwasm_std::{DepsMut, Order, StdResult};
+use cosmwasm_std::{DepsMut, Order, StdResult, Deps};
 use cw_storage_plus::{Bound, Item, Map};
 
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -14,37 +13,44 @@ pub struct PagedMap<'a, T, R> {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PaginationInfo <R> {
     pub is_locked: bool,
+    pub counter: u32,
     pub size: u32,
-    pub last_item: Option<String>,
+    pub last_processed_item: Option<String>,
     pub accumulator: Option<R>,
 }
-#[allow(unused)]
+
+impl<R> PaginationInfo<R> {
+    pub fn progress(&self) -> String {
+        format!("Tallied {} of {} ", self.counter, self.size)
+    }
+}
+
 impl<'a, T, R> PagedMap<'a, T, R> {
-    pub const fn new(namespace: &'a str) -> Self {
-        let status_key = String::from(namespace) + "status".to_string();
+    pub const fn new(namespace: &'a str, status_namespace: &'a str) -> Self {
         PagedMap {
             data: Map::new(namespace),
-            status: Item::new(&status_key),
+            status: Item::new(status_namespace),
         }
     }
 
-    fn page_with_accumulator(
+    pub fn page_with_accumulator(
         &self,
         deps: DepsMut,
         limit: Option<u32>,
-        f: fn(T, &mut Option<R>),
-    ) -> StdResult<()>
+        f: fn((Vec<u8>,T,Deps), &mut R),
+    ) -> StdResult<Option<R>> 
     where
         T: Serialize + DeserializeOwned,
-        R: Serialize + DeserializeOwned + Default,
+        R: Serialize + DeserializeOwned + Default + Clone,
     {
         let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
         let mut status = self.status.load(deps.storage)?;
-        if !status.is_locked {
+        if status.accumulator.is_none() {
             status.is_locked = true;
             status.accumulator = Some(R::default());
+            status.counter = 0u32;
         }
-        let start = status.last_item.clone().map(Bound::exclusive);
+        let start = status.last_processed_item.clone().map(Bound::exclusive);
 
         let result: Vec<Vec<u8>> = self
             .data
@@ -52,19 +58,43 @@ impl<'a, T, R> PagedMap<'a, T, R> {
             .take(limit)
             .map(|item| {
                 let (key, element) = item.unwrap();
-                f(element, &mut status.accumulator);
+                f((key.clone(),element,deps.as_ref()), &mut status.accumulator.as_mut().expect("accumulator contains some value"));
                 key
             })
             .collect();
 
-        status.last_item = result
+        status.counter += result.len() as u32;
+
+        status.last_processed_item = result
             .last()
             .map(|key| String::from(std::str::from_utf8(key).unwrap()));
+
+        let accumulator = PagedMap::<'a, T, R>::is_done(&mut status);
 
         self.status.save(
             deps.storage,
             &status
         )?;
-        Ok(())
+        Ok(accumulator)
+    }
+
+    /// Returns the accumulator if operation is finished
+    fn is_done(
+        status: &mut PaginationInfo<R>,
+    ) -> Option<R>
+    where
+        R: Clone,
+    {
+        let accumulator: Option<R>;
+
+        if status.counter == status.size {
+            accumulator = status.accumulator.clone();
+            status.is_locked = false;
+            status.accumulator = None;
+        } else {
+            accumulator = None;
+        }
+
+        accumulator
     }
 }

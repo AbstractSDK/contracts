@@ -1,13 +1,22 @@
-use cosmwasm_std::{from_binary, Addr, DepsMut, Env, MessageInfo, Response, Uint128, Uint64};
-use cw20::Cw20ReceiveMsg;
+use std::convert::TryInto;
+
+use cosmwasm_std::{
+    from_binary, to_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, Fraction, MessageInfo,
+    Response, StdResult, Uint128, Uint64, WasmMsg,
+};
+use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg};
+use pandora::deposit_manager::Deposit;
+use pandora::treasury::msg::send_to_treasury;
 use terraswap::asset::{Asset, AssetInfo};
 
-use pandora::treasury::dapp_base::state::{BaseState, BASESTATE, ADMIN};
+use pandora::treasury::dapp_base::state::{ADMIN, BASESTATE};
 
 use crate::contract::PaymentResult;
 use crate::error::PaymentError;
 use crate::msg::DepositHookMsg;
-use crate::state::{CONFIG, CUSTOMERS, Compensation, STATE, CONTRIBUTORS, MONTH, State, CLIENTS};
+use crate::state::{
+    Compensation, IncomeAccumulator, State, CLIENTS, CONFIG, CONTRIBUTORS, MONTH, STATE,
+};
 
 /// handler function invoked when the vault dapp contract receives
 /// a transaction. In this case it is triggered when either a LP tokens received
@@ -68,9 +77,10 @@ pub fn try_pay(
         return Err(PaymentError::WrongToken {});
     }
 
-    let mut customer_balance = CUSTOMERS.data.load(deps.storage, &os_id.to_be_bytes())?;
-    customer_balance.increase(asset.amount);
-    CUSTOMERS
+    let mut customer_balance = CLIENTS.data.load(deps.storage, &os_id.to_be_bytes())?;
+    customer_balance.increase((asset.amount.u128() as u64).into());
+
+    CLIENTS
         .data
         .save(deps.storage, &os_id.to_be_bytes(), &customer_balance)?;
 
@@ -95,24 +105,25 @@ pub fn update_contributor(
     // Load all needed states
     let mut state = STATE.load(deps.storage)?;
 
-    let maybe_compensation = CONTRIBUTORS.data.may_load(deps.storage, &contributor_addr.as_bytes())?;
+    let maybe_compensation = CONTRIBUTORS.may_load(deps.storage, &contributor_addr)?;
 
     match maybe_compensation {
         Some(current_compensation) => {
             let weight_diff: i32 = current_compensation.weight as i32 - compensation.weight as i32;
             let base_diff: i32 = current_compensation.base as i32 - compensation.base as i32;
-            state.total_weight = Uint128::from((state.total_weight.u128() as i128 + weight_diff as i128) as u128);
-            state.expense = Uint128::from((state.expense.u128() as i128 + base_diff as i128) as u128);
+            state.total_weight =
+                Uint128::from((state.total_weight.u128() as i128 + weight_diff as i128) as u128);
+            state.target = Uint64::from((state.target.u64() as i64 + base_diff as i64) as u64);
         }
         None => {
             state.total_weight += Uint128::from(compensation.weight);
-            state.expense += Uint128::from(compensation.base);
+            state.target += Uint64::from(compensation.base);
             // Can only get paid on pay day after next pay day
-            compensation.first_pay_day = state.next_pay_day + Uint64::from(MONTH);
+            compensation.next_pay_day = state.next_pay_day + Uint64::from(MONTH);
         }
     };
-    
-    CONTRIBUTORS.data.save(deps.storage, &contributor_addr.as_bytes(), &compensation)?;
+
+    CONTRIBUTORS.save(deps.storage, &contributor_addr, &compensation)?;
     STATE.save(deps.storage, &state)?;
 
     // Init vector for logging
@@ -124,9 +135,7 @@ pub fn update_contributor(
     Ok(Response::new().add_attributes(attrs))
 }
 
-
-/// Called when either paying with a native token or when paying
-/// with a CW20.
+/// Removes the specified contributor
 pub fn remove_contributor(
     deps: DepsMut,
     msg_info: MessageInfo,
@@ -137,19 +146,19 @@ pub fn remove_contributor(
     // Load all needed states
     let mut state = STATE.load(deps.storage)?;
 
-    let maybe_compensation = CONTRIBUTORS.data.may_load(deps.storage, &contributor_addr.as_bytes())?;
+    let maybe_compensation = CONTRIBUTORS.may_load(deps.storage, &contributor_addr)?;
 
     match maybe_compensation {
         Some(current_compensation) => {
             state.total_weight -= Uint128::from(current_compensation.weight);
-            state.expense -= Uint128::from(current_compensation.base);
+            state.target = state
+                .target
+                .checked_sub(Uint64::from(current_compensation.base))?;
             // Can only get paid on pay day after next pay day
-            CONTRIBUTORS.data.remove(deps.storage, &contributor_addr.as_bytes());
+            CONTRIBUTORS.remove(deps.storage, &contributor_addr);
             STATE.save(deps.storage, &state)?;
         }
-        None => {
-            return Err(PaymentError::ContributorNotRegistered{})
-        }
+        None => return Err(PaymentError::ContributorNotRegistered {}),
     };
     // Init vector for logging
     let attrs = vec![
@@ -160,115 +169,114 @@ pub fn remove_contributor(
     Ok(Response::new().add_attributes(attrs))
 }
 
-
 pub fn try_claim(
-    deps: DepsMut,
+    mut deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    amount: Uint128,
+    page_limit: Option<u32>,
 ) -> PaymentResult {
-    let state: State = STATE.load(deps.storage)?;
+    let mut state: State = STATE.load(deps.storage)?;
 
     // Are we beyond the next pay time?
     if state.next_pay_day.u64() < env.block.time.seconds() {
-        // First tally income, then set next block time 
-        tally_income(deps, env)?;
-    }
-    
-    let assets = memory.query_assets(deps.as_ref(), &pool.assets)?;
-
-    // Logging var
-    let mut attrs = vec![
-        ("Action:", String::from("Withdraw from vault")),
-        ("Received liquidity tokens:", amount.to_string()),
-    ];
-
-    // Calculate share of pool and requested pool value
-    let total_share: Uint128 = query_supply(&deps.querier, state.liquidity_token_addr.clone())?;
-
-    // Get treasury fee in LP tokens
-    let treasury_fee = fee.compute(amount);
-
-    // Share with fee deducted.
-    let share_ratio: Decimal = Decimal::from_ratio(amount - treasury_fee, total_share);
-
-    // Init response
-    let response = Response::new();
-
-    // LP token fee
-    let lp_token_treasury_fee = Asset {
-        info: AssetInfo::Token {
-            contract_addr: state.liquidity_token_addr.to_string(),
-        },
-        amount: treasury_fee,
-    };
-
-    // Construct treasury fee msg
-    let treasury_fee_msg = fee.msg(
-        deps.as_ref(),
-        lp_token_treasury_fee,
-        base_state.treasury_address.clone(),
-    )?;
-    attrs.push(("Treasury fee:", treasury_fee.to_string()));
-
-    // Get asset holdings of vault and calculate amount to return
-    let mut pay_back_assets: Vec<Asset> = vec![];
-    // Get asset holdings of vault and calculate amount to return
-    for (_, info) in assets.into_iter() {
-        pay_back_assets.push(Asset {
-            info: info.clone(),
-            amount: share_ratio
-                // query asset held in treasury
-                * query_asset_balance(
-                    deps.as_ref(),
-                    &info.clone(),
-                    base_state.treasury_address.clone(),
-                )
-                .unwrap(),
-        });
+        // First tally income, then set next block time
+        tally_income(deps.branch(), env, page_limit)?;
+        let info = CLIENTS.status.load(deps.storage)?;
+        return Ok(Response::new().add_attributes(vec![
+            ("Action:", String::from("Tally income")),
+            ("Progress:", info.progress()),
+        ]));
     }
 
-    // Construct repay msgs
-    let mut refund_msgs: Vec<CosmosMsg> = vec![];
-    for asset in pay_back_assets.into_iter() {
-        if asset.amount != Uint128::zero() {
-            // Unchecked ok as sender is already validated by VM
-            refund_msgs.push(
-                asset
-                    .clone()
-                    .into_msg(&deps.querier, Addr::unchecked(sender.clone()))?,
-            );
-            attrs.push(("Repaying:", asset.to_string()));
+    let mut compensation = CONTRIBUTORS.load(deps.storage, &info.sender.to_string())?;
+
+    if compensation.next_pay_day.u64() > env.block.time.seconds() {
+        return Err(PaymentError::WaitForFirstPayday);
+    } else if compensation.expiration.u64() < env.block.time.seconds() {
+        return Err(PaymentError::ContributionExpired);
+    }
+
+    compensation.next_pay_day = state.next_pay_day;
+    state.expense += Uint64::from(compensation.base as u64);
+    state.total_weight += Uint128::from(compensation.weight as u128);
+
+    CONTRIBUTORS.save(deps.storage, &info.sender.to_string(), &compensation)?;
+    STATE.save(deps.storage, &state)?;
+    let config = CONFIG.load(deps.storage)?;
+    let base_state = BASESTATE.load(deps.storage)?;
+
+    let compensation_msg = send_to_treasury(
+        vec![Asset {
+            info: config.payment_asset,
+            amount: Uint128::from(compensation.base) * state.expense_ratio,
         }
-    }
+        .into_msg(&deps.querier, info.sender.clone())?],
+        &base_state.treasury_address,
+    )?;
 
-    // Msg that gets called on the vault address
-    let vault_refund_msg = send_to_treasury(refund_msgs, &base_state.treasury_address)?;
+    // TODO: handle 0 income case
+    let mint_income = Uint128::from(state.income.checked_sub(state.expense)?);
+    let mint_price = Decimal::from_ratio(config.ratio * mint_income, Uint128::from(state.expense));
+    let total_mints = mint_income * mint_price.inv().unwrap();
 
-    // LP burn msg
-    let burn_msg = CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: state.liquidity_token_addr.into(),
+    // Send tokens
+    let token_msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Execute {
+        contract_addr: config.project_token.into(),
         // Burn exludes fee
-        msg: to_binary(&Cw20ExecuteMsg::Burn {
-            amount: (amount - treasury_fee),
+        msg: to_binary(&Cw20ExecuteMsg::Transfer {
+            recipient: info.sender.to_string(),
+            amount: total_mints * Decimal::from_ratio(compensation.weight, state.total_weight),
         })?,
         funds: vec![],
     });
 
-    Ok(response
+    Ok(Response::new()
         .add_attribute("Action:", "Withdraw Liquidity")
         // Transfer fee
-        .add_message(treasury_fee_msg)
-        // Burn LP tokens
-        .add_message(burn_msg)
-        // Send treasury funds to owner
-        .add_message(vault_refund_msg)
-        .add_attributes(attrs))
+        .add_message(compensation_msg)
+        .add_message(token_msg))
 }
 
-fn tally_income(deps: DepsMut, env: Env) -> StdResult<()> {
-    if !CLIENTS.status. {
+fn tally_income(mut deps: DepsMut, env: Env, page_limit: Option<u32>) -> StdResult<()> {
+    if let Some(res) = CLIENTS.page_with_accumulator(deps.branch(), page_limit, process_client)? {
+        let state: State = STATE.load(deps.storage)?;
+        let config = CONFIG.load(deps.storage)?;
+        let max_expense: Uint128;
+        let effective_spendable_amount = Uint128::from(res.income)
+            - (Decimal::percent(100) - config.ratio) * Uint128::from(res.income);
+        if effective_spendable_amount < state.target.into() {
+            max_expense = effective_spendable_amount;
+        } else {
+            max_expense = state.target.into();
+        }
 
+        STATE.save(
+            deps.storage,
+            &State {
+                income: Uint64::from(res.income),
+                expense_ratio: Decimal::from_ratio(max_expense, state.target),
+                expense: Uint64::from(max_expense.u128() as u64),
+                next_pay_day: (env.block.time.seconds() + MONTH).into(),
+                debtors: res.debtors,
+                ..state
+            },
+        )?;
+    }
+    Ok(())
+}
+
+fn process_client(variables: (Vec<u8>, Deposit, Deps), acc: &mut IncomeAccumulator) -> () {
+    let (key, mut deposit, deps) = variables;
+    let os_id = u32::from_be_bytes(key.try_into().unwrap());
+    let subscription_cost = CONFIG.load(deps.storage).unwrap().subscription_cost;
+
+    match deposit.decrease(subscription_cost).ok() {
+        Some(_) => {
+            acc.income += subscription_cost.u64() as u32;
+        }
+        None => {
+            acc.debtors.push(os_id);
+        }
     }
 }
 

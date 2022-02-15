@@ -5,14 +5,17 @@ use serde::{Deserialize, Serialize};
 
 use pandora::treasury::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg, BaseQueryMsg};
 use terraswap::asset::{Asset, AssetInfo};
+
+use crate::state::Compensation;
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
     pub base: BaseInstantiateMsg,
-    pub target: Uint128,
     pub ratio: Decimal,
     pub token_cap: Uint128,
     pub payment_asset: AssetInfo,
-    pub contributor_nft_addr: String,
+    pub subscription_cost: Uint64,
+    pub mint_price_factor: Decimal,
+    pub project_token: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -21,15 +24,27 @@ pub enum ExecuteMsg {
     Base(BaseExecuteMsg),
     // Add dapp-specific messages here
     Receive(Cw20ReceiveMsg),
-    Pay { asset: Asset, os_id: u32 },
-    // UpdatePool {
-    //     deposit_asset: Option<String>,
-    //     assets_to_add: Vec<String>,
-    //     assets_to_remove: Vec<String>,
-    // },
-    // SetFee {
-    //     fee: Fee,
-    // },
+    Pay {
+        asset: Asset,
+        os_id: u32,
+    },
+    Claim {
+        page_limit: Option<u32>,
+    },
+    UpdateContributor {
+        contributor_addr: String,
+        compensation: Compensation,
+    },
+    RemoveContributor {
+        contributor_addr: String,
+    }, // UpdatePool {
+       //     deposit_asset: Option<String>,
+       //     assets_to_add: Vec<String>,
+       //     assets_to_remove: Vec<String>,
+       // },
+       // SetFee {
+       //     fee: Fee,
+       // }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -47,7 +62,7 @@ pub enum DepositHookMsg {
 }
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct StateResponse {
-    pub income: Uint128,
+    pub income: Uint64,
     pub total_weight: Uint128,
     pub next_pay_day: Uint64,
 }

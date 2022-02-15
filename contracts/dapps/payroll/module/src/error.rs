@@ -34,4 +34,10 @@ pub enum PaymentError {
 
     #[error("The contributor you wanted to remove is not registered.")]
     ContributorNotRegistered,
+
+    #[error("You cant claim before your first payday")]
+    WaitForFirstPayday,
+
+    #[error("Your contribution compensation expired")]
+    ContributionExpired,
 }

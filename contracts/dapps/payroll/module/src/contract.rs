@@ -3,7 +3,7 @@
 #![allow(dead_code)]
 
 use cosmwasm_std::{
-    entry_point, to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, ReplyOn,
+    entry_point, to_binary, Addr, Binary, Decimal, Deps, DepsMut, Env, MessageInfo, Reply, ReplyOn,
     Response, StdError, StdResult, SubMsg, Uint128, Uint64, WasmMsg,
 };
 use cw_storage_plus::Map;
@@ -24,7 +24,7 @@ use crate::response::MsgInstantiateContractResponse;
 
 use crate::error::PaymentError;
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse};
-use crate::state::{Config, State, CONFIG, CLIENTS, STATE, MONTH};
+use crate::state::{Config, State, CLIENTS, CONFIG, MONTH, STATE};
 use crate::{commands, queries};
 pub type PaymentResult = Result<Response, PaymentError>;
 
@@ -32,7 +32,6 @@ const INSTANTIATE_REPLY_ID: u8 = 1u8;
 
 const DEFAULT_LP_TOKEN_NAME: &str = "Vault LP token";
 const DEFAULT_LP_TOKEN_SYMBOL: &str = "uvLP";
-
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -44,18 +43,21 @@ pub fn instantiate(
     let base_state: BaseState = dapp_base_commands::handle_base_init(deps.as_ref(), msg.base)?;
 
     let config: Config = Config {
-        target: msg.target,
-        contributor_nft_addr: deps.api.addr_validate(&msg.contributor_nft_addr)?,
         token_cap: msg.token_cap,
         payment_asset: msg.payment_asset,
         ratio: msg.ratio,
+        subscription_cost: msg.subscription_cost,
+        project_token: deps.api.addr_validate(&msg.project_token)?,
     };
 
     let state: State = State {
-        income: Uint128::zero(),
-        expense: Uint128::zero(),
+        target: Uint64::zero(),
+        income: Uint64::zero(),
+        expense: Uint64::zero(),
         total_weight: Uint128::zero(),
         next_pay_day: Uint64::from(env.block.time.seconds() + MONTH),
+        debtors: vec![],
+        expense_ratio: Decimal::zero(),
     };
 
     CONFIG.save(deps.storage, &config)?;
@@ -74,12 +76,14 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> P
         }
         ExecuteMsg::Receive(msg) => commands::receive_cw20(deps, env, info, msg),
         ExecuteMsg::Pay { asset, os_id } => commands::try_pay(deps, info, asset, None, os_id),
-        // ExecuteMsg::UpdatePool {
-        //     deposit_asset,
-        //     assets_to_add,
-        //     assets_to_remove,
-        // } => commands::update_pool(deps, info, deposit_asset, assets_to_add, assets_to_remove),
-        // ExecuteMsg::SetFee { fee } => commands::set_fee(deps, info, fee),
+        ExecuteMsg::Claim { page_limit } => commands::try_claim(deps, env, info, page_limit),
+        ExecuteMsg::UpdateContributor {
+            contributor_addr,
+            compensation,
+        } => commands::update_contributor(deps, info, contributor_addr, compensation),
+        ExecuteMsg::RemoveContributor { contributor_addr } => {
+            commands::remove_contributor(deps, info, contributor_addr)
+        }
     }
 }
 
