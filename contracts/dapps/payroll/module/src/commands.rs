@@ -52,7 +52,7 @@ pub fn try_pay(
 ) -> PaymentResult {
     // Load all needed states
     let config = CONFIG.load(deps.storage)?;
-
+    let base_state = BASESTATE.load(deps.storage)?;
     // Get the liquidity provider address
     match sender {
         Some(addr) => Addr::unchecked(addr),
@@ -90,7 +90,9 @@ pub fn try_pay(
         ("Received funds:", asset.to_string()),
     ];
 
-    Ok(Response::new().add_attributes(attrs))
+    Ok(Response::new().add_attributes(attrs).add_message(
+        // Send the received asset to the treasury
+        asset.into_msg(&deps.querier, base_state.treasury_address)?))
 }
 
 /// Function that adds/updates the contributor config of a given address
