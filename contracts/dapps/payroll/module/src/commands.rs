@@ -92,7 +92,8 @@ pub fn try_pay(
 
     Ok(Response::new().add_attributes(attrs).add_message(
         // Send the received asset to the treasury
-        asset.into_msg(&deps.querier, base_state.treasury_address)?))
+        asset.into_msg(&deps.querier, base_state.treasury_address)?,
+    ))
 }
 
 /// Function that adds/updates the contributor config of a given address

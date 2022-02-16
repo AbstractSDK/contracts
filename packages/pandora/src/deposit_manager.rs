@@ -49,24 +49,14 @@ impl UserDeposit<'_> {
         }
     }
 
-    pub fn increase(
-        &self,
-        storage: &mut dyn Storage,
-        key: &[u8],
-        amount: Uint64,
-    ) -> StdResult<()> {
+    pub fn increase(&self, storage: &mut dyn Storage, key: &[u8], amount: Uint64) -> StdResult<()> {
         let user_deposit = &mut self.map.may_load(storage, key)?.unwrap_or_default();
         self.map
             .save(storage, key, &user_deposit.increase(amount))?;
         Ok(())
     }
 
-    pub fn decrease(
-        &self,
-        storage: &mut dyn Storage,
-        key: &[u8],
-        amount: Uint64,
-    ) -> StdResult<()> {
+    pub fn decrease(&self, storage: &mut dyn Storage, key: &[u8], amount: Uint64) -> StdResult<()> {
         let mut user_deposit: Deposit = self.map.may_load(storage, key)?.unwrap_or_default();
         self.map
             .save(storage, key, &user_deposit.decrease(amount)?)?;
@@ -95,12 +85,7 @@ impl DepositManager {
         }
     }
 
-    pub fn increase(
-        &self,
-        storage: &mut dyn Storage,
-        key: &[u8],
-        amount: Uint64,
-    ) -> StdResult<()> {
+    pub fn increase(&self, storage: &mut dyn Storage, key: &[u8], amount: Uint64) -> StdResult<()> {
         let deposit = self.total_deposits.load(storage);
         if deposit.is_err() {
             println!("new deposit storage");
@@ -112,12 +97,7 @@ impl DepositManager {
         self.user_deposits.increase(storage, key, amount)
     }
 
-    pub fn decrease(
-        &self,
-        storage: &mut dyn Storage,
-        key: &[u8],
-        amount: Uint64,
-    ) -> StdResult<()> {
+    pub fn decrease(&self, storage: &mut dyn Storage, key: &[u8], amount: Uint64) -> StdResult<()> {
         self.user_deposits.decrease(storage, key, amount)?;
         let mut total_deposits = self.total_deposits.load(storage)?;
         self.total_deposits

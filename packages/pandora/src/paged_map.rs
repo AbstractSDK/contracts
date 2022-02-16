@@ -1,4 +1,4 @@
-use cosmwasm_std::{DepsMut, Order, StdResult, Deps};
+use cosmwasm_std::{Deps, DepsMut, Order, StdResult};
 use cw_storage_plus::{Bound, Item, Map};
 
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -11,7 +11,7 @@ pub struct PagedMap<'a, T, R> {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct PaginationInfo <R> {
+pub struct PaginationInfo<R> {
     pub is_locked: bool,
     pub counter: u32,
     pub size: u32,
@@ -37,8 +37,8 @@ impl<'a, T, R> PagedMap<'a, T, R> {
         &self,
         deps: DepsMut,
         limit: Option<u32>,
-        f: fn((Vec<u8>,T,Deps), &mut R),
-    ) -> StdResult<Option<R>> 
+        f: fn((Vec<u8>, T, Deps), &mut R),
+    ) -> StdResult<Option<R>>
     where
         T: Serialize + DeserializeOwned,
         R: Serialize + DeserializeOwned + Default + Clone,
@@ -58,7 +58,13 @@ impl<'a, T, R> PagedMap<'a, T, R> {
             .take(limit)
             .map(|item| {
                 let (key, element) = item.unwrap();
-                f((key.clone(),element,deps.as_ref()), &mut status.accumulator.as_mut().expect("accumulator contains some value"));
+                f(
+                    (key.clone(), element, deps.as_ref()),
+                    &mut status
+                        .accumulator
+                        .as_mut()
+                        .expect("accumulator contains some value"),
+                );
                 key
             })
             .collect();
@@ -71,17 +77,12 @@ impl<'a, T, R> PagedMap<'a, T, R> {
 
         let accumulator = PagedMap::<'a, T, R>::is_done(&mut status);
 
-        self.status.save(
-            deps.storage,
-            &status
-        )?;
+        self.status.save(deps.storage, &status)?;
         Ok(accumulator)
     }
 
     /// Returns the accumulator if operation is finished
-    fn is_done(
-        status: &mut PaginationInfo<R>,
-    ) -> Option<R>
+    fn is_done(status: &mut PaginationInfo<R>) -> Option<R>
     where
         R: Clone,
     {
