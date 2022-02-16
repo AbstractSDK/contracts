@@ -41,16 +41,11 @@ pub struct IncomeAccumulator {
     pub debtors: Vec<u32>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Default)]
-pub struct ExpenseAccumulator {
-    pub total_weight: u32,
-    pub total_expense: u32,
-}
-
 pub const MONTH: u64 = 60 * 60 * 24 * 30;
 pub const CONFIG: Item<Config> = Item::new("\u{0}{6}config");
 pub const STATE: Item<State> = Item::new("\u{0}{5}state");
 
+// List clients
 pub const CLIENTS: PagedMap<Deposit, IncomeAccumulator> =
     PagedMap::new("clients", "clients_status");
 // List contributors
