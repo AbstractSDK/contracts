@@ -1,4 +1,4 @@
-use pandora::governance::gov_type::GovernanceDetails;
+use pandora_os::governance::gov_type::GovernanceDetails;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

@@ -3,8 +3,8 @@ use cosmwasm_std::{
     WasmMsg, WasmQuery,
 };
 use cosmwasm_std::{ContractResult, CosmosMsg, SubMsgExecutionResponse};
-use pandora::governance::gov_type::GovernanceDetails;
-use pandora::manager::helper::register_module_on_manager;
+use pandora_os::governance::gov_type::GovernanceDetails;
+use pandora_os::manager::helper::register_module_on_manager;
 use protobuf::Message;
 
 use crate::contract::OsFactoryResult;
@@ -12,9 +12,9 @@ use crate::contract::OsFactoryResult;
 use crate::response::MsgInstantiateContractResponse;
 
 use crate::state::*;
-use pandora::manager::msg::InstantiateMsg as ManagerInstantiateMsg;
-use pandora::treasury::msg::InstantiateMsg as TreasuryInstantiateMsg;
-use pandora::version_control::msg::{
+use pandora_os::manager::msg::InstantiateMsg as ManagerInstantiateMsg;
+use pandora_os::treasury::msg::InstantiateMsg as TreasuryInstantiateMsg;
+use pandora_os::version_control::msg::{
     CodeIdResponse, ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery,
 };
 
@@ -23,7 +23,7 @@ const MANAGER_VERSION: &str = "v0.1.0";
 
 pub const CREATE_OS_MANAGER_MSG_ID: u64 = 1u64;
 pub const CREATE_OS_TREASURY_MSG_ID: u64 = 2u64;
-use pandora::registery::{MANAGER, TREASURY};
+use pandora_os::registery::{MANAGER, TREASURY};
 
 /// Function that starts the creation of the OS
 pub fn execute_create_os(

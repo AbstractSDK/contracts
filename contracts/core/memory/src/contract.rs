@@ -5,11 +5,11 @@ use crate::commands::*;
 use crate::error::MemoryError;
 use crate::queries;
 use crate::state::ADMIN;
-use pandora::memory::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use pandora_os::memory::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 
 pub type MemoryResult = Result<Response, MemoryError>;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-use pandora::registery::MEMORY;
+use pandora_os::registery::MEMORY;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(

@@ -5,7 +5,7 @@ use cosmwasm_std::{
 
 use crate::error::OsFactoryError;
 use cw2::set_contract_version;
-use pandora::registery::FACTORY;
+use pandora_os::registery::FACTORY;
 
 use crate::state::*;
 use crate::{commands, msg::*};

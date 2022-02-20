@@ -5,17 +5,17 @@ use cosmwasm_std::{
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg};
 use terraswap::asset::{Asset, AssetInfo};
 
-use pandora::deposit_info::DepositInfo;
-use pandora::treasury::dapp_base::state::{BaseState, ADMIN, BASESTATE};
-use pandora::treasury::msg::send_to_treasury;
+use pandora_os::deposit_info::DepositInfo;
+use pandora_os::treasury::dapp_base::state::{BaseState, ADMIN, BASESTATE};
+use pandora_os::treasury::msg::send_to_treasury;
 
 use crate::contract::VaultResult;
 use crate::error::VaultError;
 use crate::msg::DepositHookMsg;
 use crate::state::{Pool, State, FEE, POOL, STATE};
-use pandora::fee::Fee;
-use pandora::query::terraswap::query_asset_balance;
-use pandora::query::vault::query_total_value;
+use pandora_os::fee::Fee;
+use pandora_os::query::terraswap::query_asset_balance;
+use pandora_os::query::vault::query_total_value;
 use terraswap::querier::query_supply;
 
 /// handler function invoked when the vault dapp contract receives
