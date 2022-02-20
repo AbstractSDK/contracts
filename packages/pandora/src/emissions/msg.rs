@@ -11,9 +11,9 @@ pub struct InstantiateMsg {
     pub owner: String,
     /// Account which will receive refunds upon allocation terminations
     pub refund_recepient: String,
-    /// Address of WHALE token
-    pub whale_token: String,
-    /// By default, unlocking starts at WhiteWhale launch, with a cliff of 12 months and a duration of 12 months.
+    /// Address of  token
+    pub token: String,
+    /// By default, unlocking starts at White launch, with a cliff of 12 months and a duration of 12 months.
     /// If not specified, all allocations use this default schedule
     pub default_unlock_schedule: Schedule,
 }
@@ -25,7 +25,7 @@ pub enum ExecuteMsg {
     TransferOwnership { new_owner: String },
     /// Admin function. Implementation of cw20 receive msg to create new allocations
     Receive(Cw20ReceiveMsg),
-    /// Claim withdrawable WHALE
+    /// Claim withdrawable 
     Withdraw {},
     /// Terminates the allocation
     Terminate { user_address: String },
@@ -51,7 +51,7 @@ pub enum QueryMsg {
     Allocation {
         account: String,
     },
-    // Simulate how many WHALE will be released if a withdrawal is attempted
+    // Simulate how many  will be released if a withdrawal is attempted
     SimulateWithdraw {
         account: String,
         timestamp: Option<u64>,
@@ -63,31 +63,31 @@ pub type AllocationResponse = AllocationInfo;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct StateResponse {
-    /// WHALE Tokens deposited into the contract
-    pub total_whale_deposited: Uint128,
-    /// Currently available WHALE Tokens
-    pub remaining_whale_tokens: Uint128,
+    ///  Tokens deposited into the contract
+    pub total_deposited: Uint128,
+    /// Currently available  Tokens
+    pub remaining_tokens: Uint128,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct SimulateWithdrawResponse {
-    /// Total number of WHALE tokens allocated to this account
-    pub total_whale_locked: Uint128,
-    /// Total number of WHALE tokens that have been unlocked till now
-    pub total_whale_unlocked: Uint128,
-    /// Total number of WHALE tokens that have been vested till now
-    pub total_whale_vested: Uint128,
-    /// Number of WHALE tokens that have been withdrawn by the beneficiary
+    /// Total number of  tokens allocated to this account
+    pub total_locked: Uint128,
+    /// Total number of  tokens that have been unlocked till now
+    pub total_unlocked: Uint128,
+    /// Total number of  tokens that have been vested till now
+    pub total_vested: Uint128,
+    /// Number of  tokens that have been withdrawn by the beneficiary
     pub withdrawn_amount: Uint128,
-    /// Number of WHALE tokens that can be withdrawn by the beneficiary post the provided timestamp
+    /// Number of  tokens that can be withdrawn by the beneficiary post the provided timestamp
     pub withdrawable_amount: Uint128,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct AllocationInfo {
-    /// Total number of WHALE tokens allocated to this account
+    /// Total number of  tokens allocated to this account
     pub total_amount: Uint128,
-    ///  Number of WHALE tokens that have been withdrawn by the beneficiary
+    ///  Number of  tokens that have been withdrawn by the beneficiary
     pub withdrawn_amount: Uint128,
     /// Parameters controlling the vesting process
     pub vest_schedule: Schedule,

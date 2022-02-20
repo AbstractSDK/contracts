@@ -7,9 +7,9 @@ use serde::{Deserialize, Serialize};
 pub struct InstantiateMsg {
     /// Account who can update config
     pub owner: String,
-    /// WHALE Token address
-    pub whale_token: String,
-    ///  WHALE-UST LP token address - accepted by the contract via Cw20ReceiveMsg function
+    ///  Token address
+    pub token: String,
+    ///  -UST LP token address - accepted by the contract via Cw20ReceiveMsg function
     pub staking_token: String,
     pub staking_token_decimals: u8,
 }
@@ -71,8 +71,8 @@ pub struct ConfigResponse {
     /// Account who can update config
     pub owner: String,
     /// Contract used to query addresses related to red-bank
-    pub whale_token: String,
-    ///  WHALE-UST LP token address
+    pub token: String,
+    ///  -UST LP token address
     pub staking_token: String,
     /// Distribution Schedules
     pub distribution_schedule: (u64, u64, Uint128),
@@ -82,13 +82,13 @@ pub struct ConfigResponse {
 pub struct StateResponse {
     /// Timestamp at which the global_reward_index was last updated
     pub last_distributed: u64,
-    /// Total number of WHALE-UST LP tokens deposited in the contract
+    /// Total number of -UST LP tokens deposited in the contract
     pub total_bond_amount: Uint128,
-    ///  total WHALE rewards / total_bond_amount ratio. Used to calculate WHALE rewards accured over time elapsed
+    ///  total  rewards / total_bond_amount ratio. Used to calculate  rewards accured over time elapsed
     pub global_reward_index: Decimal,
-    /// Number of WHALE tokens that are yet to be distributed
+    /// Number of  tokens that are yet to be distributed
     pub leftover: Uint128,
-    /// Number of WHALE tokens distributed per staked LP tokens
+    /// Number of  tokens distributed per staked LP tokens
     pub reward_rate_per_token: Decimal,
 }
 
@@ -96,10 +96,10 @@ pub struct StateResponse {
 pub struct StakerInfoResponse {
     /// User address
     pub staker: String,
-    /// WHALE-UST LP tokens deposited by the user
+    /// -UST LP tokens deposited by the user
     pub bond_amount: Uint128,
-    /// WHALE rewards / bond_amount ratio.  Used to calculate WHALE rewards accured over time elapsed
+    ///  rewards / bond_amount ratio.  Used to calculate  rewards accured over time elapsed
     pub reward_index: Decimal,
-    /// Pending WHALE rewards which are yet to be claimed
+    /// Pending  rewards which are yet to be claimed
     pub pending_reward: Uint128,
 }
