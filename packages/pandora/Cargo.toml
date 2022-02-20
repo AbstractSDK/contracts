@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["CyberHoward"]
 edition = "2018"
 description = "Helpers for pandora contracts"
-license = "Apache-2.0"
+license = "GPL-2.0-or-later"
 repository = ""
 homepage = ""
 documentation = ""
@@ -30,3 +30,4 @@ schemars = "0.8.1"
 serde = { version = "1.0.103", default-features = false, features = ["derive"] }
 terraswap = "2.4.0"
 thiserror = { version = "1.0.26" }
+
