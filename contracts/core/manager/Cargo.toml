@@ -37,3 +37,12 @@ protobuf = { version = "2", features = ["with-bytes"] }
 
 [dev-dependencies]
 cosmwasm-schema = { version = "0.16" }
+
+[package.metadata.scripts]
+optimize = """docker run --rm -v "$(pwd)":/code \
+          --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
+            --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
+              cosmwasm/rust-optimizer:0.12.3"""
+store = """terra-rust code store test-owner ..\\..\\artifacts\\xxx.wasm"""
+instantiate = """terra-rust code instantiate test-owner ..\\..\\artifacts\\xxx.wasm .\\pool_init.json --admin same"""
+migrate = """terra-rust code migrate test-owner ..\\..\\artifacts\\xxx.wasm """
