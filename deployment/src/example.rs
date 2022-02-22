@@ -1,23 +1,23 @@
-use crate::contract_instances::memory::Memory;
+use crate::{
+    contract_instances::memory::Memory,
+    sender::{GroupConfig, Network, Sender},
+};
 use secp256k1::Secp256k1;
+use std::env;
 use terra_rust_api::{core_types::Coin, messages::MsgSend, GasOptions, Message, PrivateKey, Terra};
 
 async fn demo() -> anyhow::Result<()> {
-    // set up the LCD client
-    let gas_opts = GasOptions::create_with_gas_estimate("50ukrw", 1.4)?;
-    let terra = Terra::lcd_client(
-        "https://bombay-lcd.terra.dev/",
-        "bombay-12",
-        &gas_opts,
-        None,
-    );
-    // generate a private key
     let secp = Secp256k1::new();
-    let from_key = PrivateKey::from_words(&secp, "your secret words", 0, 0)?;
-    let from_public_key = from_key.public_key(&secp);
-    // generate the message SEND 1000 uluna from your private key to someone else
-    let coin: Coin = Coin::parse("1000uluna")?.unwrap();
-    let from_account = from_public_key.account()?;
+    let client = reqwest::Client::new();
+
+    // All configs are set here
+    let private_key = PrivateKey::from_words(&secp, "your secret words", 0, 0)?;
+    let group_name = "debugging".to_string();
+    let config = GroupConfig::new(Network::LocalTerra, group_name, client, "uusd").await?;
+    let sender = Sender::new(config, private_key, secp);
+
+    Memory::new();
+
     let send: Message = MsgSend::create(
         from_account,
         String::from("terra1usws7c2c6cs7nuc8vma9qzaky5pkgvm2uag6rh"),

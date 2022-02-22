@@ -1,6 +1,5 @@
 #![allow(missing_docs)]
 
-use std::string::FromUtf8Error;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -13,7 +12,7 @@ pub enum TerraRustScriptError {
 
     #[error("Terra `{0}` CLI Error")]
     Terra(String),
-    
+
     #[error("Bech32 Decode Error")]
     Bech32DecodeErr,
     #[error("Bech32 Decode Error: Key Failed prefix {0} or length {1} Wanted:{2}/{3}")]
@@ -24,7 +23,7 @@ pub enum TerraRustScriptError {
     MissingPhrase,
     #[error("Bad Implementation. Missing Component")]
     Implementation,
-    
+
     #[error("83 length-missing SECP256K1 prefix")]
     ConversionSECP256k1,
     #[error("82 length-missing ED25519 prefix")]

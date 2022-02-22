@@ -1,33 +1,22 @@
-use crate::{contract::ContractInstance, sender::Sender};
+use crate::{contract::ContractInstance, error::TerraRustScriptError, sender::Sender};
 use cosmwasm_std::Empty;
 use pandora_os::memory::msg::*;
 use secp256k1::{Context, Signing};
-use serde::Serialize;
-use terra_rust_api::{
-    client::{tx_types::TXResultSync, wasm::Wasm},
-    errors::TerraRustAPIError,
-};
 
-pub struct Memory {
-    instance: ContractInstance<InstantiateMsg, ExecuteMsg, QueryMsg, Empty>,
-}
+use terra_rust_api::client::tx_types::TXResultSync;
+
+pub type Memory = ContractInstance<InstantiateMsg, ExecuteMsg, QueryMsg, Empty>;
 
 impl Memory {
-    async fn execute<C: Signing + Context>(
+    pub async fn add_new_assets<C: Signing + Context>(
         &mut self,
-        sender: Sender<C>,
-        exec_msg: ExecuteMsg,
-    ) -> Result<TXResultSync, TerraRustAPIError> {
-        self.instance.interface.execute_msg = exec_msg;
-        self.instance.execute(sender).await?;
-    }
-
-    pub async fn add_new_assets(&mut self, assets: Vec<(String, String)>) -> ExecuteMsg {
+        assets: Vec<(String, String)>,
+        sender: &Sender<C>,
+    ) -> Result<TXResultSync, TerraRustScriptError> {
         let msg: ExecuteMsg = ExecuteMsg::UpdateAssetAddresses {
             to_add: assets,
             to_remove: vec![],
         };
-        self.execute(msg.clone());
-        msg
+        self.execute(sender, msg, vec![]).await
     }
 }
