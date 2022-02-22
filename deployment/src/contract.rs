@@ -1,11 +1,18 @@
-use std::{path::Path, fs::File};
+use std::{fs::File, path::Path};
 
+use anyhow::Error;
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::set_contract_version;
-use terra_rust_api::{core_types::Coin, messages::MsgExecuteContract, GasOptions, Message, PrivateKey, Terra, client::wasm::Wasm};
 use pandora_os::memory::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use secp256k1::{Context, Signing};
 use serde::{Deserialize, Serialize};
-use serde_json::from_reader;
+use serde_json::{from_reader, json};
+use terra_rust_api::{
+    client::{wasm::Wasm, tx_types::TXResultSync}, core_types::Coin, messages::MsgExecuteContract, GasOptions, Message,
+    PrivateKey, Terra, errors::TerraRustAPIError,
+};
+
+use crate::{sender::Sender, error::TerraRustScriptError};
 // https://doc.rust-lang.org/std/process/struct.Command.html
 // RUSTFLAGS='-C link-arg=-s' cargo wasm
 
@@ -22,7 +29,9 @@ pub struct ContractInstance<I, E, Q, M> {
     addr_file: String,
 }
 
-impl<I, E, Q, M> ContractInstance<I, E, Q, M> {
+impl<I: serde::Serialize, E: serde::Serialize, Q: serde::Serialize, M: serde::Serialize>
+    ContractInstance<I, E, Q, M>
+{
     pub fn new(
         name: String,
         group: String,
@@ -36,16 +45,23 @@ impl<I, E, Q, M> ContractInstance<I, E, Q, M> {
             interface,
         }
     }
-    pub fn execute() -> anyhow::Result<MsgExecuteContract> {
-        let from_account = from_public_key.account()?;
-        let send: Message = MsgExecuteContract::create_from_json(sender, contract, execute_msg_json, coins)
+    pub async fn execute<C: Signing + Context>(
+        self,
+        sender: Sender<C>,
+        coins: Vec<Coin>,
+    ) -> Result<TXResultSync, TerraRustScriptError> {
+        let execute_msg_json = json!(self.interface.execute_msg);
+        let contract = self.addresses()?;
+
+        let send: Message =
+            MsgExecuteContract::create_from_value(&sender.pub_addr()?, &contract, &execute_msg_json, &coins)?;
         // generate the transaction & calc fees
         let messages: Vec<Message> = vec![send];
-        let (std_sign_msg, sigs) = terra
-            .generate_transaction_to_broadcast(&secp, &from_key, messages, None)
+        let (std_sign_msg, sigs) = sender.terra
+            .generate_transaction_to_broadcast(&sender.secp, &sender.private_key, messages, None)
             .await?;
         // send it out
-        let resp = terra.tx().broadcast_sync(&std_sign_msg, &sigs).await?;
+        let resp = sender.terra.tx().broadcast_sync(&std_sign_msg, &sigs).await?;
         match resp.code {
             Some(code) => {
                 log::error!("{}", serde_json::to_string(&resp)?);
@@ -55,19 +71,35 @@ impl<I, E, Q, M> ContractInstance<I, E, Q, M> {
                 println!("{}", resp.txhash)
             }
         }
-        Ok(())
+        Ok(resp)
     }
 
-    pub fn addresses(&self) -> String { 
-        let mut file = File::open("text.json").expect(format!("file should be present at {}", self.addr_file));
+    pub fn addresses(&self) -> Result<String, TerraRustScriptError> {
+        let mut file = File::open(&self.addr_file)
+            .expect(&format!("file should be present at {}", self.addr_file));
         let json: serde_json::Value = from_reader(file).unwrap();
-        log::debug!("{}", serde_json::to_string(&resp)?);
-        println!("{}",  );
-
+        let maybe_address = json[self.group][self.name].get("addr");
+        match maybe_address {
+            Some(addr) => {
+                log::debug!("contract: {} addr: {}", self.name, addr);
+                return Ok(addr.to_string());
+            }
+            None => return Err(TerraRustScriptError::AddrNotInFile()),
+        }
     }
 
-    pub fn code_id(&self) -> u64 {
-
+    pub fn code_id(&self) -> anyhow::Result<u64> {
+        let mut file = File::open(&self.addr_file)
+            .expect(&format!("file should be present at {}", self.addr_file));
+        let json: serde_json::Value = from_reader(file).unwrap();
+        let maybe_address = json[self.group][self.name].get("code_id");
+        match maybe_address {
+            Some(code_id) => {
+                log::debug!("contract: {} addr: {}", self.name, code_id);
+                return Ok(code_id.as_u64().unwrap());
+            }
+            None => return Err(Error::msg("addr not present")),
+        }
     }
     // pub fn execute(),
     // pub fn query(),
