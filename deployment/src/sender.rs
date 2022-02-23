@@ -12,7 +12,7 @@ impl<C: Signing + Context> Sender<C> {
     pub fn pub_addr(&self) -> Result<String, TerraRustAPIError> {
         self.private_key.public_key(&self.secp).account()
     }
-    pub fn new(config: GroupConfig, key: PrivateKey, secp: Secp256k1<C>) -> Sender<C> {
+    pub fn new(config: &GroupConfig, key: PrivateKey, secp: Secp256k1<C>) -> Sender<C> {
         Sender {
             terra: Terra::lcd_client(
                 config.network.lcd_url,
@@ -61,7 +61,7 @@ impl Network {
         })
     }
 }
-
+#[derive(Clone, Debug)]
 pub struct GroupConfig {
     pub network: NetworkConfig,
     pub name: String,
@@ -83,7 +83,7 @@ impl GroupConfig {
         })
     }
 }
-
+#[derive(Clone, Debug)]
 pub struct NetworkConfig {
     pub lcd_url: String,
     pub fcd_url: String,

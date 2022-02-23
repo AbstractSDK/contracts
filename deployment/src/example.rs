@@ -9,35 +9,18 @@ use terra_rust_api::{core_types::Coin, messages::MsgSend, GasOptions, Message, P
 async fn demo() -> anyhow::Result<()> {
     let secp = Secp256k1::new();
     let client = reqwest::Client::new();
+    let path = String::from("hhh");
 
     // All configs are set here
     let private_key = PrivateKey::from_words(&secp, "your secret words", 0, 0)?;
     let group_name = "debugging".to_string();
-    let config = GroupConfig::new(Network::LocalTerra, group_name, client, "uusd").await?;
-    let sender = Sender::new(config, private_key, secp);
+    let config = GroupConfig::new(Network::LocalTerra, group_name, client, "uusd", path).await?;
+    let sender = Sender::new(&config, private_key, secp);
 
-    Memory::new();
-
-    let send: Message = MsgSend::create(
-        from_account,
-        String::from("terra1usws7c2c6cs7nuc8vma9qzaky5pkgvm2uag6rh"),
-        vec![coin],
-    )?;
-    // generate the transaction & calc fees
-    let messages: Vec<Message> = vec![send];
-    let (std_sign_msg, sigs) = terra
-        .generate_transaction_to_broadcast(&secp, &from_key, messages, None)
+    let memory = Memory::new(config.clone());
+    memory
+        .add_new_assets(&sender, vec![("ust".to_string(), "uusd".to_string())])
         .await?;
-    // send it out
-    let resp = terra.tx().broadcast_sync(&std_sign_msg, &sigs).await?;
-    match resp.code {
-        Some(code) => {
-            log::error!("{}", serde_json::to_string(&resp)?);
-            eprintln!("Transaction returned a {} {}", code, resp.txhash)
-        }
-        None => {
-            println!("{}", resp.txhash)
-        }
-    }
+
     Ok(())
 }
