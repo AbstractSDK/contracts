@@ -3,8 +3,8 @@ use crate::{
     sender::{GroupConfig, Network, Sender},
 };
 use secp256k1::Secp256k1;
-use std::env;
-use terra_rust_api::{core_types::Coin, messages::MsgSend, GasOptions, Message, PrivateKey, Terra};
+
+use terra_rust_api::PrivateKey;
 
 async fn demo() -> anyhow::Result<()> {
     let secp = Secp256k1::new();
