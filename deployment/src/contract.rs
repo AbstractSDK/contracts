@@ -39,7 +39,7 @@ impl<I, E, Q, M> Default for Interface<I, E, Q, M> {
 
 pub struct ContractInstance<I, E, Q, M> {
     pub interface: Interface<I, E, Q, M>,
-    config: GroupConfig,
+    pub config: GroupConfig,
 }
 
 impl<I: serde::Serialize, E: serde::Serialize, Q: serde::Serialize, M: serde::Serialize>

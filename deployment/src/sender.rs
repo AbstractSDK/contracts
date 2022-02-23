@@ -15,8 +15,8 @@ impl<C: Signing + Context> Sender<C> {
     pub fn new(config: &GroupConfig, key: PrivateKey, secp: Secp256k1<C>) -> Sender<C> {
         Sender {
             terra: Terra::lcd_client(
-                config.network.lcd_url,
-                config.network.chain_id,
+                config.network.lcd_url.clone(),
+                config.network.chain_id.clone(),
                 &config.network.gas_opts,
                 None,
             ),
