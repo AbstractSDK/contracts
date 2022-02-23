@@ -23,7 +23,7 @@ pub enum ExecuteMsg {
     TransferOwnership { new_owner: String },
     /// Admin function. Implementation of cw20 receive msg to create new allocations
     Receive(Cw20ReceiveMsg),
-    /// Claim withdrawable 
+    /// Claim withdrawable
     Withdraw {},
     /// Terminates the allocation
     Terminate { user_address: String },

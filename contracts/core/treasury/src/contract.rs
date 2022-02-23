@@ -8,11 +8,11 @@ use cosmwasm_std::{
 use crate::error::TreasuryError;
 use cw2::{get_contract_version, set_contract_version};
 use pandora_os::query::terraswap::query_asset_balance;
+use pandora_os::registery::TREASURY;
 use pandora_os::treasury::msg::{
     ConfigResponse, ExecuteMsg, HoldingValueResponse, InstantiateMsg, MigrateMsg, QueryMsg,
     TotalValueResponse,
 };
-use pandora_os::registery::TREASURY;
 use pandora_os::treasury::state::{State, ADMIN, STATE, VAULT_ASSETS};
 use pandora_os::treasury::vault_assets::{get_identifier, VaultAsset};
 use semver::Version;
