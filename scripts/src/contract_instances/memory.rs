@@ -8,15 +8,18 @@ use pandora_os::memory::msg::*;
 use secp256k1::{Context, Signing};
 
 use terra_rust_api::client::tx_types::TXResultSync;
+use terra_rust_script_derive::contract;
 
-pub type Memory = ContractInstance<InstantiateMsg, ExecuteMsg, QueryMsg, Empty>;
+pub struct Memory(pub ContractInstance<InstantiateMsg, ExecuteMsg, QueryMsg, Empty>);
 
 impl Memory {
-    pub fn new(config: GroupConfig) -> Memory {
-        Memory {
+    pub fn new(group_config: GroupConfig) -> Memory {
+        Memory (
+            ContractInstance{
             interface: Interface::default(),
-            config,
-        }
+            group_config,
+            name: "memory".to_string(),
+            })
     }
     pub async fn add_new_assets<C: Signing + Context>(
         &self,
@@ -27,6 +30,6 @@ impl Memory {
             to_add: assets,
             to_remove: vec![],
         };
-        self.execute(sender, msg, vec![]).await
+        self.0.execute(sender, msg, vec![]).await
     }
 }

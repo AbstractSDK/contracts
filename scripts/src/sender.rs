@@ -1,5 +1,6 @@
 use secp256k1::{Context, Secp256k1, Signing};
-use std::env;
+use serde_json::{from_reader, json};
+use std::{env, fs::File};
 use terra_rust_api::{errors::TerraRustAPIError, GasOptions, PrivateKey, Terra};
 
 pub struct Sender<C: Signing + Context> {
@@ -76,11 +77,32 @@ impl GroupConfig {
         denom: &str,
         file_path: String,
     ) -> anyhow::Result<GroupConfig> {
+        check_group_existance(&name, &file_path)?;
+
         Ok(GroupConfig {
             network: network.config(client, denom).await?,
             name,
             file_path,
         })
+    }
+}
+
+fn check_group_existance(name: &String, file_path: &String) -> anyhow::Result<()> {
+    let file = File::open(file_path).expect(&format!(
+        "file should be present at {}",
+        file_path
+    ));
+    let mut cfg: serde_json::Value = from_reader(file).unwrap();
+    let maybe_group = cfg.get(name);
+    match maybe_group {
+        Some(_) => {
+            return Ok(());
+        }
+        None => {
+            cfg[name] = json!({});
+            serde_json::to_writer_pretty(File::create(file_path)?, &cfg)?;
+            return Ok(())
+        },
     }
 }
 #[derive(Clone, Debug)]

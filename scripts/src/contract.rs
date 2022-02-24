@@ -1,10 +1,10 @@
-use std::fs::File;
+use std::fs::{File, self};
 
 use anyhow::Error;
 
 use secp256k1::{Context, Signing};
 
-use serde_json::{from_reader, json};
+use serde_json::{from_reader, json, Value};
 use terra_rust_api::{
     client::tx_types::TXResultSync, core_types::Coin, messages::MsgExecuteContract, Message,
 };
@@ -39,7 +39,8 @@ impl<I, E, Q, M> Default for Interface<I, E, Q, M> {
 
 pub struct ContractInstance<I, E, Q, M> {
     pub interface: Interface<I, E, Q, M>,
-    pub config: GroupConfig,
+    pub group_config: GroupConfig,
+    pub name: String,
 }
 
 impl<I: serde::Serialize, E: serde::Serialize, Q: serde::Serialize, M: serde::Serialize>
@@ -85,41 +86,61 @@ impl<I: serde::Serialize, E: serde::Serialize, Q: serde::Serialize, M: serde::Se
     }
 
     fn addresses(&self) -> Result<String, TerraRustScriptError> {
-        let file = File::open(&self.config.file_path).expect(&format!(
+        let file = File::open(&self.group_config.file_path).expect(&format!(
             "file should be present at {}",
-            self.config.file_path
+            self.group_config.file_path
         ));
         let json: serde_json::Value = from_reader(file).unwrap();
-        let maybe_address = json[self.config.name.clone()][self.config.name.clone()].get("addr");
+        let maybe_address = json[self.group_config.name.clone()][self.name.clone()].get("addr");
         match maybe_address {
             Some(addr) => {
-                log::debug!("contract: {} addr: {}", self.config.name, addr);
+                log::debug!("contract: {} addr: {}", self.name, addr);
                 return Ok(addr.to_string());
             }
-            None => return Err(TerraRustScriptError::AddrNotInFile()),
+            None => {
+                return Err(TerraRustScriptError::AddrNotInFile())
+            },
         }
     }
 
-    fn code_id(&self) -> anyhow::Result<u64> {
-        let file = File::open(&self.config.file_path).expect(&format!(
+    fn code_id(&self) -> Result<u64, TerraRustScriptError> {
+        let file = File::open(&self.group_config.file_path).expect(&format!(
             "file should be present at {}",
-            self.config.file_path
+            self.group_config.file_path
         ));
         let json: serde_json::Value = from_reader(file).unwrap();
-        let maybe_address = json[self.config.name.clone()][self.config.name.clone()].get("code_id");
+        let maybe_address = json[self.group_config.name.clone()][self.name.clone()].get("code_id");
         match maybe_address {
             Some(code_id) => {
-                log::debug!("contract: {} addr: {}", self.config.name, code_id);
+                log::debug!("contract: {} addr: {}", self.group_config.name, code_id);
                 return Ok(code_id.as_u64().unwrap());
             }
-            None => return Err(Error::msg("addr not present")),
+            None => {
+                return Err(TerraRustScriptError::AddrNotInFile())
+            },
         }
     }
 
+    pub fn check_scaffold(&self) -> anyhow::Result<()> {
+        let s = fs::read_to_string(&self.group_config.file_path)?;
+        let mut cfg: Value = serde_json::from_str(&s)?;
+    
+        let scaffold = json!({
+                "addr": "",
+                "code_id": 0u64
+        });
+        
+        cfg[&self.group_config.name][&self.name] = scaffold;
+        // let serialized_pretty = serde_json::to_string_pretty(&scaffold)?;
+        serde_json::to_writer_pretty(File::create(&self.group_config.file_path)?, &cfg)?;
+        Ok(())
+    }
     // pub fn execute(),
     // pub fn query(),
     // pub fn migrate(),
 }
+
+
 
 // #[async_trait]
 // pub trait Interaction<

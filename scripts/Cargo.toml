@@ -1,5 +1,5 @@
 [package]
-name = "terra-contract-manager"
+name = "terra-rust-script"
 version = "0.1.0"
 authors = ["CyberHoward"]
 edition = "2018"
@@ -8,14 +8,9 @@ exclude = [
   
 ]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[lib]
-crate-type = ["cdylib", "rlib"]
-
-[features]
-# for more explicit tests, cargo test --features=backtraces
-backtraces = ["cosmwasm-std/backtraces"]
+[[bin]]
+name="terra-rust-script"
+path= "src/lib.rs"
 
 [dependencies]
 cw2 = { version = "0.8" }
@@ -30,7 +25,7 @@ serde = { version = "1.0.103", default-features = false, features = ["derive"] }
 terra-cosmwasm = "2.2"
 terraswap = "2.4.0"
 thiserror = { version = "1.0.21" }
-pandora-os = { version = "0.1.0" }
+pandora-os = { path = "../packages/pandora-os"}
 protobuf = { version = "2", features = ["with-bytes"] }
 terra-rust-api = {version ="1.2"}
 tokio = { version = "1.4", features = ["full"] }
@@ -39,5 +34,8 @@ log="0.4.14"
 anyhow="1.0"
 serde_json = "1.0.79"
 reqwest = { version = "0.11.9"}
+dotenv="0.15.0"
+env_logger = "0.8.3"
+terra-rust-script-derive = {path = "./terra-rust-script-derive"}
 [dev-dependencies]
 cosmwasm-schema = { version = "0.16" }
