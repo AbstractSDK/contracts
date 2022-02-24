@@ -125,10 +125,7 @@ impl<I: serde::Serialize, E: serde::Serialize, Q: serde::Serialize, M: serde::Se
         let s = fs::read_to_string(&self.group_config.file_path)?;
         let mut cfg: Value = serde_json::from_str(&s)?;
     
-        let scaffold = json!({
-                "addr": "",
-                "code_id": 0u64
-        });
+        let scaffold = json!({});
         
         cfg[&self.group_config.name][&self.name] = scaffold;
         // let serialized_pretty = serde_json::to_string_pretty(&scaffold)?;
