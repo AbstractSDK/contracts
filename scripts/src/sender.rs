@@ -30,7 +30,7 @@ impl<C: Signing + Context> Sender<C> {
         if let Some(mnemonic) = env::var_os(&composite_name) {
             p_key = PrivateKey::from_words(&secp, mnemonic.to_str().unwrap(), 0, 0)?;
         } else {
-            log::debug!("{}",config.network_config.network.mnemonic_name());
+            log::debug!("{}", config.network_config.network.mnemonic_name());
             let mnemonic = env::var(config.network_config.network.mnemonic_name())?;
             p_key = PrivateKey::from_words(&secp, &mnemonic, 0, 0)?;
         }

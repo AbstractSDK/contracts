@@ -43,7 +43,10 @@ impl Memory {
             to_remove: vec![],
         };
 
-        log::debug!("{:?}",crate::macro_dev::ExecuteMsg::execute_set_admin("horecuh".to_string()));
+        log::debug!(
+            "{:?}",
+            crate::macro_dev::ExecuteMsg::execute_set_admin("horecuh".to_string())
+        );
 
         self.0.execute(sender, msg, vec![]).await
     }

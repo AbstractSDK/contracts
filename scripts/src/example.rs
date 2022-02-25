@@ -30,7 +30,10 @@ pub async fn demo() -> anyhow::Result<()> {
 
     let memory = Memory::new(config.clone());
 
-    log::debug!("{:?}", memory::msg::ExecuteMsg::execute_set_admin("oeuaoeuaoeu".into()));
+    log::debug!(
+        "{:?}",
+        memory::msg::ExecuteMsg::execute_set_admin("oeuaoeuaoeu".into())
+    );
 
     // memory.0.upload(&sender, "/home/cyberhoward/Programming/Pandora/contracts/artifacts/memory.wasm").await?;
     // memory.instantiate(&sender).await?;
