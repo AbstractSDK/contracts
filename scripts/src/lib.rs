@@ -2,6 +2,7 @@ pub mod contract;
 pub mod contract_instances;
 mod error;
 pub mod example;
+pub mod multisig;
 pub mod sender;
 
 use std::env;
@@ -28,3 +29,23 @@ async fn main() {
     }
 }
 
+mod macro_dev {
+    use terra_rust_script_derive::execute;
+
+
+    #[derive(Clone, Debug,execute)]
+    /// Updates the addressbook
+    pub enum ExecuteMsg {
+    UpdateContractAddresses {
+        to_add: Vec<(String, String)>,
+        to_remove: Vec<String>,
+    },
+    UpdateAssetAddresses {
+        to_add: Vec<(String, String)>,
+        to_remove: Vec<String>,
+    },
+    /// Sets a new Admin
+    SetAdmin { admin: String },
+    }
+
+}

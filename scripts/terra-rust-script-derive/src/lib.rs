@@ -1,7 +1,9 @@
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
-use proc_macro2::{Span, TokenStream as TokenStream2};
+use proc_macro2::{Span, TokenStream as TokenStream2, Ident};
+use syn::punctuated::Punctuated;
+use syn::token::Comma;
 use syn::{self, parse_macro_input, DeriveInput, FieldsNamed};
 
 use quote::{format_ident, quote, quote_spanned};
@@ -65,37 +67,38 @@ pub fn derive_execute(item: TokenStream) -> TokenStream {
 
                 // Variant's name
                 let ref variant_name = variant.ident;
-                let fields: &FieldsNamed;
 
                 // Variant can have unnamed fields like `Variant(i32, i64)`
                 // Variant can have named fields like `Variant {x: i32, y: i32}`
                 // Variant can be named Unit like `Variant`
-                let fields_in_variant = match &variant.fields {
+                match &variant.fields {
                     Fields::Unnamed(_) => quote_spanned! {variant.span()=> (..) },
                     Fields::Unit => quote_spanned! { variant.span()=> },
                     Fields::Named(fields_temp) => {
-                        // do something with these fields
+
+                        // construct an identifier named execute_<variant_name> for function name
+                        // We convert it to snake case using `to_case(Case::Snake)`
+                        let mut is_variant_func_name =
+                            format_ident!("execute_{}", variant_name.to_string().to_case(Case::Snake));
+                        is_variant_func_name.set_span(variant_name.span());
+
+                        let a = fields_temp.named.clone();
+
+                        let idents: Punctuated<Ident, Comma> = a.iter().map(|ident| ident.ident.clone().unwrap()).collect();
+                        
+                        // Here we construct the function for the current variant
+                        variant_checker_functions.extend(quote_spanned! {variant.span()=>
+                            pub fn #is_variant_func_name(#a) -> Self {
+                                #name::#variant_name {
+                                    #idents
+                                }
+                            }
+                        });
                         quote_spanned! {variant.span()=> {..} }
+                        // do something with these fields
                     }
                 };
-
-
-
-                // construct an identifier named execute_<variant_name> for function name
-                // We convert it to snake case using `to_case(Case::Snake)`
-                let mut is_variant_func_name =
-                    format_ident!("execute_{}", variant_name.to_string().to_case(Case::Snake));
-                is_variant_func_name.set_span(variant_name.span());
-
-                // Here we construct the function for the current variant
-                variant_checker_functions.extend(quote_spanned! {variant.span()=>
-                    fn #is_variant_func_name(&self, /* Require the variant fields */ ) -> bool {
-                        match self {
-                            #name::#variant_name #fields_in_variant => true,
-                            _ => false,
-                        }
-                    }
-                });
+             
 
                 // Above we are making a TokenStream using extend()
                 // This is because TokenStream is an Iterator,

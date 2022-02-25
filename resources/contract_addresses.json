@@ -1,1 +1,8 @@
-{}
+{
+  "debugging": {
+    "memory": {
+      "addr": "terra18w83usjkmdr2w6rh6ttmmhmu3rxz0uszejlcx2",
+      "code_id": 21
+    }
+  }
+}

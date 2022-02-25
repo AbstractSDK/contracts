@@ -4,15 +4,24 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum TerraRustScriptError {
-    #[error("Terra Rust API Error")]
-    ReqwestError(#[from] ::terra_rust_api::errors::TerraRustAPIError),
-
+    #[error("Reqwest HTTP(s) Error")]
+    ReqwestError(#[from] ::reqwest::Error),
     #[error("JSON Conversion Error")]
     SerdeJson(#[from] ::serde_json::Error),
+    #[error(transparent)]
+    ParseIntError(#[from] std::num::ParseIntError),
+    #[error(transparent)]
+    IOErr(#[from] ::std::io::Error),
+    #[error(transparent)]
+    Secp256k1(#[from] ::secp256k1::Error),
+    #[error(transparent)]
+    VarError(#[from] ::std::env::VarError),
 
     #[error("Terra `{0}` CLI Error")]
     Terra(String),
 
+    #[error("TerraRustAPIError Error")]
+    TerraRustAPIError(#[from] ::terra_rust_api::errors::TerraRustAPIError),
     #[error("Bech32 Decode Error")]
     Bech32DecodeErr,
     #[error("Bech32 Decode Error: Key Failed prefix {0} or length {1} Wanted:{2}/{3}")]

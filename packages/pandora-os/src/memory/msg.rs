@@ -5,16 +5,16 @@ use terraswap::asset::AssetInfo;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub struct InstantiateMsg;
+pub struct InstantiateMsg {}
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub struct MigrateMsg {}
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema,execute)]
 #[serde(rename_all = "snake_case")]
+/// Updates the addressbook
 pub enum ExecuteMsg {
-    /// Updates the addressbook
     UpdateContractAddresses {
         to_add: Vec<(String, String)>,
         to_remove: Vec<String>,
