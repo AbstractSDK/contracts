@@ -8,7 +8,7 @@ pub struct Multisig;
 impl Multisig {
     pub fn create_proposal(
         json_msg: Value,
-        group_name: &str,
+        _group_name: &str,
         contract_addr: &str,
         sender_addr: &str,
         coins: Vec<Coin>,

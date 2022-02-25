@@ -5,7 +5,7 @@ pub mod example;
 pub mod multisig;
 pub mod sender;
 
-use std::env;
+
 
 use dotenv::dotenv;
 #[tokio::main]

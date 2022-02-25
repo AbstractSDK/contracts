@@ -109,7 +109,7 @@ impl GroupConfig {
         denom: &str,
         file_path: String,
         proposal: bool,
-        secp: &Secp256k1<C>,
+        _secp: &Secp256k1<C>,
     ) -> anyhow::Result<GroupConfig> {
         check_group_existance(&name, &file_path)?;
 

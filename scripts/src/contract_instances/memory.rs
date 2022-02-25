@@ -8,7 +8,7 @@ use pandora_os::memory::msg::*;
 use secp256k1::{Context, Signing};
 
 use terra_rust_api::client::tx_types::TXResultSync;
-use terra_rust_script_derive::contract;
+
 
 pub struct Memory(pub ContractInstance<InstantiateMsg, ExecuteMsg, QueryMsg, Empty>);
 

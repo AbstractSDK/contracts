@@ -3,7 +3,7 @@ use std::{
     time::Duration,
 };
 
-use anyhow::Error;
+
 
 use secp256k1::{Context, Signing};
 

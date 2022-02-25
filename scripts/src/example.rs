@@ -6,7 +6,7 @@ use crate::{
 };
 use pandora_os::*;
 use secp256k1::Secp256k1;
-use terra_rust_api::PrivateKey;
+
 
 pub async fn demo() -> anyhow::Result<()> {
     let secp = Secp256k1::new();
@@ -26,9 +26,9 @@ pub async fn demo() -> anyhow::Result<()> {
         &secp,
     )
     .await?;
-    let sender = Sender::new(&config, secp)?;
+    let _sender = Sender::new(&config, secp)?;
 
-    let memory = Memory::new(config.clone());
+    let _memory = Memory::new(config.clone());
 
     log::debug!(
         "{:?}",
