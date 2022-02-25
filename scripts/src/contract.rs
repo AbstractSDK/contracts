@@ -3,8 +3,6 @@ use std::{
     time::Duration,
 };
 
-
-
 use secp256k1::{Context, Signing};
 
 use serde_json::{from_reader, json, Value};

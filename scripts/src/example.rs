@@ -7,6 +7,9 @@ use crate::{
 use pandora_os::*;
 use secp256k1::Secp256k1;
 
+use pandora_os::memory::msg::{
+    ExecuteMsg as MemExec, InstantiateMsg as MemInit, QueryMsg as MemQuery,
+};
 
 pub async fn demo() -> anyhow::Result<()> {
     let secp = Secp256k1::new();
@@ -26,13 +29,18 @@ pub async fn demo() -> anyhow::Result<()> {
         &secp,
     )
     .await?;
-    let _sender = Sender::new(&config, secp)?;
+    let sender = &Sender::new(&config, secp)?;
 
-    let _memory = Memory::new(config.clone());
+    let memory = Memory::new(config.clone());
+    memory.execute(
+        sender,
+        MemExec::update_asset_addresses(vec![], vec![]),
+        vec![],
+    ).await?;
 
     log::debug!(
         "{:?}",
-        memory::msg::ExecuteMsg::execute_set_admin("oeuaoeuaoeu".into())
+        memory::msg::ExecuteMsg::set_admin("oeuaoeuaoeu".into())
     );
 
     // memory.0.upload(&sender, "/home/cyberhoward/Programming/Pandora/contracts/artifacts/memory.wasm").await?;

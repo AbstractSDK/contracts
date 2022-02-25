@@ -5,8 +5,6 @@ pub mod example;
 pub mod multisig;
 pub mod sender;
 
-
-
 use dotenv::dotenv;
 #[tokio::main]
 async fn main() {
@@ -46,4 +44,8 @@ mod macro_dev {
         /// Sets a new Admin
         SetAdmin { admin: String },
     }
+
+    #[derive(Clone, Debug, execute)]
+    /// Updates the addressbook
+    pub struct InitMsg {}
 }

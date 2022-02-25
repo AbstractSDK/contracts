@@ -4,7 +4,7 @@ use proc_macro::TokenStream;
 use proc_macro2::{Span, TokenStream as TokenStream2, Ident};
 use syn::punctuated::Punctuated;
 use syn::token::Comma;
-use syn::{self, parse_macro_input, DeriveInput, FieldsNamed};
+use syn::{self, parse_macro_input, DeriveInput};
 
 use quote::{format_ident, quote, quote_spanned};
 use syn::spanned::Spanned;
@@ -12,21 +12,24 @@ use syn::{Data, Error, Fields};
 // https://crates.io/crates/convert_case
 use convert_case::{Case, Casing};
 
-#[proc_macro_derive(contract)]
-pub fn derive_contract(item: TokenStream) -> TokenStream {
-    let ast = parse_macro_input!(item as DeriveInput);
-    let name = &ast.ident;
 
-    let token_stream2 = quote! {
-        impl #name {
-            pub fn test() -> String { 
-                format!("{:?}",#name)
-            }
-        }
-    };
+// cargo watch -q -c -x 'expand --lib macro_dev'
 
-    TokenStream::from(token_stream2)
-}
+// #[proc_macro_derive(contract)]
+// pub fn derive_contract(item: TokenStream) -> TokenStream {
+//     let ast = parse_macro_input!(item as DeriveInput);
+//     let name = &ast.ident;
+
+//     let token_stream2 = quote! {
+//         impl #name {
+//             pub fn test() -> String { 
+//                 format!("{:?}",#name)
+//             }
+//         }
+//     };
+
+//     TokenStream::from(token_stream2)
+// }
 
 macro_rules! derive_error {
     ($string: tt) => {
@@ -36,8 +39,8 @@ macro_rules! derive_error {
     };
 }
 
-#[proc_macro_derive(execute)]
-pub fn derive_execute(item: TokenStream) -> TokenStream {
+#[proc_macro_derive(contract)]
+pub fn derive_contract(item: TokenStream) -> TokenStream {
     // See https://doc.servo.org/syn/derive/struct.DeriveInput.html
     let input: DeriveInput = parse_macro_input!(item as DeriveInput);
 
@@ -79,12 +82,13 @@ pub fn derive_execute(item: TokenStream) -> TokenStream {
                         // construct an identifier named execute_<variant_name> for function name
                         // We convert it to snake case using `to_case(Case::Snake)`
                         let mut is_variant_func_name =
-                            format_ident!("execute_{}", variant_name.to_string().to_case(Case::Snake));
+                        format_ident!("{}", variant_name.to_string().to_case(Case::Snake));
                         is_variant_func_name.set_span(variant_name.span());
 
                         let a = fields_temp.named.clone();
-
+                        
                         let idents: Punctuated<Ident, Comma> = a.iter().map(|ident| ident.ident.clone().unwrap()).collect();
+                        
                         
                         // Here we construct the function for the current variant
                         variant_checker_functions.extend(quote_spanned! {variant.span()=>
@@ -98,32 +102,66 @@ pub fn derive_execute(item: TokenStream) -> TokenStream {
                         // do something with these fields
                     }
                 };
-             
-
-                // Above we are making a TokenStream using extend()
-                // This is because TokenStream is an Iterator,
-                // so we can keep extending it.
-                //
-                // proc_macro2::TokenStream:- https://docs.rs/proc-macro2/1.0.24/proc_macro2/struct.TokenStream.html
-
-                // Read about
-                // quote:- https://docs.rs/quote/1.0.7/quote/
-                // quote_spanned:- https://docs.rs/quote/1.0.7/quote/macro.quote_spanned.html
-                // spans:- https://docs.rs/syn/1.0.54/syn/spanned/index.html
             }
+                let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
+                
+                let expanded = quote! {
+                    impl #impl_generics #name #ty_generics #where_clause {
+                        // variant_checker_functions gets replaced by all the functions
+                        // that were constructed above
+                        #variant_checker_functions
+                    }
+                };
+                return TokenStream::from(expanded)
+             
+            
         }
+        Data::Struct(data_struct) => {
+
+            let mut struct_constructor_function = TokenStream2::new();
+            match &data_struct.fields {
+                Fields::Named(fields_temp) => {
+                    
+                    let is_variant_func_name =
+                    format_ident!("instantiate");
+                    
+                    let a = fields_temp.named.clone();
+                    
+                    let idents: Punctuated<Ident, Comma> = a.iter().map(|ident| ident.ident.clone().unwrap()).collect();
+                    
+                    
+                    // Here we construct the function for the current variant
+                    struct_constructor_function.extend(quote! {
+                        pub fn #is_variant_func_name(#a) -> Self {
+                            #name{
+                                #idents
+                            }
+                        }
+                    });
+                    
+            },
+            _ => ()
+        }
+        let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
+                
+        let expanded = quote! {
+            impl #impl_generics #name #ty_generics #where_clause {
+                #struct_constructor_function
+            }
+        };
+        return TokenStream::from(expanded)
+    },
         _ => return derive_error!("IsVariant is only implemented for enums"),
-    };
-
-    let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
-
-    let expanded = quote! {
-        impl #impl_generics #name #ty_generics #where_clause {
-            // variant_checker_functions gets replaced by all the functions
-            // that were constructed above
-            #variant_checker_functions
-        }
-    };
-
-    TokenStream::from(expanded)
+    }
 }
+
+// Above we are making a TokenStream using extend()
+// This is because TokenStream is an Iterator,
+// so we can keep extending it.
+//
+// proc_macro2::TokenStream:- https://docs.rs/proc-macro2/1.0.24/proc_macro2/struct.TokenStream.html
+
+// Read about
+// quote:- https://docs.rs/quote/1.0.7/quote/
+// quote_spanned:- https://docs.rs/quote/1.0.7/quote/macro.quote_spanned.html
+// spans:- https://docs.rs/syn/1.0.54/syn/spanned/index.html
