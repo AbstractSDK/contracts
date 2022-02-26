@@ -27,25 +27,25 @@ async fn main() {
     }
 }
 
-mod macro_dev {
-    use terra_rust_script_derive::execute;
+// mod macro_dev {
+//     use terra_rust_script_derive::contract;
 
-    #[derive(Clone, Debug, execute)]
-    /// Updates the addressbook
-    pub enum ExecuteMsg {
-        UpdateContractAddresses {
-            to_add: Vec<(String, String)>,
-            to_remove: Vec<String>,
-        },
-        UpdateAssetAddresses {
-            to_add: Vec<(String, String)>,
-            to_remove: Vec<String>,
-        },
-        /// Sets a new Admin
-        SetAdmin { admin: String },
-    }
+//     #[derive(Clone, Debug, contract)]
+//     /// Updates the addressbook
+//     pub enum ExecuteMsg {
+//         UpdateContractAddresses {
+//             to_add: Vec<(String, String)>,
+//             to_remove: Vec<String>,
+//         },
+//         UpdateAssetAddresses {
+//             to_add: Vec<(String, String)>,
+//             to_remove: Vec<String>,
+//         },
+//         /// Sets a new Admin
+//         SetAdmin { admin: String },
+//     }
 
-    #[derive(Clone, Debug, execute)]
-    /// Updates the addressbook
-    pub struct InitMsg {}
-}
+//     #[derive(Clone, Debug, contract)]
+//     /// Updates the addressbook
+//     pub struct InitMsg {}
+// }

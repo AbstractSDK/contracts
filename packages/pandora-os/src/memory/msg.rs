@@ -1,17 +1,17 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use terra_rust_script_derive::execute;
+use terra_rust_script_derive::contract;
 use terraswap::asset::AssetInfo;
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema,contract)]
 #[serde(rename_all = "snake_case")]
 pub struct InstantiateMsg {}
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema,contract)]
 #[serde(rename_all = "snake_case")]
 pub struct MigrateMsg {}
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema,execute)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema,contract)]
 #[serde(rename_all = "snake_case")]
 /// Updates the addressbook
 pub enum ExecuteMsg {
@@ -27,7 +27,7 @@ pub enum ExecuteMsg {
     SetAdmin { admin: String },
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema,contract)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     /// Queries assets based on name

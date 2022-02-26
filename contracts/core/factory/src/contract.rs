@@ -8,7 +8,8 @@ use cw2::set_contract_version;
 use pandora_os::registery::FACTORY;
 
 use crate::state::*;
-use crate::{commands, msg::*};
+use crate::commands;
+use pandora_os::os_factory::msg::*;
 
 pub type OsFactoryResult = Result<Response, OsFactoryError>;
 
