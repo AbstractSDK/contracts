@@ -1,8 +1,9 @@
-use pandora_os::governance::gov_type::GovernanceDetails;
+use crate::governance::gov_type::GovernanceDetails;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use terra_rust_script_derive::contract;
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, contract)]
 pub struct InstantiateMsg {
     /// Version control contract used to get code-ids and register OS
     pub version_control_contract: String,
@@ -12,7 +13,7 @@ pub struct InstantiateMsg {
     pub creation_fee: u32,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, contract)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
     /// Update config
@@ -30,7 +31,7 @@ pub enum ExecuteMsg {
     },
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, contract)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     Config {},
