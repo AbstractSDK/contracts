@@ -53,7 +53,7 @@ terra-multi-test = {git="https://github.com/astroport-fi/terra-plus", rev="b3991
 cosmwasm-vm = { version = "0.16.0", default-features = false, features = ["iterator"] }
 
 treasury = { version = "0.1.0", path = "../../../core/treasury" }
-memory = { version = "0.1.0", path = "../../../core/memory" }
+memory = { version = "0.1.0", path = "../../../native/memory" }
 cw20-base = { version = "0.8", features = ["library"] }
 astroport-factory = { version = "0.1.0", path = "../../../mocks/mock_astroport/astroport_factory" }
 astroport-pair = { version = "0.1.0", path = "../../../mocks/mock_astroport/astroport_pair" }

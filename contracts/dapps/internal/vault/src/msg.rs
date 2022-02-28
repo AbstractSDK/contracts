@@ -4,8 +4,8 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use pandora_os::{
-    fee::Fee,
-    treasury::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg, BaseQueryMsg},
+    core::treasury::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg, BaseQueryMsg},
+    util::fee::Fee,
 };
 use terraswap::asset::Asset;
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

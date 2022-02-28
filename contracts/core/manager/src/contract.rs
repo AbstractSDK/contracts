@@ -7,7 +7,7 @@ use crate::commands::*;
 use crate::error::ManagerError;
 use crate::queries;
 use crate::state::{ADMIN, OS_ID};
-use pandora_os::manager::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use pandora_os::core::manager::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 use pandora_os::registery::MANAGER;
 
 pub type ManagerResult = Result<Response, ManagerError>;
