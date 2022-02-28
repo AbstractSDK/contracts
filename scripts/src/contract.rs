@@ -1,4 +1,5 @@
 use std::{
+    env,
     fs::{self, File},
     time::Duration,
 };
@@ -65,6 +66,7 @@ impl<I: serde::Serialize, E: serde::Serialize, Q: serde::Serialize, M: serde::Se
                 execute_msg_json,
                 &self.group_config.name,
                 &contract,
+                &env::var(&self.group_config.network_config.network.multisig_name())?,
                 &sender.pub_addr()?,
                 coins,
             )?
@@ -162,36 +164,12 @@ impl<I: serde::Serialize, E: serde::Serialize, Q: serde::Serialize, M: serde::Se
         Ok(resp)
     }
 
-    fn get_address(&self) -> Result<String, TerraRustScriptError> {
-        let file = File::open(&self.group_config.file_path).expect(&format!(
-            "file should be present at {}",
-            self.group_config.file_path
-        ));
-        let json: serde_json::Value = from_reader(file).unwrap();
-        let maybe_address = json[self.group_config.name.clone()][self.name.clone()].get("addr");
-        match maybe_address {
-            Some(addr) => {
-                log::debug!("contract: {} addr: {}", self.name, addr);
-                return Ok(addr.as_str().unwrap().into());
-            }
-            None => return Err(TerraRustScriptError::AddrNotInFile()),
-        }
+    pub fn get_address(&self) -> Result<String, TerraRustScriptError> {
+        self.group_config.get_contract_address(&self.name)
     }
 
     fn get_code_id(&self) -> Result<u64, TerraRustScriptError> {
-        let file = File::open(&self.group_config.file_path).expect(&format!(
-            "file should be present at {}",
-            self.group_config.file_path
-        ));
-        let json: serde_json::Value = from_reader(file).unwrap();
-        let maybe_address = json[self.group_config.name.clone()][self.name.clone()].get("code_id");
-        match maybe_address {
-            Some(code_id) => {
-                log::debug!("contract: {} code_id: {}", self.group_config.name, code_id);
-                return Ok(code_id.as_u64().unwrap());
-            }
-            None => return Err(TerraRustScriptError::AddrNotInFile()),
-        }
+        self.group_config.get_contract_code_id(&self.name)
     }
 
     fn save_code_id(&self, code_id: u64) -> Result<(), TerraRustScriptError> {
@@ -203,7 +181,10 @@ impl<I: serde::Serialize, E: serde::Serialize, Q: serde::Serialize, M: serde::Se
         Ok(())
     }
 
-    fn save_contract_address(&self, contract_address: String) -> Result<(), TerraRustScriptError> {
+    pub fn save_contract_address(
+        &self,
+        contract_address: String,
+    ) -> Result<(), TerraRustScriptError> {
         let s = fs::read_to_string(&self.group_config.file_path).unwrap();
         let mut cfg: Value = serde_json::from_str(&s)?;
         cfg[&self.group_config.name][&self.name]["addr"] = Value::String(contract_address);

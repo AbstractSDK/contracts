@@ -10,6 +10,7 @@ impl Multisig {
         json_msg: Value,
         _group_name: &str,
         contract_addr: &str,
+        multisig_addr: &str,
         sender_addr: &str,
         coins: Vec<Coin>,
     ) -> Result<Message, TerraRustScriptError> {
@@ -34,7 +35,7 @@ impl Multisig {
 
         Ok(MsgExecuteContract::create_from_value(
             sender_addr,
-            contract_addr,
+            multisig_addr,
             &msg,
             &vec![],
         )?)

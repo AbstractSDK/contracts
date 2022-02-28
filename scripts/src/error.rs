@@ -62,6 +62,6 @@ pub enum TerraRustScriptError {
     #[error("Generic Error {0}")]
     StdErr(String),
 
-    #[error("Contract address not found in file")]
-    AddrNotInFile(),
+    #[error("Contract address for {0} not found in file")]
+    AddrNotInFile(String),
 }

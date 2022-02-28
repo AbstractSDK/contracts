@@ -4,7 +4,7 @@ use proc_macro::TokenStream;
 use proc_macro2::{Span, TokenStream as TokenStream2, Ident};
 use syn::punctuated::Punctuated;
 use syn::token::Comma;
-use syn::{self, parse_macro_input, DeriveInput};
+use syn::{self, parse_macro_input, DeriveInput, Visibility, Field};
 
 use quote::{format_ident, quote, quote_spanned};
 use syn::spanned::Spanned;
@@ -86,13 +86,16 @@ pub fn derive_contract(item: TokenStream) -> TokenStream {
                         is_variant_func_name.set_span(variant_name.span());
 
                         let a = fields_temp.named.clone();
+
+                        // todo: only remove attr if Attr is of type outer
+                        let b: Punctuated<Field, Comma> = a.iter().map(|field| {let mut temp = field.clone(); temp.vis = Visibility::Inherited;
+                            temp.attrs = vec![]; temp}).collect();
                         
                         let idents: Punctuated<Ident, Comma> = a.iter().map(|ident| ident.ident.clone().unwrap()).collect();
                         
-                        
                         // Here we construct the function for the current variant
                         variant_checker_functions.extend(quote_spanned! {variant.span()=>
-                            pub fn #is_variant_func_name(#a) -> Self {
+                            pub fn #is_variant_func_name(#b) -> Self {
                                 #name::#variant_name {
                                     #idents
                                 }
@@ -126,13 +129,15 @@ pub fn derive_contract(item: TokenStream) -> TokenStream {
                     format_ident!("instantiate");
                     
                     let a = fields_temp.named.clone();
-                    
+                    let b: Punctuated<Field, Comma> = a.iter().map(|field| {let mut temp = field.clone(); temp.vis = Visibility::Inherited;
+                        temp.attrs = vec![]; temp}).collect();
+
                     let idents: Punctuated<Ident, Comma> = a.iter().map(|ident| ident.ident.clone().unwrap()).collect();
                     
                     
                     // Here we construct the function for the current variant
                     struct_constructor_function.extend(quote! {
-                        pub fn #is_variant_func_name(#a) -> Self {
+                        pub fn #is_variant_func_name(#b) -> Self {
                             #name{
                                 #idents
                             }

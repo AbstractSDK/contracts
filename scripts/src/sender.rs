@@ -92,6 +92,14 @@ impl Network {
             Network::Testnet => "TEST_MNEMONIC",
         }
     }
+
+    pub fn multisig_name(&self) -> &str {
+        match *self {
+            Network::LocalTerra => "LOCAL_MULTISIG",
+            Network::Mainnet => "MAIN_MULTISIG",
+            Network::Testnet => "TEST_MULTISIG",
+        }
+    }
 }
 #[derive(Clone, Debug)]
 pub struct GroupConfig {
@@ -119,6 +127,45 @@ impl GroupConfig {
             file_path,
             proposal,
         })
+    }
+
+    pub fn get_contract_address(
+        &self,
+        contract_name: &str,
+    ) -> Result<String, TerraRustScriptError> {
+        let file = File::open(&self.file_path)
+            .expect(&format!("file should be present at {}", self.file_path));
+        let json: serde_json::Value = from_reader(file)?;
+        let maybe_address = json[self.name.clone()][contract_name].get("addr");
+        match maybe_address {
+            Some(addr) => {
+                log::debug!("contract: {} addr: {}", self.name, addr);
+                return Ok(addr.as_str().unwrap().into());
+            }
+            None => {
+                return Err(TerraRustScriptError::AddrNotInFile(
+                    contract_name.to_owned(),
+                ))
+            }
+        }
+    }
+
+    pub fn get_contract_code_id(&self, contract_name: &str) -> Result<u64, TerraRustScriptError> {
+        let file = File::open(&self.file_path)
+            .expect(&format!("file should be present at {}", self.file_path));
+        let json: serde_json::Value = from_reader(file).unwrap();
+        let maybe_code_id = json[self.name.clone()][contract_name].get("code_id");
+        match maybe_code_id {
+            Some(code_id) => {
+                log::debug!("contract: {} code_id: {}", self.name, code_id);
+                return Ok(code_id.as_u64().unwrap());
+            }
+            None => {
+                return Err(TerraRustScriptError::AddrNotInFile(
+                    contract_name.to_owned(),
+                ))
+            }
+        }
     }
 }
 
