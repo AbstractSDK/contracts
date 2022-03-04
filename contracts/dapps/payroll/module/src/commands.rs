@@ -5,11 +5,11 @@ use cosmwasm_std::{
     Response, StdResult, Uint128, Uint64, WasmMsg,
 };
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg};
-use pandora::deposit_manager::Deposit;
-use pandora::treasury::msg::send_to_treasury;
+use pandora_os::util::deposit_manager::Deposit;
+use pandora_os::core::treasury::msg::send_to_treasury;
 use terraswap::asset::{Asset, AssetInfo};
 
-use pandora::treasury::dapp_base::state::{ADMIN, BASESTATE};
+use pandora_os::core::treasury::dapp_base::state::{ADMIN, BASESTATE};
 
 use crate::contract::PaymentResult;
 use crate::error::PaymentError;

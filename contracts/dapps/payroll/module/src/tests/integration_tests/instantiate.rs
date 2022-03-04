@@ -7,11 +7,11 @@ use crate::tests::integration_tests::common_integration::{mint_some_whale, store
 use terra_multi_test::Executor;
 use terraswap::asset::Asset;
 
-use pandora::memory::msg as MemoryMsg;
-use pandora::treasury::msg as TreasuryMsg;
-use pandora::treasury::vault_assets::{ValueRef, VaultAsset};
+use pandora_os::memory::msg as MemoryMsg;
+use pandora_os::treasury::msg as TreasuryMsg;
+use pandora_os::treasury::vault_assets::{ValueRef, VaultAsset};
 
-use pandora::treasury::dapp_base::msg::BaseInstantiateMsg;
+use pandora_os::treasury::dapp_base::msg::BaseInstantiateMsg;
 
 use super::common_integration::{whitelist_dapp, BaseContracts};
 const MILLION: u64 = 1_000_000u64;

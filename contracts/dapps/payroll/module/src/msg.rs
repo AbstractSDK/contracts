@@ -3,7 +3,7 @@ use cw20::Cw20ReceiveMsg;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use pandora::treasury::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg, BaseQueryMsg};
+use pandora_os::core::treasury::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg, BaseQueryMsg};
 use terraswap::asset::{Asset, AssetInfo};
 
 use crate::state::Compensation;

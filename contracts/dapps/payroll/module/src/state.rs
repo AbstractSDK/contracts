@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use cosmwasm_std::{Addr, Decimal, Uint128, Uint64};
 use cw_storage_plus::{Item, Map};
-use pandora::{deposit_manager::Deposit, paged_map::PagedMap};
+use pandora_os::util::{deposit_manager::Deposit, paged_map::PagedMap};
 use terraswap::asset::AssetInfo;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
