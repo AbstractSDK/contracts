@@ -27,7 +27,7 @@ pub fn instantiate(
         module_factory_address: deps.api.addr_validate(&msg.module_factory_address)?,
         memory_contract: deps.api.addr_validate(&msg.memory_contract)?,
         creation_fee: msg.creation_fee,
-        os_id_sequence: 0u32,
+        next_os_id: 0u32,
     };
 
     set_contract_version(deps.storage, FACTORY, CONTRACT_VERSION)?;
@@ -91,8 +91,8 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
         version_control_contract: state.version_control_contract.into(),
         memory_contract: state.memory_contract.into(),
         creation_fee: state.creation_fee,
-        os_id_sequence: state.os_id_sequence,
         module_factory_address: state.module_factory_address.into(),
+        next_os_id: state.next_os_id,
     };
 
     Ok(resp)
