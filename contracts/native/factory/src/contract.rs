@@ -25,6 +25,7 @@ pub fn instantiate(
 ) -> OsFactoryResult {
     let config = Config {
         version_control_contract: deps.api.addr_validate(&msg.version_control_contract)?,
+        module_factory_address: deps.api.addr_validate(&msg.module_factory_address)?,
         memory_contract: deps.api.addr_validate(&msg.memory_contract)?,
         creation_fee: msg.creation_fee,
         next_os_id: 0u32,
@@ -45,6 +46,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> O
             memory_contract,
             version_control_contract,
             creation_fee,
+            module_factory_address,
         } => commands::execute_update_config(
             deps,
             env,
@@ -52,6 +54,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> O
             admin,
             memory_contract,
             version_control_contract,
+            module_factory_address,
             creation_fee,
         ),
         ExecuteMsg::CreateOs { governance } => commands::execute_create_os(deps, env, governance),
@@ -89,6 +92,7 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
         version_control_contract: state.version_control_contract.into(),
         memory_contract: state.memory_contract.into(),
         creation_fee: state.creation_fee,
+        module_factory_address: state.module_factory_address.into(),
         next_os_id: state.next_os_id,
     };
 
