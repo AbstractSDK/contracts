@@ -92,6 +92,7 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
         memory_contract: state.memory_contract.into(),
         creation_fee: state.creation_fee,
         os_id_sequence: state.os_id_sequence,
+        module_factory_address: state.module_factory_address.into(),
     };
 
     Ok(resp)

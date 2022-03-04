@@ -44,6 +44,7 @@ pub struct ConfigResponse {
     pub owner: String,
     pub memory_contract: String,
     pub version_control_contract: String,
+    pub module_factory_address: String,
     pub creation_fee: u32,
     pub os_id_sequence: u32,
 }
