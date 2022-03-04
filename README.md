@@ -1,5 +1,7 @@
-# DAO-OS
+# Pandora Architecture
 
+
+![alt text](https://github.com/Pandora-OS/contracts/blob/main/architecture.png?raw=true)
 ## Core
 Every OS start off with the core contracts. These contracts handle the most important business logic of the DAO, including fund management. 
 
@@ -47,7 +49,7 @@ Permissions are handled on a per-dapp basis for interactions with the treasury. 
 
 Contract migration is handled by the manager contract which has special Admin right to do so. Other configuration rights are configured on a per-dapp basis. 
 
-TODO: remove option to change memory/treasury address from dapp_base.
+The OS manager is Admin over all contracts. On instantiation the Module Factory is the default Admin which is changed after init. 
 
 # Deployment
 Deploying the basic infrastucture is done though the following steps:
