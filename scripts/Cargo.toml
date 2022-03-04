@@ -18,5 +18,10 @@ serde = { version = "1.0.103", default-features = false, features = ["derive"] }
 reqwest = { version = "0.11.9"}
 dotenv="0.15.0"
 env_logger = "0.8.3"
-terra-rust-script = {path = "../terra-rust-script"}
 base64 = "0.13.0"
+terra-rust-script = {git = "https://github.com/CyberHoward/terra-rust-script"}
+terraswap = "2.4.0"
+cw-asset = { version = "1.0.2", features = ["legacy"] }
+rust_decimal="1.12.2"
+rust_decimal_macros="1.12.2"
+cw20 = { version = "0.9.1"}
