@@ -5,7 +5,6 @@ use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 
 use manager::state::Config;
 use pandora_os::core::treasury::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
-use pandora_os::core::treasury::state::State;
 
 fn main() {
     let mut out_dir = current_dir().unwrap();

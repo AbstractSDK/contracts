@@ -11,7 +11,7 @@ use pandora_os::core::treasury::msg as TreasuryMsg;
 use pandora_os::core::treasury::vault_assets::{ValueRef, VaultAsset};
 use pandora_os::native::memory::msg as MemoryMsg;
 
-use pandora_os::core::treasury::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg};
+use pandora_os::core::treasury::dapp_base::msg::BaseInstantiateMsg;
 
 use super::common_integration::{whitelist_dapp, BaseContracts};
 const MILLION: u64 = 1_000_000u64;

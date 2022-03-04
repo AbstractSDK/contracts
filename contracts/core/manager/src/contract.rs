@@ -7,8 +7,8 @@ use cw2::set_contract_version;
 use crate::commands::*;
 use crate::error::ManagerError;
 use crate::queries;
-use crate::state::{ADMIN, OS_ID, CONFIG, Config, ROOT};
-use pandora_os::core::manager::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, ConfigQueryResponse};
+use crate::state::{Config, ADMIN, CONFIG, OS_ID, ROOT};
+use pandora_os::core::manager::msg::{ConfigQueryResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
 use pandora_os::registery::MANAGER;
 
 pub type ManagerResult = Result<Response, ManagerError>;

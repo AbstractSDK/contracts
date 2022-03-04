@@ -4,9 +4,9 @@ use cosmwasm_std::{
 };
 use cosmwasm_std::{ContractResult, CosmosMsg, SubMsgExecutionResponse};
 use pandora_os::core::manager::helper::register_module_on_manager;
+use pandora_os::core::modules::ModuleInfo;
 use pandora_os::governance::gov_type::GovernanceDetails;
 use protobuf::Message;
-use pandora_os::core::modules::ModuleInfo;
 
 use crate::contract::OsFactoryResult;
 

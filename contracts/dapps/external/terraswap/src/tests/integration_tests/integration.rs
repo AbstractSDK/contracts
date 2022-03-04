@@ -14,9 +14,7 @@ use pandora_os::native::memory::msg as MemoryMsg;
 use terra_multi_test::Executor;
 use terraswap::pair::PoolResponse;
 
-use pandora_os::core::treasury::dapp_base::msg::{
-    BaseInstantiateMsg as InstantiateMsg,
-};
+use pandora_os::core::treasury::dapp_base::msg::BaseInstantiateMsg as InstantiateMsg;
 
 use super::common_integration::{whitelist_dapp, BaseContracts};
 const MILLION: u64 = 1_000_000u64;
