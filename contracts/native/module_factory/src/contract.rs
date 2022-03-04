@@ -5,11 +5,11 @@ use cosmwasm_std::{
 
 use crate::error::ModuleFactoryError;
 use cw2::set_contract_version;
-use pandora::registery::FACTORY;
+use pandora_os::registery::FACTORY;
 
 use crate::commands;
 use crate::state::*;
-use pandora::module_factory::msg::*;
+use pandora_os::native::module_factory::msg::*;
 
 pub type ModuleFactoryResult = Result<Response, ModuleFactoryError>;
 

@@ -9,7 +9,6 @@ use pandora_os::core::treasury::dapp_base::msg::ExecuteMsg as TemplateExecuteMsg
 use crate::contract::ManagerResult;
 use crate::error::ManagerError;
 use crate::state::*;
-use pandora_os::core::manager::msg::ExecuteMsg;
 use pandora_os::native::module_factory::msg::ExecuteMsg as ModuleFactoryMsg;
 use pandora_os::registery::TREASURY;
 

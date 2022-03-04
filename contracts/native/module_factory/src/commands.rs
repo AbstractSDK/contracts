@@ -5,10 +5,10 @@ use cosmwasm_std::{
 
 use cw2::ContractVersion;
 
-use pandora::manager::queries::query_os_id;
-use pandora::modules::{Module, ModuleInfo, ModuleInitMsg, ModuleKind};
-use pandora::treasury::dapp_base::msg::BaseExecuteMsg;
-use pandora::version_control::queries::try_raw_os_manager_query;
+use pandora_os::core::manager::queries::query_os_id;
+use pandora_os::core::modules::{Module, ModuleInfo, ModuleInitMsg, ModuleKind};
+use pandora_os::core::treasury::dapp_base::msg::BaseExecuteMsg;
+use pandora_os::native::version_control::queries::try_raw_os_manager_query;
 use protobuf::Message;
 
 use crate::contract::ModuleFactoryResult;
@@ -18,9 +18,9 @@ use crate::error::ModuleFactoryError;
 use crate::response::MsgInstantiateContractResponse;
 use crate::state::*;
 
-use pandora::treasury::dapp_base::msg::ExecuteMsg as TemplateExecuteMsg;
+use pandora_os::core::treasury::dapp_base::msg::ExecuteMsg as TemplateExecuteMsg;
 
-use pandora::version_control::msg::{CodeIdResponse, QueryMsg as VCQuery};
+use pandora_os::native::version_control::msg::{CodeIdResponse, QueryMsg as VCQuery};
 
 pub const CREATE_INTERNAL_DAPP_RESPONSE_ID: u64 = 1u64;
 pub const CREATE_EXTERNAL_DAPP_RESPONSE_ID: u64 = 2u64;

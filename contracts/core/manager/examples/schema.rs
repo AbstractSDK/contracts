@@ -3,6 +3,7 @@ use std::fs::create_dir_all;
 
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 
+use manager::state::Config;
 use pandora_os::core::treasury::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 use pandora_os::core::treasury::state::State;
 

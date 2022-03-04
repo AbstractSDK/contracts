@@ -4,7 +4,7 @@ use cosmwasm_std::StdError;
 use cosmwasm_std::Uint64;
 use cosmwasm_std::WasmQuery;
 use cw2::ContractVersion;
-use pandora::modules::ModuleInfo;
+use pandora_os::core::modules::ModuleInfo;
 
 use crate::error::VersionError;
 use crate::state::{MODULE_CODE_IDS, OS_ADDRESSES};
