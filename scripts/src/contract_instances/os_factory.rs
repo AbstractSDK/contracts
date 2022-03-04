@@ -1,10 +1,10 @@
-use crate::{
+use terra_rust_script::{
     contract::{ContractInstance, Interface},
     sender::{GroupConfig},
 };
 use cosmwasm_std::Empty;
 
-use pandora_os::os_factory::msg::*;
+use pandora_os::native::os_factory::msg::*;
 
 pub trait OsFactory {
     fn new(group_config: GroupConfig) -> ContractInstance<InstantiateMsg, ExecuteMsg, QueryMsg, Empty>;

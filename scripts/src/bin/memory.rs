@@ -1,4 +1,4 @@
-use pandora_os::memory::msg::*;
+use pandora_os::native::memory::msg::*;
 use scripts::contract_instances::memory::Memory;
 use std::env;
 
@@ -29,7 +29,7 @@ pub async fn script() -> anyhow::Result<()>
 
     let memory = Memory::new(config);
 
-    memory
+    memory.0
         .execute(
             sender,
             ExecuteMsg::update_asset_addresses(vec![],vec![]),

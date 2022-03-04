@@ -3,6 +3,8 @@ name = "scripts"
 version = "0.1.0"
 edition = "2021"
 
+[workspace]
+
 [dependencies]
 thiserror = { version = "1.0.21" }
 pandora-os = { path = "../packages/pandora-os"}
