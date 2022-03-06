@@ -12,8 +12,8 @@ use protobuf::Message;
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg, MinterResponse};
 use terraswap::token::InstantiateMsg as TokenInstantiateMsg;
 
-use pandora_os::util::fee::Fee;
 use pandora_os::core::treasury::dapp_base::commands as dapp_base_commands;
+use pandora_os::util::fee::Fee;
 
 use pandora_os::core::treasury::dapp_base::common::BaseDAppResult;
 use pandora_os::core::treasury::dapp_base::msg::BaseInstantiateMsg;
@@ -45,7 +45,7 @@ pub fn instantiate(
         subscription_cost: msg.subscription_cost,
         project_token: deps.api.addr_validate(&msg.project_token)?,
     };
-    
+
     let state: State = State {
         token_cap: msg.token_cap,
         target: Uint64::zero(),

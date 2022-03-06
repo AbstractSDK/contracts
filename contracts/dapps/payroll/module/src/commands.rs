@@ -1,12 +1,12 @@
 use std::convert::TryInto;
 
 use cosmwasm_std::{
-    from_binary, to_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, Fraction, MessageInfo,
-    Response, StdResult, Uint128, Uint64, WasmMsg,
+    from_binary, Addr, Decimal, Deps, DepsMut, Env, Fraction, MessageInfo,
+    Response, StdResult, Uint128, Uint64,
 };
-use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg};
-use pandora_os::util::deposit_manager::Deposit;
+use cw20::{Cw20ReceiveMsg};
 use pandora_os::core::treasury::msg::send_to_treasury;
+use pandora_os::util::deposit_manager::Deposit;
 use terraswap::asset::{Asset, AssetInfo};
 
 use pandora_os::core::treasury::dapp_base::state::{ADMIN, BASESTATE};
@@ -14,7 +14,6 @@ use pandora_os::core::treasury::dapp_base::state::{ADMIN, BASESTATE};
 use crate::contract::PaymentResult;
 use crate::error::PaymentError;
 use crate::msg::DepositHookMsg;
-use crate::response;
 use crate::state::{
     Compensation, IncomeAccumulator, State, CLIENTS, CONFIG, CONTRIBUTORS, MONTH, STATE,
 };
@@ -181,15 +180,18 @@ pub fn try_claim(
     let mut compensation = CONTRIBUTORS.load(deps.storage, &info.sender.to_string())?;
 
     if compensation.next_pay_day.u64() > env.block.time.seconds() {
-        return Err(PaymentError::WaitForNextPayday(compensation.next_pay_day.u64()));
+        return Err(PaymentError::WaitForNextPayday(
+            compensation.next_pay_day.u64(),
+        ));
     } else if compensation.expiration.u64() < env.block.time.seconds() {
         // remove contributor
-        return remove_contributor_from_storage(deps, info.sender.to_string()).map(|_| Response::new())
+        return remove_contributor_from_storage(deps, info.sender.to_string())
+            .map(|_| Response::new());
     }
     // update compensation details
     compensation.next_pay_day = state.next_pay_day;
     CONTRIBUTORS.save(deps.storage, &info.sender.to_string(), &compensation)?;
-    
+
     let config = CONFIG.load(deps.storage)?;
     let base_state = BASESTATE.load(deps.storage)?;
 
@@ -219,8 +221,8 @@ pub fn try_claim(
         // Send tokens
         let token_msg = send_to_treasury(
             vec![Asset {
-                info: AssetInfo::Token{ 
-                    contract_addr: config.project_token.into()
+                info: AssetInfo::Token {
+                    contract_addr: config.project_token.into(),
                 },
                 amount,
             }
@@ -230,8 +232,7 @@ pub fn try_claim(
         response = response.add_message(token_msg);
     }
 
-    Ok(response
-        .add_attribute("Action:", "Claim compensation"))
+    Ok(response.add_attribute("Action:", "Claim compensation"))
 }
 
 fn tally_income(mut deps: DepsMut, env: Env, page_limit: Option<u32>) -> StdResult<()> {
@@ -280,7 +281,7 @@ fn process_client(variables: (Vec<u8>, Deposit, Deps), acc: &mut IncomeAccumulat
 fn remove_contributor_from_storage(
     deps: DepsMut,
     contributor_addr: String,
-) -> Result<(),PaymentError> {
+) -> Result<(), PaymentError> {
     // Load all needed states
     let mut state = STATE.load(deps.storage)?;
 
@@ -300,56 +301,3 @@ fn remove_contributor_from_storage(
     };
     Ok(())
 }
-
-// /// Updates the pool information
-// pub fn update_pool(
-//     deps: DepsMut,
-//     msg_info: MessageInfo,
-//     deposit_asset: Option<String>,
-//     assets_to_add: Vec<String>,
-//     assets_to_remove: Vec<String>,
-// ) -> PaymentResult {
-//     // Only the admin should be able to call this
-//     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
-
-//     let mut pool = POOL.load(deps.storage)?;
-
-//     // If provided, update pool
-//     if let Some(deposit_asset) = deposit_asset {
-//         pool.deposit_asset = deposit_asset;
-//     }
-
-//     // Add the asset to the vector if not already present
-//     for asset in assets_to_add.into_iter() {
-//         if !pool.assets.contains(&asset) {
-//             pool.assets.push(asset)
-//         } else {
-//             return Err(PaymentError::AssetAlreadyPresent { asset });
-//         }
-//     }
-
-//     // Remove asset from vector if present
-//     for asset in assets_to_remove.into_iter() {
-//         if pool.assets.contains(&asset) {
-//             pool.assets.retain(|x| *x != asset)
-//         } else {
-//             return Err(PaymentError::AssetNotPresent { asset });
-//         }
-//     }
-
-//     // Save pool
-//     POOL.save(deps.storage, &pool)?;
-//     Ok(Response::new().add_attribute("Update:", "Successful"))
-// }
-
-// pub fn set_fee(deps: DepsMut, msg_info: MessageInfo, new_fee: Fee) -> PaymentResult {
-//     // Only the admin should be able to call this
-//     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
-
-//     if new_fee.share > Decimal::one() {
-//         return Err(PaymentError::InvalidFee {});
-//     }
-
-//     FEE.save(deps.storage, &new_fee)?;
-//     Ok(Response::new().add_attribute("Update:", "Successful"))
-// }
