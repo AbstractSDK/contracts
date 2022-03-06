@@ -147,27 +147,11 @@ pub fn remove_contributor(
 ) -> PaymentResult {
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
-    // Load all needed states
-    let mut state = STATE.load(deps.storage)?;
-
-    let maybe_compensation = CONTRIBUTORS.may_load(deps.storage, &contributor_addr)?;
-
-    match maybe_compensation {
-        Some(current_compensation) => {
-            state.total_weight -= Uint128::from(current_compensation.weight);
-            state.target = state
-                .target
-                .checked_sub(Uint64::from(current_compensation.base))?;
-            // Can only get paid on pay day after next pay day
-            CONTRIBUTORS.remove(deps.storage, &contributor_addr);
-            STATE.save(deps.storage, &state)?;
-        }
-        None => return Err(PaymentError::ContributorNotRegistered {}),
-    };
+    remove_contributor_from_storage(deps, contributor_addr.clone())?;
     // Init vector for logging
     let attrs = vec![
         ("Action:", String::from("Remove Contributor")),
-        ("Address:", contributor_addr.to_string()),
+        ("Address:", contributor_addr),
     ];
 
     Ok(Response::new().add_attributes(attrs))
@@ -179,7 +163,7 @@ pub fn try_claim(
     info: MessageInfo,
     page_limit: Option<u32>,
 ) -> PaymentResult {
-    let mut state: State = STATE.load(deps.storage)?;
+    let state: State = STATE.load(deps.storage)?;
 
     let mut response = Response::new();
 
@@ -199,7 +183,10 @@ pub fn try_claim(
     if compensation.next_pay_day.u64() > env.block.time.seconds() {
         return Err(PaymentError::WaitForNextPayday(compensation.next_pay_day.u64()));
     } else if compensation.expiration.u64() < env.block.time.seconds() {
-        return Err(PaymentError::ContributionExpired);
+        // remove contributor
+        return remove_contributor_from_storage(deps, info.sender.to_string()).map(|_| Response::new())
+
+        // return Err(PaymentError::ContributionExpired);
     }
 
     compensation.next_pay_day = state.next_pay_day;
@@ -284,6 +271,30 @@ fn process_client(variables: (Vec<u8>, Deposit, Deps), acc: &mut IncomeAccumulat
             acc.debtors.push(os_id);
         }
     }
+}
+
+fn remove_contributor_from_storage(
+    deps: DepsMut,
+    contributor_addr: String,
+) -> Result<(),PaymentError> {
+    // Load all needed states
+    let mut state = STATE.load(deps.storage)?;
+
+    let maybe_compensation = CONTRIBUTORS.may_load(deps.storage, &contributor_addr)?;
+
+    match maybe_compensation {
+        Some(current_compensation) => {
+            state.total_weight -= Uint128::from(current_compensation.weight);
+            state.target = state
+                .target
+                .checked_sub(Uint64::from(current_compensation.base))?;
+            // Can only get paid on pay day after next pay day
+            CONTRIBUTORS.remove(deps.storage, &contributor_addr);
+            STATE.save(deps.storage, &state)?;
+        }
+        None => return Err(PaymentError::ContributorNotRegistered {}),
+    };
+    Ok(())
 }
 
 // /// Updates the pool information
