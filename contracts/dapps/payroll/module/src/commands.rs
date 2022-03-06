@@ -14,6 +14,7 @@ use pandora_os::core::treasury::dapp_base::state::{ADMIN, BASESTATE};
 use crate::contract::PaymentResult;
 use crate::error::PaymentError;
 use crate::msg::DepositHookMsg;
+use crate::response;
 use crate::state::{
     Compensation, IncomeAccumulator, State, CLIENTS, CONFIG, CONTRIBUTORS, MONTH, STATE,
 };
@@ -180,6 +181,8 @@ pub fn try_claim(
 ) -> PaymentResult {
     let mut state: State = STATE.load(deps.storage)?;
 
+    let mut response = Response::new();
+
     // Are we beyond the next pay time?
     if state.next_pay_day.u64() < env.block.time.seconds() {
         // First tally income, then set next block time
@@ -194,14 +197,12 @@ pub fn try_claim(
     let mut compensation = CONTRIBUTORS.load(deps.storage, &info.sender.to_string())?;
 
     if compensation.next_pay_day.u64() > env.block.time.seconds() {
-        return Err(PaymentError::WaitForFirstPayday);
+        return Err(PaymentError::WaitForNextPayday(compensation.next_pay_day.u64()));
     } else if compensation.expiration.u64() < env.block.time.seconds() {
         return Err(PaymentError::ContributionExpired);
     }
 
     compensation.next_pay_day = state.next_pay_day;
-    state.expense += Uint64::from(compensation.base as u64);
-    state.total_weight += Uint128::from(compensation.weight as u128);
 
     CONTRIBUTORS.save(deps.storage, &info.sender.to_string(), &compensation)?;
     STATE.save(deps.storage, &state)?;
@@ -222,22 +223,24 @@ pub fn try_claim(
     let mint_price = Decimal::from_ratio(config.ratio * mint_income, Uint128::from(state.expense));
     let total_mints = mint_income * mint_price.inv().unwrap();
 
-    // Send tokens
-    let token_msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: config.project_token.into(),
-        // Burn exludes fee
-        msg: to_binary(&Cw20ExecuteMsg::Transfer {
-            recipient: info.sender.to_string(),
-            amount: total_mints * Decimal::from_ratio(compensation.weight, state.total_weight),
-        })?,
-        funds: vec![],
-    });
+    if !total_mints.is_zero() {
+        // Send tokens
+        let token_msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: config.project_token.into(),
+            // Burn exludes fee
+            msg: to_binary(&Cw20ExecuteMsg::Transfer {
+                recipient: info.sender.to_string(),
+                amount: total_mints * Decimal::from_ratio(compensation.weight, state.total_weight),
+            })?,
+            funds: vec![],
+        });
+        response = response.add_message(token_msg);
+    }
 
-    Ok(Response::new()
+    Ok(response
         .add_attribute("Action:", "Withdraw Liquidity")
         // Transfer fee
-        .add_message(compensation_msg)
-        .add_message(token_msg))
+        .add_message(compensation_msg))
 }
 
 fn tally_income(mut deps: DepsMut, env: Env, page_limit: Option<u32>) -> StdResult<()> {
