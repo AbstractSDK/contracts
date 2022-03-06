@@ -30,9 +30,6 @@ pub type PaymentResult = Result<Response, PaymentError>;
 
 const INSTANTIATE_REPLY_ID: u8 = 1u8;
 
-const DEFAULT_LP_TOKEN_NAME: &str = "Vault LP token";
-const DEFAULT_LP_TOKEN_SYMBOL: &str = "uvLP";
-
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
     deps: DepsMut,
@@ -43,14 +40,14 @@ pub fn instantiate(
     let base_state: BaseState = dapp_base_commands::handle_base_init(deps.as_ref(), msg.base)?;
 
     let config: Config = Config {
-        token_cap: msg.token_cap,
         payment_asset: msg.payment_asset,
         ratio: msg.ratio,
         subscription_cost: msg.subscription_cost,
         project_token: deps.api.addr_validate(&msg.project_token)?,
     };
-
+    
     let state: State = State {
+        token_cap: msg.token_cap,
         target: Uint64::zero(),
         income: Uint64::zero(),
         expense: Uint64::zero(),

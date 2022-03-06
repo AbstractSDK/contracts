@@ -163,7 +163,7 @@ pub fn try_claim(
     info: MessageInfo,
     page_limit: Option<u32>,
 ) -> PaymentResult {
-    let state: State = STATE.load(deps.storage)?;
+    let mut state: State = STATE.load(deps.storage)?;
 
     let mut response = Response::new();
 
@@ -185,49 +185,53 @@ pub fn try_claim(
     } else if compensation.expiration.u64() < env.block.time.seconds() {
         // remove contributor
         return remove_contributor_from_storage(deps, info.sender.to_string()).map(|_| Response::new())
-
-        // return Err(PaymentError::ContributionExpired);
     }
-
+    // update compensation details
     compensation.next_pay_day = state.next_pay_day;
-
     CONTRIBUTORS.save(deps.storage, &info.sender.to_string(), &compensation)?;
-    STATE.save(deps.storage, &state)?;
+    
     let config = CONFIG.load(deps.storage)?;
     let base_state = BASESTATE.load(deps.storage)?;
 
-    let compensation_msg = send_to_treasury(
-        vec![Asset {
-            info: config.payment_asset,
-            amount: Uint128::from(compensation.base) * state.expense_ratio,
-        }
-        .into_msg(&deps.querier, info.sender.clone())?],
-        &base_state.treasury_address,
-    )?;
+    // base amount payment
+    let amount = Uint128::from(compensation.base) * state.expense_ratio;
+    if !amount.is_zero() {
+        let compensation_msg = send_to_treasury(
+            vec![Asset {
+                info: config.payment_asset,
+                amount,
+            }
+            .into_msg(&deps.querier, info.sender.clone())?],
+            &base_state.treasury_address,
+        )?;
+        response = response.add_message(compensation_msg);
+    }
 
-    // TODO: handle 0 income case
     let mint_income = Uint128::from(state.income.checked_sub(state.expense)?);
     let mint_price = Decimal::from_ratio(config.ratio * mint_income, Uint128::from(state.expense));
     let total_mints = mint_income * mint_price.inv().unwrap();
 
-    if !total_mints.is_zero() {
+    // token emissions payment
+    let amount = total_mints * Decimal::from_ratio(compensation.weight, state.total_weight);
+    if !amount.is_zero() && state.token_cap > amount {
+        state.token_cap -= amount;
+
         // Send tokens
-        let token_msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: config.project_token.into(),
-            // Burn exludes fee
-            msg: to_binary(&Cw20ExecuteMsg::Transfer {
-                recipient: info.sender.to_string(),
-                amount: total_mints * Decimal::from_ratio(compensation.weight, state.total_weight),
-            })?,
-            funds: vec![],
-        });
+        let token_msg = send_to_treasury(
+            vec![Asset {
+                info: AssetInfo::Token{ 
+                    contract_addr: config.project_token.into()
+                },
+                amount,
+            }
+            .into_msg(&deps.querier, info.sender.clone())?],
+            &base_state.treasury_address,
+        )?;
         response = response.add_message(token_msg);
     }
 
     Ok(response
-        .add_attribute("Action:", "Withdraw Liquidity")
-        // Transfer fee
-        .add_message(compensation_msg))
+        .add_attribute("Action:", "Claim compensation"))
 }
 
 fn tally_income(mut deps: DepsMut, env: Env, page_limit: Option<u32>) -> StdResult<()> {

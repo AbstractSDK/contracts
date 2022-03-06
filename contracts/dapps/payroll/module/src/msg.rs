@@ -37,14 +37,7 @@ pub enum ExecuteMsg {
     },
     RemoveContributor {
         contributor_addr: String,
-    }, // UpdatePool {
-       //     deposit_asset: Option<String>,
-       //     assets_to_add: Vec<String>,
-       //     assets_to_remove: Vec<String>,
-       // },
-       // SetFee {
-       //     fee: Fee,
-       // }
+    }, 
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

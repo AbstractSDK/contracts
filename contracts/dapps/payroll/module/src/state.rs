@@ -8,7 +8,6 @@ use terraswap::asset::AssetInfo;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Config {
-    pub token_cap: Uint128,
     pub ratio: Decimal,
     pub payment_asset: AssetInfo,
     pub subscription_cost: Uint64,
@@ -17,12 +16,21 @@ pub struct Config {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct State {
+    /// max allowed tokens to be distributed
+    pub token_cap: Uint128,
+    /// Total income for the last month
     pub income: Uint64,
+    /// Target income to pay base salaries
     pub target: Uint64,
+    /// expense the org is able to make based on the income and target
     pub expense: Uint64,
+    /// total weights for token emission allocations
     pub total_weight: Uint128,
+    /// The time when contributor claims can be performed
     pub next_pay_day: Uint64,
+    /// all os_ids of clients that didn't pay
     pub debtors: Vec<u32>,
+    /// ratio of income/target
     pub expense_ratio: Decimal,
 }
 
