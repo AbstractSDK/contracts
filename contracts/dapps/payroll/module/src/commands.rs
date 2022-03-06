@@ -13,9 +13,9 @@ use pandora_os::core::treasury::dapp_base::state::{ADMIN, BASESTATE};
 
 use crate::contract::PaymentResult;
 use crate::error::PaymentError;
-use crate::msg::DepositHookMsg;
+use pandora_os::dapps::payout::{DepositHookMsg, Compensation};
 use crate::state::{
-    Compensation, IncomeAccumulator, State, CLIENTS, CONFIG, CONTRIBUTORS, MONTH, STATE,
+    IncomeAccumulator, State, CLIENTS, CONFIG, CONTRIBUTORS, MONTH, STATE,
 };
 
 /// handler function invoked when the vault dapp contract receives

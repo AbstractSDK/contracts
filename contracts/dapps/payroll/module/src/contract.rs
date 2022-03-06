@@ -23,7 +23,7 @@ use pandora_os::core::treasury::dapp_base::state::{BaseState, ADMIN, BASESTATE};
 use crate::response::MsgInstantiateContractResponse;
 
 use crate::error::PaymentError;
-use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse};
+use pandora_os::dapps::payout::{ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse};
 use crate::state::{Config, State, CLIENTS, CONFIG, MONTH, STATE};
 use crate::{commands, queries};
 pub type PaymentResult = Result<Response, PaymentError>;
@@ -97,6 +97,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
                 next_pay_day: state.next_pay_day,
             })
         }
+
     }
 }
 

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use cosmwasm_std::{Addr, Decimal, Uint128, Uint64};
 use cw_storage_plus::{Item, Map};
-use pandora_os::util::{deposit_manager::Deposit, paged_map::PagedMap};
+use pandora_os::{util::{deposit_manager::Deposit, paged_map::PagedMap}, dapps::payout::Compensation};
 use terraswap::asset::AssetInfo;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -34,14 +34,7 @@ pub struct State {
     pub expense_ratio: Decimal,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct Compensation {
-    pub base: u32,
-    pub weight: u32,
-    pub next_pay_day: Uint64,
-    pub expiration: Uint64,
-    pub mint_price_factor: Decimal,
-}
+
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Default)]
 pub struct IncomeAccumulator {

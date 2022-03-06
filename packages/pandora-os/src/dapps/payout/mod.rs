@@ -3,12 +3,11 @@ use cw20::Cw20ReceiveMsg;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use pandora_os::core::treasury::dapp_base::msg::{
+use crate::core::treasury::dapp_base::msg::{
     BaseExecuteMsg, BaseInstantiateMsg, BaseQueryMsg,
 };
 use terraswap::asset::{Asset, AssetInfo};
 
-use crate::state::Compensation;
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
     pub base: BaseInstantiateMsg,
@@ -60,4 +59,13 @@ pub struct StateResponse {
     pub income: Uint64,
     pub total_weight: Uint128,
     pub next_pay_day: Uint64,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct Compensation {
+    pub base: u32,
+    pub weight: u32,
+    pub next_pay_day: Uint64,
+    pub expiration: Uint64,
+    pub mint_price_factor: Decimal,
 }
