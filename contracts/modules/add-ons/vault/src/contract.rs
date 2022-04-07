@@ -39,6 +39,7 @@ pub fn instantiate(deps: DepsMut, env: Env, info: MessageInfo, msg: InstantiateM
 
     let state: State = State {
         liquidity_token_addr: Addr::unchecked(""),
+        provider_addr: deps.api.addr_validate(msg.provider_addr.as_str())?,
     };
 
     let lp_token_name: String = msg
