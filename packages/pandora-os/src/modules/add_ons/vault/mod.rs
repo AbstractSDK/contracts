@@ -3,11 +3,15 @@ use cw20::Cw20ReceiveMsg;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use cw_asset::Asset;
+use cw_asset::AssetUnchecked;
 use crate::{
     modules::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg, BaseQueryMsg},
     util::fee::Fee,
 };
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct MigrateMsg {}
+
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
     pub base: BaseInstantiateMsg,
@@ -26,7 +30,7 @@ pub enum ExecuteMsg {
     // Add dapp-specific messages here
     Receive(Cw20ReceiveMsg),
     ProvideLiquidity {
-        asset: Asset,
+        asset: AssetUnchecked,
     },
     UpdatePool {
         deposit_asset: Option<String>,

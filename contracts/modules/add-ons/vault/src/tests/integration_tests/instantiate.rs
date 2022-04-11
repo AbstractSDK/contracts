@@ -34,6 +34,7 @@ pub fn init_vault_dapp(app: &mut App, owner: Addr, base_contracts: &BaseContract
         base: BaseInstantiateMsg {
             memory_addr: base_contracts.memory.to_string(),
         },
+        provider_addr: "".to_string(),
         token_code_id: lp_contract_code_id,
         fee: Decimal::percent(10u64),
         deposit_asset: "ust".to_string(),
