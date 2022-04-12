@@ -2,9 +2,9 @@ use cosmwasm_std::{Addr, Coin, Decimal, Uint128};
 
 use terra_multi_test::{App, ContractWrapper};
 
-use pandora_os::modules::add_ons::vault::{ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse};
 use crate::tests::integration_tests::common_integration::{mint_some_whale, store_token_code};
 use cw_asset::{Asset, AssetInfoUnchecked};
+use pandora_os::modules::add_ons::vault::{ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse};
 use terra_multi_test::Executor;
 
 use pandora_os::core::proxy::msg as TreasuryMsg;

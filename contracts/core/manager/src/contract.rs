@@ -3,13 +3,12 @@ use cosmwasm_std::{
     Uint64,
 };
 use pandora_os::core::modules::Module;
-use semver::Version;
 
 use crate::commands::*;
 use crate::error::ManagerError;
 use crate::queries;
 use crate::state::{Config, ADMIN, CONFIG, OS_ID, ROOT};
-use cw2::{get_contract_version, set_contract_version};
+use cw2::set_contract_version;
 use pandora_os::core::manager::msg::{
     ConfigQueryResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
 };
@@ -20,7 +19,7 @@ pub type ManagerResult = Result<Response, ManagerError>;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ManagerResult {
+pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ManagerResult {
     // let version: Version = CONTRACT_VERSION.parse()?;
     // let storage_version: Version = get_contract_version(deps.storage)?.version.parse()?;
     // if storage_version < version {

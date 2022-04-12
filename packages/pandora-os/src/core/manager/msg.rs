@@ -25,23 +25,16 @@ pub enum ExecuteMsg {
         to_remove: Option<Vec<String>>,
     },
     /// Sets a new Admin
-    SetAdmin {
-        admin: String,
-    },
+    SetAdmin { admin: String },
     /// Create module using modulefactory
     CreateModule {
         module: Module,
         init_msg: Option<Binary>,
     },
     /// Register a module after creation
-    RegisterModule {
-        module_addr: String,
-        module: Module,
-    },
+    RegisterModule { module_addr: String, module: Module },
     /// Remove a module
-    RemoveModule {
-        module_name: String,
-    },
+    RemoveModule { module_name: String },
     /// Forward configuration message to module
     ConfigureModule {
         module_name: String,

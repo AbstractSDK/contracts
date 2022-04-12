@@ -11,8 +11,8 @@ use pandora_os::util::deposit_info::DepositInfo;
 
 use crate::contract::VaultResult;
 use crate::error::VaultError;
-use pandora_os::modules::add_ons::vault::DepositHookMsg;
 use crate::state::{Pool, State, FEE, POOL, STATE};
+use pandora_os::modules::add_ons::vault::DepositHookMsg;
 use pandora_os::queries::vault::query_total_value;
 use pandora_os::util::fee::Fee;
 use terraswap::querier::query_supply;
@@ -187,10 +187,7 @@ pub fn try_withdraw_liquidity(
         };
 
         // Construct provider fee msg
-        let provider_fee_msg = fee.msg(
-            lp_token_provider_fee,
-            state.provider_addr.clone(),
-        )?;
+        let provider_fee_msg = fee.msg(lp_token_provider_fee, state.provider_addr.clone())?;
 
         // Transfer fee
         response = response.add_message(provider_fee_msg);

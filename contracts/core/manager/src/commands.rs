@@ -172,16 +172,11 @@ pub fn configure_module(
     Ok(response)
 }
 
-pub fn remove_module( 
-    deps: DepsMut,
-    msg_info: MessageInfo,
-    module_name: String,
-) -> ManagerResult {
+pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module_name: String) -> ManagerResult {
     // Only root can remove modules
     ROOT.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
     OS_MODULES.remove(deps.storage, &module_name);
-
 
     Ok(Response::new().add_attribute("Removed module", &module_name))
 }
@@ -269,12 +264,13 @@ fn get_code_id(
         }
         None => {
             // Query latest version of contract
-            let resp: CodeIdResponse = deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-                contract_addr: config.version_control_address.to_string(),
-                msg: to_binary(&VersionQuery::QueryCodeId {
-                    module: module_info,
-                })?,
-            }))?;
+            let resp: CodeIdResponse =
+                deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+                    contract_addr: config.version_control_address.to_string(),
+                    msg: to_binary(&VersionQuery::QueryCodeId {
+                        module: module_info,
+                    })?,
+                }))?;
             new_code_id = resp.code_id.u64();
         }
     }

@@ -52,4 +52,3 @@ impl From<semver::Error> for VaultError {
         Self::SemVer(err.to_string())
     }
 }
-

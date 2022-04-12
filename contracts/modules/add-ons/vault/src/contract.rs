@@ -6,7 +6,7 @@ use cosmwasm_std::{
     entry_point, to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, ReplyOn,
     Response, StdError, StdResult, SubMsg, WasmMsg,
 };
-use cw2::{set_contract_version, get_contract_version};
+use cw2::{get_contract_version, set_contract_version};
 use cw_storage_plus::Map;
 use pandora_os::registery::VAULT;
 use protobuf::Message;
@@ -26,9 +26,11 @@ use pandora_os::modules::dapp_base::state::{BaseState, ADMIN, BASESTATE};
 use crate::response::MsgInstantiateContractResponse;
 
 use crate::error::VaultError;
-use pandora_os::modules::add_ons::vault::{ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse, MigrateMsg};
 use crate::state::{Pool, State, FEE, POOL, STATE};
 use crate::{commands, queries};
+use pandora_os::modules::add_ons::vault::{
+    ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, StateResponse,
+};
 pub type VaultResult = Result<Response, VaultError>;
 
 const INSTANTIATE_REPLY_ID: u8 = 1u8;
@@ -37,7 +39,6 @@ const DEFAULT_LP_TOKEN_NAME: &str = "Vault LP token";
 const DEFAULT_LP_TOKEN_SYMBOL: &str = "uvLP";
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VaultResult {
@@ -52,7 +53,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VaultResult {
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(deps: DepsMut, env: Env, info: MessageInfo, msg: InstantiateMsg) -> VaultResult {
     set_contract_version(deps.storage, VAULT, CONTRACT_VERSION)?;
-    
+
     let base_state: BaseState = dapp_base_commands::handle_base_init(deps.as_ref(), msg.base)?;
 
     let state: State = State {
@@ -114,8 +115,8 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
         ExecuteMsg::Receive(msg) => commands::receive_cw20(deps, env, info, msg),
         ExecuteMsg::ProvideLiquidity { asset } => {
             // Check asset
-            let asset = asset.check(deps.api,None)?;
-    
+            let asset = asset.check(deps.api, None)?;
+
             commands::try_provide_liquidity(deps, info, asset, None)
         }
         ExecuteMsg::UpdatePool {
