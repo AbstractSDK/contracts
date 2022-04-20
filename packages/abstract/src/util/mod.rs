@@ -1,6 +1,8 @@
 pub mod admin;
 // pub mod anchor;
 // pub mod astroport_helper;
+pub mod astroport_helper;
+// pub mod pandora_token;
 pub mod denom;
 pub mod deposit_info;
 pub mod deposit_manager;
