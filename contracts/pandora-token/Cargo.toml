@@ -1,5 +1,5 @@
 [package]
-name = "cw20-token"
+name = "pandora-token"
 version = "1.0.0"
 authors = ["Pandora"]
 edition = "2018"
@@ -19,6 +19,8 @@ library = []
 
 [dependencies]
 pandora-os = { path = "../../packages/pandora-os"}
+cw-controllers = { version ="0.9.1" }
+cw-storage-plus = "0.9.1"
 cw2 = "0.9.1"
 cw20 = "0.9.1"
 cw20-base = { version = "0.9.1", features = ["library"] }
