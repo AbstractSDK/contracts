@@ -59,6 +59,4 @@ jobs:
         with:
           rust-version: 1.58.1
       - name: Unit Test | Test
-        run: cargo unit-test
-      - name: Schema | Test
-        run: cargo schema
+        run: cargo test
