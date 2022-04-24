@@ -1,4 +1,4 @@
-use cosmwasm_std::{DepsMut, MessageInfo, Response, Empty};
+use cosmwasm_std::{DepsMut, Empty, MessageInfo, Response};
 use cw_storage_plus::U32Key;
 
 use crate::contract::VCResult;
