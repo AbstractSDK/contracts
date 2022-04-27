@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use terra_rust_script_derive::CosmWasmContract;
 
 use crate::pandora_dapp::msg::DappExecuteMsg;
-use crate::pandora_dapp::DappQueryMsg;
+use crate::pandora_dapp::msg::DappQueryMsg;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, CosmWasmContract)]
 #[serde(rename_all = "snake_case")]

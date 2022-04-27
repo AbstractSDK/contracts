@@ -3,7 +3,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::pandora_dapp::msg::DappExecuteMsg;
-use crate::pandora_dapp::DappQueryMsg;
+use crate::pandora_dapp::msg::DappQueryMsg;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]

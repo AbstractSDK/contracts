@@ -22,3 +22,21 @@ pub enum DappExecuteMsg {
     /// Sets a new Admin
     SetAdmin { admin: String },
 }
+
+/// Rename to DappQueryMsg
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum DappQueryMsg {
+    /// Returns the base configuration for the DApp
+    Config {},
+
+    /// Return type: TradersResponse.
+    /// TODO: enable pagination of some sort
+    Traders {
+        // start_after: Option<String>,
+    // limit: Option<u32>,
+    },
+
+    /// Returns the admin
+    Admin {},
+}

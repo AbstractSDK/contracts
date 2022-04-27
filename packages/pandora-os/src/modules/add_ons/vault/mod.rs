@@ -4,8 +4,8 @@ use cw_asset::AssetUnchecked;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use crate::pandora_dapp::msg::DappQueryMsg;
 use crate::pandora_dapp::msg::{DappExecuteMsg, DappInstantiateMsg};
-use crate::pandora_dapp::DappQueryMsg;
 use crate::util::fee::Fee;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

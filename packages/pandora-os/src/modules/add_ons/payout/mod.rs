@@ -4,8 +4,8 @@ use cw_asset::{Asset, AssetInfo};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use crate::pandora_dapp::msg::DappQueryMsg;
 use crate::pandora_dapp::msg::{DappExecuteMsg, DappInstantiateMsg};
-use crate::pandora_dapp::DappQueryMsg;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct MigrateMsg {}

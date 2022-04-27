@@ -3,9 +3,9 @@ use cw_controllers::AdminResponse;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
+use pandora_os::pandora_dapp::msg::DappQueryMsg;
 use pandora_os::pandora_dapp::query::{DappStateResponse, TradersResponse};
 use pandora_os::pandora_dapp::traits::{CustomMsg, DappQuery};
-use pandora_os::pandora_dapp::DappQueryMsg;
 
 use crate::state::DappContract;
 
