@@ -20,7 +20,7 @@ pub fn instantiate(
     info: MessageInfo,
     msg: DappInstantiateMsg,
 ) -> DappResult {
-    TerraswapDapp::default().instantiate(deps, env.clone(), info, msg)?;
+    TerraswapDapp::default().instantiate(deps, env, info, msg)?;
 
     Ok(Response::default())
 }

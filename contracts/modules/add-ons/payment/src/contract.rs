@@ -72,7 +72,7 @@ pub fn instantiate(
     CONFIG.save(deps.storage, &config)?;
     STATE.save(deps.storage, &state)?;
 
-    PaymentDapp::default().instantiate(deps, env.clone(), info, msg.base)?;
+    PaymentDapp::default().instantiate(deps, env, info, msg.base)?;
 
     Ok(Response::new())
 }

@@ -30,7 +30,7 @@ pub fn instantiate(
     info: MessageInfo,
     msg: DappInstantiateMsg,
 ) -> DappResult {
-    AnchorDapp::default().instantiate(deps, env.clone(), info, msg)?;
+    AnchorDapp::default().instantiate(deps, env, info, msg)?;
 
     Ok(Response::default())
 }
