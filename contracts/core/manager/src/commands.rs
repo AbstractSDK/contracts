@@ -1,23 +1,23 @@
+use abstract_os::core::manager::queries::query_module_version;
+use abstract_os::core::modules::{Module, ModuleInfo, ModuleKind};
+use abstract_os::core::proxy::msg::ExecuteMsg as TreasuryMsg;
+use abstract_os::modules::dapp_base::msg::BaseExecuteMsg;
+use abstract_os::modules::dapp_base::msg::ExecuteMsg as TemplateExecuteMsg;
+use abstract_os::native::version_control::msg::CodeIdResponse;
+use abstract_os::native::version_control::msg::QueryMsg as VersionQuery;
+use abstract_os::native::version_control::state::MODULE_CODE_IDS;
 use cosmwasm_std::{
     to_binary, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo, QueryRequest, Response,
     StdResult, WasmMsg, WasmQuery,
 };
 use cw2::{get_contract_version, ContractVersion};
-use pandora_os::core::manager::queries::query_module_version;
-use pandora_os::core::modules::{Module, ModuleInfo, ModuleKind};
-use pandora_os::core::proxy::msg::ExecuteMsg as TreasuryMsg;
-use pandora_os::modules::dapp_base::msg::BaseExecuteMsg;
-use pandora_os::modules::dapp_base::msg::ExecuteMsg as TemplateExecuteMsg;
-use pandora_os::native::version_control::msg::CodeIdResponse;
-use pandora_os::native::version_control::msg::QueryMsg as VersionQuery;
-use pandora_os::native::version_control::state::MODULE_CODE_IDS;
 use semver::Version;
 
 use crate::contract::ManagerResult;
 use crate::error::ManagerError;
 use crate::state::*;
-use pandora_os::native::module_factory::msg::ExecuteMsg as ModuleFactoryMsg;
-use pandora_os::registery::{MANAGER, PROXY};
+use abstract_os::native::module_factory::msg::ExecuteMsg as ModuleFactoryMsg;
+use abstract_os::registery::{MANAGER, PROXY};
 
 pub const DAPP_CREATE_ID: u64 = 1u64;
 

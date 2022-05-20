@@ -1,8 +1,8 @@
 use crate::tests::common::DEFAULT_VERSION;
+use abstract_os::core::modules::ModuleInfo;
+use abstract_os::native::version_control::msg as VCMsg;
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response};
-use pandora_os::core::modules::ModuleInfo;
-use pandora_os::native::version_control::msg as VCMsg;
 
 use terra_cosmwasm::TerraMsgWrapper;
 use terra_multi_test::{Contract, Executor, TerraApp};

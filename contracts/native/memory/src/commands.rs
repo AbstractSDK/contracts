@@ -3,7 +3,7 @@ use cw_asset::{AssetInfo, AssetInfoUnchecked};
 
 use crate::contract::MemoryResult;
 use crate::state::*;
-use pandora_os::native::memory::msg::ExecuteMsg;
+use abstract_os::native::memory::msg::ExecuteMsg;
 
 /// Handles the common base execute messages
 pub fn handle_message(deps: DepsMut, info: MessageInfo, message: ExecuteMsg) -> MemoryResult {

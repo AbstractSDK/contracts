@@ -2,6 +2,8 @@
 #![allow(unused_variables)]
 #![allow(dead_code)]
 
+use abstract_add_on::AddOnContract;
+use abstract_os::registery::SUBSCRIPTION;
 use cosmwasm_std::{
     entry_point, to_binary, Addr, Binary, Decimal, Deps, DepsMut, Empty, Env, MessageInfo, Reply,
     ReplyOn, Response, StdError, StdResult, SubMsg, Uint128, Uint64, WasmMsg,
@@ -9,31 +11,29 @@ use cosmwasm_std::{
 use cw2::{get_contract_version, set_contract_version};
 use cw_asset::Asset;
 use cw_storage_plus::{Endian, Map, U32Key};
-use pandora_dapp_base::DappContract;
-use pandora_os::registery::SUBSCRIPTION;
 use protobuf::Message;
 
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg, MinterResponse};
 use semver::Version;
 
-use pandora_os::modules::dapp_base::commands as dapp_base_commands;
-use pandora_os::util::fee::Fee;
+use abstract_os::modules::dapp_base::commands as dapp_base_commands;
+use abstract_os::util::fee::Fee;
 
-use pandora_os::modules::dapp_base::common::BaseDAppResult;
-use pandora_os::modules::dapp_base::msg::BaseInstantiateMsg;
-use pandora_os::modules::dapp_base::queries as dapp_base_queries;
-use pandora_os::modules::dapp_base::state::{BaseState, ADMIN, BASESTATE};
+use abstract_os::modules::dapp_base::common::BaseDAppResult;
+use abstract_os::modules::dapp_base::msg::BaseInstantiateMsg;
+use abstract_os::modules::dapp_base::queries as dapp_base_queries;
+use abstract_os::modules::dapp_base::state::{BaseState, ADMIN, BASESTATE};
 
 use crate::error::SubscriptionError;
 use crate::{commands, queries};
-use pandora_os::modules::add_ons::subscription::msg::{
+use abstract_os::modules::add_ons::subscription::msg::{
     ConfigResponse, ContributorStateResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     StateResponse, SubscriberStateResponse, SubscriptionFeeResponse,
 };
-use pandora_os::modules::add_ons::subscription::state::*;
+use abstract_os::modules::add_ons::subscription::state::*;
+
 pub type SubscriptionResult = Result<Response, SubscriptionError>;
-type SubscriptionExtension = Option<Empty>;
-pub type SubscriptionDapp<'a> = DappContract<'a, SubscriptionExtension, Empty>;
+pub type SubscriptionAddOn<'a> = AddOnContract<'a>;
 
 const INSTANTIATE_REPLY_ID: u8 = 1u8;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -57,8 +57,6 @@ pub fn instantiate(
     info: MessageInfo,
     msg: InstantiateMsg,
 ) -> SubscriptionResult {
-    set_contract_version(deps.storage, SUBSCRIPTION, CONTRACT_VERSION)?;
-
     let sub_config: SubscriptionConfig = SubscriptionConfig {
         payment_asset: msg.subscription.payment_asset.check(deps.api, None)?,
         subscription_cost: msg.subscription.subscription_cost,
@@ -93,7 +91,14 @@ pub fn instantiate(
         next_pay_day: Uint64::from(env.block.time.seconds()),
     };
 
-    SubscriptionDapp::default().instantiate(deps.branch(), env, info, msg.base)?;
+    SubscriptionAddOn::default().instantiate(
+        deps.branch(),
+        env,
+        info,
+        msg.base,
+        SUBSCRIPTION,
+        CONTRACT_VERSION,
+    )?;
 
     SUB_CONFIG.save(deps.storage, &sub_config)?;
     SUB_STATE.save(deps.storage, &sub_state)?;
@@ -108,7 +113,7 @@ pub fn instantiate(
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> SubscriptionResult {
-    let dapp = SubscriptionDapp::default();
+    let dapp = SubscriptionAddOn::default();
 
     match msg {
         ExecuteMsg::Base(message) => dapp.execute(deps, env, info, message).map_err(|e| e.into()),
@@ -178,7 +183,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> S
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::Base(message) => SubscriptionDapp::default().query(deps, env, message),
+        QueryMsg::Base(message) => SubscriptionAddOn::default().query(deps, env, message),
         // handle dapp-specific queries here
         QueryMsg::State {} => {
             let sub_state = SUB_STATE.load(deps.storage)?;
