@@ -16,13 +16,7 @@ use protobuf::Message;
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg, MinterResponse};
 use semver::Version;
 
-use abstract_os::modules::dapp_base::commands as dapp_base_commands;
 use abstract_os::util::fee::Fee;
-
-use abstract_os::modules::dapp_base::common::BaseDAppResult;
-use abstract_os::modules::dapp_base::msg::BaseInstantiateMsg;
-use abstract_os::modules::dapp_base::queries as dapp_base_queries;
-use abstract_os::modules::dapp_base::state::{BaseState, ADMIN, BASESTATE};
 
 use crate::error::SubscriptionError;
 use crate::{commands, queries};
@@ -113,15 +107,17 @@ pub fn instantiate(
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> SubscriptionResult {
-    let dapp = SubscriptionAddOn::default();
+    let add_on = SubscriptionAddOn::default();
 
     match msg {
-        ExecuteMsg::Base(message) => dapp.execute(deps, env, info, message).map_err(|e| e.into()),
-        ExecuteMsg::Receive(msg) => commands::receive_cw20(deps, env, info, msg),
+        ExecuteMsg::Base(message) => add_on
+            .execute(deps, env, info, message)
+            .map_err(|e| e.into()),
+        ExecuteMsg::Receive(msg) => commands::receive_cw20(add_on, deps, env, info, msg),
         ExecuteMsg::Pay { os_id } => {
             let maybe_recieved_coin = info.funds.last();
             if let Some(coin) = maybe_recieved_coin.cloned() {
-                commands::try_pay(deps, info, Asset::from(coin), os_id)
+                commands::try_pay(add_on, deps, info, Asset::from(coin), os_id)
             } else {
                 Err(SubscriptionError::NotUsingCW20Hook {})
             }
@@ -132,9 +128,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> S
         ExecuteMsg::ClaimCompensation {
             contributor,
             page_limit,
-        } => commands::try_claim_contribution(deps, env, contributor, page_limit),
+        } => commands::try_claim_contribution(add_on, deps, env, contributor, page_limit),
         ExecuteMsg::ClaimEmissions { os_id } => {
-            commands::claim_subscriber_emissions(deps, env, os_id)
+            commands::claim_subscriber_emissions(add_on, deps, env, os_id)
         }
         ExecuteMsg::UpdateContributor {
             contributor_addr,
