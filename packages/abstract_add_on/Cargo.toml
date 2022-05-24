@@ -26,3 +26,4 @@ abstract-os = { version = "0.1.0", path = "../abstract" }
 cw-controllers = { version = "0.9.1" }
 thiserror = { version = "1.0.21" }
 cw2 = "0.9.1"
+cw-asset = "1.0.2"

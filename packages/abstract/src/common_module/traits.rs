@@ -1,4 +1,4 @@
-use cosmwasm_std::{CosmosMsg, Deps, Response, StdResult};
+use cosmwasm_std::{CosmosMsg, Deps, Response, StdResult, Storage};
 
 use crate::native::memory::item::Memory;
 
@@ -10,6 +10,6 @@ pub trait ProxyExecute {
 }
 
 // easily retrieve the memory object from the contract to perform queries
-pub trait MemQuery {
-    fn mem(&self) -> StdResult<Memory>;
+pub trait Mem {
+    fn mem(&self, store: &dyn Storage) -> StdResult<Memory>;
 }
