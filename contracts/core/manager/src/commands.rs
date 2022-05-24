@@ -1,8 +1,6 @@
 use abstract_os::core::manager::queries::query_module_version;
 use abstract_os::core::modules::{Module, ModuleInfo, ModuleKind};
 use abstract_os::core::proxy::msg::ExecuteMsg as TreasuryMsg;
-use abstract_os::modules::dapp_base::msg::BaseExecuteMsg;
-use abstract_os::modules::dapp_base::msg::ExecuteMsg as TemplateExecuteMsg;
 use abstract_os::native::version_control::msg::CodeIdResponse;
 use abstract_os::native::version_control::msg::QueryMsg as VersionQuery;
 use abstract_os::native::version_control::state::MODULE_CODE_IDS;
@@ -110,33 +108,21 @@ pub fn register_module(
             kind: ModuleKind::API,
             ..
         } => {
-            response = response
-                .add_message(set_proxy_on_dapp(
-                    deps.as_ref(),
-                    proxy_addr.to_string(),
-                    module_address.clone(),
-                )?)
-                .add_message(whitelist_dapp_on_proxy(
-                    deps.as_ref(),
-                    proxy_addr.into_string(),
-                    module_address,
-                )?)
+            response = response.add_message(whitelist_dapp_on_proxy(
+                deps.as_ref(),
+                proxy_addr.into_string(),
+                module_address,
+            )?)
         }
         _dapp @ Module {
             kind: ModuleKind::AddOn,
             ..
         } => {
-            response = response
-                .add_message(set_proxy_on_dapp(
-                    deps.as_ref(),
-                    proxy_addr.to_string(),
-                    module_address.clone(),
-                )?)
-                .add_message(whitelist_dapp_on_proxy(
-                    deps.as_ref(),
-                    proxy_addr.into_string(),
-                    module_address,
-                )?)
+            response = response.add_message(whitelist_dapp_on_proxy(
+                deps.as_ref(),
+                proxy_addr.into_string(),
+                module_address,
+            )?)
         }
         Module {
             kind: ModuleKind::Service,
@@ -304,20 +290,6 @@ fn upgrade_self(
         msg: migrate_msg,
     });
     Ok(Response::new().add_message(migration_msg))
-}
-
-pub fn set_proxy_on_dapp(
-    _deps: Deps,
-    proxy_address: String,
-    dapp_address: String,
-) -> StdResult<CosmosMsg<Empty>> {
-    Ok(CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: dapp_address,
-        msg: to_binary(&TemplateExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
-            proxy_address: Some(proxy_address),
-        }))?,
-        funds: vec![],
-    }))
 }
 
 pub fn whitelist_dapp_on_proxy(
