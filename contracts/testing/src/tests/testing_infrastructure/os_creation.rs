@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use cosmwasm_std::Addr;
 
-use abstract_os::common_module::msg::DappInstantiateMsg;
+use abstract_os::common_module::add_on_msg::AddOnInstantiateMsg;
 use abstract_os::core::modules::ModuleInfo;
 use abstract_os::modules::add_ons::subscription::msg::InstantiateMsg as SubInitMsg;
 use abstract_os::native::version_control::state::Core;
@@ -84,7 +84,7 @@ pub fn init_primary_os(
     let core = os_store.get(&0u32).unwrap();
 
     let init_msg = to_binary(&SubInitMsg {
-        base: DappInstantiateMsg {
+        base: AddOnInstantiateMsg {
             memory_address: native_contracts.memory.to_string(),
         },
         contribution:
