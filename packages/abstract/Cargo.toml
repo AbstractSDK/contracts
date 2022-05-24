@@ -3,7 +3,7 @@ name = "abstract-os"
 version = "0.1.0"
 authors = ["CyberHoward"]
 edition = "2018"
-description = "Helpers for pandora contracts"
+description = "Helpers for Abstract contracts"
 license = "GPL-2.0-or-later"
 
 
