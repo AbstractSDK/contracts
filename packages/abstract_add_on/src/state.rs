@@ -1,4 +1,4 @@
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, StdResult, Storage};
 use cw2::{ContractVersion, CONTRACT};
 use cw_controllers::Admin;
 use cw_storage_plus::Item;
@@ -30,6 +30,14 @@ impl<'a> AddOnContract<'a> {
             base_state: Item::new(base_state_key),
             admin: Admin::new(admin_key),
         }
+    }
+
+    pub fn state(&self, store: &dyn Storage) -> StdResult<AddOnState> {
+        self.base_state.load(store)
+    }
+
+    pub fn version(&self, store: &dyn Storage) -> StdResult<ContractVersion> {
+        self.version.load(store)
     }
 }
 
