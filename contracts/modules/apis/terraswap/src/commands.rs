@@ -1,4 +1,5 @@
 use abstract_os::common_module::traits::ProxyExecute;
+use abstract_os::native::memory::state::PAIR_POSTFIX;
 use cosmwasm_std::{
     to_binary, Binary, CosmosMsg, Decimal, Deps, Env, Fraction, MessageInfo, Response, Uint128,
     WasmMsg,
@@ -10,7 +11,6 @@ use terraswap::pair::{Cw20HookMsg, PoolResponse};
 use abstract_os::core::proxy::msg::send_to_proxy;
 use abstract_os::core::proxy::proxy_assets::get_asset_identifier;
 use abstract_os::modules::apis::terraswap::cw_to_terraswap;
-use abstract_os::modules::dapp_base::common::PAIR_POSTFIX;
 use abstract_os::queries::terraswap::{query_asset_balance, query_pool};
 
 use crate::contract::{TerraswapApi, TerraswapResult};
