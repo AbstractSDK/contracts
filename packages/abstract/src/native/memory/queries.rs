@@ -1,9 +1,10 @@
 use std::collections::BTreeMap;
 
-use cosmwasm_std::{Addr, Binary, Deps, QueryRequest, StdResult, WasmQuery};
+use cosmwasm_std::{Addr, Deps, StdError, StdResult};
 
-use cosmwasm_storage::to_length_prefixed;
 use cw_asset::AssetInfo;
+
+use super::state::{ASSET_ADDRESSES, CONTRACT_ADDRESSES};
 
 /// Query asset infos from Memory Module asset addresses map.
 pub fn query_assets_from_mem(
@@ -14,13 +15,11 @@ pub fn query_assets_from_mem(
     let mut assets: BTreeMap<String, AssetInfo> = BTreeMap::new();
 
     for asset in asset_names.iter() {
-        let result = deps
-            .querier
-            .query::<AssetInfo>(&QueryRequest::Wasm(WasmQuery::Raw {
-                contract_addr: memory_addr.to_string(),
-                // query assets map
-                key: Binary::from(concat(&to_length_prefixed(b"assets"), asset.as_bytes())),
-            }))?;
+        let result = ASSET_ADDRESSES
+            .query(&deps.querier, memory_addr.clone(), asset)?
+            .ok_or(StdError::GenericErr {
+                msg: "asset not found in memory".to_string(),
+            })?;
         assets.insert(asset.clone(), result);
     }
     Ok(assets)
@@ -32,16 +31,11 @@ pub fn query_asset_from_mem(
     memory_addr: &Addr,
     asset_name: &str,
 ) -> StdResult<AssetInfo> {
-    let result = deps
-        .querier
-        .query::<AssetInfo>(&QueryRequest::Wasm(WasmQuery::Raw {
-            contract_addr: memory_addr.to_string(),
-            // query assets map
-            key: Binary::from(concat(
-                &to_length_prefixed(b"assets"),
-                asset_name.as_bytes(),
-            )),
-        }))?;
+    let result = ASSET_ADDRESSES
+        .query(&deps.querier, memory_addr.clone(), asset_name)?
+        .ok_or(StdError::GenericErr {
+            msg: "asset not found in memory".to_string(),
+        })?;
     Ok(result)
 }
 
@@ -55,17 +49,11 @@ pub fn query_contracts_from_mem(
 
     // Query over
     for contract in contract_names.iter() {
-        let result: Addr = deps
-            .querier
-            .query::<Addr>(&QueryRequest::Wasm(WasmQuery::Raw {
-                contract_addr: memory_addr.to_string(),
-                key: Binary::from(concat(
-                    // Query contracts map
-                    &to_length_prefixed(b"contracts"),
-                    contract.as_bytes(),
-                )),
-            }))?;
-
+        let result: Addr = CONTRACT_ADDRESSES
+            .query(&deps.querier, memory_addr.clone(), contract)?
+            .ok_or(StdError::GenericErr {
+                msg: "contract not found in memory".to_string(),
+            })?;
         contracts.insert(contract.clone(), result);
     }
     Ok(contracts)
@@ -77,23 +65,11 @@ pub fn query_contract_from_mem(
     memory_addr: &Addr,
     contract_name: &str,
 ) -> StdResult<Addr> {
-    let result = deps
-        .querier
-        .query::<String>(&QueryRequest::Wasm(WasmQuery::Raw {
-            contract_addr: memory_addr.to_string(),
-            // query assets map
-            key: Binary::from(concat(
-                &to_length_prefixed(b"contracts"),
-                contract_name.as_bytes(),
-            )),
-        }))?;
+    let result: Addr = CONTRACT_ADDRESSES
+        .query(&deps.querier, memory_addr.clone(), contract_name)?
+        .ok_or(StdError::GenericErr {
+            msg: "contract not found in memory".to_string(),
+        })?;
     // Addresses are checked when stored.
     Ok(Addr::unchecked(result))
-}
-
-#[inline]
-fn concat(namespace: &[u8], key: &[u8]) -> Vec<u8> {
-    let mut k = namespace.to_vec();
-    k.extend_from_slice(key);
-    k
 }

@@ -3,6 +3,8 @@ use cw_asset::AssetInfo;
 use cw_controllers::Admin;
 use cw_storage_plus::Map;
 
+pub const PAIR_POSTFIX: &str = "pair";
+
 pub const ADMIN: Admin = Admin::new("admin");
 // stores name and address of tokens and pairs
 // LP token key: "ust_luna"
