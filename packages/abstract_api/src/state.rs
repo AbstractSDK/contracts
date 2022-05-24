@@ -4,7 +4,7 @@ use abstract_os::common_module::api_msg::ApiRequestMsg;
 use abstract_os::core::common::OS_ID;
 use abstract_os::native::version_control::queries::verify_os_manager;
 use abstract_os::native::version_control::state::Core;
-use cosmwasm_std::{Addr, Deps, MessageInfo};
+use cosmwasm_std::{Addr, Deps, MessageInfo, StdResult, Storage};
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
@@ -85,6 +85,14 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
         let os_id = OS_ID.query(&deps.querier, maybe_manager.clone())?;
         let core = verify_os_manager(&deps.querier, maybe_manager, &version_control_addr, os_id)?;
         Ok(core)
+    }
+
+    pub fn state(&self, store: &dyn Storage) -> StdResult<ApiState> {
+        self.base_state.load(store)
+    }
+
+    pub fn version(&self, store: &dyn Storage) -> StdResult<ContractVersion> {
+        self.version.load(store)
     }
 }
 

@@ -9,6 +9,7 @@ use abstract_os::common_module::{
 };
 
 use crate::state::ApiContract;
+
 impl<T: Serialize + DeserializeOwned> Mem for ApiContract<'_, T> {
     fn mem(&self, store: &dyn Storage) -> StdResult<abstract_os::native::memory::item::Memory> {
         Ok(self.base_state.load(store)?.memory)
