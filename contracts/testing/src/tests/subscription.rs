@@ -5,7 +5,7 @@ use abstract_os::modules::add_ons::subscription::{msg as msgs, state};
 use abstract_os::{core::modules::ModuleInfo, registery::SUBSCRIPTION};
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{Addr, BlockInfo, Coin, Decimal, Uint128, Uint64};
-use terra_multi_test::{ContractWrapper, Executor, TerraApp};
+use cw_multi_test::{App, ContractWrapper, Executor};
 
 use crate::tests::common::RANDOM_USER;
 use crate::tests::testing_infrastructure::env::{exec_msg_on_manager, mint_tokens, token_balance};
@@ -17,7 +17,7 @@ use super::{
 };
 
 pub fn register_subscription(
-    app: &mut TerraApp,
+    app: &mut App,
     sender: &Addr,
     version_control: &Addr,
 ) -> AnyResult<()> {
@@ -107,7 +107,7 @@ fn proper_initialization() {
 
 #[test]
 fn add_and_remove_contributors() {
-    let mut app: TerraApp = mock_app();
+    let mut app: App = mock_app();
     let sender = Addr::unchecked(TEST_CREATOR);
     let random_user = Addr::unchecked(RANDOM_USER);
 
@@ -252,7 +252,7 @@ fn add_and_remove_contributors() {
 
 #[test]
 fn actions_before_first_month() {
-    let mut app: TerraApp = mock_app();
+    let mut app: App = mock_app();
     let sender = Addr::unchecked(TEST_CREATOR);
     let random_user = Addr::unchecked(RANDOM_USER);
     app.init_bank_balance(&sender, vec![Coin::new(1_000_000_000, "uusd")])
@@ -427,7 +427,7 @@ fn actions_before_first_month() {
 
 #[test]
 fn actions_after_first_month() {
-    let mut app: TerraApp = mock_app();
+    let mut app: App = mock_app();
     let sender = Addr::unchecked(TEST_CREATOR);
     let random_user = Addr::unchecked(RANDOM_USER);
     app.init_bank_balance(&sender, vec![Coin::new(1_000_000_000, "uusd")])
@@ -526,7 +526,7 @@ fn actions_after_first_month() {
 }
 // #[test]
 // fn add_subscribers_contributors() {
-//     let mut app: TerraApp = mock_app();
+//     let mut app: App = mock_app();
 //     let sender = Addr::unchecked(TEST_CREATOR);
 //     let random_user = Addr::unchecked(RANDOM_USER);
 //     app.init_bank_balance(&sender, vec![Coin::new(1_000_000_000, "uusd")])
@@ -716,7 +716,7 @@ fn add_block(b: &mut BlockInfo) {
     b.height += 1;
 }
 
-fn collect_subs_until_done(app: &mut TerraApp, sender: &Addr, subscription_addr: &Addr) {
+fn collect_subs_until_done(app: &mut App, sender: &Addr, subscription_addr: &Addr) {
     let mut state: msgs::StateResponse = app
         .wrap()
         .query_wasm_smart(subscription_addr, &msgs::QueryMsg::State {})
@@ -734,7 +734,7 @@ fn collect_subs_until_done(app: &mut TerraApp, sender: &Addr, subscription_addr:
         state.contribution.next_pay_day = new_state.contribution.next_pay_day;
     }
 }
-fn send_compensations_until_done(app: &mut TerraApp, sender: &Addr, subscription_addr: &Addr) {
+fn send_compensations_until_done(app: &mut App, sender: &Addr, subscription_addr: &Addr) {
     let mut done = false;
 
     while !done {

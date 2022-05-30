@@ -4,11 +4,11 @@ use abstract_os::native::version_control::msg as VCMsg;
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response};
 
+use cw_multi_test::{App, Contract, Executor};
 use terra_cosmwasm::TerraMsgWrapper;
-use terra_multi_test::{Contract, Executor, TerraApp};
 
 pub fn register_module(
-    app: &mut TerraApp,
+    app: &mut App,
     sender: &Addr,
     version_control: &Addr,
     module: ModuleInfo,
