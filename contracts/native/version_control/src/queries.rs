@@ -58,7 +58,7 @@ pub fn query_code_id(deps: Deps, module: ModuleInfo) -> StdResult<Binary> {
         Err(_) => Err(StdError::generic_err(
             VCError::MissingCodeId {
                 module: module.name,
-                version: module.version.unwrap_or(String::new()),
+                version: module.version.unwrap_or_default(),
             }
             .to_string(),
         )),
@@ -95,7 +95,7 @@ pub fn query_api_address(deps: Deps, module: ModuleInfo) -> StdResult<Binary> {
         Err(_) => Err(StdError::generic_err(
             VCError::MissingCodeId {
                 module: module.name,
-                version: module.version.unwrap_or_else(|| "".to_string()),
+                version: module.version.unwrap_or_default(),
             }
             .to_string(),
         )),

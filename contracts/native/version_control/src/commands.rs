@@ -97,7 +97,7 @@ pub fn add_api(
         ("Action", "Add Code_ID"),
         ("Module:", &module),
         ("Version:", &version),
-        ("api addr:", &address.to_string()),
+        ("api addr:", &address),
     ]))
 }
 

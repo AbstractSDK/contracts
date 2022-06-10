@@ -237,7 +237,7 @@ pub fn replace_api(deps: DepsMut, module_info: ModuleInfo) -> ManagerResult {
 
     // Makes sure we already have the API installed
     let old_api_addr = OS_MODULES.load(deps.storage, &module_info.name)?;
-    let proxy_addr = OS_MODULES.load(deps.storage, &PROXY)?;
+    let proxy_addr = OS_MODULES.load(deps.storage, PROXY)?;
     let traders: TradersResponse = deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
         contract_addr: config.version_control_address.to_string(),
         msg: to_binary(&ApiQueryMsg::Traders {
@@ -274,7 +274,7 @@ pub fn replace_api(deps: DepsMut, module_info: ModuleInfo) -> ManagerResult {
         wasm_execute(
             new_api_addr.clone(),
             &ApiExecuteMsg::UpdateTraders {
-                to_add: Some(traders_to_migrate.clone()),
+                to_add: Some(traders_to_migrate),
                 to_remove: None,
             },
             vec![],
