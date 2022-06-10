@@ -39,6 +39,9 @@ pub enum ManagerError {
 
     #[error("The provided contract version {0} is lower than the current version {1}")]
     OlderVersion(String, String),
+
+    #[error("The provided API key ({0},{1}) was not found in version control")]
+    ApiNotFound(String, String),
 }
 impl From<semver::Error> for ManagerError {
     fn from(err: semver::Error) -> Self {
