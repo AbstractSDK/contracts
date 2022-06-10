@@ -24,7 +24,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Queries address of OS manager module",
+      "description": "Returns Core of OS",
       "type": "object",
       "required": [
         "query_os_address"
@@ -63,6 +63,18 @@
               "$ref": "#/definitions/ModuleInfo"
             }
           }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "config"
+      ],
+      "properties": {
+        "config": {
+          "type": "object"
         }
       },
       "additionalProperties": false
