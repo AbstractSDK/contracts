@@ -137,11 +137,11 @@ pub fn register_module(
     Ok(response)
 }
 
-pub fn configure_module(
+pub fn exec_on_module(
     deps: DepsMut,
     msg_info: MessageInfo,
     module_name: String,
-    config_msg: Binary,
+    exec_msg: Binary,
 ) -> ManagerResult {
     // Only root can update module configs
     ROOT.assert_admin(deps.as_ref(), &msg_info.sender)?;
@@ -150,7 +150,7 @@ pub fn configure_module(
 
     let response = Response::new().add_message(CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: module_addr.into(),
-        msg: config_msg,
+        msg: exec_msg,
         funds: vec![],
     }));
 
