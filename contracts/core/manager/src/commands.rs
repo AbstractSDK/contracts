@@ -67,7 +67,7 @@ pub fn create_module(
         .may_load(deps.storage, &module.info.name)?
         .is_some()
     {
-        return Err(ManagerError::InternalDappAlreadyAdded {});
+        return Err(ManagerError::ModuleAlreadyAdded {});
     }
 
     let config = CONFIG.load(deps.storage)?;

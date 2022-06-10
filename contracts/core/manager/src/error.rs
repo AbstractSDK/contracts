@@ -13,8 +13,8 @@ pub enum ManagerError {
     #[error("Semver parsing error: {0}")]
     SemVer(String),
 
-    #[error("Cannot add two internal dapps of the same kind")]
-    InternalDappAlreadyAdded {},
+    #[error("Cannot add two modules of the same kind")]
+    ModuleAlreadyAdded {},
 
     #[error("Contract got an unexpected Reply")]
     UnexpectedReply(),
