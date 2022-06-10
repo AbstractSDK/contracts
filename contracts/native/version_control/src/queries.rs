@@ -31,7 +31,9 @@ pub fn query_os_address(deps: Deps, os_id: u32) -> StdResult<Binary> {
         Err(_) => Err(StdError::generic_err(
             VCError::MissingOsId { id: os_id }.to_string(),
         )),
-        Ok(address) => to_binary(&address),
+        Ok(address) => to_binary(&OsAddressResponse {
+            os_address: address,
+        }),
     }
 }
 
