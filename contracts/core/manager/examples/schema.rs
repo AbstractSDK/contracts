@@ -1,5 +1,5 @@
 use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, schema_for};
-use cw_asset::AssetInfoBase;
+use cw_asset::{AssetInfo, Asset, AssetInfoBase};
 use std::{env::current_dir, fs::create_dir_all};
 
 use abstract_os::core::proxy::{
@@ -34,8 +34,9 @@ fn main() {
         "CosmosMsg_for_Empty",
     );
     export_schema_with_title(
-        &schema_for!(AssetInfoBase<Addr>),
+        &schema_for!(AssetInfo),
         &out_dir,
+        // "AssetInfo",
         "AssetInfoBase_for_Addr",
     );
 }
