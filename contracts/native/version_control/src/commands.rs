@@ -39,7 +39,7 @@ pub fn add_code_id(
     // Only Admin can update code-ids
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
     if MODULE_CODE_IDS.has(deps.storage, (&module, &version)) {
-        return Err(VCError::CodeIdUpdate { version, module })
+        return Err(VCError::CodeIdUpdate { version, module });
     }
     MODULE_CODE_IDS.save(deps.storage, (&module, &version), &code_id)?;
 
@@ -85,9 +85,13 @@ pub fn add_api(
     // Only Admin can add code-ids
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
     if API_ADDRESSES.has(deps.storage, (&module, &version)) {
-        return Err(VCError::ApiUpdate { version, module })
+        return Err(VCError::ApiUpdate { version, module });
     }
-    API_ADDRESSES.save(deps.storage, (&module, &version), &deps.api.addr_validate(&address)?)?;
+    API_ADDRESSES.save(
+        deps.storage,
+        (&module, &version),
+        &deps.api.addr_validate(&address)?,
+    )?;
 
     Ok(Response::new().add_attributes(vec![
         ("Action", "Add Code_ID"),

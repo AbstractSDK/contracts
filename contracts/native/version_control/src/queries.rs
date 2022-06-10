@@ -55,11 +55,12 @@ pub fn query_code_id(deps: Deps, module: ModuleInfo) -> StdResult<Binary> {
     };
 
     match code_id {
-        Err(_) => Err(
-            StdError::generic_err(VCError::MissingCodeId {
+        Err(_) => Err(StdError::generic_err(
+            VCError::MissingCodeId {
                 module: module.name,
                 version: module.version.unwrap_or(String::new()),
-            }.to_string()    
+            }
+            .to_string(),
         )),
         Ok(id) => to_binary(&CodeIdResponse {
             code_id: Uint64::from(id),
