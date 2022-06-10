@@ -4,10 +4,14 @@
   "type": "object",
   "required": [
     "module_factory_address",
+    "subscription_address",
     "version_control_address"
   ],
   "properties": {
     "module_factory_address": {
+      "$ref": "#/definitions/Addr"
+    },
+    "subscription_address": {
       "$ref": "#/definitions/Addr"
     },
     "version_control_address": {
