@@ -4,7 +4,7 @@ use abstract_os::common_module::api_msg::ApiInterfaceMsg;
 use abstract_os::core::common::OS_ID;
 use abstract_os::native::version_control::queries::verify_os_manager;
 use abstract_os::native::version_control::state::Core;
-use cosmwasm_std::{Addr, Deps, MessageInfo, StdResult, Storage, Response, DepsMut, Env};
+use cosmwasm_std::{Addr, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Storage};
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
@@ -48,8 +48,8 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
             _phantom_data: PhantomData,
         }
     }
-    
-    /// Takes request and parses it to a verified 
+
+    /// Takes request and parses it to a verified
     pub fn handle_request(
         &mut self,
         deps: &mut DepsMut,
@@ -67,20 +67,22 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
                             addr
                         } else {
                             self.verify_sender_is_manager(deps.as_ref(), sender)
-                            .map_err(|_| ApiError::UnauthorizedTraderApiRequest {})?
-                            .proxy
+                                .map_err(|_| ApiError::UnauthorizedTraderApiRequest {})?
+                                .proxy
                         }
                     }
                     None => {
                         self.verify_sender_is_manager(deps.as_ref(), sender)
-                        .map_err(|_| ApiError::UnauthorizedApiRequest {})?
-                        .proxy
+                            .map_err(|_| ApiError::UnauthorizedApiRequest {})?
+                            .proxy
                     }
                 };
                 self.request_destination = Some(proxy);
-                return Ok(ApiInterfaceResponse::ProcessRequest(request.request))
-            },
-            ApiInterfaceMsg::Configure(exec_msg) =>  Ok(ApiInterfaceResponse::ExecResponse(self.execute(deps, env, info.clone(), exec_msg)?)),
+                Ok(ApiInterfaceResponse::ProcessRequest(request.request))
+            }
+            ApiInterfaceMsg::Configure(exec_msg) => Ok(ApiInterfaceResponse::ExecResponse(
+                self.execute(deps, env, info.clone(), exec_msg)?,
+            )),
         }
     }
     pub fn verify_sender_is_manager(
@@ -93,21 +95,20 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
         let core = verify_os_manager(&deps.querier, maybe_manager, &version_control_addr, os_id)?;
         Ok(core)
     }
-    
+
     pub fn state(&self, store: &dyn Storage) -> StdResult<ApiState> {
         self.base_state.load(store)
     }
-    
+
     pub fn version(&self, store: &dyn Storage) -> StdResult<ContractVersion> {
         self.version.load(store)
     }
 }
 
-
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub enum ApiInterfaceResponse<T> {
     ProcessRequest(T),
-    ExecResponse(Response)
+    ExecResponse(Response),
 }
 /// The BaseState contains the main addresses needed for sending and verifying messages
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
