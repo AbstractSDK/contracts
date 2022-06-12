@@ -1,6 +1,6 @@
 use cosmwasm_std::Addr;
 use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ApiInstantiateMsg {
@@ -8,6 +8,13 @@ pub struct ApiInstantiateMsg {
     pub memory_address: String,
     /// Used to verify senders
     pub version_control_address: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[serde(untagged)]
+pub enum ApiInterfaceMsg<T>{
+    Request(ApiRequestMsg<T>),
+    Configure(ApiExecuteMsg)
 }
 
 /// Api request forwards generated msg to the optionally attached proxy addr.
