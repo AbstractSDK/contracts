@@ -1,15 +1,9 @@
-
-
 use cosmwasm_std::testing::{mock_env, MockApi, MockStorage};
 use cosmwasm_std::{Addr, Coin};
-
 
 use cw_multi_test::{App, AppBuilder, BankKeeper};
 
 use crate::tests::common::{RANDOM_USER, TEST_CREATOR};
-
-
-
 
 pub struct NativeContracts {
     pub token: Addr,
