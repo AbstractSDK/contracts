@@ -1,14 +1,8 @@
+use abstract_os::core::manager::msg::{InstantiateMsg, ExecuteMsg, QueryMsg, EnabledModulesResponse, ModuleQueryResponse, VersionsQueryResponse, ConfigQueryResponse};
 use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, schema_for};
 use cw_asset::{AssetInfo, Asset, AssetInfoBase};
 use std::{env::current_dir, fs::create_dir_all};
 
-use abstract_os::core::proxy::{
-    msg::{
-        ConfigResponse, ExecuteMsg, HoldingAmountResponse, HoldingValueResponse, InstantiateMsg,
-        QueryMsg, TotalValueResponse, VaultAssetConfigResponse,
-    },
-    proxy_assets::ProxyAsset,
-};
 use cosmwasm_std::{Addr, CosmosMsg, Empty};
 use manager::state::Config;
 
@@ -19,24 +13,27 @@ fn main() {
     remove_schemas(&out_dir).unwrap();
 
     export_schema(&schema_for!(InstantiateMsg), &out_dir);
-    export_schema(&schema_for!(ExecuteMsg), &out_dir);
+    // TODO: failing because of the array
+    // export_schema(&schema_for!(ExecuteMsg), &out_dir);
     export_schema(&schema_for!(QueryMsg), &out_dir);
-    export_schema(&schema_for!(Config), &out_dir);
-    export_schema(&schema_for!(ConfigResponse), &out_dir);
-    export_schema(&schema_for!(HoldingValueResponse), &out_dir);
-    export_schema(&schema_for!(HoldingAmountResponse), &out_dir);
-    export_schema(&schema_for!(TotalValueResponse), &out_dir);
-    export_schema(&schema_for!(VaultAssetConfigResponse), &out_dir);
-    export_schema(&schema_for!(ProxyAsset), &out_dir);
     export_schema_with_title(
-        &schema_for!(CosmosMsg<Empty>),
+        &schema_for!(VersionsQueryResponse),
         &out_dir,
-        "CosmosMsg_for_Empty",
+        "QueryVersionsResponse",
     );
     export_schema_with_title(
-        &schema_for!(AssetInfo),
+        &schema_for!(ModuleQueryResponse),
         &out_dir,
-        // "AssetInfo",
-        "AssetInfoBase_for_Addr",
+        "QueryModulesResponse",
+    );
+    export_schema_with_title(
+        &schema_for!(EnabledModulesResponse),
+        &out_dir,
+        "QueryEnabledModulesResponse",
+    );
+    export_schema_with_title(
+        &schema_for!(ConfigQueryResponse),
+        &out_dir,
+        "QueryOsConfigResponse",
     );
 }
