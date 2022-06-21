@@ -173,6 +173,7 @@ fn assert_recipient_allowed(deps: Deps, recipient: &str) -> Result<(), ContractE
     if config
         .whitelisted_addr
         .contains(&deps.api.addr_validate(recipient)?)
+        || !config.transfers_restricted
     {
         return Ok(());
     }
@@ -180,7 +181,8 @@ fn assert_recipient_allowed(deps: Deps, recipient: &str) -> Result<(), ContractE
         &deps.querier,
         &Addr::unchecked(recipient),
         &config.version_control_address,
-    ).map_err(|_| StdError::generic_err("receiver must be a valid Abstract proxy contract"))?;
+    )
+    .map_err(|_| StdError::generic_err("receiver must be a valid Abstract proxy contract"))?;
     Ok(())
 }
 fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> Result<Response, ContractError> {
