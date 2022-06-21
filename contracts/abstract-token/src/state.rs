@@ -1,6 +1,6 @@
 use cosmwasm_std::Addr;
 use cw_controllers::Admin;
-use cw_storage_plus::{Item, Map};
+use cw_storage_plus::Item;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 pub struct Config {
     pub transfers_restricted: bool,
     pub version_control_address: Addr,
+    // useful for whitelisting dex's
     pub whitelisted_addr: Vec<Addr>,
 }
 
