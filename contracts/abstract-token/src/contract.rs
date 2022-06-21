@@ -96,9 +96,11 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::UpdateWhitelist { to_add, to_remove } => {
-            update_whitelist(deps, info, to_add, to_remove)
-        }
+        ExecuteMsg::UpdateWhitelist {
+            to_add,
+            to_remove,
+            restrict_transfers,
+        } => update_whitelist(deps, info, to_add, to_remove, restrict_transfers),
         ExecuteMsg::UpdateAdmin { new_admin } => set_admin(deps, info, new_admin),
         e => {
             let cw20_msg = e.try_into()?;
@@ -198,6 +200,7 @@ fn update_whitelist(
     msg_info: MessageInfo,
     to_add: Vec<String>,
     to_remove: Vec<String>,
+    restrict_transfers: Option<bool>,
 ) -> Result<Response, ContractError> {
     // Only Admin can call this method
     ADMIN
@@ -219,7 +222,9 @@ fn update_whitelist(
     config
         .whitelisted_addr
         .retain(|e| !to_remove.contains(&e.to_string()));
-
+    if let Some(restict) = restrict_transfers {
+        config.transfers_restricted = restict;
+    };
     CONFIG.save(deps.storage, &config)?;
     Ok(Response::new().add_attribute("action", "updated contract addresses"))
 }

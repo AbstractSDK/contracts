@@ -91,6 +91,7 @@ pub enum ExecuteMsg {
     UpdateWhitelist {
         to_add: Vec<String>,
         to_remove: Vec<String>,
+        restrict_transfers: Option<bool>,
     },
     UpdateAdmin {
         new_admin: String,
@@ -176,6 +177,7 @@ impl TryInto<Cw20ExecuteMsg> for ExecuteMsg {
             ExecuteMsg::UpdateWhitelist {
                 to_add: _,
                 to_remove: _,
+                restrict_transfers: _,
             } => Err(StdError::generic_err("can't parse into cw20 msg")),
             ExecuteMsg::UpdateAdmin { new_admin: _ } => {
                 Err(StdError::generic_err("can't parse into cw20 msg"))
