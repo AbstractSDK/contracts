@@ -3,10 +3,10 @@
   "title": "ConfigResponse",
   "type": "object",
   "required": [
-    "dapps"
+    "modules"
   ],
   "properties": {
-    "dapps": {
+    "modules": {
       "type": "array",
       "items": {
         "type": "string"

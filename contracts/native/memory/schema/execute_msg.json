@@ -27,10 +27,10 @@
       "description": "Executes the provided messages if sender is whitelisted",
       "type": "object",
       "required": [
-        "d_app_action"
+        "module_action"
       ],
       "properties": {
-        "d_app_action": {
+        "module_action": {
           "type": "object",
           "required": [
             "msgs"
@@ -51,16 +51,16 @@
       "description": "Adds the provided address to whitelisted dapps",
       "type": "object",
       "required": [
-        "add_d_app"
+        "add_module"
       ],
       "properties": {
-        "add_d_app": {
+        "add_module": {
           "type": "object",
           "required": [
-            "dapp"
+            "module"
           ],
           "properties": {
-            "dapp": {
+            "module": {
               "type": "string"
             }
           }
@@ -72,16 +72,16 @@
       "description": "Removes the provided address from the whitelisted dapps",
       "type": "object",
       "required": [
-        "remove_d_app"
+        "remove_module"
       ],
       "properties": {
-        "remove_d_app": {
+        "remove_module": {
           "type": "object",
           "required": [
-            "dapp"
+            "module"
           ],
           "properties": {
-            "dapp": {
+            "module": {
               "type": "string"
             }
           }

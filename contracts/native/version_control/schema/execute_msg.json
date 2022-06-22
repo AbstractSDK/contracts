@@ -3,7 +3,7 @@
   "title": "ExecuteMsg",
   "oneOf": [
     {
-      "description": "Call to add a new version and code-id for a module Only Admin can call this",
+      "description": "Call to add a new version and code-id for a module",
       "type": "object",
       "required": [
         "add_code_id"
@@ -41,6 +41,60 @@
       ],
       "properties": {
         "remove_code_id": {
+          "type": "object",
+          "required": [
+            "module",
+            "version"
+          ],
+          "properties": {
+            "module": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Call to add a new APi",
+      "type": "object",
+      "required": [
+        "add_api"
+      ],
+      "properties": {
+        "add_api": {
+          "type": "object",
+          "required": [
+            "address",
+            "module",
+            "version"
+          ],
+          "properties": {
+            "address": {
+              "type": "string"
+            },
+            "module": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Remove an API",
+      "type": "object",
+      "required": [
+        "remove_api"
+      ],
+      "properties": {
+        "remove_api": {
           "type": "object",
           "required": [
             "module",
