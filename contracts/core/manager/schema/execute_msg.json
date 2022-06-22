@@ -1,0 +1,254 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ExecuteMsg",
+  "oneOf": [
+    {
+      "description": "Sets a new Admin",
+      "type": "object",
+      "required": [
+        "set_admin"
+      ],
+      "properties": {
+        "set_admin": {
+          "type": "object",
+          "required": [
+            "admin"
+          ],
+          "properties": {
+            "admin": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Create module using module factory",
+      "type": "object",
+      "required": [
+        "create_module"
+      ],
+      "properties": {
+        "create_module": {
+          "type": "object",
+          "required": [
+            "module"
+          ],
+          "properties": {
+            "init_msg": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Binary"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "module": {
+              "$ref": "#/definitions/Module"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Register a module after creation",
+      "type": "object",
+      "required": [
+        "register_module"
+      ],
+      "properties": {
+        "register_module": {
+          "type": "object",
+          "required": [
+            "module",
+            "module_addr"
+          ],
+          "properties": {
+            "module": {
+              "$ref": "#/definitions/Module"
+            },
+            "module_addr": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Remove a module",
+      "type": "object",
+      "required": [
+        "remove_module"
+      ],
+      "properties": {
+        "remove_module": {
+          "type": "object",
+          "required": [
+            "module_name"
+          ],
+          "properties": {
+            "module_name": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Forward configuration message to module",
+      "type": "object",
+      "required": [
+        "exec_on_module"
+      ],
+      "properties": {
+        "exec_on_module": {
+          "type": "object",
+          "required": [
+            "exec_msg",
+            "module_name"
+          ],
+          "properties": {
+            "exec_msg": {
+              "$ref": "#/definitions/Binary"
+            },
+            "module_name": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Update contract configuration",
+      "type": "object",
+      "required": [
+        "update_config"
+      ],
+      "properties": {
+        "update_config": {
+          "type": "object",
+          "properties": {
+            "root": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "vc_addr": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "upgrade"
+      ],
+      "properties": {
+        "upgrade": {
+          "type": "object",
+          "required": [
+            "module"
+          ],
+          "properties": {
+            "migrate_msg": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Binary"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "module": {
+              "$ref": "#/definitions/Module"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Suspend manager contract",
+      "type": "object",
+      "required": [
+        "suspend_os"
+      ],
+      "properties": {
+        "suspend_os": {
+          "type": "object",
+          "required": [
+            "new_status"
+          ],
+          "properties": {
+            "new_status": {
+              "type": "boolean"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  ],
+  "definitions": {
+    "Binary": {
+      "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>",
+      "type": "string"
+    },
+    "Module": {
+      "type": "object",
+      "required": [
+        "info",
+        "kind"
+      ],
+      "properties": {
+        "info": {
+          "$ref": "#/definitions/ModuleInfo"
+        },
+        "kind": {
+          "$ref": "#/definitions/ModuleKind"
+        }
+      }
+    },
+    "ModuleInfo": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "ModuleKind": {
+      "type": "string",
+      "enum": [
+        "add_on",
+        "a_p_i",
+        "service",
+        "perk"
+      ]
+    }
+  }
+}
