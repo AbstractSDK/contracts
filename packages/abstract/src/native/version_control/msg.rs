@@ -75,7 +75,7 @@ pub enum QueryMsg {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct OsAddressResponse {
+pub struct OsAddrResponse {
     pub os_address: Core,
 }
 
