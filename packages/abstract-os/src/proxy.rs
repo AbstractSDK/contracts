@@ -123,7 +123,6 @@ pub struct HoldingValueResponse {
     pub value: Uint128,
 }
 
-
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct HoldingAmountResponse {
     pub value: Uint128,

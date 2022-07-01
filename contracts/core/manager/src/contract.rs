@@ -5,12 +5,12 @@ use cosmwasm_std::{
 
 use crate::{commands::*, error::ManagerError, queries};
 use abstract_os::manager::state::{Config, ADMIN, CONFIG, ROOT, STATUS};
+use abstract_os::registery::MANAGER;
 use abstract_os::{
     manager::{ConfigQueryResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
     modules::*,
     proxy::state::OS_ID,
 };
-use abstract_os::registery::MANAGER;
 use cw2::set_contract_version;
 
 pub type ManagerResult = Result<Response, ManagerError>;

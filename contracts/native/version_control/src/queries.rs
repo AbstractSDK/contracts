@@ -1,7 +1,7 @@
 use abstract_os::modules::ModuleInfo;
+use abstract_os::version_control::state::API_ADDRESSES;
 use abstract_os::version_control::ApiAddrResponse;
 use abstract_os::version_control::OsAddrResponse;
-use abstract_os::version_control::state::API_ADDRESSES;
 use cosmwasm_std::Order;
 use cosmwasm_std::QueryRequest;
 use cosmwasm_std::StdError;

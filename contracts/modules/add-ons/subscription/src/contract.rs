@@ -20,11 +20,11 @@ use abstract_os::objects::fee::Fee;
 
 use crate::error::SubscriptionError;
 use crate::{commands, queries};
+use abstract_os::subscription::state::*;
 use abstract_os::subscription::{
     ConfigResponse, ContributorStateResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     StateResponse, SubscriberStateResponse, SubscriptionFeeResponse,
 };
-use abstract_os::subscription::state::*;
 
 pub type SubscriptionResult = Result<Response, SubscriptionError>;
 pub type SubscriptionAddOn<'a> = AddOnContract<'a>;

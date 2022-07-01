@@ -10,8 +10,8 @@ use crate::error::ProxyError;
 use abstract_os::objects::proxy_assets::{get_asset_identifier, ProxyAsset};
 use abstract_os::proxy::state::{State, ADMIN, STATE, VAULT_ASSETS};
 use abstract_os::proxy::{
-    ConfigResponse, ExecuteMsg, HoldingValueResponse, InstantiateMsg, MigrateMsg, QueryMsg,
-    TotalValueResponse, HoldingAmountResponse, VaultAssetConfigResponse,
+    ConfigResponse, ExecuteMsg, HoldingAmountResponse, HoldingValueResponse, InstantiateMsg,
+    MigrateMsg, QueryMsg, TotalValueResponse, VaultAssetConfigResponse,
 };
 use abstract_os::registery::PROXY;
 use cw2::{get_contract_version, set_contract_version};
@@ -189,9 +189,8 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             value: compute_holding_value(deps, &env, identifier)?,
         }),
         QueryMsg::VaultAssetConfig { identifier } => to_binary(&VaultAssetConfigResponse {
-            value: VAULT_ASSETS.load(deps.storage, identifier.as_str())?
+            value: VAULT_ASSETS.load(deps.storage, identifier.as_str())?,
         }),
-
     }
 }
 

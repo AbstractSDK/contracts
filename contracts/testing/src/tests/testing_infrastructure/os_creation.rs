@@ -87,23 +87,21 @@ pub fn init_primary_os(
         base: AddOnInstantiateMsg {
             memory_address: native_contracts.memory.to_string(),
         },
-        contribution:
-            abstract_os::subscription::ContributionInstantiateMsg {
-                protocol_income_share: Decimal::percent(10),
-                emission_user_share: Decimal::percent(25),
-                max_emissions_multiple: Decimal::from_ratio(2u128, 1u128),
-                project_token: native_contracts.token.to_string(),
-                emissions_amp_factor: Uint128::new(680000000),
-                emissions_offset: Uint128::new(52000),
-                base_denom: "uusd".to_string(),
-            },
-        subscription:
-            abstract_os::subscription::SubscriptionInstantiateMsg {
-                factory_addr: native_contracts.os_factory.to_string(),
-                payment_asset: AssetInfoUnchecked::native("uusd"),
-                subscription_cost: Uint64::new(100),
-                version_control_addr: native_contracts.version_control.to_string(),
-            },
+        contribution: abstract_os::subscription::ContributionInstantiateMsg {
+            protocol_income_share: Decimal::percent(10),
+            emission_user_share: Decimal::percent(25),
+            max_emissions_multiple: Decimal::from_ratio(2u128, 1u128),
+            project_token: native_contracts.token.to_string(),
+            emissions_amp_factor: Uint128::new(680000000),
+            emissions_offset: Uint128::new(52000),
+            base_denom: "uusd".to_string(),
+        },
+        subscription: abstract_os::subscription::SubscriptionInstantiateMsg {
+            factory_addr: native_contracts.os_factory.to_string(),
+            payment_asset: AssetInfoUnchecked::native("uusd"),
+            subscription_cost: Uint64::new(100),
+            version_control_addr: native_contracts.version_control.to_string(),
+        },
     })?;
 
     let msg = abstract_os::manager::ExecuteMsg::CreateModule {

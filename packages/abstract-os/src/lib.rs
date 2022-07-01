@@ -8,7 +8,7 @@ pub mod modules;
 pub mod objects;
 pub mod os_factory;
 pub mod proxy;
+pub mod registery;
 pub mod subscription;
 pub mod vault;
 pub mod version_control;
-pub mod registery;

@@ -17,10 +17,8 @@ use cw2::{get_contract_version, ContractVersion};
 use semver::Version;
 
 use crate::{contract::ManagerResult, error::ManagerError};
-use abstract_sdk::{
-    manager::query_module_version,
-};
 use abstract_os::registery::{MANAGER, PROXY};
+use abstract_sdk::manager::query_module_version;
 pub const DAPP_CREATE_ID: u64 = 1u64;
 
 /// Adds, updates or removes provided addresses.
