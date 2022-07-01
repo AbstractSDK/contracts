@@ -1,13 +1,13 @@
+use abstract_os::module_factory::OverwriteValueMsg;
+use abstract_sdk::manager::query_os_id;
 use cosmwasm_std::{
     to_binary, Addr, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo, QueryRequest, ReplyOn,
     Response, StdError, StdResult, SubMsg, SubMsgResult, WasmMsg, WasmQuery,
 };
 
-use cw2::ContractVersion;
-
-use abstract_os::core::manager::{msg::ExecuteMsg as ManagerMsg, queries::query_os_id};
-use abstract_os::core::modules::{Module, ModuleInfo, ModuleInitMsg, ModuleKind};
-use abstract_os::native::version_control::queries::verify_os_manager;
+use abstract_os::manager::ExecuteMsg as ManagerMsg;
+use abstract_os::modules::{Module, ModuleInfo, ModuleKind};
+use abstract_sdk::version_control::verify_os_manager;
 
 use protobuf::Message;
 
@@ -17,9 +17,7 @@ use crate::error::ModuleFactoryError;
 use crate::response::MsgInstantiateContractResponse;
 use crate::state::*;
 
-use abstract_os::native::version_control::msg::{
-    ApiAddrResponse, CodeIdResponse, QueryMsg as VCQuery,
-};
+use abstract_os::version_control::{ApiAddrResponse, CodeIdResponse, QueryMsg as VCQuery};
 
 pub const CREATE_INTERNAL_DAPP_RESPONSE_ID: u64 = 1u64;
 pub const CREATE_EXTERNAL_DAPP_RESPONSE_ID: u64 = 2u64;
