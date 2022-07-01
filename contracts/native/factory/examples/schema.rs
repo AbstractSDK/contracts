@@ -3,7 +3,7 @@ use std::fs::create_dir_all;
 
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 
-use abstract_os::{native::os_factory::msg::*, governance::gov_type::GovernanceDetails};
+use abstract_os::{os_factory::*, gov_type::GovernanceDetails};
 
 fn main() {
     let mut out_dir = current_dir().unwrap();

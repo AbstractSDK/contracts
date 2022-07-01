@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use abstract_os::version_control::OsAddrResponse;
 use cosmwasm_std::Addr;
 
 use abstract_os::add_on::AddOnInstantiateMsg;
@@ -60,12 +61,12 @@ pub fn init_os(
     let os_id = resp.next_os_id - 1;
 
     // Check OS
-    let core: Core = app.wrap().query_wasm_smart(
+    let core: OsAddrResponse = app.wrap().query_wasm_smart(
         &native_contracts.version_control,
         &version_control::QueryMsg::QueryOsAddress { os_id },
     )?;
 
-    os_store.insert(os_id, core.clone());
+    os_store.insert(os_id, core.os_address.clone());
     assert!(os_store_as_expected(&app, &native_contracts, &os_store));
     Ok(())
 }

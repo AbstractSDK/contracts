@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 use cosmwasm_std::{to_binary, Addr, CosmosMsg, Decimal, Empty, StdResult, Uint128, WasmMsg};
 use cw_asset::{AssetInfo, AssetInfoUnchecked, AssetUnchecked};
 
+use crate::objects::proxy_assets::ProxyAsset;
+
 pub mod state {
     pub use crate::objects::core::OS_ID;
     use cw_controllers::Admin;

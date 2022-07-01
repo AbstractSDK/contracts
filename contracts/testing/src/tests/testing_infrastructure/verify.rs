@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use abstract_os::version_control::Core;
+use abstract_os::version_control::{Core, OsAddrResponse};
 use cw_multi_test::App;
 
 use super::common_integration::NativeContracts;
@@ -22,14 +22,14 @@ pub fn os_store_as_expected(
 
     for os_id in 0..max_os_id {
         // Check OS
-        let core: Core = app
+        let core: OsAddrResponse = app
             .wrap()
             .query_wasm_smart(
                 &native_contracts.version_control,
                 &version_control::QueryMsg::QueryOsAddress { os_id },
             )
             .unwrap();
-        if core.ne(os_store.get(&os_id).unwrap()) {
+        if core.os_address.ne(os_store.get(&os_id).unwrap()) {
             return false;
         }
     }

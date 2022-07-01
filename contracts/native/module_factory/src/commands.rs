@@ -1,4 +1,3 @@
-use abstract_os::module_factory::OverwriteValueMsg;
 use abstract_sdk::manager::query_os_id;
 use cosmwasm_std::{
     to_binary, Addr, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo, QueryRequest, ReplyOn,
@@ -6,9 +5,10 @@ use cosmwasm_std::{
 };
 
 use abstract_os::manager::ExecuteMsg as ManagerMsg;
-use abstract_os::modules::{Module, ModuleInfo, ModuleKind};
+use abstract_os::modules::{Module, ModuleInfo, ModuleKind, ModuleInitMsg};
 use abstract_sdk::version_control::verify_os_manager;
 
+use cw2::ContractVersion;
 use protobuf::Message;
 
 use crate::contract::ModuleFactoryResult;

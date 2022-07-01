@@ -3,9 +3,9 @@ use std::fs::create_dir_all;
 
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for, export_schema_with_title};
 
-use abstract_os::core::proxy::msg::{ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg, TotalValueResponse, VaultAssetConfigResponse, HoldingAmountResponse, HoldingValueResponse};
-use abstract_os::core::proxy::proxy_assets::ProxyAsset;
-use abstract_os::core::proxy::state::State;
+use abstract_os::proxy::{ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg, TotalValueResponse, VaultAssetConfigResponse, HoldingAmountResponse, HoldingValueResponse};
+use abstract_os::objects::proxy_assets::ProxyAsset;
+use abstract_os::proxy::state::State;
 use cosmwasm_std::{CosmosMsg, Empty};
 use cw_asset::AssetInfo;
 
