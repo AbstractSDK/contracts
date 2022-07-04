@@ -1,3 +1,4 @@
+use abstract_os::manager::state::OS_ID;
 use abstract_os::version_control::state::OS_ADDRESSES;
 use abstract_os::version_control::Core;
 use cosmwasm_std::{Addr, QuerierWrapper, StdError};
@@ -9,7 +10,7 @@ pub fn verify_os_manager(
     maybe_manager: &Addr,
     version_control_addr: &Addr,
 ) -> StdResult<Core> {
-    let os_id = query_os_id(querier, maybe_manager)?;
+    let os_id = OS_ID.query(querier, maybe_manager.clone())?;
     let maybe_os = OS_ADDRESSES.query(querier, version_control_addr.clone(), os_id)?;
     match maybe_os {
         None => Err(StdError::generic_err(format!(
@@ -33,7 +34,7 @@ pub fn verify_os_proxy(
     maybe_proxy: &Addr,
     version_control_addr: &Addr,
 ) -> StdResult<Core> {
-    let os_id = query_os_id(querier, maybe_proxy)?;
+    let os_id = OS_ID.query(querier, maybe_proxy.clone())?;
     let maybe_os = OS_ADDRESSES.query(querier, version_control_addr.clone(), os_id)?;
     match maybe_os {
         None => Err(StdError::generic_err(format!(

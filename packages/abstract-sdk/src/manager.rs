@@ -1,6 +1,6 @@
-use cosmwasm_std::{to_binary, CosmosMsg, Empty, StdResult, WasmMsg};
+use cosmwasm_std::{to_binary, CosmosMsg, Empty, QuerierWrapper, StdResult, WasmMsg};
 
-use abstract_os::manager::ExecuteMsg::UpdateModuleAddresses;
+use abstract_os::manager::{state::OS_ID, ExecuteMsg::UpdateModuleAddresses};
 
 use std::collections::BTreeMap;
 
@@ -10,6 +10,10 @@ use cosmwasm_storage::to_length_prefixed;
 
 use cosmwasm_std::{Deps, QueryRequest, WasmQuery};
 use cw2::{ContractVersion, CONTRACT};
+
+pub fn query_os_id(querier: &QuerierWrapper, core_contract_addr: &Addr) -> StdResult<u32> {
+    OS_ID.query(querier, core_contract_addr.clone())
+}
 
 /// Register the module on the manager
 /// can only be called by admin of manager
