@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use cosmwasm_std::Addr;
 
 use abstract_os::version_control::state::Core;
-use abstract_os::registery::PROXY;
+use abstract_os::registry::PROXY;
 
 use cw_multi_test::App;
 

@@ -4,7 +4,7 @@ use cosmwasm_std::{
 };
 
 use crate::error::ModuleFactoryError;
-use abstract_os::registery::OS_FACTORY;
+use abstract_os::registry::OS_FACTORY;
 use cw2::set_contract_version;
 
 use crate::commands;

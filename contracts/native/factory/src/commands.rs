@@ -30,7 +30,7 @@ use cw_asset::{Asset, AssetInfo, AssetInfoBase};
 
 pub const CREATE_OS_MANAGER_MSG_ID: u64 = 1u64;
 pub const CREATE_OS_TREASURY_MSG_ID: u64 = 2u64;
-use abstract_os::registery::{MANAGER, PROXY};
+use abstract_os::registry::{MANAGER, PROXY};
 
 pub fn receive_cw20(
     deps: DepsMut,
