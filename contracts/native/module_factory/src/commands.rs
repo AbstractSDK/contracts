@@ -33,16 +33,9 @@ pub fn execute_create_module(
     root_init_msg: Option<Binary>,
 ) -> ModuleFactoryResult {
     let config = CONFIG.load(deps.storage)?;
-    // Check if caller is manager of registered OS
-    let os_id = query_os_id(deps.as_ref(), &info.sender)?;
 
     // Verify sender is active OS manager
-    let core = verify_os_manager(
-        &deps.querier,
-        &info.sender,
-        &config.version_control_address,
-        os_id,
-    )?;
+    let core = verify_os_manager(&deps.querier, &info.sender, &config.version_control_address)?;
 
     if module.kind == ModuleKind::API {
         // Query version_control for api address

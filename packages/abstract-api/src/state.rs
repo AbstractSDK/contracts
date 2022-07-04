@@ -90,8 +90,7 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
         maybe_manager: &Addr,
     ) -> Result<Core, ApiError> {
         let version_control_addr = self.base_state.load(deps.storage)?.version_control;
-        let os_id = OS_ID.query(&deps.querier, maybe_manager.clone())?;
-        let core = verify_os_manager(&deps.querier, maybe_manager, &version_control_addr, os_id)?;
+        let core = verify_os_manager(&deps.querier, maybe_manager, &version_control_addr)?;
         Ok(core)
     }
 
