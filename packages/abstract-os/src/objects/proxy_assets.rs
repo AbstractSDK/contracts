@@ -10,7 +10,6 @@ use crate::proxy::{ExternalValueResponse, ValueQueryMsg};
 
 /// Every ProxyAsset provides a way to determine its value recursivly relative to
 /// a base asset.
-/// This is subject to change as Chainlink an/or TWAP implementations roll out on terra.
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub struct ProxyAsset {
@@ -28,17 +27,17 @@ pub enum ValueRef {
     Pool {
         pair_address: Addr,
     },
-    // Liquidity pool addr for LP tokens
+    /// Liquidity pool addr for LP tokens
     Liquidity {
         pool_address: Addr,
     },
-    // Or a Proxy, the proxy also takes a Decimal (the multiplier)
-    // Asset will be valued as if they are Proxy tokens
+    /// Or a Proxy, the proxy also takes a Decimal (the multiplier)
+    /// Asset will be valued as if they are Proxy tokens
     Proxy {
         proxy_asset: AssetInfo,
         multiplier: Decimal,
     },
-    // Query an external contract to get the value
+    /// Query an external contract to get the value
     External {
         contract_address: Addr,
     },

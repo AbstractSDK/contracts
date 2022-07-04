@@ -1,3 +1,6 @@
+//! # State/Message Objects
+//! This module contains all the structs and enums used in contract state-storage or contained in contract interaction.
+
 pub mod core;
 pub mod gov_type;
 pub mod deposit_info;
