@@ -1,3 +1,18 @@
+//! # OS Manager
+//!
+//! `abstract-os::manager` implements the contract interface and state lay-out.
+//! 
+//! ## Description
+//! 
+//! The OS-manager is part of the Core OS contracts along with the `abstract_os::proxy` contract.
+//! This contract is responsible for: 
+//! - Managing modules instantiation and migrations.
+//! - Managing permissions.
+//! - Upgrading the OS and its modules.
+//! - Providing module name to address resolution.
+//! 
+//! **The manager should be set as the contract/CosmWasm admin by default on your modules.**
+//! 
 pub mod state {
     pub use crate::objects::core::OS_ID;
     use cosmwasm_std::Addr;
