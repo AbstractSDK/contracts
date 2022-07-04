@@ -3,11 +3,10 @@
 //! `abstract_os::api` implements shared functionality that's useful for creating new Abstract APIs.
 //!
 //! ## Description
-//! An Abstract API contract is a contract that is allowed to perform actions on a [proxy](crate::proxy) contract. 
+//! An Abstract API contract is a contract that is allowed to perform actions on a [proxy](crate::proxy) contract.
 //! It is not migratable and its functionality is shared between users, meaning that all users call the same contract address to perform operations on the OS.
 //! The API structure is well-suited for implementing standard interfaces to external services like dexes, lending platforms, etc.
 //! The source code is accessible on [todo](todo).
-
 
 use cosmwasm_std::Addr;
 use schemars::JsonSchema;
@@ -34,7 +33,7 @@ pub enum ApiInterfaceMsg<T> {
 }
 /// An API request.
 /// The api contract forwards the generated msg to the optionally attached proxy addr.
-/// If proxy is None, then the sender must be an OS manager and the proxy address is extrapolated from the OS id. 
+/// If proxy is None, then the sender must be an OS manager and the proxy address is extrapolated from the OS id.
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ApiRequestMsg<T> {
     /// Ok to assume address is validated as all map keys are previously validated

@@ -5,7 +5,7 @@
 //! ## Description
 //! An add-on is a contract that is allowed to perform actions on a [proxy](crate::proxy) contract while also being migratable.
 //! The source code is accessible on [todo](todo).
-//! 
+//!
 use std::convert::TryInto;
 
 use schemars::JsonSchema;

@@ -3,11 +3,10 @@
 //! `abstract_os::version_control` stores chain-specific code-ids, addresses and an os_id map.
 //!
 //! ## Description
-//! Code-ids and api-contract addresses are stored on this address. This data can not be changed and allows for complex factory logic. 
-//! Both code-ids and addresses are stored on a per-module version basis. This allows users to easily upgrade their modules. 
-//! 
+//! Code-ids and api-contract addresses are stored on this address. This data can not be changed and allows for complex factory logic.
+//! Both code-ids and addresses are stored on a per-module version basis. This allows users to easily upgrade their modules.
+//!
 //! An internal os-id store provides external verification for manager and proxy addresses.  
-
 
 pub mod state {
     use cosmwasm_std::Addr;

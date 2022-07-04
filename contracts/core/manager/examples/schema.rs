@@ -9,7 +9,7 @@ use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, s
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};
 use std::{env::current_dir, fs::create_dir_all};
 
-use abstract_os::manager::state::Config;
+use abstract_os::manager::state::OsInfo;
 use cosmwasm_std::{Addr, Binary, CosmosMsg, Empty};
 
 fn main() {
@@ -21,6 +21,7 @@ fn main() {
     export_schema(&schema_for!(InstantiateMsg), &out_dir);
     // TODO: failing because of the array, need to delete update_module_addresses
     export_schema(&schema_for!(ExecuteMsg), &out_dir);
+    export_schema(&schema_for!(OsInfo), &out_dir);
     export_schema(&schema_for!(Module), &out_dir);
     // TODO:
     export_schema(&schema_for!(Binary), &out_dir);

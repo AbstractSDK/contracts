@@ -1,11 +1,10 @@
 //! # OS Proxy
 //!
-//! `abstract_os::proxy` hold all the assets associated with the OS instance. It accepts Cosmos messages from whitelisted addresses and executes them. 
+//! `abstract_os::proxy` hold all the assets associated with the OS instance. It accepts Cosmos messages from whitelisted addresses and executes them.
 //!
 //! ## Description
 //! The proxy is part of the Core OS contracts along with the `abstract_os::manager` contract.
 //! This contract is responsible for executing Cosmos messages and calculating the value of its assets.
-
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};

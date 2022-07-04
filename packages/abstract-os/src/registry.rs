@@ -3,8 +3,7 @@
 //! `abstract_os::registry` contains all contract names supported by Abstract OS.
 //!
 //! ## Description
-//! These fixed names can be used to provide name-addressable searches for complex logic. 
-
+//! These fixed names can be used to provide name-addressable searches for complex logic.
 
 pub const MANAGER: &str = "abstract:manager";
 pub const VERSION_CONTROL: &str = "abstract:version_control";
