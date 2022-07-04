@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use abstract_os::modules::Module;
 use abstract_os::vault as vault_msg;
-use abstract_os::registry::VAULT;
+use abstract_os::VAULT;
 use abstract_os::{modules::ModuleInfo, registry::SUBSCRIPTION};
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{Addr, BlockInfo, Decimal, Uint128, Uint64};

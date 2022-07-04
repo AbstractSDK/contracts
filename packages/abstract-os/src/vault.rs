@@ -11,7 +11,7 @@
 //! 
 //! ## Creation
 //! The vault contract can be added on an OS by calling [`ExecuteMsg::CreateModule`](crate::manager::ExecuteMsg::CreateModule) on the manager of the os.
-//! ```
+//! ```ignore
 //! let vault_init_msg = InstantiateMsg{
 //!                deposit_asset: "juno".to_string(),
 //!                base: AddOnInstantiateMsg{memory_address: "juno1...".to_string()},
@@ -27,9 +27,9 @@
 //!                         name: VAULT.into(),
 //!                         version: None,
 //!                     },
-//!                     kind: abstract_os::core::modules::ModuleKind::External,
+//!                     kind: crate::core::modules::ModuleKind::External,
 //!                 },
-//!                 init_msg: Some(to_binary(&vault_init_msg)?),
+//!                 init_msg: Some(to_binary(&vault_init_msg).unwrap()),
 //!        };
 //! // Call create_module_msg on manager
 //! ```

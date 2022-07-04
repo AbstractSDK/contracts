@@ -23,20 +23,25 @@
 //! The internal state for each contract is also contained within this crate. This ensures that breaking changes to the internal state are easily spotted. 
 //! It also allows for tight and low-gas integration between contracts by performing raw queries on these states.
 //! A contract's state object can be imported and used like: 
-//! ```
-//! use abstract_os::manager::state::OS_ID
-//! let os_id = OS_ID.query(querier, manager_address)?;
+//! ```ignore
+//! use crate::manager::state::OS_ID
+//! let os_id = OS_ID.query(querier, manager_address).unwrap();
 //! ```
 //! The internally stored objects are also contained within this package in [`crate::objects`]. 
 //! 
 //! ## Names
 //! Abstract module names are stored in [`registry`]. 
 //! These names are used throughout the stack to retrieve code-ids or to get associated contract addresses.
+//! They are re-exported for ease of use: 
+//! ```no_run
+//! use abstract_os::PROXY;
+//! ```
+
+pub use registry::*;
 
 pub mod abstract_token;
 pub mod add_on;
 pub mod api;
-pub mod gov_type;
 pub mod manager;
 pub mod memory;
 pub mod module_factory;
@@ -44,7 +49,8 @@ pub mod modules;
 pub mod objects;
 pub mod os_factory;
 pub mod proxy;
-pub mod registry;
 pub mod subscription;
 pub mod vault;
 pub mod version_control;
+
+pub (crate) mod registry;

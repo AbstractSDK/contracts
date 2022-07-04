@@ -14,7 +14,7 @@ use cosmwasm_std::Uint128;
 use cosmwasm_std::Uint64;
 use cw_asset::AssetInfoUnchecked;
 
-use abstract_os::registry::SUBSCRIPTION;
+use abstract_os::SUBSCRIPTION;
 use cw_multi_test::App;
 
 use crate::tests::common::TEST_CREATOR;
@@ -47,7 +47,7 @@ pub fn init_os(
         sender.clone(),
         native_contracts.os_factory.clone(),
         &abstract_os::os_factory::ExecuteMsg::CreateOs {
-            governance: abstract_os::gov_type::GovernanceDetails::Monarchy {
+            governance: abstract_os::objects::gov_type::GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
             },
         },

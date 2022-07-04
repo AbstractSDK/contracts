@@ -1,5 +1,5 @@
 use crate::error::VCError;
-use abstract_os::registry::VERSION_CONTROL;
+use abstract_os::VERSION_CONTROL;
 use cosmwasm_std::to_binary;
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::get_contract_version;

@@ -7,7 +7,7 @@
 //! This is useful when managing a large set of contracts. 
 
 
-use crate::gov_type::GovernanceDetails;
+use crate::objects::gov_type::GovernanceDetails;
 use cw20::Cw20ReceiveMsg;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
