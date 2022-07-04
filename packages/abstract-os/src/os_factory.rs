@@ -4,8 +4,7 @@
 //!
 //! ## Description
 //! Contract and asset addresses are stored on the proxy contract and are retrievable trough smart or raw queries.
-//! This is useful when managing a large set of contracts. 
-
+//! This is useful when managing a large set of contracts.
 
 use crate::objects::gov_type::GovernanceDetails;
 use cw20::Cw20ReceiveMsg;
@@ -21,6 +20,8 @@ pub struct InstantiateMsg {
     pub memory_address: String,
     /// Address of module factory. Used for instantiating manager.
     pub module_factory_address: String,
+    /// Provide the deployment chain-id
+    pub chain_id: String,
 }
 
 /// Execute function entrypoint.
@@ -49,6 +50,9 @@ pub enum ExecuteMsg {
         /// Use [`crate::objects::GovernanceDetails::Monarchy`] to use a custom governance modal.
         /// TODO: add support for other types of gov.
         governance: GovernanceDetails,
+        os_name: String,
+        description: Option<String>,
+        link: Option<String>,
     },
 }
 

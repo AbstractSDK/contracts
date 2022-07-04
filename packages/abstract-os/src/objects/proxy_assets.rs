@@ -24,13 +24,9 @@ pub struct ProxyAsset {
 pub enum ValueRef {
     /// A pool address of an asset/asset pair
     /// Both assets must be defined in the Vault_assets state
-    Pool {
-        pair_address: Addr,
-    },
+    Pool { pair_address: Addr },
     /// Liquidity pool addr for LP tokens
-    Liquidity {
-        pool_address: Addr,
-    },
+    Liquidity { pool_address: Addr },
     /// Or a Proxy, the proxy also takes a Decimal (the multiplier)
     /// Asset will be valued as if they are Proxy tokens
     Proxy {
@@ -38,9 +34,7 @@ pub enum ValueRef {
         multiplier: Decimal,
     },
     /// Query an external contract to get the value
-    External {
-        contract_address: Addr,
-    },
+    External { contract_address: Addr },
 }
 
 impl ProxyAsset {

@@ -1,15 +1,14 @@
-//! # TODO Subscription Add-On 
+//! # TODO Subscription Add-On
 //!
-//! `abstract_os::subscription` provides OS owners with a tool to easily create smart-contract subscriptions. 
+//! `abstract_os::subscription` provides OS owners with a tool to easily create smart-contract subscriptions.
 //!
 //! ## Description
-//! The subscription contract has three main uses. 
+//! The subscription contract has three main uses.
 //! 1. Provide a way to earn income with a subscription-style modal.  
 //! 2. Distribute income and native assets to project contributors. (optional)  
 //! 3. Distribute a native asset to your active users. (optional)  
-//! 
+//!
 //! TODO
-
 
 pub mod state {
     use std::ops::Sub;
