@@ -3,8 +3,8 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+/// Used by Module Factory to instantiate AddOn
 pub struct AddOnInstantiateMsg {
-    /// Used by Module Factory to instantiate AddOn
     pub memory_address: String,
 }
 
