@@ -6,7 +6,7 @@ use abstract_os::{
     proxy::ExecuteMsg as TreasuryMsg,
     version_control::{
         state::{API_ADDRESSES, MODULE_CODE_IDS},
-        ApiAddrResponse, CodeIdResponse, QueryMsg as VersionQuery,
+        QueryApiAddressResponse, QueryCodeIdResponse, QueryMsg as VersionQuery,
     },
 };
 use cosmwasm_std::{
@@ -328,7 +328,7 @@ fn get_code_id(
         }
         None => {
             // Query latest version of contract
-            let resp: CodeIdResponse =
+            let resp: QueryCodeIdResponse =
                 deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
                     contract_addr: config.version_control_address.to_string(),
                     msg: to_binary(&VersionQuery::QueryCodeId {
@@ -358,7 +358,7 @@ fn get_api_addr(deps: Deps, module_info: ModuleInfo) -> Result<Addr, ManagerErro
         }
         None => {
             // Query latest version of contract
-            let resp: ApiAddrResponse =
+            let resp: QueryApiAddressResponse =
                 deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
                     contract_addr: config.version_control_address.to_string(),
                     msg: to_binary(&VersionQuery::QueryApiAddress {
