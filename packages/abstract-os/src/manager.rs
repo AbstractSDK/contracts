@@ -67,7 +67,10 @@ pub enum ExecuteMsg {
         to_remove: Option<Vec<String>>,
     },
     /// Sets a new Admin
-    SetAdmin { admin: String , governance_type: Option<String> },
+    SetAdmin {
+        admin: String,
+        governance_type: Option<String>,
+    },
     /// Create module using module factory
     CreateModule {
         module: Module,
@@ -98,7 +101,7 @@ pub enum ExecuteMsg {
         os_name: Option<String>,
         description: Option<String>,
         link: Option<String>,
-    }
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

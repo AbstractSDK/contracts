@@ -1,6 +1,6 @@
 use abstract_os::{
     api::{ApiExecuteMsg, ApiQueryMsg, TradersResponse},
-    manager::state::{Subscribed, ADMIN, CONFIG, OS_MODULES, ROOT, STATUS, INFO, OsInfo},
+    manager::state::{OsInfo, Subscribed, ADMIN, CONFIG, INFO, OS_MODULES, ROOT, STATUS},
     module_factory::ExecuteMsg as ModuleFactoryMsg,
     modules::{Module, ModuleInfo, ModuleKind},
     proxy::ExecuteMsg as TreasuryMsg,
@@ -166,7 +166,12 @@ pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module_name: String) 
     Ok(Response::new().add_attribute("Removed module", &module_name))
 }
 
-pub fn set_admin_and_gov_type(deps: DepsMut, info: MessageInfo, admin: String, governance_type: Option<String>) -> ManagerResult {
+pub fn set_admin_and_gov_type(
+    deps: DepsMut,
+    info: MessageInfo,
+    admin: String,
+    governance_type: Option<String>,
+) -> ManagerResult {
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
 
     let admin_addr = deps.api.addr_validate(&admin)?;
@@ -177,7 +182,7 @@ pub fn set_admin_and_gov_type(deps: DepsMut, info: MessageInfo, admin: String, g
         info.governance_type = new_gov_type;
         INFO.save(deps.storage, &info)?;
     }
-    
+
     ADMIN.execute_update_admin::<Empty, Empty>(deps, info, Some(admin_addr))?;
     Ok(Response::default()
         .add_attribute("previous admin", previous_admin)
@@ -293,12 +298,18 @@ pub fn replace_api(deps: DepsMut, module_info: ModuleInfo) -> ManagerResult {
         proxy_addr.into_string(),
         new_api_addr.into_string(),
     )?);
-    
+
     Ok(Response::new().add_messages(msgs))
 }
 
 /// Update the OS information
-pub fn update_info(deps: DepsMut, info: MessageInfo, os_name: Option<String>, description: Option<String>, link: Option<String>) -> ManagerResult {
+pub fn update_info(
+    deps: DepsMut,
+    info: MessageInfo,
+    os_name: Option<String>,
+    description: Option<String>,
+    link: Option<String>,
+) -> ManagerResult {
     ROOT.assert_admin(deps.as_ref(), &info.sender)?;
     let mut info: OsInfo = INFO.load(deps.storage)?;
     if let Some(os_name) = os_name {
@@ -434,4 +445,3 @@ fn remove_dapp_from_proxy(
         funds: vec![],
     }))
 }
-

@@ -97,7 +97,10 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
             }
 
             match msg {
-                ExecuteMsg::SetAdmin { admin, governance_type } => set_admin_and_gov_type(deps, info, admin, governance_type),
+                ExecuteMsg::SetAdmin {
+                    admin,
+                    governance_type,
+                } => set_admin_and_gov_type(deps, info, admin, governance_type),
                 ExecuteMsg::UpdateConfig { vc_addr, root } => {
                     execute_update_config(deps, info, vc_addr, root)
                 }
@@ -123,7 +126,11 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     migrate_msg,
                 } => _upgrade_module(deps, env, info, module, migrate_msg),
                 ExecuteMsg::RemoveModule { module_name } => remove_module(deps, info, module_name),
-                ExecuteMsg::UpdateInfo { os_name, description, link } => update_info(deps, info, os_name, description, link),
+                ExecuteMsg::UpdateInfo {
+                    os_name,
+                    description,
+                    link,
+                } => update_info(deps, info, os_name, description, link),
                 _ => panic!(),
             }
         }
