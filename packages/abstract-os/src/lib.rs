@@ -49,5 +49,3 @@ pub mod modules;
 pub mod objects;
 pub mod os_factory;
 pub mod proxy;
-
-pub (crate) mod registry;
