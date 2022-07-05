@@ -13,10 +13,20 @@ pub mod state {
         pub module_factory_address: Addr,
         pub subscription_address: Addr,
     }
+    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+    pub struct OsInfo {
+        pub name: String,
+        pub governance_type: String,
+        pub chain_id: String,
+        pub description: Option<String>,
+        pub link: Option<String>,
+    }
 
     pub const STATUS: Item<Subscribed> = Item::new("\u{0}{6}status");
     pub const CONFIG: Item<Config> = Item::new("\u{0}{6}config");
-
+    /// Info about the OS
+    pub const INFO: Item<OsInfo> = Item::new("\u{0}{4}info");
+    /// Contract Admin
     pub const ADMIN: Admin = Admin::new("admin");
     pub const ROOT: Admin = Admin::new("root");
     pub const OS_MODULES: Map<&str, Addr> = Map::new("os_modules");
@@ -39,6 +49,11 @@ pub struct InstantiateMsg {
     pub version_control_address: String,
     pub module_factory_address: String,
     pub subscription_address: Option<String>,
+    pub os_name: String,
+    pub governance_type: String,
+    pub chain_id: String,
+    pub description: Option<String>,
+    pub link: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

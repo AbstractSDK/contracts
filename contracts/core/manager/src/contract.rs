@@ -3,8 +3,9 @@ use cosmwasm_std::{
     Uint64,
 };
 
+use crate::validators::{validate_description, validate_link, validate_name};
 use crate::{commands::*, error::ManagerError, queries};
-use abstract_os::manager::state::{Config, ADMIN, CONFIG, ROOT, STATUS};
+use abstract_os::manager::state::{Config, OsInfo, ADMIN, CONFIG, ROOT, STATUS, INFO};
 use abstract_os::MANAGER;
 use abstract_os::{
     manager::{ConfigQueryResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
@@ -16,7 +17,12 @@ use cw2::set_contract_version;
 pub type ManagerResult = Result<Response, ManagerError>;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-
+pub(crate) const MIN_DESC_LENGTH: usize = 4;
+pub(crate) const MAX_DESC_LENGTH: usize = 1024;
+pub(crate) const MIN_LINK_LENGTH: usize = 12;
+pub(crate) const MAX_LINK_LENGTH: usize = 128;
+pub(crate) const MIN_TITLE_LENGTH: usize = 4;
+pub(crate) const MAX_TITLE_LENGTH: usize = 64;
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ManagerResult {
     // let version: Version = CONTRACT_VERSION.parse()?;
@@ -53,6 +59,21 @@ pub fn instantiate(
             subscription_address,
         },
     )?;
+
+    // Verify info
+    validate_description(&msg.description)?;
+    validate_link(&msg.link)?;
+    validate_name(&msg.os_name)?;
+
+    let os_info = OsInfo {
+        name: msg.os_name,
+        governance_type: msg.governance_type,
+        chain_id: msg.chain_id,
+        description: msg.description,
+        link: msg.link,
+    };
+
+    INFO.save(deps.storage, &os_info)?;
     // Set root
     let root = deps.api.addr_validate(&msg.root_user)?;
     ROOT.set(deps.branch(), Some(root))?;

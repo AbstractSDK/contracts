@@ -19,7 +19,6 @@ use semver::Version;
 use crate::{contract::ManagerResult, error::ManagerError};
 use abstract_os::{MANAGER, PROXY};
 use abstract_sdk::manager::query_module_version;
-pub const DAPP_CREATE_ID: u64 = 1u64;
 
 /// Adds, updates or removes provided addresses.
 /// Should only be called by contract that adds/removes modules.
