@@ -55,10 +55,10 @@ pub enum ManagerError {
     #[error("link too long, must be at most {0} characters")]
     LinkInvalidLong(usize),
 
-    #[error("title too short, must be at least {0} characters")]
+    #[error("title/gov-type too short, must be at least {0} characters")]
     TitleInvalidShort(usize),
 
-    #[error("title too long, must be at most {0} characters")]
+    #[error("title/gov-type too long, must be at most {0} characters")]
     TitleInvalidLong(usize),
 }
 impl From<semver::Error> for ManagerError {

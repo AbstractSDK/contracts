@@ -24,7 +24,7 @@ use abstract_os::manager::InstantiateMsg as ManagerInstantiateMsg;
 use abstract_os::proxy::{ExecuteMsg as ProxyExecMsg, InstantiateMsg as ProxyInstantiateMsg};
 
 use abstract_os::version_control::{
-    CodeIdResponse, ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery,
+    ExecuteMsg as VCExecuteMsg, QueryCodeIdResponse, QueryMsg as VCQuery,
 };
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};
 
@@ -93,7 +93,7 @@ pub fn execute_create_os(
     };
 
     // Query version_control for code_id of Manager contract
-    let manager_code_id_response: CodeIdResponse =
+    let manager_code_id_response: QueryCodeIdResponse =
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: config.version_control_contract.to_string(),
             msg: to_binary(&VCQuery::QueryCodeId {
@@ -159,7 +159,7 @@ pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> OsFact
     )?;
 
     // Query version_control for code_id of Treasury
-    let proxy_code_id_response: CodeIdResponse =
+    let proxy_code_id_response: QueryCodeIdResponse =
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: config.version_control_contract.to_string(),
             msg: to_binary(&VCQuery::QueryCodeId {

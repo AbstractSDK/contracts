@@ -1,14 +1,16 @@
+use abstract_os::manager::QueryInfoResponse;
 use cosmwasm_std::{
     entry_point, to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
     Uint64,
 };
 
-use crate::validators::{validate_description, validate_link, validate_name};
+use crate::queries::{handle_module_info_query, handle_os_info_query};
+use crate::validators::{validate_description, validate_link, validate_name_or_gov_type};
 use crate::{commands::*, error::ManagerError, queries};
-use abstract_os::manager::state::{Config, OsInfo, ADMIN, CONFIG, ROOT, STATUS, INFO};
+use abstract_os::manager::state::{Config, OsInfo, ADMIN, CONFIG, INFO, ROOT, STATUS};
 use abstract_os::MANAGER;
 use abstract_os::{
-    manager::{ConfigQueryResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
+    manager::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryConfigResponse, QueryMsg},
     modules::*,
     proxy::state::OS_ID,
 };
@@ -63,7 +65,7 @@ pub fn instantiate(
     // Verify info
     validate_description(&msg.description)?;
     validate_link(&msg.link)?;
-    validate_name(&msg.os_name)?;
+    validate_name_or_gov_type(&msg.os_name)?;
 
     let os_info = OsInfo {
         name: msg.os_name,
@@ -95,7 +97,10 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
             }
 
             match msg {
-                ExecuteMsg::SetAdmin { admin } => set_admin(deps, info, admin),
+                ExecuteMsg::SetAdmin {
+                    admin,
+                    governance_type,
+                } => set_admin_and_gov_type(deps, info, admin, governance_type),
                 ExecuteMsg::UpdateConfig { vc_addr, root } => {
                     execute_update_config(deps, info, vc_addr, root)
                 }
@@ -121,6 +126,11 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     migrate_msg,
                 } => _upgrade_module(deps, env, info, module, migrate_msg),
                 ExecuteMsg::RemoveModule { module_name } => remove_module(deps, info, module_name),
+                ExecuteMsg::UpdateInfo {
+                    os_name,
+                    description,
+                    link,
+                } => update_info(deps, info, os_name, description, link),
                 _ => panic!(),
             }
         }
@@ -147,24 +157,25 @@ fn _upgrade_module(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::QueryVersions { names } => {
+        QueryMsg::QueryModuleVersions { names } => {
             queries::handle_contract_versions_query(deps, env, names)
         }
-        QueryMsg::QueryModules { names } => {
-            queries::handle_module_addresses_query(deps, env, names)
+        QueryMsg::QueryModuleAddresses { names } => {
+            queries::handle_module_address_query(deps, env, names)
         }
-        QueryMsg::QueryEnabledModules {} => queries::handle_enabled_modules_query(deps),
-
-        QueryMsg::QueryOsConfig {} => {
+        QueryMsg::QueryModuleInfos {
+            last_module_name,
+            iter_limit,
+        } => handle_module_info_query(deps, last_module_name, iter_limit),
+        QueryMsg::QueryInfo {} => handle_os_info_query(deps),
+        QueryMsg::QueryConfig {} => {
             let os_id = Uint64::from(OS_ID.load(deps.storage)?);
             let root = ROOT
                 .get(deps)?
                 .unwrap_or_else(|| Addr::unchecked(""))
                 .to_string();
-
             let config = CONFIG.load(deps.storage)?;
-
-            to_binary(&ConfigQueryResponse {
+            to_binary(&QueryConfigResponse {
                 root,
                 os_id,
                 version_control_address: config.version_control_address.to_string(),
