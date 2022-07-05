@@ -39,6 +39,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::modules::Module;
 
+use self::state::OsInfo;
+
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct MigrateMsg {}
 
@@ -96,37 +98,52 @@ pub enum ExecuteMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
-    /// Queries assets based on name
-    QueryVersions {
-        names: Vec<String>,
+    /// Returns [`QueryModuleVersionsResponse`]
+    QueryModuleVersions { names: Vec<String> },
+    /// Returns [`QueryModuleAddressesResponse`]
+    QueryModuleAddresses { names: Vec<String> },
+    /// Returns [`QueryModuleInfosResponse`]
+    QueryModuleInfos {
+        last_module_name: Option<String>,
+        iter_limit: Option<u8>,
     },
-    QueryModules {
-        names: Vec<String>,
-    },
-    QueryEnabledModules {},
-    /// Query OS_ID
-    QueryOsConfig {},
+    /// Returns [`QueryConfigResponse`]
+    QueryConfig {},
+    /// Returns [`QueryInfoResponse`]
+    QueryInfo {},
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct VersionsQueryResponse {
+pub struct QueryModuleVersionsResponse {
     pub versions: Vec<ContractVersion>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct ModuleQueryResponse {
+pub struct QueryModuleAddressesResponse {
     pub modules: Vec<(String, String)>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct EnabledModulesResponse {
-    pub modules: Vec<String>,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct ConfigQueryResponse {
+pub struct QueryConfigResponse {
     pub root: String,
     pub version_control_address: String,
     pub module_factory_address: String,
     pub os_id: Uint64,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct QueryInfoResponse {
+    pub info: OsInfo,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct ManagerModuleInfo {
+    pub name: String,
+    pub version: ContractVersion,
+    pub address: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct QueryModuleInfosResponse {
+    pub module_infos: Vec<ManagerModuleInfo>,
 }

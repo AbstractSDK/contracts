@@ -42,10 +42,10 @@ pub fn validate_name(title: &str) -> Result<(), ManagerError> {
 pub fn validate_description(maybe_description: &Option<String>) -> Result<(), ManagerError> {
     if let Some(description) = maybe_description {
         if description.len() < MIN_DESC_LENGTH {
-            return Err(ManagerError::DescriptionInvalidShort(MIN_DESC_LENGTH))
+            return Err(ManagerError::DescriptionInvalidShort(MIN_DESC_LENGTH));
         } else if description.len() > MAX_DESC_LENGTH {
-            return Err(ManagerError::DescriptionInvalidLong(MAX_DESC_LENGTH))
+            return Err(ManagerError::DescriptionInvalidLong(MAX_DESC_LENGTH));
         }
-    } 
+    }
     Ok(())
 }
