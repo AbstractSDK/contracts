@@ -51,9 +51,9 @@ pub struct InstantiateMsg {
     pub version_control_address: String,
     pub module_factory_address: String,
     pub subscription_address: Option<String>,
-    pub os_name: String,
-    pub governance_type: String,
     pub chain_id: String,
+    pub governance_type: String,
+    pub os_name: String,
     pub description: Option<String>,
     pub link: Option<String>,
 }
@@ -67,7 +67,7 @@ pub enum ExecuteMsg {
         to_remove: Option<Vec<String>>,
     },
     /// Sets a new Admin
-    SetAdmin { admin: String },
+    SetAdmin { admin: String , governance_type: Option<String> },
     /// Create module using module factory
     CreateModule {
         module: Module,
@@ -93,6 +93,12 @@ pub enum ExecuteMsg {
     },
     /// Suspend manager contract
     SuspendOs { new_status: bool },
+    /// Update info
+    UpdateInfo {
+        os_name: Option<String>,
+        description: Option<String>,
+        link: Option<String>,
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

@@ -5,7 +5,7 @@ use cosmwasm_std::{
 };
 
 use crate::queries::{handle_module_info_query, handle_os_info_query};
-use crate::validators::{validate_description, validate_link, validate_name};
+use crate::validators::{validate_description, validate_link, validate_name_or_gov_type};
 use crate::{commands::*, error::ManagerError, queries};
 use abstract_os::manager::state::{Config, OsInfo, ADMIN, CONFIG, INFO, ROOT, STATUS};
 use abstract_os::MANAGER;
@@ -65,7 +65,7 @@ pub fn instantiate(
     // Verify info
     validate_description(&msg.description)?;
     validate_link(&msg.link)?;
-    validate_name(&msg.os_name)?;
+    validate_name_or_gov_type(&msg.os_name)?;
 
     let os_info = OsInfo {
         name: msg.os_name,
@@ -97,7 +97,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
             }
 
             match msg {
-                ExecuteMsg::SetAdmin { admin } => set_admin(deps, info, admin),
+                ExecuteMsg::SetAdmin { admin, governance_type } => set_admin_and_gov_type(deps, info, admin, governance_type),
                 ExecuteMsg::UpdateConfig { vc_addr, root } => {
                     execute_update_config(deps, info, vc_addr, root)
                 }
@@ -123,6 +123,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     migrate_msg,
                 } => _upgrade_module(deps, env, info, module, migrate_msg),
                 ExecuteMsg::RemoveModule { module_name } => remove_module(deps, info, module_name),
+                ExecuteMsg::UpdateInfo { os_name, description, link } => update_info(deps, info, os_name, description, link),
                 _ => panic!(),
             }
         }
