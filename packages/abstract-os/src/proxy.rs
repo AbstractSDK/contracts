@@ -12,12 +12,10 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use cosmwasm_std::{to_binary, Addr, CosmosMsg, Decimal, Empty, StdResult, Uint128, WasmMsg};
-use cw_asset::{AssetInfo, AssetInfoUnchecked, AssetUnchecked};
+use cosmwasm_std::{CosmosMsg, Empty, Uint128};
+
 
 use crate::objects::{
-    memory::Memory,
-    memory_entry::AssetEntry,
     proxy_asset::{ProxyAsset, UncheckedProxyAsset},
 };
 
