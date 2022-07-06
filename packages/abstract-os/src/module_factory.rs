@@ -1,4 +1,4 @@
-use crate::{modules::Module, version_control::Core};
+use crate::{objects::module::Module, version_control::Core};
 use cosmwasm_std::Binary;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};

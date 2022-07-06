@@ -10,3 +10,4 @@ pub mod memory;
 pub mod memory_entry;
 pub mod paged_map;
 pub mod proxy_asset;
+pub mod module;

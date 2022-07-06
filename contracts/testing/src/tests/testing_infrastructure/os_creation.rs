@@ -4,7 +4,7 @@ use abstract_os::version_control::QueryOsCoreResponse;
 use cosmwasm_std::Addr;
 
 use abstract_os::add_on::AddOnInstantiateMsg;
-use abstract_os::modules::ModuleInfo;
+use abstract_os::objects::module::ModuleInfo;
 use abstract_os::subscription::InstantiateMsg as SubInitMsg;
 use abstract_os::version_control::Core;
 use cosmwasm_std::to_binary;
@@ -109,12 +109,12 @@ pub fn init_primary_os(
     })?;
 
     let msg = abstract_os::manager::ExecuteMsg::CreateModule {
-        module: modules::Module {
+        module: objects::module::Module {
             info: ModuleInfo {
                 name: SUBSCRIPTION.to_string(),
                 version: None,
             },
-            kind: modules::ModuleKind::AddOn,
+            kind: objects::module::ModuleKind::AddOn,
         },
         init_msg: Some(init_msg),
     };

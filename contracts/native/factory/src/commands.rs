@@ -1,4 +1,4 @@
-use abstract_os::modules::ModuleInfo;
+use abstract_os::objects::module::ModuleInfo;
 use abstract_os::objects::gov_type::GovernanceDetails;
 use abstract_os::os_factory::ExecuteMsg;
 use abstract_os::subscription::{

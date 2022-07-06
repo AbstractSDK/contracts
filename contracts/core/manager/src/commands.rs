@@ -2,7 +2,7 @@ use abstract_os::{
     api::{ApiExecuteMsg, ApiQueryMsg, TradersResponse},
     manager::state::{OsInfo, Subscribed, ADMIN, CONFIG, INFO, OS_MODULES, ROOT, STATUS},
     module_factory::ExecuteMsg as ModuleFactoryMsg,
-    modules::{Module, ModuleInfo, ModuleKind},
+    objects::module::{Module, ModuleInfo, ModuleKind},
     proxy::ExecuteMsg as TreasuryMsg,
     version_control::{
         state::{API_ADDRESSES, MODULE_CODE_IDS},
