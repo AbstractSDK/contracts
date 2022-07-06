@@ -34,15 +34,6 @@ pub mod state {
     pub const VAULT_ASSETS: Map<&str, ProxyAsset> = Map::new("proxy_assets");
 }
 
-/// Constructs the proxy dapp action message used by all modules.
-pub fn send_to_proxy(msgs: Vec<CosmosMsg>, proxy_address: &Addr) -> StdResult<CosmosMsg<Empty>> {
-    Ok(CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: proxy_address.to_string(),
-        msg: to_binary(&ExecuteMsg::ModuleAction { msgs })?,
-        funds: vec![],
-    }))
-}
-
 /// A proxy asset with unchecked address fields.
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
