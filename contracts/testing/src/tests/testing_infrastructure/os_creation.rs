@@ -58,7 +58,7 @@ pub fn init_os(
         &funds,
     )?;
 
-    let resp: os_factory::ConfigResponse = app.wrap().query_wasm_smart(
+    let resp: os_factory::QueryConfigResponse = app.wrap().query_wasm_smart(
         &native_contracts.os_factory,
         &os_factory::QueryMsg::Config {},
     )?;
