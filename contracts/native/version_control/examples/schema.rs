@@ -7,7 +7,7 @@ use abstract_os::{
     modules::ModuleInfo,
     version_control::{
         ExecuteMsg, InstantiateMsg, QueryApiAddressesResponse, QueryCodeIdResponse,
-        QueryConfigResponse, QueryMsg, QueryOsCoreResponse,
+        QueryConfigResponse, QueryMsg, QueryOsCoreResponse, QueryApiAddressResponse, QueryCodeIdsResponse,
     },
 };
 
@@ -23,7 +23,9 @@ fn main() {
     export_schema(&schema_for!(ModuleInfo), &out_dir);
     export_schema(&schema_for!(QueryConfigResponse), &out_dir);
     export_schema(&schema_for!(QueryApiAddressesResponse), &out_dir);
+    export_schema(&schema_for!(QueryApiAddressResponse), &out_dir);
     export_schema(&schema_for!(QueryCodeIdResponse), &out_dir);
+    export_schema(&schema_for!(QueryCodeIdsResponse), &out_dir);
     // export_schema(&schema_for!(EnabledModulesResponse), &out_dir);
     export_schema_with_title(
         &schema_for!(QueryCodeIdResponse),

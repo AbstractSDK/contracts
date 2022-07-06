@@ -1,15 +1,25 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "QueryVersionsResponse",
+  "title": "QueryApiAddressesResponse",
   "type": "object",
   "required": [
-    "versions"
+    "api_addresses"
   ],
   "properties": {
-    "versions": {
+    "api_addresses": {
       "type": "array",
       "items": {
-        "$ref": "#/definitions/ContractVersion"
+        "type": "array",
+        "items": [
+          {
+            "$ref": "#/definitions/ContractVersion"
+          },
+          {
+            "type": "string"
+          }
+        ],
+        "maxItems": 2,
+        "minItems": 2
       }
     }
   },

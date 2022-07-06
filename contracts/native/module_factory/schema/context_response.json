@@ -30,6 +30,7 @@
       "type": "string"
     },
     "Core": {
+      "description": "Contains the minimal Abstract-OS contract addresses.",
       "type": "object",
       "required": [
         "manager",

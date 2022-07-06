@@ -75,7 +75,7 @@
       "type": "string"
     },
     "ProxyAsset": {
-      "description": "Every ProxyAsset provides a way to determine its value recursivly relative to a base asset. This is subject to change as Chainlink an/or TWAP implementations roll out on terra.",
+      "description": "Every ProxyAsset provides a way to determine its value recursivly relative to a base asset.",
       "type": "object",
       "required": [
         "asset"
@@ -124,6 +124,7 @@
           "additionalProperties": false
         },
         {
+          "description": "Liquidity pool addr for LP tokens",
           "type": "object",
           "required": [
             "liquidity"
@@ -144,6 +145,7 @@
           "additionalProperties": false
         },
         {
+          "description": "Or a Proxy, the proxy also takes a Decimal (the multiplier) Asset will be valued as if they are Proxy tokens",
           "type": "object",
           "required": [
             "proxy"
@@ -168,6 +170,7 @@
           "additionalProperties": false
         },
         {
+          "description": "Query an external contract to get the value",
           "type": "object",
           "required": [
             "external"

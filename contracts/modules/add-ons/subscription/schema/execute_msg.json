@@ -351,6 +351,7 @@
       "type": "string"
     },
     "Compensation": {
+      "description": "Compensation details for contributors",
       "type": "object",
       "required": [
         "base",

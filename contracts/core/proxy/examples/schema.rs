@@ -7,7 +7,7 @@ use abstract_os::objects::proxy_assets::ProxyAsset;
 use abstract_os::proxy::state::State;
 use abstract_os::proxy::{
     ConfigResponse, ExecuteMsg, HoldingAmountResponse, HoldingValueResponse, InstantiateMsg,
-    QueryMsg, TotalValueResponse, VaultAssetConfigResponse,
+    QueryMsg, TotalValueResponse, VaultAssetConfigResponse, UncheckedProxyAsset,
 };
 use cosmwasm_std::{CosmosMsg, Empty};
 use cw_asset::AssetInfo;
@@ -30,6 +30,7 @@ fn main() {
     export_schema(&schema_for!(HoldingValueResponse), &out_dir);
     export_schema(&schema_for!(HoldingAmountResponse), &out_dir);
     export_schema(&schema_for!(VaultAssetConfigResponse), &out_dir);
+    export_schema(&schema_for!(UncheckedProxyAsset), &out_dir);
 
     export_schema_with_title(
         &schema_for!(CosmosMsg<Empty>),

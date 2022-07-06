@@ -30,14 +30,6 @@ fn main() {
     export_schema(&schema_for!(QueryInfoResponse), &out_dir);
     export_schema(&schema_for!(QueryModuleInfosResponse), &out_dir);
     export_schema(&schema_for!(QueryModuleAddressesResponse), &out_dir);
-    export_schema_with_title(
-        &schema_for!(QueryModuleVersionsResponse),
-        &out_dir,
-        "QueryVersionsResponse",
-    );
-    export_schema_with_title(
-        &schema_for!(QueryConfigResponse),
-        &out_dir,
-        "QueryOsConfigResponse",
-    );
+    export_schema(&schema_for!(QueryConfigResponse), &out_dir);
+    export_schema(&schema_for!(QueryModuleVersionsResponse), &out_dir);
 }

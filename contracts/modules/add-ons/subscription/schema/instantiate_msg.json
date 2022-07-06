@@ -20,13 +20,13 @@
   },
   "definitions": {
     "AddOnInstantiateMsg": {
+      "description": "Used by Module Factory to instantiate AddOn",
       "type": "object",
       "required": [
         "memory_address"
       ],
       "properties": {
         "memory_address": {
-          "description": "Used by Module Factory to instantiate AddOn",
           "type": "string"
         }
       }
@@ -112,7 +112,12 @@
           "type": "string"
         },
         "payment_asset": {
-          "$ref": "#/definitions/AssetInfoBase_for_String"
+          "description": "Payment asset for",
+          "allOf": [
+            {
+              "$ref": "#/definitions/AssetInfoBase_for_String"
+            }
+          ]
         },
         "subscription_cost": {
           "$ref": "#/definitions/Uint64"
