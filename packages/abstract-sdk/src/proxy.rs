@@ -1,5 +1,5 @@
 use abstract_os::proxy::ExecuteMsg;
-use cosmwasm_std::{CosmosMsg, Addr, Empty, WasmMsg, to_binary, StdResult};
+use cosmwasm_std::{to_binary, Addr, CosmosMsg, Empty, StdResult, WasmMsg};
 
 /// Constructs the proxy dapp action message used by all modules.
 pub fn send_to_proxy(msgs: Vec<CosmosMsg>, proxy_address: &Addr) -> StdResult<CosmosMsg<Empty>> {
