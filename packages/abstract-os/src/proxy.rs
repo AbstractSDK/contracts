@@ -14,10 +14,7 @@ use serde::{Deserialize, Serialize};
 
 use cosmwasm_std::{CosmosMsg, Empty, Uint128};
 
-
-use crate::objects::{
-    proxy_asset::{ProxyAsset, UncheckedProxyAsset},
-};
+use crate::objects::proxy_asset::{ProxyAsset, UncheckedProxyAsset};
 
 pub mod state {
     pub use crate::objects::core::OS_ID;

@@ -311,12 +311,13 @@ pub fn proxy_value(
 fn other_asset_name<'a>(asset: &'a str, composite: &'a str) -> StdResult<&'a str> {
     composite
         .split('_')
-        .filter(|component| *component != asset)
-        .next()
-        .ok_or(StdError::generic_err(format!(
-            "composite {} is not structured correctly",
-            composite
-        )))
+        .find(|component| *component != asset)
+        .ok_or_else(|| {
+            StdError::generic_err(format!(
+                "composite {} is not structured correctly",
+                composite
+            ))
+        })
 }
 
 fn pair_asset_names(composite: &str) -> Vec<&str> {

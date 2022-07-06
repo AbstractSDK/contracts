@@ -127,7 +127,7 @@ pub fn update_assets(
         let insert = |_vault_asset: Option<ProxyAsset>| -> StdResult<ProxyAsset> {
             Ok(checked_asset.clone())
         };
-        VAULT_ASSETS.update(deps.storage, &checked_asset.asset.as_str(), insert)?;
+        VAULT_ASSETS.update(deps.storage, checked_asset.asset.as_str(), insert)?;
     }
 
     for asset_id in to_remove {
