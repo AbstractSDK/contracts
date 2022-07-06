@@ -3,7 +3,7 @@ use std::fs::create_dir_all;
 
 use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, schema_for};
 
-use abstract_os::objects::proxy_assets::ProxyAsset;
+use abstract_os::objects::proxy_asset::ProxyAsset;
 use abstract_os::proxy::state::State;
 use abstract_os::proxy::{
     ConfigResponse, ExecuteMsg, HoldingAmountResponse, HoldingValueResponse, InstantiateMsg,

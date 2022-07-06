@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use cosmwasm_std::{to_binary, Addr, CosmosMsg, Decimal, Empty, StdResult, Uint128, WasmMsg};
 use cw_asset::{AssetInfo, AssetInfoUnchecked, AssetUnchecked};
 
-use crate::objects::proxy_assets::ProxyAsset;
+use crate::objects::proxy_asset::ProxyAsset;
 
 pub mod state {
     pub use crate::objects::core::OS_ID;
@@ -23,11 +23,12 @@ pub mod state {
     use cosmwasm_std::Addr;
     use cw_storage_plus::{Item, Map};
 
-    use crate::objects::proxy_assets::ProxyAsset;
+    use crate::objects::{memory::Memory, proxy_asset::ProxyAsset};
     #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
     pub struct State {
         pub modules: Vec<Addr>,
     }
+    pub const MEMORY: Item<Memory> = Item::new("\u{0}{6}memory");
     pub const STATE: Item<State> = Item::new("\u{0}{5}state");
     pub const ADMIN: Admin = Admin::new("admin");
     pub const VAULT_ASSETS: Map<&str, ProxyAsset> = Map::new("proxy_assets");
@@ -82,6 +83,7 @@ pub enum UncheckedValueRef {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
     pub os_id: u32,
+    pub memory_address: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -149,7 +151,7 @@ pub struct VaultAssetConfigResponse {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub struct ValueQueryMsg {
-    pub asset_info: AssetInfo,
+    pub asset_name: String,
     pub amount: Uint128,
 }
 /// External contract value response

@@ -1,4 +1,6 @@
+use abstract_os::manager::state::OS_MODULES;
 use abstract_os::objects::core::OS_ID;
+use abstract_sdk::memory::Memory;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
@@ -7,8 +9,8 @@ use cosmwasm_std::{
 };
 
 use crate::error::ProxyError;
-use abstract_os::objects::proxy_assets::{get_asset_identifier, ProxyAsset};
-use abstract_os::proxy::state::{State, ADMIN, STATE, VAULT_ASSETS};
+use abstract_os::objects::proxy_asset::{get_asset_identifier, ProxyAsset};
+use abstract_os::proxy::state::{State, ADMIN, MEMORY, STATE, VAULT_ASSETS};
 use abstract_os::proxy::{
     ConfigResponse, ExecuteMsg, HoldingAmountResponse, HoldingValueResponse, InstantiateMsg,
     MigrateMsg, QueryMsg, TotalValueResponse, VaultAssetConfigResponse,
@@ -37,9 +39,14 @@ pub fn instantiate(
     set_contract_version(deps.storage, PROXY, CONTRACT_VERSION)?;
     OS_ID.save(deps.storage, &msg.os_id)?;
     STATE.save(deps.storage, &State { modules: vec![] })?;
+    MEMORY.save(
+        deps.storage,
+        &Memory {
+            address: deps.api.addr_validate(&msg.memory_address)?,
+        },
+    )?;
     let admin_addr = Some(info.sender);
     ADMIN.set(deps, admin_addr)?;
-
     Ok(Response::default())
 }
 
