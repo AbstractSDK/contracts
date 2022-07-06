@@ -1,3 +1,16 @@
+//! # Proxy Asset
+//! Proxy assets are objects that describe an asset and a way to calculate that asset's value against a base asset. 
+//! 
+//! ## Details
+//! A proxy asset is composed of two components.
+//! * The `asset`, which is an [`AssetEntry`] and maps to an [`AssetInfo`].
+//! * The [`ValueRef`] which is an enum that indicates how to calculate the value for that asset.
+//! 
+//! The base asset is the asset for which `value_reference` in `None`. 
+//! **There should only be ONE base asset when configuring your proxy**
+
+
+
 use cosmwasm_std::{
     to_binary, Addr, Decimal, Deps, Env, QuerierWrapper, QueryRequest, StdError, StdResult,
     Uint128, WasmQuery,
@@ -19,7 +32,7 @@ use super::{
     memory_entry::{AssetEntry, ContractEntry},
 };
 
-/// A proxy asset with unchecked address fields.
+/// A proxy asset with unchecked memory entry fields.
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct UncheckedProxyAsset {
     /// The asset that's held by the proxy
@@ -27,11 +40,13 @@ pub struct UncheckedProxyAsset {
     /// The value reference provides the tooling to get the value of the asset
     /// relative to the base asset.
     /// If None, the provided asset is set as the base asset.
-    /// You can only have one base asset!
+    /// **You can only have one base asset!**
     pub value_reference: Option<UncheckedValueRef>,
 }
 
+
 impl UncheckedProxyAsset {
+    /// Perform checks on the proxy asset to ensure it's valid
     pub fn check(self, deps: Deps, memory: &Memory) -> StdResult<ProxyAsset> {
         let entry: AssetEntry = self.asset.into();
         entry.resolve(deps, memory)?;
@@ -43,6 +58,7 @@ impl UncheckedProxyAsset {
     }
 }
 
+/// Provides information on how to calculate the value of an asset
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum UncheckedValueRef {
@@ -51,9 +67,9 @@ pub enum UncheckedValueRef {
     Pool {
         pair: String,
     },
-    // Liquidity pool addr for LP tokens
+    // Liquidity Pool token
     LiquidityToken {},
-    // Or a Proxy, the proxy also takes a Decimal (the multiplier)
+    // a Proxy, the proxy also takes a Decimal (the multiplier)
     // Asset will be valued as if they are Proxy tokens
     Proxy {
         proxy_asset: String,
@@ -92,16 +108,18 @@ impl UncheckedValueRef {
     }
 }
 
-/// Every ProxyAsset provides a way to determine its value recursivly relative to
+/// Every ProxyAsset provides a way to determine its value recursively relative to
 /// a base asset.
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ProxyAsset {
+    /// Asset entry that maps to an AssetInfo using raw-queries on memory 
     pub asset: AssetEntry,
-    // The value reference provides the tooling to get the value of the holding
-    // relative to the base asset.
+    /// The value reference provides the tooling to get the value of the asset
+    /// relative to the base asset.
     pub value_reference: Option<ValueRef>,
 }
 
+/// Provides information on how to calculate the value of an asset
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ValueRef {
@@ -122,7 +140,9 @@ pub enum ValueRef {
 
 impl ProxyAsset {
     /// Calculates the value of the asset through the optionally provided ValueReference
-    /// TODO: improve efficiency
+    // TODO: improve efficiency
+    // We could cache each asset/contract address and store each asset in a stack with the most complex (most hops) assets on top. 
+    // Doing this would prevent an asset value from being calculated multiple times. 
     pub fn value(
         &mut self,
         deps: Deps,
@@ -144,7 +164,7 @@ impl ProxyAsset {
             match value_reference {
                 // A Pool refers to a swap pair that recursively leads to an asset/base_asset pool.
                 ValueRef::Pool { pair } => {
-                    return self.asset_value(deps, env, memory, valued_asset, pair)
+                    return self.trade_pair_value(deps, env, memory, valued_asset, pair)
                 }
                 // Liquidity is an LP token, value() fn is called recursively on both assets in the pool
                 ValueRef::LiquidityToken {} => {
@@ -182,7 +202,7 @@ impl ProxyAsset {
     }
 
     /// Calculates the value of an asset compared to some base asset through the provided trading pair.
-    pub fn asset_value(
+    pub fn trade_pair_value(
         &self,
         deps: Deps,
         env: &Env,
