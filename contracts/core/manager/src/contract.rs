@@ -1,6 +1,5 @@
 use cosmwasm_std::{
-    entry_point, to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
-    Uint64,
+    entry_point, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
 };
 
 use crate::queries::{handle_config_query, handle_module_info_query, handle_os_info_query};
@@ -9,7 +8,7 @@ use crate::{commands::*, error::ManagerError, queries};
 use abstract_os::manager::state::{Config, OsInfo, ADMIN, CONFIG, INFO, ROOT, STATUS};
 use abstract_os::MANAGER;
 use abstract_os::{
-    manager::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryConfigResponse, QueryMsg},
+    manager::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
     modules::*,
     proxy::state::OS_ID,
 };
