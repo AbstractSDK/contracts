@@ -1,13 +1,12 @@
-use abstract_os::manager::state::OS_MODULES;
+use abstract_os::manager::state::{OS_MODULES, OS_ID};
 use abstract_os::manager::ExecuteMsg as ManagerMsg;
 use abstract_os::PROXY;
 use abstract_sdk::common_module::{ProxyExecute, ADMIN};
 use cosmwasm_std::{
-    from_binary, to_binary, Addr, BankMsg, Coin, CosmosMsg, Decimal, Deps, DepsMut, Empty, Env,
-    Fraction, MessageInfo, Response, StdError, StdResult, Storage, SubMsg, Uint128, Uint64,
+    from_binary, to_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult, Storage, SubMsg, Uint128, Uint64,
     WasmMsg,
 };
-use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg};
+use cw20::{Cw20ReceiveMsg};
 use cw_asset::{Asset, AssetInfo, AssetInfoUnchecked};
 
 use abstract_os::version_control::state::OS_ADDRESSES;
@@ -138,6 +137,10 @@ pub fn unsubscribe(
     let mut suspend_msgs: Vec<SubMsg> = vec![];
     for os_id in os_ids {
         let mut subscriber = SUBSCRIBERS.load(deps.storage, os_id)?;
+        // contributors have free access
+        if CONTRIBUTORS.has(deps.storage, &subscriber.manager_addr) {
+            continue;
+        }
         if let Some(mut msg) =
             expired_sub_msgs(deps.as_ref(), &env, &mut subscriber, os_id, &add_on)?
         {
@@ -243,7 +246,7 @@ pub fn update_contributor_compensation(
     compensation: Compensation,
 ) -> SubscriptionResult {
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
-    let config = load_contribution_config(deps.storage)?;
+    let _config = load_contribution_config(deps.storage)?;
     // Load all needed states
     let mut state = CONTRIBUTION_STATE.load(deps.storage)?;
     let contributor_addr = deps.api.addr_validate(&contributor)?;
@@ -278,15 +281,27 @@ pub fn update_contributor_compensation(
             }
         }
         None => {
+            let os_id = OS_ID.query(&deps.querier, contributor_addr.clone())?;
+            let subscriber = SUBSCRIBERS.load(deps.storage, os_id)?;
+            if subscriber.manager_addr != contributor_addr {
+                return Err(SubscriptionError::ContributorNotManager)
+            }
+            // New contributor doesn't pay for subscription but should be able to use os
+            let mut subscription_state = SUBSCRIPTION_STATE.load(deps.storage)?;
+            subscription_state.active_subs -= 1;
+            SUBSCRIPTION_STATE.save(deps.storage, &subscription_state)?;
+            // Move to dormant. Prevents them from claiming user emissions
+            SUBSCRIBERS.remove(deps.storage, os_id);
+            DORMANT_SUBSCRIBERS.save(deps.storage, os_id, &subscriber)?;
             state.total_weight += Uint128::from(compensation.weight);
             state.income_target += compensation.base_per_block;
-            // Can only get paid on pay day after next pay day
             Compensation {
                 base_per_block: compensation.base_per_block,
                 weight: compensation.weight,
                 expiration_block: compensation.expiration_block,
                 last_claim_block: env.block.height.into(),
             }
+
         }
     };
 
@@ -309,15 +324,17 @@ pub fn remove_contributor(
     contributor_addr: String,
 ) -> SubscriptionResult {
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
-
-    remove_contributor_from_storage(deps.storage, deps.api.addr_validate(&contributor_addr)?)?;
+    let manager_address = deps.api.addr_validate(&contributor_addr)?;
+    remove_contributor_from_storage(deps.storage, manager_address.clone())?;
+    // He must re-activate to join active set and earn emissions
+    let msg = suspend_os(manager_address, true)?;
     // Init vector for logging
     let attrs = vec![
-        ("Action:", String::from("Remove Contributor")),
-        ("Address:", contributor_addr),
+        ("action", String::from("remove_contributor")),
+        ("address:", contributor_addr),
     ];
 
-    Ok(Response::new().add_attributes(attrs))
+    Ok(Response::new().add_message(msg).add_attributes(attrs))
 }
 
 // Check income
@@ -327,7 +344,7 @@ pub fn remove_contributor(
 /// Calculate the compensation for contribution
 pub fn try_claim_compensation(
     add_on: SubscriptionAddOn,
-    mut deps: DepsMut,
+    deps: DepsMut,
     env: Env,
     contributor_addr: String,
 ) -> SubscriptionResult {
@@ -427,7 +444,7 @@ pub fn try_claim_compensation(
 /// Call when income,target or config changes
 fn update_contribution_state(
     store: &mut dyn Storage,
-    env: Env,
+    _env: Env,
     contributor_state: &mut ContributionState,
     contributor_config: &ContributionConfig,
     income: Decimal,

@@ -510,8 +510,7 @@ fn actions_after_first_month() {
     );
 
     let msg = msgs::ExecuteMsg::ClaimCompensation {
-        contributor: Some(sender.to_string()),
-        page_limit: None,
+        sender.to_string(),
     };
     let _resp = app
         .execute_contract(sender.clone(), subscription_addr.clone(), &msg, &[])

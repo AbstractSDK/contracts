@@ -27,12 +27,12 @@
 //! * (optional) Token emissions to contributor (and users) are dynamically set based on the protocol's income. Meaning that the token emissions will rise if demand/income falls and vice-versa.
 
 pub mod state {
-    use std::{collections::BinaryHeap, ops::Sub};
+    use std::{ops::Sub};
 
     use schemars::JsonSchema;
     use serde::{Deserialize, Serialize};
 
-    use crate::objects::{paged_map::PagedMap, time_weighted_average::TimeWeightedAverage};
+    use crate::objects::{time_weighted_average::TimeWeightedAverage};
     use cosmwasm_std::{Addr, Api, Decimal, StdError, StdResult, Uint128, Uint64};
     use cw_asset::{AssetInfo, AssetInfoUnchecked};
     use cw_storage_plus::{Item, Map};
@@ -202,13 +202,13 @@ pub mod state {
     }
 }
 
-use cosmwasm_std::{Decimal, Uint128, Uint64};
+use cosmwasm_std::{Decimal, Uint128};
 use cw20::Cw20ReceiveMsg;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::add_on::{AddOnExecuteMsg, AddOnInstantiateMsg, AddOnQueryMsg};
-use cw_asset::{Asset, AssetInfo, AssetInfoUnchecked};
+use cw_asset::{Asset, AssetInfoUnchecked};
 
 use state::{
     Compensation, ContributionConfig, ContributionState, Subscriber, SubscriptionConfig,

@@ -1,23 +1,22 @@
 use abstract_add_on::AddOnContract;
-use abstract_os::objects::time_weighted_average::TimeWeightedAverage;
+
 use abstract_os::SUBSCRIPTION;
 use cosmwasm_std::{
-    entry_point, to_binary, Addr, Binary, Decimal, Deps, DepsMut, Empty, Env, MessageInfo, Reply,
-    ReplyOn, Response, StdError, StdResult, SubMsg, Uint128, Uint64, WasmMsg,
+    entry_point, to_binary, Binary, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult, Uint128,
 };
 use cw2::{get_contract_version, set_contract_version};
 use cw_asset::Asset;
-use cw_storage_plus::{Endian, Map};
+
 use protobuf::Message;
 
-use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg, MinterResponse};
+
 use semver::Version;
 
-use abstract_os::objects::fee::Fee;
+
 
 use crate::commands::BLOCKS_PER_MONTH;
 use crate::error::SubscriptionError;
-use crate::{commands, queries};
+use crate::{commands};
 use abstract_os::subscription::state::*;
 use abstract_os::subscription::{
     ConfigResponse, ContributorStateResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
@@ -32,8 +31,8 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> SubscriptionResult {
-    let version = CONTRACT_VERSION.parse::<Version>()?;
-    let storage_version = get_contract_version(deps.storage)?
+    let _version = CONTRACT_VERSION.parse::<Version>()?;
+    let _storage_version = get_contract_version(deps.storage)?
         .version
         .parse::<Version>()?;
     set_contract_version(deps.storage, SUBSCRIPTION, CONTRACT_VERSION)?;
@@ -137,7 +136,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> S
             compensation,
         ),
         ExecuteMsg::RemoveContributor { contributor_addr } => {
-            commands::remove_contributor(deps, info, contributor_addr)
+            commands::remove_contributor(deps,info, contributor_addr)
         }
         ExecuteMsg::UpdateSubscriptionConfig {
             payment_asset,

@@ -69,6 +69,9 @@ pub enum SubscriptionError {
     #[error("Contribution function must be enabled to use this feature")]
     ContributionNotEnabled,
 
+    #[error("A contributor must have a manager address")]
+    ContributorNotManager,
+
     #[error("You must wait one TWA period before claiming can start")]
     AveragingPeriodNotPassed,
 }
