@@ -282,8 +282,8 @@ pub enum ExecuteMsg {
         os_ids: Vec<u32>,
     },
     ClaimCompensation {
-        // Manager address of the OS
-        contributor: String,
+        // os_id the OS
+        os_id: u32,
     },
     ClaimEmissions {
         os_id: u32,
@@ -295,7 +295,7 @@ pub enum ExecuteMsg {
         expiration_block: Option<Uint64>,
     },
     RemoveContributor {
-        contributor_addr: String,
+        os_id: u32,
     },
     UpdateSubscriptionConfig {
         payment_asset: Option<AssetInfoUnchecked>,
@@ -322,7 +322,7 @@ pub enum QueryMsg {
     Config {},
     Fee {},
     SubscriberState { os_id: u32 },
-    ContributorState { contributor_addr: String },
+    ContributorState { os_id: u32 },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

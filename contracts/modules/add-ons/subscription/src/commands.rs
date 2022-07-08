@@ -1,7 +1,9 @@
 use abstract_os::manager::state::{OS_ID, OS_MODULES};
 use abstract_os::manager::ExecuteMsg as ManagerMsg;
 use abstract_os::PROXY;
+use abstract_os::version_control::Core;
 use abstract_sdk::common_module::{ProxyExecute, ADMIN};
+use abstract_sdk::version_control::get_os_core;
 use cosmwasm_std::{
     from_binary, to_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo, Response,
     StdError, StdResult, Storage, SubMsg, Uint128, Uint64, WasmMsg,
@@ -277,7 +279,7 @@ pub fn update_contributor_compensation(
             let twa_income = INCOME_TWA.load(deps.storage)?;
             if current_compensation.last_claim_block.u64() < twa_income.last_averaging_block_height
             {
-                return try_claim_compensation(add_on, deps, env, contributor_addr.to_string());
+                return try_claim_compensation(add_on, deps, env, contributor_os_id);
             };
             let compensation =
                 current_compensation
@@ -348,17 +350,18 @@ pub fn update_contributor_compensation(
 pub fn remove_contributor(
     deps: DepsMut,
     msg_info: MessageInfo,
-    contributor_addr: String,
+    os_id: u32,
 ) -> SubscriptionResult {
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
-    let manager_address = deps.api.addr_validate(&contributor_addr)?;
+    let sub_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
+    let manager_address = get_os_core(&deps.querier, os_id, &sub_config.version_control_address)?.manager;
     remove_contributor_from_storage(deps.storage, manager_address.clone())?;
     // He must re-activate to join active set and earn emissions
-    let msg = suspend_os(manager_address, true)?;
+    let msg = suspend_os(manager_address.clone(), true)?;
     // Init vector for logging
     let attrs = vec![
         ("action", String::from("remove_contributor")),
-        ("address:", contributor_addr),
+        ("address:", manager_address.to_string()),
     ];
 
     Ok(Response::new().add_message(msg).add_attributes(attrs))
@@ -373,7 +376,7 @@ pub fn try_claim_compensation(
     add_on: SubscriptionAddOn,
     deps: DepsMut,
     env: Env,
-    contributor_addr: String,
+    os_id: u32,
 ) -> SubscriptionResult {
     let config = load_contribution_config(deps.storage)?;
     let mut state = CONTRIBUTION_STATE.load(deps.storage)?;
@@ -404,11 +407,13 @@ pub fn try_claim_compensation(
         }
         _ => cached_state.emissions,
     };
+    let sub_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
+    
+    let Core {
+        manager: contributor_address,
+        proxy: contributor_proxy_address
+    } = get_os_core(&deps.querier, os_id, &sub_config.version_control_address)?;
 
-    let contributor_address = deps.api.addr_validate(&contributor_addr)?;
-    let contributor_proxy_address = OS_MODULES
-        .query(&deps.querier, contributor_address.clone(), PROXY)?
-        .unwrap();
     let mut compensation = CONTRIBUTORS.load(deps.storage, &contributor_address)?;
     let twa_data = INCOME_TWA.load(deps.storage)?;
 

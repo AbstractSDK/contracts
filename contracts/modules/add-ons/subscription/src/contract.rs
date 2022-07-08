@@ -1,6 +1,7 @@
 use abstract_add_on::AddOnContract;
 
 use abstract_os::SUBSCRIPTION;
+use abstract_sdk::version_control::get_os_core;
 use cosmwasm_std::{
     entry_point, to_binary, Binary, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdError,
     StdResult, Uint128,
@@ -116,8 +117,8 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> S
             }
         }
         ExecuteMsg::Unsubscribe { os_ids } => commands::unsubscribe(deps, env, add_on, os_ids),
-        ExecuteMsg::ClaimCompensation { contributor } => {
-            commands::try_claim_compensation(add_on, deps, env, contributor)
+        ExecuteMsg::ClaimCompensation { os_id } => {
+            commands::try_claim_compensation(add_on, deps, env, os_id)
         }
         ExecuteMsg::ClaimEmissions { os_id } => {
             commands::claim_subscriber_emissions(&add_on, deps.as_ref(), &env, os_id)
@@ -137,8 +138,8 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> S
             weight.map(|w| w.u64() as u32),
             expiration_block.map(|w| w.u64()),
         ),
-        ExecuteMsg::RemoveContributor { contributor_addr } => {
-            commands::remove_contributor(deps, info, contributor_addr)
+        ExecuteMsg::RemoveContributor { os_id } => {
+            commands::remove_contributor(deps, info, os_id)
         }
         ExecuteMsg::UpdateSubscriptionConfig {
             payment_asset,
@@ -224,9 +225,11 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             };
             Ok(subscription_state)
         }
-        QueryMsg::ContributorState { contributor_addr } => {
+        QueryMsg::ContributorState { os_id } => {
+            let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
+            let contributor_addr = get_os_core(&deps.querier , os_id, &subscription_config.version_control_address)?.manager;
             let maybe_contributor =
-                CONTRIBUTORS.may_load(deps.storage, &deps.api.addr_validate(&contributor_addr)?)?;
+                CONTRIBUTORS.may_load(deps.storage, &contributor_addr)?;
             let subscription_state = if let Some(compensation) = maybe_contributor {
                 to_binary(&ContributorStateResponse { compensation })?
             } else {

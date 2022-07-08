@@ -182,7 +182,7 @@ fn add_and_remove_contributors() {
         .query_wasm_smart(
             subscription_addr,
             &msgs::QueryMsg::ContributorState {
-                contributor_addr: env.os_store.get(&contributing_os2).unwrap().manager.to_string(),
+                os_id: contributing_os2
             },
         )
         .unwrap();
@@ -198,7 +198,7 @@ fn add_and_remove_contributors() {
     );
 
     let msg = msgs::ExecuteMsg::RemoveContributor {
-        contributor_addr: env.os_store.get(&contributing_os1).unwrap().manager.to_string()
+        os_id: contributing_os1
     };
 
     let resp =
