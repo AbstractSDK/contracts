@@ -27,12 +27,12 @@
 //! * (optional) Token emissions to contributor (and users) are dynamically set based on the protocol's income. Meaning that the token emissions will rise if demand/income falls and vice-versa.
 
 pub mod state {
-    use std::{ops::Sub};
+    use std::ops::Sub;
 
     use schemars::JsonSchema;
     use serde::{Deserialize, Serialize};
 
-    use crate::objects::{time_weighted_average::TimeWeightedAverage};
+    use crate::objects::time_weighted_average::TimeWeightedAverage;
     use cosmwasm_std::{Addr, Api, Decimal, StdError, StdResult, Uint128, Uint64};
     use cw_asset::{AssetInfo, AssetInfoUnchecked};
     use cw_storage_plus::{Item, Map};
@@ -182,12 +182,34 @@ pub mod state {
     pub const CONTRIBUTION_STATE: Item<ContributionState> = Item::new("\u{0}{9}con_state");
 
     /// Compensation details for contributors
-    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, Default)]
     pub struct Compensation {
         pub base_per_block: Decimal,
         pub weight: u32,
         pub last_claim_block: Uint64,
         pub expiration_block: Uint64,
+    }
+
+    impl Compensation {
+        pub fn overwrite(
+            mut self,
+            base_per_block: Option<Decimal>,
+            weight: Option<u32>,
+            expiration_block: Option<u64>,
+        ) -> Self {
+            if let Some(base_per_block) = base_per_block {
+                self.base_per_block = base_per_block;
+            }
+
+            if let Some(weight) = weight {
+                self.weight = weight;
+            }
+
+            if let Some(expiration_block) = expiration_block {
+                self.expiration_block = expiration_block.into();
+            }
+            self
+        }
     }
 
     impl Sub for Compensation {
@@ -202,7 +224,7 @@ pub mod state {
     }
 }
 
-use cosmwasm_std::{Decimal, Uint128};
+use cosmwasm_std::{Decimal, Uint128, Uint64};
 use cw20::Cw20ReceiveMsg;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -241,11 +263,10 @@ pub struct ContributionInstantiateMsg {
     pub protocol_income_share: Decimal,
     pub emission_user_share: Decimal,
     pub max_emissions_multiple: Decimal,
-    pub project_token_info: AssetInfoUnchecked,
+    pub token_info: AssetInfoUnchecked,
     pub emissions_amp_factor: Uint128,
     pub emissions_offset: Uint128,
-    pub base_asset: AssetInfoUnchecked,
-    pub income_averaging_period: u64,
+    pub income_averaging_period: Uint64,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -269,7 +290,9 @@ pub enum ExecuteMsg {
     },
     UpdateContributor {
         contributor_addr: String,
-        compensation: Compensation,
+        base_per_block: Option<Decimal>,
+        weight: Option<u32>,
+        expiration_block: Option<u64>,
     },
     RemoveContributor {
         contributor_addr: String,

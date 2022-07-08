@@ -1,12 +1,12 @@
-use abstract_os::manager::state::{OS_MODULES, OS_ID};
+use abstract_os::manager::state::{OS_ID, OS_MODULES};
 use abstract_os::manager::ExecuteMsg as ManagerMsg;
 use abstract_os::PROXY;
 use abstract_sdk::common_module::{ProxyExecute, ADMIN};
 use cosmwasm_std::{
-    from_binary, to_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult, Storage, SubMsg, Uint128, Uint64,
-    WasmMsg,
+    from_binary, to_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo, Response,
+    StdError, StdResult, Storage, SubMsg, Uint128, Uint64, WasmMsg,
 };
-use cw20::{Cw20ReceiveMsg};
+use cw20::Cw20ReceiveMsg;
 use cw_asset::{Asset, AssetInfo, AssetInfoUnchecked};
 
 use abstract_os::version_control::state::OS_ADDRESSES;
@@ -243,7 +243,9 @@ pub fn update_contributor_compensation(
     msg_info: MessageInfo,
     add_on: SubscriptionAddOn,
     contributor: String,
-    compensation: Compensation,
+    base_per_block: Option<Decimal>,
+    weight: Option<u32>,
+    expiration_block: Option<u64>,
 ) -> SubscriptionResult {
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
     let _config = load_contribution_config(deps.storage)?;
@@ -256,10 +258,14 @@ pub fn update_contributor_compensation(
         Some(current_compensation) => {
             // Can only update if already claimed last period.
             let twa_income = INCOME_TWA.load(deps.storage)?;
-            if compensation.last_claim_block.u64() < twa_income.last_averaging_block_height {
+            if current_compensation.last_claim_block.u64() < twa_income.last_averaging_block_height
+            {
                 return try_claim_compensation(add_on, deps, env, contributor_addr.to_string());
             };
-
+            let compensation =
+                current_compensation
+                    .clone()
+                    .overwrite(base_per_block, weight, expiration_block);
             if current_compensation.base_per_block > compensation.base_per_block {
                 let (base_diff, weight_diff) = current_compensation.clone() - compensation.clone();
                 state.total_weight = Uint128::from(
@@ -281,10 +287,13 @@ pub fn update_contributor_compensation(
             }
         }
         None => {
+            let compensation =
+                Compensation::default().overwrite(base_per_block, weight, expiration_block);
+
             let os_id = OS_ID.query(&deps.querier, contributor_addr.clone())?;
             let subscriber = SUBSCRIBERS.load(deps.storage, os_id)?;
             if subscriber.manager_addr != contributor_addr {
-                return Err(SubscriptionError::ContributorNotManager)
+                return Err(SubscriptionError::ContributorNotManager);
             }
             // New contributor doesn't pay for subscription but should be able to use os
             let mut subscription_state = SUBSCRIPTION_STATE.load(deps.storage)?;
@@ -301,7 +310,6 @@ pub fn update_contributor_compensation(
                 expiration_block: compensation.expiration_block,
                 last_claim_block: env.block.height.into(),
             }
-
         }
     };
 

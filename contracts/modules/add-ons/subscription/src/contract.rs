@@ -2,21 +2,19 @@ use abstract_add_on::AddOnContract;
 
 use abstract_os::SUBSCRIPTION;
 use cosmwasm_std::{
-    entry_point, to_binary, Binary, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult, Uint128,
+    entry_point, to_binary, Binary, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdError,
+    StdResult, Uint128,
 };
 use cw2::{get_contract_version, set_contract_version};
 use cw_asset::Asset;
 
 use protobuf::Message;
 
-
 use semver::Version;
 
-
-
+use crate::commands;
 use crate::commands::BLOCKS_PER_MONTH;
 use crate::error::SubscriptionError;
-use crate::{commands};
 use abstract_os::subscription::state::*;
 use abstract_os::subscription::{
     ConfigResponse, ContributorStateResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
@@ -70,7 +68,7 @@ pub fn instantiate(
             emissions_offset: msg.emissions_offset,
             protocol_income_share: msg.protocol_income_share,
             max_emissions_multiple: msg.max_emissions_multiple,
-            token_info: msg.project_token_info.check(deps.api, None)?,
+            token_info: msg.token_info.check(deps.api, None)?,
         }
         .verify()?;
 
@@ -82,7 +80,7 @@ pub fn instantiate(
         };
         CONTRIBUTION_CONFIG.save(deps.storage, &contributor_config)?;
         CONTRIBUTION_STATE.save(deps.storage, &contributor_state)?;
-        INCOME_TWA.instantiate(deps.storage, &env, None, msg.income_averaging_period)?;
+        INCOME_TWA.instantiate(deps.storage, &env, None, msg.income_averaging_period.u64())?;
     }
 
     SubscriptionAddOn::default().instantiate(
@@ -126,17 +124,21 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> S
         }
         ExecuteMsg::UpdateContributor {
             contributor_addr,
-            compensation,
+            base_per_block,
+            weight,
+            expiration_block,
         } => commands::update_contributor_compensation(
             deps,
             env,
             info,
             add_on,
             contributor_addr,
-            compensation,
+            base_per_block,
+            weight,
+            expiration_block,
         ),
         ExecuteMsg::RemoveContributor { contributor_addr } => {
-            commands::remove_contributor(deps,info, contributor_addr)
+            commands::remove_contributor(deps, info, contributor_addr)
         }
         ExecuteMsg::UpdateSubscriptionConfig {
             payment_asset,

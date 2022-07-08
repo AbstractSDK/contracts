@@ -1,12 +1,15 @@
-use abstract_os::subscription::state::{Compensation, ContributionState, SubscriptionState, MONTH};
+use std::str::FromStr;
+
+use abstract_os::subscription::state::{Compensation, ContributionState, SubscriptionState, EmissionType};
 use abstract_os::{objects::module::ModuleInfo, SUBSCRIPTION};
 use abstract_os::{subscription as msgs, subscription::state};
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{Addr, BlockInfo, Decimal, Uint128, Uint64};
+use cw_asset::AssetInfoBase;
 use cw_controllers::AdminError;
 use cw_multi_test::{App, ContractWrapper, Executor};
 
-use crate::tests::common::RANDOM_USER;
+use crate::tests::common::{RANDOM_USER, SUBSCRIPTION_COST};
 use crate::tests::testing_infrastructure::env::{exec_msg_on_manager, mint_tokens, token_balance};
 
 use super::testing_infrastructure::env::init_os;
@@ -61,10 +64,9 @@ fn proper_initialization() {
             protocol_income_share: Decimal::percent(10),
             emission_user_share: Decimal::percent(25),
             max_emissions_multiple: Decimal::from_ratio(2u128, 1u128),
-            project_token: env.native_contracts.token,
+            token_info: cw_asset::AssetInfoBase::Cw20(env.native_contracts.token),
             emissions_amp_factor: Uint128::new(680000000),
             emissions_offset: Uint128::new(52000),
-            base_denom: "uusd".to_string(),
         }
     );
 
@@ -74,7 +76,8 @@ fn proper_initialization() {
             version_control_address: env.native_contracts.version_control,
             factory_address: env.native_contracts.os_factory,
             payment_asset: cw_asset::AssetInfoBase::native("uusd"),
-            subscription_cost: Uint64::new(100)
+            subscription_cost_per_block: Decimal::from_str(SUBSCRIPTION_COST).unwrap(),
+            subscription_per_block_emissions: EmissionType::IncomeBased(AssetInfoBase::Cw20(env.native_contracts.token))
         }
     );
 
@@ -86,20 +89,17 @@ fn proper_initialization() {
     assert_eq!(
         state.contribution,
         state::ContributionState {
-            income_target: Uint64::zero(),
-            expense: Uint64::zero(),
+            income_target: Decimal::zero(),
+            expense: Decimal::zero(),
             total_weight: Uint128::zero(),
-            emissions: Uint128::zero(),
-            next_pay_day: Uint64::from(app.block_info().time.seconds() - 6)
+            emissions: Decimal::zero(),
         }
     );
 
     assert_eq!(
         state.subscription,
         state::SubscriptionState {
-            income: Uint64::zero(),
             active_subs: 0,
-            collected: false,
         }
     );
 }
@@ -122,18 +122,15 @@ fn add_and_remove_contributors() {
 
     let msg = msgs::ExecuteMsg::UpdateContributor {
         contributor_addr: TEST_CREATOR.to_string(),
-        compensation: Compensation {
-            base: 1000,
-            weight: 100,
-            expiration_block: app
-                .block_info()
-                .time
-                .plus_seconds(MONTH * 2)
-                .seconds()
-                .into(),
-            // These fields should get overwritten
-            next_pay_day: 0u64.into(),
-        },
+        
+        base_per_block: 1000,
+        weight: 100,
+        expiration_block: app
+            .block_info()
+            .time
+            .plus_seconds(MONTH * 2)
+            .seconds()
+            .into(),
     };
 
     let resp = app
@@ -155,11 +152,10 @@ fn add_and_remove_contributors() {
     assert_eq!(
         state.contribution,
         state::ContributionState {
-            income_target: Uint64::new(1000),
-            expense: Uint64::zero(),
+            income_target: Decimal::new(1000u128.into()),
+            expense: Decimal::zero(),
             total_weight: Uint128::new(100),
-            emissions: Uint128::zero(),
-            next_pay_day: Uint64::from(app.block_info().time.seconds() - 6)
+            emissions: Decimal::zero(),
         }
     );
 
