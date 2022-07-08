@@ -56,7 +56,6 @@ pub fn try_pay(
     // Load all needed states
     let config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
     let base_state = add_on.base_state.load(deps.storage)?;
-
     // Construct deposit info
     let deposit_info = config.payment_asset;
 
@@ -84,6 +83,7 @@ pub fn try_pay(
         if asset.amount.u128() < required_payment.u128() {
             return Err(SubscriptionError::InsufficientPayment(
                 required_payment.u128() as u64,
+                deposit_info.to_string(),
             ));
         }
         let maybe_old_client = DORMANT_SUBSCRIBERS.may_load(deps.storage, os_id)?;
@@ -101,7 +101,7 @@ pub fn try_pay(
                     // Send the received asset to the proxy
                     asset.transfer_msg(base_state.proxy_address)?,
                 ));
-        // New client
+            // New client
         } else {
             // only factory can add subscribers
             if msg_info.sender != config.factory_address {
@@ -118,6 +118,15 @@ pub fn try_pay(
             };
             SUBSCRIBERS.save(deps.storage, os_id, &new_sub)?;
         }
+        let mut subscription_state = SUBSCRIPTION_STATE.load(deps.storage)?;
+        subscription_state.active_subs += 1;
+        SUBSCRIPTION_STATE.save(deps.storage, &subscription_state)?;
+        INCOME_TWA.accumulate(
+            &env,
+            deps.storage,
+            Decimal::new(Uint128::from(subscription_state.active_subs))
+                * config.subscription_cost_per_block,
+        )?;
     }
 
     Ok(Response::new().add_attributes(attrs).add_message(
@@ -242,7 +251,7 @@ pub fn update_contributor_compensation(
     env: Env,
     msg_info: MessageInfo,
     add_on: SubscriptionAddOn,
-    contributor: String,
+    contributor_os_id: u32,
     base_per_block: Option<Decimal>,
     weight: Option<u32>,
     expiration_block: Option<u64>,
@@ -251,7 +260,15 @@ pub fn update_contributor_compensation(
     let _config = load_contribution_config(deps.storage)?;
     // Load all needed states
     let mut state = CONTRIBUTION_STATE.load(deps.storage)?;
-    let contributor_addr = deps.api.addr_validate(&contributor)?;
+    let sub_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
+    let contributor_addr = OS_ADDRESSES
+        .query(
+            &deps.querier,
+            sub_config.version_control_address,
+            contributor_os_id,
+        )?
+        .ok_or(SubscriptionError::OsNotFound(contributor_os_id))?.manager;
+
     let maybe_compensation = CONTRIBUTORS.may_load(deps.storage, &contributor_addr)?;
 
     let new_compensation = match maybe_compensation {
@@ -290,7 +307,9 @@ pub fn update_contributor_compensation(
             let compensation =
                 Compensation::default().overwrite(base_per_block, weight, expiration_block);
 
-            let os_id = OS_ID.query(&deps.querier, contributor_addr.clone())?;
+            let os_id = OS_ID
+                .query(&deps.querier, contributor_addr.clone())
+                .map_err(|_| SubscriptionError::ContributorNotManager)?;
             let subscriber = SUBSCRIBERS.load(deps.storage, os_id)?;
             if subscriber.manager_addr != contributor_addr {
                 return Err(SubscriptionError::ContributorNotManager);

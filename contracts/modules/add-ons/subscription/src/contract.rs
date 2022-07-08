@@ -123,7 +123,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> S
             commands::claim_subscriber_emissions(&add_on, deps.as_ref(), &env, os_id)
         }
         ExecuteMsg::UpdateContributor {
-            contributor_addr,
+            contributor_os_id,
             base_per_block,
             weight,
             expiration_block,
@@ -132,10 +132,10 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> S
             env,
             info,
             add_on,
-            contributor_addr,
+            contributor_os_id,
             base_per_block,
-            weight,
-            expiration_block,
+            weight.map(|w| w.u64() as u32),
+            expiration_block.map(|w| w.u64()),
         ),
         ExecuteMsg::RemoveContributor { contributor_addr } => {
             commands::remove_contributor(deps, info, contributor_addr)

@@ -289,10 +289,10 @@ pub enum ExecuteMsg {
         os_id: u32,
     },
     UpdateContributor {
-        contributor_addr: String,
+        contributor_os_id: u32,
         base_per_block: Option<Decimal>,
-        weight: Option<u32>,
-        expiration_block: Option<u64>,
+        weight: Option<Uint64>,
+        expiration_block: Option<Uint64>,
     },
     RemoveContributor {
         contributor_addr: String,

@@ -60,8 +60,8 @@ pub enum SubscriptionError {
     #[error("income target is zero, no contributions can be paid out.")]
     TargetIsZero,
 
-    #[error("you need to deposit at least {0} to reactivate this OS")]
-    InsufficientPayment(u64),
+    #[error("you need to deposit at least {0} {1} to (re)activate this OS")]
+    InsufficientPayment(u64, String),
 
     #[error("Subscriber emissions are not enabled")]
     SubscriberEmissionsNotEnabled,
@@ -69,8 +69,11 @@ pub enum SubscriptionError {
     #[error("Contribution function must be enabled to use this feature")]
     ContributionNotEnabled,
 
-    #[error("A contributor must have a manager address")]
+    #[error("contributor must be a manager address")]
     ContributorNotManager,
+
+    #[error("no os found with id {0}")]
+    OsNotFound(u32),
 
     #[error("You must wait one TWA period before claiming can start")]
     AveragingPeriodNotPassed,

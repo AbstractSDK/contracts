@@ -8,3 +8,4 @@ pub const DEFAULT_VERSION: &str = "v1.0.0";
 pub const CHAIN_ID: &str = "chain-0";
 pub const OS_NAME: &str = "default_name";
 pub const SUBSCRIPTION_COST: &str = "0.1";
+pub const DEFAULT_PAY: &str = "0.01";

@@ -43,7 +43,7 @@ pub fn init_os(
     let funds = if os_store.is_empty() {
         vec![]
     } else {
-        vec![Coin::new(100, "uusd")]
+        vec![Coin::new(43200, "uusd")]
     };
 
     let _resp = app.execute_contract(
@@ -100,14 +100,17 @@ pub fn init_primary_os(
             token_info: cw_asset::AssetInfoBase::Cw20(native_contracts.token.to_string()),
             emissions_amp_factor: Uint128::new(680000000),
             emissions_offset: Uint128::new(52000),
-            income_averaging_period: Uint64::new(100)
+            income_averaging_period: Uint64::new(100),
         }),
         subscription: abstract_os::subscription::SubscriptionInstantiateMsg {
             factory_addr: native_contracts.os_factory.to_string(),
             payment_asset: AssetInfoUnchecked::native("uusd"),
             subscription_cost_per_block: Decimal::from_str(SUBSCRIPTION_COST).unwrap(),
             version_control_addr: native_contracts.version_control.to_string(),
-            subscription_per_block_emissions: subscription::state::UncheckedEmissionType::IncomeBased(cw_asset::AssetInfoBase::Cw20(native_contracts.token.to_string()))
+            subscription_per_block_emissions:
+                subscription::state::UncheckedEmissionType::IncomeBased(
+                    cw_asset::AssetInfoBase::Cw20(native_contracts.token.to_string()),
+                ),
         },
     })?;
 
