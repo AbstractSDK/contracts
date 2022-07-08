@@ -1,7 +1,7 @@
-use abstract_os::manager::state::{OS_ID, OS_MODULES};
+use abstract_os::manager::state::OS_ID;
 use abstract_os::manager::ExecuteMsg as ManagerMsg;
-use abstract_os::PROXY;
 use abstract_os::version_control::Core;
+
 use abstract_sdk::common_module::{ProxyExecute, ADMIN};
 use abstract_sdk::version_control::get_os_core;
 use cosmwasm_std::{
@@ -248,6 +248,7 @@ pub fn claim_subscriber_emissions(
 // #################### //
 
 /// Function that adds/updates the contributor config of a given address
+#[allow(clippy::too_many_arguments)]
 pub fn update_contributor_compensation(
     deps: DepsMut,
     env: Env,
@@ -269,7 +270,8 @@ pub fn update_contributor_compensation(
             sub_config.version_control_address,
             contributor_os_id,
         )?
-        .ok_or(SubscriptionError::OsNotFound(contributor_os_id))?.manager;
+        .ok_or(SubscriptionError::OsNotFound(contributor_os_id))?
+        .manager;
 
     let maybe_compensation = CONTRIBUTORS.may_load(deps.storage, &contributor_addr)?;
 
@@ -290,13 +292,13 @@ pub fn update_contributor_compensation(
                 state.total_weight = Uint128::from(
                     (state.total_weight.u128() as i128 - weight_diff as i128) as u128,
                 );
-                state.income_target = state.income_target - base_diff;
+                state.income_target -= base_diff;
             } else {
                 let (base_diff, weight_diff) = compensation.clone() - current_compensation.clone();
                 state.total_weight = Uint128::from(
                     (state.total_weight.u128() as i128 + weight_diff as i128) as u128,
                 );
-                state.income_target = state.income_target + base_diff;
+                state.income_target += base_diff;
             };
             Compensation {
                 base_per_block: compensation.base_per_block,
@@ -347,14 +349,11 @@ pub fn update_contributor_compensation(
 }
 
 /// Removes the specified contributor
-pub fn remove_contributor(
-    deps: DepsMut,
-    msg_info: MessageInfo,
-    os_id: u32,
-) -> SubscriptionResult {
+pub fn remove_contributor(deps: DepsMut, msg_info: MessageInfo, os_id: u32) -> SubscriptionResult {
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
     let sub_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
-    let manager_address = get_os_core(&deps.querier, os_id, &sub_config.version_control_address)?.manager;
+    let manager_address =
+        get_os_core(&deps.querier, os_id, &sub_config.version_control_address)?.manager;
     remove_contributor_from_storage(deps.storage, manager_address.clone())?;
     // He must re-activate to join active set and earn emissions
     let msg = suspend_os(manager_address.clone(), true)?;
@@ -408,10 +407,10 @@ pub fn try_claim_compensation(
         _ => cached_state.emissions,
     };
     let sub_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
-    
+
     let Core {
         manager: contributor_address,
-        proxy: contributor_proxy_address
+        proxy: contributor_proxy_address,
     } = get_os_core(&deps.querier, os_id, &sub_config.version_control_address)?;
 
     let mut compensation = CONTRIBUTORS.load(deps.storage, &contributor_address)?;
@@ -488,7 +487,7 @@ fn update_contribution_state(
     if income < contributor_state.income_target {
         contributor_state.emissions = max_emissions
             - (max_emissions - floor_emissions) * (income / contributor_state.income_target);
-        contributor_state.expense = income.into();
+        contributor_state.expense = income;
     } else {
         contributor_state.expense = contributor_state.income_target;
         contributor_state.emissions = floor_emissions;
@@ -508,7 +507,7 @@ fn remove_contributor_from_storage(
     match maybe_compensation {
         Some(current_compensation) => {
             state.total_weight -= Uint128::from(current_compensation.weight);
-            state.income_target = state.income_target - current_compensation.base_per_block;
+            state.income_target -= current_compensation.base_per_block;
             CONTRIBUTORS.remove(store, &contributor_addr);
             CONTRIBUTION_STATE.save(store, &state)?;
         }
@@ -634,6 +633,6 @@ fn load_contribution_config(store: &dyn Storage) -> Result<ContributionConfig, S
     let maybe_config = CONTRIBUTION_CONFIG.may_load(store)?;
     match maybe_config {
         Some(config) => Ok(config),
-        None => return Err(SubscriptionError::ContributionNotEnabled),
+        None => Err(SubscriptionError::ContributionNotEnabled),
     }
 }

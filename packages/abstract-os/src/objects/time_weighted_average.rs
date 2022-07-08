@@ -56,7 +56,7 @@ impl<'a> TimeWeightedAverage<'a> {
                 .wrapping_add(time_elapsed.mul(current_value).u128());
         };
         self.0.save(store, &twa)?;
-        Ok(Some((twa.cumulative_value.clone(), block_time)))
+        Ok(Some((twa.cumulative_value, block_time)))
     }
 
     pub fn get_value(&self, store: &dyn Storage) -> StdResult<Decimal> {

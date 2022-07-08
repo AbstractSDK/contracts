@@ -9,8 +9,6 @@ use cosmwasm_std::{
 use cw2::{get_contract_version, set_contract_version};
 use cw_asset::Asset;
 
-use protobuf::Message;
-
 use semver::Version;
 
 use crate::commands;
@@ -25,7 +23,6 @@ use abstract_os::subscription::{
 pub type SubscriptionResult = Result<Response, SubscriptionError>;
 pub type SubscriptionAddOn<'a> = AddOnContract<'a>;
 
-const INSTANTIATE_REPLY_ID: u8 = 1u8;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -138,9 +135,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> S
             weight.map(|w| w.u64() as u32),
             expiration_block.map(|w| w.u64()),
         ),
-        ExecuteMsg::RemoveContributor { os_id } => {
-            commands::remove_contributor(deps, info, os_id)
-        }
+        ExecuteMsg::RemoveContributor { os_id } => commands::remove_contributor(deps, info, os_id),
         ExecuteMsg::UpdateSubscriptionConfig {
             payment_asset,
             version_control_address,
@@ -227,9 +222,13 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         }
         QueryMsg::ContributorState { os_id } => {
             let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
-            let contributor_addr = get_os_core(&deps.querier , os_id, &subscription_config.version_control_address)?.manager;
-            let maybe_contributor =
-                CONTRIBUTORS.may_load(deps.storage, &contributor_addr)?;
+            let contributor_addr = get_os_core(
+                &deps.querier,
+                os_id,
+                &subscription_config.version_control_address,
+            )?
+            .manager;
+            let maybe_contributor = CONTRIBUTORS.may_load(deps.storage, &contributor_addr)?;
             let subscription_state = if let Some(compensation) = maybe_contributor {
                 to_binary(&ContributorStateResponse { compensation })?
             } else {

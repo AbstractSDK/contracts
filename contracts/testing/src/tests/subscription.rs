@@ -1,18 +1,16 @@
 use std::str::FromStr;
 
-use abstract_os::subscription::state::{
-    Compensation, ContributionState, EmissionType, SubscriptionState,
-};
+use abstract_os::subscription::state::{Compensation, EmissionType};
 use abstract_os::{objects::module::ModuleInfo, SUBSCRIPTION};
 use abstract_os::{subscription as msgs, subscription::state};
 use anyhow::Result as AnyResult;
-use cosmwasm_std::{Addr, BlockInfo, Decimal, Uint128, Uint64};
+use cosmwasm_std::{Addr, Decimal, Uint128};
 use cw_asset::AssetInfoBase;
 use cw_controllers::AdminError;
 use cw_multi_test::{App, ContractWrapper, Executor};
 
 use crate::tests::common::{DEFAULT_PAY, RANDOM_USER, SUBSCRIPTION_COST};
-use crate::tests::testing_infrastructure::env::{exec_msg_on_manager, mint_tokens, token_balance};
+use crate::tests::testing_infrastructure::env::{exec_msg_on_manager, mint_tokens};
 
 use super::testing_infrastructure::env::init_os;
 use super::{
@@ -182,7 +180,7 @@ fn add_and_remove_contributors() {
         .query_wasm_smart(
             subscription_addr,
             &msgs::QueryMsg::ContributorState {
-                os_id: contributing_os2
+                os_id: contributing_os2,
             },
         )
         .unwrap();
@@ -198,7 +196,7 @@ fn add_and_remove_contributors() {
     );
 
     let msg = msgs::ExecuteMsg::RemoveContributor {
-        os_id: contributing_os1
+        os_id: contributing_os1,
     };
 
     let resp =
