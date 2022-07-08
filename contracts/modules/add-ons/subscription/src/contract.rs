@@ -1,8 +1,5 @@
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-#![allow(dead_code)]
-
 use abstract_add_on::AddOnContract;
+use abstract_os::objects::time_weighted_average::TimeWeightedAverage;
 use abstract_os::SUBSCRIPTION;
 use cosmwasm_std::{
     entry_point, to_binary, Addr, Binary, Decimal, Deps, DepsMut, Empty, Env, MessageInfo, Reply,
@@ -18,6 +15,7 @@ use semver::Version;
 
 use abstract_os::objects::fee::Fee;
 
+use crate::commands::BLOCKS_PER_MONTH;
 use crate::error::SubscriptionError;
 use crate::{commands, queries};
 use abstract_os::subscription::state::*;
@@ -38,9 +36,8 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> SubscriptionResult
     let storage_version = get_contract_version(deps.storage)?
         .version
         .parse::<Version>()?;
-    if storage_version < version {
-        set_contract_version(deps.storage, SUBSCRIPTION, CONTRACT_VERSION)?;
-    }
+    set_contract_version(deps.storage, SUBSCRIPTION, CONTRACT_VERSION)?;
+
     Ok(Response::default())
 }
 
@@ -51,39 +48,43 @@ pub fn instantiate(
     info: MessageInfo,
     msg: InstantiateMsg,
 ) -> SubscriptionResult {
-    let sub_config: SubscriptionConfig = SubscriptionConfig {
+    let subscription_config: SubscriptionConfig = SubscriptionConfig {
         payment_asset: msg.subscription.payment_asset.check(deps.api, None)?,
-        subscription_cost: msg.subscription.subscription_cost,
+        subscription_cost_per_block: msg.subscription.subscription_cost_per_block,
         version_control_address: deps
             .api
             .addr_validate(&msg.subscription.version_control_addr)?,
         factory_address: deps.api.addr_validate(&msg.subscription.factory_addr)?,
+        subscription_per_block_emissions: msg
+            .subscription
+            .subscription_per_block_emissions
+            .check(deps.api)?,
     };
 
-    let sub_state: SubscriptionState = SubscriptionState {
-        income: Uint64::zero(),
-        active_subs: 0,
-        collected: false,
-    };
+    let subscription_state: SubscriptionState = SubscriptionState { active_subs: 0 };
 
-    let con_config: ContributionConfig = ContributionConfig {
-        project_token: deps.api.addr_validate(&msg.contribution.project_token)?,
-        emissions_amp_factor: msg.contribution.emissions_amp_factor,
-        emission_user_share: msg.contribution.emission_user_share,
-        emissions_offset: msg.contribution.emissions_offset,
-        protocol_income_share: msg.contribution.protocol_income_share,
-        base_denom: msg.contribution.base_denom,
-        max_emissions_multiple: msg.contribution.max_emissions_multiple,
+    // Optional contribution setup
+    if let Some(msg) = msg.contribution {
+        let contributor_config: ContributionConfig = ContributionConfig {
+            emissions_amp_factor: msg.emissions_amp_factor,
+            emission_user_share: msg.emission_user_share,
+            emissions_offset: msg.emissions_offset,
+            protocol_income_share: msg.protocol_income_share,
+            max_emissions_multiple: msg.max_emissions_multiple,
+            token_info: msg.project_token_info.check(deps.api, None)?,
+        }
+        .verify()?;
+
+        let contributor_state: ContributionState = ContributionState {
+            income_target: Decimal::zero(),
+            expense: Decimal::zero(),
+            total_weight: Uint128::zero(),
+            emissions: Decimal::zero(),
+        };
+        CONTRIBUTION_CONFIG.save(deps.storage, &contributor_config)?;
+        CONTRIBUTION_STATE.save(deps.storage, &contributor_state)?;
+        INCOME_TWA.instantiate(deps.storage, &env, None, msg.income_averaging_period)?;
     }
-    .verify()?;
-
-    let con_state: ContributionState = ContributionState {
-        target: Uint64::zero(),
-        expense: Uint64::zero(),
-        total_weight: Uint128::zero(),
-        emissions: Uint128::zero(),
-        next_pay_day: Uint64::from(env.block.time.seconds()),
-    };
 
     SubscriptionAddOn::default().instantiate(
         deps.branch(),
@@ -94,13 +95,8 @@ pub fn instantiate(
         CONTRACT_VERSION,
     )?;
 
-    SUB_CONFIG.save(deps.storage, &sub_config)?;
-    SUB_STATE.save(deps.storage, &sub_state)?;
-    CON_CONFIG.save(deps.storage, &con_config)?;
-    CON_STATE.save(deps.storage, &con_state)?;
-
-    CLIENTS.instantiate(deps.storage)?;
-    CONTRIBUTORS.instantiate(deps.storage)?;
+    SUBSCRIPTION_CONFIG.save(deps.storage, &subscription_config)?;
+    SUBSCRIPTION_STATE.save(deps.storage, &subscription_state)?;
 
     Ok(Response::new())
 }
@@ -117,25 +113,29 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> S
         ExecuteMsg::Pay { os_id } => {
             let maybe_received_coin = info.funds.last();
             if let Some(coin) = maybe_received_coin.cloned() {
-                commands::try_pay(add_on, deps, info, Asset::from(coin), os_id)
+                commands::try_pay(add_on, deps, env, info, Asset::from(coin), os_id)
             } else {
                 Err(SubscriptionError::NotUsingCW20Hook {})
             }
         }
-        ExecuteMsg::CollectSubs { page_limit } => {
-            commands::collect_subscriptions(deps, env, page_limit)
+        ExecuteMsg::Unsubscribe { os_ids } => commands::unsubscribe(deps, env, add_on, os_ids),
+        ExecuteMsg::ClaimCompensation { contributor } => {
+            commands::try_claim_compensation(add_on, deps, env, contributor)
         }
-        ExecuteMsg::ClaimCompensation {
-            contributor,
-            page_limit,
-        } => commands::try_claim_contribution(add_on, deps, env, contributor, page_limit),
         ExecuteMsg::ClaimEmissions { os_id } => {
-            commands::claim_subscriber_emissions(add_on, deps, env, os_id)
+            commands::claim_subscriber_emissions(&add_on, deps.as_ref(), &env, os_id)
         }
         ExecuteMsg::UpdateContributor {
             contributor_addr,
             compensation,
-        } => commands::update_contributor(deps, info, contributor_addr, compensation),
+        } => commands::update_contributor_compensation(
+            deps,
+            env,
+            info,
+            add_on,
+            contributor_addr,
+            compensation,
+        ),
         ExecuteMsg::RemoveContributor { contributor_addr } => {
             commands::remove_contributor(deps, info, contributor_addr)
         }
@@ -157,10 +157,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> S
             protocol_income_share,
             emission_user_share,
             max_emissions_multiple,
-            project_token,
+            project_token_info,
             emissions_amp_factor,
             emissions_offset,
-            base_denom,
         } => commands::update_contribution_config(
             deps,
             env,
@@ -168,10 +167,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> S
             protocol_income_share,
             emission_user_share,
             max_emissions_multiple,
-            project_token,
+            project_token_info,
             emissions_amp_factor,
             emissions_offset,
-            base_denom,
         ),
     }
 }
@@ -182,34 +180,35 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::Base(message) => SubscriptionAddOn::default().query(deps, env, message),
         // handle dapp-specific queries here
         QueryMsg::State {} => {
-            let sub_state = SUB_STATE.load(deps.storage)?;
-            let con_state = CON_STATE.load(deps.storage)?;
+            let subscription_state = SUBSCRIPTION_STATE.load(deps.storage)?;
+            let contributor_state = CONTRIBUTION_STATE.load(deps.storage)?;
             to_binary(&StateResponse {
-                contribution: con_state,
-                subscription: sub_state,
+                contribution: contributor_state,
+                subscription: subscription_state,
             })
         }
         QueryMsg::Fee {} => {
-            let config = SUB_CONFIG.load(deps.storage)?;
+            let config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
+            let minimal_cost = Uint128::from(BLOCKS_PER_MONTH) * config.subscription_cost_per_block;
             to_binary(&SubscriptionFeeResponse {
                 fee: Asset {
                     info: config.payment_asset,
-                    amount: config.subscription_cost.into(),
+                    amount: minimal_cost,
                 },
             })
         }
         QueryMsg::Config {} => {
-            let sub_config = SUB_CONFIG.load(deps.storage)?;
-            let con_config = CON_CONFIG.load(deps.storage)?;
+            let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
+            let contributor_config = CONTRIBUTION_CONFIG.load(deps.storage)?;
             to_binary(&ConfigResponse {
-                contribution: con_config,
-                subscription: sub_config,
+                contribution: contributor_config,
+                subscription: subscription_config,
             })
         }
         QueryMsg::SubscriberState { os_id } => {
-            let maybe_sub = CLIENTS.may_load(deps.storage, &os_id.to_be_bytes())?;
-            let maybe_dormant_sub = DORMANT_CLIENTS.may_load(deps.storage, os_id)?;
-            let sub_state = if let Some(sub) = maybe_sub {
+            let maybe_sub = SUBSCRIBERS.may_load(deps.storage, os_id)?;
+            let maybe_dormant_sub = DORMANT_SUBSCRIBERS.may_load(deps.storage, os_id)?;
+            let subscription_state = if let Some(sub) = maybe_sub {
                 to_binary(&SubscriberStateResponse {
                     currently_subscribed: true,
                     subscriber_details: sub,
@@ -220,21 +219,21 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
                     subscriber_details: sub,
                 })?
             } else {
-                return Err(StdError::generic_err("os is instance 0 or does not exist"));
+                return Err(StdError::generic_err("os has os_id 0 or does not exist"));
             };
-            Ok(sub_state)
+            Ok(subscription_state)
         }
         QueryMsg::ContributorState { contributor_addr } => {
             let maybe_contributor =
-                CONTRIBUTORS.may_load(deps.storage, contributor_addr.as_bytes())?;
-            let sub_state = if let Some(compensation) = maybe_contributor {
+                CONTRIBUTORS.may_load(deps.storage, &deps.api.addr_validate(&contributor_addr)?)?;
+            let subscription_state = if let Some(compensation) = maybe_contributor {
                 to_binary(&ContributorStateResponse { compensation })?
             } else {
                 return Err(StdError::generic_err(
                     "provided address is not a contributor",
                 ));
             };
-            Ok(sub_state)
+            Ok(subscription_state)
         }
     }
 }

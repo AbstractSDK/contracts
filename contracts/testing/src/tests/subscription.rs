@@ -86,7 +86,7 @@ fn proper_initialization() {
     assert_eq!(
         state.contribution,
         state::ContributionState {
-            target: Uint64::zero(),
+            income_target: Uint64::zero(),
             expense: Uint64::zero(),
             total_weight: Uint128::zero(),
             emissions: Uint128::zero(),
@@ -125,7 +125,7 @@ fn add_and_remove_contributors() {
         compensation: Compensation {
             base: 1000,
             weight: 100,
-            expiration: app
+            expiration_block: app
                 .block_info()
                 .time
                 .plus_seconds(MONTH * 2)
@@ -155,7 +155,7 @@ fn add_and_remove_contributors() {
     assert_eq!(
         state.contribution,
         state::ContributionState {
-            target: Uint64::new(1000),
+            income_target: Uint64::new(1000),
             expense: Uint64::zero(),
             total_weight: Uint128::new(100),
             emissions: Uint128::zero(),
@@ -168,7 +168,7 @@ fn add_and_remove_contributors() {
         compensation: Compensation {
             base: 2000,
             weight: 200,
-            expiration: app
+            expiration_block: app
                 .block_info()
                 .time
                 .plus_seconds(MONTH * 2)
@@ -196,7 +196,7 @@ fn add_and_remove_contributors() {
         Compensation {
             base: 2000,
             weight: 200,
-            expiration: app
+            expiration_block: app
                 .block_info()
                 .time
                 .plus_seconds(MONTH * 2)
@@ -233,7 +233,7 @@ fn add_and_remove_contributors() {
     assert_eq!(
         state.contribution,
         state::ContributionState {
-            target: Uint64::new(2000),
+            income_target: Uint64::new(2000),
             expense: Uint64::zero(),
             total_weight: Uint128::new(200),
             emissions: Uint128::zero(),
@@ -337,7 +337,7 @@ fn actions_before_first_month() {
         compensation: Compensation {
             base: 1000,
             weight: 100,
-            expiration: app
+            expiration_block: app
                 .block_info()
                 .time
                 .plus_seconds(MONTH * 3)
@@ -384,7 +384,7 @@ fn actions_before_first_month() {
     assert_eq!(
         state.contribution,
         ContributionState {
-            target: 1000u64.into(),
+            income_target: 1000u64.into(),
             expense: 1000u64.into(),
             total_weight: 100u64.into(),
             // Checked with spreadsheet
@@ -455,7 +455,7 @@ fn actions_after_first_month() {
         compensation: Compensation {
             base: 1000,
             weight: 100,
-            expiration: app
+            expiration_block: app
                 .block_info()
                 .time
                 .plus_seconds(MONTH * 3)
@@ -500,7 +500,7 @@ fn actions_after_first_month() {
     assert_eq!(
         state.contribution,
         ContributionState {
-            target: 1000u64.into(),
+            income_target: 1000u64.into(),
             expense: 0u64.into(),
             total_weight: 100u64.into(),
             // Checked with spreadsheet
@@ -606,7 +606,7 @@ fn actions_after_first_month() {
 //         compensation: Compensation {
 //             base: 1000,
 //             weight: 100,
-//             expiration: app
+//             expiration_block: app
 //                 .block_info()
 //                 .time
 //                 .plus_seconds(MONTH * 3)
@@ -653,7 +653,7 @@ fn actions_after_first_month() {
 //     assert_eq!(
 //         state.contribution,
 //         ContributionState {
-//             target: 1000u64.into(),
+//             income_target: 1000u64.into(),
 //             expense: 1000u64.into(),
 //             total_weight: 100u64.into(),
 //             // Checked with spreadsheet
