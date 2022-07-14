@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "ContextResponse",
+  "title": "QueryContextResponse",
   "type": "object",
   "properties": {
     "core": {
@@ -30,6 +30,7 @@
       "type": "string"
     },
     "Core": {
+      "description": "Contains the minimal Abstract-OS contract addresses.",
       "type": "object",
       "required": [
         "manager",
