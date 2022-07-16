@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "QueryApiAddressesResponse",
+  "title": "ApiAddressesResponse",
   "type": "object",
   "required": [
     "api_addresses"
