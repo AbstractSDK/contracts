@@ -50,5 +50,5 @@ pub mod os_factory;
 pub mod proxy;
 pub(crate) mod registry;
 pub mod subscription;
-pub mod vault;
+pub mod liquidity_interface;
 pub mod version_control;
