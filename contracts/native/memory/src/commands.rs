@@ -59,7 +59,7 @@ pub fn update_asset_addresses(
 
     for (name, new_asset) in to_add.into_iter() {
         // Update function for new or existing keys
-        let api = deps.api.clone();
+        let api = deps.api;
         let insert = |_| -> StdResult<AssetInfo> {
             // use own check, cw_asset otherwise changes cases to lowercase
             new_asset.check(api, None)
