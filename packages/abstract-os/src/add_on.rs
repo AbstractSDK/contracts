@@ -1,4 +1,4 @@
-//! # Abstract Add-On Base
+//! # Abstract Add-On
 //!
 //! `abstract_os::add_on` implements shared functionality that's useful for creating new Abstract add-ons.
 //!

@@ -1,6 +1,6 @@
 //! # Abstract Token
 //!
-//! `abstract_os::abstract_token` is a .
+//! `abstract_os::abstract_token` is a custom token that's only transferable between abstract-os instances.
 //!
 //! ## Description
 //! An add-on is a contract that is allowed to perform actions on a [proxy](crate::proxy) contract while also being migratable.

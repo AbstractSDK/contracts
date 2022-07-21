@@ -1,6 +1,6 @@
 //! # Liquidity Interface Add-On
 //!
-//! [`crate::liquidity_interface`] is an add-on which allows users to deposit into or withdraw from a [`crate::proxy`] contract.
+//! `abstract_os::liquidity_interface` is an add-on which allows users to deposit into or withdraw from a [`crate::proxy`] contract.
 //!
 //! ## Description  
 //! This contract uses the proxy's value calculation configuration to get the value of the assets held in the proxy and the relative value of the deposit asset.
