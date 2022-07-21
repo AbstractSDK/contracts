@@ -1,6 +1,6 @@
 //! # Abstract API
 //!
-//! Basis for an interfacing contract to an external service. 
+//! Basis for an interfacing contract to an external service.
 use cosmwasm_std::{Empty, Response};
 
 pub use error::ApiError;

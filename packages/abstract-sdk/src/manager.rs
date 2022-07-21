@@ -1,8 +1,8 @@
 //! # Manager Helpers
 //! Raw Query helpers to get module information.
-//! 
-//! *Add raw map paging when support is added* 
-//! 
+//!
+//! *Add raw map paging when support is added*
+//!
 
 use cosmwasm_std::{to_binary, CosmosMsg, Empty, QuerierWrapper, StdResult, WasmMsg};
 

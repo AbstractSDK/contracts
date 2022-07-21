@@ -25,7 +25,7 @@ pub struct ApiContract<'a, T: Serialize + DeserializeOwned> {
     pub base_state: Item<'a, ApiState>,
     /// Stores the API version
     pub version: Item<'a, ContractVersion>,
-    /// 
+    ///
     pub request_destination: Option<Addr>,
 
     _phantom_data: PhantomData<T>,

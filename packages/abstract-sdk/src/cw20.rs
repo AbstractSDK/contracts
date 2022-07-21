@@ -1,8 +1,6 @@
 //! # CW-20 Helpers
 
-use cosmwasm_std::{
-    to_binary, Addr,  QuerierWrapper, QueryRequest, StdResult, Uint128, WasmQuery,
-};
+use cosmwasm_std::{to_binary, Addr, QuerierWrapper, QueryRequest, StdResult, Uint128, WasmQuery};
 use cw20::{Cw20QueryMsg, TokenInfoResponse};
 
 pub fn query_supply(querier: &QuerierWrapper, contract_addr: Addr) -> StdResult<Uint128> {

@@ -8,7 +8,7 @@
 //!
 //! ## Proxy assets
 //! [Proxy assets](crate::objects::proxy_asset) are what allow the proxy contract to provide value queries for its assets. It needs to be configured using the [`ExecuteMsg::UpdateAssets`] endpoint.
-//! After configurating the proxy assets [`QueryMsg::TotalValue`] can be called to get the total holding value. 
+//! After configurating the proxy assets [`QueryMsg::TotalValue`] can be called to get the total holding value.
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};

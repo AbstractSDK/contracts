@@ -1,6 +1,8 @@
 //! # Proxy Helpers
-use abstract_os::proxy::{ExecuteMsg, QueryTotalValueResponse, QueryMsg};
-use cosmwasm_std::{to_binary, Addr, CosmosMsg, Empty, StdResult, WasmMsg, QueryRequest, WasmQuery, Uint128, Deps};
+use abstract_os::proxy::{ExecuteMsg, QueryMsg, QueryTotalValueResponse};
+use cosmwasm_std::{
+    to_binary, Addr, CosmosMsg, Deps, Empty, QueryRequest, StdResult, Uint128, WasmMsg, WasmQuery,
+};
 
 // Re-export os-id query as proxy is also core-contract.
 pub use crate::manager::query_os_id;
