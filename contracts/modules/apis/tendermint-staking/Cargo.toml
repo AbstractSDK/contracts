@@ -24,9 +24,9 @@ backtraces = ["cosmwasm-std/backtraces"]
 cosmwasm-std = "1.0.0"
 schemars = "0.8.1"
 serde = { version = "1.0.103", default-features = false, features = ["derive"] }
-terra-cosmwasm = "2.2"
 thiserror = { version = "1.0.21" }
 abstract-os = { version = "0.1.0", path = "../../../../packages/abstract-os" }
 abstract-sdk = { version = "0.1.0", path = "../../../../packages/abstract-sdk" }
 abstract-api = { version = "0.1.0", path = "../../../../packages/abstract-api", features = ["library"] }
-cw-asset = {version = "2.0.0"}
+[dev-dependencies]
+cosmwasm-schema = { version = "1.0" }
