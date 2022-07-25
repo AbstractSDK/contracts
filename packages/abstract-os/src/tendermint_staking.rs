@@ -2,7 +2,7 @@
 //!
 //! `abstract_os::tendermint_staking` exposes all the function of [`cosmwasm_std::CosmosMsg::Staking`], [`cosmwasm_std::CosmosMsg::Distribution`] and [`cosmwasm_std::CosmosMsg::StakingQuery`].
 
-use cosmwasm_std::{Delegation, Deps, FullDelegation, StakingQuery, Uint128, Validator};
+use cosmwasm_std::Uint128;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

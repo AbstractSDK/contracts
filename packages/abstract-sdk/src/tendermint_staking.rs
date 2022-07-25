@@ -47,12 +47,11 @@ pub fn redelegate_all(
     destination_validator: &str,
     proxy_address: &Addr,
 ) -> StdResult<CosmosMsg> {
-    let delegation =
-        querier
-            .query_delegation(proxy_address, source_validator)?
-            .ok_or(StdError::GenericErr {
-                msg: format!("OS not delegated to validator {}", source_validator),
-            })?;
+    let delegation = querier
+        .query_delegation(proxy_address, source_validator)?
+        .ok_or(StdError::GenericErr {
+            msg: format!("OS not delegated to validator {}", source_validator),
+        })?;
     Ok(CosmosMsg::Staking(StakingMsg::Redelegate {
         src_validator: source_validator.to_string(),
         dst_validator: destination_validator.to_string(),
@@ -61,7 +60,7 @@ pub fn redelegate_all(
 }
 
 pub fn update_withdraw_address(api: &dyn Api, new_withdraw_address: &str) -> StdResult<CosmosMsg> {
-    api.addr_validate(&new_withdraw_address)?;
+    api.addr_validate(new_withdraw_address)?;
     Ok(CosmosMsg::Distribution(
         DistributionMsg::SetWithdrawAddress {
             address: new_withdraw_address.to_string(),
