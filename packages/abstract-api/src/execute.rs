@@ -101,7 +101,9 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
         for dep in dependencies {
             let api_addr = query_module_address(deps, &core.manager, dep.as_str());
             // just skip if dep is already removed. This means all the traders are already removed.
-            if api_addr.is_err() { continue; };
+            if api_addr.is_err() {
+                continue;
+            };
             msgs.push(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: api_addr?.into_string(),
                 msg: to_binary(&ApiExecuteMsg::UpdateTraders {
