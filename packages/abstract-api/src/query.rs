@@ -4,11 +4,11 @@ use abstract_os::api::{ApiQueryMsg, QueryApiConfigResponse, QueryTradersResponse
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
-use abstract_sdk::common_module::Mem;
+use abstract_sdk::common_namespace::LoadMemory;
 
 use crate::state::ApiContract;
 
-impl<T: Serialize + DeserializeOwned> Mem for ApiContract<'_, T> {
+impl<T: Serialize + DeserializeOwned> LoadMemory for ApiContract<'_, T> {
     fn mem(&self, store: &dyn Storage) -> StdResult<abstract_sdk::memory::Memory> {
         Ok(self.base_state.load(store)?.memory)
     }

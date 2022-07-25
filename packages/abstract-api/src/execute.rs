@@ -1,5 +1,5 @@
 use abstract_os::api::ApiExecuteMsg;
-use abstract_sdk::common_module::ProxyExecute;
+use abstract_sdk::common_namespace::OsExecute;
 use abstract_sdk::proxy::send_to_proxy;
 use cosmwasm_std::{Deps, DepsMut, Env, MessageInfo, Response};
 use serde::de::DeserializeOwned;
@@ -9,10 +9,10 @@ use crate::error::ApiError;
 use crate::state::ApiContract;
 use crate::ApiResult;
 
-impl<T: Serialize + DeserializeOwned> ProxyExecute for ApiContract<'_, T> {
+impl<T: Serialize + DeserializeOwned> OsExecute for ApiContract<'_, T> {
     type Err = ApiError;
 
-    fn execute_on_proxy(
+    fn os_execute(
         &self,
         _deps: Deps,
         msgs: Vec<cosmwasm_std::CosmosMsg>,
@@ -27,7 +27,7 @@ impl<T: Serialize + DeserializeOwned> ProxyExecute for ApiContract<'_, T> {
 impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
     pub fn execute(
         &self,
-        deps: &mut DepsMut,
+        deps: DepsMut,
         _env: Env,
         info: MessageInfo,
         message: ApiExecuteMsg,
@@ -41,7 +41,7 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
 
     fn update_traders(
         &self,
-        deps: &mut DepsMut,
+        deps: DepsMut,
         info: MessageInfo,
         to_add: Option<Vec<String>>,
         to_remove: Option<Vec<String>>,

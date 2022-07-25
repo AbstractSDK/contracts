@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 use abstract_os::api::ApiInterfaceMsg;
 
 use abstract_os::version_control::Core;
-use abstract_sdk::common_module::BASE_STATE_KEY;
+use abstract_sdk::common_namespace::BASE_STATE_KEY;
 use abstract_sdk::memory::Memory;
 use abstract_sdk::version_control::verify_os_manager;
 use cosmwasm_std::{Addr, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Storage};
@@ -49,13 +49,19 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
     }
 
     /// Takes request and parses it to a verified
-    pub fn handle_request(
-        &mut self,
-        deps: &mut DepsMut,
+    pub fn handle_request<RequestError: From<cosmwasm_std::StdError> + From<ApiError>>(
+        mut self,
+        deps: DepsMut,
         env: Env,
-        info: &MessageInfo,
+        info: MessageInfo,
         msg: ApiInterfaceMsg<T>,
-    ) -> Result<ApiInterfaceResponse<T>, ApiError> {
+        request_handler:  impl FnOnce(
+            DepsMut,
+            Env,
+            MessageInfo,
+            ApiContract<T>,
+            T,) -> Result<Response, RequestError>,
+    ) -> Result<Response, RequestError> {
         let sender = &info.sender;
         match msg {
             ApiInterfaceMsg::Request(request) => {
@@ -77,11 +83,10 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
                     }
                 };
                 self.request_destination = Some(proxy);
-                Ok(ApiInterfaceResponse::ProcessRequest(request.request))
+                request_handler(deps, env, info, self, request.request)
             }
-            ApiInterfaceMsg::Configure(exec_msg) => Ok(ApiInterfaceResponse::ExecResponse(
-                self.execute(deps, env, info.clone(), exec_msg)?,
-            )),
+            ApiInterfaceMsg::Configure(exec_msg) => self.execute(deps, env, info.clone(), exec_msg).map_err(From::from)
+            
         }
     }
     pub fn verify_sender_is_manager(
@@ -103,11 +108,6 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub enum ApiInterfaceResponse<T> {
-    ProcessRequest(T),
-    ExecResponse(Response),
-}
 /// The BaseState contains the main addresses needed for sending and verifying messages
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ApiState {
