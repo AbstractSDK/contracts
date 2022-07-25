@@ -91,6 +91,7 @@ pub enum ApiQueryMsg {
 pub struct QueryApiConfigResponse {
     pub version_control_address: Addr,
     pub memory_address: Addr,
+    pub dependencies: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, JsonSchema, Debug)]
