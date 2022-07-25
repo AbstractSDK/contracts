@@ -1,4 +1,5 @@
 pub mod _modules;
+mod api;
 pub mod common_namespace;
 pub mod manager;
 mod module_traits;
@@ -13,6 +14,7 @@ pub mod memory {
     };
 }
 
+pub use api::{api_req, configure_api};
 pub use module_traits::{LoadMemory, OsExecute};
 
 pub extern crate abstract_os;

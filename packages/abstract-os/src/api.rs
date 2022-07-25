@@ -8,7 +8,7 @@
 //! The API structure is well-suited for implementing standard interfaces to external services like dexes, lending platforms, etc.
 //! The source code is accessible on [todo](todo).
 
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, Empty};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -25,21 +25,41 @@ pub struct ApiInstantiateMsg {
 /// Interface to the API.
 /// Equivalent to ExecuteMsg
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub enum ApiInterfaceMsg<T> {
+pub enum ApiInterfaceMsg<T: Serialize = Empty> {
     /// An API request. Forwards the msg to the associated proxy.
     Request(ApiRequestMsg<T>),
     /// A configuration message to whitelist traders.
     Configure(ApiExecuteMsg),
 }
+
+impl<T: Serialize> From<ApiExecuteMsg> for ApiInterfaceMsg<T> {
+    fn from(api_msg: ApiExecuteMsg) -> Self {
+        Self::Configure(api_msg)
+    }
+}
+
+impl<T: Serialize> From<ApiRequestMsg<T>> for ApiInterfaceMsg<T> {
+    fn from(request_msg: ApiRequestMsg<T>) -> Self {
+        Self::Request(request_msg)
+    }
+}
 /// An API request.
 /// The api contract forwards the generated msg to the optionally attached proxy addr.
 /// If proxy is None, then the sender must be an OS manager and the proxy address is extrapolated from the OS id.
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct ApiRequestMsg<T> {
-    /// Ok to assume address is validated as all map keys are previously validated
-    pub proxy_addr: Option<Addr>,
+pub struct ApiRequestMsg<T: Serialize = Empty> {
+    pub proxy_address: Option<String>,
     /// The actual request
     pub request: T,
+}
+
+impl<T: Serialize> ApiRequestMsg<T> {
+    pub fn new(proxy_address: Option<String>, request: T) -> Self {
+        Self {
+            proxy_address,
+            request,
+        }
+    }
 }
 
 /// Configuration message for the API
@@ -52,6 +72,7 @@ pub enum ApiExecuteMsg {
         to_add: Option<Vec<String>>,
         to_remove: Option<Vec<String>>,
     },
+    Remove {},
 }
 
 /// Query API message
