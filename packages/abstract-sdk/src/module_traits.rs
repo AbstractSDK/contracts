@@ -1,5 +1,5 @@
 use abstract_os::objects::memory::Memory;
-use cosmwasm_std::{CosmosMsg, Deps, Response, Storage, StdResult};
+use cosmwasm_std::{CosmosMsg, Deps, Response, StdResult, Storage};
 
 /// execute an operation on the os
 pub trait OsExecute {

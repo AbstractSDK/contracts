@@ -1,6 +1,6 @@
 use abstract_os::add_on::AddOnExecuteMsg;
-use abstract_sdk::OsExecute;
 use abstract_sdk::proxy::send_to_proxy;
+use abstract_sdk::OsExecute;
 use cosmwasm_std::{Deps, DepsMut, Env, MessageInfo, Response};
 
 use crate::error::AddOnError;

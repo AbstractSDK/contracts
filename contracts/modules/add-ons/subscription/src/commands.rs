@@ -2,9 +2,9 @@ use abstract_os::manager::state::OS_ID;
 use abstract_os::manager::ExecuteMsg as ManagerMsg;
 use abstract_os::version_control::Core;
 
-use abstract_sdk::OsExecute;
-use abstract_sdk::common_namespace::{ADMIN};
+use abstract_sdk::common_namespace::ADMIN;
 use abstract_sdk::version_control::get_os_core;
+use abstract_sdk::OsExecute;
 use cosmwasm_std::{
     from_binary, to_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo, Response,
     StdError, StdResult, Storage, SubMsg, Uint128, Uint64, WasmMsg,
