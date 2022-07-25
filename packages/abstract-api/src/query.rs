@@ -4,7 +4,7 @@ use abstract_os::api::{ApiQueryMsg, QueryApiConfigResponse, QueryTradersResponse
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
-use abstract_sdk::common_namespace::LoadMemory;
+use abstract_sdk::LoadMemory;
 
 use crate::state::ApiContract;
 
@@ -24,7 +24,9 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
                 let traders = self
                     .traders
                     .load(deps.storage, deps.api.addr_validate(&proxy_address)?)?;
-                to_binary(&QueryTradersResponse { traders })
+                to_binary(&QueryTradersResponse {
+                    traders: traders.into_iter().collect(),
+                })
             }
         }
     }

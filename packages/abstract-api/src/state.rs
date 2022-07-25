@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::marker::PhantomData;
 
 use abstract_os::api::ApiInterfaceMsg;
@@ -20,73 +21,76 @@ pub const TRADER_NAMESPACE: &str = "traders";
 /// The state variables for our ApiContract.
 pub struct ApiContract<'a, T: Serialize + DeserializeOwned> {
     // Map ProxyAddr -> WhitelistedTraders
-    pub traders: Map<'a, Addr, Vec<Addr>>,
+    pub traders: Map<'a, Addr, HashSet<Addr>>,
     // Every DApp should use the provided memory contract for token/contract address resolution
     pub base_state: Item<'a, ApiState>,
     pub version: Item<'a, ContractVersion>,
 
-    pub request_destination: Option<Addr>,
+    pub request_destination: Addr,
 
     _phantom_data: PhantomData<T>,
 }
 
 impl<T: Serialize + DeserializeOwned> Default for ApiContract<'static, T> {
     fn default() -> Self {
-        Self::new(BASE_STATE_KEY, TRADER_NAMESPACE)
+        Self::new(BASE_STATE_KEY, TRADER_NAMESPACE, Addr::unchecked(""))
     }
 }
 
 /// Constructor
 impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
-    fn new(base_state_key: &'a str, traders_namespace: &'a str) -> Self {
+    fn new(base_state_key: &'a str, traders_namespace: &'a str, proxy_address: Addr) -> Self {
         Self {
             version: CONTRACT,
             base_state: Item::new(base_state_key),
             traders: Map::new(traders_namespace),
-            request_destination: None,
+            request_destination: proxy_address,
             _phantom_data: PhantomData,
         }
     }
 
-    /// Takes request and parses it to a verified
+    /// Takes request, sets destination and executes request handler
+    /// This fn is the only way to get an ApiContract instance which ensures the destination address is set correctly.
     pub fn handle_request<RequestError: From<cosmwasm_std::StdError> + From<ApiError>>(
-        mut self,
         deps: DepsMut,
         env: Env,
         info: MessageInfo,
         msg: ApiInterfaceMsg<T>,
-        request_handler:  impl FnOnce(
+        request_handler: impl FnOnce(
             DepsMut,
             Env,
             MessageInfo,
             ApiContract<T>,
-            T,) -> Result<Response, RequestError>,
+            T,
+        ) -> Result<Response, RequestError>,
     ) -> Result<Response, RequestError> {
         let sender = &info.sender;
+        let mut api = Self::new(BASE_STATE_KEY, TRADER_NAMESPACE, Addr::unchecked(""));
         match msg {
             ApiInterfaceMsg::Request(request) => {
                 let proxy = match request.proxy_addr {
                     Some(addr) => {
-                        let traders = self.traders.load(deps.storage, addr.clone())?;
+                        let traders = api.traders.load(deps.storage, addr.clone())?;
                         if traders.contains(sender) {
                             addr
                         } else {
-                            self.verify_sender_is_manager(deps.as_ref(), sender)
+                            api.verify_sender_is_manager(deps.as_ref(), sender)
                                 .map_err(|_| ApiError::UnauthorizedTraderApiRequest {})?
                                 .proxy
                         }
                     }
                     None => {
-                        self.verify_sender_is_manager(deps.as_ref(), sender)
+                        api.verify_sender_is_manager(deps.as_ref(), sender)
                             .map_err(|_| ApiError::UnauthorizedApiRequest {})?
                             .proxy
                     }
                 };
-                self.request_destination = Some(proxy);
-                request_handler(deps, env, info, self, request.request)
+                api.request_destination = proxy;
+                request_handler(deps, env, info, api, request.request)
             }
-            ApiInterfaceMsg::Configure(exec_msg) => self.execute(deps, env, info.clone(), exec_msg).map_err(From::from)
-            
+            ApiInterfaceMsg::Configure(exec_msg) => api
+                .execute(deps, env, info.clone(), exec_msg)
+                .map_err(From::from),
         }
     }
     pub fn verify_sender_is_manager(

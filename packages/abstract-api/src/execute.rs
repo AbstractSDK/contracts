@@ -1,6 +1,6 @@
 use abstract_os::api::ApiExecuteMsg;
-use abstract_sdk::common_namespace::OsExecute;
 use abstract_sdk::proxy::send_to_proxy;
+use abstract_sdk::OsExecute;
 use cosmwasm_std::{Deps, DepsMut, Env, MessageInfo, Response};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
@@ -17,10 +17,7 @@ impl<T: Serialize + DeserializeOwned> OsExecute for ApiContract<'_, T> {
         _deps: Deps,
         msgs: Vec<cosmwasm_std::CosmosMsg>,
     ) -> Result<Response, Self::Err> {
-        Ok(Response::new().add_message(send_to_proxy(
-            msgs,
-            &self.request_destination.clone().unwrap(),
-        )?))
+        Ok(Response::new().add_message(send_to_proxy(msgs, &self.request_destination.clone())?))
     }
 }
 
@@ -61,9 +58,7 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
         if let Some(to_add) = to_add {
             for trader in to_add {
                 let trader_addr = deps.api.addr_validate(trader.as_str())?;
-                if !traders.contains(&trader_addr) {
-                    traders.push(trader_addr);
-                } else {
+                if !traders.insert(trader_addr) {
                     return Err(ApiError::TraderAlreadyPresent { trader });
                 }
             }
@@ -73,9 +68,7 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
         if let Some(to_remove) = to_remove {
             for trader in to_remove {
                 let trader_addr = deps.api.addr_validate(trader.as_str())?;
-                if let Some(trader_pos) = traders.iter().position(|a| a == &trader_addr) {
-                    traders.swap_remove(trader_pos);
-                } else {
+                if !traders.remove(&trader_addr) {
                     return Err(ApiError::TraderNotPresent { trader });
                 }
             }
