@@ -19,6 +19,7 @@ pub struct ApiContract<'a, T: Serialize + DeserializeOwned> {
     pub traders: Map<'a, Addr, HashSet<Addr>>,
     // Every DApp should use the provided memory contract for token/contract address resolution
     pub base_state: Item<'a, ApiState>,
+    /// Stores the API version
     pub version: Item<'a, ContractVersion>,
 
     pub request_destination: Addr,
