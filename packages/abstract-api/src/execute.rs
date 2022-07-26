@@ -147,7 +147,7 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
         // This allows other apis to automatically add themselves, allowing for api-cross-calling.
         let core = {
             self.verify_sender_is_manager(deps.as_ref(), &info.sender)
-                .or(self.verify_sender_is_proxy(deps.as_ref(), &info.sender))
+                .or_else(|_| self.verify_sender_is_proxy(deps.as_ref(), &info.sender))
         }?;
 
         // Manager can only change traders for associated proxy
@@ -179,9 +179,6 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
         }
 
         self.traders.save(deps.storage, proxy.clone(), &traders)?;
-        Ok(
-            Response::new()
-                .add_attribute("action", format!("update_{}_traders", proxy.to_string())),
-        )
+        Ok(Response::new().add_attribute("action", format!("update_{}_traders", proxy)))
     }
 }

@@ -9,6 +9,7 @@
 pub mod _modules;
 mod api;
 pub mod common_namespace;
+pub mod cw20;
 pub mod manager;
 mod module_traits;
 pub mod proxy;
