@@ -13,3 +13,4 @@ pub const PROXY: &str = "abstract:proxy";
 pub const MEMORY: &str = "abstract:memory";
 pub const LIQUIDITY_INTERFACE: &str = "abstract:liquidity_interface";
 pub const SUBSCRIPTION: &str = "abstract:subscription";
+pub const EXCHANGE: &str = "abstract:dex";
