@@ -39,6 +39,7 @@
 
 pub use registry::*;
 
+pub mod dex;
 pub mod abstract_token;
 pub mod add_on;
 pub mod api;

@@ -1,4 +1,5 @@
 use abstract_api::{ApiContract, ApiResult};
+use abstract_os::api::ApiQueryMsg;
 use abstract_os::api::{ApiInstantiateMsg, ApiInterfaceMsg};
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 
@@ -96,8 +97,6 @@ pub fn handle_api_request(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
-    match msg {
-        QueryMsg::Base(dapp_msg) => TendermintStakeApi::default().query(deps, env, dapp_msg),
-    }
+pub fn query(deps: Deps, env: Env, msg: ApiQueryMsg) -> StdResult<Binary> {
+    TendermintStakeApi::default().query(deps, env, msg)
 }
