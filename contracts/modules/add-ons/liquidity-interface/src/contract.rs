@@ -1,16 +1,16 @@
-#![allow(unused_imports)]
-#![allow(unused_variables)]
-
 use std::vec;
 
-use abstract_add_on::{AddOnContract, AddOnResult};
+use abstract_add_on::AddOnContract;
+use abstract_os::objects::memory_entry::AssetEntry;
+use abstract_sdk::proxy::query_proxy_asset_raw;
+use abstract_sdk::LoadMemory;
 use cosmwasm_std::{
-    entry_point, to_binary, Addr, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Reply, ReplyOn,
+    entry_point, to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, ReplyOn,
     Response, StdError, StdResult, SubMsg, WasmMsg,
 };
 use cw2::{get_contract_version, set_contract_version};
-use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg, MinterResponse};
-use cw_storage_plus::Map;
+use cw20::MinterResponse;
+
 use protobuf::Message;
 use semver::Version;
 
@@ -21,10 +21,10 @@ use abstract_os::objects::fee::Fee;
 use abstract_os::LIQUIDITY_INTERFACE;
 use cw20_base::msg::InstantiateMsg as TokenInstantiateMsg;
 
+use crate::commands;
 use crate::error::VaultError;
 use crate::response::MsgInstantiateContractResponse;
 use crate::state::{Pool, State, FEE, POOL, STATE};
-use crate::{commands, queries};
 
 const INSTANTIATE_REPLY_ID: u8 = 1u8;
 
@@ -33,7 +33,7 @@ const DEFAULT_LP_TOKEN_SYMBOL: &str = "uvLP";
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub type VaultDapp<'a> = AddOnContract<'a>;
+pub type VaultAddOn<'a> = AddOnContract<'a>;
 pub type VaultResult = Result<Response, VaultError>;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -47,7 +47,12 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VaultResult {
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn instantiate(deps: DepsMut, env: Env, info: MessageInfo, msg: InstantiateMsg) -> VaultResult {
+pub fn instantiate(
+    mut deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    msg: InstantiateMsg,
+) -> VaultResult {
     let state: State = State {
         liquidity_token_addr: Addr::unchecked(""),
         provider_addr: deps.api.addr_validate(msg.provider_addr.as_str())?,
@@ -62,17 +67,10 @@ pub fn instantiate(deps: DepsMut, env: Env, info: MessageInfo, msg: InstantiateM
         .unwrap_or_else(|| String::from(DEFAULT_LP_TOKEN_SYMBOL));
 
     STATE.save(deps.storage, &state)?;
-    POOL.save(
-        deps.storage,
-        &Pool {
-            deposit_asset: msg.deposit_asset.clone(),
-            assets: vec![msg.deposit_asset],
-        },
-    )?;
     FEE.save(deps.storage, &Fee { share: msg.fee })?;
 
-    VaultDapp::default().instantiate(
-        deps,
+    let vault = VaultAddOn::default().instantiate(
+        deps.branch(),
         env.clone(),
         info,
         msg.base,
@@ -80,6 +78,24 @@ pub fn instantiate(deps: DepsMut, env: Env, info: MessageInfo, msg: InstantiateM
         CONTRACT_VERSION,
     )?;
 
+    // Verify deposit asset is valid and active on proxy
+    let memory = vault.mem(deps.storage)?;
+    let base_state = vault.state(deps.storage)?;
+    AssetEntry::new(msg.deposit_asset.clone()).resolve(deps.as_ref(), &memory)?;
+    let proxy_asset =
+        query_proxy_asset_raw(deps.as_ref(), &base_state.proxy_address, &msg.deposit_asset)?;
+    if proxy_asset.value_reference.is_some() {
+        // The deposit asset must be the base asset for the value calculation.
+        return Err(VaultError::DepositAssetNotBase(msg.deposit_asset));
+    }
+
+    POOL.save(
+        deps.storage,
+        &Pool {
+            deposit_asset: msg.deposit_asset.clone(),
+            assets: vec![msg.deposit_asset],
+        },
+    )?;
     Ok(Response::new().add_submessage(SubMsg {
         // Create LP token
         msg: WasmMsg::Instantiate {
@@ -108,7 +124,7 @@ pub fn instantiate(deps: DepsMut, env: Env, info: MessageInfo, msg: InstantiateM
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> VaultResult {
-    let dapp = VaultDapp::default();
+    let dapp = VaultAddOn::default();
     match msg {
         ExecuteMsg::Base(dapp_msg) => dapp
             .execute(deps, env, info, dapp_msg)
@@ -139,7 +155,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::Base(dapp_msg) => VaultDapp::default().query(deps, env, dapp_msg),
+        QueryMsg::Base(dapp_msg) => VaultAddOn::default().query(deps, env, dapp_msg),
         // handle dapp-specific queries here
         QueryMsg::State {} => to_binary(&StateResponse {
             liquidity_token: STATE.load(deps.storage)?.liquidity_token_addr.to_string(),
