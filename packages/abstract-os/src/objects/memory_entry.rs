@@ -3,7 +3,7 @@
 
 use std::{
     convert::{TryFrom, TryInto},
-    fmt::Display, str::from_utf8,
+    fmt::Display,
 };
 
 use cosmwasm_std::{Addr, Deps, StdError, StdResult};
@@ -48,15 +48,15 @@ pub struct ContractEntry {
     pub contract: String,
 }
 
-impl ContractEntry{
-        pub fn new(protocol: &str, contract: &str) -> Self {
-            Self{
+impl ContractEntry {
+    pub fn new(protocol: &str, contract: &str) -> Self {
+        Self {
             protocol: protocol.to_ascii_lowercase(),
             contract: contract.to_ascii_lowercase(),
         }
     }
     pub fn resolve(&self, deps: Deps, memory: &Memory) -> StdResult<Addr> {
-        memory.query_contract(deps, &self)
+        memory.query_contract(deps, self)
     }
 }
 
@@ -158,7 +158,8 @@ mod test {
         let key = mock_key();
         let map: Map<ContractEntry, u64> = Map::new("map");
 
-        map.save(deps.as_mut().storage, key.clone(), &42069).unwrap();
+        map.save(deps.as_mut().storage, key.clone(), &42069)
+            .unwrap();
 
         assert_eq!(map.load(deps.as_ref().storage, key.clone()).unwrap(), 42069);
 

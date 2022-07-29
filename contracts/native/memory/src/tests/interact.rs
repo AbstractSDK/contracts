@@ -38,7 +38,10 @@ fn unauthorized_memory_update() {
 
     // Try adding a contract to the memory
     let msg = ExecuteMsg::UpdateContractAddresses {
-        to_add: vec![("project/contract".to_string().try_into().unwrap(), "contract_address".to_string())],
+        to_add: vec![(
+            "project/contract".to_string().try_into().unwrap(),
+            "contract_address".to_string(),
+        )],
         to_remove: vec![],
     };
 
@@ -77,7 +80,10 @@ fn authorized_memory_update() {
 
     // Try adding a contract to the memory
     let msg = ExecuteMsg::UpdateContractAddresses {
-        to_add: vec![("project/contract".to_string().try_into().unwrap(), "contract_address".to_string())],
+        to_add: vec![(
+            "project/contract".to_string().try_into().unwrap(),
+            "contract_address".to_string(),
+        )],
         to_remove: vec![],
     };
 

@@ -28,11 +28,7 @@ impl Memory {
     }
 
     /// Raw query of a single contract Addr
-    pub fn query_contract(
-        &self,
-        deps: Deps,
-        key: &ContractEntry,
-    ) -> StdResult<Addr> {
+    pub fn query_contract(&self, deps: Deps, key: &ContractEntry) -> StdResult<Addr> {
         query_contract_from_mem(deps, &self.address, key)
     }
 
@@ -106,7 +102,7 @@ pub fn query_contracts_from_mem(
     let mut contracts: BTreeMap<ContractEntry, Addr> = BTreeMap::new();
 
     // Query over keys
-    for key in keys.into_iter() {
+    for key in keys.iter() {
         let result: Addr = CONTRACT_ADDRESSES
             .query(&deps.querier, memory_addr.clone(), key.clone())?
             .ok_or_else(|| {
@@ -124,17 +120,8 @@ pub fn query_contract_from_mem(
     key: &ContractEntry,
 ) -> StdResult<Addr> {
     let result: Addr = CONTRACT_ADDRESSES
-        .query(
-            &deps.querier,
-            memory_addr.clone(),
-            key.clone(),
-        )?
-        .ok_or_else(|| {
-            StdError::generic_err(format!(
-                "contract {} not found in memory",
-                key
-            ))
-        })?;
+        .query(&deps.querier, memory_addr.clone(), key.clone())?
+        .ok_or_else(|| StdError::generic_err(format!("contract {} not found in memory", key)))?;
     // Addresses are checked when stored.
     Ok(Addr::unchecked(result))
 }

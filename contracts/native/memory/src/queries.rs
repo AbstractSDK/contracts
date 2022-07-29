@@ -1,10 +1,14 @@
 use abstract_sdk::memory::{query_assets_from_mem, query_contracts_from_mem};
 use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, StdResult};
 
-use abstract_os::{memory::{
-    state::{ASSET_ADDRESSES, CONTRACT_ADDRESSES},
-    QueryAssetListResponse, QueryAssetsResponse, QueryContractListResponse, QueryContractsResponse,
-}, objects::memory_entry::ContractEntry};
+use abstract_os::{
+    memory::{
+        state::{ASSET_ADDRESSES, CONTRACT_ADDRESSES},
+        QueryAssetListResponse, QueryAssetsResponse, QueryContractListResponse,
+        QueryContractsResponse,
+    },
+    objects::memory_entry::ContractEntry,
+};
 use cw_asset::AssetInfo;
 use cw_storage_plus::Bound;
 
