@@ -19,7 +19,7 @@ crate-type = ["cdylib", "rlib"]
 # for more explicit tests, cargo test --features=backtraces
 backtraces = ["cosmwasm-std/backtraces"]
 default = ["juno"]
-juno = ["dep:wasmswap"]
+juno = ["dep:wasmswap", "dep:cw20"]
 
 # Keep as is until TendermintStake updates.
 [dependencies]
@@ -33,6 +33,7 @@ abstract-api = { version = "0.1.0", path = "../../../../packages/abstract-api", 
 cw-asset = {version = "2.2.0"}
 
 # Juno dexes
+cw20 = {version = "0.13", optional = true}
 wasmswap = {git = "https://github.com/Wasmswap/wasmswap-contracts", features = ["library"], optional = true}
 
 [dev-dependencies]

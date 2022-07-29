@@ -1,8 +1,9 @@
 use std::convert::TryFrom;
 
-use cosmwasm_std::StdError;
+use cosmwasm_std::{StdError, Deps, Addr, Decimal};
+use cw_asset::Asset;
 
-use crate::error::DexError;
+use crate::{error::DexError, contract::DexApi};
 
 // pub struct Exchange<T: &dyn DEX + 'static>(pub T);
 
@@ -21,7 +22,7 @@ use crate::error::DexError;
 // }
 
 pub trait DEX {
-    fn swap(&self);
+    fn swap(&self, deps: Deps, api: DexApi, contract_address: Addr, offer_asset: Asset, belief_price: Option<Decimal>, max_spread: Option<Decimal>);
     // fn raw_swap();
     // fn provide_liquidity();
     // fn raw_provide_liquidity();

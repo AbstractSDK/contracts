@@ -27,5 +27,7 @@ pub fn swap(deps: Deps, env: Env, info: MessageInfo, api: DexApi,offer_asset: Pr
     let ask_asset_info = AssetEntry::from(ask_asset).resolve(deps,&memory)?;
 
     let exchange= resolve_exchange(dex)?;
+
+    dex.swap()
     
 }

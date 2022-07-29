@@ -12,4 +12,7 @@ pub enum DexError {
 
     #[error("DEX {0} is not a known dex on this network.")]
     UnknownDex(String),
+
+    #[error("Cw1155 is unsupported.")]
+    Cw1155Unsupported,
 }
