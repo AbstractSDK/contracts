@@ -12,7 +12,7 @@ use abstract_os::objects::fee::Fee;
 use abstract_sdk::cw20::query_supply;
 use abstract_sdk::proxy::{query_total_value, send_to_proxy};
 
-use crate::contract::{VaultDapp, VaultResult};
+use crate::contract::{VaultAddOn, VaultResult};
 use crate::error::VaultError;
 use crate::state::{Pool, State, FEE, POOL, STATE};
 
@@ -23,7 +23,7 @@ pub fn receive_cw20(
     deps: DepsMut,
     env: Env,
     msg_info: MessageInfo,
-    dapp: VaultDapp,
+    dapp: VaultAddOn,
     cw20_msg: Cw20ReceiveMsg,
 ) -> VaultResult {
     match from_binary(&cw20_msg.msg)? {
@@ -52,7 +52,7 @@ pub fn receive_cw20(
 pub fn try_provide_liquidity(
     deps: DepsMut,
     msg_info: MessageInfo,
-    dapp: VaultDapp,
+    dapp: VaultAddOn,
     asset: Asset,
     sender: Option<String>,
 ) -> VaultResult {
@@ -152,7 +152,7 @@ pub fn try_provide_liquidity(
 pub fn try_withdraw_liquidity(
     deps: DepsMut,
     _env: Env,
-    dapp: VaultDapp,
+    dapp: VaultAddOn,
     sender: String,
     amount: Uint128,
 ) -> VaultResult {
@@ -252,7 +252,7 @@ pub fn try_withdraw_liquidity(
 pub fn update_pool(
     deps: DepsMut,
     msg_info: MessageInfo,
-    dapp: VaultDapp,
+    dapp: VaultAddOn,
     deposit_asset: Option<String>,
     assets_to_add: Vec<String>,
     assets_to_remove: Vec<String>,
@@ -290,7 +290,12 @@ pub fn update_pool(
     Ok(Response::new().add_attribute("Update:", "Successful"))
 }
 
-pub fn set_fee(deps: DepsMut, msg_info: MessageInfo, dapp: VaultDapp, new_fee: Fee) -> VaultResult {
+pub fn set_fee(
+    deps: DepsMut,
+    msg_info: MessageInfo,
+    dapp: VaultAddOn,
+    new_fee: Fee,
+) -> VaultResult {
     // Only the admin should be able to call this
     dapp.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
