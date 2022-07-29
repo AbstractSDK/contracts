@@ -9,6 +9,8 @@ use cw_asset::{AssetInfo, AssetInfoUnchecked};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use crate::objects::memory_entry::ContractEntry;
+
 /// Memory state details
 pub mod state {
     use cosmwasm_std::Addr;
@@ -42,9 +44,9 @@ pub enum ExecuteMsg {
     /// Updates the contract addressbook
     UpdateContractAddresses {
         /// Contracts to update or add
-        to_add: Vec<((String, String), String)>,
+        to_add: Vec<(ContractEntry, String)>,
         /// Contracts to remove
-        to_remove: Vec<(String, String)>,
+        to_remove: Vec<ContractEntry>,
     },
     /// Updates the Asset addressbook
     UpdateAssetAddresses {
@@ -71,12 +73,12 @@ pub enum QueryMsg {
     /// returns [`QueryContractsResponse`]
     Contracts {
         /// Project and contract names of contracts to query
-        names: Vec<(String, String)>,
+        names: Vec<ContractEntry>,
     },
     /// Page over contracts
     /// returns [`QueryContractListResponse`]
     ContractList {
-        last_contract: Option<(String, String)>,
+        last_contract: Option<ContractEntry>,
         iter_limit: Option<u8>,
     },
     /// Page over assets
@@ -96,7 +98,7 @@ pub struct QueryAssetsResponse {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct QueryContractsResponse {
     /// Contracts (name, address)
-    pub contracts: Vec<((String, String), String)>,
+    pub contracts: Vec<(ContractEntry, String)>,
 }
 
 /// Query response
@@ -109,5 +111,5 @@ pub struct QueryAssetListResponse {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct QueryContractListResponse {
     /// Contracts (name, address)
-    pub contracts: Vec<((String, String), String)>,
+    pub contracts: Vec<(ContractEntry, String)>,
 }

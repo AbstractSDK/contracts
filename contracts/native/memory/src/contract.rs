@@ -41,8 +41,8 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             iter_limit,
         } => queries::query_asset_list(deps, last_asset_name, iter_limit),
         QueryMsg::ContractList {
-            last_contract_name,
+            last_contract,
             iter_limit,
-        } => queries::query_contract_list(deps, last_contract_name, iter_limit),
+        } => queries::query_contract_list(deps, last_contract, iter_limit),
     }
 }
