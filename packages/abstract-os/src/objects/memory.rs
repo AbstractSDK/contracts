@@ -6,7 +6,9 @@ use cw_asset::AssetInfo;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::memory::state::{ASSET_ADDRESSES, CONTRACT_ADDRESSES, PAIR_POSTFIX};
+use crate::memory::state::{ASSET_ADDRESSES, CONTRACT_ADDRESSES};
+
+use super::memory_entry::ContractEntry;
 
 /// Struct that provides easy in-contract memory querying.
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -20,14 +22,18 @@ impl Memory {
     pub fn query_contracts(
         &self,
         deps: Deps,
-        contract_names: &[String],
-    ) -> StdResult<BTreeMap<String, Addr>> {
+        contract_names: &[ContractEntry],
+    ) -> StdResult<BTreeMap<ContractEntry, Addr>> {
         query_contracts_from_mem(deps, &self.address, contract_names)
     }
 
     /// Raw query of a single contract Addr
-    pub fn query_contract(&self, deps: Deps, contract_name: &str) -> StdResult<Addr> {
-        query_contract_from_mem(deps, &self.address, contract_name)
+    pub fn query_contract(
+        &self,
+        deps: Deps,
+        key: &ContractEntry,
+    ) -> StdResult<Addr> {
+        query_contract_from_mem(deps, &self.address, key)
     }
 
     /// Raw Query to Memory contract
@@ -53,8 +59,8 @@ impl Memory {
     ) -> StdResult<Addr> {
         let mut lowercase = asset_names.map(|s| s.to_ascii_lowercase());
         lowercase.sort();
-        let key = format!("{}_{}_{}_{}", dex, lowercase[0], lowercase[1], PAIR_POSTFIX);
-        query_contract_from_mem(deps, &self.address, &key)
+        let key = format!("{}_{}", lowercase[0], lowercase[1]);
+        query_contract_from_mem(deps, &self.address, &ContractEntry::new(dex, &key))
     }
 }
 
@@ -95,18 +101,18 @@ pub fn query_asset_from_mem(
 pub fn query_contracts_from_mem(
     deps: Deps,
     memory_addr: &Addr,
-    contract_names: &[String],
-) -> StdResult<BTreeMap<String, Addr>> {
-    let mut contracts: BTreeMap<String, Addr> = BTreeMap::new();
+    keys: &[ContractEntry],
+) -> StdResult<BTreeMap<ContractEntry, Addr>> {
+    let mut contracts: BTreeMap<ContractEntry, Addr> = BTreeMap::new();
 
-    // Query over
-    for contract in contract_names.iter() {
+    // Query over keys
+    for key in keys.into_iter() {
         let result: Addr = CONTRACT_ADDRESSES
-            .query(&deps.querier, memory_addr.clone(), contract)?
+            .query(&deps.querier, memory_addr.clone(), key.clone())?
             .ok_or_else(|| {
-                StdError::generic_err(format!("contract {} not found in memory", &contract))
+                StdError::generic_err(format!("contract {} not found in memory", key))
             })?;
-        contracts.insert(contract.clone(), result);
+        contracts.insert(key.clone(), result);
     }
     Ok(contracts)
 }
@@ -115,12 +121,19 @@ pub fn query_contracts_from_mem(
 pub fn query_contract_from_mem(
     deps: Deps,
     memory_addr: &Addr,
-    contract_name: &str,
+    key: &ContractEntry,
 ) -> StdResult<Addr> {
     let result: Addr = CONTRACT_ADDRESSES
-        .query(&deps.querier, memory_addr.clone(), contract_name)?
+        .query(
+            &deps.querier,
+            memory_addr.clone(),
+            key.clone(),
+        )?
         .ok_or_else(|| {
-            StdError::generic_err(format!("contract {} not found in memory", &contract_name))
+            StdError::generic_err(format!(
+                "contract {} not found in memory",
+                key
+            ))
         })?;
     // Addresses are checked when stored.
     Ok(Addr::unchecked(result))

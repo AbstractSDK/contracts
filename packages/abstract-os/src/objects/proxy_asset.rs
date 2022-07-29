@@ -9,6 +9,8 @@
 //! The base asset is the asset for which `value_reference` in `None`.
 //! **There should only be ONE base asset when configuring your proxy**
 
+use std::convert::TryInto;
+
 use cosmwasm_std::{
     to_binary, Addr, Decimal, Deps, Env, QuerierWrapper, QueryRequest, StdError, StdResult,
     Uint128, WasmQuery,
@@ -20,7 +22,6 @@ use cw_asset::{Asset, AssetInfo};
 
 use crate::{
     manager::state::OS_MODULES,
-    memory::state::PAIR_POSTFIX,
     proxy::state::ADMIN,
     proxy::{state::VAULT_ASSETS, ExternalValueResponse, ValueQueryMsg},
 };
@@ -47,7 +48,9 @@ impl UncheckedProxyAsset {
     pub fn check(self, deps: Deps, memory: &Memory) -> StdResult<ProxyAsset> {
         let entry: AssetEntry = self.asset.into();
         entry.resolve(deps, memory)?;
-        let value_reference = self.value_reference.map(|val| val.check(deps, memory));
+        let value_reference = self
+            .value_reference
+            .map(|val| val.check(deps, memory, &entry));
         Ok(ProxyAsset {
             asset: entry,
             value_reference: value_reference.transpose()?,
@@ -63,6 +66,7 @@ pub enum UncheckedValueRef {
     /// Both assets must be defined in the Proxy_assets state
     Pool {
         pair: String,
+        exchange: String,
     },
     // Liquidity Pool token
     LiquidityToken {},
@@ -79,16 +83,31 @@ pub enum UncheckedValueRef {
 }
 
 impl UncheckedValueRef {
-    pub fn check(self, deps: Deps, memory: &Memory) -> StdResult<ValueRef> {
+    pub fn check(self, deps: Deps, memory: &Memory, entry: &AssetEntry) -> StdResult<ValueRef> {
         match self {
-            UncheckedValueRef::Pool { pair } => {
-                let pair_contract: ContractEntry = pair.into();
+            UncheckedValueRef::Pool { pair, exchange } => {
+                let lowercase = pair.to_ascii_lowercase();
+                let mut composite: Vec<&str> = lowercase.split('_').collect();
+                if composite.len() != 2 {
+                    return Err(StdError::generic_err(
+                        "trading pair should be formatted as \"asset1_asset2\".",
+                    ));
+                }
+                composite.sort();
+                let pair_name = format!("{}_{}", composite[0], composite[1]);
+                let pair_contract: ContractEntry = ContractEntry::new(&exchange, &pair_name);
+                // verify pair is available
                 pair_contract.resolve(deps, memory)?;
                 Ok(ValueRef::Pool {
                     pair: pair_contract,
                 })
             }
-            UncheckedValueRef::LiquidityToken {} => Ok(ValueRef::LiquidityToken {}),
+            UncheckedValueRef::LiquidityToken {} => {
+                let pair: ContractEntry = entry.to_string().try_into()?;
+                // Ensure lp pair is registered
+                pair.resolve(deps, memory)?;
+                Ok(ValueRef::LiquidityToken {})
+            }
             UncheckedValueRef::Proxy {
                 proxy_asset,
                 multiplier,
@@ -165,7 +184,11 @@ impl ProxyAsset {
                 }
                 // Liquidity is an LP token, value() fn is called recursively on both assets in the pool
                 ValueRef::LiquidityToken {} => {
-                    return self.lp_value(deps, env, memory, valued_asset)
+                    // We map the LP token to its pair address.
+                    // lp tokens are stored as "dex/asset1_asset2" in the asset store.
+                    // pairs are stored as ContractEntry{protocol: dex, contract: asset1_asset2} in the contract store.
+                    let pair: ContractEntry = self.asset.to_string().try_into()?;
+                    return self.lp_value(deps, env, memory, valued_asset, pair);
                 }
                 // A proxy asset is used instead
                 ValueRef::Proxy {
@@ -207,7 +230,7 @@ impl ProxyAsset {
         valued_asset: Asset,
         pair: &ContractEntry,
     ) -> StdResult<Uint128> {
-        let other_pool_asset: AssetEntry = other_asset_name(self.asset.as_str(), pair.as_str())?
+        let other_pool_asset: AssetEntry = other_asset_name(self.asset.as_str(), &pair.contract)?
             .to_string()
             .into();
 
@@ -243,6 +266,7 @@ impl ProxyAsset {
         env: &Env,
         memory: &Memory,
         lp_asset: Asset,
+        pair: ContractEntry,
     ) -> StdResult<Uint128> {
         let supply: Uint128;
         if let AssetInfo::Cw20(addr) = &lp_asset.info {
@@ -263,8 +287,7 @@ impl ProxyAsset {
             )));
         }
 
-        let pair_address =
-            memory.query_contract(deps, &format!("{}_{}", self.asset.as_str(), PAIR_POSTFIX))?;
+        let pair_address = pair.resolve(deps, memory)?;
 
         let asset_1 = memory.query_asset(deps, other_pool_asset_names[0])?;
         let asset_2 = memory.query_asset(deps, other_pool_asset_names[1])?;
@@ -306,7 +329,7 @@ pub fn proxy_value(
     replacement_vault_asset.value(deps, env, memory, Some(holding * *multiplier))
 }
 /// Get the other asset's name from a composite name
-/// ex: asset= "btc" composite = "btc_eth_pair"
+/// ex: asset= "btc" composite = "btc_eth"
 /// returns "eth"
 fn other_asset_name<'a>(asset: &'a str, composite: &'a str) -> StdResult<&'a str> {
     composite
