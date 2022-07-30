@@ -43,30 +43,29 @@ impl ToString for AssetEntry {
 
 /// Key to get the Address of a contract
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema, Eq, PartialOrd, Ord)]
-pub struct ContractEntry {
+pub struct UncheckedContractEntry {
     pub protocol: String,
     pub contract: String,
 }
 
-impl ContractEntry {
-    pub fn new(protocol: &str, contract: &str) -> Self {
+impl UncheckedContractEntry {
+    pub fn new<T: ToString>(protocol: T, contract: T) -> Self {
         Self {
-            protocol: protocol.to_ascii_lowercase(),
-            contract: contract.to_ascii_lowercase(),
+            protocol: protocol.to_string(),
+            contract: contract.to_string(),
         }
     }
-    pub fn resolve(&self, deps: Deps, memory: &Memory) -> StdResult<Addr> {
-        memory.query_contract(deps, self)
+    pub fn check(self, deps: Deps, memory: &Memory) -> Result<ContractEntry, StdError> {
+        let entry = ContractEntry {
+            contract: self.contract.to_ascii_lowercase(),
+            protocol: self.protocol.to_ascii_lowercase(),
+        };
+        entry.resolve(deps, memory)?;
+        Ok(entry)
     }
 }
 
-impl Display for ContractEntry {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}/{}", self.protocol, self.contract)
-    }
-}
-
-impl TryFrom<String> for ContractEntry {
+impl TryFrom<String> for UncheckedContractEntry {
     type Error = StdError;
     fn try_from(entry: String) -> Result<Self, Self::Error> {
         let composite: Vec<&str> = entry.split('/').collect();
@@ -76,6 +75,26 @@ impl TryFrom<String> for ContractEntry {
             ));
         }
         Ok(Self::new(composite[0], composite[1]))
+    }
+}
+
+/// Key to get the Address of a contract
+/// Use [`UncheckedContractEntry`] to construct this type.  
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema, Eq, PartialOrd, Ord)]
+pub struct ContractEntry {
+    pub protocol: String,
+    pub contract: String,
+}
+
+impl ContractEntry {
+    pub fn resolve(&self, deps: Deps, memory: &Memory) -> StdResult<Addr> {
+        memory.query_contract(deps, self)
+    }
+}
+
+impl Display for ContractEntry {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}/{}", self.protocol, self.contract)
     }
 }
 
@@ -141,14 +160,26 @@ mod test {
     use cw_storage_plus::Map;
 
     fn mock_key() -> ContractEntry {
-        ContractEntry::new("abstract", "rocket-ship")
+        ContractEntry {
+            protocol: "abstract".to_string(),
+            contract: "rocket-ship".to_string(),
+        }
     }
 
     fn mock_keys() -> (ContractEntry, ContractEntry, ContractEntry) {
         (
-            ContractEntry::new("abstract", "sailing-ship"),
-            ContractEntry::new("abstract", "rocket-ship"),
-            ContractEntry::new("shitcoin", "pump'n dump"),
+            ContractEntry {
+                protocol: "abstract".to_string(),
+                contract: "sailing-ship".to_string(),
+            },
+            ContractEntry {
+                protocol: "abstract".to_string(),
+                contract: "rocket-ship".to_string(),
+            },
+            ContractEntry {
+                protocol: "shitcoin".to_string(),
+                contract: "pump'n dump".to_string(),
+            },
         )
     }
 

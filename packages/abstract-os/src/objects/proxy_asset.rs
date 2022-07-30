@@ -28,7 +28,7 @@ use crate::{
 
 use super::{
     memory::Memory,
-    memory_entry::{AssetEntry, ContractEntry},
+    memory_entry::{AssetEntry, ContractEntry, UncheckedContractEntry},
 };
 
 /// A proxy asset with unchecked memory entry fields.
@@ -95,17 +95,17 @@ impl UncheckedValueRef {
                 }
                 composite.sort();
                 let pair_name = format!("{}_{}", composite[0], composite[1]);
-                let pair_contract: ContractEntry = ContractEntry::new(&exchange, &pair_name);
                 // verify pair is available
-                pair_contract.resolve(deps, memory)?;
+                let pair_contract: ContractEntry =
+                    UncheckedContractEntry::new(&exchange, &pair_name).check(deps, memory)?;
                 Ok(ValueRef::Pool {
                     pair: pair_contract,
                 })
             }
             UncheckedValueRef::LiquidityToken {} => {
-                let pair: ContractEntry = entry.to_string().try_into()?;
+                let maybe_pair: UncheckedContractEntry = entry.to_string().try_into()?;
                 // Ensure lp pair is registered
-                pair.resolve(deps, memory)?;
+                maybe_pair.check(deps, memory)?;
                 Ok(ValueRef::LiquidityToken {})
             }
             UncheckedValueRef::Proxy {
@@ -187,7 +187,8 @@ impl ProxyAsset {
                     // We map the LP token to its pair address.
                     // lp tokens are stored as "dex/asset1_asset2" in the asset store.
                     // pairs are stored as ContractEntry{protocol: dex, contract: asset1_asset2} in the contract store.
-                    let pair: ContractEntry = self.asset.to_string().try_into()?;
+                    let maybe_pair: UncheckedContractEntry = self.asset.to_string().try_into()?;
+                    let pair = maybe_pair.check(deps, memory)?;
                     return self.lp_value(deps, env, memory, valued_asset, pair);
                 }
                 // A proxy asset is used instead
@@ -278,12 +279,12 @@ impl ProxyAsset {
         // Get total supply of LP tokens and calculate share
         let share: Decimal = Decimal::from_ratio(lp_asset.amount, supply.u128());
 
-        let other_pool_asset_names = pair_asset_names(self.asset.as_str());
+        let other_pool_asset_names = pair_asset_names(&pair.contract);
 
         if other_pool_asset_names.len() != 2 {
             return Err(StdError::generic_err(format!(
-                "lp token name {} must be composed of two assets.",
-                self.asset.as_str()
+                "lp pair contract {} must be composed of two assets.",
+                pair
             )));
         }
 
@@ -343,6 +344,7 @@ fn other_asset_name<'a>(asset: &'a str, composite: &'a str) -> StdResult<&'a str
         })
 }
 
+/// Composite of form asset1_asset2
 fn pair_asset_names(composite: &str) -> Vec<&str> {
     composite.split('_').collect()
 }
