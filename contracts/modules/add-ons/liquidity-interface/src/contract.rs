@@ -77,12 +77,17 @@ pub fn instantiate(
     )?;
 
     // Verify deposit asset is valid and active on proxy
-    verify_asset_is_valid(deps.as_ref(), &vault, &AssetEntry::new(msg.deposit_asset), true)?;
+    verify_asset_is_valid(
+        deps.as_ref(),
+        &vault,
+        &AssetEntry::new(msg.deposit_asset.clone()),
+        true,
+    )?;
 
     POOL.save(
         deps.storage,
         &Pool {
-            deposit_asset: msg.deposit_asset.into(),
+            deposit_asset: msg.deposit_asset.clone().into(),
             assets: vec![msg.deposit_asset.into()],
         },
     )?;

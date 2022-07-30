@@ -2,8 +2,8 @@ use abstract_add_on::state::AddOnState;
 use abstract_os::objects::memory_entry::AssetEntry;
 use abstract_sdk::LoadMemory;
 use cosmwasm_std::{
-    from_binary, to_binary, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response, Uint128,
-    WasmMsg, StdResult, Deps,
+    from_binary, to_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo, Response,
+    Uint128, WasmMsg,
 };
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg};
 use cw_asset::{Asset, AssetInfo};
@@ -12,7 +12,7 @@ use abstract_os::liquidity_interface::DepositHookMsg;
 use abstract_os::objects::deposit_info::DepositInfo;
 use abstract_os::objects::fee::Fee;
 use abstract_sdk::cw20::query_supply;
-use abstract_sdk::proxy::{query_total_value, send_to_proxy, query_proxy_asset_raw};
+use abstract_sdk::proxy::{query_proxy_asset_raw, query_total_value, send_to_proxy};
 
 use crate::contract::{VaultAddOn, VaultResult};
 use crate::error::VaultError;
@@ -279,7 +279,9 @@ pub fn update_pool(
         if !pool.assets.contains(&entry) {
             pool.assets.push(entry)
         } else {
-            return Err(VaultError::AssetAlreadyPresent { asset: entry.to_string() });
+            return Err(VaultError::AssetAlreadyPresent {
+                asset: entry.to_string(),
+            });
         }
     }
 
@@ -289,7 +291,9 @@ pub fn update_pool(
         if pool.assets.contains(&entry) {
             pool.assets.retain(|x| *x != entry)
         } else {
-            return Err(VaultError::AssetNotPresent { asset: entry.to_string() });
+            return Err(VaultError::AssetNotPresent {
+                asset: entry.to_string(),
+            });
         }
     }
 
@@ -315,17 +319,21 @@ pub fn set_fee(
     Ok(Response::new().add_attribute("Update:", "Successful"))
 }
 
-pub fn verify_asset_is_valid(deps: Deps, vault: &VaultAddOn, asset: &AssetEntry, is_base: bool ) -> Result<(), VaultError> {
+pub fn verify_asset_is_valid(
+    deps: Deps,
+    vault: &VaultAddOn,
+    asset: &AssetEntry,
+    is_base: bool,
+) -> Result<(), VaultError> {
     let memory = vault.mem(deps.storage)?;
     let base_state = vault.state(deps.storage)?;
 
     asset.resolve(deps, &memory)?;
-    let proxy_asset =
-        query_proxy_asset_raw(deps, &base_state.proxy_address, asset.as_str())?;
-    if proxy_asset.value_reference.is_some() && is_base {
+    let proxy_asset = query_proxy_asset_raw(deps, &base_state.proxy_address, asset.as_str())?;
+    if proxy_asset.value_reference.is_some() && is_base
+        || proxy_asset.value_reference.is_none() && !is_base
+    {
         // The deposit asset must be the base asset for the value calculation.
-        return Err(VaultError::DepositAssetNotBase(asset.to_string()));
-    } else if proxy_asset.value_reference.is_none() && !is_base {
         return Err(VaultError::DepositAssetNotBase(asset.to_string()));
     }
     Ok(())

@@ -38,10 +38,10 @@ pub fn query_proxy_asset_raw(
     asset_name: &str,
 ) -> StdResult<ProxyAsset> {
     let response = VAULT_ASSETS.query(&deps.querier, proxy_address.clone(), asset_name)?;
-    Ok(response.ok_or_else(|| {
+    response.ok_or_else(|| {
         StdError::generic_err(format!(
             "Asset {} is not registered as an asset on your proxy contract.",
             asset_name
         ))
-    })?)
+    })
 }

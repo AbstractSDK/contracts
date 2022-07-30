@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::memory::state::{ASSET_ADDRESSES, CONTRACT_ADDRESSES};
 
-use super::memory_entry::{ContractEntry, AssetEntry};
+use super::memory_entry::{AssetEntry, ContractEntry};
 
 /// Struct that provides easy in-contract memory querying.
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
