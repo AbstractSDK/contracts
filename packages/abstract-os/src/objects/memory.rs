@@ -46,22 +46,23 @@ impl Memory {
         query_asset_from_mem(deps, &self.address, asset_name)
     }
 
-    /// Query single pair address from mem
-    pub fn query_pair_address(
-        &self,
-        deps: Deps,
-        asset_names: [String; 2],
-        dex: &str,
-    ) -> StdResult<Addr> {
-        let mut lowercase = asset_names.map(|s| s.to_ascii_lowercase());
-        lowercase.sort();
-        let key = format!("{}_{}", lowercase[0], lowercase[1]);
-        query_contract_from_mem(deps, &self.address, &ContractEntry::new(dex, &key))
-    }
+    // Query single pair address from mem
+    // pub fn query_pair_address(
+    //     &self,
+    //     deps: Deps,
+    //     asset_names: [String; 2],
+    //     dex: &str,
+    // ) -> StdResult<Addr> {
+    //     let mut lowercase = asset_names.map(|s| s.to_ascii_lowercase());
+    //     lowercase.sort();
+    //     let key = format!("{}_{}", lowercase[0], lowercase[1]);
+    //     query_contract_from_mem(deps, &self.address, &ContractEntry::new(dex, &key))
+    // }
 }
 
 /// Query asset infos from Memory Module asset addresses map.
-pub fn query_assets_from_mem(
+#[inline(always)]
+fn query_assets_from_mem(
     deps: Deps,
     memory_addr: &Addr,
     asset_names: &[String],
@@ -80,11 +81,8 @@ pub fn query_assets_from_mem(
 }
 
 /// Query single asset info from mem
-pub fn query_asset_from_mem(
-    deps: Deps,
-    memory_addr: &Addr,
-    asset_name: &str,
-) -> StdResult<AssetInfo> {
+#[inline(always)]
+fn query_asset_from_mem(deps: Deps, memory_addr: &Addr, asset_name: &str) -> StdResult<AssetInfo> {
     let result = ASSET_ADDRESSES
         .query(&deps.querier, memory_addr.clone(), asset_name)?
         .ok_or_else(|| {
@@ -94,7 +92,8 @@ pub fn query_asset_from_mem(
 }
 
 /// Query contract addresses from Memory Module contract addresses map.
-pub fn query_contracts_from_mem(
+#[inline(always)]
+fn query_contracts_from_mem(
     deps: Deps,
     memory_addr: &Addr,
     keys: &[ContractEntry],
@@ -114,11 +113,8 @@ pub fn query_contracts_from_mem(
 }
 
 /// Query single contract address from mem
-pub fn query_contract_from_mem(
-    deps: Deps,
-    memory_addr: &Addr,
-    key: &ContractEntry,
-) -> StdResult<Addr> {
+#[inline(always)]
+fn query_contract_from_mem(deps: Deps, memory_addr: &Addr, key: &ContractEntry) -> StdResult<Addr> {
     let result: Addr = CONTRACT_ADDRESSES
         .query(&deps.querier, memory_addr.clone(), key.clone())?
         .ok_or_else(|| StdError::generic_err(format!("contract {} not found in memory", key)))?;
