@@ -1,4 +1,7 @@
 use abstract_os::objects::memory_entry::ContractEntry;
+use abstract_os::objects::memory_entry::UncheckedContractEntry;
+use abstract_sdk::memory::Memory;
+use cosmwasm_std::Env;
 use cosmwasm_std::{Addr, DepsMut, Empty, MessageInfo, Response, StdResult};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 
@@ -7,11 +10,16 @@ use abstract_os::memory::state::*;
 use abstract_os::memory::ExecuteMsg;
 
 /// Handles the common base execute messages
-pub fn handle_message(deps: DepsMut, info: MessageInfo, message: ExecuteMsg) -> MemoryResult {
+pub fn handle_message(
+    deps: DepsMut,
+    info: MessageInfo,
+    env: Env,
+    message: ExecuteMsg,
+) -> MemoryResult {
     match message {
         ExecuteMsg::SetAdmin { admin } => set_admin(deps, info, admin),
         ExecuteMsg::UpdateContractAddresses { to_add, to_remove } => {
-            update_contract_addresses(deps, info, to_add, to_remove)
+            update_contract_addresses(deps, info, env, to_add, to_remove)
         }
         ExecuteMsg::UpdateAssetAddresses { to_add, to_remove } => {
             update_asset_addresses(deps, info, to_add, to_remove)
@@ -27,13 +35,18 @@ pub fn handle_message(deps: DepsMut, info: MessageInfo, message: ExecuteMsg) -> 
 pub fn update_contract_addresses(
     deps: DepsMut,
     msg_info: MessageInfo,
-    to_add: Vec<(ContractEntry, String)>,
-    to_remove: Vec<ContractEntry>,
+    env: Env,
+    to_add: Vec<(UncheckedContractEntry, String)>,
+    to_remove: Vec<UncheckedContractEntry>,
 ) -> MemoryResult {
     // Only Admin can call this method
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
     for (key, new_address) in to_add.into_iter() {
+        let key = ContractEntry {
+            protocol: key.protocol.to_ascii_lowercase(),
+            contract: key.contract.to_ascii_lowercase(),
+        };
         // validate addr
         let addr = deps.as_ref().api.addr_validate(&new_address)?;
         // Update function for new or existing keys
@@ -42,6 +55,12 @@ pub fn update_contract_addresses(
     }
 
     for key in to_remove {
+        let key = key.check(
+            deps.as_ref(),
+            &Memory {
+                address: env.contract.address.clone(),
+            },
+        )?;
         CONTRACT_ADDRESSES.remove(deps.storage, key);
     }
 

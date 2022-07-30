@@ -9,7 +9,7 @@ use cw_asset::{AssetInfo, AssetInfoUnchecked};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::objects::memory_entry::ContractEntry;
+use crate::objects::memory_entry::{ContractEntry, UncheckedContractEntry};
 
 /// Memory state details
 pub mod state {
@@ -44,9 +44,9 @@ pub enum ExecuteMsg {
     /// Updates the contract addressbook
     UpdateContractAddresses {
         /// Contracts to update or add
-        to_add: Vec<(ContractEntry, String)>,
+        to_add: Vec<(UncheckedContractEntry, String)>,
         /// Contracts to remove
-        to_remove: Vec<ContractEntry>,
+        to_remove: Vec<UncheckedContractEntry>,
     },
     /// Updates the Asset addressbook
     UpdateAssetAddresses {

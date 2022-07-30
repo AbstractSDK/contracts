@@ -1,4 +1,3 @@
-use abstract_sdk::memory::{query_assets_from_mem, query_contracts_from_mem};
 use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, StdResult};
 
 use abstract_os::{
@@ -15,19 +14,23 @@ use cw_storage_plus::Bound;
 const DEFAULT_LIMIT: u8 = 15;
 const MAX_LIMIT: u8 = 25;
 
-pub fn query_assets(deps: Deps, env: Env, asset_names: Vec<String>) -> StdResult<Binary> {
-    let assets = query_assets_from_mem(deps, &env.contract.address, &asset_names)?;
-    let vector = assets.into_iter().map(|(v, k)| (v, k)).collect();
-    to_binary(&QueryAssetsResponse { assets: vector })
+pub fn query_assets(deps: Deps, _env: Env, asset_names: Vec<String>) -> StdResult<Binary> {
+    let res: Result<Vec<(String, AssetInfo)>, _> = ASSET_ADDRESSES
+        .range(deps.storage, None, None, Order::Descending)
+        .filter(|e| asset_names.contains(&e.as_ref().unwrap().0))
+        .collect();
+    to_binary(&QueryAssetsResponse { assets: res? })
 }
 
-pub fn query_contract(deps: Deps, env: Env, names: Vec<ContractEntry>) -> StdResult<Binary> {
-    let contracts = query_contracts_from_mem(deps, &env.contract.address, &names)?;
-    let vector = contracts
-        .into_iter()
-        .map(|(v, k)| (v, k.to_string()))
+pub fn query_contract(deps: Deps, _env: Env, names: Vec<ContractEntry>) -> StdResult<Binary> {
+    let res: Result<Vec<(ContractEntry, Addr)>, _> = CONTRACT_ADDRESSES
+        .range(deps.storage, None, None, Order::Descending)
+        .filter(|e| names.contains(&e.as_ref().unwrap().0))
         .collect();
-    to_binary(&QueryContractsResponse { contracts: vector })
+
+    to_binary(&QueryContractsResponse {
+        contracts: res?.into_iter().map(|(x, a)| (x, a.to_string())).collect(),
+    })
 }
 
 pub fn query_asset_list(
