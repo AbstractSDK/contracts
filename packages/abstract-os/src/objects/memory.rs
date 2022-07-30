@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::memory::state::{ASSET_ADDRESSES, CONTRACT_ADDRESSES};
 
-use super::memory_entry::ContractEntry;
+use super::memory_entry::{ContractEntry, AssetEntry};
 
 /// Struct that provides easy in-contract memory querying.
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -36,8 +36,8 @@ impl Memory {
     pub fn query_assets(
         &self,
         deps: Deps,
-        asset_names: &[String],
-    ) -> StdResult<BTreeMap<String, AssetInfo>> {
+        asset_names: &[AssetEntry],
+    ) -> StdResult<BTreeMap<AssetEntry, AssetInfo>> {
         query_assets_from_mem(deps, &self.address, asset_names)
     }
 
@@ -65,13 +65,13 @@ impl Memory {
 fn query_assets_from_mem(
     deps: Deps,
     memory_addr: &Addr,
-    asset_names: &[String],
-) -> StdResult<BTreeMap<String, AssetInfo>> {
-    let mut assets: BTreeMap<String, AssetInfo> = BTreeMap::new();
+    asset_names: &[AssetEntry],
+) -> StdResult<BTreeMap<AssetEntry, AssetInfo>> {
+    let mut assets: BTreeMap<AssetEntry, AssetInfo> = BTreeMap::new();
 
     for asset in asset_names.iter() {
         let result = ASSET_ADDRESSES
-            .query(&deps.querier, memory_addr.clone(), asset)?
+            .query(&deps.querier, memory_addr.clone(), asset.as_str())?
             .ok_or_else(|| {
                 StdError::generic_err(format!("asset {} not found in memory", &asset))
             })?;

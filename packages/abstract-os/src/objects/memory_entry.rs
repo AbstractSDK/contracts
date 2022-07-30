@@ -15,7 +15,7 @@ use serde::{Deserialize, Serialize};
 use super::memory::Memory;
 
 /// Information on an asset
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema, Eq, PartialOrd, Ord)]
 pub struct AssetEntry(String);
 
 impl AssetEntry {
@@ -31,13 +31,13 @@ impl AssetEntry {
 }
 impl From<String> for AssetEntry {
     fn from(entry: String) -> Self {
-        Self::new(entry)
+        Self::new(entry.to_ascii_lowercase())
     }
 }
 
-impl ToString for AssetEntry {
-    fn to_string(&self) -> String {
-        self.0.clone()
+impl Display for AssetEntry {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
 
