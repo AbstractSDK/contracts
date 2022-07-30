@@ -2,8 +2,6 @@ use std::vec;
 
 use abstract_add_on::AddOnContract;
 use abstract_os::objects::memory_entry::AssetEntry;
-use abstract_sdk::proxy::query_proxy_asset_raw;
-use abstract_sdk::LoadMemory;
 use cosmwasm_std::{
     entry_point, to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, ReplyOn,
     Response, StdError, StdResult, SubMsg, WasmMsg,
@@ -79,13 +77,13 @@ pub fn instantiate(
     )?;
 
     // Verify deposit asset is valid and active on proxy
-    verify_asset_is_valid(deps, &vault, &AssetEntry::new(msg.deposit_asset), true)?;
+    verify_asset_is_valid(deps.as_ref(), &vault, &AssetEntry::new(msg.deposit_asset), true)?;
 
     POOL.save(
         deps.storage,
         &Pool {
-            deposit_asset: msg.deposit_asset.check(deps,mem),
-            assets: vec![msg.deposit_asset],
+            deposit_asset: msg.deposit_asset.into(),
+            assets: vec![msg.deposit_asset.into()],
         },
     )?;
     Ok(Response::new().add_submessage(SubMsg {

@@ -12,7 +12,7 @@ use abstract_os::liquidity_interface::DepositHookMsg;
 use abstract_os::objects::deposit_info::DepositInfo;
 use abstract_os::objects::fee::Fee;
 use abstract_sdk::cw20::query_supply;
-use abstract_sdk::proxy::{query_total_value, send_to_proxy};
+use abstract_sdk::proxy::{query_total_value, send_to_proxy, query_proxy_asset_raw};
 
 use crate::contract::{VaultAddOn, VaultResult};
 use crate::error::VaultError;
@@ -254,36 +254,42 @@ pub fn try_withdraw_liquidity(
 pub fn update_pool(
     deps: DepsMut,
     msg_info: MessageInfo,
-    dapp: VaultAddOn,
+    vault: VaultAddOn,
     deposit_asset: Option<String>,
     assets_to_add: Vec<String>,
     assets_to_remove: Vec<String>,
 ) -> VaultResult {
     // Only the admin should be able to call this
-    dapp.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    vault.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
     let mut pool = POOL.load(deps.storage)?;
 
     // If provided, update pool
     if let Some(deposit_asset) = deposit_asset {
+        let deposit_asset = deposit_asset.into();
+        verify_asset_is_valid(deps.as_ref(), &vault, &deposit_asset, true)?;
         pool.deposit_asset = deposit_asset;
     }
 
     // Add the asset to the vector if not already present
     for asset in assets_to_add.into_iter() {
-        if !pool.assets.contains(&asset) {
-            pool.assets.push(asset)
+        let entry = asset.into();
+        verify_asset_is_valid(deps.as_ref(), &vault, &entry, true)?;
+
+        if !pool.assets.contains(&entry) {
+            pool.assets.push(entry)
         } else {
-            return Err(VaultError::AssetAlreadyPresent { asset });
+            return Err(VaultError::AssetAlreadyPresent { asset: entry.to_string() });
         }
     }
 
     // Remove asset from vector if present
     for asset in assets_to_remove.into_iter() {
-        if pool.assets.contains(&asset) {
-            pool.assets.retain(|x| *x != asset)
+        let entry = asset.into();
+        if pool.assets.contains(&entry) {
+            pool.assets.retain(|x| *x != entry)
         } else {
-            return Err(VaultError::AssetNotPresent { asset });
+            return Err(VaultError::AssetNotPresent { asset: entry.to_string() });
         }
     }
 
@@ -309,17 +315,18 @@ pub fn set_fee(
     Ok(Response::new().add_attribute("Update:", "Successful"))
 }
 
-pub fn verify_asset_is_valid(deps: Deps, vault: &VaultAddOn, asset: &UncheckedAssetEntry, is_base: bool ) -> Result<(), VaultError> {
+pub fn verify_asset_is_valid(deps: Deps, vault: &VaultAddOn, asset: &AssetEntry, is_base: bool ) -> Result<(), VaultError> {
     let memory = vault.mem(deps.storage)?;
     let base_state = vault.state(deps.storage)?;
 
     asset.resolve(deps, &memory)?;
     let proxy_asset =
-        query_proxy_asset_raw(deps.as_ref(), &base_state.proxy_address, &msg.deposit_asset)?;
+        query_proxy_asset_raw(deps, &base_state.proxy_address, asset.as_str())?;
     if proxy_asset.value_reference.is_some() && is_base {
         // The deposit asset must be the base asset for the value calculation.
-        return Err(VaultError::DepositAssetNotBase(msg.deposit_asset));
+        return Err(VaultError::DepositAssetNotBase(asset.to_string()));
     } else if proxy_asset.value_reference.is_none() && !is_base {
-        
+        return Err(VaultError::DepositAssetNotBase(asset.to_string()));
     }
+    Ok(())
 }
