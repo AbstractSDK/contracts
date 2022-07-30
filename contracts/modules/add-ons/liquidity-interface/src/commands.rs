@@ -1,7 +1,9 @@
 use abstract_add_on::state::AddOnState;
+use abstract_os::objects::memory_entry::AssetEntry;
+use abstract_sdk::LoadMemory;
 use cosmwasm_std::{
     from_binary, to_binary, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response, Uint128,
-    WasmMsg,
+    WasmMsg, StdResult, Deps,
 };
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg};
 use cw_asset::{Asset, AssetInfo};
@@ -305,4 +307,19 @@ pub fn set_fee(
 
     FEE.save(deps.storage, &new_fee)?;
     Ok(Response::new().add_attribute("Update:", "Successful"))
+}
+
+pub fn verify_asset_is_valid(deps: Deps, vault: &VaultAddOn, asset: &UncheckedAssetEntry, is_base: bool ) -> Result<(), VaultError> {
+    let memory = vault.mem(deps.storage)?;
+    let base_state = vault.state(deps.storage)?;
+
+    asset.resolve(deps, &memory)?;
+    let proxy_asset =
+        query_proxy_asset_raw(deps.as_ref(), &base_state.proxy_address, &msg.deposit_asset)?;
+    if proxy_asset.value_reference.is_some() && is_base {
+        // The deposit asset must be the base asset for the value calculation.
+        return Err(VaultError::DepositAssetNotBase(msg.deposit_asset));
+    } else if proxy_asset.value_reference.is_none() && !is_base {
+        
+    }
 }

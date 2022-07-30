@@ -21,7 +21,7 @@ use abstract_os::objects::fee::Fee;
 use abstract_os::LIQUIDITY_INTERFACE;
 use cw20_base::msg::InstantiateMsg as TokenInstantiateMsg;
 
-use crate::commands;
+use crate::commands::{self, verify_asset_is_valid};
 use crate::error::VaultError;
 use crate::response::MsgInstantiateContractResponse;
 use crate::state::{Pool, State, FEE, POOL, STATE};
@@ -79,20 +79,12 @@ pub fn instantiate(
     )?;
 
     // Verify deposit asset is valid and active on proxy
-    let memory = vault.mem(deps.storage)?;
-    let base_state = vault.state(deps.storage)?;
-    AssetEntry::new(msg.deposit_asset.clone()).resolve(deps.as_ref(), &memory)?;
-    let proxy_asset =
-        query_proxy_asset_raw(deps.as_ref(), &base_state.proxy_address, &msg.deposit_asset)?;
-    if proxy_asset.value_reference.is_some() {
-        // The deposit asset must be the base asset for the value calculation.
-        return Err(VaultError::DepositAssetNotBase(msg.deposit_asset));
-    }
+    verify_asset_is_valid(deps, &vault, &AssetEntry::new(msg.deposit_asset), true)?;
 
     POOL.save(
         deps.storage,
         &Pool {
-            deposit_asset: msg.deposit_asset.clone(),
+            deposit_asset: msg.deposit_asset.check(deps,mem),
             assets: vec![msg.deposit_asset],
         },
     )?;
