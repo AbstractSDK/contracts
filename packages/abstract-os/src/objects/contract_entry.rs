@@ -1,5 +1,3 @@
-//! # Memory Entry
-//! An entry (value) in the memory key-value store.
 
 use std::{
     convert::{TryFrom, TryInto},
@@ -12,35 +10,7 @@ use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use super::memory::Memory;
-
-/// Information on an asset
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema, Eq, PartialOrd, Ord)]
-pub struct AssetEntry(String);
-
-impl AssetEntry {
-    pub fn new<T: ToString>(entry: T) -> Self {
-        Self(entry.to_string().to_ascii_lowercase())
-    }
-    pub fn resolve(&self, deps: Deps, memory: &Memory) -> StdResult<AssetInfo> {
-        memory.query_asset(deps, &self.0)
-    }
-    pub fn as_str(&self) -> &str {
-        &self.0
-    }
-}
-impl From<String> for AssetEntry {
-    fn from(entry: String) -> Self {
-        Self::new(entry.to_ascii_lowercase())
-    }
-}
-
-impl Display for AssetEntry {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
+use super::{memory_traits::Resolve, memory::Memory};
 /// Key to get the Address of a contract
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema, Eq, PartialOrd, Ord)]
 pub struct UncheckedContractEntry {
@@ -84,12 +54,6 @@ impl TryFrom<String> for UncheckedContractEntry {
 pub struct ContractEntry {
     pub protocol: String,
     pub contract: String,
-}
-
-impl ContractEntry {
-    pub fn resolve(&self, deps: Deps, memory: &Memory) -> StdResult<Addr> {
-        memory.query_contract(deps, self)
-    }
 }
 
 impl Display for ContractEntry {
