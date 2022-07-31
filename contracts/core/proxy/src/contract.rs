@@ -2,7 +2,7 @@ use std::collections::HashSet;
 use std::convert::TryInto;
 
 use abstract_os::objects::core::OS_ID;
-use abstract_os::objects::{AssetEntry, UncheckedContractEntry, Resolve};
+use abstract_os::objects::{AssetEntry, Resolve, UncheckedContractEntry};
 use abstract_sdk::memory::Memory;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
@@ -128,7 +128,7 @@ pub fn update_assets(
 
     for new_asset in to_add.into_iter() {
         let checked_asset = new_asset.check(deps.as_ref(), memory)?;
-        
+
         VAULT_ASSETS.save(deps.storage, checked_asset.asset.clone(), checked_asset)?;
     }
 
@@ -137,9 +137,11 @@ pub fn update_assets(
     }
 
     // Check validity of new configuration
-    let validity_result = query_proxy_asset_validity(deps.as_ref())?;    
-    if validity_result.missing_dependencies.is_some() || validity_result.unresolvable_assets.is_some() {
-        return Err(ProxyError::BadUpdate(format!("{:?}",validity_result)));
+    let validity_result = query_proxy_asset_validity(deps.as_ref())?;
+    if validity_result.missing_dependencies.is_some()
+        || validity_result.unresolvable_assets.is_some()
+    {
+        return Err(ProxyError::BadUpdate(format!("{:?}", validity_result)));
     }
 
     Ok(Response::new().add_attribute("action", "update_proxy_assets"))
@@ -281,8 +283,8 @@ fn query_proxy_asset_validity(deps: Deps) -> StdResult<QueryValidityResponse> {
 
     let assets = VAULT_ASSETS
         .range(deps.storage, None, None, Order::Ascending)
-        .collect::<StdResult<Vec<(AssetEntry,ProxyAsset)>>>()?;
-    for (_,asset) in assets {
+        .collect::<StdResult<Vec<(AssetEntry, ProxyAsset)>>>()?;
+    for (_, asset) in assets {
         resolve_asset(
             deps,
             &mut checked_assets,
