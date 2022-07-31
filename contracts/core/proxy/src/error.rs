@@ -1,3 +1,4 @@
+use abstract_os::proxy::QueryValidityResponse;
 use cosmwasm_std::{StdError, Uint128};
 use thiserror::Error;
 
@@ -26,6 +27,9 @@ pub enum ProxyError {
 
     #[error("Max amount of modules registered")]
     ModuleLimitReached,
+
+    #[error("The proposed update resulted in a bad configuration: {0}")]
+    BadUpdate(String),
 
     #[error(
         "Treasury balance too low, {} requested but it only has {}",
