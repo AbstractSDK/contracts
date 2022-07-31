@@ -1,16 +1,8 @@
 //! # Memory Entry
 //! An entry (value) in the memory key-value store.
 
-use std::{
-    convert::{TryFrom, TryInto},
-    fmt::Display,
-};
-
-use cosmwasm_std::{Addr, Deps, StdError, StdResult};
+use cosmwasm_std::{Addr, Deps, StdResult};
 use cw_asset::AssetInfo;
-use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 use super::{asset_entry::AssetEntry, contract_entry::ContractEntry, memory::Memory};
 

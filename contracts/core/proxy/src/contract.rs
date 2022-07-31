@@ -129,7 +129,7 @@ pub fn update_assets(
     for new_asset in to_add.into_iter() {
         let checked_asset = new_asset.check(deps.as_ref(), memory)?;
 
-        VAULT_ASSETS.save(deps.storage, checked_asset.asset.clone(), checked_asset)?;
+        VAULT_ASSETS.save(deps.storage, checked_asset.asset.clone(), &checked_asset)?;
     }
 
     for asset_id in to_remove {
@@ -416,7 +416,7 @@ fn get_value_ref_dependencies(value_reference: &ValueRef, entry: String) -> Vec<
         }
         abstract_os::objects::proxy_asset::ValueRef::LiquidityToken {} => {
             // check if both tokens of pool resolve
-            let maybe_pair: UncheckedContractEntry = entry.to_string().try_into().unwrap();
+            let maybe_pair: UncheckedContractEntry = entry.try_into().unwrap();
             let other_pool_asset_names = get_pair_asset_names(maybe_pair.contract.as_str());
             let asset1: AssetEntry = other_pool_asset_names[0].into();
             let asset2: AssetEntry = other_pool_asset_names[1].into();

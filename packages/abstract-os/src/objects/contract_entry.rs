@@ -3,8 +3,8 @@ use std::{
     fmt::Display,
 };
 
-use cosmwasm_std::{Addr, Deps, StdError, StdResult};
-use cw_asset::AssetInfo;
+use cosmwasm_std::{Deps, StdError, StdResult};
+
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};

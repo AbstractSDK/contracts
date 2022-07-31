@@ -1,7 +1,7 @@
 use std::vec;
 
 use abstract_add_on::AddOnContract;
-use abstract_os::objects::AssetEntry;
+
 use cosmwasm_std::{
     entry_point, to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, ReplyOn,
     Response, StdError, StdResult, SubMsg, WasmMsg,

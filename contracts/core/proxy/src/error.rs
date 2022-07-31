@@ -1,4 +1,3 @@
-use abstract_os::proxy::QueryValidityResponse;
 use cosmwasm_std::{StdError, Uint128};
 use thiserror::Error;
 

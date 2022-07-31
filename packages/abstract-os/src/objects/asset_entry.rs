@@ -1,10 +1,7 @@
-use std::{
-    convert::{TryFrom, TryInto},
-    fmt::Display,
-};
+use std::fmt::Display;
 
-use cosmwasm_std::{Addr, Deps, StdError, StdResult};
-use cw_asset::AssetInfo;
+use cosmwasm_std::StdResult;
+
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -63,7 +60,7 @@ impl KeyDeserialize for AssetEntry {
     type Output = Self;
 
     #[inline(always)]
-    fn from_vec(mut value: Vec<u8>) -> StdResult<Self::Output> {
+    fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
         Ok(Self(String::from_vec(value)?))
     }
 }
