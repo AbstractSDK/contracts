@@ -1,4 +1,3 @@
-
 use std::{
     convert::{TryFrom, TryInto},
     fmt::Display,
@@ -10,7 +9,7 @@ use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use super::{memory_traits::Resolve, memory::Memory};
+use super::{memory::Memory, memory_traits::Resolve};
 /// Key to get the Address of a contract
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema, Eq, PartialOrd, Ord)]
 pub struct UncheckedContractEntry {

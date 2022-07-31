@@ -1,6 +1,6 @@
 use abstract_add_on::state::AddOnState;
-use abstract_os::objects::AssetEntry;
 use abstract_os::objects::memory_traits::Resolve;
+use abstract_os::objects::AssetEntry;
 use abstract_sdk::MemoryOperation;
 use cosmwasm_std::{
     from_binary, to_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo, Response,

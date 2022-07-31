@@ -11,7 +11,11 @@ pub trait OsExecute {
 // easily retrieve the memory object from the contract to perform queries
 pub trait MemoryOperation {
     fn load(&self, store: &dyn Storage) -> StdResult<Memory>;
-    fn resolve<T: Resolve>(&self, deps: Deps, memory_entry: &dyn Resolve<Output = T::Output>) -> StdResult<T::Output> {
+    fn resolve<T: Resolve>(
+        &self,
+        deps: Deps,
+        memory_entry: &dyn Resolve<Output = T::Output>,
+    ) -> StdResult<T::Output> {
         memory_entry.resolve(deps, &self.load(deps.storage)?)
     }
 }

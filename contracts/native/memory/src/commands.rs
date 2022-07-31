@@ -1,4 +1,4 @@
-use abstract_os::objects::{UncheckedContractEntry, ContractEntry};
+use abstract_os::objects::{ContractEntry, UncheckedContractEntry};
 use abstract_sdk::memory::Memory;
 use cosmwasm_std::Env;
 use cosmwasm_std::{Addr, DepsMut, Empty, MessageInfo, Response, StdResult};

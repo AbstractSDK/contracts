@@ -5,7 +5,8 @@ use abstract_os::{
         state::{ASSET_ADDRESSES, CONTRACT_ADDRESSES},
         QueryAssetListResponse, QueryAssetsResponse, QueryContractListResponse,
         QueryContractsResponse,
-    }, objects::{AssetEntry, ContractEntry},
+    },
+    objects::{AssetEntry, ContractEntry},
 };
 use cw_asset::AssetInfo;
 use cw_storage_plus::Bound;
@@ -14,7 +15,10 @@ const DEFAULT_LIMIT: u8 = 15;
 const MAX_LIMIT: u8 = 25;
 
 pub fn query_assets(deps: Deps, _env: Env, asset_names: Vec<String>) -> StdResult<Binary> {
-    let assets: Vec<AssetEntry> = asset_names.iter().map(|name| name.as_str().into()).collect();
+    let assets: Vec<AssetEntry> = asset_names
+        .iter()
+        .map(|name| name.as_str().into())
+        .collect();
     let res: Result<Vec<(AssetEntry, AssetInfo)>, _> = ASSET_ADDRESSES
         .range(deps.storage, None, None, Order::Descending)
         .filter(|e| assets.contains(&e.as_ref().unwrap().0))

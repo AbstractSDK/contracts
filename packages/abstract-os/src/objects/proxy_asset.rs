@@ -27,7 +27,10 @@ use crate::{
 };
 
 use super::{
-    memory::Memory, asset_entry::AssetEntry, contract_entry::{UncheckedContractEntry, ContractEntry}, memory_traits::Resolve,
+    asset_entry::AssetEntry,
+    contract_entry::{ContractEntry, UncheckedContractEntry},
+    memory::Memory,
+    memory_traits::Resolve,
 };
 
 /// A proxy asset with unchecked memory entry fields.
@@ -230,8 +233,8 @@ impl ProxyAsset {
         valued_asset: Asset,
         pair: ContractEntry,
     ) -> StdResult<Uint128> {
-        let other_pool_asset: AssetEntry = other_asset_name(self.asset.as_str(), &pair.contract)?
-            .into();
+        let other_pool_asset: AssetEntry =
+            other_asset_name(self.asset.as_str(), &pair.contract)?.into();
 
         let pair_address = pair.resolve(deps, memory)?;
         let other_asset_info = other_pool_asset.resolve(deps, memory)?;
@@ -248,8 +251,7 @@ impl ProxyAsset {
         let ratio = Decimal::from_ratio(pool_info.0.u128(), pool_info.1.u128());
 
         // Get the value of the current asset in the denom of the other asset
-        let mut recursive_vault_asset =
-            VAULT_ASSETS.load(deps.storage, other_pool_asset)?;
+        let mut recursive_vault_asset = VAULT_ASSETS.load(deps.storage, other_pool_asset)?;
 
         // #other = #this * (pool_other/pool_this)
         let amount_in_other_denom = valued_asset.amount * ratio;
@@ -277,7 +279,7 @@ impl ProxyAsset {
         // Get total supply of LP tokens and calculate share
         let share: Decimal = Decimal::from_ratio(lp_asset.amount, supply.u128());
 
-        let other_pool_asset_names = pair_asset_names(pair.contract.as_str());
+        let other_pool_asset_names = get_pair_asset_names(pair.contract.as_str());
 
         if other_pool_asset_names.len() != 2 {
             return Err(StdError::generic_err(format!(
@@ -330,7 +332,7 @@ pub fn proxy_value(
 /// Get the other asset's name from a composite name
 /// ex: asset= "btc" composite = "btc_eth"
 /// returns "eth"
-fn other_asset_name<'a>(asset: &'a str, composite: &'a str) -> StdResult<&'a str> {
+pub fn other_asset_name<'a>(asset: &'a str, composite: &'a str) -> StdResult<&'a str> {
     composite
         .split('_')
         .find(|component| *component != asset)
@@ -343,7 +345,7 @@ fn other_asset_name<'a>(asset: &'a str, composite: &'a str) -> StdResult<&'a str
 }
 
 /// Composite of form asset1_asset2
-fn pair_asset_names(composite: &str) -> Vec<&str> {
+pub fn get_pair_asset_names(composite: &str) -> Vec<&str> {
     composite.split('_').collect()
 }
 

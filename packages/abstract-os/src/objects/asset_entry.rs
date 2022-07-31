@@ -11,8 +11,7 @@ use serde::{Deserialize, Serialize};
 
 /// May key to retrieve information on an asset
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema, Eq, PartialOrd, Ord)]
-pub struct AssetEntry(pub(crate)String);
-
+pub struct AssetEntry(pub(crate) String);
 
 impl AssetEntry {
     pub fn new(entry: &str) -> Self {
@@ -50,7 +49,7 @@ impl<'a> PrimaryKey<'a> for AssetEntry {
     type SuperSuffix = Self;
 
     fn key(&self) -> Vec<cw_storage_plus::Key> {
-       self.0.key()
+        self.0.key()
     }
 }
 
@@ -65,6 +64,6 @@ impl KeyDeserialize for AssetEntry {
 
     #[inline(always)]
     fn from_vec(mut value: Vec<u8>) -> StdResult<Self::Output> {
-       Ok(Self(String::from_vec(value)?))
+        Ok(Self(String::from_vec(value)?))
     }
 }

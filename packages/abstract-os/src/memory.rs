@@ -9,8 +9,10 @@ use cw_asset::{AssetInfo, AssetInfoUnchecked};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::objects::{contract_entry::{ContractEntry, UncheckedContractEntry}, asset_entry::AssetEntry};
-
+use crate::objects::{
+    asset_entry::AssetEntry,
+    contract_entry::{ContractEntry, UncheckedContractEntry},
+};
 
 /// Memory state details
 pub mod state {
@@ -19,8 +21,7 @@ pub mod state {
     use cw_controllers::Admin;
     use cw_storage_plus::Map;
 
-    use crate::objects::{contract_entry::ContractEntry, asset_entry::AssetEntry};
-
+    use crate::objects::{asset_entry::AssetEntry, contract_entry::ContractEntry};
 
     /// Admin address store
     pub const ADMIN: Admin = Admin::new("admin");

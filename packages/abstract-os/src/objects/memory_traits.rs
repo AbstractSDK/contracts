@@ -12,7 +12,7 @@ use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use super::{memory::Memory, contract_entry::ContractEntry, asset_entry::AssetEntry};
+use super::{asset_entry::AssetEntry, contract_entry::ContractEntry, memory::Memory};
 
 pub trait Resolve {
     type Output;

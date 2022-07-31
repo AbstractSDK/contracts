@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::memory::state::{ASSET_ADDRESSES, CONTRACT_ADDRESSES};
 
-use super::asset_entry::{AssetEntry};
+use super::asset_entry::AssetEntry;
 use super::contract_entry::ContractEntry;
 
 /// Struct that provides easy in-contract memory querying.
@@ -27,25 +27,27 @@ impl Memory {
     ) -> StdResult<BTreeMap<ContractEntry, Addr>> {
         let mut resolved_contracts: BTreeMap<ContractEntry, Addr> = BTreeMap::new();
 
-    // Query over keys
-    for key in contracts.into_iter() {
-        let result: Addr = CONTRACT_ADDRESSES
-            .query(&deps.querier, self.address.clone(), key.clone())?
-            .ok_or_else(|| {
-                StdError::generic_err(format!("contract {} not found in memory", key))
-            })?;
-        resolved_contracts.insert(key, result);
-    }
-    Ok(resolved_contracts)
+        // Query over keys
+        for key in contracts.into_iter() {
+            let result: Addr = CONTRACT_ADDRESSES
+                .query(&deps.querier, self.address.clone(), key.clone())?
+                .ok_or_else(|| {
+                    StdError::generic_err(format!("contract {} not found in memory", key))
+                })?;
+            resolved_contracts.insert(key, result);
+        }
+        Ok(resolved_contracts)
     }
 
     /// Raw query of a single contract Addr
     pub fn query_contract(&self, deps: Deps, contract: &ContractEntry) -> StdResult<Addr> {
         let result: Addr = CONTRACT_ADDRESSES
-        .query(&deps.querier, self.address.clone(), contract.clone())?
-        .ok_or_else(|| StdError::generic_err(format!("contract {} not found in memory", contract)))?;
-    // Addresses are checked when stored.
-    Ok(Addr::unchecked(result))
+            .query(&deps.querier, self.address.clone(), contract.clone())?
+            .ok_or_else(|| {
+                StdError::generic_err(format!("contract {} not found in memory", contract))
+            })?;
+        // Addresses are checked when stored.
+        Ok(Addr::unchecked(result))
     }
 
     /// Raw Query to Memory contract
@@ -70,11 +72,11 @@ impl Memory {
     /// Raw query of a single AssetInfo
     pub fn query_asset(&self, deps: Deps, asset: &AssetEntry) -> StdResult<AssetInfo> {
         let result = ASSET_ADDRESSES
-        .query(&deps.querier, self.address.clone(), asset.clone())?
-        .ok_or_else(|| {
-            StdError::generic_err(format!("asset {} not found in memory", &asset))
-        })?;
-    Ok(result)
+            .query(&deps.querier, self.address.clone(), asset.clone())?
+            .ok_or_else(|| {
+                StdError::generic_err(format!("asset {} not found in memory", &asset))
+            })?;
+        Ok(result)
     }
 
     // Query single pair address from mem
