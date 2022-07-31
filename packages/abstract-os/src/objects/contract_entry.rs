@@ -3,13 +3,12 @@ use std::{
     fmt::Display,
 };
 
-use cosmwasm_std::{Deps, StdError, StdResult};
+use cosmwasm_std::{StdError, StdResult};
 
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use super::{memory::Memory, memory_traits::Resolve};
 /// Key to get the Address of a contract
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema, Eq, PartialOrd, Ord)]
 pub struct UncheckedContractEntry {
@@ -24,13 +23,11 @@ impl UncheckedContractEntry {
             contract: contract.to_string(),
         }
     }
-    pub fn check(self, deps: Deps, memory: &Memory) -> Result<ContractEntry, StdError> {
-        let entry = ContractEntry {
+    pub fn check(self) -> ContractEntry {
+        ContractEntry {
             contract: self.contract.to_ascii_lowercase(),
             protocol: self.protocol.to_ascii_lowercase(),
-        };
-        entry.resolve(deps, memory)?;
-        Ok(entry)
+        }
     }
 }
 

@@ -1,5 +1,4 @@
 use abstract_os::objects::{ContractEntry, UncheckedContractEntry};
-use abstract_sdk::memory::Memory;
 use cosmwasm_std::Env;
 use cosmwasm_std::{Addr, DepsMut, Empty, MessageInfo, Response, StdResult};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
@@ -34,7 +33,7 @@ pub fn handle_message(
 pub fn update_contract_addresses(
     deps: DepsMut,
     msg_info: MessageInfo,
-    env: Env,
+    _env: Env,
     to_add: Vec<(UncheckedContractEntry, String)>,
     to_remove: Vec<UncheckedContractEntry>,
 ) -> MemoryResult {
@@ -54,12 +53,7 @@ pub fn update_contract_addresses(
     }
 
     for key in to_remove {
-        let key = key.check(
-            deps.as_ref(),
-            &Memory {
-                address: env.contract.address.clone(),
-            },
-        )?;
+        let key = key.check();
         CONTRACT_ADDRESSES.remove(deps.storage, key);
     }
 

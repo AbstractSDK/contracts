@@ -25,8 +25,8 @@ pub mod state {
 
     /// Admin address store
     pub const ADMIN: Admin = Admin::new("admin");
-    /// stores name and address of tokens and pairs
-    /// LP tokens are stored alphabetically
+    /// Stores name and address of tokens and pairs
+    /// LP token pairs are stored alphabetically
     pub const ASSET_ADDRESSES: Map<AssetEntry, AssetInfo> = Map::new("assets");
 
     /// Stores contract addresses

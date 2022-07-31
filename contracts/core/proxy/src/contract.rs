@@ -2,8 +2,9 @@ use std::collections::HashSet;
 use std::convert::TryInto;
 
 use abstract_os::objects::core::OS_ID;
-use abstract_os::objects::{AssetEntry, Resolve, UncheckedContractEntry};
+use abstract_os::objects::{AssetEntry, UncheckedContractEntry};
 use abstract_sdk::memory::Memory;
+use abstract_sdk::Resolve;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{

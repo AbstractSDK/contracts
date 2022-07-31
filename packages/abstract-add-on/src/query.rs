@@ -7,7 +7,7 @@ use abstract_sdk::MemoryOperation;
 use crate::state::AddOnContract;
 
 impl MemoryOperation for AddOnContract<'_> {
-    fn load(&self, store: &dyn Storage) -> StdResult<abstract_sdk::memory::Memory> {
+    fn load_memory(&self, store: &dyn Storage) -> StdResult<abstract_sdk::memory::Memory> {
         Ok(self.base_state.load(store)?.memory)
     }
 }

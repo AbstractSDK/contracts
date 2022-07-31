@@ -4,7 +4,7 @@
 use cosmwasm_std::{Addr, Deps, StdResult};
 use cw_asset::AssetInfo;
 
-use super::{asset_entry::AssetEntry, contract_entry::ContractEntry, memory::Memory};
+use abstract_os::objects::{memory::Memory, AssetEntry, ContractEntry};
 
 pub trait Resolve {
     type Output;

@@ -30,7 +30,6 @@ use super::{
     asset_entry::AssetEntry,
     contract_entry::{ContractEntry, UncheckedContractEntry},
     memory::Memory,
-    memory_traits::Resolve,
 };
 
 /// A proxy asset with unchecked memory entry fields.
@@ -46,10 +45,10 @@ pub struct UncheckedProxyAsset {
 }
 
 impl UncheckedProxyAsset {
-    /// Perform checks on the proxy asset to ensure it's valid
+    /// Perform checks on the proxy asset to ensure it can be resolved by the Memory
     pub fn check(self, deps: Deps, memory: &Memory) -> StdResult<ProxyAsset> {
         let entry: AssetEntry = self.asset.into();
-        entry.resolve(deps, memory)?;
+        memory.query_asset(deps, &entry)?;
         let value_reference = self
             .value_reference
             .map(|val| val.check(deps, memory, &entry));
@@ -99,7 +98,8 @@ impl UncheckedValueRef {
                 let pair_name = format!("{}_{}", composite[0], composite[1]);
                 // verify pair is available
                 let pair_contract: ContractEntry =
-                    UncheckedContractEntry::new(&exchange, &pair_name).check(deps, memory)?;
+                    UncheckedContractEntry::new(&exchange, &pair_name).check();
+                memory.query_contract(deps, &pair_contract)?;
                 Ok(ValueRef::Pool {
                     pair: pair_contract,
                 })
@@ -107,7 +107,7 @@ impl UncheckedValueRef {
             UncheckedValueRef::LiquidityToken {} => {
                 let maybe_pair: UncheckedContractEntry = entry.to_string().try_into()?;
                 // Ensure lp pair is registered
-                maybe_pair.check(deps, memory)?;
+                memory.query_contract(deps, &maybe_pair.check())?;
                 Ok(ValueRef::LiquidityToken {})
             }
             UncheckedValueRef::Proxy {
@@ -115,7 +115,7 @@ impl UncheckedValueRef {
                 multiplier,
             } => {
                 let replacement_asset: AssetEntry = proxy_asset.into();
-                replacement_asset.resolve(deps, memory)?;
+                memory.query_asset(deps, &replacement_asset)?;
                 Ok(ValueRef::Proxy {
                     proxy_asset: replacement_asset,
                     multiplier,
@@ -169,7 +169,7 @@ impl ProxyAsset {
         set_holding: Option<Uint128>,
     ) -> StdResult<Uint128> {
         // Query how many of these tokens are held in the contract if not set.
-        let asset_info = self.asset.resolve(deps, memory)?;
+        let asset_info = memory.query_asset(deps, &self.asset)?;
         let holding: Uint128 = match set_holding {
             Some(setter) => setter,
             None => asset_info.query_balance(&deps.querier, env.contract.address.clone())?,
@@ -190,7 +190,7 @@ impl ProxyAsset {
                     // lp tokens are stored as "dex/asset1_asset2" in the asset store.
                     // pairs are stored as ContractEntry{protocol: dex, contract: asset1_asset2} in the contract store.
                     let maybe_pair: UncheckedContractEntry = self.asset.to_string().try_into()?;
-                    let pair = maybe_pair.check(deps, memory)?;
+                    let pair = maybe_pair.check();
                     return self.lp_value(deps, env, memory, valued_asset, pair);
                 }
                 // A proxy asset is used instead
@@ -236,8 +236,8 @@ impl ProxyAsset {
         let other_pool_asset: AssetEntry =
             other_asset_name(self.asset.as_str(), &pair.contract)?.into();
 
-        let pair_address = pair.resolve(deps, memory)?;
-        let other_asset_info = other_pool_asset.resolve(deps, memory)?;
+        let pair_address = memory.query_contract(deps, &pair)?;
+        let other_asset_info = memory.query_asset(deps, &other_pool_asset)?;
 
         // query assets held in pool, gives price
         let pool_info = (
@@ -288,7 +288,7 @@ impl ProxyAsset {
             )));
         }
 
-        let pair_address = pair.resolve(deps, memory)?;
+        let pair_address = memory.query_contract(deps, &pair)?;
 
         let asset_1 = memory.query_asset(deps, &other_pool_asset_names[0].into())?;
         let asset_2 = memory.query_asset(deps, &other_pool_asset_names[1].into())?;

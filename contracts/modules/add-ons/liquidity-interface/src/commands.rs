@@ -1,5 +1,4 @@
 use abstract_add_on::state::AddOnState;
-use abstract_os::objects::memory_traits::Resolve;
 use abstract_os::objects::AssetEntry;
 use abstract_sdk::MemoryOperation;
 use cosmwasm_std::{
@@ -326,10 +325,9 @@ pub fn verify_asset_is_valid(
     asset: &AssetEntry,
     is_base: bool,
 ) -> Result<(), VaultError> {
-    let memory = vault.load(deps.storage)?;
     let base_state = vault.state(deps.storage)?;
-
-    asset.resolve(deps, &memory)?;
+    // ensure it resolves
+    vault.resolve(deps, asset)?;
     let proxy_asset = query_proxy_asset_raw(deps, &base_state.proxy_address, asset)?;
     if proxy_asset.value_reference.is_some() && is_base
         || proxy_asset.value_reference.is_none() && !is_base
