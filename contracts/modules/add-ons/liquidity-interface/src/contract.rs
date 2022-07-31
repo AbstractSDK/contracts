@@ -1,7 +1,7 @@
 use std::vec;
 
 use abstract_add_on::AddOnContract;
-use abstract_os::objects::memory_entry::AssetEntry;
+use abstract_os::objects::AssetEntry;
 use cosmwasm_std::{
     entry_point, to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, ReplyOn,
     Response, StdError, StdResult, SubMsg, WasmMsg,
@@ -80,14 +80,14 @@ pub fn instantiate(
     verify_asset_is_valid(
         deps.as_ref(),
         &vault,
-        &AssetEntry::new(msg.deposit_asset.clone()),
+        &msg.deposit_asset.as_str().into(),
         true,
     )?;
 
     POOL.save(
         deps.storage,
         &Pool {
-            deposit_asset: msg.deposit_asset.clone().into(),
+            deposit_asset: msg.deposit_asset.as_str().into(),
             assets: vec![msg.deposit_asset.into()],
         },
     )?;

@@ -27,8 +27,7 @@ use crate::{
 };
 
 use super::{
-    memory::Memory,
-    memory_entry::{AssetEntry, ContractEntry, UncheckedContractEntry},
+    memory::Memory, asset_entry::AssetEntry, contract_entry::{UncheckedContractEntry, ContractEntry}, memory_traits::Resolve,
 };
 
 /// A proxy asset with unchecked memory entry fields.
@@ -176,7 +175,7 @@ impl ProxyAsset {
         let valued_asset = Asset::new(asset_info, holding);
 
         // Is there a reference to calculate the value?
-        if let Some(value_reference) = self.value_reference.as_ref() {
+        if let Some(value_reference) = self.value_reference.clone() {
             match value_reference {
                 // A Pool refers to a swap pair that recursively leads to an asset/base_asset pool.
                 ValueRef::Pool { pair } => {
@@ -198,13 +197,13 @@ impl ProxyAsset {
                 } => return proxy_value(deps, env, memory, proxy_asset, multiplier, holding),
                 ValueRef::External { api_name } => {
                     let manager = ADMIN.get(deps)?.unwrap();
-                    let maybe_api_addr = OS_MODULES.query(&deps.querier, manager, api_name)?;
+                    let maybe_api_addr = OS_MODULES.query(&deps.querier, manager, &api_name)?;
                     if let Some(api_addr) = maybe_api_addr {
                         let response: ExternalValueResponse =
                             deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
                                 contract_addr: api_addr.to_string(),
                                 msg: to_binary(&ValueQueryMsg {
-                                    asset_name: self.asset.to_string(),
+                                    asset: self.asset.clone(),
                                     amount: valued_asset.amount,
                                 })?,
                             }))?;
@@ -229,10 +228,9 @@ impl ProxyAsset {
         env: &Env,
         memory: &Memory,
         valued_asset: Asset,
-        pair: &ContractEntry,
+        pair: ContractEntry,
     ) -> StdResult<Uint128> {
         let other_pool_asset: AssetEntry = other_asset_name(self.asset.as_str(), &pair.contract)?
-            .to_string()
             .into();
 
         let pair_address = pair.resolve(deps, memory)?;
@@ -251,7 +249,7 @@ impl ProxyAsset {
 
         // Get the value of the current asset in the denom of the other asset
         let mut recursive_vault_asset =
-            VAULT_ASSETS.load(deps.storage, other_pool_asset.as_str())?;
+            VAULT_ASSETS.load(deps.storage, other_pool_asset)?;
 
         // #other = #this * (pool_other/pool_this)
         let amount_in_other_denom = valued_asset.amount * ratio;
@@ -279,7 +277,7 @@ impl ProxyAsset {
         // Get total supply of LP tokens and calculate share
         let share: Decimal = Decimal::from_ratio(lp_asset.amount, supply.u128());
 
-        let other_pool_asset_names = pair_asset_names(&pair.contract);
+        let other_pool_asset_names = pair_asset_names(pair.contract.as_str());
 
         if other_pool_asset_names.len() != 2 {
             return Err(StdError::generic_err(format!(
@@ -290,8 +288,8 @@ impl ProxyAsset {
 
         let pair_address = pair.resolve(deps, memory)?;
 
-        let asset_1 = memory.query_asset(deps, other_pool_asset_names[0])?;
-        let asset_2 = memory.query_asset(deps, other_pool_asset_names[1])?;
+        let asset_1 = memory.query_asset(deps, &other_pool_asset_names[0].into())?;
+        let asset_2 = memory.query_asset(deps, &other_pool_asset_names[1].into())?;
         // query assets held in pool, gives price
         let (amount1, amount2) = (
             asset_1.query_balance(&deps.querier, &pair_address)?,
@@ -300,9 +298,9 @@ impl ProxyAsset {
 
         // load the assets
         let mut vault_asset_1: ProxyAsset =
-            VAULT_ASSETS.load(deps.storage, other_pool_asset_names[0])?;
+            VAULT_ASSETS.load(deps.storage, other_pool_asset_names[0].into())?;
         let mut vault_asset_2: ProxyAsset =
-            VAULT_ASSETS.load(deps.storage, other_pool_asset_names[1])?;
+            VAULT_ASSETS.load(deps.storage, other_pool_asset_names[1].into())?;
 
         // set the amounts to the LP holdings
         let vault_asset_1_amount = share * Uint128::new(amount1.u128());
@@ -319,15 +317,15 @@ pub fn proxy_value(
     deps: Deps,
     env: &Env,
     memory: &Memory,
-    replacement_asset: &AssetEntry,
-    multiplier: &Decimal,
+    replacement_asset: AssetEntry,
+    multiplier: Decimal,
     holding: Uint128,
 ) -> StdResult<Uint128> {
     // Get the proxy asset
     let mut replacement_vault_asset: ProxyAsset =
-        VAULT_ASSETS.load(deps.storage, replacement_asset.as_str())?;
+        VAULT_ASSETS.load(deps.storage, replacement_asset)?;
     // call value on proxy asset with adjusted multiplier.
-    replacement_vault_asset.value(deps, env, memory, Some(holding * *multiplier))
+    replacement_vault_asset.value(deps, env, memory, Some(holding * multiplier))
 }
 /// Get the other asset's name from a composite name
 /// ex: asset= "btc" composite = "btc_eth"

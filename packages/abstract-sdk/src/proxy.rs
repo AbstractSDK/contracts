@@ -1,6 +1,6 @@
 //! # Proxy Helpers
 use abstract_os::{
-    objects::proxy_asset::ProxyAsset,
+    objects::{proxy_asset::ProxyAsset, AssetEntry},
     proxy::{state::VAULT_ASSETS, ExecuteMsg, QueryMsg, QueryTotalValueResponse},
 };
 use cosmwasm_std::{
@@ -35,13 +35,13 @@ pub fn query_total_value(deps: Deps, proxy_address: &Addr) -> StdResult<Uint128>
 pub fn query_proxy_asset_raw(
     deps: Deps,
     proxy_address: &Addr,
-    asset_name: &str,
+    asset: &AssetEntry,
 ) -> StdResult<ProxyAsset> {
-    let response = VAULT_ASSETS.query(&deps.querier, proxy_address.clone(), asset_name)?;
+    let response = VAULT_ASSETS.query(&deps.querier, proxy_address.clone(), asset.clone())?;
     response.ok_or_else(|| {
         StdError::generic_err(format!(
             "Asset {} is not registered as an asset on your proxy contract.",
-            asset_name
+            asset
         ))
     })
 }

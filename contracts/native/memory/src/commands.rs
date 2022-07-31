@@ -1,5 +1,4 @@
-use abstract_os::objects::memory_entry::ContractEntry;
-use abstract_os::objects::memory_entry::UncheckedContractEntry;
+use abstract_os::objects::{UncheckedContractEntry, ContractEntry};
 use abstract_sdk::memory::Memory;
 use cosmwasm_std::Env;
 use cosmwasm_std::{Addr, DepsMut, Empty, MessageInfo, Response, StdResult};
@@ -84,11 +83,11 @@ pub fn update_asset_addresses(
             // use own check, cw_asset otherwise changes cases to lowercase
             new_asset.check(api, None)
         };
-        ASSET_ADDRESSES.update(deps.storage, name.as_str(), insert)?;
+        ASSET_ADDRESSES.update(deps.storage, name.into(), insert)?;
     }
 
     for name in to_remove {
-        ASSET_ADDRESSES.remove(deps.storage, name.as_str());
+        ASSET_ADDRESSES.remove(deps.storage, name.into());
     }
 
     Ok(Response::new().add_attribute("action", "updated asset addresses"))

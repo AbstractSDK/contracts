@@ -20,6 +20,6 @@ pub mod memory {
 }
 
 pub use api::{api_req, configure_api};
-pub use module_traits::{LoadMemory, OsExecute};
+pub use module_traits::{MemoryOperation, OsExecute};
 
 pub extern crate abstract_os;

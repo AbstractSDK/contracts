@@ -1,7 +1,7 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use abstract_os::objects::{fee::Fee, memory_entry::AssetEntry};
+use abstract_os::objects::{fee::Fee, AssetEntry};
 use cosmwasm_std::Addr;
 use cw_storage_plus::Item;
 

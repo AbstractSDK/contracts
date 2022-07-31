@@ -1,6 +1,7 @@
 use abstract_add_on::state::AddOnState;
-use abstract_os::objects::memory_entry::AssetEntry;
-use abstract_sdk::LoadMemory;
+use abstract_os::objects::AssetEntry;
+use abstract_os::objects::memory_traits::Resolve;
+use abstract_sdk::MemoryOperation;
 use cosmwasm_std::{
     from_binary, to_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo, Response,
     Uint128, WasmMsg,
@@ -90,7 +91,7 @@ pub fn try_provide_liquidity(
     };
 
     // Get all the required asset information from the memory contract
-    let assets = memory.query_assets(deps.as_ref(), &pool.assets)?;
+    let assets = memory.query_assets(deps.as_ref(), pool.assets)?;
 
     // Construct deposit info
     let deposit_info = DepositInfo {
@@ -164,7 +165,7 @@ pub fn try_withdraw_liquidity(
     let memory = base_state.memory;
     let fee: Fee = FEE.load(deps.storage)?;
     // Get assets
-    let assets = memory.query_assets(deps.as_ref(), &pool.assets)?;
+    let assets = memory.query_assets(deps.as_ref(), pool.assets)?;
 
     // Logging var
     let mut attrs = vec![
@@ -325,11 +326,11 @@ pub fn verify_asset_is_valid(
     asset: &AssetEntry,
     is_base: bool,
 ) -> Result<(), VaultError> {
-    let memory = vault.mem(deps.storage)?;
+    let memory = vault.load(deps.storage)?;
     let base_state = vault.state(deps.storage)?;
 
     asset.resolve(deps, &memory)?;
-    let proxy_asset = query_proxy_asset_raw(deps, &base_state.proxy_address, asset.as_str())?;
+    let proxy_asset = query_proxy_asset_raw(deps, &base_state.proxy_address, asset)?;
     if proxy_asset.value_reference.is_some() && is_base
         || proxy_asset.value_reference.is_none() && !is_base
     {
