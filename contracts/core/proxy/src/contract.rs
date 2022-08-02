@@ -226,7 +226,7 @@ fn query_proxy_assets(
     let start_bound = last_asset_name.as_deref().map(Bound::exclusive);
 
     let res: Result<Vec<(AssetEntry, ProxyAsset)>, _> = VAULT_ASSETS
-        .range(deps.storage, start_bound, None, Order::Descending)
+        .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
         .collect();
 
