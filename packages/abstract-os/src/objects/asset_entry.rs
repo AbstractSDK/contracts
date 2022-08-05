@@ -17,6 +17,9 @@ impl AssetEntry {
     pub fn as_str(&self) -> &str {
         &self.0
     }
+    pub fn format(&mut self) {
+        self.0 = self.0.to_ascii_lowercase();
+    }
 }
 
 impl From<&str> for AssetEntry {
