@@ -3,7 +3,7 @@ use abstract_os::{api::{ApiInstantiateMsg, ApiInterfaceMsg, ApiQueryMsg}, EXCHAN
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 
 use abstract_os::dex::{QueryMsg, RequestMsg};
-use crate::{error::DexError, DEX};
+use crate::{error::DexError, DEX, commands::{swap, provide_liquidity}};
 
 pub type DexApi<'a> = ApiContract<'a, RequestMsg>;
 pub type DexResult = Result<Response, DexError>;
@@ -36,22 +36,26 @@ pub fn execute(
 
 pub fn handle_api_request(
     deps: DepsMut,
-    _env: Env,
-    _info: MessageInfo,
+    env: Env,
+    info: MessageInfo,
     api: DexApi,
     msg: RequestMsg,
 ) -> DexResult {
     match msg {
-        RequestMsg::ProvideLiquidity { assets, dex, slippage_tolerance } => {
-            let exchange = resolve_exchange(dex)?;
-            exchange.swap(assets, slippage_tolerance);
+        RequestMsg::ProvideLiquidity { assets, dex, max_spread } => {
+            let dex_name = dex.unwrap();
+
+            provide_liquidity(deps.as_ref(), env, info, api, assets, dex_name, max_spread)
         },
-        RequestMsg::ProvideLiquiditySymmetric { assets, paired_asset, dex } => {
-            let exchange = resolve_exchange(dex)?;
-            exchange.swap(assets, slippage_tolerance);
+        RequestMsg::ProvideLiquiditySymmetric { assets, paired_assets, dex } => {
+
         },
         RequestMsg::WithdrawLiquidity { lp_token, amount } => todo!(),
-        RequestMsg::Swap { offer_asset, ask_asset, dex, max_spread, belief_price } => todo!(),
+        RequestMsg::Swap { offer_asset, ask_asset, dex, max_spread, belief_price } => {
+            // add default dex in future (osmosis??)
+            let dex_name = dex.unwrap();
+            swap(deps.as_ref(), env, info, api, offer_asset, ask_asset, dex_name, max_spread, belief_price)
+        },
     }
     // .map_err(From::from)
 }

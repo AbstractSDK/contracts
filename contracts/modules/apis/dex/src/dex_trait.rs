@@ -1,9 +1,11 @@
 use std::convert::TryFrom;
 
-use cosmwasm_std::{StdError, Deps, Addr, Decimal};
-use cw_asset::Asset;
+use abstract_os::objects::{AssetEntry, ContractEntry};
+use abstract_sdk::MemoryOperation;
+use cosmwasm_std::{StdError, Deps, Addr, Decimal, StdResult};
+use cw_asset::{Asset, AssetInfo};
 
-use crate::{error::DexError, contract::DexApi};
+use crate::{error::DexError, contract::{DexApi, DexResult}};
 
 // pub struct Exchange<T: &dyn DEX + 'static>(pub T);
 
@@ -21,10 +23,17 @@ use crate::{error::DexError, contract::DexApi};
 //     }
 // }
 
+/// DEX trait resolves asset names and dex to pair and lp address and ensures supported dexes support swaps and liquidity provisioning.
 pub trait DEX {
-    fn swap(&self, deps: Deps, api: DexApi, contract_address: Addr, offer_asset: Asset, belief_price: Option<Decimal>, max_spread: Option<Decimal>);
+    fn name(&self) -> &'static str;
+    fn pair_address(&self, deps: Deps, api: &DexApi, assets: &mut [AssetEntry]) -> StdResult<Addr> {
+        let dex_pair = ContractEntry::construct_dex_entry(self.name(), assets);
+        api.resolve(deps, &dex_pair)
+    }
+    fn swap(&self, deps: Deps, api: DexApi, contract_address: Addr, offer_asset: Asset, ask_asset: AssetInfo, belief_price: Option<Decimal>, max_spread: Option<Decimal>) -> DexResult;
+    fn provide_liquidity(&self, deps: Deps, api: DexApi, contract_address: Addr, offer_assets: Vec<Asset>, max_spread: Option<Decimal>) -> DexResult;
+    fn provide_liquidity_symmetric(&self, deps: Deps, api: DexApi, contract_address: Addr, offer_asset: Asset, other_assets: Vec<AssetInfo>)-> DexResult;
     // fn raw_swap();
-    // fn provide_liquidity();
     // fn raw_provide_liquidity();
     // fn withdraw_liquidity();
     // fn raw_withdraw_liquidity();

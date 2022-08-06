@@ -15,4 +15,7 @@ pub enum DexError {
 
     #[error("Cw1155 is unsupported.")]
     Cw1155Unsupported,
+
+    #[error("Pair {0} on DEX {1} does not match with pair address {2}")]
+    DexMismatch(String,String,String)
 }
