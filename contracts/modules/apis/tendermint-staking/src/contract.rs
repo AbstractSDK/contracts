@@ -3,7 +3,7 @@ use abstract_os::api::ApiQueryMsg;
 use abstract_os::api::{ApiInstantiateMsg, ApiInterfaceMsg};
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 
-use abstract_os::tendermint_staking::{QueryMsg, RequestMsg};
+use abstract_os::tendermint_staking::RequestMsg;
 use abstract_sdk::tendermint_staking::*;
 use abstract_sdk::OsExecute;
 
