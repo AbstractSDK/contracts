@@ -57,7 +57,13 @@ pub trait DEX {
     ) -> DexResult;
     // fn raw_swap();
     // fn raw_provide_liquidity();
-    // fn withdraw_liquidity();
+    fn withdraw_liquidity(
+        &self,
+        deps: Deps,
+        api: &DexApi,
+        contract_address: Addr,
+        lp_token: Asset,
+    ) -> DexResult;
     // fn raw_withdraw_liquidity();
     // fn route_swap();
     // fn raw_route_swap();

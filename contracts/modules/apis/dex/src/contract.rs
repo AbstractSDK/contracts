@@ -2,13 +2,12 @@ use abstract_api::{ApiContract, ApiResult};
 use abstract_os::{
     api::{ApiInstantiateMsg, ApiInterfaceMsg, ApiQueryMsg},
     dex::RequestMsg,
-    objects::AssetEntry,
     EXCHANGE,
 };
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 
 use crate::{
-    commands::{provide_liquidity, provide_liquidity_symmetric, swap},
+    commands::{provide_liquidity, provide_liquidity_symmetric, swap, withdraw_liquidity},
     error::DexError,
 };
 
@@ -78,7 +77,15 @@ pub fn handle_api_request(
                 dex_name,
             )
         }
-        RequestMsg::WithdrawLiquidity { lp_token, amount } => todo!(),
+        RequestMsg::WithdrawLiquidity {
+            lp_token,
+            amount,
+            dex,
+        } => {
+            let dex_name = dex.unwrap();
+            withdraw_liquidity(deps.as_ref(), env, info, api, (lp_token, amount), dex_name)
+        }
+
         RequestMsg::Swap {
             offer_asset,
             ask_asset,

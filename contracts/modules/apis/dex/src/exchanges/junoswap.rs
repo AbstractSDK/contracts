@@ -5,8 +5,8 @@ use crate::{
 };
 use abstract_sdk::OsExecute;
 use cosmwasm_std::{
-    to_binary, Addr, Coin, CosmosMsg, Decimal, Deps, Fraction, QueryRequest, Response, StdResult,
-    Uint128, WasmMsg, WasmQuery,
+    to_binary, Addr, Coin, CosmosMsg, Decimal, Deps, Fraction, QueryRequest, StdResult, Uint128,
+    WasmMsg, WasmQuery,
 };
 use cw20_junoswap::Denom;
 use cw_asset::{Asset, AssetInfo};
@@ -116,16 +116,15 @@ impl DEX for JunoSwap {
             max_token2,
             expiration: None,
         };
-        let approve_msgs = cw_approve_msgs(&offer_assets, api.request_destination)?;
+        let mut msgs = cw_approve_msgs(&offer_assets, &api.request_destination)?;
         let coins = coins_in_assets(&offer_assets);
         let junoswap_msg = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: contract_address.into_string(),
             msg: to_binary(&msg)?,
             funds: coins,
         });
-        Ok(Response::new()
-            .add_messages(approve_msgs)
-            .add_message(junoswap_msg))
+        msgs.push(junoswap_msg);
+        api.os_execute(deps, msgs).map_err(From::from)
     }
 
     fn provide_liquidity_symmetric(
@@ -182,16 +181,32 @@ impl DEX for JunoSwap {
             expiration: None,
         };
         let assets = &[offer_asset, other_asset];
-        let approve_msgs = cw_approve_msgs(assets, api.request_destination)?;
+        let mut msgs = cw_approve_msgs(assets, &api.request_destination)?;
         let coins = coins_in_assets(assets);
         let junoswap_msg = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: contract_address.into_string(),
             msg: to_binary(&msg)?,
             funds: coins,
         });
-        Ok(Response::new()
-            .add_messages(approve_msgs)
-            .add_message(junoswap_msg))
+        msgs.push(junoswap_msg);
+        api.os_execute(deps, msgs).map_err(From::from)
+    }
+
+    fn withdraw_liquidity(
+        &self,
+        deps: Deps,
+        api: &DexApi,
+        contract_address: Addr,
+        lp_token: Asset,
+    ) -> DexResult {
+        let junoswap_msg = ExecuteMsg::RemoveLiquidity {
+            amount: lp_token.amount,
+            min_token1: Uint128::zero(),
+            min_token2: Uint128::zero(),
+            expiration: None,
+        };
+        let msg = lp_token.send_msg(contract_address, to_binary(&junoswap_msg)?)?;
+        api.os_execute(deps, vec![msg]).map_err(From::from)
     }
 }
 
@@ -210,7 +225,7 @@ fn denom_and_asset_match(denom: &Denom, asset: &AssetInfo) -> Result<bool, DexEr
     }
 }
 
-fn cw_approve_msgs(assets: &[Asset], spender: Addr) -> StdResult<Vec<CosmosMsg>> {
+fn cw_approve_msgs(assets: &[Asset], spender: &Addr) -> StdResult<Vec<CosmosMsg>> {
     let mut msgs = vec![];
     for asset in assets {
         if let AssetInfo::Cw20(addr) = &asset.info {

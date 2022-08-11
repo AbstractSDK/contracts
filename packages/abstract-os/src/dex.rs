@@ -27,6 +27,7 @@ pub enum RequestMsg {
     WithdrawLiquidity {
         lp_token: AssetEntry,
         amount: Uint128,
+        dex: Option<DexName>,
     },
     Swap{
         offer_asset: OfferAsset,

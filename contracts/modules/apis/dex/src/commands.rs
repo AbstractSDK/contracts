@@ -7,7 +7,10 @@ use crate::{
     error::DexError,
     DEX,
 };
-use abstract_os::{dex::OfferAsset, objects::AssetEntry};
+use abstract_os::{
+    dex::OfferAsset,
+    objects::{AssetEntry, UncheckedContractEntry},
+};
 
 // Supported exchanges on Juno
 #[cfg(feature = "juno")]
@@ -100,4 +103,22 @@ pub fn provide_liquidity_symmetric(
     let pair_address = exchange.pair_address(deps, &api, &mut paired_assets)?;
     let offer_asset = Asset::new(api.resolve(deps, &offer_asset.0)?, offer_asset.1);
     exchange.provide_liquidity_symmetric(deps, api, pair_address, offer_asset, paired_asset_infos?)
+}
+
+pub fn withdraw_liquidity(
+    deps: Deps,
+    _env: Env,
+    _info: MessageInfo,
+    api: DexApi,
+    lp_token: OfferAsset,
+    dex: String,
+) -> DexResult {
+    let exchange = resolve_exchange(dex.clone())?;
+
+    let info = api.resolve(deps, &lp_token.0)?;
+    let lp_asset = Asset::new(info, lp_token.1);
+    let pair_entry = UncheckedContractEntry::new(dex, lp_token.0.to_string()).check();
+
+    let pair_address = api.resolve(deps, &pair_entry)?;
+    exchange.withdraw_liquidity(deps, &api, pair_address, lp_asset)
 }
