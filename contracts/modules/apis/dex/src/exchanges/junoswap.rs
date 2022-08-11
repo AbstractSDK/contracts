@@ -148,19 +148,21 @@ impl DEX for JunoSwap {
         // because of the token1 / token2 thing we need to figure out what the offer asset is and calculate the required amount of the other asset.
         let (token_1_amount, token_2_amount, other_asset) =
             if denom_and_asset_match(&pair_config.token1_denom, &offer_asset.info)? {
-                let price = Decimal::from_ratio(pair_config.token2_reserve, pair_config.token1_reserve);
+                let price =
+                    Decimal::from_ratio(pair_config.token2_reserve, pair_config.token1_reserve);
                 // token2 = token1 * (token2/token1)
                 let token_2_amount = offer_asset.amount * price;
-                let other_asset = Asset{
+                let other_asset = Asset {
                     info: other_assets[0].clone(),
                     amount: token_2_amount,
                 };
                 (offer_asset.amount, token_2_amount, other_asset)
             } else if denom_and_asset_match(&pair_config.token2_denom, &offer_asset.info)? {
-                let price = Decimal::from_ratio( pair_config.token1_reserve,pair_config.token2_reserve);
+                let price =
+                    Decimal::from_ratio(pair_config.token1_reserve, pair_config.token2_reserve);
                 // token1 = token2 * (token1/token2)
                 let token_1_amount = offer_asset.amount * price;
-                let other_asset = Asset{
+                let other_asset = Asset {
                     info: other_assets[0].clone(),
                     amount: token_1_amount,
                 };
@@ -176,10 +178,10 @@ impl DEX for JunoSwap {
         let msg = ExecuteMsg::AddLiquidity {
             token1_amount: token_1_amount,
             min_liquidity: Uint128::zero(),
-            max_token2:token_2_amount,
+            max_token2: token_2_amount,
             expiration: None,
         };
-        let assets = &[offer_asset,other_asset];
+        let assets = &[offer_asset, other_asset];
         let approve_msgs = cw_approve_msgs(assets, api.request_destination)?;
         let coins = coins_in_assets(assets);
         let junoswap_msg = CosmosMsg::Wasm(WasmMsg::Execute {
@@ -198,7 +200,7 @@ fn denom_and_asset_match(denom: &Denom, asset: &AssetInfo) -> Result<bool, DexEr
         Denom::Native(denom_name) => match asset {
             cw_asset::AssetInfoBase::Native(asset_name) => Ok(denom_name == asset_name),
             cw_asset::AssetInfoBase::Cw20(_asset_addr) => Ok(false),
-            cw_asset::AssetInfoBase::Cw1155(_, _) =>  Err(DexError::Cw1155Unsupported),
+            cw_asset::AssetInfoBase::Cw1155(_, _) => Err(DexError::Cw1155Unsupported),
         },
         Denom::Cw20(denom_addr) => match asset {
             cw_asset::AssetInfoBase::Native(_asset_name) => Ok(false),
@@ -211,18 +213,17 @@ fn denom_and_asset_match(denom: &Denom, asset: &AssetInfo) -> Result<bool, DexEr
 fn cw_approve_msgs(assets: &[Asset], spender: Addr) -> StdResult<Vec<CosmosMsg>> {
     let mut msgs = vec![];
     for asset in assets {
-        
-           if let AssetInfo::Cw20(addr) = &asset.info {
-                let msg = cw20_junoswap::Cw20ExecuteMsg::IncreaseAllowance {
-                    spender: spender.to_string(),
-                    amount: asset.amount,
-                    expires: None,
-                };
-                msgs.push(CosmosMsg::Wasm(WasmMsg::Execute {
-                    contract_addr: addr.to_string(),
-                    msg: to_binary(&msg)?,
-                    funds: vec![],
-                }))
+        if let AssetInfo::Cw20(addr) = &asset.info {
+            let msg = cw20_junoswap::Cw20ExecuteMsg::IncreaseAllowance {
+                spender: spender.to_string(),
+                amount: asset.amount,
+                expires: None,
+            };
+            msgs.push(CosmosMsg::Wasm(WasmMsg::Execute {
+                contract_addr: addr.to_string(),
+                msg: to_binary(&msg)?,
+                funds: vec![],
+            }))
         }
     }
     Ok(msgs)
@@ -232,8 +233,8 @@ fn coins_in_assets(assets: &[Asset]) -> Vec<Coin> {
     let mut coins = vec![];
     for asset in assets {
         if let AssetInfo::Native(denom) = &asset.info {
-                coins.push(Coin::new(asset.amount.u128(), denom.clone()));
-            }
+            coins.push(Coin::new(asset.amount.u128(), denom.clone()));
+        }
     }
     coins
 }

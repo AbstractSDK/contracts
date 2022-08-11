@@ -1,4 +1,4 @@
-use abstract_sdk::{MemoryOperation};
+use abstract_sdk::MemoryOperation;
 use cosmwasm_std::{Decimal, Deps, Env, MessageInfo};
 use cw_asset::{Asset, AssetInfo};
 

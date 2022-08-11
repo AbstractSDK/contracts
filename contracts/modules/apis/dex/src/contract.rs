@@ -2,7 +2,8 @@ use abstract_api::{ApiContract, ApiResult};
 use abstract_os::{
     api::{ApiInstantiateMsg, ApiInterfaceMsg, ApiQueryMsg},
     dex::RequestMsg,
-    EXCHANGE, objects::AssetEntry,
+    objects::AssetEntry,
+    EXCHANGE,
 };
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 
@@ -77,10 +78,7 @@ pub fn handle_api_request(
                 dex_name,
             )
         }
-        RequestMsg::WithdrawLiquidity {
-            lp_token,
-            amount,
-        } => todo!(),
+        RequestMsg::WithdrawLiquidity { lp_token, amount } => todo!(),
         RequestMsg::Swap {
             offer_asset,
             ask_asset,
