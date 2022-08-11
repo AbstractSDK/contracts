@@ -1,5 +1,5 @@
-use abstract_sdk::{MemoryOperation, Resolve};
-use cosmwasm_std::{Decimal, Deps, Env, MessageInfo, Uint128};
+use abstract_sdk::{MemoryOperation};
+use cosmwasm_std::{Decimal, Deps, Env, MessageInfo};
 use cw_asset::{Asset, AssetInfo};
 
 use crate::{
@@ -7,10 +7,7 @@ use crate::{
     error::DexError,
     DEX,
 };
-use abstract_os::{
-    dex::OfferAsset,
-    objects::{AssetEntry, UncheckedContractEntry},
-};
+use abstract_os::{dex::OfferAsset, objects::AssetEntry};
 
 // Supported exchanges on Juno
 #[cfg(feature = "juno")]
@@ -20,14 +17,15 @@ fn resolve_exchange(value: String) -> Result<&'static dyn DEX, DexError> {
     match value.as_str() {
         #[cfg(feature = "juno")]
         JUNOSWAP => Ok(&JunoSwap {}),
-        _ => return Err(DexError::UnknownDex(value)),
+        _ => Err(DexError::UnknownDex(value)),
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn swap(
     deps: Deps,
-    env: Env,
-    info: MessageInfo,
+    _env: Env,
+    _info: MessageInfo,
     api: DexApi,
     offer_asset: OfferAsset,
     mut ask_asset: AssetEntry,
@@ -58,8 +56,8 @@ pub fn swap(
 
 pub fn provide_liquidity(
     deps: Deps,
-    env: Env,
-    info: MessageInfo,
+    _env: Env,
+    _info: MessageInfo,
     api: DexApi,
     offer_assets: Vec<OfferAsset>,
     dex: String,
@@ -86,15 +84,15 @@ pub fn provide_liquidity(
 
 pub fn provide_liquidity_symmetric(
     deps: Deps,
-    env: Env,
-    info: MessageInfo,
+    _env: Env,
+    _info: MessageInfo,
     api: DexApi,
     offer_asset: OfferAsset,
     mut paired_assets: Vec<AssetEntry>,
     dex: String,
 ) -> DexResult {
     let exchange = resolve_exchange(dex)?;
-    let paired_asset_infos: Result<Vec<AssetInfo>,_> = paired_assets
+    let paired_asset_infos: Result<Vec<AssetInfo>, _> = paired_assets
         .iter()
         .map(|entry| api.resolve(deps, entry))
         .collect();

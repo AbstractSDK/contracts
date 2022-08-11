@@ -1,14 +1,9 @@
-use std::convert::TryFrom;
-
 use abstract_os::objects::{AssetEntry, ContractEntry};
 use abstract_sdk::MemoryOperation;
-use cosmwasm_std::{Addr, Decimal, Deps, StdError, StdResult};
+use cosmwasm_std::{Addr, Decimal, Deps, StdResult};
 use cw_asset::{Asset, AssetInfo};
 
-use crate::{
-    contract::{DexApi, DexResult},
-    error::DexError,
-};
+use crate::contract::{DexApi, DexResult};
 
 // pub struct Exchange<T: &dyn DEX + 'static>(pub T);
 
@@ -33,6 +28,7 @@ pub trait DEX {
         let dex_pair = ContractEntry::construct_dex_entry(self.name(), assets);
         api.resolve(deps, &dex_pair)
     }
+    #[allow(clippy::too_many_arguments)]
     fn swap(
         &self,
         deps: Deps,

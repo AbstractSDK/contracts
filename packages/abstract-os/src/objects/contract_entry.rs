@@ -57,7 +57,7 @@ pub struct ContractEntry {
 impl ContractEntry {
     pub fn construct_dex_entry(dex_name: &str, assets: &mut [AssetEntry]) -> Self {
         assets.sort();
-        let contract_name = assets.into_iter().map(|a|a.0.clone()).collect::<Vec<String>>().join("_");
+        let contract_name = assets.iter().map(|a|a.0.clone()).collect::<Vec<String>>().join("_");
         Self{protocol: dex_name.to_ascii_lowercase(), contract: contract_name}
     }
 }
