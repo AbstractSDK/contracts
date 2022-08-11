@@ -16,6 +16,12 @@ pub enum DexError {
     #[error("Cw1155 is unsupported.")]
     Cw1155Unsupported,
 
+    #[error("Can't provide liquidity less than two assets")]
+    TooFewAssets {},
+
+    #[error("Can't provide liquidity with more than {0} assets")]
+    TooManyAssets(u8),
+
     #[error("Pair {0} on DEX {1} does not match with pair address {2}")]
-    DexMismatch(String,String,String)
+    DexMismatch(String, String, String),
 }

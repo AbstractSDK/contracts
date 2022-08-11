@@ -1,10 +1,8 @@
-
-
-mod exchanges;
-pub (crate) mod dex_trait;
-pub (crate) mod commands;
+pub(crate) mod commands;
 pub mod contract;
+pub(crate) mod dex_trait;
 pub mod error;
+mod exchanges;
 
 pub use dex_trait::DEX;
 

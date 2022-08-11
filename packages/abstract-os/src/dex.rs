@@ -22,7 +22,7 @@ pub enum RequestMsg {
         // support complex pool types
         /// Assets that are paired with the offered asset
         paired_assets: Vec<AssetEntry>,
-        dex: DexName,
+        dex: Option<DexName>,
     },
     WithdrawLiquidity {
         lp_token: AssetEntry,
