@@ -39,10 +39,10 @@
 
 pub use registry::*;
 
-pub mod dex;
 pub mod abstract_token;
 pub mod add_on;
 pub mod api;
+pub mod dex;
 pub mod liquidity_interface;
 pub mod manager;
 pub mod memory;

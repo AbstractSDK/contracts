@@ -1,20 +1,20 @@
-use cosmwasm_std::{Uint128, Decimal};
+use cosmwasm_std::{Decimal, Uint128};
 use schemars::JsonSchema;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use crate::objects::AssetEntry;
 
 type DexName = String;
-pub type OfferAsset = (AssetEntry,Uint128);
+pub type OfferAsset = (AssetEntry, Uint128);
 
 /// Dex Execute msg
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum RequestMsg {
     ProvideLiquidity {
         // support complex pool types
         assets: Vec<OfferAsset>,
-        dex: Option<DexName> ,
+        dex: Option<DexName>,
         max_spread: Option<Decimal>,
     },
     ProvideLiquiditySymmetric {
@@ -29,18 +29,15 @@ pub enum RequestMsg {
         amount: Uint128,
         dex: Option<DexName>,
     },
-    Swap{
+    Swap {
         offer_asset: OfferAsset,
         ask_asset: AssetEntry,
         dex: Option<DexName>,
         max_spread: Option<Decimal>,
         belief_price: Option<Decimal>,
-    }
+    },
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub enum QueryMsg {
-    
-}
-
+pub enum QueryMsg {}
