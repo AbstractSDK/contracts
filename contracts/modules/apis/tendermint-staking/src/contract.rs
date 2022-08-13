@@ -1,7 +1,7 @@
 use abstract_api::{ApiContract, ApiResult};
-use abstract_os::TENDERMINT_STAKING;
 use abstract_os::api::ApiQueryMsg;
 use abstract_os::api::{ApiInstantiateMsg, ApiInterfaceMsg};
+use abstract_os::TENDERMINT_STAKING;
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 
 use abstract_os::tendermint_staking::RequestMsg;
@@ -14,7 +14,6 @@ pub type TendermintStakeApi<'a> = ApiContract<'a, RequestMsg>;
 pub type TendermintStakeResult = Result<Response, TendermintStakeError>;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
     deps: DepsMut,
@@ -22,7 +21,15 @@ pub fn instantiate(
     info: MessageInfo,
     msg: ApiInstantiateMsg,
 ) -> ApiResult {
-    TendermintStakeApi::instantiate(deps, env, info, msg, TENDERMINT_STAKING, CONTRACT_VERSION, vec![])?;
+    TendermintStakeApi::instantiate(
+        deps,
+        env,
+        info,
+        msg,
+        TENDERMINT_STAKING,
+        CONTRACT_VERSION,
+        vec![],
+    )?;
 
     Ok(Response::default())
 }

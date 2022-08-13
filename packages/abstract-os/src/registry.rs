@@ -18,5 +18,6 @@ pub const TENDERMINT_STAKING: &str = "abstract:tendermint_staking";
 
 /// Useful when deploying version control
 #[allow(unused)]
-pub static NATIVE_CONTRACTS: &'static [&str] = &[MEMORY,MODULE_FACTORY,OS_FACTORY,VERSION_CONTROL, "cw20"];
-pub static API_CONTRACTS: &'static [&str] = &[EXCHANGE,TENDERMINT_STAKING];
+pub static NATIVE_CONTRACTS: &[&str] =
+    &[MEMORY, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL, "cw20"];
+pub static API_CONTRACTS: &[&str] = &[EXCHANGE, TENDERMINT_STAKING];
