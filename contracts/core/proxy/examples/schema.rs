@@ -7,7 +7,7 @@ use abstract_os::objects::proxy_asset::{ProxyAsset, UncheckedProxyAsset};
 use abstract_os::proxy::state::State;
 use abstract_os::proxy::{
     ExecuteMsg, InstantiateMsg, QueryConfigResponse, QueryHoldingAmountResponse,
-    QueryHoldingValueResponse, QueryMsg, QueryProxyAssetConfigResponse, QueryProxyAssetsResponse,
+    QueryHoldingValueResponse, QueryMsg, QueryAssetConfigResponse, QueryAssetsResponse,
     QueryTotalValueResponse, QueryValidityResponse,
 };
 use cosmwasm_std::{CosmosMsg, Empty};
@@ -46,12 +46,12 @@ fn main() {
         "HoldingAmountResponse",
     );
     export_schema_with_title(
-        &schema_for!(QueryProxyAssetConfigResponse),
+        &schema_for!(QueryAssetConfigResponse),
         &out_dir,
         "ProxyAssetConfigResponse",
     );
     export_schema_with_title(
-        &schema_for!(QueryProxyAssetsResponse),
+        &schema_for!(QueryAssetsResponse),
         &out_dir,
         "ProxyAssetsResponse",
     );
