@@ -25,13 +25,41 @@ fn main() {
     export_schema(&schema_for!(State), &out_dir);
     export_schema(&schema_for!(ProxyAsset), &out_dir);
     export_schema(&schema_for!(UncheckedProxyAsset), &out_dir);
-    export_schema_with_title(&schema_for!(QueryConfigResponse), &out_dir, "ConfigResponse");
-    export_schema_with_title(&schema_for!(QueryTotalValueResponse), &out_dir, "TotalValueResponse");
-    export_schema_with_title(&schema_for!(QueryHoldingValueResponse), &out_dir, "HoldingValueResponse");
-    export_schema_with_title(&schema_for!(QueryHoldingAmountResponse), &out_dir, "HoldingAmountResponse");
-    export_schema_with_title(&schema_for!(QueryProxyAssetConfigResponse), &out_dir, "ProxyAssetConfigResponse");
-    export_schema_with_title(&schema_for!(QueryProxyAssetsResponse), &out_dir, "ProxyAssetsResponse");
-    export_schema_with_title(&schema_for!(QueryValidityResponse), &out_dir, "CheckValidityResponse");
+    export_schema_with_title(
+        &schema_for!(QueryConfigResponse),
+        &out_dir,
+        "ConfigResponse",
+    );
+    export_schema_with_title(
+        &schema_for!(QueryTotalValueResponse),
+        &out_dir,
+        "TotalValueResponse",
+    );
+    export_schema_with_title(
+        &schema_for!(QueryHoldingValueResponse),
+        &out_dir,
+        "HoldingValueResponse",
+    );
+    export_schema_with_title(
+        &schema_for!(QueryHoldingAmountResponse),
+        &out_dir,
+        "HoldingAmountResponse",
+    );
+    export_schema_with_title(
+        &schema_for!(QueryProxyAssetConfigResponse),
+        &out_dir,
+        "ProxyAssetConfigResponse",
+    );
+    export_schema_with_title(
+        &schema_for!(QueryProxyAssetsResponse),
+        &out_dir,
+        "ProxyAssetsResponse",
+    );
+    export_schema_with_title(
+        &schema_for!(QueryValidityResponse),
+        &out_dir,
+        "CheckValidityResponse",
+    );
 
     export_schema_with_title(
         &schema_for!(CosmosMsg<Empty>),
