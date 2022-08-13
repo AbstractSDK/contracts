@@ -210,9 +210,9 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             proxy_asset: VAULT_ASSETS.load(deps.storage, identifier.into())?,
         }),
         QueryMsg::ProxyAssets {
-            last_asset_name,
-            iter_limit,
-        } => to_binary(&query_proxy_assets(deps, last_asset_name, iter_limit)?),
+            page_token,
+            page_size,
+        } => to_binary(&query_proxy_assets(deps, page_token, page_size)?),
         QueryMsg::CheckValidity {} => to_binary(&query_proxy_asset_validity(deps)?),
     }
 }

@@ -58,7 +58,7 @@ pub mod env {
             &manager_addr,
             &ManagerMsgs::QueryMsg::ModuleInfos {
                 last_module_name: None,
-                iter_limit: None,
+                page_size: None,
             },
         )?;
         let mut state = HashMap::new();
@@ -77,7 +77,7 @@ pub mod env {
                 &manager_addr,
                 &ManagerMsgs::QueryMsg::ModuleInfos {
                     last_module_name: last_module,
-                    iter_limit: None,
+                    page_size: None,
                 },
             )?;
         }
