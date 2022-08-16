@@ -57,7 +57,7 @@ pub mod env {
         let mut resp: ManagerMsgs::QueryModuleInfosResponse = app.wrap().query_wasm_smart(
             &manager_addr,
             &ManagerMsgs::QueryMsg::ModuleInfos {
-                last_module_name: None,
+                page_token: None,
                 page_size: None,
             },
         )?;
@@ -76,7 +76,7 @@ pub mod env {
             resp = app.wrap().query_wasm_smart(
                 &manager_addr,
                 &ManagerMsgs::QueryMsg::ModuleInfos {
-                    last_module_name: last_module,
+                    page_token: last_module,
                     page_size: None,
                 },
             )?;

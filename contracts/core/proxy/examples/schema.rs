@@ -6,9 +6,9 @@ use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, s
 use abstract_os::objects::proxy_asset::{ProxyAsset, UncheckedProxyAsset};
 use abstract_os::proxy::state::State;
 use abstract_os::proxy::{
-    ExecuteMsg, InstantiateMsg, QueryConfigResponse, QueryHoldingAmountResponse,
-    QueryHoldingValueResponse, QueryMsg, QueryAssetConfigResponse, QueryAssetsResponse,
-    QueryTotalValueResponse, QueryValidityResponse,
+    ExecuteMsg, InstantiateMsg, QueryAssetConfigResponse, QueryAssetsResponse, QueryConfigResponse,
+    QueryHoldingAmountResponse, QueryHoldingValueResponse, QueryMsg, QueryTotalValueResponse,
+    QueryValidityResponse,
 };
 use cosmwasm_std::{CosmosMsg, Empty};
 use cw_asset::AssetInfo;
