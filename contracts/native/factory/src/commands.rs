@@ -81,7 +81,10 @@ pub fn execute_create_os(
     // Get address of OS root user, depends on gov-type
     let root_user: Addr = match &governance {
         GovernanceDetails::Monarchy { monarch } => deps.api.addr_validate(monarch)?,
-        GovernanceDetails::External { governance_address, governance_type: _ } => deps.api.addr_validate(governance_address)?,
+        GovernanceDetails::External {
+            governance_address,
+            governance_type: _,
+        } => deps.api.addr_validate(governance_address)?,
     };
 
     // Query version_control for code_id of Manager contract
