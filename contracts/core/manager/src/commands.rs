@@ -321,12 +321,13 @@ pub fn update_info(
 pub fn update_os_status(deps: DepsMut, info: MessageInfo, new_status: Subscribed) -> ManagerResult {
     let config = CONFIG.load(deps.storage)?;
 
-    if info.sender != config.subscription_address {
-        Err(ManagerError::CallerNotSubscriptionContract {})
-    } else {
-        STATUS.save(deps.storage, &new_status)?;
-        Ok(Response::new().add_attribute("new_status", new_status.to_string()))
+    if let Some(sub_addr) = config.subscription_address {
+        if sub_addr.eq(&info.sender) {
+            STATUS.save(deps.storage, &new_status)?;
+            return Ok(Response::new().add_attribute("new_status", new_status.to_string()));
+        }
     }
+    Err(ManagerError::CallerNotSubscriptionContract {})
 }
 
 fn get_code_id(

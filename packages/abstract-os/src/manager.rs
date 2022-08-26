@@ -29,7 +29,7 @@ pub mod state {
     pub struct Config {
         pub version_control_address: Addr,
         pub module_factory_address: Addr,
-        pub subscription_address: Addr,
+        pub subscription_address: Option<Addr>,
     }
     #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
     pub struct OsInfo {

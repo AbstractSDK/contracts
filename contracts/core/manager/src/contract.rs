@@ -1,6 +1,4 @@
-use cosmwasm_std::{
-    entry_point, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
-};
+use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 
 use crate::queries::{handle_config_query, handle_module_info_query, handle_os_info_query};
 use crate::validators::{validate_description, validate_link, validate_name_or_gov_type};
@@ -42,13 +40,10 @@ pub fn instantiate(
 ) -> ManagerResult {
     set_contract_version(deps.storage, MANAGER, CONTRACT_VERSION)?;
 
-    let subscription_address = if let Some(addr) = msg.subscription_address {
-        deps.api.addr_validate(&addr)?
-    } else if msg.os_id == 0 {
-        Addr::unchecked("".to_string())
-    } else {
-        return Err(ManagerError::NoSubscriptionAddrProvided {});
-    };
+    let subscription_address = msg
+        .subscription_address
+        .map(|a| deps.api.addr_validate(&a))
+        .transpose()?;
 
     OS_ID.save(deps.storage, &msg.os_id)?;
     CONFIG.save(
