@@ -6,7 +6,7 @@
 
 use cosmwasm_std::{QuerierWrapper, StdResult};
 
-use abstract_os::manager::{state::OS_ID};
+use abstract_os::manager::state::OS_ID;
 
 use std::collections::BTreeMap;
 

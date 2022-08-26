@@ -3,7 +3,7 @@ use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Respons
 use crate::queries::{handle_config_query, handle_module_info_query, handle_os_info_query};
 use crate::validators::{validate_description, validate_link, validate_name_or_gov_type};
 use crate::{commands::*, error::ManagerError, queries};
-use abstract_os::manager::state::{Config, OsInfo, OS_FACTORY, CONFIG, INFO, ROOT, STATUS};
+use abstract_os::manager::state::{Config, OsInfo, CONFIG, INFO, OS_FACTORY, ROOT, STATUS};
 use abstract_os::MANAGER;
 use abstract_os::{
     manager::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
@@ -96,7 +96,8 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                 ExecuteMsg::UpdateModuleAddresses { to_add, to_remove } => {
                     // only factory/root can add custom modules.
                     // required to add Proxy after init by os factory.
-                    OS_FACTORY.assert_admin(deps.as_ref(), &info.sender)
+                    OS_FACTORY
+                        .assert_admin(deps.as_ref(), &info.sender)
                         .or(ROOT.assert_admin(deps.as_ref(), &info.sender))?;
 
                     update_module_addresses(deps, to_add, to_remove)
