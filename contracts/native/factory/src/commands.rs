@@ -108,10 +108,9 @@ pub fn execute_create_os(
             msg: WasmMsg::Instantiate {
                 code_id: manager_code_id_response.code_id.u64(),
                 funds: vec![],
-                // TODO: Review
-                // This contract is able to upgrade the manager contract
+                // Currently set admin to self, update later when we know the contract's address.
                 admin: Some(env.contract.address.to_string()),
-                label: format!("CosmWasm OS: {}", config.next_os_id),
+                label: format!("Abstract OS: {}", config.next_os_id),
                 msg: to_binary(&ManagerInstantiateMsg {
                     os_id: config.next_os_id,
                     root_user: root_user.to_string(),
