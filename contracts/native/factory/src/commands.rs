@@ -5,7 +5,6 @@ use abstract_os::subscription::{
     DepositHookMsg as SubDepositHook, ExecuteMsg as SubscriptionExecMsg,
     QueryMsg as SubscriptionQuery, SubscriptionFeeResponse,
 };
-use abstract_sdk::manager::register_module_on_manager;
 use cosmwasm_std::CosmosMsg;
 use cosmwasm_std::{
     from_binary, to_binary, Addr, Coin, DepsMut, Empty, Env, MessageInfo, QuerierWrapper,
@@ -20,7 +19,7 @@ use crate::error::OsFactoryError;
 use crate::response::MsgInstantiateContractResponse;
 
 use crate::state::*;
-use abstract_os::manager::InstantiateMsg as ManagerInstantiateMsg;
+use abstract_os::manager::{InstantiateMsg as ManagerInstantiateMsg, ExecuteMsg::UpdateModuleAddresses};
 use abstract_os::proxy::{ExecuteMsg as ProxyExecMsg, InstantiateMsg as ProxyInstantiateMsg};
 
 use abstract_os::version_control::{
@@ -229,11 +228,15 @@ pub fn after_proxy_add_to_manager_and_set_admin(
     Ok(Response::new()
         .add_message(add_os_core_to_version_control_msg)
         .add_attribute("proxy_address", res.get_contract_address())
-        .add_message(register_module_on_manager(
-            context.os_manager_address.to_string(),
-            PROXY.to_string(),
-            proxy_address.to_string(),
-        )?)
+        .add_message(CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr:  context.os_manager_address.to_string(),
+            msg: to_binary(&UpdateModuleAddresses {
+                to_add: Some(vec![( PROXY.to_string(),
+                proxy_address.to_string())]),
+                to_remove: None,
+            })?,
+            funds: vec![],
+        }))
         .add_message(set_proxy_admin_msg)
         .add_message(set_manager_admin_msg))
 }
