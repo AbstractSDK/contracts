@@ -81,9 +81,9 @@ pub fn handle_api_address_query(deps: Deps, module: ModuleInfo) -> StdResult<Bin
             .range(deps.storage, None, None, Order::Ascending)
             .take(1)
             .collect();
-        let (latest_version, addr) = &versions?[0];
-        resulting_version = latest_version.clone();
-        Ok(addr.clone())
+        let (latest_version, addr) = versions?.first().ok_or(StdError::GenericErr { msg: format!("api module {} not available", module) })?.clone();
+        resulting_version = latest_version;
+        Ok(addr)
     };
 
     match maybe_addr {
