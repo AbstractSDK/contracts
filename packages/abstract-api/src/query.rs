@@ -46,7 +46,7 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
             BaseQueryMsg::Traders { proxy_address } => {
                 let traders = self
                     .traders
-                    .load(deps.storage, deps.api.addr_validate(&proxy_address)?)?;
+                    .may_load(deps.storage, deps.api.addr_validate(&proxy_address)?)?.unwrap_or_default();
                 to_binary(&QueryTradersResponse {
                     traders: traders.into_iter().collect(),
                 })
