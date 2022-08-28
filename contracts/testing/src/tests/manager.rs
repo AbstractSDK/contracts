@@ -136,5 +136,4 @@ fn proper_initialization() {
 
     println!("{:?}", resp);
 
-    panic!()
 }
