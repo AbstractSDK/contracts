@@ -1,12 +1,10 @@
 use abstract_api::{ApiContract, ApiResult};
 use abstract_os::{
     api::{ApiInstantiateMsg, ApiInterfaceMsg, ApiQueryMsg},
-    dex::{QueryMsg, RequestMsg},
+    dex::RequestMsg,
     EXCHANGE,
 };
-use cosmwasm_std::{
-    entry_point, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Response, StdResult,
-};
+use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response};
 
 use crate::{
     commands::{provide_liquidity, provide_liquidity_symmetric, swap, withdraw_liquidity},

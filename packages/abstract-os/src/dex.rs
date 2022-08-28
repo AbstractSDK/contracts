@@ -6,7 +6,7 @@ use cosmwasm_std::{Decimal, Uint128};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{api::ApiQueryMsg, objects::AssetEntry};
+use crate::objects::AssetEntry;
 
 type DexName = String;
 pub type OfferAsset = (AssetEntry, Uint128);

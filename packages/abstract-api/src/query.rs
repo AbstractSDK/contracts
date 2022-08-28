@@ -16,6 +16,8 @@ impl<T: Serialize + DeserializeOwned> MemoryOperation for ApiContract<'_, T> {
     }
 }
 
+pub type ApiQueryHandlerFn<Q, QueryError> = Option<fn(Deps, Env, Q) -> Result<Binary, QueryError>>;
+
 /// Where we dispatch the queries for the ApiContract
 /// These ApiQueryMsg declarations can be found in `abstract_os::common_module::add_on_msg`
 impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
@@ -26,13 +28,13 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
         deps: Deps,
         env: Env,
         msg: ApiQueryMsg<Q>,
-        custom_query_handler: Option<fn(Deps, Env, Q) -> Result<Binary, QueryError>>,
+        custom_query_handler: ApiQueryHandlerFn<Q, QueryError>,
     ) -> Result<Binary, QueryError> {
         match msg {
             ApiQueryMsg::Api(api_query) => custom_query_handler
                 .map(|func| func(deps, env, api_query))
                 .transpose()?
-                .ok_or(ApiError::NoCustomQueries {}.into()),
+                .ok_or_else(|| ApiError::NoCustomQueries {}.into()),
             ApiQueryMsg::Base(base_query) => {
                 let api = Self::new(BASE_STATE_KEY, TRADER_NAMESPACE, Addr::unchecked(""));
                 api.query(deps, env, base_query).map_err(From::from)
@@ -46,7 +48,8 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
             BaseQueryMsg::Traders { proxy_address } => {
                 let traders = self
                     .traders
-                    .may_load(deps.storage, deps.api.addr_validate(&proxy_address)?)?.unwrap_or_default();
+                    .may_load(deps.storage, deps.api.addr_validate(&proxy_address)?)?
+                    .unwrap_or_default();
                 to_binary(&QueryTradersResponse {
                     traders: traders.into_iter().collect(),
                 })

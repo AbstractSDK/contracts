@@ -273,8 +273,12 @@ pub fn replace_api(deps: DepsMut, module_info: ModuleInfo) -> ManagerResult {
         new_api_addr.to_string(),
     )?);
 
-    // Update the address of the API internally 
-    update_module_addresses(deps, Some(vec![(module_info.name,new_api_addr.into_string())]), None)?;
+    // Update the address of the API internally
+    update_module_addresses(
+        deps,
+        Some(vec![(module_info.name, new_api_addr.into_string())]),
+        None,
+    )?;
 
     Ok(Response::new().add_messages(msgs))
 }
@@ -356,12 +360,15 @@ fn get_api_addr(deps: Deps, module_info: &ModuleInfo) -> Result<Addr, ManagerErr
             let maybe_new_addr = API_ADDRESSES.query(
                 &deps.querier,
                 config.version_control_address,
-                (&module_info.name, &new_version),
+                (&module_info.name, new_version),
             )?;
             if let Some(new_addr) = maybe_new_addr {
                 new_addr
             } else {
-                return Err(ManagerError::ApiNotFound(module_info.name.clone(), new_version.clone()));
+                return Err(ManagerError::ApiNotFound(
+                    module_info.name.clone(),
+                    new_version.clone(),
+                ));
             }
         }
         None => {
