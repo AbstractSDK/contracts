@@ -47,6 +47,4 @@ pub enum RequestMsg {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub enum QueryMsg {
-    Base(ApiQueryMsg),
-}
+pub enum QueryMsg {}

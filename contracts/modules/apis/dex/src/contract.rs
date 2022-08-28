@@ -1,10 +1,12 @@
 use abstract_api::{ApiContract, ApiResult};
 use abstract_os::{
-    api::{ApiInstantiateMsg, ApiInterfaceMsg},
+    api::{ApiInstantiateMsg, ApiInterfaceMsg, ApiQueryMsg},
     dex::{QueryMsg, RequestMsg},
     EXCHANGE,
 };
-use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{
+    entry_point, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Response, StdResult,
+};
 
 use crate::{
     commands::{provide_liquidity, provide_liquidity_symmetric, swap, withdraw_liquidity},
@@ -108,12 +110,9 @@ pub fn handle_api_request(
             )
         }
     }
-    // .map_err(From::from)
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
-    match msg {
-        QueryMsg::Base(api_query) => DexApi::default().query(deps, env, api_query),
-    }
+pub fn query(deps: Deps, env: Env, msg: ApiQueryMsg) -> Result<Binary, DexError> {
+    DexApi::handle_query(deps, env, msg, None)
 }
