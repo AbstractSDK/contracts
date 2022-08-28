@@ -41,7 +41,7 @@ pub fn handle_code_id_query(deps: Deps, module: ModuleInfo) -> StdResult<Binary>
         // get latest
         let versions: StdResult<Vec<(String, u64)>> = MODULE_CODE_IDS
             .prefix(&module.name)
-            .range(deps.storage, None, None, Order::Ascending)
+            .range(deps.storage, None, None, Order::Descending)
             .take(1)
             .collect();
         let (latest_version, id) = &versions?[0];
@@ -78,7 +78,7 @@ pub fn handle_api_address_query(deps: Deps, module: ModuleInfo) -> StdResult<Bin
         // get latest
         let versions: StdResult<Vec<(String, Addr)>> = API_ADDRESSES
             .prefix(&module.name)
-            .range(deps.storage, None, None, Order::Ascending)
+            .range(deps.storage, None, None, Order::Descending)
             .take(1)
             .collect();
         let (latest_version, addr) = versions?
