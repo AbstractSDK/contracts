@@ -50,7 +50,7 @@ pub fn handle_code_id_query(deps: Deps, module: ModuleInfo) -> StdResult<Binary>
                 msg: format!("code id for {} not found", module),
             })?
             .clone();
-        resulting_version = latest_version.clone();
+        resulting_version = latest_version;
         Ok(id)
     };
 
