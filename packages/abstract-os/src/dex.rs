@@ -58,7 +58,7 @@ pub enum QueryMsg {
 // LP/protocol fees could be withheld from either input or output so commission asset must be included.
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct SimulateSwapResponse{
-    pub pool: Option<ContractEntry>,
+    pub pool: ContractEntry,
     /// Amount you would receive when performing the swap.
     pub return_amount: Uint128,
     /// Spread in ask_asset for this swap

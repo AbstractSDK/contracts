@@ -243,7 +243,7 @@ impl DEX for JunoSwap {
         pair_address: Addr,
         offer_asset: Asset,
         ask_asset: AssetInfo,
-    ) -> Result<SimulateSwapResponse, DexError> {
+    ) -> Result<(Uint128, Uint128, Uint128, bool), DexError> {
         let pair_config: InfoResponse =
             deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
                 contract_addr: pair_address.to_string(),
@@ -285,13 +285,7 @@ impl DEX for JunoSwap {
                     pair_address.to_string(),
                 ));
             };
-
-        Ok(SimulateSwapResponse {
-            pool: None,
-            commission: ("".into(), Uint128::zero()),
-            return_amount,
-            spread_amount,
-        })
+        Ok((return_amount, spread_amount, Uint128::zero(), true))
     }
 }
 

@@ -3,7 +3,7 @@ use abstract_os::{
     objects::{AssetEntry, ContractEntry},
 };
 use abstract_sdk::MemoryOperation;
-use cosmwasm_std::{Addr, Decimal, Deps, StdResult};
+use cosmwasm_std::{Addr, Decimal, Deps, StdResult, Uint128};
 use cw_asset::{Asset, AssetInfo};
 
 use crate::{
@@ -11,29 +11,17 @@ use crate::{
     error::DexError,
 };
 
-// pub struct Exchange<T: &dyn DEX + 'static>(pub T);
-
-// impl TryFrom<String> for Exchange<&'static dyn DEX> {
-//     type Error = DexError;
-
-//     fn try_from(value: String) -> Result<Self, Self::Error> {
-//         match value.as_str() {
-//         #[cfg(feature = "juno")]
-//         JUNOSWAP => {
-//             Ok(Exchange(&JunoSwap {}))
-//         },
-//         _ => return Err(DexError::UnknownDex(value))
-//         }
-//     }
-// }
-
+type Return = Uint128;
+type Spread = Uint128;
+type Fee = Uint128;
+type FeeOnInput = bool;
 /// DEX trait resolves asset names and dex to pair and lp address and ensures supported dexes support swaps and liquidity provisioning.
 pub trait DEX {
-    fn pair_address(&self, deps: Deps, api: &DexApi, assets: &mut [AssetEntry]) -> StdResult<Addr> {
+    fn pair_address(&self, deps: Deps, api: &DexApi, assets: &mut Vec<&AssetEntry>) -> StdResult<Addr> {
         let dex_pair = self.pair_contract(assets);
         api.resolve(deps, &dex_pair)
     }
-    fn pair_contract(&self, assets: &mut [AssetEntry]) -> ContractEntry {
+    fn pair_contract(&self, assets: &mut Vec<&AssetEntry>) -> ContractEntry {
         ContractEntry::construct_dex_entry(self.name(), assets)
     }
     fn name(&self) -> &'static str;
@@ -82,5 +70,5 @@ pub trait DEX {
         pair_address: Addr,
         offer_asset: Asset,
         ask_asset: AssetInfo,
-    ) -> Result<SimulateSwapResponse, DexError>;
+    ) -> Result<(Return, Spread, Fee, FeeOnInput), DexError>;
 }
