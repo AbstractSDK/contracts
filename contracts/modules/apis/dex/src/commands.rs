@@ -16,7 +16,7 @@ use abstract_os::{
 #[cfg(feature = "juno")]
 pub use crate::exchanges::junoswap::{JunoSwap, JUNOSWAP};
 
-fn resolve_exchange(value: String) -> Result<&'static dyn DEX, DexError> {
+pub(crate) fn resolve_exchange(value: String) -> Result<&'static dyn DEX, DexError> {
     match value.as_str() {
         #[cfg(feature = "juno")]
         JUNOSWAP => Ok(&JunoSwap {}),

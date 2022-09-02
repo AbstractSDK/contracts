@@ -1,9 +1,15 @@
-use abstract_os::objects::{AssetEntry, ContractEntry};
+use abstract_os::{
+    dex::SimulateSwapResponse,
+    objects::{AssetEntry, ContractEntry},
+};
 use abstract_sdk::MemoryOperation;
 use cosmwasm_std::{Addr, Decimal, Deps, StdResult};
 use cw_asset::{Asset, AssetInfo};
 
-use crate::contract::{DexApi, DexResult};
+use crate::{
+    contract::{DexApi, DexResult},
+    error::DexError,
+};
 
 // pub struct Exchange<T: &dyn DEX + 'static>(pub T);
 
@@ -23,11 +29,14 @@ use crate::contract::{DexApi, DexResult};
 
 /// DEX trait resolves asset names and dex to pair and lp address and ensures supported dexes support swaps and liquidity provisioning.
 pub trait DEX {
-    fn name(&self) -> &'static str;
     fn pair_address(&self, deps: Deps, api: &DexApi, assets: &mut [AssetEntry]) -> StdResult<Addr> {
-        let dex_pair = ContractEntry::construct_dex_entry(self.name(), assets);
+        let dex_pair = self.pair_contract(assets);
         api.resolve(deps, &dex_pair)
     }
+    fn pair_contract(&self, assets: &mut [AssetEntry]) -> ContractEntry {
+        ContractEntry::construct_dex_entry(self.name(), assets)
+    }
+    fn name(&self) -> &'static str;
     #[allow(clippy::too_many_arguments)]
     fn swap(
         &self,
@@ -67,4 +76,11 @@ pub trait DEX {
     // fn raw_withdraw_liquidity();
     // fn route_swap();
     // fn raw_route_swap();
+    fn simulate_swap(
+        &self,
+        deps: Deps,
+        pair_address: Addr,
+        offer_asset: Asset,
+        ask_asset: AssetInfo,
+    ) -> Result<SimulateSwapResponse, DexError>;
 }
