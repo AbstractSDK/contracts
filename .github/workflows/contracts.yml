@@ -27,7 +27,7 @@ jobs:
         if: ${{ steps.rustup.outcome }} != "success"
         uses: ATiltedTree/setup-rust@v1
         with:
-          rust-version: ${{ matrix.rust }}
+          rust-version: stable
           components: clippy
       - name: Build | Lint
         run: cargo clippy -- -D warnings
