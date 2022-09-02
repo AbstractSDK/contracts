@@ -4,14 +4,11 @@ use abstract_os::{
     dex::{QueryMsg, RequestMsg},
     EXCHANGE,
 };
-use abstract_sdk::MemoryOperation;
-use cosmwasm_std::{entry_point, to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response};
-use cw_asset::Asset;
+
+use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response};
 
 use crate::{
-    commands::{
-        provide_liquidity, provide_liquidity_symmetric, resolve_exchange, swap, withdraw_liquidity,
-    },
+    commands::{provide_liquidity, provide_liquidity_symmetric, swap, withdraw_liquidity},
     error::DexError,
     queries::simulate_swap,
 };

@@ -1,7 +1,4 @@
-use abstract_os::{
-    dex::SimulateSwapResponse,
-    objects::{AssetEntry, ContractEntry},
-};
+use abstract_os::objects::{AssetEntry, ContractEntry};
 use abstract_sdk::MemoryOperation;
 use cosmwasm_std::{Addr, Decimal, Deps, StdResult, Uint128};
 use cw_asset::{Asset, AssetInfo};
@@ -17,7 +14,12 @@ type Fee = Uint128;
 type FeeOnInput = bool;
 /// DEX trait resolves asset names and dex to pair and lp address and ensures supported dexes support swaps and liquidity provisioning.
 pub trait DEX {
-    fn pair_address(&self, deps: Deps, api: &DexApi, assets: &mut Vec<&AssetEntry>) -> StdResult<Addr> {
+    fn pair_address(
+        &self,
+        deps: Deps,
+        api: &DexApi,
+        assets: &mut Vec<&AssetEntry>,
+    ) -> StdResult<Addr> {
         let dex_pair = self.pair_contract(assets);
         api.resolve(deps, &dex_pair)
     }

@@ -3,7 +3,7 @@ use crate::{
     error::DexError,
     DEX,
 };
-use abstract_os::{dex::SimulateSwapResponse, objects::ContractEntry};
+
 use abstract_sdk::OsExecute;
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, Fraction, QueryRequest,

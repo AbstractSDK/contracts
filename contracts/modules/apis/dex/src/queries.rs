@@ -3,7 +3,7 @@ use abstract_os::{
     objects::AssetEntry,
 };
 use abstract_sdk::MemoryOperation;
-use cosmwasm_std::{to_binary, Binary, Deps, Env, MessageInfo, StdResult};
+use cosmwasm_std::{to_binary, Binary, Deps, Env};
 use cw_asset::Asset;
 
 use crate::{commands::resolve_exchange, contract::DexApi, error::DexError};
@@ -24,8 +24,7 @@ pub fn simulate_swap(
     // get addresses
     let offer_asset_info = api.resolve(deps, &offer_asset)?;
     let ask_asset_info = api.resolve(deps, &ask_asset)?;
-    let pair_address =
-        exchange.pair_address(deps, &api, &mut vec![&offer_asset, &ask_asset])?;
+    let pair_address = exchange.pair_address(deps, &api, &mut vec![&offer_asset, &ask_asset])?;
     let pool_info = exchange.pair_contract(&mut vec![&offer_asset, &ask_asset]);
     // create offer asset
     let swap_offer_asset: Asset = Asset::new(offer_asset_info, offer_amount);
