@@ -12,12 +12,12 @@ use cosmwasm_std::{
 use cw20::Cw20ExecuteMsg;
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};
 use terraswap::pair::{PoolResponse, SimulationResponse};
-pub const LOOP: &str = "loop";
-pub struct Loop {}
+pub const TERRASWAP: &str = "terraswap";
+pub struct Terraswap {}
 
-impl DEX for Loop {
+impl DEX for Terraswap {
     fn name(&self) -> &'static str {
-        LOOP
+        TERRASWAP
     }
     fn swap(
         &self,
