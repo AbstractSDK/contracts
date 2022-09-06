@@ -131,7 +131,12 @@ fn handle_create_allocations(
     }
 
     // CHECK :: Number of WHALE Tokens sent need to be equal to the sum of newly vested balances
-    if deposit_amount != allocations.iter().map(|params| params.1.total_amount).sum::<Uint128>() {
+    if deposit_amount
+        != allocations
+            .iter()
+            .map(|params| params.1.total_amount)
+            .sum::<Uint128>()
+    {
         return Err(StdError::generic_err("WHALE deposit amount mismatch"));
     }
 

@@ -10,7 +10,7 @@ pub mod state {
     pub const STATE: Item<State> = Item::new("state");
     pub const ALLOCATIONS: Map<&Addr, AllocationInfo> = Map::new("vested_allocations");
 
-    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+    #[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
     pub struct Config {
         /// Account which can create new allocations
         pub owner: Addr,
@@ -23,7 +23,7 @@ pub mod state {
         pub default_unlock_schedule: Schedule,
     }
 
-    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+    #[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
     pub struct State {
         /// Tokens deposited into the contract
         pub total_deposited: Uint128,
@@ -41,7 +41,7 @@ pub mod state {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
     /// Account which can create new allocations
     pub owner: String,
@@ -67,7 +67,7 @@ pub enum ExecuteMsg {
     Terminate { user_address: String },
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ReceiveMsg {
     /// Create new allocations
@@ -76,7 +76,7 @@ pub enum ReceiveMsg {
     },
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     // Config of this contract
@@ -97,7 +97,7 @@ pub enum QueryMsg {
 pub type ConfigResponse = InstantiateMsg;
 pub type AllocationResponse = AllocationInfo;
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
 pub struct StateResponse {
     /// tokens Tokens deposited into the contract
     pub total_deposited: Uint128,
@@ -105,7 +105,7 @@ pub struct StateResponse {
     pub remaining_tokens: Uint128,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
 pub struct SimulateWithdrawResponse {
     /// Total number of tokens tokens allocated to this account
     pub total_tokens_locked: Uint128,
@@ -119,7 +119,7 @@ pub struct SimulateWithdrawResponse {
     pub withdrawable_amount: Uint128,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
 pub struct AllocationInfo {
     /// Total number of tokens tokens allocated to this account
     pub total_amount: Uint128,
@@ -134,7 +134,7 @@ pub struct AllocationInfo {
 }
 
 // Parameters describing a typical vesting schedule
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
 pub struct Schedule {
     /// Timestamp of when vesting is to be started
     pub start_time: u64,
