@@ -223,11 +223,11 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
                 .filter(|(_, p)| p.value_reference.is_none())
                 .collect();
             if maybe_base_asset.len() != 1 {
-                return Err(StdError::generic_err("No base asset configured."));
+                Err(StdError::generic_err("No base asset configured."))
             } else {
-                return to_binary(&BaseAssetResponse {
+                to_binary(&BaseAssetResponse {
                     base_asset: maybe_base_asset[0].1.to_owned(),
-                });
+                })
             }
         }
     }
