@@ -439,10 +439,10 @@ fn get_value_ref_dependencies(value_reference: &ValueRef, entry: String) -> Vec<
             let asset2: AssetEntry = other_pool_asset_names[1].into();
             vec![asset1, asset2]
         }
-        abstract_os::objects::proxy_asset::ValueRef::Proxy {
-            proxy_asset,
+        abstract_os::objects::proxy_asset::ValueRef::ValueAs {
+            asset,
             multiplier: _,
-        } => vec![proxy_asset.clone()],
+        } => vec![asset.clone()],
         abstract_os::objects::proxy_asset::ValueRef::External { api_name: _ } => todo!(),
     }
 }

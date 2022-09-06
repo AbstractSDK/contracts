@@ -110,10 +110,7 @@ impl UncheckedValueRef {
                 memory.query_contract(deps, &maybe_pair.check())?;
                 Ok(ValueRef::LiquidityToken {})
             }
-            UncheckedValueRef::ValueAs {
-                asset,
-                multiplier,
-            } => {
+            UncheckedValueRef::ValueAs { asset, multiplier } => {
                 let replacement_asset: AssetEntry = asset.into();
                 memory.query_asset(deps, &replacement_asset)?;
                 Ok(ValueRef::ValueAs {
@@ -193,10 +190,9 @@ impl ProxyAsset {
                     return self.lp_value(deps, env, memory, valued_asset, pair);
                 }
                 // A proxy asset is used instead
-                ValueRef::ValueAs {
-                    asset,
-                    multiplier,
-                } => return value_as_value(deps, env, memory, asset, multiplier, holding),
+                ValueRef::ValueAs { asset, multiplier } => {
+                    return value_as_value(deps, env, memory, asset, multiplier, holding)
+                }
                 ValueRef::External { api_name } => {
                     let manager = ADMIN.get(deps)?.unwrap();
                     let maybe_api_addr = OS_MODULES.query(&deps.querier, manager, &api_name)?;
