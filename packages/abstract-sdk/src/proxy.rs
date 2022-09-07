@@ -1,10 +1,7 @@
 //! # Proxy Helpers
 use abstract_os::{
     objects::{proxy_asset::ProxyAsset, AssetEntry},
-    proxy::{
-        state::{ADMIN, VAULT_ASSETS},
-        AssetsResponse, ExecuteMsg, QueryMsg, TotalValueResponse,
-    },
+    proxy::{state::VAULT_ASSETS, AssetsResponse, ExecuteMsg, QueryMsg, TotalValueResponse},
 };
 use cosmwasm_std::{
     to_binary, Addr, CosmosMsg, Deps, Empty, QuerierWrapper, QueryRequest, StdError, StdResult,

@@ -1,12 +1,11 @@
-use abstract_sdk::common_namespace::BASE_STATE_KEY;
 use abstract_sdk::manager::query_module_address;
-use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, StdResult, Storage, StdError};
+use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, StdError, StdResult, Storage};
 
 use abstract_os::api::{ApiQueryMsg, BaseQueryMsg, QueryApiConfigResponse, QueryTradersResponse};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
-use abstract_sdk::{MemoryOperation, Dependency};
+use abstract_sdk::{Dependency, MemoryOperation};
 
 use crate::state::ApiContract;
 use crate::ApiError;
@@ -18,11 +17,11 @@ impl<T: Serialize + DeserializeOwned> MemoryOperation for ApiContract<'_, T> {
 }
 
 impl<T: Serialize + DeserializeOwned> Dependency for ApiContract<'_, T> {
-    fn dependency_address(&self,deps: Deps, dependency_name: &str) -> StdResult<Addr> {
+    fn dependency_address(&self, deps: Deps, dependency_name: &str) -> StdResult<Addr> {
         let manager_addr = &self
             .target_os
             .as_ref()
-            .ok_or(StdError::generic_err(ApiError::NoTargetOS {}.to_string()))?
+            .ok_or_else(|| StdError::generic_err(ApiError::NoTargetOS {}.to_string()))?
             .manager;
         query_module_address(deps, manager_addr, dependency_name)
     }

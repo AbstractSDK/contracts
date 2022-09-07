@@ -18,7 +18,7 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
         msg: ApiInstantiateMsg,
         module_name: &str,
         module_version: &str,
-        api_dependencies: Vec<String>,
+        _api_dependencies: Vec<String>,
     ) -> StdResult<Self> {
         let api = Self::default();
         let memory = Memory {
