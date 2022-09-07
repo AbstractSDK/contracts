@@ -1,13 +1,18 @@
 //! # Proxy Helpers
 use abstract_os::{
     objects::{proxy_asset::ProxyAsset, AssetEntry},
-    proxy::{state::VAULT_ASSETS, AssetsResponse, ExecuteMsg, QueryMsg, TotalValueResponse},
+    proxy::{
+        state::{ADMIN, VAULT_ASSETS},
+        AssetsResponse, ExecuteMsg, QueryMsg, TotalValueResponse,
+    },
 };
 use cosmwasm_std::{
-    to_binary, Addr, CosmosMsg, Deps, Empty, QueryRequest, StdError, StdResult, Uint128, WasmMsg,
-    WasmQuery,
+    to_binary, Addr, CosmosMsg, Deps, Empty, QuerierWrapper, QueryRequest, StdError, StdResult,
+    Uint128, WasmMsg, WasmQuery,
 };
+use cw_storage_plus::Item;
 
+use crate::common_namespace::ADMIN_KEY;
 // Re-export os-id query as proxy is also core-contract.
 pub use crate::manager::query_os_id;
 /// Constructs the proxy dapp action message to execute CosmosMsgs on the Proxy.
@@ -17,6 +22,12 @@ pub fn send_to_proxy(msgs: Vec<CosmosMsg>, proxy_address: &Addr) -> StdResult<Co
         msg: to_binary(&ExecuteMsg::ModuleAction { msgs })?,
         funds: vec![],
     }))
+}
+
+/// Get the manager of the proxy contract
+/// Admin always set to manager contract
+pub fn query_os_manager_address(querier: &QuerierWrapper, proxy_address: &Addr) -> StdResult<Addr> {
+    Item::new(ADMIN_KEY).query(querier, proxy_address.clone())
 }
 
 /// Query the total value denominated in the base asset

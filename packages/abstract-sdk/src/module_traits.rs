@@ -1,5 +1,5 @@
 use abstract_os::objects::memory::Memory;
-use cosmwasm_std::{CosmosMsg, Deps, Response, StdResult, Storage};
+use cosmwasm_std::{CosmosMsg, Deps, Response, StdResult, Storage, Addr};
 
 use crate::Resolve;
 
@@ -17,3 +17,7 @@ pub trait MemoryOperation {
         memory_entry.resolve(deps, &self.load_memory(deps.storage)?)
     }
 }
+
+pub trait Dependency {
+    fn dependency_address(&self,deps: Deps, dependency_name: &str) -> StdResult<Addr>;
+} 

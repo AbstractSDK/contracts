@@ -22,6 +22,6 @@ pub mod memory {
 
 pub use api::{api_req, configure_api};
 pub use memory_traits::Resolve;
-pub use module_traits::{MemoryOperation, OsExecute};
+pub use module_traits::{MemoryOperation, OsExecute, Dependency};
 
 pub extern crate abstract_os;
