@@ -319,7 +319,9 @@ fn get_code_id(
     let config = CONFIG.load(deps.storage)?;
     match module_info.version {
         Some(new_version) => {
-            if new_version.parse::<Version>()? > old_contract.version.parse::<Version>()? {
+            if new_version.parse::<Version>().unwrap()
+                > old_contract.version.parse::<Version>().unwrap()
+            {
                 new_code_id = MODULE_CODE_IDS
                     .query(
                         &deps.querier,

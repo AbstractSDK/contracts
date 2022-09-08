@@ -24,8 +24,8 @@ use crate::state::{Pool, State, FEE, POOL, STATE};
 
 const INSTANTIATE_REPLY_ID: u8 = 1u8;
 
-const DEFAULT_LP_TOKEN_NAME: &str = "Vault LP token";
-const DEFAULT_LP_TOKEN_SYMBOL: &str = "uvLP";
+const DEFAULT_LP_TOKEN_NAME: &str = "ETF LP token";
+const DEFAULT_LP_TOKEN_SYMBOL: &str = "etfLP";
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -34,8 +34,8 @@ pub type VaultResult = Result<Response, VaultError>;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VaultResult {
-    let version: Version = CONTRACT_VERSION.parse()?;
-    let storage_version: Version = get_contract_version(deps.storage)?.version.parse()?;
+    let version: Version = CONTRACT_VERSION.parse().unwrap();
+    let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
     if storage_version < version {
         set_contract_version(deps.storage, ETF, CONTRACT_VERSION)?;
     }
