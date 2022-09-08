@@ -70,15 +70,18 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
 pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> ModuleFactoryResult {
     match msg {
         Reply {
-            id: commands::CREATE_INTERNAL_DAPP_RESPONSE_ID,
+            id: commands::CREATE_ADD_ON_RESPONSE_ID,
             result,
-        } => commands::handle_add_on_init_result(deps, result),
+        } => commands::register_contract(deps, result),
         Reply {
-            id: commands::CREATE_EXTERNAL_DAPP_RESPONSE_ID,
+            id: commands::CREATE_SERVICE_RESPONSE_ID,
             result,
-        } => commands::handle_api_init_result(deps, result),
+        } => commands::register_contract(deps, result),
+        Reply {
+            id: commands::CREATE_PERK_RESPONSE_ID,
+            result,
+        } => commands::register_contract(deps, result),
         _ => Err(ModuleFactoryError::UnexpectedReply {}),
-        // TODO: add admin setters for services and perks
     }
 }
 

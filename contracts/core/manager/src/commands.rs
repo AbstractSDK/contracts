@@ -200,11 +200,7 @@ pub fn migrate_module(
         return upgrade_self(deps, env, module_info, migrate_msg);
     }
 
-    let module_addr = if module_info.name == MANAGER {
-        env.contract.address
-    } else {
-        OS_MODULES.load(deps.storage, &module_info.name)?
-    };
+    let module_addr = OS_MODULES.load(deps.storage, &module_info.name)?;
 
     let contract = query_module_version(&deps.as_ref(), module_addr.clone())?;
     let new_code_id = get_code_id(deps.as_ref(), module_info, contract)?;
