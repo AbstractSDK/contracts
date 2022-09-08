@@ -12,11 +12,11 @@ use cw20::MinterResponse;
 use protobuf::Message;
 use semver::Version;
 
-use abstract_os::liquidity_interface::{
+use abstract_os::etf::{
     ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, StateResponse,
 };
 use abstract_os::objects::fee::Fee;
-use abstract_os::LIQUIDITY_INTERFACE;
+use abstract_os::ETF;
 use cw20_base::msg::InstantiateMsg as TokenInstantiateMsg;
 
 use crate::commands::{self, verify_asset_is_valid};
@@ -39,7 +39,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VaultResult {
     let version: Version = CONTRACT_VERSION.parse()?;
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse()?;
     if storage_version < version {
-        set_contract_version(deps.storage, LIQUIDITY_INTERFACE, CONTRACT_VERSION)?;
+        set_contract_version(deps.storage, ETF, CONTRACT_VERSION)?;
     }
     Ok(Response::default())
 }
@@ -72,7 +72,7 @@ pub fn instantiate(
         env.clone(),
         info,
         msg.base,
-        LIQUIDITY_INTERFACE,
+        ETF,
         CONTRACT_VERSION,
     )?;
 
