@@ -13,33 +13,12 @@ then
     exit 1
 fi
 
-# this should really more to cosmwasm...
-STORAGE_PACKAGES="storage-macro storage-plus"
 # these are imported by other packages
-BASE_PACKAGES="cw2"
-UTILS_PACKAGES="utils"
-ALL_PACKAGES="controllers cw1 cw3 cw4 cw20 cw1155 multi-test"
-
-# This is imported by cw3-fixed-multisig, which is imported by cw3-flex-multisig
-# need to make a separate category to remove race conditions
-CW20_BASE="cw20-base"
-# these are imported by other contracts
-BASE_CONTRACTS="cw1-whitelist cw4-group cw3-fixed-multisig "
-ALL_CONTRACTS="cw1-subkeys cw3-flex-multisig cw4-stake cw20-ics20 cw1155-base"
+BASE_PACKAGES="abstract-os"
+UTILS_PACKAGES="abstract-sdk"
+ALL_PACKAGES="abstract-api abstract-add-on"
 
 SLEEP_TIME=30
-
-for pack in $STORAGE_PACKAGES; do
-  (
-    cd "packages/$pack"
-    echo "Publishing $pack"
-    cargo publish
-  )
-done
-
-# wait for these to be processed on crates.io
-echo "Waiting for publishing storage packages"
-sleep $SLEEP_TIME
 
 for pack in $BASE_PACKAGES; do
   (
@@ -90,24 +69,24 @@ done
 echo "Waiting for publishing cw20 base"
 sleep $SLEEP_TIME
 
-for cont in $BASE_CONTRACTS; do
-  (
-    cd "contracts/$cont"
-    echo "Publishing $cont"
-    cargo publish
-  )
-done
+# for cont in $BASE_CONTRACTS; do
+#   (
+#     cd "contracts/$cont"
+#     echo "Publishing $cont"
+#     cargo publish
+#   )
+# done
 
-# wait for these to be processed on crates.io
-echo "Waiting for publishing base contracts"
-sleep $SLEEP_TIME
+# # wait for these to be processed on crates.io
+# echo "Waiting for publishing base contracts"
+# sleep $SLEEP_TIME
 
-for cont in $ALL_CONTRACTS; do
-  (
-    cd "contracts/$cont"
-    echo "Publishing $cont"
-    cargo publish
-  )
-done
+# for cont in $ALL_CONTRACTS; do
+#   (
+#     cd "contracts/$cont"
+#     echo "Publishing $cont"
+#     cargo publish
+#   )
+# done
 
 echo "Everything is published!"

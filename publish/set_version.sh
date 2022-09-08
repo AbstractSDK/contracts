@@ -85,9 +85,9 @@ for contract_dir in contracts/native/*/; do
   FILES_MODIFIED+=("$CARGO_TOML")
 done
 
-# cargo build
-# FILES_MODIFIED+=("Cargo.lock")
+cargo build
+FILES_MODIFIED+=("Cargo.lock")
 
-# echo "Staging ${FILES_MODIFIED[*]} ..."
-# git add "${FILES_MODIFIED[@]}"
-# git commit -m "Set version: $NEW"
+echo "Staging ${FILES_MODIFIED[*]} ..."
+git add "${FILES_MODIFIED[@]}"
+git commit -m "Set version: $NEW"
