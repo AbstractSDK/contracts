@@ -1,5 +1,5 @@
 [package]
-name = "liquidity_interface"
+name = "etf"
 version = "0.1.0-rc.1"
 authors = ["CyberHoward <cyberhoward@users.noreply.github.com>"]
 edition = "2021"
