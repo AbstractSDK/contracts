@@ -12,9 +12,7 @@ use cw20::MinterResponse;
 use protobuf::Message;
 use semver::Version;
 
-use abstract_os::etf::{
-    ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, StateResponse,
-};
+use abstract_os::etf::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, StateResponse};
 use abstract_os::objects::fee::Fee;
 use abstract_os::ETF;
 use cw20_base::msg::InstantiateMsg as TokenInstantiateMsg;
