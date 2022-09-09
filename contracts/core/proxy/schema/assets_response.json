@@ -1,13 +1,26 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "ProxyAssetConfigResponse",
+  "title": "AssetsResponse",
   "type": "object",
   "required": [
-    "proxy_asset"
+    "assets"
   ],
   "properties": {
-    "proxy_asset": {
-      "$ref": "#/definitions/ProxyAsset"
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": [
+          {
+            "$ref": "#/definitions/AssetEntry"
+          },
+          {
+            "$ref": "#/definitions/ProxyAsset"
+          }
+        ],
+        "maxItems": 2,
+        "minItems": 2
+      }
     }
   },
   "definitions": {
