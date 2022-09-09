@@ -170,7 +170,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             if pool.deposit_asset != base_asset || pool.assets != proxy_assets {
                 return to_binary(&ConfigValidityResponse { is_valid: false });
             }
-            return to_binary(&ConfigValidityResponse { is_valid: false });
+            to_binary(&ConfigValidityResponse { is_valid: false })
         }
     }
 }
