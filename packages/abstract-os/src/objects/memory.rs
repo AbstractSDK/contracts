@@ -11,7 +11,7 @@ use crate::memory::state::{ASSET_ADDRESSES, CONTRACT_ADDRESSES};
 use super::{asset_entry::AssetEntry, contract_entry::ContractEntry};
 
 /// Struct that provides easy in-contract memory querying.
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct Memory {
     /// Address of the memory contract
     pub address: Addr,

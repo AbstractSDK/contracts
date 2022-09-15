@@ -57,6 +57,7 @@ pub mod state {
     pub const FEE: Item<Fee> = Item::new("\u{0}{3}fee");
 }
 
+use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Decimal;
 use cw20::Cw20ReceiveMsg;
 use cw_asset::AssetUnchecked;
@@ -66,11 +67,11 @@ use serde::{Deserialize, Serialize};
 use crate::add_on::{AddOnExecuteMsg, AddOnInstantiateMsg, AddOnQueryMsg};
 
 /// Migrate msg
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
 
 /// Init msg
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
     /// Base init msg, sets memory address
     pub base: AddOnInstantiateMsg,
@@ -80,8 +81,6 @@ pub struct InstantiateMsg {
     pub fee: Decimal,
     /// Address of the service provider which receives the fee.
     pub provider_addr: String,
-    /// Asset required to deposit into the etf.
-    pub deposit_asset: String,
     /// Name of the etf token
     pub token_name: Option<String>,
     /// Symbol of the etf token
@@ -89,7 +88,7 @@ pub struct InstantiateMsg {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+
 pub enum ExecuteMsg {
     /// Execute on the base-add-on contract logic
     Base(AddOnExecuteMsg),
@@ -103,8 +102,7 @@ pub enum ExecuteMsg {
     SetFee { fee: Decimal },
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
 pub enum QueryMsg {
     Base(AddOnQueryMsg),
     // Add dapp-specific queries here
@@ -112,14 +110,13 @@ pub enum QueryMsg {
     State {},
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
 pub enum DepositHookMsg {
     WithdrawLiquidity {},
     ProvideLiquidity {},
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct StateResponse {
     pub liquidity_token: String,
     pub fee: Decimal,

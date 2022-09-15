@@ -17,7 +17,7 @@ pub use cw20_base::msg::QueryMsg as Cw20QueryMsg;
 /// ## Description
 /// This structure describes the basic settings for creating a token contract.
 /// TokenContract InstantiateMsg
-#[derive(Serialize, Deserialize, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
     /// the name
     pub name: String,
@@ -36,7 +36,7 @@ pub struct InstantiateMsg {
 /// ## Description
 /// This structure describes a migration message.
 /// We currently take no arguments for migrations.
-#[derive(Serialize, Deserialize, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
 
 impl InstantiateMsg {
@@ -92,8 +92,7 @@ fn is_valid_symbol(symbol: &str) -> bool {
     true
 }
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
 pub enum ExecuteMsg {
     UpdateWhitelist {
         to_add: Vec<String>,
@@ -259,9 +258,7 @@ impl TryInto<Cw20ExecuteMsg> for ExecuteMsg {
         }
     }
 }
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
 pub enum QueryMsg {
     Config {},
     /// Returns the current balance of the given address, 0 if unset.
@@ -338,7 +335,6 @@ impl TryInto<Cw20QueryMsg> for QueryMsg {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct ConfigResponse {
     pub transfers_restricted: bool,
     pub version_control_address: String,
