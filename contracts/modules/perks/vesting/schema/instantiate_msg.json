@@ -30,6 +30,7 @@
       "type": "string"
     }
   },
+  "additionalProperties": false,
   "definitions": {
     "Schedule": {
       "type": "object",
@@ -57,7 +58,8 @@
           "format": "uint64",
           "minimum": 0.0
         }
-      }
+      },
+      "additionalProperties": false
     }
   }
 }

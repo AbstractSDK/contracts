@@ -10,7 +10,8 @@
       ],
       "properties": {
         "config": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -23,13 +24,14 @@
       ],
       "properties": {
         "total_value": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
     },
     {
-      "description": "Returns the value of one specific asset [`yHoldingValueResponse`]",
+      "description": "Returns the value of one specific asset [`HoldingValueResponse`]",
       "type": "object",
       "required": [
         "holding_value"
@@ -44,7 +46,8 @@
             "identifier": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -65,7 +68,8 @@
             "identifier": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -86,7 +90,8 @@
             "identifier": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -115,7 +120,8 @@
                 "null"
               ]
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -128,7 +134,8 @@
       ],
       "properties": {
         "check_validity": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -141,7 +148,8 @@
       ],
       "properties": {
         "base_asset": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": false
         }
       },
       "additionalProperties": false

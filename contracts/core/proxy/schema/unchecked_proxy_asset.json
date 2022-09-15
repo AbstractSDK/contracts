@@ -35,10 +35,10 @@
           "description": "A pool address of an asset/asset pair Both assets must be defined in the Proxy_assets state",
           "type": "object",
           "required": [
-            "pool"
+            "Pool"
           ],
           "properties": {
-            "pool": {
+            "Pool": {
               "type": "object",
               "required": [
                 "exchange",
@@ -59,10 +59,10 @@
         {
           "type": "object",
           "required": [
-            "liquidity_token"
+            "LiquidityToken"
           ],
           "properties": {
-            "liquidity_token": {
+            "LiquidityToken": {
               "type": "object"
             }
           },
@@ -71,10 +71,10 @@
         {
           "type": "object",
           "required": [
-            "value_as"
+            "ValueAs"
           ],
           "properties": {
-            "value_as": {
+            "ValueAs": {
               "type": "object",
               "required": [
                 "asset",
@@ -95,10 +95,10 @@
         {
           "type": "object",
           "required": [
-            "external"
+            "External"
           ],
           "properties": {
-            "external": {
+            "External": {
               "type": "object",
               "required": [
                 "api_name"

@@ -23,6 +23,7 @@
       }
     }
   },
+  "additionalProperties": false,
   "definitions": {
     "AssetEntry": {
       "description": "May key to retrieve information on an asset",
@@ -83,10 +84,10 @@
           "description": "A pool name of an asset/asset pair Both assets must be defined in the Vault_assets state",
           "type": "object",
           "required": [
-            "pool"
+            "Pool"
           ],
           "properties": {
-            "pool": {
+            "Pool": {
               "type": "object",
               "required": [
                 "pair"
@@ -104,10 +105,10 @@
           "description": "Liquidity pool token",
           "type": "object",
           "required": [
-            "liquidity_token"
+            "LiquidityToken"
           ],
           "properties": {
-            "liquidity_token": {
+            "LiquidityToken": {
               "type": "object"
             }
           },
@@ -117,10 +118,10 @@
           "description": "Asset will be valued as if they are ValueAs.asset tokens",
           "type": "object",
           "required": [
-            "value_as"
+            "ValueAs"
           ],
           "properties": {
-            "value_as": {
+            "ValueAs": {
               "type": "object",
               "required": [
                 "asset",
@@ -142,10 +143,10 @@
           "description": "Query an external contract to get the value",
           "type": "object",
           "required": [
-            "external"
+            "External"
           ],
           "properties": {
-            "external": {
+            "External": {
               "type": "object",
               "required": [
                 "api_name"
