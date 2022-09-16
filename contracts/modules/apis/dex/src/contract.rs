@@ -1,6 +1,6 @@
 use abstract_api::{ApiContract, ApiResult};
 use abstract_os::{
-    api::{BaseInstantiateMsg, BaseQueryMsg, ExecuteMsg, QueryMsg},
+    api::{BaseInstantiateMsg, ExecuteMsg, QueryMsg},
     dex::{ApiQueryMsg, RequestMsg},
     EXCHANGE,
 };

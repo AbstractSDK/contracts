@@ -4,8 +4,6 @@
 
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Uint128;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 #[cosmwasm_schema::cw_serde]
 pub enum RequestMsg {

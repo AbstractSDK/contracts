@@ -57,12 +57,9 @@ pub mod state {
     pub const FEE: Item<Fee> = Item::new("\u{0}{3}fee");
 }
 
-use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Decimal;
 use cw20::Cw20ReceiveMsg;
 use cw_asset::AssetUnchecked;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 use crate::add_on::{BaseExecuteMsg, BaseInstantiateMsg, BaseQueryMsg};
 

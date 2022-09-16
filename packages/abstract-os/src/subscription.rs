@@ -226,8 +226,6 @@ pub mod state {
 
 use cosmwasm_std::{Decimal, Uint128, Uint64};
 use cw20::Cw20ReceiveMsg;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 use crate::add_on::{BaseExecuteMsg, BaseInstantiateMsg, BaseQueryMsg};
 use cw_asset::{Asset, AssetInfoUnchecked};

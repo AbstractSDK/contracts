@@ -11,8 +11,6 @@
 //! After configuring the proxy assets [`QueryMsg::TotalValue`] can be called to get the total holding value.
 
 use cosmwasm_schema::QueryResponses;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 use cosmwasm_std::{CosmosMsg, Empty, Uint128};
 
@@ -24,8 +22,6 @@ use crate::objects::{
 pub mod state {
     pub use crate::objects::core::OS_ID;
     use cw_controllers::Admin;
-    use schemars::JsonSchema;
-    use serde::{Deserialize, Serialize};
 
     use cosmwasm_std::Addr;
     use cw_storage_plus::{Item, Map};

@@ -33,8 +33,6 @@ pub mod state {
 use crate::{objects::module::Module, version_control::Core};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Binary;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {

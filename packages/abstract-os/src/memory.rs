@@ -7,8 +7,6 @@
 
 use cosmwasm_schema::QueryResponses;
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 use crate::objects::{
     asset_entry::AssetEntry,

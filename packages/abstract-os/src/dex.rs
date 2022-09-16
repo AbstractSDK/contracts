@@ -4,8 +4,6 @@
 
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Decimal, Uint128};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 use crate::objects::{AssetEntry, ContractEntry};
 

@@ -1,9 +1,9 @@
 use abstract_add_on::state::AddOnState;
-use abstract_os::objects::AssetEntry;
+
 use abstract_sdk::MemoryOperation;
 use cosmwasm_std::{
-    from_binary, to_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo, Response,
-    Uint128, WasmMsg,
+    from_binary, to_binary, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response, Uint128,
+    WasmMsg,
 };
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg};
 use cw_asset::{Asset, AssetInfo};
@@ -12,9 +12,7 @@ use abstract_os::etf::DepositHookMsg;
 use abstract_os::objects::deposit_info::DepositInfo;
 use abstract_os::objects::fee::Fee;
 use abstract_sdk::cw20::query_supply;
-use abstract_sdk::proxy::{
-    query_enabled_asset_names, query_proxy_asset_raw, query_total_value, send_to_proxy,
-};
+use abstract_sdk::proxy::{query_enabled_asset_names, query_total_value, send_to_proxy};
 
 use crate::contract::{VaultAddOn, VaultResult};
 use crate::error::VaultError;

@@ -19,8 +19,6 @@ pub mod state {
     use cosmwasm_std::Addr;
     use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
-    use schemars::JsonSchema;
-    use serde::{Deserialize, Serialize};
 
     pub type Subscribed = bool;
 
@@ -57,8 +55,6 @@ pub mod state {
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Binary, Uint64};
 use cw2::ContractVersion;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 use crate::objects::module::Module;
 

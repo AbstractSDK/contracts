@@ -7,9 +7,6 @@
 //!
 use std::convert::TryInto;
 
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-
 use cosmwasm_std::{Binary, StdError, StdResult, Uint128};
 pub use cw20::{Cw20Coin, Cw20ExecuteMsg, Expiration, Logo, MinterResponse};
 pub use cw20_base::msg::QueryMsg as Cw20QueryMsg;

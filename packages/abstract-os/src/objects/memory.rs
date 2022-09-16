@@ -3,8 +3,6 @@ use std::collections::BTreeMap;
 use cosmwasm_std::{Addr, Deps, StdError, StdResult};
 
 use cw_asset::AssetInfo;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 use crate::memory::state::{ASSET_ADDRESSES, CONTRACT_ADDRESSES};
 

@@ -2,8 +2,6 @@ use std::fmt;
 
 use cosmwasm_std::{to_binary, Binary, StdError, StdResult};
 use cw2::ContractVersion;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 #[cosmwasm_schema::cw_serde]
 

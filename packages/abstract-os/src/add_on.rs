@@ -8,8 +8,6 @@
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
 use cw_controllers::AdminResponse;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 /// Used by Module Factory to instantiate AddOn
 #[cosmwasm_schema::cw_serde]

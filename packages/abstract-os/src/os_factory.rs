@@ -11,7 +11,7 @@ pub mod state {
     use cosmwasm_std::Addr;
     use cw_controllers::Admin;
     use cw_storage_plus::Item;
-    use schemars::JsonSchema;
+
     use serde::{Deserialize, Serialize};
 
     #[cosmwasm_schema::cw_serde]
@@ -36,8 +36,6 @@ pub mod state {
 use crate::objects::gov_type::GovernanceDetails;
 use cosmwasm_schema::QueryResponses;
 use cw20::Cw20ReceiveMsg;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 /// Msg used on instantiation
 #[cosmwasm_schema::cw_serde]
