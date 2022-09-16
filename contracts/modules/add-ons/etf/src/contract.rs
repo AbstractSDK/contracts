@@ -65,21 +65,13 @@ pub fn instantiate(
     STATE.save(deps.storage, &state)?;
     FEE.save(deps.storage, &Fee::new(msg.fee)?)?;
 
-    let vault = VaultAddOn::default().instantiate(
+    VaultAddOn::default().instantiate(
         deps.branch(),
         env.clone(),
         info,
         msg.base,
         ETF,
         CONTRACT_VERSION,
-    )?;
-
-    // Verify deposit asset is valid and active on proxy
-    verify_asset_is_valid(
-        deps.as_ref(),
-        &vault,
-        &msg.deposit_asset.as_str().into(),
-        true,
     )?;
 
     Ok(Response::new().add_submessage(SubMsg {

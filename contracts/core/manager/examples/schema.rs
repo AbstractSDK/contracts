@@ -1,7 +1,7 @@
 use abstract_os::{
     manager::{
-        ExecuteMsg, InstantiateMsg, ManagerModuleInfo, QueryConfigResponse, QueryInfoResponse,
-        QueryModuleAddressesResponse, QueryModuleInfosResponse, QueryModuleVersionsResponse,
+        ExecuteMsg, InstantiateMsg, ManagerModuleInfo, ConfigResponse, InfoResponse,
+        ModuleAddressesResponse, ModuleInfosResponse, ModuleVersionsResponse,
         QueryMsg,
     },
     objects::module::Module,
@@ -28,29 +28,29 @@ fn main() {
     export_schema(&schema_for!(Binary), &out_dir);
     export_schema(&schema_for!(QueryMsg), &out_dir);
     export_schema_with_title(
-        &schema_for!(QueryModuleVersionsResponse),
+        &schema_for!(ModuleVersionsResponse),
         &out_dir,
         "ModuleVersionsResponse",
     );
-    export_schema_with_title(&schema_for!(QueryInfoResponse), &out_dir, "InfoResponse");
+    export_schema_with_title(&schema_for!(InfoResponse), &out_dir, "InfoResponse");
     export_schema_with_title(
-        &schema_for!(QueryConfigResponse),
+        &schema_for!(ConfigResponse),
         &out_dir,
         "ConfigResponse",
     );
     export_schema_with_title(
-        &schema_for!(QueryModuleInfosResponse),
+        &schema_for!(ModuleInfosResponse),
         &out_dir,
         "ModuleInfosResponse",
     );
     export_schema_with_title(
-        &schema_for!(QueryModuleAddressesResponse),
+        &schema_for!(ModuleAddressesResponse),
         &out_dir,
         "ModuleAddressesResponse",
     );
     export_schema_with_title(
-        &schema_for!(QueryConfigResponse),
+        &schema_for!(ConfigResponse),
         &out_dir,
-        "QueryOsConfigResponse",
+        "OsConfigResponse",
     );
 }

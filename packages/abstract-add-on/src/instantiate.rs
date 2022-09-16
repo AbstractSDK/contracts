@@ -1,6 +1,6 @@
 use abstract_os::{
     add_on::AddOnInstantiateMsg,
-    module_factory::{QueryContextResponse, QueryMsg as FactoryQuery},
+    module_factory::{ContextResponse, QueryMsg as FactoryQuery},
 };
 use cosmwasm_std::{
     to_binary, DepsMut, Env, MessageInfo, QueryRequest, StdError, StdResult, WasmQuery,
@@ -27,7 +27,7 @@ impl<'a> AddOnContract<'a> {
         };
 
         // Caller is factory so get proxy and manager (admin) from there
-        let resp: QueryContextResponse =
+        let resp: ContextResponse =
             deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
                 contract_addr: info.sender.to_string(),
                 msg: to_binary(&FactoryQuery::Context {})?,

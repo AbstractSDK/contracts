@@ -15,7 +15,7 @@ fn main() {
     export_schema(&schema_for!(ExecuteMsg), &out_dir);
     export_schema(&schema_for!(QueryMsg), &out_dir);
     export_schema_with_title(
-        &schema_for!(QueryConfigResponse),
+        &schema_for!(ConfigResponse),
         &out_dir,
         "ConfigResponse",
     );

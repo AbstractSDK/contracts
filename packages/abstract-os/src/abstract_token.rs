@@ -334,7 +334,7 @@ impl TryInto<Cw20QueryMsg> for QueryMsg {
         }
     }
 }
-
+#[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     pub transfers_restricted: bool,
     pub version_control_address: String,

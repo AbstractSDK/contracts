@@ -134,8 +134,8 @@ pub enum QueryMsg {
     /// Returns [`ModuleAddressesResponse`]
     #[returns(ModuleAddressesResponse)]
     ModuleAddresses { names: Vec<String> },
-    /// Returns [`QueryModuleInfosResponse`]
-    #[returns(ConfigResponse)]
+    /// Returns [`ModuleInfosResponse`]
+    #[returns(ModuleInfosResponse)]
     ModuleInfos {
         page_token: Option<String>,
         page_size: Option<u8>,

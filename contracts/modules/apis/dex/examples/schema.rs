@@ -2,7 +2,7 @@ use std::env::current_dir;
 use std::fs::create_dir_all;
 
 use abstract_os::{
-    api::{ExecuteMsg, QueryApiConfigResponse, QueryMsg as ApiQueryMsg, QueryTradersResponse},
+    api::{ExecuteMsg, ApiConfigResponse, ApiQueryMsg, TradersResponse, ApiInstantiateMsg},
     dex::{QueryMsg, RequestMsg, SimulateSwapResponse},
 };
 use cosmwasm_schema::{
@@ -12,10 +12,10 @@ use cosmwasm_std::Empty;
 
 fn main() {
     write_api! {
-        instantiate: InstantiateMsg,
-        query: ApiQueryMsg<QueryMsg>,
+        instantiate: ApiInstantiateMsg,
+        query: ApiQueryMsg::<QueryMsg>,
         execute: ExecuteMsg<RequestMsg>,
         sudo: Empty ,
-        migrate: MigrateMsg,
+        migrate: Empty,
     }
 }

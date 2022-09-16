@@ -1,6 +1,6 @@
 use std::{collections::HashMap, str::FromStr};
 
-use abstract_os::version_control::QueryOsCoreResponse;
+use abstract_os::version_control::OsCoreResponse;
 use cosmwasm_std::Addr;
 
 use abstract_os::{
@@ -54,14 +54,14 @@ pub fn init_os(
         &funds,
     )?;
 
-    let resp: os_factory::QueryConfigResponse = app.wrap().query_wasm_smart(
+    let resp: os_factory::ConfigResponse = app.wrap().query_wasm_smart(
         &native_contracts.os_factory,
         &os_factory::QueryMsg::Config {},
     )?;
     let os_id = resp.next_os_id - 1;
 
     // Check OS
-    let core: QueryOsCoreResponse = app.wrap().query_wasm_smart(
+    let core: OsCoreResponse = app.wrap().query_wasm_smart(
         &native_contracts.version_control,
         &version_control::QueryMsg::OsCore { os_id },
     )?;

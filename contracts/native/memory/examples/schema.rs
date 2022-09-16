@@ -2,7 +2,7 @@ use std::env::current_dir;
 use std::fs::create_dir_all;
 
 use abstract_os::memory::{
-    QueryAssetListResponse, QueryAssetsResponse, QueryContractListResponse, QueryContractsResponse,
+    AssetListResponse, AssetsResponse, ContractListResponse, ContractsResponse,
 };
 use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, schema_for};
 
@@ -18,22 +18,22 @@ fn main() {
     export_schema(&schema_for!(ExecuteMsg), &out_dir);
     export_schema(&schema_for!(QueryMsg), &out_dir);
     export_schema_with_title(
-        &schema_for!(QueryContractsResponse),
+        &schema_for!(ContractsResponse),
         &out_dir,
         "ContractsResponse",
     );
     export_schema_with_title(
-        &schema_for!(QueryAssetsResponse),
+        &schema_for!(AssetsResponse),
         &out_dir,
         "AssetsResponse",
     );
     export_schema_with_title(
-        &schema_for!(QueryContractListResponse),
+        &schema_for!(ContractListResponse),
         &out_dir,
         "ContractListResponse",
     );
     export_schema_with_title(
-        &schema_for!(QueryAssetListResponse),
+        &schema_for!(AssetListResponse),
         &out_dir,
         "AssetListResponse",
     );

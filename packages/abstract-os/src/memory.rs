@@ -66,28 +66,28 @@ pub enum ExecuteMsg {
 #[derive(QueryResponses)]
 pub enum QueryMsg {
     /// Queries assets based on name
-    /// returns [`QueryAssetsResponse`]
+    /// returns [`AssetsResponse`]
     #[returns(AssetsResponse)]
     Assets {
         /// Names of assets to query
         names: Vec<String>,
     },
     /// Queries contracts based on name
-    /// returns [`QueryContractsResponse`]
+    /// returns [`ContractsResponse`]
     #[returns(ContractsResponse)]
     Contracts {
         /// Project and contract names of contracts to query
         names: Vec<ContractEntry>,
     },
     /// Page over contracts
-    /// returns [`QueryContractListResponse`]
+    /// returns [`ContractListResponse`]
     #[returns(ContractListResponse)]
     ContractList {
         page_token: Option<ContractEntry>,
         page_size: Option<u8>,
     },
     /// Page over assets
-    /// returns [`QueryAssetListResponse`]
+    /// returns [`AssetListResponse`]
     #[returns(AssetListResponse)]
     AssetList {
         page_token: Option<String>,
