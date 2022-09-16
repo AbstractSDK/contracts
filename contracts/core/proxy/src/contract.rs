@@ -26,10 +26,7 @@ pub type ProxyResult = Result<Response, ProxyError>;
     Whitelisted dApps construct messages for this contract. The dApps are controlled by Governance.
 */
 // TODO: test max limit on-chain
-const LIST_SIZE_LIMIT: usize = 15;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-const DEFAULT_LIMIT: u8 = 5;
-const MAX_LIMIT: u8 = 20;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(

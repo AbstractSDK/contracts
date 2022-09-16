@@ -9,7 +9,6 @@
 
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
-use schemars::JsonSchema;
 use serde::Serialize;
 
 /// Used by Abstract to instantiate the contract
