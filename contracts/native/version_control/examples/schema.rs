@@ -1,40 +1,46 @@
 use std::env::current_dir;
 use std::fs::create_dir_all;
 
-use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, schema_for};
+use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, schema_for, write_api};
 
 use abstract_os::{
     objects::module::ModuleInfo,
     version_control::{
         ApiAddressResponse, ApiAddressesResponse, CodeIdResponse, CodeIdsResponse, ConfigResponse,
-        ExecuteMsg, InstantiateMsg, OsCoreResponse, QueryMsg,
+        ExecuteMsg, InstantiateMsg, OsCoreResponse, QueryMsg, MigrateMsg,
     },
 };
 
 fn main() {
-    let mut out_dir = current_dir().unwrap();
-    out_dir.push("schema");
-    create_dir_all(&out_dir).unwrap();
-    remove_schemas(&out_dir).unwrap();
+    write_api! {
+        instantiate: InstantiateMsg,
+        query: QueryMsg,
+        execute: ExecuteMsg,
+        migrate: MigrateMsg,
+    };
+    // let mut out_dir = current_dir().unwrap();
+    // out_dir.push("schema");
+    // create_dir_all(&out_dir).unwrap();
+    // remove_schemas(&out_dir).unwrap();
 
-    export_schema(&schema_for!(InstantiateMsg), &out_dir);
-    export_schema(&schema_for!(ExecuteMsg), &out_dir);
-    export_schema(&schema_for!(QueryMsg), &out_dir);
-    export_schema(&schema_for!(ModuleInfo), &out_dir);
-    // export_schema(&schema_for!(EnabledModulesResponse), &out_dir);
-    export_schema_with_title(&schema_for!(CodeIdResponse), &out_dir, "CodeIdResponse");
-    export_schema_with_title(&schema_for!(ConfigResponse), &out_dir, "ConfigResponse");
-    export_schema_with_title(
-        &schema_for!(ApiAddressesResponse),
-        &out_dir,
-        "ApiAddressesResponse",
-    );
-    export_schema_with_title(
-        &schema_for!(ApiAddressResponse),
-        &out_dir,
-        "ApiAddressResponse",
-    );
-    export_schema_with_title(&schema_for!(CodeIdResponse), &out_dir, "CodeIdResponse");
-    export_schema_with_title(&schema_for!(CodeIdsResponse), &out_dir, "CodeIdsResponse");
-    export_schema_with_title(&schema_for!(OsCoreResponse), &out_dir, "OsCoreResponse");
+    // export_schema(&schema_for!(InstantiateMsg), &out_dir);
+    // export_schema(&schema_for!(ExecuteMsg), &out_dir);
+    // export_schema(&schema_for!(QueryMsg), &out_dir);
+    // export_schema(&schema_for!(ModuleInfo), &out_dir);
+    // // export_schema(&schema_for!(EnabledModulesResponse), &out_dir);
+    // export_schema_with_title(&schema_for!(CodeIdResponse), &out_dir, "CodeIdResponse");
+    // export_schema_with_title(&schema_for!(ConfigResponse), &out_dir, "ConfigResponse");
+    // export_schema_with_title(
+    //     &schema_for!(ApiAddressesResponse),
+    //     &out_dir,
+    //     "ApiAddressesResponse",
+    // );
+    // export_schema_with_title(
+    //     &schema_for!(ApiAddressResponse),
+    //     &out_dir,
+    //     "ApiAddressResponse",
+    // );
+    // export_schema_with_title(&schema_for!(CodeIdResponse), &out_dir, "CodeIdResponse");
+    // export_schema_with_title(&schema_for!(CodeIdsResponse), &out_dir, "CodeIdsResponse");
+    // export_schema_with_title(&schema_for!(OsCoreResponse), &out_dir, "OsCoreResponse");
 }
