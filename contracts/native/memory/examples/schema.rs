@@ -22,11 +22,7 @@ fn main() {
         &out_dir,
         "ContractsResponse",
     );
-    export_schema_with_title(
-        &schema_for!(AssetsResponse),
-        &out_dir,
-        "AssetsResponse",
-    );
+    export_schema_with_title(&schema_for!(AssetsResponse), &out_dir, "AssetsResponse");
     export_schema_with_title(
         &schema_for!(ContractListResponse),
         &out_dir,

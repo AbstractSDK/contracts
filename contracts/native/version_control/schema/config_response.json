@@ -13,5 +13,6 @@
     "factory": {
       "type": "string"
     }
-  }
+  },
+  "additionalProperties": false
 }

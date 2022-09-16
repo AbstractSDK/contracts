@@ -13,7 +13,7 @@ use crate::commands::*;
 use crate::queries;
 use abstract_os::version_control::state::{ADMIN, FACTORY};
 use abstract_os::version_control::{
-    ExecuteMsg, InstantiateMsg, MigrateMsg, ConfigResponse, QueryMsg,
+    ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
 };
 
 pub type VCResult = Result<Response, VCError>;

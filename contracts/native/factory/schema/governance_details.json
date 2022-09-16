@@ -7,10 +7,10 @@
       "description": "A single address is admin",
       "type": "object",
       "required": [
-        "monarchy"
+        "Monarchy"
       ],
       "properties": {
-        "monarchy": {
+        "Monarchy": {
           "type": "object",
           "required": [
             "monarch"
@@ -29,10 +29,10 @@
       "description": "An external governance source",
       "type": "object",
       "required": [
-        "external"
+        "External"
       ],
       "properties": {
-        "external": {
+        "External": {
           "type": "object",
           "required": [
             "governance_address",

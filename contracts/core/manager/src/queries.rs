@@ -1,7 +1,7 @@
 use abstract_os::manager::state::{OsInfo, CONFIG, INFO, OS_ID, OS_MODULES, ROOT};
 use abstract_os::manager::{
-    ManagerModuleInfo, ConfigResponse, InfoResponse, ModuleAddressesResponse,
-    ModuleInfosResponse, ModuleVersionsResponse,
+    ConfigResponse, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse, ModuleInfosResponse,
+    ModuleVersionsResponse,
 };
 use abstract_sdk::manager::{query_module_addresses, query_module_version, query_module_versions};
 use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, StdResult, Uint64};

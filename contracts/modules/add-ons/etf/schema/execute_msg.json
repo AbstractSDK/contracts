@@ -6,10 +6,10 @@
       "description": "Execute on the base-add-on contract logic",
       "type": "object",
       "required": [
-        "base"
+        "Base"
       ],
       "properties": {
-        "base": {
+        "Base": {
           "$ref": "#/definitions/AddOnExecuteMsg"
         }
       },
@@ -19,10 +19,10 @@
       "description": "Handler called by the CW-20 contract on a send-call Acts as the withdraw/provide liquidity function. Provide the token send message with a [`DepositHookMsg`]",
       "type": "object",
       "required": [
-        "receive"
+        "Receive"
       ],
       "properties": {
-        "receive": {
+        "Receive": {
           "$ref": "#/definitions/Cw20ReceiveMsg"
         }
       },
@@ -32,10 +32,10 @@
       "description": "Provide liquidity to the attached proxy using a native token.",
       "type": "object",
       "required": [
-        "provide_liquidity"
+        "ProvideLiquidity"
       ],
       "properties": {
-        "provide_liquidity": {
+        "ProvideLiquidity": {
           "type": "object",
           "required": [
             "asset"
@@ -53,10 +53,10 @@
       "description": "Set the withdraw fee",
       "type": "object",
       "required": [
-        "set_fee"
+        "SetFee"
       ],
       "properties": {
-        "set_fee": {
+        "SetFee": {
           "type": "object",
           "required": [
             "fee"
@@ -90,7 +90,8 @@
                     "null"
                   ]
                 }
-              }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false

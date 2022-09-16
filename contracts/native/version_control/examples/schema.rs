@@ -6,9 +6,8 @@ use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, s
 use abstract_os::{
     objects::module::ModuleInfo,
     version_control::{
-        ExecuteMsg, InstantiateMsg, ApiAddressResponse, ApiAddressesResponse,
-        CodeIdResponse, CodeIdsResponse, ConfigResponse, QueryMsg,
-        OsCoreResponse,
+        ApiAddressResponse, ApiAddressesResponse, CodeIdResponse, CodeIdsResponse, ConfigResponse,
+        ExecuteMsg, InstantiateMsg, OsCoreResponse, QueryMsg,
     },
 };
 
@@ -23,16 +22,8 @@ fn main() {
     export_schema(&schema_for!(QueryMsg), &out_dir);
     export_schema(&schema_for!(ModuleInfo), &out_dir);
     // export_schema(&schema_for!(EnabledModulesResponse), &out_dir);
-    export_schema_with_title(
-        &schema_for!(CodeIdResponse),
-        &out_dir,
-        "CodeIdResponse",
-    );
-    export_schema_with_title(
-        &schema_for!(ConfigResponse),
-        &out_dir,
-        "ConfigResponse",
-    );
+    export_schema_with_title(&schema_for!(CodeIdResponse), &out_dir, "CodeIdResponse");
+    export_schema_with_title(&schema_for!(ConfigResponse), &out_dir, "ConfigResponse");
     export_schema_with_title(
         &schema_for!(ApiAddressesResponse),
         &out_dir,
@@ -43,19 +34,7 @@ fn main() {
         &out_dir,
         "ApiAddressResponse",
     );
-    export_schema_with_title(
-        &schema_for!(CodeIdResponse),
-        &out_dir,
-        "CodeIdResponse",
-    );
-    export_schema_with_title(
-        &schema_for!(CodeIdsResponse),
-        &out_dir,
-        "CodeIdsResponse",
-    );
-    export_schema_with_title(
-        &schema_for!(OsCoreResponse),
-        &out_dir,
-        "OsCoreResponse",
-    );
+    export_schema_with_title(&schema_for!(CodeIdResponse), &out_dir, "CodeIdResponse");
+    export_schema_with_title(&schema_for!(CodeIdsResponse), &out_dir, "CodeIdsResponse");
+    export_schema_with_title(&schema_for!(OsCoreResponse), &out_dir, "OsCoreResponse");
 }

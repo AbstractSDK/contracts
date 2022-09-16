@@ -49,5 +49,6 @@
     "version_control_address": {
       "type": "string"
     }
-  }
+  },
+  "additionalProperties": false
 }

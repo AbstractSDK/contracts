@@ -15,5 +15,6 @@
       "description": "Version control address used to get code-ids and register OS",
       "type": "string"
     }
-  }
+  },
+  "additionalProperties": false
 }

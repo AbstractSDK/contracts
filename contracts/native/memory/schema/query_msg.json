@@ -4,7 +4,7 @@
   "description": "Memory smart-query",
   "oneOf": [
     {
-      "description": "Queries assets based on name returns [`QueryAssetsResponse`]",
+      "description": "Queries assets based on name returns [`AssetsResponse`]",
       "type": "object",
       "required": [
         "assets"
@@ -23,13 +23,14 @@
                 "type": "string"
               }
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
     },
     {
-      "description": "Queries contracts based on name returns [`QueryContractsResponse`]",
+      "description": "Queries contracts based on name returns [`ContractsResponse`]",
       "type": "object",
       "required": [
         "contracts"
@@ -48,13 +49,14 @@
                 "$ref": "#/definitions/ContractEntry"
               }
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
     },
     {
-      "description": "Page over contracts returns [`QueryContractListResponse`]",
+      "description": "Page over contracts returns [`ContractListResponse`]",
       "type": "object",
       "required": [
         "contract_list"
@@ -81,13 +83,14 @@
                 }
               ]
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
     },
     {
-      "description": "Page over assets returns [`QueryAssetListResponse`]",
+      "description": "Page over assets returns [`AssetListResponse`]",
       "type": "object",
       "required": [
         "asset_list"
@@ -110,7 +113,8 @@
                 "null"
               ]
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false

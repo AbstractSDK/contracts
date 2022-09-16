@@ -13,6 +13,7 @@
       }
     }
   },
+  "additionalProperties": false,
   "definitions": {
     "ContractVersion": {
       "type": "object",
@@ -48,7 +49,8 @@
         "version": {
           "$ref": "#/definitions/ContractVersion"
         }
-      }
+      },
+      "additionalProperties": false
     }
   }
 }

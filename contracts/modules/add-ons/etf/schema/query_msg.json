@@ -22,7 +22,8 @@
       ],
       "properties": {
         "state": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -39,7 +40,8 @@
           ],
           "properties": {
             "config": {
-              "type": "object"
+              "type": "object",
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -52,7 +54,8 @@
           ],
           "properties": {
             "admin": {
-              "type": "object"
+              "type": "object",
+              "additionalProperties": false
             }
           },
           "additionalProperties": false

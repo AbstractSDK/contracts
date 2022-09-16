@@ -1,8 +1,7 @@
 use abstract_os::{
     manager::{
-        ExecuteMsg, InstantiateMsg, ManagerModuleInfo, ConfigResponse, InfoResponse,
-        ModuleAddressesResponse, ModuleInfosResponse, ModuleVersionsResponse,
-        QueryMsg,
+        ConfigResponse, ExecuteMsg, InfoResponse, InstantiateMsg, ManagerModuleInfo,
+        ModuleAddressesResponse, ModuleInfosResponse, ModuleVersionsResponse, QueryMsg,
     },
     objects::module::Module,
 };
@@ -33,11 +32,7 @@ fn main() {
         "ModuleVersionsResponse",
     );
     export_schema_with_title(&schema_for!(InfoResponse), &out_dir, "InfoResponse");
-    export_schema_with_title(
-        &schema_for!(ConfigResponse),
-        &out_dir,
-        "ConfigResponse",
-    );
+    export_schema_with_title(&schema_for!(ConfigResponse), &out_dir, "ConfigResponse");
     export_schema_with_title(
         &schema_for!(ModuleInfosResponse),
         &out_dir,
@@ -48,9 +43,5 @@ fn main() {
         &out_dir,
         "ModuleAddressesResponse",
     );
-    export_schema_with_title(
-        &schema_for!(ConfigResponse),
-        &out_dir,
-        "OsConfigResponse",
-    );
+    export_schema_with_title(&schema_for!(ConfigResponse), &out_dir, "OsConfigResponse");
 }

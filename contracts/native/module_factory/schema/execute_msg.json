@@ -30,7 +30,8 @@
                 "null"
               ]
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -66,7 +67,8 @@
                 }
               ]
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -126,7 +128,8 @@
                 "minItems": 2
               }
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -150,7 +153,8 @@
         "kind": {
           "$ref": "#/definitions/ModuleKind"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "ModuleInfo": {
       "type": "object",
@@ -167,7 +171,8 @@
             "null"
           ]
         }
-      }
+      },
+      "additionalProperties": false
     },
     "ModuleKind": {
       "type": "string",

@@ -23,7 +23,8 @@
             "module_id": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -66,7 +67,8 @@
                 "type": "string"
               }
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -103,7 +105,8 @@
                 }
               ]
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -128,7 +131,8 @@
             "module_addr": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -149,7 +153,8 @@
             "module_name": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -180,7 +185,8 @@
             "module": {
               "$ref": "#/definitions/Module"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -213,7 +219,8 @@
                 "null"
               ]
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -240,7 +247,8 @@
             "root": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -261,7 +269,8 @@
             "new_status": {
               "type": "boolean"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -285,7 +294,8 @@
         "kind": {
           "$ref": "#/definitions/ModuleKind"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "ModuleInfo": {
       "type": "object",
@@ -302,7 +312,8 @@
             "null"
           ]
         }
-      }
+      },
+      "additionalProperties": false
     },
     "ModuleKind": {
       "type": "string",

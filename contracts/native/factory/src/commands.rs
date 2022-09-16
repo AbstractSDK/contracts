@@ -25,7 +25,7 @@ use abstract_os::{
 };
 
 use abstract_os::version_control::{
-    ExecuteMsg as VCExecuteMsg, CodeIdResponse, QueryMsg as VCQuery,
+    CodeIdResponse, ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery,
 };
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};
 

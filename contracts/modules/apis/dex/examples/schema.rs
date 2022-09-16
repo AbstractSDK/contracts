@@ -2,7 +2,7 @@ use std::env::current_dir;
 use std::fs::create_dir_all;
 
 use abstract_os::{
-    api::{ExecuteMsg, ApiConfigResponse, ApiQueryMsg, TradersResponse, ApiInstantiateMsg},
+    api::{ApiConfigResponse, ApiInstantiateMsg, ApiQueryMsg, ExecuteMsg, TradersResponse},
     dex::{QueryMsg, RequestMsg, SimulateSwapResponse},
 };
 use cosmwasm_schema::{

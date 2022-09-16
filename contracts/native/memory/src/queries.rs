@@ -3,8 +3,7 @@ use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, StdResult};
 use abstract_os::{
     memory::{
         state::{ASSET_ADDRESSES, CONTRACT_ADDRESSES},
-        AssetListResponse, AssetsResponse, ContractListResponse,
-        ContractsResponse,
+        AssetListResponse, AssetsResponse, ContractListResponse, ContractsResponse,
     },
     objects::{AssetEntry, ContractEntry},
 };

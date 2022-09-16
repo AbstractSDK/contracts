@@ -15,5 +15,6 @@
         "null"
       ]
     }
-  }
+  },
+  "additionalProperties": false
 }

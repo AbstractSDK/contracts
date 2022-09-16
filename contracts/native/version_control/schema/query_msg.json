@@ -3,13 +3,13 @@
   "title": "QueryMsg",
   "oneOf": [
     {
-      "description": "Query Core of an OS Returns [`QueryOsCoreResponse`]",
+      "description": "Query Core of an OS Returns [`OsCoreResponse`]",
       "type": "object",
       "required": [
-        "os_core"
+        "OsCore"
       ],
       "properties": {
-        "os_core": {
+        "OsCore": {
           "type": "object",
           "required": [
             "os_id"
@@ -26,13 +26,13 @@
       "additionalProperties": false
     },
     {
-      "description": "Queries contract code_id Returns [`QueryCodeIdResponse`]",
+      "description": "Queries contract code_id Returns [`CodeIdResponse`]",
       "type": "object",
       "required": [
-        "code_id"
+        "CodeId"
       ],
       "properties": {
-        "code_id": {
+        "CodeId": {
           "type": "object",
           "required": [
             "module"
@@ -47,13 +47,13 @@
       "additionalProperties": false
     },
     {
-      "description": "Queries api addresses Returns [`QueryApiAddressResponse`]",
+      "description": "Queries api addresses Returns [`ApiAddressResponse`]",
       "type": "object",
       "required": [
-        "api_address"
+        "ApiAddress"
       ],
       "properties": {
-        "api_address": {
+        "ApiAddress": {
           "type": "object",
           "required": [
             "module"
@@ -68,26 +68,26 @@
       "additionalProperties": false
     },
     {
-      "description": "Returns [`QueryConfigResponse`]",
+      "description": "Returns [`ConfigResponse`]",
       "type": "object",
       "required": [
-        "config"
+        "Config"
       ],
       "properties": {
-        "config": {
+        "Config": {
           "type": "object"
         }
       },
       "additionalProperties": false
     },
     {
-      "description": "Returns [`QueryCodeIdsResponse`]",
+      "description": "Returns [`CodeIdsResponse`]",
       "type": "object",
       "required": [
-        "code_ids"
+        "CodeIds"
       ],
       "properties": {
-        "code_ids": {
+        "CodeIds": {
           "type": "object",
           "properties": {
             "page_size": {
@@ -114,13 +114,13 @@
       "additionalProperties": false
     },
     {
-      "description": "Returns [`QueryApiAddressesResponse`]",
+      "description": "Returns [`ApiAddressesResponse`]",
       "type": "object",
       "required": [
-        "api_addresses"
+        "ApiAddresses"
       ],
       "properties": {
-        "api_addresses": {
+        "ApiAddresses": {
           "type": "object",
           "properties": {
             "page_size": {
@@ -180,7 +180,8 @@
             "null"
           ]
         }
-      }
+      },
+      "additionalProperties": false
     }
   }
 }

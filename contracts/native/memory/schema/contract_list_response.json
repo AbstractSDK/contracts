@@ -24,6 +24,7 @@
       }
     }
   },
+  "additionalProperties": false,
   "definitions": {
     "ContractEntry": {
       "description": "Key to get the Address of a contract Use [`UncheckedContractEntry`] to construct this type.",

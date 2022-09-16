@@ -27,11 +27,10 @@ impl<'a> AddOnContract<'a> {
         };
 
         // Caller is factory so get proxy and manager (admin) from there
-        let resp: ContextResponse =
-            deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-                contract_addr: info.sender.to_string(),
-                msg: to_binary(&FactoryQuery::Context {})?,
-            }))?;
+        let resp: ContextResponse = deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+            contract_addr: info.sender.to_string(),
+            msg: to_binary(&FactoryQuery::Context {})?,
+        }))?;
 
         let core = match resp.core {
             Some(core) => core,

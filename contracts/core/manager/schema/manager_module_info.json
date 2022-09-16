@@ -18,6 +18,7 @@
       "$ref": "#/definitions/ContractVersion"
     }
   },
+  "additionalProperties": false,
   "definitions": {
     "ContractVersion": {
       "type": "object",

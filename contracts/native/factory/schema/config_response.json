@@ -33,5 +33,6 @@
     "version_control_contract": {
       "type": "string"
     }
-  }
+  },
+  "additionalProperties": false
 }

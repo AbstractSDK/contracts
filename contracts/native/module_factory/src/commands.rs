@@ -16,9 +16,7 @@ use crate::contract::ModuleFactoryResult;
 
 use crate::{error::ModuleFactoryError, response::MsgInstantiateContractResponse, state::*};
 
-use abstract_os::version_control::{
-    ApiAddressResponse, CodeIdResponse, QueryMsg as VCQuery,
-};
+use abstract_os::version_control::{ApiAddressResponse, CodeIdResponse, QueryMsg as VCQuery};
 
 pub const CREATE_ADD_ON_RESPONSE_ID: u64 = 1u64;
 pub const CREATE_SERVICE_RESPONSE_ID: u64 = 3u64;

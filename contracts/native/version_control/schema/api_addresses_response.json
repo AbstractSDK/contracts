@@ -23,6 +23,7 @@
       }
     }
   },
+  "additionalProperties": false,
   "definitions": {
     "ContractVersion": {
       "type": "object",
