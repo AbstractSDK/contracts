@@ -1,6 +1,6 @@
-pub mod commands;
+mod commands;
 pub mod contract;
 mod error;
-pub mod queries;
+mod queries;
 // #[cfg(test)]
 // mod tests;
