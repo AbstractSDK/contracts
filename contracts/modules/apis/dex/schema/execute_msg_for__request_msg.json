@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "ExecuteMsg",
+  "title": "ExecuteMsg_for_RequestMsg",
   "description": "Interface to the API.",
   "oneOf": [
     {
@@ -55,6 +55,10 @@
       },
       "additionalProperties": false
     },
+    "AssetEntry": {
+      "description": "May key to retrieve information on an asset",
+      "type": "string"
+    },
     "BaseExecuteMsg": {
       "description": "Configuration message for the API",
       "oneOf": [
@@ -108,27 +112,135 @@
         }
       ]
     },
+    "Decimal": {
+      "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
+      "type": "string"
+    },
     "RequestMsg": {
+      "description": "Dex Execute msg",
       "oneOf": [
         {
           "type": "object",
           "required": [
-            "delegate"
+            "provide_liquidity"
           ],
           "properties": {
-            "delegate": {
+            "provide_liquidity": {
+              "type": "object",
+              "required": [
+                "assets"
+              ],
+              "properties": {
+                "assets": {
+                  "description": "Assets to add",
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "$ref": "#/definitions/AssetEntry"
+                      },
+                      {
+                        "$ref": "#/definitions/Uint128"
+                      }
+                    ],
+                    "maxItems": 2,
+                    "minItems": 2
+                  }
+                },
+                "dex": {
+                  "description": "Name of the Dex to use.",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "max_spread": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/Decimal"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "provide_liquidity_symmetric"
+          ],
+          "properties": {
+            "provide_liquidity_symmetric": {
+              "type": "object",
+              "required": [
+                "offer_asset",
+                "paired_assets"
+              ],
+              "properties": {
+                "dex": {
+                  "description": "Name of the Dex to use.",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "offer_asset": {
+                  "type": "array",
+                  "items": [
+                    {
+                      "$ref": "#/definitions/AssetEntry"
+                    },
+                    {
+                      "$ref": "#/definitions/Uint128"
+                    }
+                  ],
+                  "maxItems": 2,
+                  "minItems": 2
+                },
+                "paired_assets": {
+                  "description": "Assets that are paired with the offered asset",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/AssetEntry"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "withdraw_liquidity"
+          ],
+          "properties": {
+            "withdraw_liquidity": {
               "type": "object",
               "required": [
                 "amount",
-                "validator"
+                "lp_token"
               ],
               "properties": {
                 "amount": {
                   "$ref": "#/definitions/Uint128"
                 },
-                "validator": {
-                  "description": "Validator address",
-                  "type": "string"
+                "dex": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "lp_token": {
+                  "$ref": "#/definitions/AssetEntry"
                 }
               },
               "additionalProperties": false
@@ -139,138 +251,59 @@
         {
           "type": "object",
           "required": [
-            "undelegate_from"
+            "swap"
           ],
           "properties": {
-            "undelegate_from": {
+            "swap": {
               "type": "object",
               "required": [
-                "validator"
+                "ask_asset",
+                "offer_asset"
               ],
               "properties": {
-                "amount": {
+                "ask_asset": {
+                  "$ref": "#/definitions/AssetEntry"
+                },
+                "belief_price": {
                   "anyOf": [
                     {
-                      "$ref": "#/definitions/Uint128"
+                      "$ref": "#/definitions/Decimal"
                     },
                     {
                       "type": "null"
                     }
                   ]
                 },
-                "validator": {
-                  "description": "Validator address",
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "undelegate_all"
-          ],
-          "properties": {
-            "undelegate_all": {
-              "type": "object",
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "redelegate"
-          ],
-          "properties": {
-            "redelegate": {
-              "type": "object",
-              "required": [
-                "destination_validator",
-                "source_validator"
-              ],
-              "properties": {
-                "amount": {
+                "dex": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "max_spread": {
                   "anyOf": [
                     {
-                      "$ref": "#/definitions/Uint128"
+                      "$ref": "#/definitions/Decimal"
                     },
                     {
                       "type": "null"
                     }
                   ]
                 },
-                "destination_validator": {
-                  "description": "Validator address",
-                  "type": "string"
-                },
-                "source_validator": {
-                  "description": "Validator address",
-                  "type": "string"
+                "offer_asset": {
+                  "type": "array",
+                  "items": [
+                    {
+                      "$ref": "#/definitions/AssetEntry"
+                    },
+                    {
+                      "$ref": "#/definitions/Uint128"
+                    }
+                  ],
+                  "maxItems": 2,
+                  "minItems": 2
                 }
               },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "set_withdraw_address"
-          ],
-          "properties": {
-            "set_withdraw_address": {
-              "type": "object",
-              "required": [
-                "new_withdraw_address"
-              ],
-              "properties": {
-                "new_withdraw_address": {
-                  "description": "The new `withdraw_address`",
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "withdraw_delegator_reward"
-          ],
-          "properties": {
-            "withdraw_delegator_reward": {
-              "type": "object",
-              "required": [
-                "validator"
-              ],
-              "properties": {
-                "validator": {
-                  "description": "Validator address",
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Withdraw all the rewards",
-          "type": "object",
-          "required": [
-            "withdraw_all_rewards"
-          ],
-          "properties": {
-            "withdraw_all_rewards": {
-              "type": "object",
               "additionalProperties": false
             }
           },

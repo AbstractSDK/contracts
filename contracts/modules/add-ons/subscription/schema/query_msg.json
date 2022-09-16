@@ -9,7 +9,7 @@
       ],
       "properties": {
         "base": {
-          "$ref": "#/definitions/AddOnQueryMsg"
+          "$ref": "#/definitions/BaseQueryMsg"
         }
       },
       "additionalProperties": false
@@ -101,7 +101,7 @@
     }
   ],
   "definitions": {
-    "AddOnQueryMsg": {
+    "BaseQueryMsg": {
       "oneOf": [
         {
           "description": "Returns [`AddOnConfigResponse`]",

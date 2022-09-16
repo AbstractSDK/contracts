@@ -14,7 +14,7 @@
       "description": "Base init msg, sets memory address",
       "allOf": [
         {
-          "$ref": "#/definitions/AddOnInstantiateMsg"
+          "$ref": "#/definitions/BaseInstantiateMsg"
         }
       ]
     },
@@ -53,7 +53,7 @@
   },
   "additionalProperties": false,
   "definitions": {
-    "AddOnInstantiateMsg": {
+    "BaseInstantiateMsg": {
       "description": "Used by Module Factory to instantiate AddOn",
       "type": "object",
       "required": [
