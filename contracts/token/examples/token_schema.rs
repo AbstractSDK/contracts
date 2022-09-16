@@ -1,12 +1,6 @@
-use std::{env::current_dir, fs::create_dir_all};
-
-use cosmwasm_schema::{export_schema, remove_schemas, schema_for, write_api};
+use cosmwasm_schema::write_api;
 
 use abstract_os::abstract_token::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
-use cw20::{
-    AllAccountsResponse, AllAllowancesResponse, AllowanceResponse, BalanceResponse, MinterResponse,
-    TokenInfoResponse,
-};
 
 fn main() {
     write_api! {

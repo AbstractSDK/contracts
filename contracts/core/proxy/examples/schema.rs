@@ -1,17 +1,6 @@
-use std::env::current_dir;
-use std::fs::create_dir_all;
+use cosmwasm_schema::write_api;
 
-use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, schema_for, write_api};
-
-use abstract_os::objects::proxy_asset::{ProxyAsset, UncheckedProxyAsset};
-use abstract_os::proxy::state::State;
-use abstract_os::proxy::{
-    AssetConfigResponse, AssetsResponse, BaseAssetResponse, ConfigResponse, ExecuteMsg,
-    HoldingAmountResponse, HoldingValueResponse, InstantiateMsg, QueryMsg, TotalValueResponse,
-    ValidityResponse, MigrateMsg,
-};
-use cosmwasm_std::{CosmosMsg, Empty};
-use cw_asset::AssetInfo;
+use abstract_os::proxy::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 
 fn main() {
     write_api! {

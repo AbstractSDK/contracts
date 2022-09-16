@@ -1,11 +1,6 @@
-use std::{env::current_dir, fs::create_dir_all};
+use cosmwasm_schema::write_api;
 
-use cosmwasm_schema::{export_schema, remove_schemas, schema_for, write_api};
-
-use abstract_os::vesting::{
-    AllocationInfo, ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg, ReceiveMsg, Schedule,
-    SimulateWithdrawResponse, StateResponse,
-};
+use abstract_os::vesting::{ExecuteMsg, InstantiateMsg, QueryMsg};
 
 fn main() {
     write_api! {

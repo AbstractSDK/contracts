@@ -9,7 +9,10 @@ use std::convert::TryInto;
 
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Binary, StdError, StdResult, Uint128};
-use cw20::{BalanceResponse, TokenInfoResponse, AllowanceResponse, AllAllowancesResponse, AllAccountsResponse, MarketingInfoResponse, DownloadLogoResponse};
+use cw20::{
+    AllAccountsResponse, AllAllowancesResponse, AllowanceResponse, BalanceResponse,
+    DownloadLogoResponse, MarketingInfoResponse, TokenInfoResponse,
+};
 pub use cw20::{Cw20Coin, Cw20ExecuteMsg, Expiration, Logo, MinterResponse};
 pub use cw20_base::msg::QueryMsg as Cw20QueryMsg;
 
@@ -261,13 +264,11 @@ impl TryInto<Cw20ExecuteMsg> for ExecuteMsg {
 #[derive(QueryResponses)]
 pub enum QueryMsg {
     #[returns(ConfigResponse)]
-    Config {},   
+    Config {},
     /// Returns the current balance of the given address, 0 if unset.
     /// Return type: BalanceResponse.
     #[returns(BalanceResponse)]
-    Balance {
-        address: String,
-    },
+    Balance { address: String },
     /// Returns metadata on the contract - name, decimals, supply, etc.
     /// Return type: TokenInfoResponse.
     #[returns(TokenInfoResponse)]
@@ -281,10 +282,7 @@ pub enum QueryMsg {
     /// Returns how much spender can use from owner account, 0 if unset.
     /// Return type: AllowanceResponse.
     #[returns(AllowanceResponse)]
-    Allowance {
-        owner: String,
-        spender: String,
-    },
+    Allowance { owner: String, spender: String },
     /// Only with "enumerable" extension (and "allowances")
     /// Returns all allowances this owner has approved. Supports pagination.
     /// Return type: AllAllowancesResponse.

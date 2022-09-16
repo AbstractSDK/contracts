@@ -1,15 +1,6 @@
-use abstract_os::{
-    manager::{
-        ConfigResponse, ExecuteMsg, InfoResponse, InstantiateMsg, ManagerModuleInfo,
-        ModuleAddressesResponse, ModuleInfosResponse, ModuleVersionsResponse, QueryMsg, MigrateMsg,
-    },
-    objects::module::Module,
-};
-use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, schema_for};
-use std::{env::current_dir, fs::create_dir_all};
+use abstract_os::manager::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
+
 use cosmwasm_schema::write_api;
-use abstract_os::manager::state::OsInfo;
-use cosmwasm_std::Binary;
 
 fn main() {
     write_api! {

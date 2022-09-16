@@ -1,15 +1,6 @@
-use std::env::current_dir;
-use std::fs::create_dir_all;
+use cosmwasm_schema::write_api;
 
-use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, schema_for, write_api};
-
-use abstract_os::{
-    objects::module::ModuleInfo,
-    version_control::{
-        ApiAddressResponse, ApiAddressesResponse, CodeIdResponse, CodeIdsResponse, ConfigResponse,
-        ExecuteMsg, InstantiateMsg, OsCoreResponse, QueryMsg, MigrateMsg,
-    },
-};
+use abstract_os::version_control::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 
 fn main() {
     write_api! {

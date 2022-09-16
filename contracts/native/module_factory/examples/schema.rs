@@ -1,6 +1,4 @@
-use std::{env::current_dir, fs::create_dir_all};
-
-use cosmwasm_schema::{export_schema, remove_schemas, schema_for, write_api};
+use cosmwasm_schema::write_api;
 
 use abstract_os::module_factory::*;
 

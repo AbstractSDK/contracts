@@ -5,7 +5,7 @@ use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, s
 
 use abstract_add_on::state::AddOnState;
 use abstract_os::{
-    add_on::{BaseQueryMsg, AddOnConfigResponse},
+    add_on::{AddOnConfigResponse, BaseQueryMsg},
     subscription::{
         ConfigResponse, ContributorStateResponse, ExecuteMsg, InstantiateMsg, QueryMsg,
         StateResponse, SubscriberStateResponse, SubscriptionFeeResponse,
