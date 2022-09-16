@@ -1,6 +1,6 @@
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
 
-use abstract_os::api::{ApiConfigResponse, ApiQueryMsg, BaseQueryMsg, TradersResponse};
+use abstract_os::api::{ApiConfigResponse, BaseQueryMsg, QueryMsg, TradersResponse};
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{state::ApiContract, ApiError};
@@ -17,15 +17,15 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
         &self,
         deps: Deps,
         env: Env,
-        msg: ApiQueryMsg<Q>,
+        msg: QueryMsg<Q>,
         custom_query_handler: ApiQueryHandlerFn<Q, QueryError>,
     ) -> Result<Binary, QueryError> {
         match msg {
-            ApiQueryMsg::Api(api_query) => custom_query_handler
+            QueryMsg::Api(api_query) => custom_query_handler
                 .map(|func| func(deps, env, api_query))
                 .transpose()?
                 .ok_or_else(|| ApiError::NoCustomQueries {}.into()),
-            ApiQueryMsg::Base(base_query) => self.query(deps, env, base_query).map_err(From::from),
+            QueryMsg::Base(base_query) => self.query(deps, env, base_query).map_err(From::from),
         }
     }
 

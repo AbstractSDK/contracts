@@ -4,7 +4,7 @@ use abstract_os::version_control::OsCoreResponse;
 use cosmwasm_std::Addr;
 
 use abstract_os::{
-    add_on::AddOnInstantiateMsg, objects::module::ModuleInfo,
+    add_on::BaseInstantiateMsg, objects::module::ModuleInfo,
     subscription::InstantiateMsg as SubInitMsg, version_control::Core,
 };
 use cosmwasm_std::{to_binary, Coin, Decimal, Uint128, Uint64};
@@ -84,7 +84,7 @@ pub fn init_primary_os(
     let core = os_store.get(&0u32).unwrap();
 
     let init_msg = to_binary(&SubInitMsg {
-        base: AddOnInstantiateMsg {
+        base: BaseInstantiateMsg {
             memory_address: native_contracts.memory.to_string(),
         },
         contribution: Some(abstract_os::subscription::ContributionInstantiateMsg {

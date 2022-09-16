@@ -13,19 +13,19 @@ use serde::{Deserialize, Serialize};
 
 /// Used by Module Factory to instantiate AddOn
 #[cosmwasm_schema::cw_serde]
-pub struct AddOnInstantiateMsg {
+pub struct BaseInstantiateMsg {
     pub memory_address: String,
 }
 
 #[cosmwasm_schema::cw_serde]
-pub enum AddOnExecuteMsg {
+pub enum BaseExecuteMsg {
     /// Updates the base config
     UpdateConfig { memory_address: Option<String> },
 }
 
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
-pub enum AddOnQueryMsg {
+pub enum BaseQueryMsg {
     /// Returns [`AddOnConfigResponse`]
     #[returns(AddOnConfigResponse)]
     Config {},

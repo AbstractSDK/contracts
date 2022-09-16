@@ -229,7 +229,7 @@ use cw20::Cw20ReceiveMsg;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::add_on::{AddOnExecuteMsg, AddOnInstantiateMsg, AddOnQueryMsg};
+use crate::add_on::{BaseExecuteMsg, BaseInstantiateMsg, BaseQueryMsg};
 use cw_asset::{Asset, AssetInfoUnchecked};
 
 use state::{
@@ -244,7 +244,7 @@ pub struct MigrateMsg {}
 
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
-    pub base: AddOnInstantiateMsg,
+    pub base: BaseInstantiateMsg,
     pub subscription: SubscriptionInstantiateMsg,
     pub contribution: Option<ContributionInstantiateMsg>,
 }
@@ -271,7 +271,7 @@ pub struct ContributionInstantiateMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub enum ExecuteMsg {
-    Base(AddOnExecuteMsg),
+    Base(BaseExecuteMsg),
     // Add dapp-specific messages here
     Receive(Cw20ReceiveMsg),
     Pay {
@@ -314,7 +314,7 @@ pub enum ExecuteMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub enum QueryMsg {
-    Base(AddOnQueryMsg),
+    Base(BaseQueryMsg),
     // Add dapp-specific queries here
     State {},
     Config {},

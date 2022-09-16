@@ -1,4 +1,4 @@
-use abstract_os::{api::ApiInstantiateMsg, manager as ManagerMsgs, objects::module::Module};
+use abstract_os::{api::BaseInstantiateMsg, manager as ManagerMsgs, objects::module::Module};
 
 use abstract_os::{objects::module::ModuleInfo, EXCHANGE};
 
@@ -29,7 +29,7 @@ pub fn register_and_create_dex_api(
         dex::contract::query,
     ));
     let code_id = app.store_code(contract);
-    let msg = ApiInstantiateMsg {
+    let msg = BaseInstantiateMsg {
         memory_address: memory.to_string(),
         version_control_address: version_control.to_string(),
     };

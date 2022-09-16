@@ -264,22 +264,3 @@ pub fn set_fee(
     FEE.save(deps.storage, &fee)?;
     Ok(Response::new().add_attribute("Update:", "Successful"))
 }
-
-pub fn verify_asset_is_valid(
-    deps: Deps,
-    vault: &VaultAddOn,
-    asset: &AssetEntry,
-    is_base: bool,
-) -> Result<(), VaultError> {
-    let base_state = vault.state(deps.storage)?;
-    // ensure it resolves
-    vault.resolve(deps, asset)?;
-    let proxy_asset = query_proxy_asset_raw(deps, &base_state.proxy_address, asset)?;
-    if proxy_asset.value_reference.is_some() && is_base
-        || proxy_asset.value_reference.is_none() && !is_base
-    {
-        // The deposit asset must be the base asset for the value calculation.
-        return Err(VaultError::DepositAssetNotBase(asset.to_string()));
-    }
-    Ok(())
-}

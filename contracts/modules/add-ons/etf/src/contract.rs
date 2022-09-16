@@ -17,7 +17,7 @@ use abstract_os::objects::fee::Fee;
 use abstract_os::ETF;
 use cw20_base::msg::InstantiateMsg as TokenInstantiateMsg;
 
-use crate::commands::{self, verify_asset_is_valid};
+use crate::commands;
 use crate::error::VaultError;
 use crate::response::MsgInstantiateContractResponse;
 use crate::state::{State, FEE, STATE};

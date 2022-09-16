@@ -1,5 +1,5 @@
 use abstract_os::{
-    api::{ApiQueryMsg, BaseExecuteMsg, BaseQueryMsg, TradersResponse},
+    api::{BaseExecuteMsg, BaseQueryMsg, QueryMsg as ApiQuery, TradersResponse},
     manager::state::{OsInfo, Subscribed, CONFIG, INFO, OS_MODULES, ROOT, STATUS},
     module_factory::ExecuteMsg as ModuleFactoryMsg,
     objects::module::{Module, ModuleInfo, ModuleKind},
@@ -223,7 +223,7 @@ pub fn replace_api(deps: DepsMut, module_info: ModuleInfo) -> ManagerResult {
     let proxy_addr = OS_MODULES.load(deps.storage, PROXY)?;
     let traders: TradersResponse = deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
         contract_addr: old_api_addr.to_string(),
-        msg: to_binary(&<ApiQueryMsg<Empty>>::Base(BaseQueryMsg::Traders {
+        msg: to_binary(&<ApiQuery<Empty>>::Base(BaseQueryMsg::Traders {
             proxy_address: proxy_addr.to_string(),
         }))?,
     }))?;

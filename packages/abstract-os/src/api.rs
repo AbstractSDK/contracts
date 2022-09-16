@@ -15,7 +15,7 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 /// Used by Abstract to instantiate the contract
 /// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::AddApi`].
 #[cosmwasm_schema::cw_serde]
-pub struct ApiInstantiateMsg {
+pub struct BaseInstantiateMsg {
     /// Used to easily perform address translation
     pub memory_address: String,
     /// Used to verify senders
@@ -74,8 +74,8 @@ pub enum BaseExecuteMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub enum ApiQueryMsg<Q: Serialize> {
-    /// An API request. Forwards the msg to the associated proxy.
+pub enum QueryMsg<Q: Serialize> {
+    /// An API query message. Forwards the msg to the associated proxy.
     Api(Q),
     /// A configuration message to whitelist traders.
     Base(BaseQueryMsg),

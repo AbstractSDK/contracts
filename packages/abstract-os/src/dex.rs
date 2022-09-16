@@ -7,10 +7,7 @@ use cosmwasm_std::{Decimal, Uint128};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    api::ApiQueryMsg,
-    objects::{AssetEntry, ContractEntry},
-};
+use crate::objects::{AssetEntry, ContractEntry};
 
 type DexName = String;
 pub type OfferAsset = (AssetEntry, Uint128);
@@ -50,7 +47,7 @@ pub enum RequestMsg {
 
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
-pub enum QueryMsg {
+pub enum ApiQueryMsg {
     #[returns(SimulateSwapResponse)]
     SimulateSwap {
         offer_asset: OfferAsset,

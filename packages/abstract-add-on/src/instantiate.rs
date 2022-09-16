@@ -1,5 +1,5 @@
 use abstract_os::{
-    add_on::AddOnInstantiateMsg,
+    add_on::BaseInstantiateMsg,
     module_factory::{ContextResponse, QueryMsg as FactoryQuery},
 };
 use cosmwasm_std::{
@@ -18,7 +18,7 @@ impl<'a> AddOnContract<'a> {
         deps: DepsMut,
         _env: Env,
         info: MessageInfo,
-        msg: AddOnInstantiateMsg,
+        msg: BaseInstantiateMsg,
         module_name: &str,
         module_version: &str,
     ) -> StdResult<Self> {

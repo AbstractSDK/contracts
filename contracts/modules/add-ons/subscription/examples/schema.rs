@@ -5,7 +5,7 @@ use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, s
 
 use abstract_add_on::state::AddOnState;
 use abstract_os::{
-    add_on::AddOnQueryMsg,
+    add_on::BaseQueryMsg,
     subscription::{
         ConfigResponse, ContributorStateResponse, ExecuteMsg, InstantiateMsg, QueryMsg,
         StateResponse, SubscriberStateResponse, SubscriptionFeeResponse,
@@ -30,7 +30,7 @@ fn main() {
     export_schema(&schema_for!(ConfigResponse), &out_dir);
 
     // TODO: we need to pull this out into a better type
-    export_schema_with_title(&schema_for!(AddOnQueryMsg), &out_dir, "BaseResponse");
+    export_schema_with_title(&schema_for!(BaseQueryMsg), &out_dir, "BaseResponse");
 
     export_schema_with_title(&schema_for!(AssetInfo), &out_dir, "AssetInfoBase_for_Addr");
     export_schema_with_title(

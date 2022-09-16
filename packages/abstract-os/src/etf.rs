@@ -14,7 +14,7 @@
 //! ```ignore
 //! let etf_init_msg = InstantiateMsg{
 //!                deposit_asset: "juno".to_string(),
-//!                base: AddOnInstantiateMsg{memory_address: "juno1...".to_string()},
+//!                base: BaseInstantiateMsg{memory_address: "juno1...".to_string()},
 //!                fee: Decimal::percent(10),
 //!                provider_addr: "juno1...".to_string(),
 //!                token_code_id: 3,
@@ -64,7 +64,7 @@ use cw_asset::AssetUnchecked;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::add_on::{AddOnExecuteMsg, AddOnInstantiateMsg, AddOnQueryMsg};
+use crate::add_on::{BaseExecuteMsg, BaseInstantiateMsg, BaseQueryMsg};
 
 /// Migrate msg
 #[cosmwasm_schema::cw_serde]
@@ -74,7 +74,7 @@ pub struct MigrateMsg {}
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
     /// Base init msg, sets memory address
-    pub base: AddOnInstantiateMsg,
+    pub base: BaseInstantiateMsg,
     /// Code-id used to create the LP token
     pub token_code_id: u64,
     /// Fee charged on withdrawal
@@ -87,11 +87,10 @@ pub struct InstantiateMsg {
     pub token_symbol: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-
+#[cosmwasm_schema::cw_serde]
 pub enum ExecuteMsg {
     /// Execute on the base-add-on contract logic
-    Base(AddOnExecuteMsg),
+    Base(BaseExecuteMsg),
     /// Handler called by the CW-20 contract on a send-call
     /// Acts as the withdraw/provide liquidity function.
     /// Provide the token send message with a [`DepositHookMsg`]
@@ -104,7 +103,7 @@ pub enum ExecuteMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub enum QueryMsg {
-    Base(AddOnQueryMsg),
+    Base(BaseQueryMsg),
     // Add dapp-specific queries here
     /// Returns [`StateResponse`]
     State {},
