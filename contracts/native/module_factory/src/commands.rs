@@ -74,7 +74,7 @@ pub fn execute_create_module(
 
     // Todo: check if this can be generalized for some contracts
     // aka have default values for each kind of module that only get overwritten if a specific init_msg is saved.
-    let fixed_binary = MODULE_INIT_BINARIES.may_load(deps.storage, module.info)?;
+    let fixed_binary = MODULE_INIT_BINARIES.may_load(deps.storage, module.info.clone())?;
     let init_msg = ModuleInitMsg {
         fixed_init: fixed_binary,
         root_init: root_init_msg,

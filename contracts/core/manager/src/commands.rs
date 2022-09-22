@@ -228,7 +228,7 @@ pub fn replace_api(deps: DepsMut, module_info: ModuleInfo) -> ManagerResult {
         }))?,
     }))?;
     // Get the address of the new API
-    let new_api_addr = get_api_addr(deps.as_ref(), &module_info)?;
+    let new_api_addr = get_api_addr(deps.as_ref(), module_info.clone())?;
     let traders_to_migrate: Vec<String> = traders
         .traders
         .into_iter()
@@ -316,7 +316,7 @@ fn get_code_id(
 ) -> Result<u64, ManagerError> {
     let new_code_id: u64;
     let config = CONFIG.load(deps.storage)?;
-    match module_info.version {
+    match &module_info.version {
         ModuleVersion::Version(new_version) => {
             if new_version.parse::<Version>().unwrap()
                 > old_contract.version.parse::<Version>().unwrap()
@@ -325,12 +325,12 @@ fn get_code_id(
                     .query(
                         &deps.querier,
                         config.version_control_address,
-                        (&module_info.name, &new_version),
+                        module_info,
                     )?
                     .unwrap();
             } else {
                 return Err(ManagerError::OlderVersion(
-                    new_version,
+                    new_version.to_owned(),
                     old_contract.version,
                 ));
             };
@@ -350,14 +350,14 @@ fn get_code_id(
     Ok(new_code_id)
 }
 
-fn get_api_addr(deps: Deps, module_info: &ModuleInfo) -> Result<Addr, ManagerError> {
+fn get_api_addr(deps: Deps, module_info: ModuleInfo) -> Result<Addr, ManagerError> {
     let config = CONFIG.load(deps.storage)?;
     let new_addr = match &module_info.version {
         ModuleVersion::Version(new_version) => {
             let maybe_new_addr = API_ADDRESSES.query(
                 &deps.querier,
                 config.version_control_address,
-                (&module_info.name, new_version),
+                module_info.clone(),
             )?;
             if let Some(new_addr) = maybe_new_addr {
                 new_addr

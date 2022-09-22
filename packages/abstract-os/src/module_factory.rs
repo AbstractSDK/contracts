@@ -30,7 +30,7 @@ pub mod state {
     pub const MODULE_INIT_BINARIES: Map<ModuleInfo, Binary> = Map::new("module_init_binaries");
 }
 
-use crate::{objects::module::Module, version_control::Core};
+use crate::{objects::module::{Module, ModuleInfo}, version_control::Core};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Binary;
 
@@ -57,8 +57,8 @@ pub enum ExecuteMsg {
         init_msg: Option<Binary>,
     },
     UpdateFactoryBinaryMsgs {
-        to_add: Vec<((String, String), Binary)>,
-        to_remove: Vec<(String, String)>,
+        to_add: Vec<(ModuleInfo, Binary)>,
+        to_remove: Vec<ModuleInfo>,
     },
 }
 
