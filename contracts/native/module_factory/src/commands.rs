@@ -5,7 +5,7 @@ use cosmwasm_std::{
 
 use abstract_os::{
     manager::ExecuteMsg as ManagerMsg,
-    objects::module::{Module, ModuleInfo, ModuleInitMsg, ModuleKind},
+    objects::module::{Module, ModuleInfo, ModuleInitMsg, ModuleKind, ModuleVersion},
 };
 use abstract_sdk::verify_os_manager;
 
@@ -35,7 +35,7 @@ pub fn execute_create_module(
     // Verify sender is active OS manager
     let core = verify_os_manager(&deps.querier, &info.sender, &config.version_control_address)?;
 
-    if module.kind == ModuleKind::API {
+    if module.kind == ModuleKind::Extension {
         // Query version_control for api address
         let api_addr_response: ApiAddressResponse =
             deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
@@ -45,7 +45,7 @@ pub fn execute_create_module(
                 })?,
             }))?;
 
-        module.info.version = Some(api_addr_response.info.version);
+        module.info.version = ModuleVersion::Version(api_addr_response.info.version);
 
         let register_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: core.manager.into_string(),
@@ -68,7 +68,7 @@ pub fn execute_create_module(
         }))?;
 
     // Update module info
-    module.info = ModuleInfo::from(module_code_id_response.info.clone());
+    module.info = ModuleInfo::try_from(module_code_id_response.info.clone())?;
     // Get factory binary
     let ContractVersion { contract, version } = &module_code_id_response.info;
 
@@ -93,7 +93,7 @@ pub fn execute_create_module(
     // Match Module type
     match module {
         Module {
-            kind: ModuleKind::AddOn,
+            kind: ModuleKind::App,
             ..
         } => create_add_on(
             deps,

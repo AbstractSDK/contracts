@@ -2,7 +2,7 @@ use abstract_os::{
     api::{BaseExecuteMsg, BaseQueryMsg, QueryMsg as ApiQuery, TradersResponse},
     manager::state::{OsInfo, Subscribed, CONFIG, INFO, OS_MODULES, ROOT, STATUS},
     module_factory::ExecuteMsg as ModuleFactoryMsg,
-    objects::module::{Module, ModuleInfo, ModuleKind},
+    objects::module::{Module, ModuleInfo, ModuleKind, ModuleVersion},
     proxy::ExecuteMsg as TreasuryMsg,
     version_control::{
         state::{API_ADDRESSES, MODULE_CODE_IDS},
@@ -105,7 +105,7 @@ pub fn register_module(
 
     match module {
         _dapp @ Module {
-            kind: ModuleKind::API,
+            kind: ModuleKind::Extension,
             ..
         } => {
             response = response.add_message(whitelist_dapp_on_proxy(
@@ -115,7 +115,7 @@ pub fn register_module(
             )?)
         }
         _dapp @ Module {
-            kind: ModuleKind::AddOn,
+            kind: ModuleKind::App,
             ..
         } => {
             response = response.add_message(whitelist_dapp_on_proxy(
@@ -317,7 +317,7 @@ fn get_code_id(
     let new_code_id: u64;
     let config = CONFIG.load(deps.storage)?;
     match module_info.version {
-        Some(new_version) => {
+        ModuleVersion::Version(new_version) => {
             if new_version.parse::<Version>().unwrap()
                 > old_contract.version.parse::<Version>().unwrap()
             {
@@ -335,7 +335,7 @@ fn get_code_id(
                 ));
             };
         }
-        None => {
+        ModuleVersion::Latest {  } => {
             // Query latest version of contract
             let resp: CodeIdResponse =
                 deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
@@ -353,7 +353,7 @@ fn get_code_id(
 fn get_api_addr(deps: Deps, module_info: &ModuleInfo) -> Result<Addr, ManagerError> {
     let config = CONFIG.load(deps.storage)?;
     let new_addr = match &module_info.version {
-        Some(new_version) => {
+        ModuleVersion::Version(new_version) => {
             let maybe_new_addr = API_ADDRESSES.query(
                 &deps.querier,
                 config.version_control_address,
@@ -368,7 +368,7 @@ fn get_api_addr(deps: Deps, module_info: &ModuleInfo) -> Result<Addr, ManagerErr
                 ));
             }
         }
-        None => {
+        ModuleVersion::Latest {  } => {
             // Query latest version of contract
             let resp: ApiAddressResponse =
                 deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {

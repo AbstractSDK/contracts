@@ -114,7 +114,7 @@ pub fn init_primary_os(
                 name: SUBSCRIPTION.to_string(),
                 version: None,
             },
-            kind: objects::module::ModuleKind::AddOn,
+            kind: objects::module::ModuleKind::App,
         },
         init_msg: Some(init_msg),
     };

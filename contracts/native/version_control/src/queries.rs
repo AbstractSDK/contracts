@@ -1,4 +1,5 @@
 use abstract_os::objects::module::ModuleInfo;
+use abstract_os::objects::module::ModuleVersion;
 use abstract_os::version_control::state::API_ADDRESSES;
 use abstract_os::version_control::ApiAddressResponse;
 use abstract_os::version_control::ApiAddressesResponse;
@@ -34,7 +35,7 @@ pub fn handle_code_id_query(deps: Deps, module: ModuleInfo) -> StdResult<Binary>
     // Will store actual version of returned module code id
     let resulting_version: String;
 
-    let code_id = if let Some(version) = module.version.clone() {
+    let maybe_code_id = if let ModuleVersion::Version(version) = module.version.clone() {
         resulting_version = version.clone();
         MODULE_CODE_IDS.load(deps.storage, (&module.name, &version))
     } else {
@@ -54,11 +55,11 @@ pub fn handle_code_id_query(deps: Deps, module: ModuleInfo) -> StdResult<Binary>
         Ok(id)
     };
 
-    match code_id {
+    match maybe_code_id {
         Err(_) => Err(StdError::generic_err(
             VCError::MissingCodeId {
                 module: module.name,
-                version: module.version.unwrap_or_default(),
+                version: module.version,
             }
             .to_string(),
         )),
@@ -76,7 +77,7 @@ pub fn handle_api_address_query(deps: Deps, module: ModuleInfo) -> StdResult<Bin
     // Will store actual version of returned module code id
     let resulting_version: String;
 
-    let maybe_addr = if let Some(version) = module.version.clone() {
+    let maybe_addr = if let ModuleVersion::Version(version) = module.version.clone() {
         resulting_version = version;
         API_ADDRESSES.load(deps.storage, (&module.name, &resulting_version))
     } else {
@@ -100,7 +101,7 @@ pub fn handle_api_address_query(deps: Deps, module: ModuleInfo) -> StdResult<Bin
         Err(_) => Err(StdError::generic_err(
             VCError::MissingCodeId {
                 module: module.name,
-                version: module.version.unwrap_or_default(),
+                version: module.version,
             }
             .to_string(),
         )),

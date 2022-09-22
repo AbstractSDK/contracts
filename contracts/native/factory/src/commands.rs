@@ -1,5 +1,5 @@
 use abstract_os::{
-    objects::{gov_type::GovernanceDetails, module::ModuleInfo},
+    objects::{gov_type::GovernanceDetails, module::{ModuleInfo, ModuleVersion}},
     os_factory::ExecuteMsg,
     subscription::{
         DepositHookMsg as SubDepositHook, ExecuteMsg as SubscriptionExecMsg,
@@ -93,10 +93,7 @@ pub fn execute_create_os(
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: config.version_control_contract.to_string(),
             msg: to_binary(&VCQuery::CodeId {
-                module: ModuleInfo {
-                    name: String::from(MANAGER),
-                    version: None,
-                },
+                module: ModuleInfo::from_id(MANAGER, ModuleVersion::Latest {  })?,
             })?,
         }))?;
 
@@ -157,10 +154,7 @@ pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> OsFact
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: config.version_control_contract.to_string(),
             msg: to_binary(&VCQuery::CodeId {
-                module: ModuleInfo {
-                    name: String::from(PROXY),
-                    version: None,
-                },
+                module: ModuleInfo::from_id(PROXY, ModuleVersion::Latest{})?,
             })?,
         }))?;
     Ok(Response::new()

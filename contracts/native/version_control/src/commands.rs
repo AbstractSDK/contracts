@@ -2,7 +2,7 @@ use cosmwasm_std::{DepsMut, Empty, MessageInfo, Response};
 
 use crate::contract::VCResult;
 use crate::error::VCError;
-use abstract_os::version_control::{state::*, Core};
+use abstract_os::{version_control::{state::*, Core}, objects::module::ModuleInfo};
 
 /// Add new OS to version control contract
 /// Only Factory can add OS
@@ -51,12 +51,11 @@ pub fn add_code_id(
     ]))
 }
 
-/// Add a new code_id for a module
+/// Remove a code_id for a module
 pub fn remove_code_id(
     deps: DepsMut,
     msg_info: MessageInfo,
-    module: String,
-    version: String,
+    module: ModuleInfo,
 ) -> VCResult {
     // Only Admin can update code-ids
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;

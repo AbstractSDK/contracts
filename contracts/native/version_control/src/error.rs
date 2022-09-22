@@ -1,3 +1,4 @@
+use abstract_os::objects::module::ModuleVersion;
 use cosmwasm_std::StdError;
 use cw_controllers::AdminError;
 use thiserror::Error;
@@ -18,7 +19,7 @@ pub enum VCError {
         version,
         module
     )]
-    MissingCodeId { version: String, module: String },
+    MissingCodeId { version: ModuleVersion, module: String },
 
     #[error("Version {} of Api {} does not have a stored address", version, module)]
     MissingApi { version: String, module: String },
