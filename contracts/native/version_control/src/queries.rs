@@ -65,7 +65,6 @@ pub fn handle_code_id_query(deps: Deps, mut module: ModuleInfo) -> StdResult<Bin
 }
 
 pub fn handle_api_address_query(deps: Deps, mut module: ModuleInfo) -> StdResult<Binary> {
-
     let maybe_addr = if let ModuleVersion::Version(_) = module.version.clone() {
         API_ADDRESSES.load(deps.storage, module.clone())
     } else {

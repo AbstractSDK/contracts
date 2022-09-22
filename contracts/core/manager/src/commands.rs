@@ -1,3 +1,5 @@
+use std::any::Any;
+
 use abstract_os::{
     api::{BaseExecuteMsg, BaseQueryMsg, QueryMsg as ApiQuery, TradersResponse},
     manager::state::{OsInfo, Subscribed, CONFIG, INFO, OS_MODULES, ROOT, STATUS},
@@ -99,7 +101,7 @@ pub fn register_module(
 
     let mut response = update_module_addresses(
         deps.branch(),
-        Some(vec![(module.info.name.clone(), module_address.clone())]),
+        Some(vec![(module.info.id(), module_address.clone())]),
         None,
     )?;
 
@@ -196,11 +198,11 @@ pub fn migrate_module(
     migrate_msg: Binary,
 ) -> ManagerResult {
     // Check if trying to upgrade this contract.
-    if module_info.name == MANAGER {
+    if module_info.id() == MANAGER {
         return upgrade_self(deps, env, module_info, migrate_msg);
     }
 
-    let module_addr = OS_MODULES.load(deps.storage, &module_info.name)?;
+    let module_addr = OS_MODULES.load(deps.storage, &module_info.id())?;
 
     let contract = query_module_version(&deps.as_ref(), module_addr.clone())?;
     let new_code_id = get_code_id(deps.as_ref(), module_info, contract)?;
@@ -216,10 +218,11 @@ pub fn migrate_module(
 /// Replaces the current API with a different version
 /// Also moves all the trader permissions to the new contract and removes them from the old
 pub fn replace_api(deps: DepsMut, module_info: ModuleInfo) -> ManagerResult {
+    
     let mut msgs = vec![];
-
+    
     // Makes sure we already have the API installed
-    let old_api_addr = OS_MODULES.load(deps.storage, &module_info.name)?;
+    let old_api_addr = OS_MODULES.load(deps.storage, &module_info.id())?;
     let proxy_addr = OS_MODULES.load(deps.storage, PROXY)?;
     let traders: TradersResponse = deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
         contract_addr: old_api_addr.to_string(),
@@ -271,7 +274,7 @@ pub fn replace_api(deps: DepsMut, module_info: ModuleInfo) -> ManagerResult {
     // Update the address of the API internally
     update_module_addresses(
         deps,
-        Some(vec![(module_info.name, new_api_addr.into_string())]),
+        Some(vec![(module_info.id(), new_api_addr.into_string())]),
         None,
     )?;
 
@@ -363,7 +366,7 @@ fn get_api_addr(deps: Deps, module_info: ModuleInfo) -> Result<Addr, ManagerErro
                 new_addr
             } else {
                 return Err(ManagerError::ApiNotFound(
-                    module_info.name.clone(),
+                    module_info.id().clone(),
                     new_version.clone(),
                 ));
             }

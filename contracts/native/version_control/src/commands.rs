@@ -83,7 +83,6 @@ pub fn add_apis(
         return Err(VCError::ApiUpdate(module));
     }
     module.assert_version_variant()?;
-
     API_ADDRESSES.save(
         deps.storage,
         module,

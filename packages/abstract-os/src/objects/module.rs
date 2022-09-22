@@ -8,10 +8,37 @@ use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 pub struct ModuleInfo {
     /// Provider of the module
     pub provider: String,
-    /// Name of the module
+    /// Name of the contract
     pub name: String,
     /// Version of the module
     pub version: ModuleVersion,
+}
+
+impl ModuleInfo {
+    pub fn id(&self) -> String {
+        format!("{}:{}",self.provider,self.name)
+    }
+    pub fn from_id(id: &str, version: ModuleVersion) -> StdResult<Self> {
+        let split: Vec<&str> = id.split(':').collect();
+        if split.len() != 2 {
+            return Err(StdError::generic_err(format!(
+                "contract id:{} must be formatted as provider:contract_name.",
+                id
+            )));
+        }
+        Ok(ModuleInfo {
+            provider: split[0].to_lowercase(),
+            name: split[1].to_lowercase(),
+            version,
+        })
+    }
+
+    pub fn assert_version_variant(&self) -> StdResult<()> {
+        match self.version {
+            ModuleVersion::Latest {  } => Err(StdError::generic_err("Module version must be set for this action.")),
+            ModuleVersion::Version(_) => Ok(()),
+        }
+    }
 }
 
 impl<'a> PrimaryKey<'a> for ModuleInfo {
@@ -123,35 +150,11 @@ impl From<Option<String>> for ModuleVersion {
     }
 }
 
-impl ModuleInfo {
-    pub fn from_id(id: &str, version: ModuleVersion) -> StdResult<Self> {
-        let split: Vec<&str> = id.split(':').collect();
-        if split.len() != 2 {
-            return Err(StdError::generic_err(format!(
-                "contract id:{} must be formatted as provider:contract_name.",
-                id
-            )));
-        }
-        Ok(ModuleInfo {
-            provider: split[0].to_lowercase(),
-            name: split[1].to_lowercase(),
-            version,
-        })
-    }
-
-    pub fn assert_version_variant(&self) -> StdResult<()> {
-        match self.version {
-            ModuleVersion::Latest {  } => Err(StdError::generic_err("Module version must be set for this action.")),
-            ModuleVersion::Version(_) => Ok(()),
-        }
-    }
-}
-
 impl fmt::Display for ModuleInfo {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "Provider: {}, Contract:{}, Version: {})",
+            "contract {} provided by {} with version {}.)",
             self.provider, self.name, self.version,
         )
     }
