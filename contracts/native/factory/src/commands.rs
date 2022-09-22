@@ -4,7 +4,7 @@ use abstract_os::{
     subscription::{
         DepositHookMsg as SubDepositHook, ExecuteMsg as SubscriptionExecMsg,
         QueryMsg as SubscriptionQuery, SubscriptionFeeResponse,
-    },
+    }, version_control::Core,
 };
 use cosmwasm_std::{
     from_binary, to_binary, Addr, Coin, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
@@ -193,14 +193,19 @@ pub fn after_proxy_add_to_manager_and_set_admin(
 
     let proxy_address = res.get_contract_address();
 
+    // construct OS core
+    let core= Core {
+        manager: context.os_manager_address.clone(),
+        proxy: deps.api.addr_validate(proxy_address)?,
+    };
+
     // Add OS core to version_control
     let add_os_core_to_version_control_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: config.version_control_contract.to_string(),
         funds: vec![],
         msg: to_binary(&VCExecuteMsg::AddOs {
             os_id: config.next_os_id,
-            manager_address: context.os_manager_address.to_string(),
-            proxy_address: deps.api.addr_validate(proxy_address)?.into_string(),
+            core
         })?,
     });
 

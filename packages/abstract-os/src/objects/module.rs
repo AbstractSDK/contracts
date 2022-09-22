@@ -138,6 +138,13 @@ impl ModuleInfo {
             version,
         })
     }
+
+    pub fn assert_version_variant(&self) -> StdResult<()> {
+        match self.version {
+            ModuleVersion::Latest {  } => Err(StdError::generic_err("Module version must be set for this action.")),
+            ModuleVersion::Version(_) => Ok(()),
+        }
+    }
 }
 
 impl fmt::Display for ModuleInfo {

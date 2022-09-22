@@ -1,4 +1,4 @@
-use abstract_os::objects::module::ModuleVersion;
+use abstract_os::objects::module::ModuleInfo;
 use cosmwasm_std::StdError;
 use cw_controllers::AdminError;
 use thiserror::Error;
@@ -15,20 +15,17 @@ pub enum VCError {
     SemVer(String),
 
     #[error(
-        "Version {} of module {} does not have a stored code id",
-        version,
-        module
-    )]
-    MissingCodeId { version: ModuleVersion, module: String },
+        "Module {0} does not have a stored code id")]
+    MissingCodeId (ModuleInfo),
 
-    #[error("Version {} of Api {} does not have a stored address", version, module)]
-    MissingApi { version: String, module: String },
+    #[error("Api {0} does not have a stored address")]
+    MissingApi(ModuleInfo),
 
-    #[error("Version {} of Api {} can not be updated", version, module)]
-    ApiUpdate { version: String, module: String },
+    #[error("Api {0} can not be updated")]
+    ApiUpdate(ModuleInfo),
 
-    #[error("Version {} of module {} can not be updated", version, module)]
-    CodeIdUpdate { version: String, module: String },
+    #[error("Module {0} can not be updated")]
+    CodeIdUpdate(ModuleInfo),
 
     #[error("OS ID {} is not in version control register", id)]
     MissingOsId { id: u32 },
