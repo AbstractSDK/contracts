@@ -16,7 +16,7 @@ pub struct ModuleInfo {
 
 impl ModuleInfo {
     pub fn id(&self) -> String {
-        format!("{}:{}",self.provider,self.name)
+        format!("{}:{}", self.provider, self.name)
     }
     pub fn from_id(id: &str, version: ModuleVersion) -> StdResult<Self> {
         let split: Vec<&str> = id.split(':').collect();
@@ -35,7 +35,9 @@ impl ModuleInfo {
 
     pub fn assert_version_variant(&self) -> StdResult<()> {
         match self.version {
-            ModuleVersion::Latest {  } => Err(StdError::generic_err("Module version must be set for this action.")),
+            ModuleVersion::Latest {} => Err(StdError::generic_err(
+                "Module version must be set for this action.",
+            )),
             ModuleVersion::Version(_) => Ok(()),
         }
     }
@@ -110,10 +112,10 @@ impl KeyDeserialize for ModuleVersion {
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
         let val = String::from_utf8(value).map_err(StdError::invalid_utf8)?;
         if &val == "latest" {
-            return Ok(Self::Latest {});
+            Ok(Self::Latest {})
         } else {
-            return Ok(Self::Version(val));
-        };
+            Ok(Self::Version(val))
+        }
     }
 }
 
@@ -138,7 +140,7 @@ impl Display for ModuleVersion {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let print_str = match self {
             ModuleVersion::Latest {} => "latest".to_string(),
-            ModuleVersion::Version(ver) => format!("{}", ver),
+            ModuleVersion::Version(ver) => ver.to_owned(),
         };
         f.write_str(&print_str)
     }
@@ -146,7 +148,7 @@ impl Display for ModuleVersion {
 
 impl From<Option<String>> for ModuleVersion {
     fn from(value: Option<String>) -> Self {
-        value.map_or(ModuleVersion::Latest {}, |ver| ModuleVersion::Version(ver))
+        value.map_or(ModuleVersion::Latest {}, ModuleVersion::Version)
     }
 }
 

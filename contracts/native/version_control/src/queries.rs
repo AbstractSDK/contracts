@@ -31,13 +31,12 @@ pub fn handle_os_address_query(deps: Deps, os_id: u32) -> StdResult<Binary> {
 }
 
 pub fn handle_code_id_query(deps: Deps, mut module: ModuleInfo) -> StdResult<Binary> {
-
-    let maybe_code_id = if let ModuleVersion::Version(_) = module.version.clone() {
+    let maybe_code_id = if let ModuleVersion::Version(_) = module.version {
         MODULE_CODE_IDS.load(deps.storage, module.clone())
     } else {
         // get latest
         let versions: StdResult<Vec<(String, u64)>> = MODULE_CODE_IDS
-            .prefix((module.provider.clone(),module.name.clone()))
+            .prefix((module.provider.clone(), module.name.clone()))
             .range(deps.storage, None, None, Order::Descending)
             .take(1)
             .collect();
@@ -53,9 +52,7 @@ pub fn handle_code_id_query(deps: Deps, mut module: ModuleInfo) -> StdResult<Bin
 
     match maybe_code_id {
         Err(_) => Err(StdError::generic_err(
-            VCError::MissingCodeId(
-                module)
-            .to_string(),
+            VCError::MissingCodeId(module).to_string(),
         )),
         Ok(id) => to_binary(&CodeIdResponse {
             code_id: Uint64::from(id),
@@ -65,12 +62,12 @@ pub fn handle_code_id_query(deps: Deps, mut module: ModuleInfo) -> StdResult<Bin
 }
 
 pub fn handle_api_address_query(deps: Deps, mut module: ModuleInfo) -> StdResult<Binary> {
-    let maybe_addr = if let ModuleVersion::Version(_) = module.version.clone() {
+    let maybe_addr = if let ModuleVersion::Version(_) = module.version {
         API_ADDRESSES.load(deps.storage, module.clone())
     } else {
         // get latest
         let versions: StdResult<Vec<(String, Addr)>> = API_ADDRESSES
-            .prefix((module.provider.clone(),module.name.clone()))
+            .prefix((module.provider.clone(), module.name.clone()))
             .range(deps.storage, None, None, Order::Descending)
             .take(1)
             .collect();
@@ -86,8 +83,7 @@ pub fn handle_api_address_query(deps: Deps, mut module: ModuleInfo) -> StdResult
 
     match maybe_addr {
         Err(_) => Err(StdError::generic_err(
-            VCError::MissingCodeId(module)
-            .to_string(),
+            VCError::MissingCodeId(module).to_string(),
         )),
         Ok(address) => to_binary(&ApiAddressResponse {
             address,
@@ -102,11 +98,7 @@ pub fn handle_code_ids_query(
     limit: Option<u8>,
 ) -> StdResult<Binary> {
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
-    let start_bound: Option<Bound<ModuleInfo>> = if let Some(last_module) = page_token {
-        Some(Bound::exclusive(last_module))
-    } else {
-        None
-    };
+    let start_bound: Option<Bound<ModuleInfo>> = page_token.map(Bound::exclusive);
 
     let res: Result<Vec<(ModuleInfo, u64)>, _> = MODULE_CODE_IDS
         .range(deps.storage, start_bound, None, Order::Ascending)
@@ -124,17 +116,16 @@ pub fn handle_api_addresses_query(
     limit: Option<u8>,
 ) -> StdResult<Binary> {
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
-    let start_bound: Option<Bound<ModuleInfo>> = if let Some(last_api) = page_token {
-        Some(Bound::exclusive(last_api))
-    } else {
-        None
-    };
+    let start_bound: Option<Bound<ModuleInfo>> = page_token.map(Bound::exclusive);
     let res: Result<Vec<(ModuleInfo, Addr)>, _> = API_ADDRESSES
         .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
         .collect();
 
     to_binary(&ApiAddressesResponse {
-        api_addresses: res?.into_iter().map(|(module,addr)| (module, addr.into_string())).collect(),
+        api_addresses: res?
+            .into_iter()
+            .map(|(module, addr)| (module, addr.into_string()))
+            .collect(),
     })
 }

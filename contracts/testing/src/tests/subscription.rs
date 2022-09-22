@@ -21,7 +21,7 @@ use crate::tests::{
 };
 
 use super::{
-    common::{TEST_CREATOR, DEFAULT_VERSION},
+    common::{DEFAULT_VERSION, TEST_CREATOR},
     testing_infrastructure::env::{get_os_state, init_os, mock_app, register_module, AbstractEnv},
 };
 
@@ -30,7 +30,11 @@ pub fn register_subscription(
     sender: &Addr,
     version_control: &Addr,
 ) -> AnyResult<()> {
-    let module = ModuleInfo::from_id(SUBSCRIPTION, ModuleVersion::Version(DEFAULT_VERSION.to_string())).unwrap();
+    let module = ModuleInfo::from_id(
+        SUBSCRIPTION,
+        ModuleVersion::Version(DEFAULT_VERSION.to_string()),
+    )
+    .unwrap();
 
     let contract = Box::new(
         ContractWrapper::new_with_empty(

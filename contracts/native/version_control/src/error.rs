@@ -14,9 +14,8 @@ pub enum VCError {
     #[error("Semver parsing error: {0}")]
     SemVer(String),
 
-    #[error(
-        "Module {0} does not have a stored code id")]
-    MissingCodeId (ModuleInfo),
+    #[error("Module {0} does not have a stored code id")]
+    MissingCodeId(ModuleInfo),
 
     #[error("Api {0} does not have a stored address")]
     MissingApi(ModuleInfo),

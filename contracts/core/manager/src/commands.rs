@@ -1,5 +1,3 @@
-use std::any::Any;
-
 use abstract_os::{
     api::{BaseExecuteMsg, BaseQueryMsg, QueryMsg as ApiQuery, TradersResponse},
     manager::state::{OsInfo, Subscribed, CONFIG, INFO, OS_MODULES, ROOT, STATUS},
@@ -218,9 +216,8 @@ pub fn migrate_module(
 /// Replaces the current API with a different version
 /// Also moves all the trader permissions to the new contract and removes them from the old
 pub fn replace_api(deps: DepsMut, module_info: ModuleInfo) -> ManagerResult {
-    
     let mut msgs = vec![];
-    
+
     // Makes sure we already have the API installed
     let old_api_addr = OS_MODULES.load(deps.storage, &module_info.id())?;
     let proxy_addr = OS_MODULES.load(deps.storage, PROXY)?;
@@ -325,11 +322,7 @@ fn get_code_id(
                 > old_contract.version.parse::<Version>().unwrap()
             {
                 new_code_id = MODULE_CODE_IDS
-                    .query(
-                        &deps.querier,
-                        config.version_control_address,
-                        module_info,
-                    )?
+                    .query(&deps.querier, config.version_control_address, module_info)?
                     .unwrap();
             } else {
                 return Err(ManagerError::OlderVersion(
@@ -338,7 +331,7 @@ fn get_code_id(
                 ));
             };
         }
-        ModuleVersion::Latest {  } => {
+        ModuleVersion::Latest {} => {
             // Query latest version of contract
             let resp: CodeIdResponse =
                 deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
@@ -366,12 +359,12 @@ fn get_api_addr(deps: Deps, module_info: ModuleInfo) -> Result<Addr, ManagerErro
                 new_addr
             } else {
                 return Err(ManagerError::ApiNotFound(
-                    module_info.id().clone(),
+                    module_info.id(),
                     new_version.clone(),
                 ));
             }
         }
-        ModuleVersion::Latest {  } => {
+        ModuleVersion::Latest {} => {
             // Query latest version of contract
             let resp: ApiAddressResponse =
                 deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {

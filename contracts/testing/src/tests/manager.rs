@@ -21,7 +21,12 @@ pub fn register_and_create_dex_api(
     memory: &Addr,
     version: Option<String>,
 ) -> AnyResult<()> {
-    let module = ModuleInfo::from_id(EXCHANGE, abstract_os::objects::module::ModuleVersion::Version(version.unwrap_or(DEFAULT_VERSION.to_string())))?;
+    let module = ModuleInfo::from_id(
+        EXCHANGE,
+        abstract_os::objects::module::ModuleVersion::Version(
+            version.unwrap_or(DEFAULT_VERSION.to_string()),
+        ),
+    )?;
     let contract = Box::new(ContractWrapper::new_with_empty(
         dex::contract::execute,
         dex::contract::instantiate,
@@ -47,7 +52,6 @@ fn proper_initialization() {
 
     let os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
 
-
     // OS 0 has proxy and subscriber module
     assert_eq!(os_state.len(), 2);
     let manager = env.os_store.get(&0u32).unwrap().manager.clone();
@@ -65,7 +69,7 @@ fn proper_initialization() {
         manager.clone(),
         &ManagerMsgs::ExecuteMsg::CreateModule {
             module: Module {
-                info: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest {  }).unwrap(),
+                info: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest {}).unwrap(),
                 kind: abstract_os::objects::module::ModuleKind::Extension,
             },
             init_msg: None,
@@ -83,14 +87,14 @@ fn proper_initialization() {
     )
     .unwrap();
 
-    let os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
+    let _os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
 
-    let resp: abstract_os::version_control::ApiAddressResponse = app
+    let _resp: abstract_os::version_control::ApiAddressResponse = app
         .wrap()
         .query_wasm_smart(
             env.native_contracts.version_control.clone(),
             &abstract_os::version_control::QueryMsg::ApiAddress {
-                module: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest {  }).unwrap(),
+                module: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest {}).unwrap(),
             },
         )
         .unwrap();
@@ -100,7 +104,7 @@ fn proper_initialization() {
         manager,
         &ManagerMsgs::ExecuteMsg::Upgrade {
             module: Module {
-                info: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest {  }).unwrap(),
+                info: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest {}).unwrap(),
                 kind: abstract_os::objects::module::ModuleKind::Extension,
             },
             migrate_msg: None,
@@ -109,7 +113,7 @@ fn proper_initialization() {
     )
     .unwrap();
 
-    let os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
+    let _os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
 
     register_and_create_dex_api(
         &mut app,
@@ -119,14 +123,13 @@ fn proper_initialization() {
         Some("0.0.1".into()),
     )
     .unwrap();
-    let resp: abstract_os::version_control::ApiAddressResponse = app
+    let _resp: abstract_os::version_control::ApiAddressResponse = app
         .wrap()
         .query_wasm_smart(
             env.native_contracts.version_control.clone(),
             &abstract_os::version_control::QueryMsg::ApiAddress {
-                module: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest {  }).unwrap(),
+                module: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest {}).unwrap(),
             },
         )
         .unwrap();
-
 }

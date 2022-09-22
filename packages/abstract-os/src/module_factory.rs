@@ -5,7 +5,10 @@
 //! ## Description  
 //! This contract is instantiated by Abstract and only used internally. Adding or upgrading modules is done using the [`crate::manager::ExecuteMsg`] endpoint.  
 pub mod state {
-    use crate::{objects::module::{Module, ModuleInfo}, version_control::Core};
+    use crate::{
+        objects::module::{Module, ModuleInfo},
+        version_control::Core,
+    };
     use cosmwasm_std::{Addr, Binary};
     use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
@@ -30,7 +33,10 @@ pub mod state {
     pub const MODULE_INIT_BINARIES: Map<ModuleInfo, Binary> = Map::new("module_init_binaries");
 }
 
-use crate::{objects::module::{Module, ModuleInfo}, version_control::Core};
+use crate::{
+    objects::module::{Module, ModuleInfo},
+    version_control::Core,
+};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Binary;
 

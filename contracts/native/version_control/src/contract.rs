@@ -47,18 +47,11 @@ pub fn instantiate(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> VCResult {
     match msg {
-        ExecuteMsg::AddCodeIds {
-            code_ids,
-        } => add_code_ids(deps, info, code_ids),
+        ExecuteMsg::AddCodeIds { code_ids } => add_code_ids(deps, info, code_ids),
         ExecuteMsg::RemoveCodeId { module } => remove_code_id(deps, info, module),
-        ExecuteMsg::AddApis {
-            addresses,
-        } => add_apis(deps, info, addresses),
+        ExecuteMsg::AddApis { addresses } => add_apis(deps, info, addresses),
         ExecuteMsg::RemoveApi { module } => remove_api(deps, info, module),
-        ExecuteMsg::AddOs {
-            os_id,
-            core,
-        } => add_os(deps, info, os_id, core),
+        ExecuteMsg::AddOs { os_id, core } => add_os(deps, info, os_id, core),
         ExecuteMsg::SetAdmin { new_admin } => set_admin(deps, info, new_admin),
         ExecuteMsg::SetFactory { new_factory } => {
             authorized_set_admin(deps, info, &ADMIN, &FACTORY, new_factory).map_err(|e| e.into())

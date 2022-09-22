@@ -51,23 +51,18 @@ pub struct InstantiateMsg {}
 #[cosmwasm_schema::cw_serde]
 pub enum ExecuteMsg {
     /// Call to add a new version and code-id for a module
-    AddCodeIds {
-        code_ids: Vec<(ModuleInfo,u64)>,
-    },
+    AddCodeIds { code_ids: Vec<(ModuleInfo, u64)> },
     /// Remove some version of a module
-    RemoveCodeId { module: ModuleInfo},
+    RemoveCodeId { module: ModuleInfo },
     /// Add a new APi
     AddApis {
-        addresses: Vec<(ModuleInfo,String)>,
+        addresses: Vec<(ModuleInfo, String)>,
     },
     /// Remove an API
-    RemoveApi { module: ModuleInfo},
+    RemoveApi { module: ModuleInfo },
     /// Add a new OS to the deployed OSs.  
     /// Only Factory can call this
-    AddOs {
-        os_id: u32,
-        core: Core,
-    },
+    AddOs { os_id: u32, core: Core },
     /// Sets a new Admin
     SetAdmin { new_admin: String },
     /// Sets a new Factory

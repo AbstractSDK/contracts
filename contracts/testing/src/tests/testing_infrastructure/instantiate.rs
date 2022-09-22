@@ -5,8 +5,10 @@ use crate::tests::common::{DEFAULT_VERSION, TEST_CREATOR};
 use cosmwasm_std::{Addr, Timestamp};
 
 use abstract_os::{
-    memory as MemoryMsg, module_factory as ModuleFactoryMsg, os_factory as OSFactoryMsg,
-    version_control as VCMsg, MEMORY, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL, objects::module::{ModuleInfo, ModuleVersion},
+    memory as MemoryMsg, module_factory as ModuleFactoryMsg,
+    objects::module::{ModuleInfo, ModuleVersion},
+    os_factory as OSFactoryMsg, version_control as VCMsg, MEMORY, MODULE_FACTORY, OS_FACTORY,
+    VERSION_CONTROL,
 };
 
 use cw_multi_test::{App, Executor};
@@ -138,14 +140,20 @@ fn add_contracts_to_version_control_and_set_factory(
     version_control: &Addr,
     os_factory: &Addr,
 ) {
-    let modules = code_ids.iter().map(|(k,v)| (ModuleInfo::from_id(k,ModuleVersion::Version(version.to_string())).unwrap(),v.clone())).collect();
-   
-        let msg = VCMsg::ExecuteMsg::AddCodeIds {
-            code_ids: modules
-        };
-        app.execute_contract(owner.clone(), version_control.clone(), &msg, &[])
-            .unwrap();
-    
+    let modules = code_ids
+        .iter()
+        .map(|(k, v)| {
+            (
+                ModuleInfo::from_id(k, ModuleVersion::Version(version.to_string())).unwrap(),
+                v.clone(),
+            )
+        })
+        .collect();
+
+    let msg = VCMsg::ExecuteMsg::AddCodeIds { code_ids: modules };
+    app.execute_contract(owner.clone(), version_control.clone(), &msg, &[])
+        .unwrap();
+
     let msg = VCMsg::ExecuteMsg::SetFactory {
         new_factory: os_factory.to_string(),
     };
