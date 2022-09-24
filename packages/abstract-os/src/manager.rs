@@ -21,6 +21,7 @@ pub mod state {
     use cw_storage_plus::{Item, Map};
 
     pub type Subscribed = bool;
+    pub type ModuleId<'a> = &'a str;
 
     /// Manager configuration
     #[cosmwasm_schema::cw_serde]
@@ -49,7 +50,7 @@ pub mod state {
     /// Root user
     pub const ROOT: Admin = Admin::new("root");
     /// Enabled Abstract modules
-    pub const OS_MODULES: Map<&str, Addr> = Map::new("os_modules");
+    pub const OS_MODULES: Map<ModuleId, Addr> = Map::new("os_modules");
 }
 
 use cosmwasm_schema::QueryResponses;

@@ -1,3 +1,4 @@
+use abstract_os::objects::{module::ModuleInfo, module_reference::ModuleReference};
 use cosmwasm_std::StdError;
 use cw_controllers::AdminError;
 use thiserror::Error;
@@ -37,8 +38,11 @@ pub enum ManagerError {
     #[error("The provided contract version {0} is lower than the current version {1}")]
     OlderVersion(String, String),
 
-    #[error("The provided API key ({0},{1}) was not found in version control")]
-    ApiNotFound(String, String),
+    #[error("The provided module key ({0},{1}) was not found in version control")]
+    ModuleNotFound(String, String),
+
+    #[error("The provided module {0} has an invalid module reference {:1?}.")]
+    InvalidReference(ModuleInfo, ModuleReference),
 
     #[error("description too short, must be at least {0} characters")]
     DescriptionInvalidShort(usize),
