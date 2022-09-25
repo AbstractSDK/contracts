@@ -1,6 +1,12 @@
 use abstract_os::{
     manager::state::OS_ID,
-    version_control::{state::{OS_ADDRESSES, MODULE_LIBRARY}, Core}, objects::{module::ModuleInfo, module_reference::ModuleReference},
+    objects::{
+        module::{Module, ModuleInfo},
+    },
+    version_control::{
+        state::{OS_ADDRESSES},
+        Core, ModuleResponse, QueryMsg,
+    },
 };
 use cosmwasm_std::{Addr, QuerierWrapper, StdError};
 
@@ -72,12 +78,17 @@ pub fn verify_os_proxy(
     }
 }
 
-/// Verify if the provided proxy address is indeed a user.
-pub fn get_module_details(
+/// Query module information
+pub fn get_module(
     querier: &QuerierWrapper,
     module_info: ModuleInfo,
     version_control_addr: &Addr,
-) -> StdResult<ModuleReference> {
-    module_info.assert_version_variant()?;
-    Ok(MODULE_LIBRARY.query(querier, version_control_addr.clone(), module_info)?.unwrap())
+) -> StdResult<Module> {
+    let resp: ModuleResponse = querier.query_wasm_smart(
+        version_control_addr,
+        &QueryMsg::Module {
+            module: module_info,
+        },
+    )?;
+    Ok(resp.module)
 }

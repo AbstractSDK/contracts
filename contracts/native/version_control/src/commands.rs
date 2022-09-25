@@ -3,7 +3,7 @@ use cosmwasm_std::{DepsMut, Empty, MessageInfo, Response};
 use crate::contract::VCResult;
 use crate::error::VCError;
 use abstract_os::{
-    objects::{module::{ModuleInfo}, module_reference::ModuleReference},
+    objects::{module::ModuleInfo, module_reference::ModuleReference},
     version_control::{state::*, Core},
 };
 

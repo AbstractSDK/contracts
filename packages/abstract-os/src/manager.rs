@@ -57,7 +57,7 @@ use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Binary, Uint64};
 use cw2::ContractVersion;
 
-use crate::objects::module::Module;
+use crate::objects::module::{Module, ModuleInfo};
 
 use self::state::OsInfo;
 
@@ -92,7 +92,7 @@ pub enum ExecuteMsg {
     /// Create module using module factory, callable by Root
     CreateModule {
         /// Module information.
-        module: Module,
+        module: ModuleInfo,
         /// Instantiate message used to instantiate the contract.
         init_msg: Option<Binary>,
     },
@@ -104,8 +104,8 @@ pub enum ExecuteMsg {
     /// Upgrade the module to a new version
     /// If module is `abstract::manager` then the contract will do a self-migration.
     Upgrade {
-        module: Module,
-        migrate_msg: Option<Binary>,
+        module: ModuleInfo,
+        migrate_msg: Binary,
     },
     /// Update info
     UpdateInfo {

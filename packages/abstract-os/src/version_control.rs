@@ -12,7 +12,7 @@ pub mod state {
     use cw_controllers::Admin;
     use cw_storage_plus::Map;
 
-    use crate::objects::{module::{ModuleInfo}, module_reference::ModuleReference};
+    use crate::objects::{module::ModuleInfo, module_reference::ModuleReference};
 
     use super::Core;
 
@@ -20,17 +20,18 @@ pub mod state {
     pub const FACTORY: Admin = Admin::new("factory");
 
     // We can iterate over the map giving just the prefix to get all the versions
-    pub const MODULE_LIBRARY: Map<ModuleInfo,ModuleReference> = Map::new("module_lib");
+    pub const MODULE_LIBRARY: Map<ModuleInfo, ModuleReference> = Map::new("module_lib");
     /// Maps OS ID to the address of its core contracts
     pub const OS_ADDRESSES: Map<u32, Core> = Map::new("os_core");
 }
 
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
+use cosmwasm_std::Addr;
 
-use crate::objects::{module::{ModuleInfo, Module}, module_reference::ModuleReference};
+use crate::objects::{
+    module::{Module, ModuleInfo},
+    module_reference::ModuleReference,
+};
 
 /// Contains the minimal Abstract-OS contract addresses.
 #[cosmwasm_schema::cw_serde]
@@ -59,7 +60,8 @@ pub enum ExecuteMsg {
     SetFactory { new_factory: String },
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, QueryResponses)]
+#[cosmwasm_schema::cw_serde]
+#[derive(QueryResponses)]
 pub enum QueryMsg {
     /// Query Core of an OS
     /// Returns [`OsCoreResponse`]
@@ -68,13 +70,13 @@ pub enum QueryMsg {
     /// Queries api addresses
     /// Returns [`ModuleResponse`]
     #[returns(ModuleResponse)]
-    ModuleReference { module: ModuleInfo },
+    Module { module: ModuleInfo },
     /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]
     Config {},
     /// Returns [`ModulesResponse`]
     #[returns(ModulesResponse)]
-    ModuleReferences {
+    Modules {
         page_token: Option<ModuleInfo>,
         page_size: Option<u8>,
     },
@@ -92,7 +94,7 @@ pub struct ModuleResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ModulesResponse {
-    pub modules: Vec<(ModuleInfo,ModuleReference)>,
+    pub modules: Vec<(ModuleInfo, ModuleReference)>,
 }
 
 #[cosmwasm_schema::cw_serde]

@@ -2,18 +2,17 @@ use abstract_os::objects::module::Module;
 use abstract_os::objects::module::ModuleInfo;
 use abstract_os::objects::module::ModuleVersion;
 use abstract_os::objects::module_reference::ModuleReference;
+use abstract_os::version_control::state::MODULE_LIBRARY;
 use abstract_os::version_control::ModuleResponse;
 use abstract_os::version_control::ModulesResponse;
-use abstract_os::version_control::state::MODULE_LIBRARY;
 use abstract_os::version_control::OsCoreResponse;
 use cosmwasm_std::Order;
 use cosmwasm_std::StdError;
 use cw_storage_plus::Bound;
 
 use crate::error::VCError;
-use abstract_os::version_control::state::{OS_ADDRESSES};
+use abstract_os::version_control::state::OS_ADDRESSES;
 use cosmwasm_std::{to_binary, Binary, Deps, StdResult};
-
 
 const DEFAULT_LIMIT: u8 = 10;
 const MAX_LIMIT: u8 = 20;
@@ -40,7 +39,7 @@ pub fn handle_module_query(deps: Deps, mut module: ModuleInfo) -> StdResult<Bina
             .collect();
         let (latest_version, id) = versions?
             .first()
-            .ok_or_else(||StdError::GenericErr {
+            .ok_or_else(|| StdError::GenericErr {
                 msg: VCError::MissingModule(module.clone()).to_string(),
             })?
             .clone();
@@ -53,10 +52,10 @@ pub fn handle_module_query(deps: Deps, mut module: ModuleInfo) -> StdResult<Bina
             VCError::MissingModule(module).to_string(),
         )),
         Ok(mod_ref) => to_binary(&ModuleResponse {
-            module: Module{
+            module: Module {
                 info: module,
-                reference: mod_ref
-            }
+                reference: mod_ref,
+            },
         }),
     }
 }
@@ -74,7 +73,5 @@ pub fn handle_modules_query(
         .take(limit)
         .collect();
 
-    to_binary(&ModulesResponse {
-        modules: res?,
-    })
+    to_binary(&ModulesResponse { modules: res? })
 }

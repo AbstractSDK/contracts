@@ -11,10 +11,10 @@ pub mod fee;
 pub mod gov_type;
 pub mod memory;
 pub mod module;
+pub mod module_reference;
 pub mod paged_map;
 pub mod proxy_asset;
 pub mod time_weighted_average;
-pub mod module_reference;
 
 pub use asset_entry::AssetEntry;
 pub use contract_entry::{ContractEntry, UncheckedContractEntry};

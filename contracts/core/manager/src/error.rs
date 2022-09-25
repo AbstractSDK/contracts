@@ -29,6 +29,9 @@ pub enum ManagerError {
     #[error("A migratemsg is required when when migrating this module")]
     MsgRequired {},
 
+    #[error("{0} not upgradable")]
+    NotUpgradeable(ModuleInfo),
+
     #[error("you need a subscription to use this contract")]
     NotSubscribed {},
 

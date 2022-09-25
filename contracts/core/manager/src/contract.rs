@@ -8,7 +8,6 @@ use abstract_os::manager::state::{Config, OsInfo, CONFIG, INFO, OS_FACTORY, ROOT
 use abstract_os::MANAGER;
 use abstract_os::{
     manager::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
-    objects::module::*,
     proxy::state::OS_ID,
 };
 use cw2::{get_contract_version, set_contract_version};
