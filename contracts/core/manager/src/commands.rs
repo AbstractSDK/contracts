@@ -373,7 +373,7 @@ fn upgrade_self(
         });
         Ok(Response::new().add_message(migration_msg))
     } else {
-        Err(ManagerError::InvalidReference(module_info, mod_ref))
+        Err(ManagerError::InvalidReference(module_info))
     }
 }
 

@@ -44,8 +44,8 @@ pub enum ManagerError {
     #[error("The provided module key ({0},{1}) was not found in version control")]
     ModuleNotFound(String, String),
 
-    #[error("The provided module {0} has an invalid module reference {:1?}.")]
-    InvalidReference(ModuleInfo, ModuleReference),
+    #[error("The provided module {0} has an invalid module reference.")]
+    InvalidReference(ModuleInfo),
 
     #[error("description too short, must be at least {0} characters")]
     DescriptionInvalidShort(usize),
