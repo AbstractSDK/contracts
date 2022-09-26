@@ -6,7 +6,7 @@
 //! The internal lay-out and state management of Abstract OS allows smart-contract engineers to write deployment-generic code.
 //! The functions provided by this SDK can be used to quickly write and test your unique CosmWasm application.
 
-mod api;
+pub mod api;
 pub mod cw20;
 mod exchange;
 pub mod manager;

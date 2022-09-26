@@ -1,12 +1,7 @@
 use abstract_os::{
     manager::state::OS_ID,
-    objects::{
-        module::{Module, ModuleInfo},
-    },
-    version_control::{
-        state::{OS_ADDRESSES},
-        Core, ModuleResponse, QueryMsg,
-    },
+    objects::module::{Module, ModuleInfo},
+    version_control::{state::OS_ADDRESSES, Core, ModuleResponse, QueryMsg},
 };
 use cosmwasm_std::{Addr, QuerierWrapper, StdError};
 

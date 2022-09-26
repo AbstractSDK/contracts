@@ -191,12 +191,12 @@ pub fn upgrade_module(
     env: Env,
     info: MessageInfo,
     module_info: ModuleInfo,
-    migrate_msg: Binary,
+    migrate_msg: Option<Binary>,
 ) -> ManagerResult {
     ROOT.assert_admin(deps.as_ref(), &info.sender)?;
     // Check if trying to upgrade this contract.
     if module_info.id() == MANAGER {
-        return upgrade_self(deps, env, module_info, migrate_msg);
+        return upgrade_self(deps, env, module_info, migrate_msg.unwrap());
     }
     let old_module_addr = OS_MODULES.load(deps.storage, &module_info.id())?;
     let contract = query_module_version(&deps.as_ref(), old_module_addr.clone())?;
@@ -213,12 +213,12 @@ pub fn upgrade_module(
             replace_api(deps, addr, old_module_addr)
         }
         ModuleReference::App(code_id) => {
-            migrate_module(deps, env, old_module_addr, code_id, migrate_msg)
+            migrate_module(deps, env, old_module_addr, code_id, migrate_msg.unwrap())
         }
         ModuleReference::Service(code_id) => {
-            migrate_module(deps, env, old_module_addr, code_id, migrate_msg)
+            migrate_module(deps, env, old_module_addr, code_id, migrate_msg.unwrap())
         }
-        _ => return Err(ManagerError::NotUpgradeable(module_info)),
+        _ => Err(ManagerError::NotUpgradeable(module_info)),
     }
 }
 // migrates the module to a new version
@@ -333,15 +333,15 @@ fn get_module(
             if new_version.parse::<Version>().unwrap()
                 > old_contract.version.parse::<Version>().unwrap()
             {
-                return Ok(MODULE_LIBRARY
+                Ok(MODULE_LIBRARY
                     .query(&deps.querier, config.version_control_address, module_info)?
-                    .unwrap());
+                    .unwrap())
             } else {
-                return Err(ManagerError::OlderVersion(
+                Err(ManagerError::OlderVersion(
                     new_version.to_owned(),
                     old_contract.version,
-                ));
-            };
+                ))
+            }
         }
         ModuleVersion::Latest {} => {
             // Query latest version of contract
@@ -352,7 +352,7 @@ fn get_module(
                         module: module_info,
                     })?,
                 }))?;
-            return Ok(resp.module.reference);
+            Ok(resp.module.reference)
         }
     }
 }

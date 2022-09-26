@@ -158,8 +158,8 @@ impl fmt::Display for ModuleInfo {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "contract {} provided by {} with version {}.)",
-            self.provider, self.name, self.version,
+            "{} provided by {} with version {}",
+            self.name, self.provider, self.version,
         )
     }
 }

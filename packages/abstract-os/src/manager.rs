@@ -105,7 +105,7 @@ pub enum ExecuteMsg {
     /// If module is `abstract::manager` then the contract will do a self-migration.
     Upgrade {
         module: ModuleInfo,
-        migrate_msg: Binary,
+        migrate_msg: Option<Binary>,
     },
     /// Update info
     UpdateInfo {
