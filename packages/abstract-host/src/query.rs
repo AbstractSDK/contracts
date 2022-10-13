@@ -1,9 +1,15 @@
-use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult, Order};
+use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult};
 
-use abstract_os::{host::{BaseQueryMsg, QueryMsg}, host::{HostConfigResponse, AccountResponse, ListAccountsResponse, AccountInfo}};
+use abstract_os::{
+    host::{AccountInfo, AccountResponse, HostConfigResponse, ListAccountsResponse},
+    host::{BaseQueryMsg, QueryMsg},
+};
 use serde::{de::DeserializeOwned, Serialize};
 
-use crate::{state::{HostContract, ACCOUNTS}, HostError};
+use crate::{
+    state::{HostContract, ACCOUNTS},
+    HostError,
+};
 
 pub type HostQueryHandlerFn<Q, QueryError> = Option<fn(Deps, Env, Q) -> Result<Binary, QueryError>>;
 

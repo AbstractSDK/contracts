@@ -9,7 +9,7 @@ pub use crate::state::HostContract;
 
 pub mod error;
 mod execute;
-pub (crate) mod host_commands;
+pub(crate) mod host_commands;
 pub mod instantiate;
 mod query;
 pub mod state;

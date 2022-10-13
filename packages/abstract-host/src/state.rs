@@ -3,7 +3,7 @@ use std::{collections::HashSet, marker::PhantomData};
 use abstract_os::version_control::Core;
 use abstract_sdk::{memory::Memory, BASE_STATE};
 
-use cosmwasm_std::{Addr, StdResult, Storage, Binary};
+use cosmwasm_std::{Addr, Binary, StdResult, Storage};
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
@@ -19,14 +19,13 @@ pub const ACCOUNTS: Map<&str, Addr> = Map::new("accounts");
 // this stores all results from current dispatch
 pub const RESULTS: Item<Vec<Binary>> = Item::new("results");
 
-
 /// The state variables for our host contract.
 pub struct HostContract<'a, T: Serialize + DeserializeOwned> {
     // Every DApp should use the provided memory contract for token/contract address resolution
     pub base_state: Item<'a, HostState>,
     /// Stores the API version
     pub version: Item<'a, ContractVersion>,
-    /// Signal the expected execute message struct 
+    /// Signal the expected execute message struct
     _phantom_data: PhantomData<T>,
 }
 

@@ -27,7 +27,7 @@ impl<'a, T: Serialize + DeserializeOwned> HostContract<'a, T> {
         // Base state
         let state = HostState {
             memory,
-            cw1_code_id: msg.cw1_code_id
+            cw1_code_id: msg.cw1_code_id,
         };
 
         set_contract_version(deps.storage, module_name, module_version)?;

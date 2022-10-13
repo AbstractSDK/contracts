@@ -8,8 +8,8 @@
 //! The API structure is well-suited for implementing standard interfaces to external services like dexes, lending platforms, etc.
 
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, CosmosMsg, QueryRequest, Empty};
-use serde::{Serialize, de::DeserializeOwned};
+use cosmwasm_std::{Addr, CosmosMsg, Empty, QueryRequest};
+use serde::{de::DeserializeOwned, Serialize};
 
 /// Used by Abstract to instantiate the contract
 /// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::AddApi`].
@@ -45,7 +45,7 @@ pub enum PacketMsg<T: Serialize> {
 
 /// Interface to the Host.
 #[cosmwasm_schema::cw_serde]
-pub enum ExecuteMsg{}
+pub enum ExecuteMsg {}
 
 #[cosmwasm_schema::cw_serde]
 pub enum QueryMsg<Q: Serialize> {

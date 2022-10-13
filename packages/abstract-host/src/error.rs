@@ -18,7 +18,6 @@ pub enum HostError {
     #[error("{0}")]
     SimpleIca(#[from] SimpleIcaError),
 
-    
     #[error("Cannot register over an existing channel")]
     ChannelAlreadyRegistered,
 

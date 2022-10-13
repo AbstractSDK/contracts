@@ -9,15 +9,15 @@ use cosmwasm_std::{
 };
 use cw_utils::parse_reply_instantiate_data;
 use simple_ica::{
-    check_order, check_version, BalancesResponse, DispatchResponse, IbcQueryResponse,
-    StdAck, WhoAmIResponse, IBC_APP_VERSION,
+    check_order, check_version, BalancesResponse, DispatchResponse, IbcQueryResponse, StdAck,
+    WhoAmIResponse, IBC_APP_VERSION,
 };
 
-use crate::{HostError, HostContract};
-use abstract_os::host::{
-    AccountInfo, AccountResponse, BaseInstantiateMsg, ListAccountsResponse, QueryMsg, PacketMsg,
-};
 use crate::state::{ACCOUNTS, PENDING, RESULTS};
+use crate::{HostContract, HostError};
+use abstract_os::host::{
+    AccountInfo, AccountResponse, BaseInstantiateMsg, ListAccountsResponse, PacketMsg, QueryMsg,
+};
 
 pub const RECEIVE_DISPATCH_ID: u64 = 1234;
 pub const INIT_CALLBACK_ID: u64 = 7890;
