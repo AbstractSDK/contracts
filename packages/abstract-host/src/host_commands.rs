@@ -288,6 +288,7 @@ pub fn receive_dispatch(
 }
 
 #[entry_point]
+#[allow(unused)]
 /// never should be called as we do not send packets
 pub fn ibc_packet_ack(
     _deps: DepsMut,
@@ -298,6 +299,7 @@ pub fn ibc_packet_ack(
 }
 
 #[entry_point]
+#[allow(unused)]
 /// never should be called as we do not send packets
 pub fn ibc_packet_timeout(
     _deps: DepsMut,
