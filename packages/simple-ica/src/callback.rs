@@ -1,13 +1,11 @@
 use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 use cosmwasm_std::{to_binary, Binary, CosmosMsg, StdResult, WasmMsg};
 
 use crate::StdAck;
 
 /// ReceiveIbcResponseMsg should be de/serialized under `Receive()` variant in a ExecuteMsg
-#[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
 pub struct ReceiveIcaResponseMsg {
     /// The ID chosen by the caller in the `callback_id`
     pub id: String,
@@ -38,8 +36,7 @@ impl ReceiveIcaResponseMsg {
 
 /// This is just a helper to properly serialize the above message.
 /// The actual receiver should include this variant in the larger ExecuteMsg enum
-#[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
 enum SimpleIcaReceiverExecuteMsg {
     ReceiveIcaResponse(ReceiveIcaResponseMsg),
 }

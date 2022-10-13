@@ -3,7 +3,7 @@ use cosmwasm_std::IbcOrder;
 
 use thiserror::Error;
 
-#[derive(Error, Debug, PartialEq)]
+#[derive(Error, Debug, Eq, PartialEq)]
 pub enum SimpleIcaError {
     #[error("Only supports unordered channels")]
     InvalidChannelOrder,

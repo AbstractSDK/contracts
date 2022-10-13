@@ -1,6 +1,5 @@
-use std::{collections::HashSet, marker::PhantomData};
+use std::marker::PhantomData;
 
-use abstract_os::version_control::Core;
 use abstract_sdk::{memory::Memory, BASE_STATE};
 
 use cosmwasm_std::{Addr, Binary, StdResult, Storage};
@@ -8,8 +7,6 @@ use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-
-use crate::HostError;
 
 pub const TRADER_NAMESPACE: &str = "traders";
 
@@ -37,7 +34,7 @@ impl<'a, T: Serialize + DeserializeOwned> Default for HostContract<'a, T> {
 
 /// Constructor
 impl<'a, T: Serialize + DeserializeOwned> HostContract<'a, T> {
-    pub const fn new(dependencies: &'static [&'static str]) -> Self {
+    pub const fn new(_dependencies: &'static [&'static str]) -> Self {
         Self {
             version: CONTRACT,
             base_state: Item::new(BASE_STATE),

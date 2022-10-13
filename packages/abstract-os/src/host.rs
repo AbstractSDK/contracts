@@ -9,7 +9,7 @@
 
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, CosmosMsg, Empty, QueryRequest};
-use serde::{de::DeserializeOwned, Serialize};
+use serde::Serialize;
 
 /// Used by Abstract to instantiate the contract
 /// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::AddApi`].
