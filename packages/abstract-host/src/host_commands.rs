@@ -18,6 +18,7 @@ use abstract_os::host::{AccountInfo, AccountResponse, ListAccountsResponse};
 pub const RECEIVE_DISPATCH_ID: u64 = 1234;
 pub const INIT_CALLBACK_ID: u64 = 7890;
 
+#[allow(unused)]
 pub fn query_account(deps: Deps, channel_id: String) -> StdResult<AccountResponse> {
     let account = ACCOUNTS.load(deps.storage, &channel_id)?;
     Ok(AccountResponse {
@@ -25,6 +26,7 @@ pub fn query_account(deps: Deps, channel_id: String) -> StdResult<AccountRespons
     })
 }
 
+#[allow(unused)]
 pub fn query_list_accounts(deps: Deps) -> StdResult<ListAccountsResponse> {
     let accounts = ACCOUNTS
         .range(deps.storage, None, None, Order::Ascending)
@@ -41,6 +43,7 @@ pub fn query_list_accounts(deps: Deps) -> StdResult<ListAccountsResponse> {
 
 #[entry_point]
 /// enforces ordering and versioing constraints
+#[allow(unused)]
 pub fn ibc_channel_open(
     _deps: DepsMut,
     _env: Env,
@@ -63,6 +66,7 @@ pub fn ibc_channel_open(
 
 #[entry_point]
 /// once it's established, we create the reflect contract
+#[allow(unused)]
 pub fn ibc_channel_connect(
     deps: DepsMut,
     env: Env,
@@ -99,6 +103,7 @@ pub fn ibc_channel_connect(
 #[entry_point]
 /// On closed channel, we take all tokens from reflect contract to this contract.
 /// We also delete the channel entry from accounts.
+#[allow(unused)]
 pub fn ibc_channel_close(
     deps: DepsMut,
     env: Env,
@@ -136,6 +141,7 @@ pub fn ibc_channel_close(
 }
 
 #[entry_point]
+#[allow(unused)]
 pub fn reply(deps: DepsMut, _env: Env, reply: Reply) -> Result<Response, HostError> {
     match reply.id {
         RECEIVE_DISPATCH_ID => reply_dispatch_callback(deps, reply),
