@@ -30,15 +30,15 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
     ) -> Result<IbcReceiveResponse, RequestError> {
         let packet = packet.packet;
         // which local channel did this packet come on
-        let caller = packet.dest.channel_id;
+        let channel = packet.dest.channel_id;
         let msg: PacketMsg<T> = from_slice(&packet.data)?;
         match msg {
-            PacketMsg::Dispatch { msgs, .. } => receive_dispatch(deps, caller, msgs),
+            PacketMsg::Register { os_id } => receive_register(deps, env,channel, os_id),
+            PacketMsg::Dispatch { os_id, msgs, .. } => receive_dispatch(deps, channel, os_id,msgs),
             PacketMsg::Query { msgs, .. } => receive_query(deps.as_ref(), msgs),
-            PacketMsg::Register { os_id } => receive_register(deps, caller),
-            PacketMsg::Balances { os_id } => receive_balances(deps, caller),
-            PacketMsg::SendAllBack { sender: _, os_id } => todo!(),
-            PacketMsg::App(msg) => return packet_handler(deps, env, caller, self, msg),
+            PacketMsg::Balances { os_id } => receive_balances(deps, channel,os_id),
+            PacketMsg::SendAllBack { os_id } => todo!(),
+            PacketMsg::App(msg) => return packet_handler(deps, env, channel, self, msg),
         }
         .map_err(Into::into)
     }

@@ -62,10 +62,10 @@ pub struct IbcQueryResponse {
     pub results: Vec<Binary>,
 }
 
-/// This is the success response we send on ack for PacketMsg::WhoAmI.
+/// This is the success response we send on ack for PacketMsg::Register.
 /// Return the caller's account address on the remote chain
 #[cosmwasm_schema::cw_serde]
-pub struct WhoAmIResponse {
+pub struct RegisterResponse {
     pub account: String,
 }
 

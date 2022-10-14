@@ -1,8 +1,8 @@
 use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult};
 
 use abstract_os::{
-    host::{AccountInfo, AccountResponse, HostConfigResponse, ListAccountsResponse},
-    host::{BaseQueryMsg, QueryMsg},
+    ibc_host::{AccountInfo, AccountResponse, HostConfigResponse, ListAccountsResponse},
+    ibc_host::{BaseQueryMsg, QueryMsg},
 };
 use serde::{de::DeserializeOwned, Serialize};
 
@@ -38,7 +38,7 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
     fn query(&self, deps: Deps, _env: Env, query: BaseQueryMsg) -> StdResult<Binary> {
         match query {
             BaseQueryMsg::Config {} => to_binary(&self.dapp_config(deps)?),
-            BaseQueryMsg::Account { channel_id } => to_binary(&query_account(deps, channel_id)?),
+            BaseQueryMsg::Account { client_chain, os_id } => to_binary(&query_account(deps, client_chain, os_id)?),
             BaseQueryMsg::ListAccounts {} => to_binary(&query_list_accounts(deps)?),
         }
     }
@@ -50,10 +50,10 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
         })
     }
 }
-pub fn query_account(deps: Deps, channel_id: String) -> StdResult<AccountResponse> {
-    let account = ACCOUNTS.load(deps.storage, &channel_id)?;
+pub fn query_account(deps: Deps, channel_id: String, os_id: u32) -> StdResult<AccountResponse> {
+    let account = ACCOUNTS.may_load(deps.storage, (&channel_id,os_id))?;
     Ok(AccountResponse {
-        account: Some(account.into()),
+        account: account.map(Into::into),
     })
 }
 
@@ -61,10 +61,11 @@ pub fn query_list_accounts(deps: Deps) -> StdResult<ListAccountsResponse> {
     let accounts = ACCOUNTS
         .range(deps.storage, None, None, Order::Ascending)
         .map(|item| {
-            let (channel_id, account) = item?;
+            let ((channel_id,os_id), account) = item?;
             Ok(AccountInfo {
                 account: account.into(),
                 channel_id,
+                os_id,
             })
         })
         .collect::<StdResult<_>>()?;

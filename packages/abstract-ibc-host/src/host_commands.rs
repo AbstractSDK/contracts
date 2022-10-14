@@ -1,6 +1,6 @@
 use abstract_os::simple_ica::{
     check_order, check_version, BalancesResponse, DispatchResponse, IbcQueryResponse, StdAck,
-    WhoAmIResponse, IBC_APP_VERSION,
+    RegisterResponse, IBC_APP_VERSION,
 };
 use cosmwasm_std::{
     entry_point, to_binary, to_vec, wasm_execute, BankMsg, Binary, ContractResult, CosmosMsg, Deps,
@@ -74,25 +74,7 @@ pub fn ibc_channel_connect(
     msg: IbcChannelConnectMsg,
 ) -> StdResult<IbcBasicResponse> {
     let channel = msg.channel();
-    // let host: Host<Empty> = Host::default();
-    // let cfg = host.base_state.load(deps.storage)?;
     let chan_id = &channel.endpoint.channel_id;
-
-    // let init_msg = cw1_whitelist::msg::InstantiateMsg {
-    //     admins: vec![env.contract.address.into_string()],
-    //     mutable: false,
-    // };
-    // let msg = WasmMsg::Instantiate {
-    //     admin: None,
-    //     code_id: cfg.cw1_code_id,
-    //     msg: to_binary(&init_msg)?,
-    //     funds: vec![],
-    //     label: format!("ibc-reflect-{}", chan_id),
-    // };
-    // let msg = SubMsg::reply_on_success(msg, INIT_CALLBACK_ID);
-
-    // // store the channel id for the reply handler
-    // PENDING.save(deps.storage, chan_id)?;
 
     Ok(IbcBasicResponse::new()
         .add_attribute("action", "ibc_connect")
@@ -173,8 +155,6 @@ pub fn reply_init_callback(deps: DepsMut, reply: Reply) -> Result<Response, Host
     let raw_addr = parse_reply_instantiate_data(reply)?.contract_address;
     let contract_addr = deps.api.addr_validate(&raw_addr)?;
 
-    // store id -> contract_addr if it is empty
-    // id comes from: `let chan_id = msg.endpoint.channel_id;` in `ibc_channel_connect`
     if ACCOUNTS
         .may_load(deps.storage, (&channel, os_id))?
         .is_some()
@@ -182,31 +162,9 @@ pub fn reply_init_callback(deps: DepsMut, reply: Reply) -> Result<Response, Host
         return Err(HostError::ChannelAlreadyRegistered);
     }
     ACCOUNTS.save(deps.storage, (&channel, os_id), &contract_addr)?;
-
-    Ok(Response::new())
+    let data = StdAck::success(&RegisterResponse { account: contract_addr.into_string() });
+    Ok(Response::new().set_data(data))
 }
-
-// TO_IMPLEMENT
-// #[entry_point]
-// /// we look for a the proper reflect contract to relay to and send the message
-// /// We cannot return any meaningful response value as we do not know the response value
-// /// of execution. We just return ok if we dispatched, error if we failed to dispatch
-// pub fn ibc_packet_receive(
-//     deps: DepsMut,
-//     _env: Env,
-//     msg: IbcPacketReceiveMsg,
-// ) -> Result<IbcReceiveResponse, HostError> {
-//     let packet = msg.packet;
-//     // which local channel did this packet come on
-//     let caller = packet.dest.channel_id;
-//     let msg: PacketMsg = from_slice(&packet.data)?;
-//     match msg {
-//         PacketMsg::Dispatch { msgs, .. } => receive_dispatch(deps, caller, msgs),
-//         PacketMsg::IbcQuery { msgs, .. } => receive_query(deps.as_ref(), msgs),
-//         PacketMsg::WhoAmI {} => receive_who_am_i(deps, caller),
-//         PacketMsg::Balances {} => receive_balances(deps, caller),
-//     }
-// }
 
 fn unparsed_query(
     querier: QuerierWrapper<'_, Empty>,
@@ -243,22 +201,39 @@ pub fn receive_query(
         .add_attribute("action", "receive_ibc_query"))
 }
 
-// processes PacketMsg::WhoAmI variant
-pub fn receive_register(deps: DepsMut, channel: String) -> Result<IbcReceiveResponse, HostError> {
-    let account = ACCOUNTS.load(deps.storage, &caller)?;
-    let response = WhoAmIResponse {
-        account: account.into(),
+// processes PacketMsg::Register variant
+/// Creates and registers proxy for remote OS
+pub fn receive_register(deps: DepsMut,env:Env, channel: String, os_id: u32) -> Result<IbcReceiveResponse, HostError> {
+    let host: Host<Empty> = Host::default();
+    let cfg = host.base_state.load(deps.storage)?;
+    let init_msg = cw1_whitelist::msg::InstantiateMsg {
+        admins: vec![env.contract.address.into_string()],
+        mutable: false,
     };
-    let acknowledgement = StdAck::success(&response);
-    // and we are golden
+    let msg = WasmMsg::Instantiate {
+        admin: None,
+        code_id: cfg.cw1_code_id,
+        msg: to_binary(&init_msg)?,
+        funds: vec![],
+        label: format!("ibc-reflect-{}", channel.as_str()),
+    };
+    let msg = SubMsg::reply_on_success(msg, INIT_CALLBACK_ID);
+
+    // store the os info for the reply handler
+    PENDING.save(deps.storage, &(channel,os_id))?;
+
+    // We rely on Reply handler to change this to Success!
+    let acknowledgement = StdAck::fail(format!("Failed to create proxy for OS {} ",os_id));
+
     Ok(IbcReceiveResponse::new()
+        .add_submessage(msg)
         .set_ack(acknowledgement)
-        .add_attribute("action", "receive_who_am_i"))
+        .add_attribute("action", "register"))
 }
 
 // processes PacketMsg::Balances variant
-pub fn receive_balances(deps: DepsMut, caller: String) -> Result<IbcReceiveResponse, HostError> {
-    let account = ACCOUNTS.load(deps.storage, &caller)?;
+pub fn receive_balances(deps: DepsMut, caller: String, os_id: u32) -> Result<IbcReceiveResponse, HostError> {
+    let account = ACCOUNTS.load(deps.storage, (&caller,os_id))?;
     let balances = deps.querier.query_all_balances(&account)?;
     let response = BalancesResponse {
         account: account.into(),
@@ -275,10 +250,11 @@ pub fn receive_balances(deps: DepsMut, caller: String) -> Result<IbcReceiveRespo
 pub fn receive_dispatch(
     deps: DepsMut,
     caller: String,
+    os_id: u32,
     msgs: Vec<CosmosMsg>,
 ) -> Result<IbcReceiveResponse, HostError> {
     // what is the reflect contract here
-    let reflect_addr = ACCOUNTS.load(deps.storage, &caller)?;
+    let reflect_addr = ACCOUNTS.load(deps.storage, (&caller,os_id))?;
 
     // let them know we're fine
     let response = DispatchResponse { results: vec![] };

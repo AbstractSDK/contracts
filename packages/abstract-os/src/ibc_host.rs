@@ -31,11 +31,13 @@ pub enum PacketMsg<T: Serialize> {
     App(T),
     Dispatch {
         sender: String,
+        os_id: u32,
         msgs: Vec<CosmosMsg<Empty>>,
         callback_id: Option<String>,
     },
     Query {
         sender: String,
+        os_id: u32,
         msgs: Vec<QueryRequest<Empty>>,
         callback_id: Option<String>,
     },
@@ -46,7 +48,6 @@ pub enum PacketMsg<T: Serialize> {
         os_id: u32,
     },
     SendAllBack {
-        sender: String,
         os_id: u32,
     },
 }

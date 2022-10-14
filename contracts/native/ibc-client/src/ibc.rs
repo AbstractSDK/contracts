@@ -1,3 +1,4 @@
+use abstract_os::ibc_host::PacketMsg;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
@@ -7,13 +8,12 @@ use cosmwasm_std::{
 };
 
 use abstract_os::simple_ica::{
-    check_order, check_version, BalancesResponse, PacketMsg, ReceiveIcaResponseMsg, StdAck,
-    WhoAmIResponse,
+    check_order, check_version, BalancesResponse, StdAck, RegisterResponse,
 };
 
 use crate::error::ContractError;
-use crate::msg::LatestQueryResponse;
-use crate::state::{AccountData, ACCOUNTS, LATEST_QUERIES};
+use abstract_os::ibc_client::LatestQueryResponse;
+use  abstract_os::ibc_client::state::{AccountData, ACCOUNTS, LATEST_QUERIES};
 
 // TODO: make configurable?
 /// packets live one hour
@@ -46,20 +46,20 @@ pub fn ibc_channel_connect(
     let channel = msg.channel();
     let channel_id = &channel.endpoint.channel_id;
 
-    // create an account holder the channel exists (not found if not registered)
-    let data = AccountData::default();
+    // // create an account holder the channel exists (not found if not registered)
+    // let data = AccountData::default();
     ACCOUNTS.save(deps.storage, channel_id, &data)?;
 
-    // construct a packet to send
-    let packet = PacketMsg::WhoAmI {};
-    let msg = IbcMsg::SendPacket {
-        channel_id: channel_id.clone(),
-        data: to_binary(&packet)?,
-        timeout: env.block.time.plus_seconds(PACKET_LIFETIME).into(),
-    };
+    // // construct a packet to send
+    // let packet = PacketMsg::WhoAmI {};
+    // let msg = IbcMsg::SendPacket {
+    //     channel_id: channel_id.clone(),
+    //     data: to_binary(&packet)?,
+    //     timeout: env.block.time.plus_seconds(PACKET_LIFETIME).into(),
+    // };
 
     Ok(IbcBasicResponse::new()
-        .add_message(msg)
+        // .add_message(msg)
         .add_attribute("action", "ibc_connect")
         .add_attribute("channel_id", channel_id))
 }
@@ -178,15 +178,15 @@ fn acknowledge_query(
     }
 }
 
-// receive PacketMsg::WhoAmI response
+// receive PacketMsg::Register response
 // store address info in accounts info
-fn acknowledge_who_am_i(
+fn acknowledge_register(
     deps: DepsMut,
     caller: String,
     ack: StdAck,
 ) -> Result<IbcBasicResponse, ContractError> {
     // ignore errors (but mention in log)
-    let WhoAmIResponse { account } = match ack {
+    let RegisterResponse { account } = match ack {
         StdAck::Result(res) => from_slice(&res)?,
         StdAck::Error(e) => {
             return Ok(IbcBasicResponse::new()

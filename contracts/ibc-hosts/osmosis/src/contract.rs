@@ -1,5 +1,6 @@
 use abstract_ibc_host::Host;
 use abstract_ibc_host::HostError;
+use abstract_ibc_host::chains::OSMOSIS;
 use abstract_os::host::{BaseInstantiateMsg, MigrateMsg, QueryMsg};
 use abstract_os::{dex::RequestMsg, host::PacketMsg, EXCHANGE, OSMOSIS_HOST};
 
@@ -27,7 +28,7 @@ pub fn instantiate(
     info: MessageInfo,
     msg: BaseInstantiateMsg,
 ) -> OsmoResult {
-    OsmoHost::instantiate(deps, env, info, msg, OSMOSIS_HOST, CONTRACT_VERSION, vec![]);
+    OsmoHost::instantiate(deps, env, info, msg, OSMOSIS_HOST, CONTRACT_VERSION, OSMOSIS,vec![]);
     Ok(Response::default())
 }
 
