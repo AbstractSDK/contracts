@@ -1,3 +1,7 @@
+use abstract_os::simple_ica::{
+    check_order, check_version, BalancesResponse, DispatchResponse, IbcQueryResponse, StdAck,
+    WhoAmIResponse, IBC_APP_VERSION,
+};
 use cosmwasm_std::{
     entry_point, to_binary, to_vec, wasm_execute, BankMsg, Binary, ContractResult, CosmosMsg, Deps,
     DepsMut, Empty, Env, Event, Ibc3ChannelOpenResponse, IbcBasicResponse, IbcChannelCloseMsg,
@@ -6,12 +10,8 @@ use cosmwasm_std::{
     StdError, StdResult, SubMsg, SystemResult, WasmMsg,
 };
 use cw_utils::parse_reply_instantiate_data;
-use abstract_os::simple_ica::{
-    check_order, check_version, BalancesResponse, DispatchResponse, IbcQueryResponse, StdAck,
-    WhoAmIResponse, IBC_APP_VERSION,
-};
 
-use crate::state::{ACCOUNTS, PENDING, RESULTS, CLOSED_CHANNELS};
+use crate::state::{ACCOUNTS, CLOSED_CHANNELS, PENDING, RESULTS};
 use crate::{Host, HostError};
 use abstract_os::ibc_host::{AccountInfo, AccountResponse, ListAccountsResponse};
 
@@ -20,7 +20,7 @@ pub const INIT_CALLBACK_ID: u64 = 7890;
 
 #[allow(unused)]
 pub fn query_account(deps: Deps, channel_id: String, os_id: u32) -> StdResult<AccountResponse> {
-    let account = ACCOUNTS.load(deps.storage, (&channel_id,os_id))?;
+    let account = ACCOUNTS.load(deps.storage, (&channel_id, os_id))?;
     Ok(AccountResponse {
         account: Some(account.into()),
     })
@@ -31,7 +31,7 @@ pub fn query_list_accounts(deps: Deps) -> StdResult<ListAccountsResponse> {
     let accounts = ACCOUNTS
         .range(deps.storage, None, None, Order::Ascending)
         .map(|item| {
-            let ((channel_id,os_id), account) = item?;
+            let ((channel_id, os_id), account) = item?;
             Ok(AccountInfo {
                 os_id,
                 account: account.into(),
@@ -66,7 +66,7 @@ pub fn ibc_channel_open(
 }
 
 #[entry_point]
-/// channel established 
+/// channel established
 #[allow(unused)]
 pub fn ibc_channel_connect(
     deps: DepsMut,
@@ -101,7 +101,7 @@ pub fn ibc_channel_connect(
 }
 
 #[entry_point]
-/// On closed channel we remove the entries and allow anyone to transfer all tokens back to the client chain. 
+/// On closed channel we remove the entries and allow anyone to transfer all tokens back to the client chain.
 /// We also delete the channel entry from accounts.
 #[allow(unused)]
 pub fn ibc_channel_close(
@@ -112,7 +112,10 @@ pub fn ibc_channel_close(
     let channel = msg.channel();
     // get contract address and remove lookup
     let channel_id = channel.endpoint.channel_id;
-    CLOSED_CHANNELS.update(deps.storage, |mut channels| {channels.push(channel_id); Ok::<_,StdError>(channels)})?;
+    CLOSED_CHANNELS.update(deps.storage, |mut channels| {
+        channels.push(channel_id);
+        Ok::<_, StdError>(channels)
+    })?;
 
     // // transfer current balance if any to this host contract
     // let amount = deps.querier.query_all_balances(&reflect_addr)?;
@@ -132,11 +135,11 @@ pub fn ibc_channel_close(
     // };
     // let rescue_funds = !messages.is_empty();
 
-    Ok(IbcBasicResponse::new()
-        // .add_submessages(messages)
-        .add_attribute("action", "ibc_close")
-        .add_attribute("channel_id", channel_id)
-        // .add_attribute("rescue_funds", rescue_funds.to_string())
+    Ok(
+        IbcBasicResponse::new()
+            // .add_submessages(messages)
+            .add_attribute("action", "ibc_close")
+            .add_attribute("channel_id", channel_id), // .add_attribute("rescue_funds", rescue_funds.to_string())
     )
 }
 
@@ -163,7 +166,7 @@ pub fn reply_dispatch_callback(deps: DepsMut, reply: Reply) -> Result<Response, 
 
 pub fn reply_init_callback(deps: DepsMut, reply: Reply) -> Result<Response, HostError> {
     // we use storage to pass info from the caller to the reply
-    let (channel,os_id) = PENDING.load(deps.storage)?;
+    let (channel, os_id) = PENDING.load(deps.storage)?;
     PENDING.remove(deps.storage);
 
     // parse contract info from data
@@ -172,10 +175,13 @@ pub fn reply_init_callback(deps: DepsMut, reply: Reply) -> Result<Response, Host
 
     // store id -> contract_addr if it is empty
     // id comes from: `let chan_id = msg.endpoint.channel_id;` in `ibc_channel_connect`
-    if ACCOUNTS.may_load(deps.storage, (&channel,os_id))?.is_some() {
+    if ACCOUNTS
+        .may_load(deps.storage, (&channel, os_id))?
+        .is_some()
+    {
         return Err(HostError::ChannelAlreadyRegistered);
     }
-    ACCOUNTS.save(deps.storage, (&channel,os_id), &contract_addr)?;
+    ACCOUNTS.save(deps.storage, (&channel, os_id), &contract_addr)?;
 
     Ok(Response::new())
 }
@@ -238,7 +244,7 @@ pub fn receive_query(
 }
 
 // processes PacketMsg::WhoAmI variant
-pub fn receive_register(deps: DepsMut, channel: String,  ) -> Result<IbcReceiveResponse, HostError> {
+pub fn receive_register(deps: DepsMut, channel: String) -> Result<IbcReceiveResponse, HostError> {
     let account = ACCOUNTS.load(deps.storage, &caller)?;
     let response = WhoAmIResponse {
         account: account.into(),

@@ -1,7 +1,7 @@
 use cosmwasm_std::StdError;
 
-use cw_utils::ParseReplyError;
 use abstract_os::simple_ica::SimpleIcaError;
+use cw_utils::ParseReplyError;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]

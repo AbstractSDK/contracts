@@ -1,4 +1,4 @@
-use abstract_os::ibc_host::{PacketMsg, ExecuteMsg};
+use abstract_os::ibc_host::{ExecuteMsg, PacketMsg};
 
 use cosmwasm_std::{
     from_slice, Addr, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo, Response,
@@ -8,7 +8,7 @@ use serde::{de::DeserializeOwned, Serialize};
 use crate::{
     error::HostError,
     host_commands::{receive_balances, receive_dispatch, receive_query, receive_register},
-    state::{Host, CLOSED_CHANNELS, ACCOUNTS},
+    state::{Host, ACCOUNTS, CLOSED_CHANNELS},
 };
 
 /// The host contract base implementation.
@@ -35,8 +35,8 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
         match msg {
             PacketMsg::Dispatch { msgs, .. } => receive_dispatch(deps, caller, msgs),
             PacketMsg::Query { msgs, .. } => receive_query(deps.as_ref(), msgs),
-            PacketMsg::Register {os_id} => receive_register(deps, caller),
-            PacketMsg::Balances { os_id} => receive_balances(deps, caller),
+            PacketMsg::Register { os_id } => receive_register(deps, caller),
+            PacketMsg::Balances { os_id } => receive_balances(deps, caller),
             PacketMsg::SendAllBack { sender: _, os_id } => todo!(),
             PacketMsg::App(msg) => return packet_handler(deps, env, caller, self, msg),
         }
@@ -50,15 +50,18 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
         message: ExecuteMsg,
     ) -> Result<Response, HostError> {
         match message {
-            ExecuteMsg::ClearAccount { closed_channel, os_id } => {
+            ExecuteMsg::ClearAccount {
+                closed_channel,
+                os_id,
+            } => {
                 let closed_channels = CLOSED_CHANNELS.load(deps.storage)?;
                 if !closed_channels.contains(&closed_channel) {
-                    return Err(HostError::ChannelNotClosed{})
+                    return Err(HostError::ChannelNotClosed {});
                 }
                 // call send_all_back here
-                todo!()
+                todo!();
                 // clean up state
-                ACCOUNTS.remove(deps.storage, (&closed_channel,os_id));
+                ACCOUNTS.remove(deps.storage, (&closed_channel, os_id));
             }
         }
     }

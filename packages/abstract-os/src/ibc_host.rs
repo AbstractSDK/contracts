@@ -39,21 +39,22 @@ pub enum PacketMsg<T: Serialize> {
         msgs: Vec<QueryRequest<Empty>>,
         callback_id: Option<String>,
     },
-    Register { os_id: u32},
-    Balances { os_id: u32},
+    Register {
+        os_id: u32,
+    },
+    Balances {
+        os_id: u32,
+    },
     SendAllBack {
         sender: String,
-        os_id: u32
+        os_id: u32,
     },
 }
 
 /// Interface to the Host.
 #[cosmwasm_schema::cw_serde]
 pub enum ExecuteMsg {
-    ClearAccount{
-        closed_channel: String,
-        os_id: u32,
-    }
+    ClearAccount { closed_channel: String, os_id: u32 },
 }
 
 #[cosmwasm_schema::cw_serde]

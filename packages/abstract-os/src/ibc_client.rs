@@ -1,4 +1,4 @@
-use cosmwasm_std::{Coin, CosmosMsg, Empty, QueryRequest, Timestamp, Binary};
+use cosmwasm_std::{Binary, Coin, CosmosMsg, Empty, QueryRequest, Timestamp};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use simple_ica::StdAck;
@@ -8,39 +8,38 @@ use self::state::AccountData;
 pub mod state {
     use serde::{Deserialize, Serialize};
 
-use cosmwasm_std::{Addr, Coin, Timestamp};
-use cw_storage_plus::{Item, Map};
+    use cosmwasm_std::{Addr, Coin, Timestamp};
+    use cw_storage_plus::{Item, Map};
 
-use super::LatestQueryResponse;
+    use super::LatestQueryResponse;
 
-#[cosmwasm_schema::cw_serde]
-pub struct Config {
-    pub admin: Addr,
-    pub chain: String,
-}
+    #[cosmwasm_schema::cw_serde]
+    pub struct Config {
+        pub admin: Addr,
+        pub chain: String,
+    }
 
-#[cosmwasm_schema::cw_serde]
-pub struct Memory {
-    address: Addr
-}
+    #[cosmwasm_schema::cw_serde]
+    pub struct Memory {
+        address: Addr,
+    }
 
-#[cosmwasm_schema::cw_serde]
-pub struct AccountData {
-    /// last block balance was updated (0 is never)
-    pub last_update_time: Timestamp,
-    /// In normal cases, it should be set, but there is a delay between binding
-    /// the channel and making a query and in that time it is empty.
-    ///
-    /// Since we do not have a way to validate the remote address format, this
-    /// must not be of type `Addr`.
-    pub remote_addr: Option<String>,
-    pub remote_balance: Vec<Coin>,
-}
+    #[cosmwasm_schema::cw_serde]
+    pub struct AccountData {
+        /// last block balance was updated (0 is never)
+        pub last_update_time: Timestamp,
+        /// In normal cases, it should be set, but there is a delay between binding
+        /// the channel and making a query and in that time it is empty.
+        ///
+        /// Since we do not have a way to validate the remote address format, this
+        /// must not be of type `Addr`.
+        pub remote_addr: Option<String>,
+        pub remote_balance: Vec<Coin>,
+    }
 
-pub const CONFIG: Item<Config> = Item::new("config");
-pub const ACCOUNTS: Map<&str, AccountData> = Map::new("accounts");
-pub const LATEST_QUERIES: Map<&str, LatestQueryResponse> = Map::new("querys");
-
+    pub const CONFIG: Item<Config> = Item::new("config");
+    pub const ACCOUNTS: Map<&str, AccountData> = Map::new("accounts");
+    pub const LATEST_QUERIES: Map<&str, LatestQueryResponse> = Map::new("querys");
 }
 
 /// This needs no info. Owner of the contract is whoever signed the InstantiateMsg.

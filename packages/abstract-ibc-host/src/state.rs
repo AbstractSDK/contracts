@@ -10,8 +10,8 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 pub const TRADER_NAMESPACE: &str = "traders";
 
-pub const PENDING: Item<(String,u32)> = Item::new("pending");
-pub const ACCOUNTS: Map<(&str,u32), Addr> = Map::new("accounts");
+pub const PENDING: Item<(String, u32)> = Item::new("pending");
+pub const ACCOUNTS: Map<(&str, u32), Addr> = Map::new("accounts");
 pub const CLOSED_CHANNELS: Item<Vec<String>> = Item::new("closed");
 // this stores all results from current dispatch
 pub const RESULTS: Item<Vec<Binary>> = Item::new("results");
