@@ -7,11 +7,24 @@ use abstract_sdk::{
     OsExecute,
 };
 use cosmwasm_std::{
-    to_binary, Addr, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, WasmMsg,
+    to_binary, Addr, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, WasmMsg, StdError,
 };
 use serde::{de::DeserializeOwned, Serialize};
-
 use crate::{error::ApiError, state::ApiContract, ApiResult};
+
+
+#[cfg(feature = "ibc")]
+use simple_ica::{IbcResponseMsg, StdAck};
+#[cfg(feature = "ibc")]
+type IbcHandlerFn<T, RequestError> = Option<fn(
+    DepsMut,
+    Env,
+    MessageInfo,
+    ApiContract<T>,
+    String,
+    StdAck,
+) -> Result<Response, RequestError>>;
+
 
 /// The api-contract base implementation.
 impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
@@ -30,6 +43,8 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
             ApiContract<T>,
             T,
         ) -> Result<Response, RequestError>,
+        #[cfg(feature = "ibc")]
+        ibc_callback_handler: IbcHandlerFn<T,RequestError>,
     ) -> Result<Response, RequestError> {
         let sender = &info.sender;
         match msg {
@@ -58,6 +73,15 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
             ExecuteMsg::Configure(exec_msg) => self
                 .execute(deps, env, info.clone(), exec_msg)
                 .map_err(From::from),
+            #[cfg(feature = "ibc")]
+            ExecuteMsg::IbcCallback(IbcResponseMsg { id, msg }) => {
+                if let Some(callback_fn) = ibc_callback_handler{
+                    callback_fn(deps,env,info,self,id,msg)
+                } else {
+                    Err(ApiError::MissingIbcCallbackHandler{}.into())
+                }
+            }
+            _ => Err(StdError::generic_err("Unsupported API execute message variant").into())
         }
     }
     pub fn execute(

@@ -24,4 +24,8 @@ pub enum ApiError {
 
     #[error("No target OS specified to execute on.")]
     NoTargetOS,
+
+    #[cfg(feature = "ibc")]
+    #[error("No IBC callback handler function provided")]
+    MissingIbcCallbackHandler,
 }

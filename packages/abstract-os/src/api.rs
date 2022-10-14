@@ -8,8 +8,10 @@
 //! The API structure is well-suited for implementing standard interfaces to external services like dexes, lending platforms, etc.
 
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, Binary};
 use serde::Serialize;
+#[cfg(feature = "ibc")]
+use simple_ica::IbcResponseMsg;
 
 /// Used by Abstract to instantiate the contract
 /// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::AddApi`].
@@ -28,6 +30,9 @@ pub enum ExecuteMsg<T: Serialize> {
     Request(ApiRequestMsg<T>),
     /// A configuration message to whitelist traders.
     Configure(BaseExecuteMsg),
+    /// IbcReceive, only on IBC enabled API's
+    #[cfg(feature = "ibc")]
+    IbcCallback(IbcResponseMsg),
 }
 
 impl<T: Serialize> From<BaseExecuteMsg> for ExecuteMsg<T> {

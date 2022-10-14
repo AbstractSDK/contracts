@@ -4,18 +4,18 @@ use cosmwasm_std::{to_binary, Binary, CosmosMsg, StdResult, WasmMsg};
 
 use crate::StdAck;
 
-/// ReceiveIbcResponseMsg should be de/serialized under `Receive()` variant in a ExecuteMsg
+/// IbcResponseMsg should be de/serialized under `Receive()` variant in a ExecuteMsg
 #[cosmwasm_schema::cw_serde]
-pub struct ReceiveIcaResponseMsg {
+pub struct IbcResponseMsg {
     /// The ID chosen by the caller in the `callback_id`
     pub id: String,
     pub msg: StdAck,
 }
 
-impl ReceiveIcaResponseMsg {
+impl IbcResponseMsg {
     /// serializes the message
     pub fn into_binary(self) -> StdResult<Binary> {
-        let msg = SimpleIcaReceiverExecuteMsg::ReceiveIcaResponse(self);
+        let msg = IbcCallbackMsg::IbcCallback(self);
         to_binary(&msg)
     }
 
@@ -37,6 +37,6 @@ impl ReceiveIcaResponseMsg {
 /// This is just a helper to properly serialize the above message.
 /// The actual receiver should include this variant in the larger ExecuteMsg enum
 #[cosmwasm_schema::cw_serde]
-enum SimpleIcaReceiverExecuteMsg {
-    ReceiveIcaResponse(ReceiveIcaResponseMsg),
+enum IbcCallbackMsg {
+    IbcCallback(IbcResponseMsg),
 }
