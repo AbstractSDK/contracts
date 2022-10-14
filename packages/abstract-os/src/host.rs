@@ -21,6 +21,9 @@ pub struct BaseInstantiateMsg {
     pub cw1_code_id: u64,
 }
 
+#[cosmwasm_schema::cw_serde]
+pub struct MigrateMsg {}
+
 /// This is the message we send over the IBC channel
 #[cosmwasm_schema::cw_serde]
 pub enum PacketMsg<T: Serialize> {
@@ -48,7 +51,7 @@ pub enum PacketMsg<T: Serialize> {
 pub enum ExecuteMsg {}
 
 #[cosmwasm_schema::cw_serde]
-pub enum QueryMsg<Q: Serialize> {
+pub enum QueryMsg<Q: Serialize = Empty> {
     App(Q),
     /// A configuration message to whitelist traders.
     Base(BaseQueryMsg),

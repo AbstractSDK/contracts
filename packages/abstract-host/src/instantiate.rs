@@ -4,11 +4,11 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use abstract_sdk::memory::Memory;
 
-use crate::state::{HostContract, HostState};
+use crate::state::{Host, HostState};
 
 use cw2::set_contract_version;
 
-impl<'a, T: Serialize + DeserializeOwned> HostContract<'a, T> {
+impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
     /// Instantiate the API
     pub fn instantiate(
         deps: DepsMut,

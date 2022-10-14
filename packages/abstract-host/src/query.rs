@@ -7,15 +7,15 @@ use abstract_os::{
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
-    state::{HostContract, ACCOUNTS},
+    state::{Host, ACCOUNTS},
     HostError,
 };
 
 pub type HostQueryHandlerFn<Q, QueryError> = Option<fn(Deps, Env, Q) -> Result<Binary, QueryError>>;
 
-/// Where we dispatch the queries for the HostContract
+/// Where we dispatch the queries for the Host
 /// These ApiQueryMsg declarations can be found in `abstract_os::common_module::add_on_msg`
-impl<'a, T: Serialize + DeserializeOwned> HostContract<'a, T> {
+impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
     pub fn handle_query<
         Q: Serialize + DeserializeOwned,
         QueryError: From<cosmwasm_std::StdError> + From<HostError>,

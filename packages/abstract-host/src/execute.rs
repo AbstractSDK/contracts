@@ -1,31 +1,30 @@
 use abstract_os::host::PacketMsg;
 
 use cosmwasm_std::{
-    from_slice, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo,
+    from_slice, Addr, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo,
 };
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
     error::HostError,
     host_commands::{receive_balances, receive_dispatch, receive_query, receive_who_am_i},
-    state::HostContract,
+    state::Host,
 };
 
 /// The host contract base implementation.
-impl<'a, T: Serialize + DeserializeOwned> HostContract<'a, T> {
+impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
     /// Takes ibc request, matches and executes
-    /// This fn is the only way to get an HostContract instance.
+    /// This fn is the only way to get an Host instance.
     pub fn handle_packet<RequestError: From<cosmwasm_std::StdError> + From<HostError>>(
         self,
         deps: DepsMut,
         env: Env,
-        info: MessageInfo,
         packet: IbcPacketReceiveMsg,
-        app_handler: impl FnOnce(
+        packet_handler: impl FnOnce(
             DepsMut,
             Env,
-            MessageInfo,
-            HostContract<T>,
+            String,
+            Host<T>,
             T,
         ) -> Result<IbcReceiveResponse, RequestError>,
     ) -> Result<IbcReceiveResponse, RequestError> {
@@ -39,7 +38,7 @@ impl<'a, T: Serialize + DeserializeOwned> HostContract<'a, T> {
             PacketMsg::WhoAmI {} => receive_who_am_i(deps, caller),
             PacketMsg::Balances {} => receive_balances(deps, caller),
             PacketMsg::SendAllBack { sender: _ } => todo!(),
-            PacketMsg::App(msg) => return app_handler(deps, env, info, self, msg),
+            PacketMsg::App(msg) => return packet_handler(deps, env, caller, self, msg),
         }
         .map_err(Into::into)
     }

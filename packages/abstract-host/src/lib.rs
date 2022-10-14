@@ -5,7 +5,7 @@ use cosmwasm_std::{Empty, Response};
 
 pub use error::HostError;
 
-pub use crate::state::HostContract;
+pub use crate::state::Host;
 
 pub mod error;
 mod execute;

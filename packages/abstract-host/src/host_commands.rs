@@ -12,7 +12,7 @@ use simple_ica::{
 };
 
 use crate::state::{ACCOUNTS, PENDING, RESULTS};
-use crate::{HostContract, HostError};
+use crate::{Host, HostError};
 use abstract_os::host::{AccountInfo, AccountResponse, ListAccountsResponse};
 
 pub const RECEIVE_DISPATCH_ID: u64 = 1234;
@@ -73,7 +73,7 @@ pub fn ibc_channel_connect(
     msg: IbcChannelConnectMsg,
 ) -> StdResult<IbcBasicResponse> {
     let channel = msg.channel();
-    let host: HostContract<Empty> = HostContract::default();
+    let host: Host<Empty> = Host::default();
     let cfg = host.base_state.load(deps.storage)?;
     let chan_id = &channel.endpoint.channel_id;
 

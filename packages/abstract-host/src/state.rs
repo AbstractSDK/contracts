@@ -17,7 +17,7 @@ pub const ACCOUNTS: Map<&str, Addr> = Map::new("accounts");
 pub const RESULTS: Item<Vec<Binary>> = Item::new("results");
 
 /// The state variables for our host contract.
-pub struct HostContract<'a, T: Serialize + DeserializeOwned> {
+pub struct Host<'a, T: Serialize + DeserializeOwned> {
     // Every DApp should use the provided memory contract for token/contract address resolution
     pub base_state: Item<'a, HostState>,
     /// Stores the API version
@@ -26,14 +26,14 @@ pub struct HostContract<'a, T: Serialize + DeserializeOwned> {
     _phantom_data: PhantomData<T>,
 }
 
-impl<'a, T: Serialize + DeserializeOwned> Default for HostContract<'a, T> {
+impl<'a, T: Serialize + DeserializeOwned> Default for Host<'a, T> {
     fn default() -> Self {
         Self::new(&[])
     }
 }
 
 /// Constructor
-impl<'a, T: Serialize + DeserializeOwned> HostContract<'a, T> {
+impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
     pub const fn new(_dependencies: &'static [&'static str]) -> Self {
         Self {
             version: CONTRACT,
