@@ -1,10 +1,10 @@
-use abstract_os::host::BaseInstantiateMsg;
+use abstract_os::ibc_host::BaseInstantiateMsg;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, StdResult};
 use serde::{de::DeserializeOwned, Serialize};
 
 use abstract_sdk::memory::Memory;
 
-use crate::state::{Host, HostState};
+use crate::state::{Host, HostState, CLOSED_CHANNELS};
 
 use cw2::set_contract_version;
 
@@ -17,6 +17,7 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
         msg: BaseInstantiateMsg,
         module_name: &str,
         module_version: &str,
+        chain: &str,
         _api_dependencies: Vec<String>,
     ) -> StdResult<Self> {
         let api = Self::default();
@@ -26,10 +27,13 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
 
         // Base state
         let state = HostState {
+            chain: chain.to_string(),
             memory,
             cw1_code_id: msg.cw1_code_id,
         };
-
+        // Keep track of all the closed channels, allows for fund recovery if channel closes.
+        let closed_channels = vec![];
+        CLOSED_CHANNELS.save(deps.storage, &closed_channels)?;
         set_contract_version(deps.storage, module_name, module_version)?;
         api.base_state.save(deps.storage, &state)?;
 

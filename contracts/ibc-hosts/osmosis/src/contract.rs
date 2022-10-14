@@ -1,5 +1,5 @@
-use abstract_host::Host;
-use abstract_host::HostError;
+use abstract_ibc_host::Host;
+use abstract_ibc_host::HostError;
 use abstract_os::host::{BaseInstantiateMsg, MigrateMsg, QueryMsg};
 use abstract_os::{dex::RequestMsg, host::PacketMsg, EXCHANGE, OSMOSIS_HOST};
 

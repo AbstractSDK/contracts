@@ -1,5 +1,5 @@
 [package]
-name = "abstract-host"
+name = "abstract-ibc-host"
 version = "0.1.0"
 edition = "2021"
 description = "base API contract implementation"
@@ -31,6 +31,5 @@ thiserror = { version = "1.0.21" }
 cw2 = "0.14.0"
 
 abstract-sdk = { version = "0.1.0", path = "../abstract-sdk" }
-simple-ica = { version = "0.2.0", path = "../simple-ica" }
-abstract-os = {version = "0.1.0", path = "../abstract-os"}
+abstract-os = {version = "0.1.0", path = "../abstract-os", features = ["ibc"]}
 

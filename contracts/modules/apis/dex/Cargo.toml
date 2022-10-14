@@ -32,7 +32,7 @@ serde = { version = "1.0.103", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0.21" }
 abstract-os = { version = "0.1.0-rc.1", path = "../../../../packages/abstract-os", features = ["ibc"] }
 abstract-sdk = { version = "0.1.0-rc.1", path = "../../../../packages/abstract-sdk" }
-abstract-api = { version = "0.1.0-rc.1", path = "../../../../packages/abstract-api", features = ["library"] }
+abstract-api = { version = "0.1.0-rc.1", path = "../../../../packages/abstract-api", features = ["library", "ibc"] }
 cw-asset = {version = "2.2.0"}
 
 # Juno dexes

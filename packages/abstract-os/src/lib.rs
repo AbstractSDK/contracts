@@ -36,6 +36,8 @@
 //! ```no_run
 //! use abstract_os::PROXY;
 //! ```
+#[cfg(feature = "ibc")]
+pub extern crate simple_ica;
 
 pub use registry::*;
 
@@ -44,7 +46,8 @@ pub mod add_on;
 pub mod api;
 pub mod dex;
 pub mod etf;
-pub mod host;
+pub mod ibc_host;
+pub mod ibc_client;
 pub mod manager;
 pub mod memory;
 pub mod module_factory;

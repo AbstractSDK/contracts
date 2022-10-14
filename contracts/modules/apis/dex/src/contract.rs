@@ -2,7 +2,7 @@ use abstract_api::{ApiContract, ApiResult};
 use abstract_os::{
     api::{BaseInstantiateMsg, ExecuteMsg, QueryMsg},
     dex::{ApiQueryMsg, RequestMsg},
-    EXCHANGE,
+    EXCHANGE, simple_ica::StdAck,
 };
 
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response};
@@ -39,7 +39,7 @@ pub fn execute(
     info: MessageInfo,
     msg: ExecuteMsg<RequestMsg>,
 ) -> DexResult {
-    DEX_API.handle_request(deps, env, info, msg, handle_api_request)
+    DEX_API.handle_request(deps, env, info, msg, handle_api_request, Some(handle_ibc_callback) )
 }
 
 pub fn handle_api_request(
@@ -112,6 +112,18 @@ pub fn handle_api_request(
         }
     }
 }
+
+pub fn handle_ibc_callback(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    api: DexApi,
+    id: String,
+    msg: StdAck,
+) -> DexResult {
+    todo!()
+}
+
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg<ApiQueryMsg>) -> Result<Binary, DexError> {

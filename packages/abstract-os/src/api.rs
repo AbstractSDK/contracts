@@ -8,7 +8,7 @@
 //! The API structure is well-suited for implementing standard interfaces to external services like dexes, lending platforms, etc.
 
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Binary};
+use cosmwasm_std::{Addr};
 use serde::Serialize;
 #[cfg(feature = "ibc")]
 use simple_ica::IbcResponseMsg;

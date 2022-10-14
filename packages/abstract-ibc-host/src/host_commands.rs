@@ -6,21 +6,21 @@ use cosmwasm_std::{
     StdError, StdResult, SubMsg, SystemResult, WasmMsg,
 };
 use cw_utils::parse_reply_instantiate_data;
-use simple_ica::{
+use abstract_os::simple_ica::{
     check_order, check_version, BalancesResponse, DispatchResponse, IbcQueryResponse, StdAck,
     WhoAmIResponse, IBC_APP_VERSION,
 };
 
-use crate::state::{ACCOUNTS, PENDING, RESULTS};
+use crate::state::{ACCOUNTS, PENDING, RESULTS, CLOSED_CHANNELS};
 use crate::{Host, HostError};
-use abstract_os::host::{AccountInfo, AccountResponse, ListAccountsResponse};
+use abstract_os::ibc_host::{AccountInfo, AccountResponse, ListAccountsResponse};
 
 pub const RECEIVE_DISPATCH_ID: u64 = 1234;
 pub const INIT_CALLBACK_ID: u64 = 7890;
 
 #[allow(unused)]
-pub fn query_account(deps: Deps, channel_id: String) -> StdResult<AccountResponse> {
-    let account = ACCOUNTS.load(deps.storage, &channel_id)?;
+pub fn query_account(deps: Deps, channel_id: String, os_id: u32) -> StdResult<AccountResponse> {
+    let account = ACCOUNTS.load(deps.storage, (&channel_id,os_id))?;
     Ok(AccountResponse {
         account: Some(account.into()),
     })
@@ -31,8 +31,9 @@ pub fn query_list_accounts(deps: Deps) -> StdResult<ListAccountsResponse> {
     let accounts = ACCOUNTS
         .range(deps.storage, None, None, Order::Ascending)
         .map(|item| {
-            let (channel_id, account) = item?;
+            let ((channel_id,os_id), account) = item?;
             Ok(AccountInfo {
+                os_id,
                 account: account.into(),
                 channel_id,
             })
@@ -65,7 +66,7 @@ pub fn ibc_channel_open(
 }
 
 #[entry_point]
-/// once it's established, we create the reflect contract
+/// channel established 
 #[allow(unused)]
 pub fn ibc_channel_connect(
     deps: DepsMut,
@@ -73,35 +74,34 @@ pub fn ibc_channel_connect(
     msg: IbcChannelConnectMsg,
 ) -> StdResult<IbcBasicResponse> {
     let channel = msg.channel();
-    let host: Host<Empty> = Host::default();
-    let cfg = host.base_state.load(deps.storage)?;
+    // let host: Host<Empty> = Host::default();
+    // let cfg = host.base_state.load(deps.storage)?;
     let chan_id = &channel.endpoint.channel_id;
 
-    let init_msg = cw1_whitelist::msg::InstantiateMsg {
-        admins: vec![env.contract.address.into_string()],
-        mutable: false,
-    };
-    let msg = WasmMsg::Instantiate {
-        admin: None,
-        code_id: cfg.cw1_code_id,
-        msg: to_binary(&init_msg)?,
-        funds: vec![],
-        label: format!("ibc-reflect-{}", chan_id),
-    };
-    let msg = SubMsg::reply_on_success(msg, INIT_CALLBACK_ID);
+    // let init_msg = cw1_whitelist::msg::InstantiateMsg {
+    //     admins: vec![env.contract.address.into_string()],
+    //     mutable: false,
+    // };
+    // let msg = WasmMsg::Instantiate {
+    //     admin: None,
+    //     code_id: cfg.cw1_code_id,
+    //     msg: to_binary(&init_msg)?,
+    //     funds: vec![],
+    //     label: format!("ibc-reflect-{}", chan_id),
+    // };
+    // let msg = SubMsg::reply_on_success(msg, INIT_CALLBACK_ID);
 
-    // store the channel id for the reply handler
-    PENDING.save(deps.storage, chan_id)?;
+    // // store the channel id for the reply handler
+    // PENDING.save(deps.storage, chan_id)?;
 
     Ok(IbcBasicResponse::new()
-        .add_submessage(msg)
         .add_attribute("action", "ibc_connect")
         .add_attribute("channel_id", chan_id)
         .add_event(Event::new("ibc").add_attribute("channel", "connect")))
 }
 
 #[entry_point]
-/// On closed channel, we take all tokens from reflect contract to this contract.
+/// On closed channel we remove the entries and allow anyone to transfer all tokens back to the client chain. 
 /// We also delete the channel entry from accounts.
 #[allow(unused)]
 pub fn ibc_channel_close(
@@ -111,33 +111,33 @@ pub fn ibc_channel_close(
 ) -> StdResult<IbcBasicResponse> {
     let channel = msg.channel();
     // get contract address and remove lookup
-    let channel_id = channel.endpoint.channel_id.as_str();
-    let reflect_addr = ACCOUNTS.load(deps.storage, channel_id)?;
-    ACCOUNTS.remove(deps.storage, channel_id);
+    let channel_id = channel.endpoint.channel_id;
+    CLOSED_CHANNELS.update(deps.storage, |mut channels| {channels.push(channel_id); Ok::<_,StdError>(channels)})?;
 
-    // transfer current balance if any to this host contract
-    let amount = deps.querier.query_all_balances(&reflect_addr)?;
-    let messages: Vec<SubMsg<Empty>> = if !amount.is_empty() {
-        let bank_msg = BankMsg::Send {
-            to_address: env.contract.address.into(),
-            amount,
-        };
+    // // transfer current balance if any to this host contract
+    // let amount = deps.querier.query_all_balances(&reflect_addr)?;
+    // let messages: Vec<SubMsg<Empty>> = if !amount.is_empty() {
+    //     let bank_msg = BankMsg::Send {
+    //         to_address: env.contract.address.into(),
+    //         amount,
+    //     };
 
-        let reflect_msg = cw1_whitelist::msg::ExecuteMsg::Execute::<Empty> {
-            msgs: vec![bank_msg.into()],
-        };
-        let wasm_msg = wasm_execute(reflect_addr, &reflect_msg, vec![])?;
-        vec![SubMsg::new(wasm_msg)]
-    } else {
-        vec![]
-    };
-    let rescue_funds = !messages.is_empty();
+    //     let reflect_msg = cw1_whitelist::msg::ExecuteMsg::Execute::<Empty> {
+    //         msgs: vec![bank_msg.into()],
+    //     };
+    //     let wasm_msg = wasm_execute(reflect_addr, &reflect_msg, vec![])?;
+    //     vec![SubMsg::new(wasm_msg)]
+    // } else {
+    //     vec![]
+    // };
+    // let rescue_funds = !messages.is_empty();
 
     Ok(IbcBasicResponse::new()
-        .add_submessages(messages)
+        // .add_submessages(messages)
         .add_attribute("action", "ibc_close")
         .add_attribute("channel_id", channel_id)
-        .add_attribute("rescue_funds", rescue_funds.to_string()))
+        // .add_attribute("rescue_funds", rescue_funds.to_string())
+    )
 }
 
 #[entry_point]
@@ -163,7 +163,7 @@ pub fn reply_dispatch_callback(deps: DepsMut, reply: Reply) -> Result<Response, 
 
 pub fn reply_init_callback(deps: DepsMut, reply: Reply) -> Result<Response, HostError> {
     // we use storage to pass info from the caller to the reply
-    let id = PENDING.load(deps.storage)?;
+    let (channel,os_id) = PENDING.load(deps.storage)?;
     PENDING.remove(deps.storage);
 
     // parse contract info from data
@@ -172,10 +172,10 @@ pub fn reply_init_callback(deps: DepsMut, reply: Reply) -> Result<Response, Host
 
     // store id -> contract_addr if it is empty
     // id comes from: `let chan_id = msg.endpoint.channel_id;` in `ibc_channel_connect`
-    if ACCOUNTS.may_load(deps.storage, &id)?.is_some() {
+    if ACCOUNTS.may_load(deps.storage, (&channel,os_id))?.is_some() {
         return Err(HostError::ChannelAlreadyRegistered);
     }
-    ACCOUNTS.save(deps.storage, &id, &contract_addr)?;
+    ACCOUNTS.save(deps.storage, (&channel,os_id), &contract_addr)?;
 
     Ok(Response::new())
 }
@@ -238,7 +238,7 @@ pub fn receive_query(
 }
 
 // processes PacketMsg::WhoAmI variant
-pub fn receive_who_am_i(deps: DepsMut, caller: String) -> Result<IbcReceiveResponse, HostError> {
+pub fn receive_register(deps: DepsMut, channel: String,  ) -> Result<IbcReceiveResponse, HostError> {
     let account = ACCOUNTS.load(deps.storage, &caller)?;
     let response = WhoAmIResponse {
         account: account.into(),

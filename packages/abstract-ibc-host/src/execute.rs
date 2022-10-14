@@ -1,14 +1,14 @@
-use abstract_os::host::PacketMsg;
+use abstract_os::ibc_host::{PacketMsg, ExecuteMsg};
 
 use cosmwasm_std::{
-    from_slice, Addr, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo,
+    from_slice, Addr, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo, Response,
 };
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
     error::HostError,
-    host_commands::{receive_balances, receive_dispatch, receive_query, receive_who_am_i},
-    state::Host,
+    host_commands::{receive_balances, receive_dispatch, receive_query, receive_register},
+    state::{Host, CLOSED_CHANNELS, ACCOUNTS},
 };
 
 /// The host contract base implementation.
@@ -35,25 +35,31 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
         match msg {
             PacketMsg::Dispatch { msgs, .. } => receive_dispatch(deps, caller, msgs),
             PacketMsg::Query { msgs, .. } => receive_query(deps.as_ref(), msgs),
-            PacketMsg::WhoAmI {} => receive_who_am_i(deps, caller),
-            PacketMsg::Balances {} => receive_balances(deps, caller),
-            PacketMsg::SendAllBack { sender: _ } => todo!(),
+            PacketMsg::Register {os_id} => receive_register(deps, caller),
+            PacketMsg::Balances { os_id} => receive_balances(deps, caller),
+            PacketMsg::SendAllBack { sender: _, os_id } => todo!(),
             PacketMsg::App(msg) => return packet_handler(deps, env, caller, self, msg),
         }
         .map_err(Into::into)
     }
-    // pub fn execute(
-    //     &mut self,
-    //     deps: DepsMut,
-    //     env: Env,
-    //     info: MessageInfo,
-    //     message: BaseExecuteMsg,
-    // ) -> ApiResult {
-    //     match message {
-    //         BaseExecuteMsg::UpdateTraders { to_add, to_remove } => {
-    //             self.update_traders(deps, info, to_add, to_remove)
-    //         }
-    //         BaseExecuteMsg::Remove {} => self.remove_self_from_deps(deps.as_ref(), env, info),
-    //     }
-    // }
+    pub fn execute(
+        &mut self,
+        deps: DepsMut,
+        env: Env,
+        info: MessageInfo,
+        message: ExecuteMsg,
+    ) -> Result<Response, HostError> {
+        match message {
+            ExecuteMsg::ClearAccount { closed_channel, os_id } => {
+                let closed_channels = CLOSED_CHANNELS.load(deps.storage)?;
+                if !closed_channels.contains(&closed_channel) {
+                    return Err(HostError::ChannelNotClosed{})
+                }
+                // call send_all_back here
+                todo!()
+                // clean up state
+                ACCOUNTS.remove(deps.storage, (&closed_channel,os_id));
+            }
+        }
+    }
 }

@@ -80,7 +80,8 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
                 } else {
                     Err(ApiError::MissingIbcCallbackHandler{}.into())
                 }
-            }
+            },
+            #[allow(unreachable_patterns)]
             _ => Err(StdError::generic_err("Unsupported API execute message variant").into())
         }
     }

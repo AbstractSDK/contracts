@@ -39,16 +39,22 @@ pub enum PacketMsg<T: Serialize> {
         msgs: Vec<QueryRequest<Empty>>,
         callback_id: Option<String>,
     },
-    WhoAmI {},
-    Balances {},
+    Register { os_id: u32},
+    Balances { os_id: u32},
     SendAllBack {
         sender: String,
+        os_id: u32
     },
 }
 
 /// Interface to the Host.
 #[cosmwasm_schema::cw_serde]
-pub enum ExecuteMsg {}
+pub enum ExecuteMsg {
+    ClearAccount{
+        closed_channel: String,
+        os_id: u32,
+    }
+}
 
 #[cosmwasm_schema::cw_serde]
 pub enum QueryMsg<Q: Serialize = Empty> {
@@ -67,7 +73,7 @@ pub enum BaseQueryMsg {
     /// Returns (reflect) account that is attached to this channel,
     /// or none.
     #[returns(AccountResponse)]
-    Account { channel_id: String },
+    Account { client_chain: String, os_id: u32 },
     /// Returns all (channel, reflect_account) pairs.
     /// No pagination - this is a test contract
     #[returns(ListAccountsResponse)]
@@ -91,6 +97,7 @@ pub struct ListAccountsResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct AccountInfo {
+    pub os_id: u32,
     pub account: String,
     pub channel_id: String,
 }
