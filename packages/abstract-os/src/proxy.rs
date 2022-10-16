@@ -11,6 +11,7 @@
 //! After configuring the proxy assets [`QueryMsg::TotalValue`] can be called to get the total holding value.
 
 use cosmwasm_schema::QueryResponses;
+use crate::ibc_client::ExecuteMsg as IbcClientMsg;
 
 use cosmwasm_std::{CosmosMsg, Empty, Uint128};
 
@@ -50,6 +51,8 @@ pub enum ExecuteMsg {
     SetAdmin { admin: String },
     /// Executes the provided messages if sender is whitelisted
     ModuleAction { msgs: Vec<CosmosMsg<Empty>> },
+    /// Execute IBC action on Client
+    IbcAction { msgs: Vec<IbcClientMsg> },
     /// Adds the provided address to whitelisted dapps
     AddModule { module: String },
     /// Removes the provided address from the whitelisted dapps
