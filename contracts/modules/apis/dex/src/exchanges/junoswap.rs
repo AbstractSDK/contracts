@@ -20,6 +20,9 @@ impl DEX for JunoSwap {
     fn name(&self) -> &'static str {
         JUNOSWAP
     }
+    fn over_ibc(&self) -> bool {
+        false
+    }
     fn swap(
         &self,
         deps: Deps,

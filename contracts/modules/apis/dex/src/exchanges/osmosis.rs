@@ -18,6 +18,9 @@ impl DEX for Osmosis {
     fn name(&self) -> &'static str {
         OSMOSIS
     }
+    fn over_ibc(&self) -> bool {
+        true
+    }
     fn swap(
         &self,
         deps: Deps,

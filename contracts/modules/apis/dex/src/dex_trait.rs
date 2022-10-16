@@ -26,6 +26,7 @@ pub trait DEX {
     fn pair_contract(&self, assets: &mut Vec<&AssetEntry>) -> ContractEntry {
         ContractEntry::construct_dex_entry(self.name(), assets)
     }
+    fn over_ibc(&self) -> bool;
     fn name(&self) -> &'static str;
     #[allow(clippy::too_many_arguments)]
     fn swap(

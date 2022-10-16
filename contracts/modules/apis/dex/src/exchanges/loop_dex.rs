@@ -19,6 +19,9 @@ impl DEX for Loop {
     fn name(&self) -> &'static str {
         LOOP
     }
+    fn over_ibc(&self) -> bool {
+        false
+    }
     fn swap(
         &self,
         deps: Deps,
