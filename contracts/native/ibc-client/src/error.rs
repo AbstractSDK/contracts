@@ -19,5 +19,5 @@ pub enum ClientError {
     RemoteAccountChanged { addr: String, old: String },
 
     #[error("packages that contain internal calls are not allowed")]
-    ForbiddenInternalCall{},
+    ForbiddenInternalCall {},
 }

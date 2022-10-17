@@ -1,4 +1,4 @@
-use abstract_os::ibc_host::{HostAction, PacketMsg, InternalAction};
+use abstract_os::ibc_host::{HostAction, InternalAction, PacketMsg};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{

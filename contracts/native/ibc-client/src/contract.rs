@@ -43,9 +43,16 @@ pub fn instantiate(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> Result<Response, ClientError> {
+pub fn execute(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    msg: ExecuteMsg,
+) -> Result<Response, ClientError> {
     match msg {
-        ExecuteMsg::UpdateAdmin { admin } => execute_update_admin(deps, info, admin).map_err(Into::into),
+        ExecuteMsg::UpdateAdmin { admin } => {
+            execute_update_admin(deps, info, admin).map_err(Into::into)
+        }
         ExecuteMsg::SendPacket {
             host_chain,
             action,
@@ -93,7 +100,7 @@ pub fn execute_send_packet(
     let core = verify_os_proxy(&deps.querier, &info.sender, &cfg.version_control_address)?;
     // Can only call non-internal actions
     if let HostAction::Internal(_) = action {
-        return Err(ClientError::ForbiddenInternalCall {  })
+        return Err(ClientError::ForbiddenInternalCall {});
     }
     // get os_id
     let os_id = query_os_id(&deps.querier, &core.manager)?;

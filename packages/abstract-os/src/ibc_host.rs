@@ -27,17 +27,26 @@ pub struct BaseInstantiateMsg {
 pub struct MigrateMsg {}
 
 #[cosmwasm_schema::cw_serde]
-pub enum InternalAction{
-    Register, WhoAmI
+pub enum InternalAction {
+    Register,
+    WhoAmI,
 }
 
 /// Callable actions on a remote host
 #[cosmwasm_schema::cw_serde]
 pub enum HostAction {
-    App { msg: Binary },
-    Dispatch { msgs: Vec<CosmosMsg<Empty>> },
-    Query { msgs: Vec<QueryRequest<Empty>> },
-    SendAllBack { os_proxy_address: String },
+    App {
+        msg: Binary,
+    },
+    Dispatch {
+        msgs: Vec<CosmosMsg<Empty>>,
+    },
+    Query {
+        msgs: Vec<QueryRequest<Empty>>,
+    },
+    SendAllBack {
+        os_proxy_address: String,
+    },
     Balances {},
     /// Can't be called through the packet endpoint directly
     Internal(InternalAction),

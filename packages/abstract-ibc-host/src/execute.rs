@@ -1,6 +1,8 @@
 use abstract_os::{
-    ibc_host::{ExecuteMsg, HostAction, PacketMsg, InternalAction},
-    version_control::Core, objects::ChannelEntry, ICS20,
+    ibc_host::{ExecuteMsg, HostAction, InternalAction, PacketMsg},
+    objects::ChannelEntry,
+    version_control::Core,
+    ICS20,
 };
 
 use abstract_sdk::{verify_os_proxy, MemoryOperation, Resolve};
@@ -46,7 +48,9 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
             action,
         } = from_slice(&packet.data)?;
         match action {
-            HostAction::Internal(InternalAction::Register) => receive_register(deps, env, channel, os_id),
+            HostAction::Internal(InternalAction::Register) => {
+                receive_register(deps, env, channel, os_id)
+            }
             HostAction::Internal(InternalAction::WhoAmI) => {
                 let this_chain = self.base_state.load(deps.storage)?.chain;
                 receive_who_am_i(this_chain)
