@@ -2,10 +2,10 @@ use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, StdResult};
 
 use abstract_os::{
     memory::{
-        state::{ASSET_ADDRESSES, CONTRACT_ADDRESSES},
-        AssetListResponse, AssetsResponse, ContractListResponse, ContractsResponse,
+        state::{ASSET_ADDRESSES, CONTRACT_ADDRESSES, CHANNELS},
+        AssetListResponse, AssetsResponse, ContractListResponse, ContractsResponse, ChannelListResponse, ChannelsResponse,
     },
-    objects::{AssetEntry, ContractEntry},
+    objects::{AssetEntry, ContractEntry, ChannelEntry},
 };
 use cw_asset::AssetInfo;
 use cw_storage_plus::Bound;
@@ -33,6 +33,17 @@ pub fn query_contract(deps: Deps, _env: Env, names: Vec<ContractEntry>) -> StdRe
 
     to_binary(&ContractsResponse {
         contracts: res?.into_iter().map(|(x, a)| (x, a.to_string())).collect(),
+    })
+}
+
+pub fn query_channel(deps: Deps, _env: Env, names: Vec<ChannelEntry>) -> StdResult<Binary> {
+    let res: Result<Vec<(ChannelEntry, Addr)>, _> = CHANNELS
+        .range(deps.storage, None, None, Order::Ascending)
+        .filter(|e| names.contains(&e.as_ref().unwrap().0))
+        .collect();
+
+    to_binary(&ChannelsResponse {
+        channels: res?.into_iter().map(|(x, a)| (x, a.to_string())).collect(),
     })
 }
 
@@ -66,5 +77,22 @@ pub fn query_contract_list(
         .collect();
     to_binary(&ContractListResponse {
         contracts: res?.into_iter().map(|(x, a)| (x, a.to_string())).collect(),
+    })
+}
+
+pub fn query_channel_list(
+    deps: Deps,
+    last_channel: Option<ChannelEntry>,
+    limit: Option<u8>,
+) -> StdResult<Binary> {
+    let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
+    let start_bound = last_channel.map(Bound::exclusive);
+
+    let res: Result<Vec<(ChannelEntry, String)>, _> = CHANNELS
+        .range(deps.storage, start_bound, None, Order::Ascending)
+        .take(limit)
+        .collect();
+    to_binary(&ChannelListResponse {
+        channels: res?,
     })
 }
