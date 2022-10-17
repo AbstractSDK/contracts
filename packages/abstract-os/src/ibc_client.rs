@@ -1,16 +1,16 @@
 use crate::simple_ica::StdAck;
 use cosmwasm_std::{
-    from_slice, Addr, Binary, Coin, CosmosMsg, Empty, QueryRequest, StdResult, Timestamp,
+    from_slice, Binary, Coin, CosmosMsg, StdResult, Timestamp,
 };
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
+
+
 use simple_ica::IbcResponseMsg;
 
-use crate::ibc_host::{HostAction, PacketMsg};
+use crate::ibc_host::{HostAction};
 
 use self::state::AccountData;
 pub mod state {
-    use serde::{Deserialize, Serialize};
+    
 
     use super::LatestQueryResponse;
     use crate::{objects::memory::Memory, MEMORY as MEMORY_KEY};

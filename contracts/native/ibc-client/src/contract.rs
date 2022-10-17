@@ -7,8 +7,7 @@ use abstract_sdk::{os_module_action, verify_os_proxy, Resolve};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    to_binary, Coin, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg, MessageInfo, Order,
-    QueryRequest, QueryResponse, Response, StdError, StdResult,
+    to_binary, Coin, CosmosMsg, Deps, DepsMut, Env, IbcMsg, MessageInfo, Order, QueryResponse, Response, StdError, StdResult,
 };
 
 use crate::error::ClientError;
@@ -197,7 +196,7 @@ pub fn execute_register_os(
 pub fn execute_send_funds(
     deps: DepsMut,
     env: Env,
-    mut info: MessageInfo,
+    info: MessageInfo,
     host_chain: String,
     funds: Vec<Coin>,
 ) -> StdResult<Response> {

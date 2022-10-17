@@ -1,16 +1,15 @@
 use abstract_api::{ApiContract, ApiResult};
 use abstract_os::{
     api::{BaseInstantiateMsg, ExecuteMsg, QueryMsg},
-    dex::{ApiQueryMsg, DexAction, RequestMsg},
-    simple_ica::StdAck,
+    dex::{ApiQueryMsg, RequestMsg},
     EXCHANGE,
 };
 
-use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response};
+use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response};
 
 use crate::{
     commands::{
-        provide_liquidity, provide_liquidity_symmetric, resolve_exchange, swap, withdraw_liquidity,
+        resolve_exchange,
     },
     error::DexError,
     queries::simulate_swap,
@@ -53,17 +52,17 @@ pub fn execute(
 }
 
 pub fn handle_api_request(
-    deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    api: DexApi,
+    _deps: DepsMut,
+    _env: Env,
+    _info: MessageInfo,
+    _api: DexApi,
     msg: RequestMsg,
 ) -> DexResult {
     let RequestMsg {
         dex: dex_name,
-        action,
+        action: _,
     } = msg;
-    let exchange = resolve_exchange(dex_name)?;
+    let _exchange = resolve_exchange(dex_name)?;
     // if !exchange.over_ibc() {
     //     todo!()
     //     match action {

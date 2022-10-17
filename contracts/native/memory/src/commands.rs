@@ -1,5 +1,5 @@
 use abstract_os::objects::{
-    ChannelEntry, ContractEntry, UncheckedChannelEntry, UncheckedContractEntry,
+    UncheckedChannelEntry, UncheckedContractEntry,
 };
 use cosmwasm_std::Env;
 use cosmwasm_std::{Addr, DepsMut, Empty, MessageInfo, Response, StdResult};
@@ -13,7 +13,7 @@ use abstract_os::memory::ExecuteMsg;
 pub fn handle_message(
     deps: DepsMut,
     info: MessageInfo,
-    env: Env,
+    _env: Env,
     message: ExecuteMsg,
 ) -> MemoryResult {
     match message {

@@ -1,7 +1,5 @@
 use abstract_os::{
     api::ApiRequestMsg,
-    objects::{ContractEntry, UncheckedContractEntry},
-    IBC_CLIENT,
 };
 use abstract_sdk::{
     api_request,
@@ -10,7 +8,7 @@ use abstract_sdk::{
     Dependency, MemoryOperation, OsExecute,
 };
 use cosmwasm_std::{
-    Addr, Binary, CosmosMsg, Deps, MessageInfo, Response, StdError, StdResult, Storage,
+    Addr, CosmosMsg, Deps, Response, StdError, StdResult, Storage,
 };
 use serde::{de::DeserializeOwned, Serialize};
 

@@ -8,7 +8,7 @@ use cosmwasm_std::{
 };
 
 use abstract_os::simple_ica::{
-    check_order, check_version, BalancesResponse, IbcResponseMsg, RegisterResponse, StdAck,
+    check_order, check_version, BalancesResponse, RegisterResponse, StdAck,
     WhoAmIResponse,
 };
 
@@ -58,7 +58,7 @@ pub fn ibc_channel_connect(
         callback_info: None,
     };
 
-    let msg = IbcMsg::SendPacket {
+    let _msg = IbcMsg::SendPacket {
         channel_id: channel_id.clone(),
         data: to_binary(&packet)?,
         timeout: env.block.time.plus_seconds(PACKET_LIFETIME).into(),
@@ -73,7 +73,7 @@ pub fn ibc_channel_connect(
 #[cfg_attr(not(feature = "library"), entry_point)]
 /// On closed channel, simply delete the account from our local store
 pub fn ibc_channel_close(
-    deps: DepsMut,
+    _deps: DepsMut,
     _env: Env,
     msg: IbcChannelCloseMsg,
 ) -> StdResult<IbcBasicResponse> {
@@ -111,7 +111,7 @@ pub fn ibc_packet_ack(
     let original_packet: PacketMsg = from_slice(&msg.original_packet.data)?;
     let res: StdAck = from_slice(&msg.acknowledgement.data)?;
     let PacketMsg {
-        client_chain,
+        client_chain: _,
         os_id,
         callback_info,
         action,
@@ -122,8 +122,8 @@ pub fn ibc_packet_ack(
             acknowledge_query(deps, env, channel_id, os_id, callback_info, msg)
         }
         HostAction::Balances { .. } => acknowledge_balances(deps, env, channel_id, os_id, res),
-        HostAction::App { msg } => todo!(), // acknowledge_app(deps, env, callback_info, res),
-        HostAction::SendAllBack { os_proxy_address } => todo!(),
+        HostAction::App { msg: _ } => todo!(), // acknowledge_app(deps, env, callback_info, res),
+        HostAction::SendAllBack { os_proxy_address: _ } => todo!(),
         HostAction::Internal(InternalAction::WhoAmI) => acknowledge_who_am_i(deps, channel_id, res),
         HostAction::Internal(InternalAction::Register) => todo!(),
     }

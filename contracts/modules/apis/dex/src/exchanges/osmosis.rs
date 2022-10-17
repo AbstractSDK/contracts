@@ -5,11 +5,10 @@ use crate::{
 };
 
 use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, Fraction, QueryRequest,
-    StdResult, Uint128, WasmMsg, WasmQuery,
+    Addr, Decimal, Deps, Uint128,
 };
-use cw_asset::{Asset, AssetInfo, AssetInfoBase};
-use osmosis_std::types::osmosis::gamm::v1beta1::MsgSwapExactAmountIn;
+use cw_asset::{Asset, AssetInfo};
+
 pub const OSMOSIS: &str = "osmosis";
 // Source https://github.com/wasmswap/wasmswap-contracts
 pub struct Osmosis {}
@@ -23,55 +22,55 @@ impl DEX for Osmosis {
     }
     fn swap(
         &self,
-        deps: Deps,
-        api: DexApi,
-        pair_address: Addr,
-        offer_asset: Asset,
-        ask_asset: AssetInfo,
-        belief_price: Option<Decimal>,
-        max_spread: Option<Decimal>,
+        _deps: Deps,
+        _api: DexApi,
+        _pair_address: Addr,
+        _offer_asset: Asset,
+        _ask_asset: AssetInfo,
+        _belief_price: Option<Decimal>,
+        _max_spread: Option<Decimal>,
     ) -> DexResult {
         todo!()
     }
 
     fn provide_liquidity(
         &self,
-        deps: Deps,
-        api: DexApi,
-        pair_address: Addr,
-        offer_assets: Vec<Asset>,
-        max_spread: Option<Decimal>,
+        _deps: Deps,
+        _api: DexApi,
+        _pair_address: Addr,
+        _offer_assets: Vec<Asset>,
+        _max_spread: Option<Decimal>,
     ) -> DexResult {
         todo!()
     }
 
     fn provide_liquidity_symmetric(
         &self,
-        deps: Deps,
-        api: DexApi,
-        pair_address: Addr,
-        offer_asset: Asset,
-        other_assets: Vec<AssetInfo>,
+        _deps: Deps,
+        _api: DexApi,
+        _pair_address: Addr,
+        _offer_asset: Asset,
+        _other_assets: Vec<AssetInfo>,
     ) -> DexResult {
         todo!()
     }
 
     fn withdraw_liquidity(
         &self,
-        deps: Deps,
-        api: &DexApi,
-        pair_address: Addr,
-        lp_token: Asset,
+        _deps: Deps,
+        _api: &DexApi,
+        _pair_address: Addr,
+        _lp_token: Asset,
     ) -> DexResult {
         todo!()
     }
 
     fn simulate_swap(
         &self,
-        deps: Deps,
-        pair_address: Addr,
-        offer_asset: Asset,
-        ask_asset: AssetInfo,
+        _deps: Deps,
+        _pair_address: Addr,
+        _offer_asset: Asset,
+        _ask_asset: AssetInfo,
     ) -> Result<(Uint128, Uint128, Uint128, bool), DexError> {
         todo!()
     }

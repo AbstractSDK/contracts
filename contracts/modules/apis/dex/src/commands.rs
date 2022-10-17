@@ -74,7 +74,7 @@ pub fn provide_liquidity(
     api: DexApi,
     offer_assets: Vec<OfferAsset>,
     dex: String,
-    max_spread: Option<Decimal>,
+    _max_spread: Option<Decimal>,
 ) -> DexResult {
     let exchange = resolve_exchange(dex)?;
     let mut assets = vec![];
@@ -83,7 +83,7 @@ pub fn provide_liquidity(
         let asset = Asset::new(info, offer.1);
         assets.push(asset);
     }
-    let pair_address = exchange.pair_address(
+    let _pair_address = exchange.pair_address(
         deps,
         &api,
         offer_assets

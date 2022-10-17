@@ -2,7 +2,7 @@ use abstract_ibc_host::chains::OSMOSIS;
 use abstract_ibc_host::Host;
 use abstract_ibc_host::HostError;
 use abstract_os::ibc_host::{BaseInstantiateMsg, MigrateMsg, QueryMsg};
-use abstract_os::{dex::RequestMsg, EXCHANGE, OSMOSIS_HOST};
+use abstract_os::{dex::RequestMsg, OSMOSIS_HOST};
 
 use cosmwasm_std::{
     entry_point, Binary, Deps, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo,
@@ -54,11 +54,11 @@ pub fn ibc_packet_receive(
 }
 
 fn handle_packet(
-    deps: DepsMut,
-    env: Env,
-    caller_channel: String,
-    host: OsmoHost,
-    packet: RequestMsg,
+    _deps: DepsMut,
+    _env: Env,
+    _caller_channel: String,
+    _host: OsmoHost,
+    _packet: RequestMsg,
 ) -> Result<IbcReceiveResponse, HostError> {
     todo!()
     // match packet {
