@@ -10,7 +10,7 @@ use cw_asset::{AssetInfo, AssetInfoUnchecked};
 
 use crate::objects::{
     asset_entry::AssetEntry,
-    contract_entry::{ContractEntry, UncheckedContractEntry},
+    contract_entry::{ContractEntry, UncheckedContractEntry}, UncheckedChannelEntry, ChannelEntry,
 };
 
 /// Memory state details
@@ -20,7 +20,7 @@ pub mod state {
     use cw_controllers::Admin;
     use cw_storage_plus::Map;
 
-    use crate::objects::{asset_entry::AssetEntry, contract_entry::ContractEntry};
+    use crate::objects::{asset_entry::AssetEntry, contract_entry::ContractEntry, ChannelEntry};
 
     /// Admin address store
     pub const ADMIN: Admin = Admin::new("admin");
@@ -32,6 +32,9 @@ pub mod state {
     /// Pairs are stored here as (dex_name, pair_id)
     /// pair_id is "asset1_asset2" where the asset names are sorted alphabetically.
     pub const CONTRACT_ADDRESSES: Map<ContractEntry, Addr> = Map::new("contracts");
+
+    /// stores channel-ids
+    pub const CHANNELS: Map<ChannelEntry, String> = Map::new("channels");
 }
 
 /// Memory Instantiate msg
@@ -55,6 +58,13 @@ pub enum ExecuteMsg {
         /// Assets to remove
         to_remove: Vec<String>,
     },
+    /// Updates the Asset addressbook
+    UpdateChannels {
+        /// Assets to update or add
+        to_add: Vec<(UncheckedChannelEntry, String)>,
+        /// Assets to remove
+        to_remove: Vec<UncheckedChannelEntry>,
+    },
     /// Sets a new Admin
     SetAdmin { admin: String },
 }
@@ -70,6 +80,13 @@ pub enum QueryMsg {
         /// Names of assets to query
         names: Vec<String>,
     },
+    /// Page over assets
+    /// returns [`AssetListResponse`]
+    #[returns(AssetListResponse)]
+    AssetList {
+        page_token: Option<String>,
+        page_size: Option<u8>,
+    },
     /// Queries contracts based on name
     /// returns [`ContractsResponse`]
     #[returns(ContractsResponse)]
@@ -84,11 +101,18 @@ pub enum QueryMsg {
         page_token: Option<ContractEntry>,
         page_size: Option<u8>,
     },
-    /// Page over assets
-    /// returns [`AssetListResponse`]
-    #[returns(AssetListResponse)]
-    AssetList {
-        page_token: Option<String>,
+    /// Queries contracts based on name
+    /// returns [`ChannelsResponse`]
+    #[returns(ChannelsResponse)]
+    Channels {
+        /// Project and contract names of contracts to query
+        names: Vec<ChannelEntry>,
+    },
+    /// Page over contracts
+    /// returns [`ChannelListResponse`]
+    #[returns(ChannelListResponse)]
+    ChannelList {
+        page_token: Option<ChannelEntry>,
         page_size: Option<u8>,
     },
 }
@@ -102,12 +126,6 @@ pub struct AssetsResponse {
     pub assets: Vec<(AssetEntry, AssetInfo)>,
 }
 
-#[cosmwasm_schema::cw_serde]
-pub struct ContractsResponse {
-    /// Contracts (name, address)
-    pub contracts: Vec<(ContractEntry, String)>,
-}
-
 /// Query response
 #[cosmwasm_schema::cw_serde]
 pub struct AssetListResponse {
@@ -116,7 +134,24 @@ pub struct AssetListResponse {
 }
 
 #[cosmwasm_schema::cw_serde]
+pub struct ContractsResponse {
+    /// Contracts (name, address)
+    pub contracts: Vec<(ContractEntry, String)>,
+}
+
+#[cosmwasm_schema::cw_serde]
 pub struct ContractListResponse {
     /// Contracts (name, address)
     pub contracts: Vec<(ContractEntry, String)>,
+}
+
+
+#[cosmwasm_schema::cw_serde]
+pub struct ChannelsResponse {
+    pub channels: Vec<(ChannelEntry, String)>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct ChannelListResponse {
+    pub channels: Vec<(ChannelEntry, String)>,
 }

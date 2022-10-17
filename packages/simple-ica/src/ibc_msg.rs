@@ -56,6 +56,12 @@ pub struct DispatchResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct SendAllBackResponse {}
 
+/// Identify the host chain
+#[cosmwasm_schema::cw_serde]
+pub struct WhoAmIResponse {
+    pub chain: String,
+}
+
 /// Return the data field for each message
 #[cosmwasm_schema::cw_serde]
 pub struct IbcQueryResponse {

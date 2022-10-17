@@ -1,6 +1,6 @@
-use abstract_os::api::ApiRequestMsg;
+use abstract_os::{api::ApiRequestMsg};
 use abstract_sdk::{
-    api_request, manager::query_module_address, proxy::send_to_proxy, Dependency, MemoryOperation,
+    api_request, manager::query_module_address, proxy::{os_module_action, os_ibc_action}, Dependency, MemoryOperation,
     OsExecute,
 };
 use cosmwasm_std::{Addr, Deps, Response, StdError, StdResult, Storage};
@@ -21,7 +21,15 @@ impl OsExecute for AddOnContract<'_> {
         msgs: Vec<cosmwasm_std::CosmosMsg>,
     ) -> Result<Response, Self::Err> {
         let proxy = self.base_state.load(deps.storage)?.proxy_address;
-        Ok(Response::new().add_message(send_to_proxy(msgs, &proxy)?))
+        Ok(Response::new().add_message(os_module_action(msgs, &proxy)?))
+    }
+    fn os_ibc_execute(
+        &self,
+        deps: Deps,
+        msgs: Vec<abstract_os::ibc_client::ExecuteMsg>,
+    ) -> Result<Response, Self::Err> {
+        let proxy = self.base_state.load(deps.storage)?.proxy_address;
+        Ok(Response::new().add_message(os_ibc_action(msgs, &proxy)?))
     }
 }
 

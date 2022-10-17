@@ -11,71 +11,56 @@ use serde::{Deserialize, Serialize};
 
 use super::AssetEntry;
 
-/// Key to get the Address of a contract
+/// Key to get the Address of a connected_chain
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord)]
-pub struct UncheckedContractEntry {
+pub struct UncheckedChannelEntry {
+    pub connected_chain: String,
     pub protocol: String,
-    pub contract: String,
 }
 
-impl UncheckedContractEntry {
-    pub fn new<T: ToString>(protocol: T, contract: T) -> Self {
+impl UncheckedChannelEntry {
+    pub fn new<T: ToString>(connected_chain: T, protocol: T) -> Self {
         Self {
             protocol: protocol.to_string(),
-            contract: contract.to_string(),
+            connected_chain: connected_chain.to_string(),
         }
     }
-    pub fn check(self) -> ContractEntry {
-        ContractEntry {
-            contract: self.contract.to_ascii_lowercase(),
+    pub fn check(self) -> ChannelEntry {
+        ChannelEntry {
+            connected_chain: self.connected_chain.to_ascii_lowercase(),
             protocol: self.protocol.to_ascii_lowercase(),
         }
     }
 }
 
-impl TryFrom<String> for UncheckedContractEntry {
-    type Error = StdError;
-    fn try_from(entry: String) -> Result<Self, Self::Error> {
-        let composite: Vec<&str> = entry.split(':').collect();
-        if composite.len() != 2 {
-            return Err(StdError::generic_err(
-                "contract entry should be formatted as \"protocol/contract_name\".",
-            ));
-        }
-        Ok(Self::new(composite[0], composite[1]))
-    }
-}
+// impl TryFrom<String> for UncheckedChannelEntry {
+//     type Error = StdError;
+//     fn try_from(entry: String) -> Result<Self, Self::Error> {
+//         let composite: Vec<&str> = entry.split(':').collect();
+//         if composite.len() != 2 {
+//             return Err(StdError::generic_err(
+//                 "connected_chain entry should be formatted as \"connected_chain_name/protocol\".",
+//             ));
+//         }
+//         Ok(Self::new(composite[0], composite[1]))
+//     }
+// }
 
-/// Key to get the Address of a contract
-/// Use [`UncheckedContractEntry`] to construct this type.  
+/// Key to get the Address of a connected_chain
+/// Use [`UncheckedChannelEntry`] to construct this type.  
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema, Eq, PartialOrd, Ord)]
-pub struct ContractEntry {
+pub struct ChannelEntry {
+    pub connected_chain: String,
     pub protocol: String,
-    pub contract: String,
 }
 
-impl ContractEntry {
-    pub fn construct_dex_entry(dex_name: &str, assets: &mut [&AssetEntry]) -> Self {
-        assets.sort();
-        let contract_name = assets
-            .iter()
-            .map(|a| a.0.clone())
-            .collect::<Vec<String>>()
-            .join("_");
-        Self {
-            protocol: dex_name.to_ascii_lowercase(),
-            contract: contract_name,
-        }
-    }
-}
-
-impl Display for ContractEntry {
+impl Display for ChannelEntry {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}/{}", self.protocol, self.contract)
+        write!(f, "{}/{}", self.connected_chain, self.protocol)
     }
 }
 
-impl<'a> PrimaryKey<'a> for ContractEntry {
+impl<'a> PrimaryKey<'a> for ChannelEntry {
     type Prefix = String;
 
     type SubPrefix = ();
@@ -85,21 +70,21 @@ impl<'a> PrimaryKey<'a> for ContractEntry {
     type SuperSuffix = Self;
 
     fn key(&self) -> Vec<cw_storage_plus::Key> {
-        let mut keys = self.protocol.key();
-        keys.extend(self.contract.key());
+        let mut keys =  self.connected_chain.key();
+        keys.extend(self.protocol.key());
         keys
     }
 }
 
-impl<'a> Prefixer<'a> for ContractEntry {
+impl<'a> Prefixer<'a> for ChannelEntry {
     fn prefix(&self) -> Vec<Key> {
-        let mut res = self.protocol.prefix();
-        res.extend(self.contract.prefix().into_iter());
+        let mut res = self.connected_chain.prefix();
+        res.extend(self.protocol.prefix().into_iter());
         res
     }
 }
 
-impl KeyDeserialize for ContractEntry {
+impl KeyDeserialize for ChannelEntry {
     type Output = Self;
 
     #[inline(always)]
@@ -109,8 +94,8 @@ impl KeyDeserialize for ContractEntry {
         let u = tu.split_off(t_len);
 
         Ok(Self {
-            protocol: String::from_vec(tu)?,
-            contract: String::from_vec(u)?,
+            connected_chain: String::from_vec(tu)?,
+            protocol: String::from_vec(u)?,
         })
     }
 }
@@ -135,26 +120,26 @@ mod test {
     use cosmwasm_std::{testing::mock_dependencies, Addr, Order};
     use cw_storage_plus::Map;
 
-    fn mock_key() -> ContractEntry {
-        ContractEntry {
-            protocol: "abstract".to_string(),
-            contract: "rocket-ship".to_string(),
+    fn mock_key() -> ChannelEntry {
+        ChannelEntry {
+            connected_chain: "osmosis".to_string(),
+            protocol: "ics20".to_string(),
         }
     }
 
-    fn mock_keys() -> (ContractEntry, ContractEntry, ContractEntry) {
+    fn mock_keys() -> (ChannelEntry, ChannelEntry, ChannelEntry) {
         (
-            ContractEntry {
-                protocol: "abstract".to_string(),
-                contract: "sailing-ship".to_string(),
+            ChannelEntry {
+                connected_chain: "osmosis".to_string(),
+                protocol: "ics20".to_string(),
             },
-            ContractEntry {
-                protocol: "abstract".to_string(),
-                contract: "rocket-ship".to_string(),
+            ChannelEntry {
+                connected_chain: "osmosis".to_string(),
+                protocol: "ics".to_string(),
             },
-            ContractEntry {
-                protocol: "shitcoin".to_string(),
-                contract: "pump'n dump".to_string(),
+            ChannelEntry {
+                connected_chain: "cosmos".to_string(),
+                protocol: "abstract".to_string(),
             },
         )
     }
@@ -163,7 +148,7 @@ mod test {
     fn storage_key_works() {
         let mut deps = mock_dependencies();
         let key = mock_key();
-        let map: Map<ContractEntry, u64> = Map::new("map");
+        let map: Map<ChannelEntry, u64> = Map::new("map");
 
         map.save(deps.as_mut().storage, key.clone(), &42069)
             .unwrap();
@@ -183,7 +168,7 @@ mod test {
     fn composite_key_works() {
         let mut deps = mock_dependencies();
         let key = mock_key();
-        let map: Map<(ContractEntry, Addr), u64> = Map::new("map");
+        let map: Map<(ChannelEntry, Addr), u64> = Map::new("map");
 
         map.save(
             deps.as_mut().storage,
@@ -214,7 +199,7 @@ mod test {
     fn partial_key_works() {
         let mut deps = mock_dependencies();
         let (key1, key2, key3) = mock_keys();
-        let map: Map<ContractEntry, u64> = Map::new("map");
+        let map: Map<ChannelEntry, u64> = Map::new("map");
 
         map.save(deps.as_mut().storage, key1, &42069).unwrap();
 
@@ -223,13 +208,13 @@ mod test {
         map.save(deps.as_mut().storage, key3, &999).unwrap();
 
         let items = map
-            .prefix("abstract".to_string())
+            .prefix("osmosis".to_string())
             .range(deps.as_ref().storage, None, None, Order::Ascending)
             .map(|item| item.unwrap())
             .collect::<Vec<_>>();
 
         assert_eq!(items.len(), 2);
-        assert_eq!(items[0], ("rocket-ship".to_string(), 69420));
-        assert_eq!(items[1], ("sailing-ship".to_string(), 42069));
+        assert_eq!(items[0], ("ics".to_string(), 69420));
+        assert_eq!(items[1], ("ics20".to_string(), 42069));
     }
 }

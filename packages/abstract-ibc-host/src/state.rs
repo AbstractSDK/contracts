@@ -11,6 +11,7 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 pub const TRADER_NAMESPACE: &str = "traders";
 
 pub const PENDING: Item<(String, u32)> = Item::new("pending");
+/// (channel-id,os_id) -> remote_addr
 pub const ACCOUNTS: Map<(&str, u32), Addr> = Map::new("accounts");
 pub const CLOSED_CHANNELS: Item<Vec<String>> = Item::new("closed");
 // this stores all results from current dispatch

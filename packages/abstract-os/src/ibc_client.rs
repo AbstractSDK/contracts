@@ -1,44 +1,57 @@
-use cosmwasm_std::{Binary, Coin, CosmosMsg, Empty, QueryRequest, Timestamp, Addr};
+use cosmwasm_std::{Binary, Coin, CosmosMsg, Empty, QueryRequest, Timestamp, Addr, StdResult, from_slice};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use simple_ica::StdAck;
+use simple_ica::IbcResponseMsg;
+use crate::simple_ica::StdAck;
 
-use self::state::ChainData;
+use crate::ibc_host::{PacketMsg, HostAction};
 
+use self::state::AccountData;
 pub mod state {
     use serde::{Deserialize, Serialize};
 
     use cosmwasm_std::{Addr, Coin, Timestamp};
     use cw_storage_plus::{Item, Map};
-
+    use crate::{MEMORY as MEMORY_KEY, objects::memory::Memory};
     use super::LatestQueryResponse;
 
     #[cosmwasm_schema::cw_serde]
     pub struct Config {
         pub admin: Addr,
+        pub version_control_address: Addr,
         pub chain: String,
     }
 
     #[cosmwasm_schema::cw_serde]
-    pub struct Memory {
-        address: Addr,
-    }
-
-    #[cosmwasm_schema::cw_serde]
-    pub struct ChainData {
+    #[derive(Default)]
+    pub struct AccountData {
         /// last block balance was updated (0 is never)
         pub last_update_time: Timestamp,
+        /// In normal cases, it should be set, but there is a delay between binding
+        /// the channel and making a query and in that time it is empty.
+        ///
+        /// Since we do not have a way to validate the remote address format, this
+        /// must not be of type `Addr`.
+        pub remote_addr: Option<String>,
+        pub remote_balance: Vec<Coin>,
     }
 
+    /// host_chain -> channel-id
+    pub const CHANNELS: Map<&str,String> = Map::new("channels");
+
     pub const CONFIG: Item<Config> = Item::new("config");
-    pub const CHAINS: Map<&str, ChainData> = Map::new("chains");
-    pub const LATEST_QUERIES: Map<&str, LatestQueryResponse> = Map::new("queries");
+    /// (channel-id,os_id) -> remote_addr
+    pub const ACCOUNTS: Map<(&str,u32), AccountData> = Map::new("accounts");
+    /// Todo: see if we can remove this 
+    pub const LATEST_QUERIES: Map<(&str,u32), LatestQueryResponse> = Map::new("queries");
+    pub const MEMORY: Item<Memory> = Item::new(MEMORY_KEY);
 }
 
 /// This needs no info. Owner of the contract is whoever signed the InstantiateMsg.
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
     pub memory_address: String,
+    pub version_control_address: String,
     pub chain: String,
 }
 
@@ -48,14 +61,11 @@ pub struct CallbackInfo {
     pub receiver: String,
 }
 
-#[cosmwasm_schema::cw_serde]
-/// Actions that get parsed into [`crate::ibc_host::PacketMsg`]
-pub enum IbcAction{
-    App(Binary),
-    Dispatch(Vec<CosmosMsg<Empty>>),
-    Query(Vec<QueryRequest<Empty>>),
-    Balances,
-    SendAllBack,
+impl CallbackInfo {
+    pub fn to_callback_msg(self, ack_data: &Binary) -> StdResult<CosmosMsg> {
+        let msg: StdAck = from_slice(ack_data)?;
+        IbcResponseMsg{id: self.id,msg }.into_cosmos_msg(self.receiver)
+    }
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -64,23 +74,29 @@ pub enum ExecuteMsg {
     UpdateAdmin {
         admin: String,
     },
+    /// Register an OS on a remote chain over IBC
+    /// This action creates a proxy for them on the remote chain. 
+    Register {
+        host_chain: String,
+    },
     SendPacket {
         /// host chain to be executed on
         /// Example: "osmosis"
         host_chain: String,
-        /// Action to be performed on the host chain/ proxy account
-        action: IbcAction,
-        /// Optional callback to a specified contract
-        callback: Option<CallbackInfo>
+        /// execute the custom host function
+        action: HostAction,
+        /// optional callback info
+        callback_info: Option<CallbackInfo>,
     },
     CheckRemoteBalance {
         host_chain: String,
     },
-    /// If you sent funds to this contract, it will attempt to ibc transfer them
-    /// to the account on the remote side of this channel.
-    /// If we don't have the address yet, this fails.
+    /// Only callable by OS proxy
+    /// Will attempt to forward the specified funds to the corresponding
+    /// address on the remote chain.
     SendFunds {
         host_chain: String,
+        funds: Vec<Coin>
     },
 }
 
@@ -89,21 +105,23 @@ pub enum QueryMsg {
     // Returns current admin
     Admin {},
     // Shows all open channels (incl. remote info)
-    ListChains {},
+    ListAccounts {},
     // Get channel info for one chain
-    Chain { name: String },
+    Account { chain: String,  os_id: u32 },
     // Get remote account info for a chain + OS
-    RemoteProxy { chain: String, os_id: u32},
+    LatestQueryResult { chain: String, os_id: u32},
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct AdminResponse {
+pub struct ConfigResponse {
     pub admin: String,
+    pub version_control_address: String,
+    pub chain: String,
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct ListChainsResponse {
-    pub chains: Vec<ChainInfo>,
+pub struct ListAccountsResponse {
+    pub accounts: Vec<AccountInfo>,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -121,32 +139,47 @@ pub struct RemoteProxyResponse {
     pub proxy_address: String,
 }
 
+
 #[cosmwasm_schema::cw_serde]
-pub struct ChainInfo {
+pub struct AccountInfo {
     pub channel_id: String,
+    pub os_id: u32,
     /// last block balance was updated (0 is never)
     pub last_update_time: Timestamp,
+    /// in normal cases, it should be set, but there is a delay between binding
+    /// the channel and making a query and in that time it is empty
+    pub remote_addr: Option<String>,
+    pub remote_balance: Vec<Coin>,
 }
 
-impl ChainInfo {
-    pub fn convert(channel_id: String, input: ChainData) -> Self {
-        ChainInfo {
+impl AccountInfo {
+    pub fn convert(channel_id: String, os_id: u32, input: AccountData) -> Self {
+        AccountInfo {
             channel_id,
+            os_id,
             last_update_time: input.last_update_time,
+            remote_addr: input.remote_addr,
+            remote_balance: input.remote_balance,
         }
     }
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct ChainResponse {
+pub struct AccountResponse {
     /// last block balance was updated (0 is never)
     pub last_update_time: Timestamp,
+    /// in normal cases, it should be set, but there is a delay between binding
+    /// the channel and making a query and in that time it is empty
+    pub remote_addr: Option<String>,
+    pub remote_balance: Vec<Coin>,
 }
 
-impl From<ChainData> for ChainResponse {
-    fn from(input: ChainData) -> Self {
-        ChainResponse {
+impl From<AccountData> for AccountResponse {
+    fn from(input: AccountData) -> Self {
+        AccountResponse {
             last_update_time: input.last_update_time,
+            remote_addr: input.remote_addr,
+            remote_balance: input.remote_balance,
         }
     }
 }

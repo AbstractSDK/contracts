@@ -16,7 +16,12 @@ pub const SUBSCRIPTION: &str = "abstract:subscription";
 pub const EXCHANGE: &str = "abstract:dex";
 pub const TENDERMINT_STAKING: &str = "abstract:tendermint_staking";
 pub const CW20_VESTING: &str = "abstract:cw20_vesting";
+pub const IBC_CLIENT: &str = "abstract:ibc_client";
 pub const OSMOSIS_HOST: &str = "abstract:osmosis_host";
+
+/// IBC protocols
+pub const ICS20: &str = "ics-20";
+
 /// Useful when deploying version control
 #[allow(unused)]
 pub static NATIVE_CONTRACTS: &[&str] =

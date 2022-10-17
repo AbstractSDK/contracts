@@ -1,21 +1,21 @@
-use abstract_os::api::ApiRequestMsg;
+use abstract_os::{api::ApiRequestMsg, objects::{ContractEntry, UncheckedContractEntry}, IBC_CLIENT};
 use abstract_sdk::{
-    api_request, manager::query_module_address, proxy::send_to_proxy, Dependency, MemoryOperation,
+    api_request, manager::query_module_address, proxy::{os_module_action, os_ibc_action}, Dependency, MemoryOperation,
     OsExecute,
 };
-use cosmwasm_std::{Addr, CosmosMsg, Deps, Response, StdError, StdResult, Storage};
+use cosmwasm_std::{Addr, CosmosMsg, Deps, Response, StdError, StdResult, Storage, MessageInfo, Binary};
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{ApiContract, ApiError};
 
-impl<T: Serialize + DeserializeOwned> MemoryOperation for ApiContract<'_, T> {
+impl<T: Serialize + DeserializeOwned, C: Serialize + DeserializeOwned> MemoryOperation for ApiContract<'_, T, C> {
     fn load_memory(&self, store: &dyn Storage) -> StdResult<abstract_sdk::memory::Memory> {
         Ok(self.base_state.load(store)?.memory)
     }
 }
 
 /// Execute a set of CosmosMsgs on the proxy contract of an OS.
-impl<T: Serialize + DeserializeOwned> OsExecute for ApiContract<'_, T> {
+impl<T: Serialize + DeserializeOwned, C: Serialize + DeserializeOwned> OsExecute for ApiContract<'_, T, C> {
     type Err = ApiError;
 
     fn os_execute(
@@ -24,7 +24,18 @@ impl<T: Serialize + DeserializeOwned> OsExecute for ApiContract<'_, T> {
         msgs: Vec<cosmwasm_std::CosmosMsg>,
     ) -> Result<Response, Self::Err> {
         if let Some(target) = &self.target_os {
-            Ok(Response::new().add_message(send_to_proxy(msgs, &target.proxy)?))
+            Ok(Response::new().add_message(os_module_action(msgs, &target.proxy)?))
+        } else {
+            Err(ApiError::NoTargetOS {})
+        }
+    }
+    fn os_ibc_execute(
+        &self,
+        _deps: Deps,
+        msgs: Vec<abstract_os::ibc_client::ExecuteMsg>,
+    ) -> Result<Response, Self::Err> {
+        if let Some(target) = &self.target_os {
+            Ok(Response::new().add_message(os_ibc_action(msgs, &target.proxy)?))
         } else {
             Err(ApiError::NoTargetOS {})
         }
@@ -32,7 +43,7 @@ impl<T: Serialize + DeserializeOwned> OsExecute for ApiContract<'_, T> {
 }
 
 /// Implement the dependency functions for an API contract
-impl<T: Serialize + DeserializeOwned> Dependency for ApiContract<'_, T> {
+impl<T: Serialize + DeserializeOwned, C: Serialize + DeserializeOwned> Dependency for ApiContract<'_, T, C> {
     fn dependency_address(
         &self,
         deps: Deps,

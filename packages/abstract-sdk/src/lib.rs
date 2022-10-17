@@ -23,7 +23,7 @@ pub use api::{api_request, configure_api};
 pub use manager::{query_module_address, query_module_version};
 pub use memory_traits::Resolve;
 pub use module_traits::{Dependency, MemoryOperation, OsExecute};
-pub use proxy::{query_total_value, send_to_proxy};
+pub use proxy::{query_total_value, os_module_action};
 pub use version_control::{get_module, get_os_core, verify_os_manager, verify_os_proxy};
 
 pub use abstract_os::{

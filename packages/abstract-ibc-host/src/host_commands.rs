@@ -1,13 +1,13 @@
 use abstract_os::simple_ica::{
     check_order, check_version, BalancesResponse, DispatchResponse, IbcQueryResponse, StdAck,
-    RegisterResponse, IBC_APP_VERSION,
+    RegisterResponse, IBC_APP_VERSION, SendAllBackResponse, WhoAmIResponse,
 };
 use cosmwasm_std::{
     entry_point, to_binary, to_vec, wasm_execute, BankMsg, Binary, ContractResult, CosmosMsg, Deps,
     DepsMut, Empty, Env, Event, Ibc3ChannelOpenResponse, IbcBasicResponse, IbcChannelCloseMsg,
     IbcChannelConnectMsg, IbcChannelOpenMsg, IbcChannelOpenResponse, IbcPacketAckMsg,
     IbcPacketTimeoutMsg, IbcReceiveResponse, Order, QuerierWrapper, QueryRequest, Reply, Response,
-    StdError, StdResult, SubMsg, SystemResult, WasmMsg,
+    StdError, StdResult, SubMsg, SystemResult, WasmMsg, IbcMsg,
 };
 use cw_utils::parse_reply_instantiate_data;
 
@@ -17,6 +17,8 @@ use abstract_os::ibc_host::{AccountInfo, AccountResponse, ListAccountsResponse};
 
 pub const RECEIVE_DISPATCH_ID: u64 = 1234;
 pub const INIT_CALLBACK_ID: u64 = 7890;
+// one hour
+pub const PACKET_LIFETIME: u64 = 60 * 60;
 
 #[allow(unused)]
 pub fn query_account(deps: Deps, channel_id: String, os_id: u32) -> StdResult<AccountResponse> {
@@ -93,7 +95,7 @@ pub fn ibc_channel_close(
 ) -> StdResult<IbcBasicResponse> {
     let channel = msg.channel();
     // get contract address and remove lookup
-    let channel_id = channel.endpoint.channel_id;
+    let channel_id = channel.endpoint.channel_id.clone();
     CLOSED_CHANNELS.update(deps.storage, |mut channels| {
         channels.push(channel_id);
         Ok::<_, StdError>(channels)
@@ -121,7 +123,7 @@ pub fn ibc_channel_close(
         IbcBasicResponse::new()
             // .add_submessages(messages)
             .add_attribute("action", "ibc_close")
-            .add_attribute("channel_id", channel_id), // .add_attribute("rescue_funds", rescue_funds.to_string())
+            .add_attribute("channel_id",  channel.endpoint.channel_id.clone()), // .add_attribute("rescue_funds", rescue_funds.to_string())
     )
 }
 
@@ -249,12 +251,12 @@ pub fn receive_balances(deps: DepsMut, caller: String, os_id: u32) -> Result<Ibc
 // processes PacketMsg::Dispatch variant
 pub fn receive_dispatch(
     deps: DepsMut,
-    caller: String,
+    caller_channel: String,
     os_id: u32,
     msgs: Vec<CosmosMsg>,
 ) -> Result<IbcReceiveResponse, HostError> {
     // what is the reflect contract here
-    let reflect_addr = ACCOUNTS.load(deps.storage, (&caller,os_id))?;
+    let reflect_addr = ACCOUNTS.load(deps.storage, (&caller_channel,os_id))?;
 
     // let them know we're fine
     let response = DispatchResponse { results: vec![] };
@@ -273,6 +275,62 @@ pub fn receive_dispatch(
         .set_ack(acknowledgement)
         .add_submessage(msg)
         .add_attribute("action", "receive_dispatch"))
+}
+
+// processes PacketMsg::SendAllBack variant
+pub fn receive_send_all_back(
+    deps: DepsMut,
+    env: Env,
+    os_id: u32,
+    os_proxy_address: String,
+    transfer_channel: String,
+    channel_id: String,
+) -> Result<IbcReceiveResponse, HostError> {
+    // what is the reflect contract here
+    let reflect_addr = ACCOUNTS.load(deps.storage, (&channel_id,os_id))?;
+
+    // let them know we're fine
+    let response = SendAllBackResponse {};
+    let acknowledgement = StdAck::success(&response);
+
+    let coins = deps.querier.query_all_balances(&reflect_addr)?;
+    let mut msgs: Vec<CosmosMsg> = vec![];
+    for coin in coins {
+        msgs.push(
+            IbcMsg::Transfer {
+                channel_id: transfer_channel.clone(),
+                to_address: os_proxy_address.to_string(),
+                amount: coin,
+                timeout: env.block.time.plus_seconds(PACKET_LIFETIME).into(),
+            }
+            .into(),
+        )
+    }
+    // create the message to re-dispatch to the reflect contract
+    let reflect_msg = cw1_whitelist::msg::ExecuteMsg::Execute { msgs };
+    let wasm_msg: CosmosMsg<Empty> = wasm_execute(reflect_addr, &reflect_msg, vec![])?.into();
+
+    // // we wrap it in a submessage to properly report results
+    // let msg = SubMsg::reply_on_success(wasm_msg, RECEIVE_DISPATCH_ID);
+
+    // reset the data field
+    RESULTS.save(deps.storage, &vec![])?;
+
+    Ok(IbcReceiveResponse::new()
+        .set_ack(acknowledgement)
+        .add_message(wasm_msg)
+        .add_attribute("action", "receive_dispatch"))
+}
+// processes PacketMsg::WhoAmI variant
+pub fn receive_who_am_i(
+    this_chain: String,
+) -> Result<IbcReceiveResponse, HostError> {
+    // let them know we're fine
+    let response = WhoAmIResponse { chain: this_chain };
+    let acknowledgement = StdAck::success(&response);
+    Ok(IbcReceiveResponse::new()
+        .set_ack(acknowledgement)
+        .add_attribute("action", "who_am_i"))
 }
 
 #[entry_point]

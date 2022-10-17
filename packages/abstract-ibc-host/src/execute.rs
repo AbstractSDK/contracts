@@ -1,13 +1,14 @@
-use abstract_os::ibc_host::{ExecuteMsg, PacketMsg};
+use abstract_os::{ibc_host::{ExecuteMsg, PacketMsg, HostAction}, version_control::Core};
 
+use abstract_sdk::{MemoryOperation, verify_os_proxy};
 use cosmwasm_std::{
-    from_slice, Addr, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo, Response,
+    from_slice, Addr, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo, Response, from_binary, Deps,
 };
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
     error::HostError,
-    host_commands::{receive_balances, receive_dispatch, receive_query, receive_register},
+    host_commands::{receive_balances, receive_dispatch, receive_query, receive_register, receive_send_all_back, receive_who_am_i},
     state::{Host, ACCOUNTS, CLOSED_CHANNELS},
 };
 
@@ -31,14 +32,28 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
         let packet = packet.packet;
         // which local channel did this packet come on
         let channel = packet.dest.channel_id;
-        let msg: PacketMsg<T> = from_slice(&packet.data)?;
-        match msg {
-            PacketMsg::Register { os_id } => receive_register(deps, env,channel, os_id),
-            PacketMsg::Dispatch { os_id, msgs, .. } => receive_dispatch(deps, channel, os_id,msgs),
-            PacketMsg::Query { msgs, .. } => receive_query(deps.as_ref(), msgs),
-            PacketMsg::Balances { os_id } => receive_balances(deps, channel,os_id),
-            PacketMsg::SendAllBack { os_id } => todo!(),
-            PacketMsg::App(msg) => return packet_handler(deps, env, channel, self, msg),
+        let PacketMsg{
+            client_chain,
+            os_id,
+            callback_info: _,
+            action,
+        } = from_slice(&packet.data)?;
+        match action {
+            HostAction::Register {} => receive_register(deps, env,channel, os_id),
+            HostAction::Dispatch { msgs, .. } => receive_dispatch(deps, channel, os_id,msgs),
+            HostAction::Query { msgs, .. } => receive_query(deps.as_ref(), msgs),
+            HostAction::Balances {} => receive_balances(deps, channel,os_id),
+            HostAction::SendAllBack { os_proxy_address } => {
+                let mem = self.load_memory(deps.storage)?;
+                let transfer_channel = mem.query_contract(deps, contract)?;
+                
+                receive_send_all_back(deps, env, os_id, os_proxy_address, transfer_channel,channel)
+            },
+            HostAction::App{msg} => return packet_handler(deps, env, channel, self, from_binary(&msg)?),
+            HostAction::WhoAmI {  } => {
+                let this_chain = self.base_state.load(deps.storage)?.chain;
+                receive_who_am_i(this_chain)
+            },
         }
         .map_err(Into::into)
     }

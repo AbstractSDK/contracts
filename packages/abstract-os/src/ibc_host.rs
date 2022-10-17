@@ -8,8 +8,10 @@
 //! The API structure is well-suited for implementing standard interfaces to external services like dexes, lending platforms, etc.
 
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, CosmosMsg, Empty, QueryRequest};
+use cosmwasm_std::{Addr, CosmosMsg, Empty, QueryRequest, Binary};
 use serde::Serialize;
+
+use crate::ibc_client::CallbackInfo;
 
 /// Used by Abstract to instantiate the contract
 /// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::AddApi`].
@@ -24,32 +26,45 @@ pub struct BaseInstantiateMsg {
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
 
-/// This is the message we send over the IBC channel
+/// Callable actions on a remote host
 #[cosmwasm_schema::cw_serde]
-pub enum PacketMsg<T: Serialize> {
-    /// execute the custom host function
-    App(T),
+pub enum HostAction {
+    App {
+        msg: Binary,
+    },
     Dispatch {
-        sender: String,
-        os_id: u32,
         msgs: Vec<CosmosMsg<Empty>>,
-        callback_id: Option<String>,
     },
     Query {
-        sender: String,
-        os_id: u32,
         msgs: Vec<QueryRequest<Empty>>,
-        callback_id: Option<String>,
-    },
-    Register {
-        os_id: u32,
-    },
-    Balances {
-        os_id: u32,
     },
     SendAllBack {
-        os_id: u32,
+        os_proxy_address: String
     },
+    Balances {
+    },
+    Internal(Register,WhoAmI)
+}
+
+impl HostAction {
+    pub fn into_packet(self,os_id: u32, client_chain: String, callback_info: Option<CallbackInfo>) -> PacketMsg {
+        PacketMsg { 
+                client_chain,
+                callback_info,
+                os_id,
+                action: self,
+                 }
+}
+}
+/// This is the message we send over the IBC channel
+#[cosmwasm_schema::cw_serde]
+pub struct PacketMsg {
+    /// Chain of the client
+    pub client_chain: String,
+    pub os_id: u32,
+    pub callback_info: Option<CallbackInfo>,
+    /// execute the custom host function
+    pub action: HostAction,
 }
 
 /// Interface to the Host.

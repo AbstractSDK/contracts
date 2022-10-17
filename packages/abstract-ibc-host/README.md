@@ -11,5 +11,6 @@ Register an OS by creating a CW1 proxy for the OS and assigning a map entry to i
 Proxy a set of execute messages to the OS's proxy on the host chain. 
 
 ### App
-Provide the app-specific execute message that resolves into a `Vec<CosmosMsg>` that's then called on the proxy contract.
+Provide the app-specific execute messages that resolve into a `Vec<CosmosMsg>` that's then called on the proxy contract.
 This endpoint provides client chains with an interface to the application logic available on the app chain. 
+

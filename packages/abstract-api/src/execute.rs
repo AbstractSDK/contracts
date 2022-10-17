@@ -15,12 +15,12 @@ use serde::{de::DeserializeOwned, Serialize};
 #[cfg(feature = "ibc")]
 use simple_ica::{IbcResponseMsg, StdAck};
 #[cfg(feature = "ibc")]
-type IbcHandlerFn<T, RequestError> = Option<
-    fn(DepsMut, Env, MessageInfo, ApiContract<T>, String, StdAck) -> Result<Response, RequestError>,
+type IbcHandlerFn<T,C, RequestError> = Option<
+    fn(DepsMut, Env, MessageInfo, ApiContract<T,C>, String, StdAck) -> Result<Response, RequestError>,
 >;
 
 /// The api-contract base implementation.
-impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
+impl<'a, T: Serialize + DeserializeOwned, C: Serialize + DeserializeOwned> ApiContract<'a, T, C> {
     /// Takes request, sets destination and executes request handler
     /// This fn is the only way to get an ApiContract instance which ensures the destination address is set correctly.
     pub fn handle_request<RequestError: From<cosmwasm_std::StdError> + From<ApiError>>(
@@ -33,10 +33,11 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
             DepsMut,
             Env,
             MessageInfo,
-            ApiContract<T>,
+            ApiContract<T,C>,
             T,
         ) -> Result<Response, RequestError>,
-        #[cfg(feature = "ibc")] ibc_callback_handler: IbcHandlerFn<T, RequestError>,
+        #[cfg(feature = "ibc")] 
+        ibc_callback_handler: IbcHandlerFn<T,C, RequestError>,
     ) -> Result<Response, RequestError> {
         let sender = &info.sender;
         match msg {
