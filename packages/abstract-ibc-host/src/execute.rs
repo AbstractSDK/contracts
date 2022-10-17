@@ -1,13 +1,12 @@
 use abstract_os::{
     ibc_host::{ExecuteMsg, HostAction, InternalAction, PacketMsg},
     objects::ChannelEntry,
-    version_control::Core,
     ICS20,
 };
 
-use abstract_sdk::{verify_os_proxy, MemoryOperation, Resolve};
+use abstract_sdk::{MemoryOperation, Resolve};
 use cosmwasm_std::{
-    from_binary, from_slice, Addr, Deps, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse,
+    from_binary, from_slice, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse,
     MessageInfo, Response,
 };
 use serde::{de::DeserializeOwned, Serialize};
@@ -84,8 +83,8 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
     pub fn execute(
         &mut self,
         deps: DepsMut,
-        env: Env,
-        info: MessageInfo,
+        _env: Env,
+        _info: MessageInfo,
         message: ExecuteMsg,
     ) -> Result<Response, HostError> {
         match message {
@@ -98,9 +97,9 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
                     return Err(HostError::ChannelNotClosed {});
                 }
                 // call send_all_back here
-                todo!();
                 // clean up state
                 ACCOUNTS.remove(deps.storage, (&closed_channel, os_id));
+                todo!();
             }
         }
     }

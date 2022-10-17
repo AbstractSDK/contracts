@@ -44,7 +44,7 @@ pub fn query_channel(deps: Deps, _env: Env, names: Vec<ChannelEntry>) -> StdResu
         .collect();
 
     to_binary(&ChannelsResponse {
-        channels: res?.into_iter().map(|(x, a)| (x, a.to_string())).collect(),
+        channels: res?,
     })
 }
 

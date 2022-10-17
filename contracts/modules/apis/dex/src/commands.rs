@@ -1,3 +1,4 @@
+#![allow(unused)]
 use abstract_sdk::MemoryOperation;
 use cosmwasm_std::{Decimal, Deps, Env, MessageInfo};
 use cw_asset::{Asset, AssetInfo};
@@ -74,7 +75,7 @@ pub fn provide_liquidity(
     api: DexApi,
     offer_assets: Vec<OfferAsset>,
     dex: String,
-    _max_spread: Option<Decimal>,
+    max_spread: Option<Decimal>,
 ) -> DexResult {
     let exchange = resolve_exchange(dex)?;
     let mut assets = vec![];
@@ -83,7 +84,7 @@ pub fn provide_liquidity(
         let asset = Asset::new(info, offer.1);
         assets.push(asset);
     }
-    let _pair_address = exchange.pair_address(
+    let pair_address = exchange.pair_address(
         deps,
         &api,
         offer_assets

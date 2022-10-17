@@ -125,7 +125,7 @@ pub fn ibc_packet_ack(
         HostAction::App { msg: _ } => todo!(), // acknowledge_app(deps, env, callback_info, res),
         HostAction::SendAllBack { os_proxy_address: _ } => todo!(),
         HostAction::Internal(InternalAction::WhoAmI) => acknowledge_who_am_i(deps, channel_id, res),
-        HostAction::Internal(InternalAction::Register) => todo!(),
+        HostAction::Internal(InternalAction::Register) => acknowledge_register(deps,channel_id,os_id,res),
     }
 }
 
@@ -165,7 +165,7 @@ fn acknowledge_query(
         (&channel_id, os_id),
         &LatestQueryResponse {
             last_update_time: env.block.time,
-            response: msg.clone(),
+            response: msg,
         },
     )?;
     match callback_info {
@@ -205,7 +205,7 @@ fn acknowledge_who_am_i(
 // store address info in accounts info
 fn acknowledge_register(
     deps: DepsMut,
-    caller: String,
+    channel_id: String,
     os_id: u32,
     ack: StdAck,
 ) -> Result<IbcBasicResponse, ClientError> {
@@ -219,7 +219,7 @@ fn acknowledge_register(
         }
     };
 
-    ACCOUNTS.update(deps.storage, (&caller, os_id), |acct| {
+    ACCOUNTS.update(deps.storage, (&channel_id, os_id), |acct| {
         match acct {
             Some(mut acct) => {
                 // set the account the first time
@@ -228,7 +228,7 @@ fn acknowledge_register(
                 }
                 Ok(acct)
             }
-            None => Err(ClientError::UnregisteredChannel(caller.clone())),
+            None => Err(ClientError::UnregisteredChannel(channel_id.clone())),
         }
     })?;
 

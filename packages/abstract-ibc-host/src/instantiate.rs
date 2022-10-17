@@ -18,7 +18,6 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
         module_name: &str,
         module_version: &str,
         chain: &str,
-        _api_dependencies: Vec<String>,
     ) -> StdResult<Self> {
         let api = Self::default();
         let memory = Memory {

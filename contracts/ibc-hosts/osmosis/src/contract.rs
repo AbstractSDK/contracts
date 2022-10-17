@@ -36,8 +36,7 @@ pub fn instantiate(
         OSMOSIS_HOST,
         CONTRACT_VERSION,
         OSMOSIS,
-        vec![],
-    );
+    )?;
     Ok(Response::default())
 }
 
