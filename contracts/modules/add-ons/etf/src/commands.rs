@@ -12,7 +12,7 @@ use abstract_os::etf::DepositHookMsg;
 use abstract_os::objects::deposit_info::DepositInfo;
 use abstract_os::objects::fee::Fee;
 use abstract_sdk::cw20::query_supply;
-use abstract_sdk::proxy::{query_enabled_asset_names, query_total_value, send_to_proxy};
+use abstract_sdk::proxy::{query_enabled_asset_names, query_total_value, os_module_action};
 
 use crate::contract::{VaultAddOn, VaultResult};
 use crate::error::VaultError;
@@ -227,7 +227,7 @@ pub fn try_withdraw_liquidity(
     }
 
     // Msg that gets called on the vault address
-    let vault_refund_msg = send_to_proxy(refund_msgs, &base_state.proxy_address)?;
+    let vault_refund_msg = os_module_action(refund_msgs, &base_state.proxy_address)?;
 
     // LP burn msg
     let burn_msg = CosmosMsg::Wasm(WasmMsg::Execute {
