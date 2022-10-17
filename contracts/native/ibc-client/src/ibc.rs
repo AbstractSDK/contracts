@@ -1,4 +1,4 @@
-use abstract_os::ibc_host::PacketMsg;
+use abstract_os::ibc_host::{HostAction, PacketMsg};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
@@ -8,12 +8,13 @@ use cosmwasm_std::{
 };
 
 use abstract_os::simple_ica::{
-    check_order, check_version, BalancesResponse, StdAck, RegisterResponse,
+    check_order, check_version, BalancesResponse, IbcResponseMsg, RegisterResponse, StdAck,
+    WhoAmIResponse,
 };
 
 use crate::error::ContractError;
-use abstract_os::ibc_client::LatestQueryResponse;
-use  abstract_os::ibc_client::state::{AccountData, ACCOUNTS, LATEST_QUERIES};
+use abstract_os::ibc_client::state::{AccountData, ACCOUNTS, CHANNELS, CONFIG, LATEST_QUERIES};
+use abstract_os::ibc_client::{CallbackInfo, LatestQueryResponse};
 
 // TODO: make configurable?
 /// packets live one hour
@@ -37,7 +38,6 @@ pub fn ibc_channel_open(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-/// once it's established, we send a WhoAmI message
 pub fn ibc_channel_connect(
     deps: DepsMut,
     env: Env,
@@ -45,18 +45,24 @@ pub fn ibc_channel_connect(
 ) -> StdResult<IbcBasicResponse> {
     let channel = msg.channel();
     let channel_id = &channel.endpoint.channel_id;
-
-    // // create an account holder the channel exists (not found if not registered)
+    // // // create an account holder the channel exists (not found if not registered)
     // let data = AccountData::default();
-    ACCOUNTS.save(deps.storage, channel_id, &data)?;
+    // ACCOUNTS.save(deps.storage, channel_id, &data)?;
+    let cfg = CONFIG.load(deps.storage)?;
 
-    // // construct a packet to send
-    // let packet = PacketMsg::WhoAmI {};
-    // let msg = IbcMsg::SendPacket {
-    //     channel_id: channel_id.clone(),
-    //     data: to_binary(&packet)?,
-    //     timeout: env.block.time.plus_seconds(PACKET_LIFETIME).into(),
-    // };
+    // construct a packet to send
+    let packet = PacketMsg {
+        action: HostAction::WhoAmI {},
+        client_chain: cfg.chain,
+        os_id: 0,
+        callback_info: None,
+    };
+
+    let msg = IbcMsg::SendPacket {
+        channel_id: channel_id.clone(),
+        data: to_binary(&packet)?,
+        timeout: env.block.time.plus_seconds(PACKET_LIFETIME).into(),
+    };
 
     Ok(IbcBasicResponse::new()
         // .add_message(msg)
@@ -75,7 +81,6 @@ pub fn ibc_channel_close(
 
     // remove the channel
     let channel_id = &channel.endpoint.channel_id;
-    ACCOUNTS.remove(deps.storage, channel_id);
 
     Ok(IbcBasicResponse::new()
         .add_attribute("action", "ibc_close")
@@ -101,24 +106,26 @@ pub fn ibc_packet_ack(
     msg: IbcPacketAckMsg,
 ) -> Result<IbcBasicResponse, ContractError> {
     // which local channel was this packet send from
-    let caller = msg.original_packet.src.channel_id.clone();
+    let channel_id = msg.original_packet.src.channel_id.clone();
     // we need to parse the ack based on our request
     let original_packet: PacketMsg = from_slice(&msg.original_packet.data)?;
     let res: StdAck = from_slice(&msg.acknowledgement.data)?;
-
-    match original_packet {
-        PacketMsg::Dispatch {
-            sender,
-            callback_id,
-            ..
-        } => acknowledge_dispatch(deps, env, caller, sender, callback_id, msg),
-        PacketMsg::IbcQuery {
-            sender,
-            callback_id,
-            ..
-        } => acknowledge_query(deps, env, caller, sender, callback_id, msg),
-        PacketMsg::WhoAmI {} => acknowledge_who_am_i(deps, caller, res),
-        PacketMsg::Balances {} => acknowledge_balances(deps, env, caller, res),
+    let PacketMsg {
+        client_chain,
+        os_id,
+        callback_info,
+        action,
+    } = original_packet;
+    match action {
+        HostAction::WhoAmI {} => acknowledge_who_am_i(deps, channel_id, res),
+        HostAction::Dispatch { .. } => acknowledge_dispatch(deps, env, callback_info, msg),
+        HostAction::Query { .. } => {
+            acknowledge_query(deps, env, channel_id, os_id, callback_info, msg)
+        }
+        HostAction::Balances { .. } => acknowledge_balances(deps, env, channel_id, res),
+        HostAction::App { msg } => acknowledge_app(deps,env, callback_info, res),
+        HostAction::SendAllBack { os_proxy_address } => todo!(),
+        HostAction::Register {} => todo!(),
     }
 }
 
@@ -127,20 +134,15 @@ pub fn ibc_packet_ack(
 fn acknowledge_dispatch(
     _deps: DepsMut,
     _env: Env,
-    _caller: String,
-    sender: String,
-    callback_id: Option<String>,
+    callback_info: Option<CallbackInfo>,
     ack: IbcPacketAckMsg,
 ) -> Result<IbcBasicResponse, ContractError> {
     let res = IbcBasicResponse::new().add_attribute("action", "acknowledge_dispatch");
-    match callback_id {
-        Some(id) => {
-            let msg: StdAck = from_slice(&ack.acknowledgement.data)?;
+    match callback_info {
+        Some(info) => {
+            let msg = info.to_callback_msg(&ack.acknowledgement.data)?;
             // Send IBC packet ack message to another contract
-            let res = res
-                .add_attribute("callback_id", &id)
-                //  In production, you will want to think about gas limits for this callback.
-                .add_message(ReceiveIcaResponseMsg { id, msg }.into_cosmos_msg(sender)?);
+            let res = res.add_message(msg);
             Ok(res)
         }
         None => Ok(res),
@@ -150,32 +152,53 @@ fn acknowledge_dispatch(
 fn acknowledge_query(
     deps: DepsMut,
     env: Env,
-    caller: String,
-    sender: String,
-    callback_id: Option<String>,
+    channel_id: String,
+    os_id: u32,
+    callback_info: Option<CallbackInfo>,
     ack: IbcPacketAckMsg,
 ) -> Result<IbcBasicResponse, ContractError> {
     let msg: StdAck = from_slice(&ack.acknowledgement.data)?;
-
+    let res = IbcBasicResponse::new().add_attribute("action", "acknowledge_ibc_query");
     // store IBC response for later querying from the smart contract??
     LATEST_QUERIES.save(
         deps.storage,
-        &caller,
+        (&channel_id, os_id),
         &LatestQueryResponse {
             last_update_time: env.block.time,
             response: msg.clone(),
         },
     )?;
-    match callback_id {
-        Some(id) => {
+    match callback_info {
+        Some(info) => {
+            let msg = info.to_callback_msg(&ack.acknowledgement.data)?;
             // Send IBC packet ack message to another contract
-            let msg = ReceiveIcaResponseMsg { id, msg }.into_cosmos_msg(sender)?;
-            Ok(IbcBasicResponse::new()
-                .add_attribute("action", "acknowledge_ibc_query")
-                .add_message(msg))
+            let res = res.add_message(msg);
+            Ok(res)
         }
-        None => Ok(IbcBasicResponse::new().add_attribute("action", "acknowledge_ibc_query")),
+        None => Ok(res),
     }
+}
+
+// receive PacketMsg::WhoAmI response
+// store address info in accounts info
+fn acknowledge_who_am_i(
+    deps: DepsMut,
+    channel_id: String,
+    ack: StdAck,
+) -> Result<IbcBasicResponse, ContractError> {
+    // ignore errors (but mention in log)
+    let WhoAmIResponse { chain } = match ack {
+        StdAck::Result(res) => from_slice(&res)?,
+        StdAck::Error(e) => {
+            return Ok(IbcBasicResponse::new()
+                .add_attribute("action", "acknowledge_who_am_i")
+                .add_attribute("error", e))
+        }
+    };
+    // Now we know over what channel to communicate!
+    CHANNELS.save(deps.storage, &chain, &channel_id)?;
+
+    Ok(IbcBasicResponse::new().add_attribute("action", "acknowledge_who_am_i"))
 }
 
 // receive PacketMsg::Register response
@@ -183,6 +206,7 @@ fn acknowledge_query(
 fn acknowledge_register(
     deps: DepsMut,
     caller: String,
+    os_id: u32,
     ack: StdAck,
 ) -> Result<IbcBasicResponse, ContractError> {
     // ignore errors (but mention in log)
@@ -195,7 +219,7 @@ fn acknowledge_register(
         }
     };
 
-    ACCOUNTS.update(deps.storage, &caller, |acct| {
+    ACCOUNTS.update(deps.storage, (&caller,os_id), |acct| {
         match acct {
             Some(mut acct) => {
                 // set the account the first time
@@ -215,7 +239,8 @@ fn acknowledge_register(
 fn acknowledge_balances(
     deps: DepsMut,
     env: Env,
-    caller: String,
+    channel_id: String,
+    os_id: u32,
     ack: StdAck,
 ) -> Result<IbcBasicResponse, ContractError> {
     // ignore errors (but mention in log)
@@ -228,7 +253,7 @@ fn acknowledge_balances(
         }
     };
 
-    ACCOUNTS.update(deps.storage, &caller, |acct| match acct {
+    ACCOUNTS.update(deps.storage, (&channel_id,os_id), |acct| match acct {
         Some(acct) => {
             if let Some(old) = acct.remote_addr {
                 if old != account {
@@ -241,7 +266,7 @@ fn acknowledge_balances(
                 remote_balance: balances,
             })
         }
-        None => Err(ContractError::UnregisteredChannel(caller.clone())),
+        None => Err(ContractError::UnregisteredChannel(channel_id.clone())),
     })?;
 
     Ok(IbcBasicResponse::new().add_attribute("action", "acknowledge_balances"))
@@ -263,13 +288,13 @@ mod tests {
     use crate::contract::{execute, instantiate, query};
     use crate::msg::{AccountResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
 
+    use abstract_os::simple_ica::{APP_ORDER, BAD_APP_ORDER, IBC_APP_VERSION};
     use cosmwasm_std::testing::{
         mock_dependencies, mock_env, mock_ibc_channel_connect_ack, mock_ibc_channel_open_init,
         mock_ibc_channel_open_try, mock_ibc_packet_ack, mock_info, MockApi, MockQuerier,
         MockStorage,
     };
     use cosmwasm_std::{coin, coins, BankMsg, CosmosMsg, IbcAcknowledgement, OwnedDeps};
-    use abstract_os::simple_ica::{APP_ORDER, BAD_APP_ORDER, IBC_APP_VERSION};
 
     const CREATOR: &str = "creator";
 

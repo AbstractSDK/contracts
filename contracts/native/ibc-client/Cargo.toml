@@ -1,5 +1,5 @@
 [package]
-name = "abstract-ibc-client"
+name = "ibc-client"
 version = "0.2.0"
 authors = ["Ethan Frey <ethanfrey@users.noreply.github.com>"]
 edition = "2021"
@@ -37,6 +37,7 @@ schemars = "0.8.1"
 serde = { version = "1.0.103", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0.23" }
 abstract-os = {path = "../../../packages/abstract-os"}
+abstract-sdk = {path = "../../../packages/abstract-sdk"}
 
 [dev-dependencies]
 cosmwasm-schema = { version = "1.0.0" }

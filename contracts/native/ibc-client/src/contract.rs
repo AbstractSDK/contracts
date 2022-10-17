@@ -1,26 +1,42 @@
+use abstract_os::ibc_host::{HostAction, PacketMsg};
+use abstract_os::objects::memory::Memory;
+use abstract_os::objects::ChannelEntry;
+use abstract_os::ICS20;
+use abstract_sdk::proxy::query_os_id;
+use abstract_sdk::{os_module_action, verify_os_proxy, Resolve};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    to_binary, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg, MessageInfo, Order, QueryRequest,
-    QueryResponse, Response, StdError, StdResult,
+    to_binary, Coin, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg, MessageInfo, Order,
+    QueryRequest, QueryResponse, Response, StdError, StdResult,
 };
 
 use crate::ibc::PACKET_LIFETIME;
-use crate::msg::{
-    AccountInfo, AccountResponse, AdminResponse, ExecuteMsg, InstantiateMsg, LatestQueryResponse,
-    ListAccountsResponse, QueryMsg,
+use abstract_os::ibc_client::state::{Config, ACCOUNTS, CHANNELS, CONFIG, LATEST_QUERIES, MEMORY};
+use abstract_os::ibc_client::{
+    AccountInfo, AccountResponse, AdminResponse, CallbackInfo, ConfigResponse, ExecuteMsg,
+    InstantiateMsg, LatestQueryResponse, ListAccountsResponse, QueryMsg,
 };
-use crate::state::{Config, ACCOUNTS, CONFIG, LATEST_QUERIES};
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    _msg: InstantiateMsg,
+    msg: InstantiateMsg,
 ) -> StdResult<Response> {
-    let cfg = Config { admin: info.sender };
+    let cfg = Config {
+        admin: info.sender,
+        chain: msg.chain,
+        version_control_address: deps.api.addr_validate(&msg.version_control_address)?,
+    };
     CONFIG.save(deps.storage, &cfg)?;
+    MEMORY.save(
+        deps.storage,
+        &Memory {
+            address: deps.api.addr_validate(&msg.memory_address)?,
+        },
+    )?;
 
     Ok(Response::new().add_attribute("action", "instantiate"))
 }
@@ -29,23 +45,18 @@ pub fn instantiate(
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> StdResult<Response> {
     match msg {
         ExecuteMsg::UpdateAdmin { admin } => execute_update_admin(deps, info, admin),
-        ExecuteMsg::SendMsgs {
-            channel_id,
-            msgs,
-            callback_id,
-        } => execute_send_msgs(deps, env, info, channel_id, msgs, callback_id),
-        ExecuteMsg::CheckRemoteBalance { channel_id } => {
-            execute_check_remote_balance(deps, env, info, channel_id)
+        ExecuteMsg::SendPacket {
+            host_chain,
+            action,
+            callback_info,
+        } => execute_send_packet(deps, env, info, host_chain, action, callback_info),
+        ExecuteMsg::CheckRemoteBalance { host_chain } => {
+            execute_check_remote_balance(deps, env, info, host_chain)
         }
-        ExecuteMsg::IbcQuery {
-            channel_id,
-            msgs,
-            callback_id,
-        } => execute_ibc_query(deps, env, info, channel_id, msgs, callback_id),
-        ExecuteMsg::SendFunds {
-            ica_channel_id,
-            transfer_channel_id,
-        } => execute_send_funds(deps, env, info, ica_channel_id, transfer_channel_id),
+        ExecuteMsg::SendFunds { host_chain, funds } => {
+            execute_send_funds(deps, env, info, host_chain, funds)
+        }
+        ExecuteMsg::Register { host_chain } => execute_register_os(deps,env,info, host_chain)
     }
 }
 
@@ -67,31 +78,30 @@ pub fn execute_update_admin(
         .add_attribute("new_admin", cfg.admin))
 }
 
-pub fn execute_send_msgs(
+pub fn execute_send_packet(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    channel_id: String,
-    msgs: Vec<CosmosMsg>,
-    callback_id: Option<String>,
+    host_chain: String,
+    action: HostAction,
+    callback_info: Option<CallbackInfo>,
 ) -> StdResult<Response> {
     // auth check
     let cfg = CONFIG.load(deps.storage)?;
-    if info.sender != cfg.admin {
-        return Err(StdError::generic_err("Only admin may send messages"));
-    }
-    // ensure the channel exists (not found if not registered)
-    ACCOUNTS.load(deps.storage, &channel_id)?;
-
-    // construct a packet to send
-    let sender = info.sender.into();
-    let packet = PacketMsg::Dispatch {
-        sender,
-        msgs,
-        callback_id,
+    // Verify that the sender is a proxy contract
+    let core = verify_os_proxy(&deps.querier, &info.sender, &cfg.version_control_address)?;
+    // get os_id
+    let os_id = query_os_id(&deps.querier, &core.manager)?;
+    // ensure the channel exists and loads it.
+    let channel = CHANNELS.load(deps.storage, &host_chain)?;
+    let packet = PacketMsg {
+        client_chain: cfg.chain,
+        os_id,
+        callback_info,
+        action,
     };
     let msg = IbcMsg::SendPacket {
-        channel_id,
+        channel_id: channel,
         data: to_binary(&packet)?,
         timeout: env.block.time.plus_seconds(PACKET_LIFETIME).into(),
     };
@@ -102,49 +112,28 @@ pub fn execute_send_msgs(
     Ok(res)
 }
 
-pub fn execute_ibc_query(
-    _deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    channel_id: String,
-    msgs: Vec<QueryRequest<Empty>>,
-    callback_id: Option<String>,
-) -> StdResult<Response> {
-    // construct a packet to send
-    let sender = info.sender.into();
-    let packet = PacketMsg::IbcQuery {
-        sender,
-        msgs,
-        callback_id,
-    };
-    let msg = IbcMsg::SendPacket {
-        channel_id,
-        data: to_binary(&packet)?,
-        timeout: env.block.time.plus_seconds(PACKET_LIFETIME).into(),
-    };
-
-    let res = Response::new()
-        .add_message(msg)
-        .add_attribute("action", "handle_check_remote_balance");
-    Ok(res)
-}
-
-pub fn execute_check_remote_balance(
+pub fn execute_register_os(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    channel_id: String,
+    host_chain: String,
 ) -> StdResult<Response> {
     // auth check
     let cfg = CONFIG.load(deps.storage)?;
-    if info.sender != cfg.admin {
-        return Err(StdError::generic_err("Only admin may send messages"));
-    }
+    // Verify that the sender is a proxy contract
+    let core = verify_os_proxy(&deps.querier, &info.sender, &cfg.version_control_address)?;
     // ensure the channel exists (not found if not registered)
-    ACCOUNTS.load(deps.storage, &channel_id)?;
+    let channel_id = CHANNELS.load(deps.storage, &host_chain)?;
+    let os_id = query_os_id(&deps.querier, &core.manager)?;
 
     // construct a packet to send
-    let packet = PacketMsg::Balances {};
+    let packet = PacketMsg {
+        client_chain: cfg.chain,
+        os_id,
+        callback_info: None,
+        action: HostAction::Register {  },
+    };
+
     let msg = IbcMsg::SendPacket {
         channel_id,
         data: to_binary(&packet)?,
@@ -153,54 +142,95 @@ pub fn execute_check_remote_balance(
 
     let res = Response::new()
         .add_message(msg)
-        .add_attribute("action", "handle_check_remote_balance");
+        .add_attribute("action", "handle_register");
     Ok(res)
 }
+
+// pub fn execute_check_remote_balance(
+//     deps: DepsMut,
+//     env: Env,
+//     info: MessageInfo,
+//     host_chain: String,
+// ) -> StdResult<Response> {
+//     // auth check
+//     let cfg = CONFIG.load(deps.storage)?;
+//     // Verify that the sender is a proxy contract
+//     let core = verify_os_proxy(&deps.querier, &info.sender, &cfg.version_control_address)?;
+//     let channel_id = CHANNELS.load(deps.storage, &host_chain)?;
+//     // get os_id
+//     let os_id = query_os_id(&deps.querier, &core.manager)?;
+
+//     // ensure the channel exists (not found if not registered)
+//     let acc = ACCOUNTS.load(deps.storage, (&channel_id,os_id))?;
+
+//     // construct a packet to send
+//     let packet = PacketMsg {
+//         client_chain: cfg.chain,
+//         os_id,
+//         callback_info: None,
+//         action: HostAction::Balances {  },
+//     };
+//     let msg = IbcMsg::SendPacket {
+//         channel_id,
+//         data: to_binary(&packet)?,
+//         timeout: env.block.time.plus_seconds(PACKET_LIFETIME).into(),
+//     };
+
+//     let res = Response::new()
+//         .add_message(msg)
+//         .add_attribute("action", "handle_check_remote_balance");
+//     Ok(res)
+// }
 
 pub fn execute_send_funds(
     deps: DepsMut,
     env: Env,
     mut info: MessageInfo,
-    ica_channel_id: String,
-    transfer_channel_id: String,
+    host_chain: String,
+    funds: Vec<Coin>,
 ) -> StdResult<Response> {
-    // intentionally no auth check
-
-    // require some funds
-    let amount = match info.funds.pop() {
-        Some(coin) => coin,
-        None => {
-            return Err(StdError::generic_err(
-                "you must send the coins you wish to ibc transfer",
-            ))
-        }
-    };
-    // if there are any more coins, reject the message
-    if !info.funds.is_empty() {
-        return Err(StdError::generic_err("you can only ibc transfer one coin"));
-    }
-
+    let cfg = CONFIG.load(deps.storage)?;
+    let mem = MEMORY.load(deps.storage)?;
+    // Verify that the sender is a proxy contract
+    let core = verify_os_proxy(&deps.querier, &info.sender, &cfg.version_control_address)?;
+    // get os_id of OS
+    let os_id = query_os_id(&deps.querier, &core.manager)?;
+    // get channel used to communicate to host chain
+    let channel = CHANNELS.load(deps.storage, &host_chain)?;
     // load remote account
-    let data = ACCOUNTS.load(deps.storage, &ica_channel_id)?;
+    let data = ACCOUNTS.load(deps.storage, (&channel, os_id))?;
     let remote_addr = match data.remote_addr {
         Some(addr) => addr,
         None => {
             return Err(StdError::generic_err(
-                "We don't have the remote address for this channel",
+                "We don't have the remote address for this channel or OS",
             ))
         }
     };
 
-    // construct a packet to send
-    let msg = IbcMsg::Transfer {
-        channel_id: transfer_channel_id,
-        to_address: remote_addr,
-        amount,
-        timeout: env.block.time.plus_seconds(PACKET_LIFETIME).into(),
+    let ics20_channel_entry = ChannelEntry {
+        connected_chain: host_chain,
+        protocol: ICS20.to_string(),
     };
+    let ics20_channel_id = ics20_channel_entry.resolve(deps.as_ref(), &mem)?;
 
+    let mut transfers: Vec<CosmosMsg> = vec![];
+    for amount in funds {
+        // construct a packet to send
+        transfers.push(
+            IbcMsg::Transfer {
+                channel_id: ics20_channel_id,
+                to_address: remote_addr,
+                amount,
+                timeout: env.block.time.plus_seconds(PACKET_LIFETIME).into(),
+            }
+            .into(),
+        );
+    }
+    // let these messages be executed by proxy
+    let proxy_msg = os_module_action(transfers, &core.proxy)?;
     let res = Response::new()
-        .add_message(msg)
+        .add_message(proxy_msg)
         .add_attribute("action", "handle_send_funds");
     Ok(res)
 }
@@ -208,39 +238,51 @@ pub fn execute_send_funds(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<QueryResponse> {
     match msg {
-        QueryMsg::Admin {} => to_binary(&query_admin(deps)?),
-        QueryMsg::Account { channel_id } => to_binary(&query_account(deps, channel_id)?),
+        QueryMsg::Admin {} => to_binary(&query_config(deps)?),
+        QueryMsg::Account { chain, os_id } => to_binary(&query_account(deps, chain, os_id)?),
         QueryMsg::ListAccounts {} => to_binary(&query_list_accounts(deps)?),
-        QueryMsg::LatestQueryResult { channel_id } => {
-            to_binary(&query_latest_ibc_query_result(deps, channel_id)?)
+        QueryMsg::LatestQueryResult { chain, os_id } => {
+            to_binary(&query_latest_ibc_query_result(deps, chain, os_id)?)
         }
     }
 }
 
-fn query_account(deps: Deps, channel_id: String) -> StdResult<AccountResponse> {
-    let account = ACCOUNTS.load(deps.storage, &channel_id)?;
+fn query_account(deps: Deps, host_chain: String, os_id: u32) -> StdResult<AccountResponse> {
+    let channel = CHANNELS.load(deps.storage, &host_chain)?;
+    let account = ACCOUNTS.load(deps.storage, (&channel, os_id))?;
     Ok(account.into())
 }
 
-fn query_latest_ibc_query_result(deps: Deps, channel_id: String) -> StdResult<LatestQueryResponse> {
-    LATEST_QUERIES.load(deps.storage, &channel_id)
+fn query_latest_ibc_query_result(
+    deps: Deps,
+    host_chain: String,
+    os_id: u32,
+) -> StdResult<LatestQueryResponse> {
+    let channel = CHANNELS.load(deps.storage, &host_chain)?;
+    LATEST_QUERIES.load(deps.storage, (&channel, os_id))
 }
 
 fn query_list_accounts(deps: Deps) -> StdResult<ListAccountsResponse> {
     let accounts = ACCOUNTS
         .range(deps.storage, None, None, Order::Ascending)
         .map(|r| {
-            let (channel_id, account) = r?;
-            Ok(AccountInfo::convert(channel_id, account))
+            let ((channel_id, os_id), account) = r?;
+            Ok(AccountInfo::convert(channel_id, os_id, account))
         })
         .collect::<StdResult<_>>()?;
     Ok(ListAccountsResponse { accounts })
 }
 
-fn query_admin(deps: Deps) -> StdResult<AdminResponse> {
-    let Config { admin } = CONFIG.load(deps.storage)?;
-    Ok(AdminResponse {
+fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
+    let Config {
+        admin,
+        chain,
+        version_control_address,
+    } = CONFIG.load(deps.storage)?;
+    Ok(ConfigResponse {
         admin: admin.into(),
+        chain,
+        version_control_address: version_control_address.into_string(),
     })
 }
 
@@ -254,12 +296,16 @@ mod tests {
     #[test]
     fn instantiate_works() {
         let mut deps = mock_dependencies();
-        let msg = InstantiateMsg {};
+        let msg = InstantiateMsg {
+            chain: "test_chain".into(),
+            memory_address: "memory".into(),
+            version_control_address: "vc_addr".into(),
+        };
         let info = mock_info(CREATOR, &[]);
         let res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
         assert_eq!(0, res.messages.len());
 
-        let admin = query_admin(deps.as_ref()).unwrap();
-        assert_eq!(CREATOR, admin.admin.as_str());
+        let config = query_config(deps.as_ref()).unwrap();
+        assert_eq!(CREATOR, config.admin.as_str());
     }
 }
