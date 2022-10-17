@@ -10,7 +10,8 @@ use cw_asset::{AssetInfo, AssetInfoUnchecked};
 
 use crate::objects::{
     asset_entry::AssetEntry,
-    contract_entry::{ContractEntry, UncheckedContractEntry}, UncheckedChannelEntry, ChannelEntry,
+    contract_entry::{ContractEntry, UncheckedContractEntry},
+    ChannelEntry, UncheckedChannelEntry,
 };
 
 /// Memory state details
@@ -144,7 +145,6 @@ pub struct ContractListResponse {
     /// Contracts (name, address)
     pub contracts: Vec<(ContractEntry, String)>,
 }
-
 
 #[cosmwasm_schema::cw_serde]
 pub struct ChannelsResponse {

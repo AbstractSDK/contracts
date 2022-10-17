@@ -11,6 +11,7 @@ use cosmwasm_std::{
     QueryRequest, QueryResponse, Response, StdError, StdResult,
 };
 
+use crate::error::ClientError;
 use crate::ibc::PACKET_LIFETIME;
 use abstract_os::ibc_client::state::{Config, ACCOUNTS, CHANNELS, CONFIG, LATEST_QUERIES, MEMORY};
 use abstract_os::ibc_client::{
@@ -42,21 +43,21 @@ pub fn instantiate(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> StdResult<Response> {
+pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> Result<Response, ClientError> {
     match msg {
-        ExecuteMsg::UpdateAdmin { admin } => execute_update_admin(deps, info, admin),
+        ExecuteMsg::UpdateAdmin { admin } => execute_update_admin(deps, info, admin).map_err(Into::into),
         ExecuteMsg::SendPacket {
             host_chain,
             action,
             callback_info,
         } => execute_send_packet(deps, env, info, host_chain, action, callback_info),
-        ExecuteMsg::CheckRemoteBalance { host_chain } => {
-            execute_check_remote_balance(deps, env, info, host_chain)
-        }
+        // ExecuteMsg::CheckRemoteBalance { host_chain } => {
+        //     execute_check_remote_balance(deps, env, info, host_chain).map_err(Into::into)
+        // }
         ExecuteMsg::SendFunds { host_chain, funds } => {
-            execute_send_funds(deps, env, info, host_chain, funds)
+            execute_send_funds(deps, env, info, host_chain, funds).map_err(Into::into)
         }
-        ExecuteMsg::Register { host_chain } => execute_register_os(deps,env,info, host_chain)
+        ExecuteMsg::Register { host_chain } => execute_register_os(deps, env, info, host_chain),
     }
 }
 
@@ -85,11 +86,15 @@ pub fn execute_send_packet(
     host_chain: String,
     action: HostAction,
     callback_info: Option<CallbackInfo>,
-) -> StdResult<Response> {
+) -> Result<Response, ClientError> {
     // auth check
     let cfg = CONFIG.load(deps.storage)?;
     // Verify that the sender is a proxy contract
     let core = verify_os_proxy(&deps.querier, &info.sender, &cfg.version_control_address)?;
+    // Can only call non-internal actions
+    if let HostAction::Internal(_) = action {
+        return Err(ClientError::ForbiddenInternalCall {  })
+    }
     // get os_id
     let os_id = query_os_id(&deps.querier, &core.manager)?;
     // ensure the channel exists and loads it.
@@ -131,7 +136,7 @@ pub fn execute_register_os(
         client_chain: cfg.chain,
         os_id,
         callback_info: None,
-        action: HostAction::Register {  },
+        action: HostAction::Register {},
     };
 
     let msg = IbcMsg::SendPacket {

@@ -1,4 +1,4 @@
-use abstract_os::ibc_host::{HostAction, PacketMsg};
+use abstract_os::ibc_host::{HostAction, PacketMsg, InternalAction};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
@@ -12,7 +12,7 @@ use abstract_os::simple_ica::{
     WhoAmIResponse,
 };
 
-use crate::error::ContractError;
+use crate::error::ClientError;
 use abstract_os::ibc_client::state::{AccountData, ACCOUNTS, CHANNELS, CONFIG, LATEST_QUERIES};
 use abstract_os::ibc_client::{CallbackInfo, LatestQueryResponse};
 
@@ -26,7 +26,7 @@ pub fn ibc_channel_open(
     _deps: DepsMut,
     _env: Env,
     msg: IbcChannelOpenMsg,
-) -> Result<Option<Ibc3ChannelOpenResponse>, ContractError> {
+) -> Result<Option<Ibc3ChannelOpenResponse>, ClientError> {
     let channel = msg.channel();
     check_order(&channel.order)?;
     check_version(&channel.version)?;
@@ -104,7 +104,7 @@ pub fn ibc_packet_ack(
     deps: DepsMut,
     env: Env,
     msg: IbcPacketAckMsg,
-) -> Result<IbcBasicResponse, ContractError> {
+) -> Result<IbcBasicResponse, ClientError> {
     // which local channel was this packet send from
     let channel_id = msg.original_packet.src.channel_id.clone();
     // we need to parse the ack based on our request
@@ -117,15 +117,15 @@ pub fn ibc_packet_ack(
         action,
     } = original_packet;
     match action {
-        HostAction::WhoAmI {} => acknowledge_who_am_i(deps, channel_id, res),
         HostAction::Dispatch { .. } => acknowledge_dispatch(deps, env, callback_info, msg),
         HostAction::Query { .. } => {
             acknowledge_query(deps, env, channel_id, os_id, callback_info, msg)
         }
-        HostAction::Balances { .. } => acknowledge_balances(deps, env, channel_id, res),
-        HostAction::App { msg } => acknowledge_app(deps,env, callback_info, res),
+        HostAction::Balances { .. } => acknowledge_balances(deps, env, channel_id, os_id, res),
+        HostAction::App { msg } => acknowledge_app(deps, env, callback_info, res),
         HostAction::SendAllBack { os_proxy_address } => todo!(),
-        HostAction::Register {} => todo!(),
+        HostAction::Internal(InternalAction::WhoAmI) => acknowledge_who_am_i(deps, channel_id, res),
+        HostAction::Internal(InternalAction::Register) => todo!(),
     }
 }
 
@@ -136,7 +136,7 @@ fn acknowledge_dispatch(
     _env: Env,
     callback_info: Option<CallbackInfo>,
     ack: IbcPacketAckMsg,
-) -> Result<IbcBasicResponse, ContractError> {
+) -> Result<IbcBasicResponse, ClientError> {
     let res = IbcBasicResponse::new().add_attribute("action", "acknowledge_dispatch");
     match callback_info {
         Some(info) => {
@@ -156,7 +156,7 @@ fn acknowledge_query(
     os_id: u32,
     callback_info: Option<CallbackInfo>,
     ack: IbcPacketAckMsg,
-) -> Result<IbcBasicResponse, ContractError> {
+) -> Result<IbcBasicResponse, ClientError> {
     let msg: StdAck = from_slice(&ack.acknowledgement.data)?;
     let res = IbcBasicResponse::new().add_attribute("action", "acknowledge_ibc_query");
     // store IBC response for later querying from the smart contract??
@@ -185,7 +185,7 @@ fn acknowledge_who_am_i(
     deps: DepsMut,
     channel_id: String,
     ack: StdAck,
-) -> Result<IbcBasicResponse, ContractError> {
+) -> Result<IbcBasicResponse, ClientError> {
     // ignore errors (but mention in log)
     let WhoAmIResponse { chain } = match ack {
         StdAck::Result(res) => from_slice(&res)?,
@@ -208,7 +208,7 @@ fn acknowledge_register(
     caller: String,
     os_id: u32,
     ack: StdAck,
-) -> Result<IbcBasicResponse, ContractError> {
+) -> Result<IbcBasicResponse, ClientError> {
     // ignore errors (but mention in log)
     let RegisterResponse { account } = match ack {
         StdAck::Result(res) => from_slice(&res)?,
@@ -219,7 +219,7 @@ fn acknowledge_register(
         }
     };
 
-    ACCOUNTS.update(deps.storage, (&caller,os_id), |acct| {
+    ACCOUNTS.update(deps.storage, (&caller, os_id), |acct| {
         match acct {
             Some(mut acct) => {
                 // set the account the first time
@@ -228,7 +228,7 @@ fn acknowledge_register(
                 }
                 Ok(acct)
             }
-            None => Err(ContractError::UnregisteredChannel(caller.clone())),
+            None => Err(ClientError::UnregisteredChannel(caller.clone())),
         }
     })?;
 
@@ -242,7 +242,7 @@ fn acknowledge_balances(
     channel_id: String,
     os_id: u32,
     ack: StdAck,
-) -> Result<IbcBasicResponse, ContractError> {
+) -> Result<IbcBasicResponse, ClientError> {
     // ignore errors (but mention in log)
     let BalancesResponse { account, balances } = match ack {
         StdAck::Result(res) => from_slice(&res)?,
@@ -253,11 +253,11 @@ fn acknowledge_balances(
         }
     };
 
-    ACCOUNTS.update(deps.storage, (&channel_id,os_id), |acct| match acct {
+    ACCOUNTS.update(deps.storage, (&channel_id, os_id), |acct| match acct {
         Some(acct) => {
             if let Some(old) = acct.remote_addr {
                 if old != account {
-                    return Err(ContractError::RemoteAccountChanged { old, addr: account });
+                    return Err(ClientError::RemoteAccountChanged { old, addr: account });
                 }
             }
             Ok(AccountData {
@@ -266,7 +266,7 @@ fn acknowledge_balances(
                 remote_balance: balances,
             })
         }
-        None => Err(ContractError::UnregisteredChannel(channel_id.clone())),
+        None => Err(ClientError::UnregisteredChannel(channel_id.clone())),
     })?;
 
     Ok(IbcBasicResponse::new().add_attribute("action", "acknowledge_balances"))

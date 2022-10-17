@@ -5,7 +5,7 @@ use cosmwasm_std::StdError;
 use abstract_os::simple_ica::SimpleIcaError;
 
 #[derive(Error, Debug, PartialEq)]
-pub enum ContractError {
+pub enum ClientError {
     #[error("{0}")]
     Std(#[from] StdError),
 
@@ -17,4 +17,7 @@ pub enum ContractError {
 
     #[error("remote account changed from {old} to {addr}")]
     RemoteAccountChanged { addr: String, old: String },
+
+    #[error("packages that contain internal calls are not allowed")]
+    ForbiddenInternalCall{},
 }

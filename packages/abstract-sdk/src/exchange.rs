@@ -1,4 +1,8 @@
-use abstract_os::{dex::{OfferAsset, DexAction}, objects::AssetEntry, EXCHANGE};
+use abstract_os::{
+    dex::{DexAction, OfferAsset},
+    objects::AssetEntry,
+    EXCHANGE,
+};
 use cosmwasm_std::{CosmosMsg, Deps, StdResult};
 
 use crate::Dependency;
@@ -19,11 +23,11 @@ pub trait Exchange: Dependency {
             EXCHANGE,
             &RequestMsg {
                 dex,
-                action: DexAction::Swap{
-                offer_asset,
-                ask_asset,
-                max_spread: None,
-                belief_price: None,
+                action: DexAction::Swap {
+                    offer_asset,
+                    ask_asset,
+                    max_spread: None,
+                    belief_price: None,
                 },
             },
             vec![],

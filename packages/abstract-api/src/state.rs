@@ -3,7 +3,7 @@ use std::{collections::HashSet, marker::PhantomData};
 use abstract_os::version_control::Core;
 use abstract_sdk::{memory::Memory, BASE_STATE};
 
-use cosmwasm_std::{Addr, StdResult, Storage, Empty};
+use cosmwasm_std::{Addr, Empty, StdResult, Storage};
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
@@ -14,7 +14,11 @@ use crate::ApiError;
 pub const TRADER_NAMESPACE: &str = "traders";
 
 /// The state variables for our ApiContract.
-pub struct ApiContract<'a, Request: Serialize + DeserializeOwned, Callback: Serialize + DeserializeOwned = Empty> {
+pub struct ApiContract<
+    'a,
+    Request: Serialize + DeserializeOwned,
+    Callback: Serialize + DeserializeOwned = Empty,
+> {
     // Map ProxyAddr -> WhitelistedTraders
     pub traders: Map<'a, Addr, HashSet<Addr>>,
     // Every DApp should use the provided memory contract for token/contract address resolution
@@ -26,10 +30,12 @@ pub struct ApiContract<'a, Request: Serialize + DeserializeOwned, Callback: Seri
 
     pub target_os: Option<Core>,
     _phantom_data: PhantomData<Request>,
-    _phantom_data_callbacks: PhantomData<Callback>
+    _phantom_data_callbacks: PhantomData<Callback>,
 }
 
-impl<'a, T: Serialize + DeserializeOwned, C: Serialize + DeserializeOwned>Default for ApiContract<'a, T, C> {
+impl<'a, T: Serialize + DeserializeOwned, C: Serialize + DeserializeOwned> Default
+    for ApiContract<'a, T, C>
+{
     fn default() -> Self {
         Self::new(&[])
     }

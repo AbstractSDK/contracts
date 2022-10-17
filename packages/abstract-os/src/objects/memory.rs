@@ -4,7 +4,7 @@ use cosmwasm_std::{Addr, Deps, StdError, StdResult};
 
 use cw_asset::AssetInfo;
 
-use crate::memory::state::{ASSET_ADDRESSES, CONTRACT_ADDRESSES, CHANNELS};
+use crate::memory::state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES};
 
 use super::{asset_entry::AssetEntry, contract_entry::ContractEntry, ChannelEntry};
 

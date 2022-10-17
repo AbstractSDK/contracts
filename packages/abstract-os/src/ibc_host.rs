@@ -8,7 +8,7 @@
 //! The API structure is well-suited for implementing standard interfaces to external services like dexes, lending platforms, etc.
 
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, CosmosMsg, Empty, QueryRequest, Binary};
+use cosmwasm_std::{Addr, Binary, CosmosMsg, Empty, QueryRequest};
 use serde::Serialize;
 
 use crate::ibc_client::CallbackInfo;
@@ -26,35 +26,37 @@ pub struct BaseInstantiateMsg {
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
 
+#[cosmwasm_schema::cw_serde]
+pub enum InternalAction{
+    Register, WhoAmI
+}
+
 /// Callable actions on a remote host
 #[cosmwasm_schema::cw_serde]
 pub enum HostAction {
-    App {
-        msg: Binary,
-    },
-    Dispatch {
-        msgs: Vec<CosmosMsg<Empty>>,
-    },
-    Query {
-        msgs: Vec<QueryRequest<Empty>>,
-    },
-    SendAllBack {
-        os_proxy_address: String
-    },
-    Balances {
-    },
-    Internal(Register,WhoAmI)
+    App { msg: Binary },
+    Dispatch { msgs: Vec<CosmosMsg<Empty>> },
+    Query { msgs: Vec<QueryRequest<Empty>> },
+    SendAllBack { os_proxy_address: String },
+    Balances {},
+    /// Can't be called through the packet endpoint directly
+    Internal(InternalAction),
 }
 
 impl HostAction {
-    pub fn into_packet(self,os_id: u32, client_chain: String, callback_info: Option<CallbackInfo>) -> PacketMsg {
-        PacketMsg { 
-                client_chain,
-                callback_info,
-                os_id,
-                action: self,
-                 }
-}
+    pub fn into_packet(
+        self,
+        os_id: u32,
+        client_chain: String,
+        callback_info: Option<CallbackInfo>,
+    ) -> PacketMsg {
+        PacketMsg {
+            client_chain,
+            callback_info,
+            os_id,
+            action: self,
+        }
+    }
 }
 /// This is the message we send over the IBC channel
 #[cosmwasm_schema::cw_serde]

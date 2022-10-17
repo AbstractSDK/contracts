@@ -2,10 +2,11 @@ use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, StdResult};
 
 use abstract_os::{
     memory::{
-        state::{ASSET_ADDRESSES, CONTRACT_ADDRESSES, CHANNELS},
-        AssetListResponse, AssetsResponse, ContractListResponse, ContractsResponse, ChannelListResponse, ChannelsResponse,
+        state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES},
+        AssetListResponse, AssetsResponse, ChannelListResponse, ChannelsResponse,
+        ContractListResponse, ContractsResponse,
     },
-    objects::{AssetEntry, ContractEntry, ChannelEntry},
+    objects::{AssetEntry, ChannelEntry, ContractEntry},
 };
 use cw_asset::AssetInfo;
 use cw_storage_plus::Bound;
@@ -92,7 +93,5 @@ pub fn query_channel_list(
         .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
         .collect();
-    to_binary(&ChannelListResponse {
-        channels: res?,
-    })
+    to_binary(&ChannelListResponse { channels: res? })
 }

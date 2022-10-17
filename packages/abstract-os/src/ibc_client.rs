@@ -1,19 +1,21 @@
-use cosmwasm_std::{Binary, Coin, CosmosMsg, Empty, QueryRequest, Timestamp, Addr, StdResult, from_slice};
+use crate::simple_ica::StdAck;
+use cosmwasm_std::{
+    from_slice, Addr, Binary, Coin, CosmosMsg, Empty, QueryRequest, StdResult, Timestamp,
+};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use simple_ica::IbcResponseMsg;
-use crate::simple_ica::StdAck;
 
-use crate::ibc_host::{PacketMsg, HostAction};
+use crate::ibc_host::{HostAction, PacketMsg};
 
 use self::state::AccountData;
 pub mod state {
     use serde::{Deserialize, Serialize};
 
+    use super::LatestQueryResponse;
+    use crate::{objects::memory::Memory, MEMORY as MEMORY_KEY};
     use cosmwasm_std::{Addr, Coin, Timestamp};
     use cw_storage_plus::{Item, Map};
-    use crate::{MEMORY as MEMORY_KEY, objects::memory::Memory};
-    use super::LatestQueryResponse;
 
     #[cosmwasm_schema::cw_serde]
     pub struct Config {
@@ -37,13 +39,13 @@ pub mod state {
     }
 
     /// host_chain -> channel-id
-    pub const CHANNELS: Map<&str,String> = Map::new("channels");
+    pub const CHANNELS: Map<&str, String> = Map::new("channels");
 
     pub const CONFIG: Item<Config> = Item::new("config");
     /// (channel-id,os_id) -> remote_addr
-    pub const ACCOUNTS: Map<(&str,u32), AccountData> = Map::new("accounts");
-    /// Todo: see if we can remove this 
-    pub const LATEST_QUERIES: Map<(&str,u32), LatestQueryResponse> = Map::new("queries");
+    pub const ACCOUNTS: Map<(&str, u32), AccountData> = Map::new("accounts");
+    /// Todo: see if we can remove this
+    pub const LATEST_QUERIES: Map<(&str, u32), LatestQueryResponse> = Map::new("queries");
     pub const MEMORY: Item<Memory> = Item::new(MEMORY_KEY);
 }
 
@@ -64,7 +66,7 @@ pub struct CallbackInfo {
 impl CallbackInfo {
     pub fn to_callback_msg(self, ack_data: &Binary) -> StdResult<CosmosMsg> {
         let msg: StdAck = from_slice(ack_data)?;
-        IbcResponseMsg{id: self.id,msg }.into_cosmos_msg(self.receiver)
+        IbcResponseMsg { id: self.id, msg }.into_cosmos_msg(self.receiver)
     }
 }
 
@@ -74,8 +76,15 @@ pub enum ExecuteMsg {
     UpdateAdmin {
         admin: String,
     },
+    /// Only callable by OS proxy
+    /// Will attempt to forward the specified funds to the corresponding
+    /// address on the remote chain.
+    SendFunds {
+        host_chain: String,
+        funds: Vec<Coin>,
+    },
     /// Register an OS on a remote chain over IBC
-    /// This action creates a proxy for them on the remote chain. 
+    /// This action creates a proxy for them on the remote chain.
     Register {
         host_chain: String,
     },
@@ -88,16 +97,9 @@ pub enum ExecuteMsg {
         /// optional callback info
         callback_info: Option<CallbackInfo>,
     },
-    CheckRemoteBalance {
-        host_chain: String,
-    },
-    /// Only callable by OS proxy
-    /// Will attempt to forward the specified funds to the corresponding
-    /// address on the remote chain.
-    SendFunds {
-        host_chain: String,
-        funds: Vec<Coin>
-    },
+    // CheckRemoteBalance {
+    //     host_chain: String,
+    // },
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -107,9 +109,9 @@ pub enum QueryMsg {
     // Shows all open channels (incl. remote info)
     ListAccounts {},
     // Get channel info for one chain
-    Account { chain: String,  os_id: u32 },
+    Account { chain: String, os_id: u32 },
     // Get remote account info for a chain + OS
-    LatestQueryResult { chain: String, os_id: u32},
+    LatestQueryResult { chain: String, os_id: u32 },
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -135,10 +137,9 @@ pub struct LatestQueryResponse {
 pub struct RemoteProxyResponse {
     /// last block balance was updated (0 is never)
     pub channel_id: String,
-    /// address of the remote proxy 
+    /// address of the remote proxy
     pub proxy_address: String,
 }
-
 
 #[cosmwasm_schema::cw_serde]
 pub struct AccountInfo {

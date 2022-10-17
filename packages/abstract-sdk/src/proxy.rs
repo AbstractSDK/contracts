@@ -1,7 +1,8 @@
 //! # Proxy Helpers
 use abstract_os::{
+    ibc_client,
     objects::{proxy_asset::ProxyAsset, AssetEntry},
-    proxy::{state::VAULT_ASSETS, AssetsResponse, ExecuteMsg, QueryMsg, TotalValueResponse}, ibc_client,
+    proxy::{state::VAULT_ASSETS, AssetsResponse, ExecuteMsg, QueryMsg, TotalValueResponse},
 };
 use cosmwasm_std::{
     to_binary, Addr, CosmosMsg, Deps, Empty, QuerierWrapper, QueryRequest, StdError, StdResult,
@@ -21,7 +22,10 @@ pub fn os_module_action(msgs: Vec<CosmosMsg>, proxy_address: &Addr) -> StdResult
     }))
 }
 
-pub fn os_ibc_action(msgs: Vec<ibc_client::ExecuteMsg>, proxy_address: &Addr) -> StdResult<CosmosMsg<Empty>> {
+pub fn os_ibc_action(
+    msgs: Vec<ibc_client::ExecuteMsg>,
+    proxy_address: &Addr,
+) -> StdResult<CosmosMsg<Empty>> {
     Ok(CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: proxy_address.to_string(),
         msg: to_binary(&ExecuteMsg::IbcAction { msgs })?,

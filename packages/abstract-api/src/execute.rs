@@ -15,8 +15,15 @@ use serde::{de::DeserializeOwned, Serialize};
 #[cfg(feature = "ibc")]
 use simple_ica::{IbcResponseMsg, StdAck};
 #[cfg(feature = "ibc")]
-type IbcHandlerFn<T,C, RequestError> = Option<
-    fn(DepsMut, Env, MessageInfo, ApiContract<T,C>, String, StdAck) -> Result<Response, RequestError>,
+type IbcHandlerFn<T, C, RequestError> = Option<
+    fn(
+        DepsMut,
+        Env,
+        MessageInfo,
+        ApiContract<T, C>,
+        String,
+        StdAck,
+    ) -> Result<Response, RequestError>,
 >;
 
 /// The api-contract base implementation.
@@ -33,11 +40,10 @@ impl<'a, T: Serialize + DeserializeOwned, C: Serialize + DeserializeOwned> ApiCo
             DepsMut,
             Env,
             MessageInfo,
-            ApiContract<T,C>,
+            ApiContract<T, C>,
             T,
         ) -> Result<Response, RequestError>,
-        #[cfg(feature = "ibc")] 
-        ibc_callback_handler: IbcHandlerFn<T,C, RequestError>,
+        #[cfg(feature = "ibc")] ibc_callback_handler: IbcHandlerFn<T, C, RequestError>,
     ) -> Result<Response, RequestError> {
         let sender = &info.sender;
         match msg {

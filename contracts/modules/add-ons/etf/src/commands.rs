@@ -12,7 +12,7 @@ use abstract_os::etf::DepositHookMsg;
 use abstract_os::objects::deposit_info::DepositInfo;
 use abstract_os::objects::fee::Fee;
 use abstract_sdk::cw20::query_supply;
-use abstract_sdk::proxy::{query_enabled_asset_names, query_total_value, os_module_action};
+use abstract_sdk::proxy::{os_module_action, query_enabled_asset_names, query_total_value};
 
 use crate::contract::{VaultAddOn, VaultResult};
 use crate::error::VaultError;

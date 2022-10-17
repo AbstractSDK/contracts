@@ -1,7 +1,7 @@
 use abstract_api::{ApiContract, ApiResult};
 use abstract_os::{
     api::{BaseInstantiateMsg, ExecuteMsg, QueryMsg},
-    dex::{ApiQueryMsg, RequestMsg, DexAction},
+    dex::{ApiQueryMsg, DexAction, RequestMsg},
     simple_ica::StdAck,
     EXCHANGE,
 };
@@ -9,7 +9,9 @@ use abstract_os::{
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response};
 
 use crate::{
-    commands::{provide_liquidity, provide_liquidity_symmetric, swap, withdraw_liquidity, resolve_exchange},
+    commands::{
+        provide_liquidity, provide_liquidity_symmetric, resolve_exchange, swap, withdraw_liquidity,
+    },
     error::DexError,
     queries::simulate_swap,
 };
@@ -46,8 +48,7 @@ pub fn execute(
         info,
         msg,
         handle_api_request,
-        None
-        // Some(handle_ibc_callback),
+        None, // Some(handle_ibc_callback),
     )
 }
 
@@ -61,47 +62,40 @@ pub fn handle_api_request(
     let RequestMsg { dex, action } = msg;
     let exchange = resolve_exchange(dex)?;
     if !exchange.over_ibc() {
-    match action {
-        DexAction::ProvideLiquidity {
-            assets,
-            max_spread,
-        } => {
-            if assets.len() < 2 {
-                return Err(DexError::TooFewAssets {});
+        match action {
+            DexAction::ProvideLiquidity { assets, max_spread } => {
+                if assets.len() < 2 {
+                    return Err(DexError::TooFewAssets {});
+                }
+                provide_liquidity(deps.as_ref(), env, info, api, assets, dex_name, max_spread)
             }
-            provide_liquidity(deps.as_ref(), env, info, api, assets, dex_name, max_spread)
-        }
-        DexAction::ProvideLiquiditySymmetric {
-            offer_asset,
-            paired_assets,
-        } => {
-            if paired_assets.is_empty() {
-                return Err(DexError::TooFewAssets {});
-            }
-            provide_liquidity_symmetric(
-                deps.as_ref(),
-                env,
-                info,
-                api,
+            DexAction::ProvideLiquiditySymmetric {
                 offer_asset,
                 paired_assets,
-                dex_name,
-            )
-        }
-        DexAction::WithdrawLiquidity {
-            lp_token,
-            amount,
-        } => {
-            withdraw_liquidity(deps.as_ref(), env, info, api, (lp_token, amount), dex_name)
-        }
+            } => {
+                if paired_assets.is_empty() {
+                    return Err(DexError::TooFewAssets {});
+                }
+                provide_liquidity_symmetric(
+                    deps.as_ref(),
+                    env,
+                    info,
+                    api,
+                    offer_asset,
+                    paired_assets,
+                    dex_name,
+                )
+            }
+            DexAction::WithdrawLiquidity { lp_token, amount } => {
+                withdraw_liquidity(deps.as_ref(), env, info, api, (lp_token, amount), dex_name)
+            }
 
-        DexAction::Swap {
-            offer_asset,
-            ask_asset,
-            max_spread,
-            belief_price,
-        } => {
-            swap(
+            DexAction::Swap {
+                offer_asset,
+                ask_asset,
+                max_spread,
+                belief_price,
+            } => swap(
                 deps.as_ref(),
                 env,
                 info,
@@ -111,9 +105,8 @@ pub fn handle_api_request(
                 dex_name,
                 max_spread,
                 belief_price,
-            )
+            ),
         }
-    }
     }
 }
 

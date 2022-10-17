@@ -1,7 +1,9 @@
-use abstract_os::{api::ApiRequestMsg};
+use abstract_os::api::ApiRequestMsg;
 use abstract_sdk::{
-    api_request, manager::query_module_address, proxy::{os_module_action, os_ibc_action}, Dependency, MemoryOperation,
-    OsExecute,
+    api_request,
+    manager::query_module_address,
+    proxy::{os_ibc_action, os_module_action},
+    Dependency, MemoryOperation, OsExecute,
 };
 use cosmwasm_std::{Addr, Deps, Response, StdError, StdResult, Storage};
 

@@ -70,7 +70,7 @@ impl<'a> PrimaryKey<'a> for ChannelEntry {
     type SuperSuffix = Self;
 
     fn key(&self) -> Vec<cw_storage_plus::Key> {
-        let mut keys =  self.connected_chain.key();
+        let mut keys = self.connected_chain.key();
         keys.extend(self.protocol.key());
         keys
     }
