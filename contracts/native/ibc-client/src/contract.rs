@@ -1,4 +1,4 @@
-use abstract_os::ibc_host::{HostAction, PacketMsg};
+use abstract_os::ibc_host::{HostAction, InternalAction, PacketMsg};
 use abstract_os::objects::memory::Memory;
 use abstract_os::objects::ChannelEntry;
 use abstract_os::ICS20;
@@ -15,8 +15,8 @@ use crate::error::ClientError;
 use crate::ibc::PACKET_LIFETIME;
 use abstract_os::ibc_client::state::{Config, ACCOUNTS, CHANNELS, CONFIG, LATEST_QUERIES, MEMORY};
 use abstract_os::ibc_client::{
-    AccountInfo, AccountResponse, AdminResponse, CallbackInfo, ConfigResponse, ExecuteMsg,
-    InstantiateMsg, LatestQueryResponse, ListAccountsResponse, QueryMsg,
+    AccountInfo, AccountResponse, CallbackInfo, ConfigResponse, ExecuteMsg, InstantiateMsg,
+    LatestQueryResponse, ListAccountsResponse, QueryMsg,
 };
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -129,7 +129,7 @@ pub fn execute_register_os(
     env: Env,
     info: MessageInfo,
     host_chain: String,
-) -> StdResult<Response> {
+) -> Result<Response, ClientError> {
     // auth check
     let cfg = CONFIG.load(deps.storage)?;
     // Verify that the sender is a proxy contract
@@ -143,7 +143,7 @@ pub fn execute_register_os(
         client_chain: cfg.chain,
         os_id,
         callback_info: None,
-        action: HostAction::Register {},
+        action: HostAction::Internal(InternalAction::Register),
     };
 
     let msg = IbcMsg::SendPacket {
@@ -231,8 +231,8 @@ pub fn execute_send_funds(
         // construct a packet to send
         transfers.push(
             IbcMsg::Transfer {
-                channel_id: ics20_channel_id,
-                to_address: remote_addr,
+                channel_id: ics20_channel_id.clone(),
+                to_address: remote_addr.clone(),
                 amount,
                 timeout: env.block.time.plus_seconds(PACKET_LIFETIME).into(),
             }

@@ -59,55 +59,60 @@ pub fn handle_api_request(
     api: DexApi,
     msg: RequestMsg,
 ) -> DexResult {
-    let RequestMsg { dex, action } = msg;
-    let exchange = resolve_exchange(dex)?;
-    if !exchange.over_ibc() {
-        match action {
-            DexAction::ProvideLiquidity { assets, max_spread } => {
-                if assets.len() < 2 {
-                    return Err(DexError::TooFewAssets {});
-                }
-                provide_liquidity(deps.as_ref(), env, info, api, assets, dex_name, max_spread)
-            }
-            DexAction::ProvideLiquiditySymmetric {
-                offer_asset,
-                paired_assets,
-            } => {
-                if paired_assets.is_empty() {
-                    return Err(DexError::TooFewAssets {});
-                }
-                provide_liquidity_symmetric(
-                    deps.as_ref(),
-                    env,
-                    info,
-                    api,
-                    offer_asset,
-                    paired_assets,
-                    dex_name,
-                )
-            }
-            DexAction::WithdrawLiquidity { lp_token, amount } => {
-                withdraw_liquidity(deps.as_ref(), env, info, api, (lp_token, amount), dex_name)
-            }
+    let RequestMsg {
+        dex: dex_name,
+        action,
+    } = msg;
+    let exchange = resolve_exchange(dex_name)?;
+    // if !exchange.over_ibc() {
+    //     todo!()
+    //     match action {
+    //         DexAction::ProvideLiquidity { assets, max_spread } => {
+    //             if assets.len() < 2 {
+    //                 return Err(DexError::TooFewAssets {});
+    //             }
+    //             provide_liquidity(deps.as_ref(), env, info, api, assets, dex_name, max_spread)
+    //         }
+    //         DexAction::ProvideLiquiditySymmetric {
+    //             offer_asset,
+    //             paired_assets,
+    //         } => {
+    //             if paired_assets.is_empty() {
+    //                 return Err(DexError::TooFewAssets {});
+    //             }
+    //             provide_liquidity_symmetric(
+    //                 deps.as_ref(),
+    //                 env,
+    //                 info,
+    //                 api,
+    //                 offer_asset,
+    //                 paired_assets,
+    //                 dex_name,
+    //             )
+    //         }
+    //         DexAction::WithdrawLiquidity { lp_token, amount } => {
+    //             withdraw_liquidity(deps.as_ref(), env, info, api, (lp_token, amount), dex_name)
+    //         }
 
-            DexAction::Swap {
-                offer_asset,
-                ask_asset,
-                max_spread,
-                belief_price,
-            } => swap(
-                deps.as_ref(),
-                env,
-                info,
-                api,
-                offer_asset,
-                ask_asset,
-                dex_name,
-                max_spread,
-                belief_price,
-            ),
-        }
-    }
+    //         DexAction::Swap {
+    //             offer_asset,
+    //             ask_asset,
+    //             max_spread,
+    //             belief_price,
+    //         } => swap(
+    //             deps.as_ref(),
+    //             env,
+    //             info,
+    //             api,
+    //             offer_asset,
+    //             ask_asset,
+    //             dex_name,
+    //             max_spread,
+    //             belief_price,
+    //         ),
+    //     }
+    // }
+    todo!()
 }
 
 // pub fn handle_ibc_callback(

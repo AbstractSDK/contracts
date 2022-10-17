@@ -38,7 +38,7 @@ pub fn query_contract(deps: Deps, _env: Env, names: Vec<ContractEntry>) -> StdRe
 }
 
 pub fn query_channel(deps: Deps, _env: Env, names: Vec<ChannelEntry>) -> StdResult<Binary> {
-    let res: Result<Vec<(ChannelEntry, Addr)>, _> = CHANNELS
+    let res: Result<Vec<(ChannelEntry, String)>, _> = CHANNELS
         .range(deps.storage, None, None, Order::Ascending)
         .filter(|e| names.contains(&e.as_ref().unwrap().0))
         .collect();

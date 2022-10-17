@@ -1,8 +1,8 @@
 use abstract_ibc_host::chains::OSMOSIS;
 use abstract_ibc_host::Host;
 use abstract_ibc_host::HostError;
-use abstract_os::host::{BaseInstantiateMsg, MigrateMsg, QueryMsg};
-use abstract_os::{dex::RequestMsg, host::PacketMsg, EXCHANGE, OSMOSIS_HOST};
+use abstract_os::ibc_host::{BaseInstantiateMsg, MigrateMsg, QueryMsg};
+use abstract_os::{dex::RequestMsg, EXCHANGE, OSMOSIS_HOST};
 
 use cosmwasm_std::{
     entry_point, Binary, Deps, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo,
@@ -60,72 +60,73 @@ fn handle_packet(
     host: OsmoHost,
     packet: RequestMsg,
 ) -> Result<IbcReceiveResponse, HostError> {
-    match packet {
-        RequestMsg::ProvideLiquidity {
-            assets,
-            dex,
-            max_spread,
-        } => {
-            todo!()
-            // let dex_name = dex.unwrap();
-            // if assets.len() < 2 {
-            //     return Err(DexError::TooFewAssets {});
-            // }
-            // provide_liquidity(deps.as_ref(), env, info, api, assets, dex_name, max_spread)
-        }
-        RequestMsg::ProvideLiquiditySymmetric {
-            offer_asset,
-            paired_assets,
-            dex,
-        } => {
-            todo!()
-            // let dex_name = dex.unwrap();
-            // if paired_assets.is_empty() {
-            //     return Err(DexError::TooFewAssets {});
-            // }
-            // provide_liquidity_symmetric(
-            //     deps.as_ref(),
-            //     env,
-            //     info,
-            //     api,
-            //     offer_asset,
-            //     paired_assets,
-            //     dex_name,
-            // )
-        }
-        RequestMsg::WithdrawLiquidity {
-            lp_token,
-            amount,
-            dex,
-        } => {
-            todo!()
-            // let dex_name = dex.unwrap();
-            // withdraw_liquidity(deps.as_ref(), env, info, api, (lp_token, amount), dex_name)
-        }
+    todo!()
+    // match packet {
+    //     RequestMsg::ProvideLiquidity {
+    //         assets,
+    //         dex,
+    //         max_spread,
+    //     } => {
+    //         todo!()
+    //         // let dex_name = dex.unwrap();
+    //         // if assets.len() < 2 {
+    //         //     return Err(DexError::TooFewAssets {});
+    //         // }
+    //         // provide_liquidity(deps.as_ref(), env, info, api, assets, dex_name, max_spread)
+    //     }
+    //     RequestMsg::ProvideLiquiditySymmetric {
+    //         offer_asset,
+    //         paired_assets,
+    //         dex,
+    //     } => {
+    //         todo!()
+    //         // let dex_name = dex.unwrap();
+    //         // if paired_assets.is_empty() {
+    //         //     return Err(DexError::TooFewAssets {});
+    //         // }
+    //         // provide_liquidity_symmetric(
+    //         //     deps.as_ref(),
+    //         //     env,
+    //         //     info,
+    //         //     api,
+    //         //     offer_asset,
+    //         //     paired_assets,
+    //         //     dex_name,
+    //         // )
+    //     }
+    //     RequestMsg::WithdrawLiquidity {
+    //         lp_token,
+    //         amount,
+    //         dex,
+    //     } => {
+    //         todo!()
+    //         // let dex_name = dex.unwrap();
+    //         // withdraw_liquidity(deps.as_ref(), env, info, api, (lp_token, amount), dex_name)
+    //     }
 
-        RequestMsg::Swap {
-            offer_asset,
-            ask_asset,
-            dex,
-            max_spread,
-            belief_price,
-        } => {
-            todo!()
-            // add default dex in future (osmosis??)
-            // let dex_name = dex.unwrap();
-            // swap(
-            //     deps.as_ref(),
-            //     env,
-            //     info,
-            //     api,
-            //     offer_asset,
-            //     ask_asset,
-            //     dex_name,
-            //     max_spread,
-            //     belief_price,
-            // )
-        }
-    }
+    //     RequestMsg::Swap {
+    //         offer_asset,
+    //         ask_asset,
+    //         dex,
+    //         max_spread,
+    //         belief_price,
+    //     } => {
+    //         todo!()
+    //         // add default dex in future (osmosis??)
+    //         // let dex_name = dex.unwrap();
+    //         // swap(
+    //         //     deps.as_ref(),
+    //         //     env,
+    //         //     info,
+    //         //     api,
+    //         //     offer_asset,
+    //         //     ask_asset,
+    //         //     dex_name,
+    //         //     max_spread,
+    //         //     belief_price,
+    //         // )
+    //     }
+    // }
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]

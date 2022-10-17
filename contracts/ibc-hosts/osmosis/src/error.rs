@@ -1,4 +1,4 @@
-use abstract_host::HostError;
+use abstract_ibc_host::HostError;
 use cosmwasm_std::StdError;
 use dex::error::DexError;
 use thiserror::Error;
