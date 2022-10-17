@@ -8,8 +8,7 @@ use cosmwasm_std::{
 };
 
 use abstract_os::simple_ica::{
-    check_order, check_version, BalancesResponse, RegisterResponse, StdAck,
-    WhoAmIResponse,
+    check_order, check_version, BalancesResponse, RegisterResponse, StdAck, WhoAmIResponse,
 };
 
 use crate::error::ClientError;
@@ -123,9 +122,13 @@ pub fn ibc_packet_ack(
         }
         HostAction::Balances { .. } => acknowledge_balances(deps, env, channel_id, os_id, res),
         HostAction::App { msg: _ } => todo!(), // acknowledge_app(deps, env, callback_info, res),
-        HostAction::SendAllBack { os_proxy_address: _ } => todo!(),
+        HostAction::SendAllBack {
+            os_proxy_address: _,
+        } => todo!(),
         HostAction::Internal(InternalAction::WhoAmI) => acknowledge_who_am_i(deps, channel_id, res),
-        HostAction::Internal(InternalAction::Register) => acknowledge_register(deps,channel_id,os_id,res),
+        HostAction::Internal(InternalAction::Register) => {
+            acknowledge_register(deps, channel_id, os_id, res)
+        }
     }
 }
 

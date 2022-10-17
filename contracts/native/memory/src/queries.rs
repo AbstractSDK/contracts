@@ -43,9 +43,7 @@ pub fn query_channel(deps: Deps, _env: Env, names: Vec<ChannelEntry>) -> StdResu
         .filter(|e| names.contains(&e.as_ref().unwrap().0))
         .collect();
 
-    to_binary(&ChannelsResponse {
-        channels: res?,
-    })
+    to_binary(&ChannelsResponse { channels: res? })
 }
 
 pub fn query_asset_list(

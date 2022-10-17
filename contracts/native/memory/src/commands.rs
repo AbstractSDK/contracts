@@ -1,6 +1,4 @@
-use abstract_os::objects::{
-    UncheckedChannelEntry, UncheckedContractEntry,
-};
+use abstract_os::objects::{UncheckedChannelEntry, UncheckedContractEntry};
 use cosmwasm_std::Env;
 use cosmwasm_std::{Addr, DepsMut, Empty, MessageInfo, Response, StdResult};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};

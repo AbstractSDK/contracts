@@ -1,15 +1,10 @@
-use std::{
-    convert::{TryInto},
-    fmt::Display,
-};
+use std::{convert::TryInto, fmt::Display};
 
 use cosmwasm_std::{StdError, StdResult};
 
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-
-
 
 /// Key to get the Address of a connected_chain
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord)]

@@ -7,13 +7,7 @@ use abstract_os::{
 
 use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response};
 
-use crate::{
-    commands::{
-        resolve_exchange,
-    },
-    error::DexError,
-    queries::simulate_swap,
-};
+use crate::{commands::resolve_exchange, error::DexError, queries::simulate_swap};
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub type DexApi<'a> = ApiContract<'a, RequestMsg>;

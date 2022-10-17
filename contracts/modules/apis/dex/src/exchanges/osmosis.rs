@@ -4,9 +4,7 @@ use crate::{
     DEX,
 };
 
-use cosmwasm_std::{
-    Addr, Decimal, Deps, Uint128,
-};
+use cosmwasm_std::{Addr, Decimal, Deps, Uint128};
 use cw_asset::{Asset, AssetInfo};
 
 pub const OSMOSIS: &str = "osmosis";

@@ -1,16 +1,12 @@
 use crate::simple_ica::StdAck;
-use cosmwasm_std::{
-    from_slice, Binary, Coin, CosmosMsg, StdResult, Timestamp,
-};
-
+use cosmwasm_std::{from_slice, Binary, Coin, CosmosMsg, StdResult, Timestamp};
 
 use simple_ica::IbcResponseMsg;
 
-use crate::ibc_host::{HostAction};
+use crate::ibc_host::HostAction;
 
 use self::state::AccountData;
 pub mod state {
-    
 
     use super::LatestQueryResponse;
     use crate::{objects::memory::Memory, MEMORY as MEMORY_KEY};

@@ -6,8 +6,8 @@ use abstract_os::{
 
 use abstract_sdk::{MemoryOperation, Resolve};
 use cosmwasm_std::{
-    from_binary, from_slice, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse,
-    MessageInfo, Response,
+    from_binary, from_slice, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo,
+    Response,
 };
 use serde::{de::DeserializeOwned, Serialize};
 

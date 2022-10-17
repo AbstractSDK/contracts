@@ -1,15 +1,11 @@
-use abstract_os::{
-    api::ApiRequestMsg,
-};
+use abstract_os::api::ApiRequestMsg;
 use abstract_sdk::{
     api_request,
     manager::query_module_address,
     proxy::{os_ibc_action, os_module_action},
     Dependency, MemoryOperation, OsExecute,
 };
-use cosmwasm_std::{
-    Addr, CosmosMsg, Deps, Response, StdError, StdResult, Storage,
-};
+use cosmwasm_std::{Addr, CosmosMsg, Deps, Response, StdError, StdResult, Storage};
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{ApiContract, ApiError};

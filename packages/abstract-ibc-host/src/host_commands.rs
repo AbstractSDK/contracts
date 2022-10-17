@@ -3,8 +3,8 @@ use abstract_os::simple_ica::{
     RegisterResponse, SendAllBackResponse, StdAck, WhoAmIResponse, IBC_APP_VERSION,
 };
 use cosmwasm_std::{
-    entry_point, to_binary, to_vec, wasm_execute, Binary, ContractResult, CosmosMsg, Deps,
-    DepsMut, Empty, Env, Event, Ibc3ChannelOpenResponse, IbcBasicResponse, IbcChannelCloseMsg,
+    entry_point, to_binary, to_vec, wasm_execute, Binary, ContractResult, CosmosMsg, Deps, DepsMut,
+    Empty, Env, Event, Ibc3ChannelOpenResponse, IbcBasicResponse, IbcChannelCloseMsg,
     IbcChannelConnectMsg, IbcChannelOpenMsg, IbcChannelOpenResponse, IbcMsg, IbcPacketAckMsg,
     IbcPacketTimeoutMsg, IbcReceiveResponse, Order, QuerierWrapper, QueryRequest, Reply, Response,
     StdError, StdResult, SubMsg, SystemResult, WasmMsg,
