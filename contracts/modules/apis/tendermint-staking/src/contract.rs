@@ -43,7 +43,7 @@ pub fn execute(
     info: MessageInfo,
     msg: ExecuteMsg<RequestMsg>,
 ) -> TendermintStakeResult {
-    STAKING_API.handle_request(deps, env, info, msg, handle_api_request)
+    STAKING_API.handle_request(deps, env, info, msg, handle_api_request, None)
 }
 
 pub fn handle_api_request(

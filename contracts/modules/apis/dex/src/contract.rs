@@ -1,7 +1,7 @@
 use abstract_api::{ApiContract, ApiResult};
 use abstract_os::{
     api::{BaseInstantiateMsg, ExecuteMsg, QueryMsg},
-    dex::{ApiQueryMsg, RequestMsg},
+    dex::{ApiQueryMsg, RequestMsg, DexAction},
     simple_ica::StdAck,
     EXCHANGE,
 };
@@ -9,7 +9,7 @@ use abstract_os::{
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response};
 
 use crate::{
-    commands::{provide_liquidity, provide_liquidity_symmetric, swap, withdraw_liquidity},
+    commands::{provide_liquidity, provide_liquidity_symmetric, swap, withdraw_liquidity, resolve_exchange},
     error::DexError,
     queries::simulate_swap,
 };
@@ -46,7 +46,8 @@ pub fn execute(
         info,
         msg,
         handle_api_request,
-        Some(handle_ibc_callback),
+        None
+        // Some(handle_ibc_callback),
     )
 }
 
@@ -57,24 +58,23 @@ pub fn handle_api_request(
     api: DexApi,
     msg: RequestMsg,
 ) -> DexResult {
-    match msg {
-        RequestMsg::ProvideLiquidity {
+    let RequestMsg { dex, action } = msg;
+    let exchange = resolve_exchange(dex)?;
+    if !exchange.over_ibc() {
+    match action {
+        DexAction::ProvideLiquidity {
             assets,
-            dex,
             max_spread,
         } => {
-            let dex_name = dex.unwrap();
             if assets.len() < 2 {
                 return Err(DexError::TooFewAssets {});
             }
             provide_liquidity(deps.as_ref(), env, info, api, assets, dex_name, max_spread)
         }
-        RequestMsg::ProvideLiquiditySymmetric {
+        DexAction::ProvideLiquiditySymmetric {
             offer_asset,
             paired_assets,
-            dex,
         } => {
-            let dex_name = dex.unwrap();
             if paired_assets.is_empty() {
                 return Err(DexError::TooFewAssets {});
             }
@@ -88,24 +88,19 @@ pub fn handle_api_request(
                 dex_name,
             )
         }
-        RequestMsg::WithdrawLiquidity {
+        DexAction::WithdrawLiquidity {
             lp_token,
             amount,
-            dex,
         } => {
-            let dex_name = dex.unwrap();
             withdraw_liquidity(deps.as_ref(), env, info, api, (lp_token, amount), dex_name)
         }
 
-        RequestMsg::Swap {
+        DexAction::Swap {
             offer_asset,
             ask_asset,
-            dex,
             max_spread,
             belief_price,
         } => {
-            // add default dex in future (osmosis??)
-            let dex_name = dex.unwrap();
             swap(
                 deps.as_ref(),
                 env,
@@ -119,18 +114,18 @@ pub fn handle_api_request(
             )
         }
     }
+    }
 }
 
-pub fn handle_ibc_callback(
-    deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    api: DexApi,
-    id: String,
-    msg: StdAck,
-) -> DexResult {
-    todo!()
-}
+// pub fn handle_ibc_callback(
+//     deps: DepsMut,
+//     env: Env,
+//     info: MessageInfo,
+//     api: DexApi,
+//     id: String,
+//     msg: StdAck,
+// ) -> DexResult {
+// }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg<ApiQueryMsg>) -> Result<Binary, DexError> {

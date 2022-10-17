@@ -92,7 +92,10 @@ pub fn provide_liquidity(
             .collect::<Vec<&AssetEntry>>()
             .as_mut(),
     )?;
-    exchange.provide_liquidity(deps, api, pair_address, assets, max_spread)
+    if !exchange.over_ibc() {
+        exchange.provide_liquidity(deps, api, pair_address, assets, max_spread)
+    }
+
 }
 
 pub fn provide_liquidity_symmetric(
