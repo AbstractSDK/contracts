@@ -10,11 +10,11 @@ use cosmwasm_std::{
 };
 use cw_storage_plus::Item;
 
-use crate::ADMIN;
+use crate::{ADMIN, OsAction};
 // Re-export os-id query as proxy is also core-contract.
 pub use crate::manager::query_os_id;
 /// Constructs the proxy dapp action message to execute CosmosMsgs on the Proxy.
-pub fn os_module_action(msgs: Vec<CosmosMsg>, proxy_address: &Addr) -> StdResult<CosmosMsg<Empty>> {
+pub fn os_module_action(msgs: Vec<CosmosMsg>, proxy_address: &Addr) -> StdResult<OsAction> {
     Ok(CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: proxy_address.to_string(),
         msg: to_binary(&ExecuteMsg::ModuleAction { msgs })?,
@@ -25,7 +25,7 @@ pub fn os_module_action(msgs: Vec<CosmosMsg>, proxy_address: &Addr) -> StdResult
 pub fn os_ibc_action(
     msgs: Vec<ibc_client::ExecuteMsg>,
     proxy_address: &Addr,
-) -> StdResult<CosmosMsg<Empty>> {
+) -> StdResult<OsAction> {
     Ok(CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: proxy_address.to_string(),
         msg: to_binary(&ExecuteMsg::IbcAction { msgs })?,
