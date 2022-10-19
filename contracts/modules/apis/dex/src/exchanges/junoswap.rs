@@ -94,7 +94,7 @@ impl DEX for JunoSwap {
             )?
             .into()],
             AssetInfoBase::Cw1155(..) => return Err(DexError::Cw1155Unsupported {}),
-            _ => todo!(),
+            _ => panic!("unsupported asset"),
         };
         api.os_execute(deps, msgs).map_err(From::from)
     }
@@ -299,13 +299,13 @@ fn denom_and_asset_match(denom: &Denom, asset: &AssetInfo) -> Result<bool, DexEr
             cw_asset::AssetInfoBase::Native(asset_name) => Ok(denom_name == asset_name),
             cw_asset::AssetInfoBase::Cw20(_asset_addr) => Ok(false),
             cw_asset::AssetInfoBase::Cw1155(_, _) => Err(DexError::Cw1155Unsupported),
-            _ => todo!(),
+            _ => panic!("unsupported asset"),
         },
         Denom::Cw20(denom_addr) => match asset {
             cw_asset::AssetInfoBase::Native(_asset_name) => Ok(false),
             cw_asset::AssetInfoBase::Cw20(asset_addr) => Ok(denom_addr == asset_addr),
             cw_asset::AssetInfoBase::Cw1155(_, _) => Err(DexError::Cw1155Unsupported),
-            _ => todo!(),
+            _ => panic!("unsupported asset"),
         },
     }
 }
