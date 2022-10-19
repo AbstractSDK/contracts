@@ -2,7 +2,7 @@ use abstract_os::{
     ibc_client::{CallbackInfo, ExecuteMsg as IbcClientMsg},
     ibc_host::HostAction,
 };
-use cosmwasm_std::{Addr, Coin, CosmosMsg, StdError};
+use cosmwasm_std::{Addr, Coin, StdError};
 
 use crate::{proxy::os_ibc_action, OsAction};
 

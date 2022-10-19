@@ -5,7 +5,7 @@ use abstract_os::{
     proxy::{state::VAULT_ASSETS, AssetsResponse, ExecuteMsg, QueryMsg, TotalValueResponse},
 };
 use cosmwasm_std::{
-    to_binary, Addr, CosmosMsg, Deps, Empty, QuerierWrapper, QueryRequest, StdError, StdResult,
+    to_binary, Addr, CosmosMsg, Deps, QuerierWrapper, QueryRequest, StdError, StdResult,
     Uint128, WasmMsg, WasmQuery,
 };
 use cw_storage_plus::Item;

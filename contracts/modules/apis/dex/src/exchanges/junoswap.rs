@@ -1,10 +1,9 @@
 use crate::{
-    contract::{DexApi, DexResult},
     error::DexError,
     DEX,
 };
 
-use abstract_sdk::OsExecute;
+
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, Fraction, QueryRequest,
     StdResult, Uint128, WasmMsg, WasmQuery,
@@ -216,7 +215,7 @@ impl DEX for JunoSwap {
 
     fn withdraw_liquidity(
         &self,
-        deps: Deps,
+        _deps: Deps,
         pair_address: Addr,
         lp_token: Asset,
     ) -> Result<Vec<CosmosMsg>, DexError> {

@@ -148,7 +148,7 @@ fn assets_to_transfer(deps: Deps, dex_action: &DexAction, memory: &Memory) -> St
     let offer_to_coin = |offer: &(AssetEntry, Uint128)| {
         Asset {
             info: offer.0.resolve(deps, memory)?,
-            amount: offer.1.clone(),
+            amount: offer.1,
         }
         .try_into()
     };
