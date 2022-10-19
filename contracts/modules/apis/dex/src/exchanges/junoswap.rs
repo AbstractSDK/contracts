@@ -1,8 +1,4 @@
-use crate::{
-    error::DexError,
-    DEX,
-};
-
+use crate::{error::DexError, DEX};
 
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, Fraction, QueryRequest,
