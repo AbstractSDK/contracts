@@ -10,7 +10,7 @@ use cosmwasm_std::{
 };
 use cw_storage_plus::Item;
 
-use crate::{ADMIN, OsAction};
+use crate::{OsAction, ADMIN};
 // Re-export os-id query as proxy is also core-contract.
 pub use crate::manager::query_os_id;
 /// Constructs the proxy dapp action message to execute CosmosMsgs on the Proxy.
