@@ -78,6 +78,9 @@ pub fn provide_liquidity(
     max_spread: Option<Decimal>,
 ) -> DexResult {
     let exchange = resolve_exchange(dex)?;
+    // if !exchange.over_ibc() {
+    //     exchange.provide_liquidity(deps, api, pair_address, assets, max_spread)
+    // }
     let mut assets = vec![];
     for offer in &offer_assets {
         let info = api.resolve(deps, &offer.0)?;
@@ -93,9 +96,7 @@ pub fn provide_liquidity(
             .collect::<Vec<&AssetEntry>>()
             .as_mut(),
     )?;
-    // if !exchange.over_ibc() {
-    //     exchange.provide_liquidity(deps, api, pair_address, assets, max_spread)
-    // }
+    
     todo!()
 }
 
