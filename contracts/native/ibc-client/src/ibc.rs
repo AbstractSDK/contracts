@@ -121,10 +121,16 @@ pub fn ibc_packet_ack(
             acknowledge_query(deps, env, channel_id, os_id, callback_info, msg)
         }
         HostAction::Balances { .. } => acknowledge_balances(deps, env, channel_id, os_id, res),
-        HostAction::App { msg: _ } => todo!(), // acknowledge_app(deps, env, callback_info, res),
+        HostAction::App { msg: _ } => {
+            let response = IbcBasicResponse::new().add_attribute("action", "acknowledge_app");
+            maybe_add_callback(response, callback_info, msg).map_err(Into::into)
+        },
         HostAction::SendAllBack {
-            os_proxy_address: _,
-        } => todo!(),
+            ..
+        } => {
+            let response = IbcBasicResponse::new().add_attribute("action", "acknowledge_send_all_back");
+            maybe_add_callback(response, callback_info, msg).map_err(Into::into)
+        },
         HostAction::Internal(InternalAction::WhoAmI) => acknowledge_who_am_i(deps, channel_id, res),
         HostAction::Internal(InternalAction::Register) => {
             acknowledge_register(deps, channel_id, os_id, res)
@@ -141,14 +147,18 @@ fn acknowledge_dispatch(
     ack: IbcPacketAckMsg,
 ) -> Result<IbcBasicResponse, ClientError> {
     let res = IbcBasicResponse::new().add_attribute("action", "acknowledge_dispatch");
+    maybe_add_callback(res, callback_info, ack).map_err(Into::into)
+}
+#[inline(always)]
+fn maybe_add_callback(response: IbcBasicResponse, callback_info: Option<CallbackInfo>, ack: IbcPacketAckMsg) -> StdResult<IbcBasicResponse> {
     match callback_info {
         Some(info) => {
             let msg = info.to_callback_msg(&ack.acknowledgement.data)?;
             // Send IBC packet ack message to another contract
-            let res = res.add_message(msg);
-            Ok(res)
+            let response = response.add_message(msg);
+            Ok(response)
         }
-        None => Ok(res),
+        None => Ok(response),
     }
 }
 
