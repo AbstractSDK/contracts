@@ -1,13 +1,15 @@
 use abstract_api::{ApiContract, ApiResult};
 use abstract_os::{
     api::{BaseInstantiateMsg, ExecuteMsg, QueryMsg},
-    dex::{ApiQueryMsg, RequestMsg},
-    EXCHANGE,
+    dex::{ApiQueryMsg, DexAction, RequestMsg},
+    EXCHANGE, objects::AssetEntry, ibc_client::CallbackInfo,
 };
 
-use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response};
+use abstract_sdk::{memory::Memory, Resolve, ics20_transfer, host_ibc_action, MemoryOperation};
+use cosmwasm_std::{Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Uint128, to_binary};
+use cw_asset::Asset;
 
-use crate::{commands::resolve_exchange, error::DexError, queries::simulate_swap};
+use crate::{commands::*, error::DexError, queries::simulate_swap};
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub type DexApi<'a> = ApiContract<'a, RequestMsg>;
@@ -35,88 +37,85 @@ pub fn execute(
     info: MessageInfo,
     msg: ExecuteMsg<RequestMsg>,
 ) -> DexResult {
-    DEX_API.handle_request(
-        deps,
-        env,
-        info,
-        msg,
-        handle_api_request,
-        None, // Some(handle_ibc_callback),
-    )
+    DEX_API.handle_request(deps, env, info, msg, handle_api_request, None)
 }
 
 pub fn handle_api_request(
-    _deps: DepsMut,
-    _env: Env,
-    _info: MessageInfo,
-    _api: DexApi,
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    api: DexApi,
     msg: RequestMsg,
 ) -> DexResult {
     let RequestMsg {
         dex: dex_name,
-        action: _,
+        action,
     } = msg;
-    let _exchange = resolve_exchange(dex_name)?;
-    // if !exchange.over_ibc() {
-    //     todo!()
-    //     match action {
-    //         DexAction::ProvideLiquidity { assets, max_spread } => {
-    //             if assets.len() < 2 {
-    //                 return Err(DexError::TooFewAssets {});
-    //             }
-    //             provide_liquidity(deps.as_ref(), env, info, api, assets, dex_name, max_spread)
-    //         }
-    //         DexAction::ProvideLiquiditySymmetric {
-    //             offer_asset,
-    //             paired_assets,
-    //         } => {
-    //             if paired_assets.is_empty() {
-    //                 return Err(DexError::TooFewAssets {});
-    //             }
-    //             provide_liquidity_symmetric(
-    //                 deps.as_ref(),
-    //                 env,
-    //                 info,
-    //                 api,
-    //                 offer_asset,
-    //                 paired_assets,
-    //                 dex_name,
-    //             )
-    //         }
-    //         DexAction::WithdrawLiquidity { lp_token, amount } => {
-    //             withdraw_liquidity(deps.as_ref(), env, info, api, (lp_token, amount), dex_name)
-    //         }
-
-    //         DexAction::Swap {
-    //             offer_asset,
-    //             ask_asset,
-    //             max_spread,
-    //             belief_price,
-    //         } => swap(
-    //             deps.as_ref(),
-    //             env,
-    //             info,
-    //             api,
-    //             offer_asset,
-    //             ask_asset,
-    //             dex_name,
-    //             max_spread,
-    //             belief_price,
-    //         ),
-    //     }
-    // }
-    todo!()
+    let exchange = resolve_exchange(&dex_name)?;
+    // if exchange is on an app-chain, 
+    if exchange.over_ibc() {
+        let host_chain = dex_name;
+        let memory = api.load_memory(deps.storage)?;
+        // get the to-be-sent assets from the action
+        let coins = assets_to_transfer(deps.as_ref(), &action, &memory)?;
+        // construct the ics20 call
+        let ics20_transfer_msg = ics20_transfer(api.target()?, host_chain.clone(), coins)?;
+        // construct the action to be called on the host
+        let action = abstract_os::ibc_host::HostAction::App { msg: to_binary(&action)? };
+        let ibc_action_msg = host_ibc_action(api.target()?, host_chain, action, Some(CallbackInfo{
+            id: 20u16.to_string(),
+            receiver: env.contract.address.to_string(),
+        }))?;
+        // call both messages on the proxy 
+        Ok(Response::new().add_messages(vec![ics20_transfer_msg, ibc_action_msg]))
+    } else {
+        // the action can be executed on the local chain
+        match action {
+            DexAction::ProvideLiquidity { assets, max_spread } => {
+                if assets.len() < 2 {
+                    return Err(DexError::TooFewAssets {});
+                }
+                provide_liquidity(deps.as_ref(), env, info, api, assets, exchange, max_spread)
+            }
+            DexAction::ProvideLiquiditySymmetric {
+                offer_asset,
+                paired_assets,
+            } => {
+                if paired_assets.is_empty() {
+                    return Err(DexError::TooFewAssets {});
+                }
+                provide_liquidity_symmetric(
+                    deps.as_ref(),
+                    env,
+                    info,
+                    api,
+                    offer_asset,
+                    paired_assets,
+                    exchange,
+                )
+            }
+            DexAction::WithdrawLiquidity { lp_token, amount } => {
+                withdraw_liquidity(deps.as_ref(), env, info, api, (lp_token, amount), exchange)
+            }
+            DexAction::Swap {
+                offer_asset,
+                ask_asset,
+                max_spread,
+                belief_price,
+            } => swap(
+                deps.as_ref(),
+                env,
+                info,
+                api,
+                offer_asset,
+                ask_asset,
+                exchange,
+                max_spread,
+                belief_price,
+            ),
+        }
+    }
 }
-
-// pub fn handle_ibc_callback(
-//     deps: DepsMut,
-//     env: Env,
-//     info: MessageInfo,
-//     api: DexApi,
-//     id: String,
-//     msg: StdAck,
-// ) -> DexResult {
-// }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg<ApiQueryMsg>) -> Result<Binary, DexError> {
@@ -130,5 +129,39 @@ fn query_handler(deps: Deps, env: Env, msg: ApiQueryMsg) -> Result<Binary, DexEr
             ask_asset,
             dex,
         } => simulate_swap(deps, env, offer_asset, ask_asset, dex.unwrap()),
+    }
+}
+
+fn assets_to_transfer(deps: Deps, dex_action: &DexAction, memory: &Memory) -> StdResult<Vec<Coin>> {
+    // resolve asset to native asset
+    let offer_to_coin = |offer: &(AssetEntry,Uint128)| {
+        Asset {
+            info: offer.0.resolve(deps, memory)?,
+            amount: offer.1.clone(),
+        }
+        .try_into()
+    };
+
+    match dex_action {
+        DexAction::ProvideLiquidity { assets, max_spread } => {
+            let coins: Result<Vec<Coin>, _> = assets
+                .iter()
+                .map(offer_to_coin)
+                .collect();
+            coins
+        }
+        DexAction::ProvideLiquiditySymmetric {
+            offer_asset,
+            paired_assets,
+        } => Ok(vec![offer_to_coin(offer_asset)?]),
+        DexAction::WithdrawLiquidity { lp_token, amount } => {
+            Ok(vec![offer_to_coin(&(*lp_token,*amount))?])
+        },
+        DexAction::Swap {
+            offer_asset,
+            ask_asset,
+            max_spread,
+            belief_price,
+        } => Ok(vec![offer_to_coin(offer_asset)?]),
     }
 }
