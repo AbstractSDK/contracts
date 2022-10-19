@@ -56,7 +56,7 @@ pub fn swap(
     let pair_address = exchange.pair_address(deps, &api, &mut vec![&offer_asset, &ask_asset])?;
     let offer_asset: Asset = Asset::new(offer_asset_info, offer_amount);
 
-    let msg = exchange.swap(
+    let msgs = exchange.swap(
         deps,
         pair_address,
         offer_asset,
@@ -64,7 +64,7 @@ pub fn swap(
         belief_price,
         max_spread,
     )?;
-    api.os_execute(deps, vec![msg]).map_err(From::from)
+    api.os_execute(deps, msgs).map_err(From::from)
 }
 
 pub fn provide_liquidity(
@@ -91,8 +91,8 @@ pub fn provide_liquidity(
             .collect::<Vec<&AssetEntry>>()
             .as_mut(),
     )?;
-    let msg = exchange.provide_liquidity(deps, pair_address, assets, max_spread)?;
-    api.os_execute(deps, vec![msg]).map_err(From::from)
+    let msgs = exchange.provide_liquidity(deps, pair_address, assets, max_spread)?;
+    api.os_execute(deps, msgs).map_err(From::from)
 }
 
 pub fn provide_liquidity_symmetric(
@@ -111,9 +111,13 @@ pub fn provide_liquidity_symmetric(
     paired_assets.push(offer_asset.0.clone());
     let pair_address = exchange.pair_address(deps, &api, &mut paired_assets.iter().collect())?;
     let offer_asset = Asset::new(api.resolve(deps, &offer_asset.0)?, offer_asset.1);
-    let msg = exchange.provide_liquidity_symmetric(deps, pair_address, offer_asset, paired_asset_infos?)?;
-    api.os_execute(deps, vec![msg]).map_err(From::from)
-
+    let msgs = exchange.provide_liquidity_symmetric(
+        deps,
+        pair_address,
+        offer_asset,
+        paired_asset_infos?,
+    )?;
+    api.os_execute(deps, msgs).map_err(From::from)
 }
 
 pub fn withdraw_liquidity(
@@ -129,6 +133,6 @@ pub fn withdraw_liquidity(
     let pair_entry = UncheckedContractEntry::new(exchange.name(), lp_token.0.as_str()).check();
 
     let pair_address = api.resolve(deps, &pair_entry)?;
-    let msg = exchange.withdraw_liquidity(deps, pair_address, lp_asset)?;
-    api.os_execute(deps, vec![msg]).map_err(From::from)
+    let msgs = exchange.withdraw_liquidity(deps, pair_address, lp_asset)?;
+    api.os_execute(deps, msgs).map_err(From::from)
 }

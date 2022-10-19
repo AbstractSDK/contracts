@@ -26,13 +26,12 @@ impl DEX for JunoSwap {
     fn swap(
         &self,
         deps: Deps,
-        api: DexApi,
         pair_address: Addr,
         offer_asset: Asset,
         ask_asset: AssetInfo,
         belief_price: Option<Decimal>,
         max_spread: Option<Decimal>,
-    ) -> DexResult {
+    ) -> Result<Vec<CosmosMsg>, DexError> {
         let pair_config: InfoResponse =
             deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
                 contract_addr: pair_address.to_string(),
@@ -96,17 +95,16 @@ impl DEX for JunoSwap {
             AssetInfoBase::Cw1155(..) => return Err(DexError::Cw1155Unsupported {}),
             _ => panic!("unsupported asset"),
         };
-        api.os_execute(deps, msgs).map_err(From::from)
+        Ok(msgs)
     }
 
     fn provide_liquidity(
         &self,
         deps: Deps,
-        api: DexApi,
         pair_address: Addr,
         offer_assets: Vec<Asset>,
         max_spread: Option<Decimal>,
-    ) -> DexResult {
+    ) -> Result<Vec<CosmosMsg>, DexError> {
         if offer_assets.len() > 2 {
             return Err(DexError::TooManyAssets(2));
         }
@@ -149,17 +147,16 @@ impl DEX for JunoSwap {
             funds: coins,
         });
         msgs.push(junoswap_msg);
-        api.os_execute(deps, msgs).map_err(From::from)
+        Ok(msgs)
     }
 
     fn provide_liquidity_symmetric(
         &self,
         deps: Deps,
-        api: DexApi,
         pair_address: Addr,
         offer_asset: Asset,
         other_assets: Vec<AssetInfo>,
-    ) -> DexResult {
+    ) -> Result<Vec<CosmosMsg>, DexError> {
         if other_assets.len() > 1 {
             return Err(DexError::TooManyAssets(2));
         }
@@ -214,16 +211,15 @@ impl DEX for JunoSwap {
             funds: coins,
         });
         msgs.push(junoswap_msg);
-        api.os_execute(deps, msgs).map_err(From::from)
+        Ok(msgs)
     }
 
     fn withdraw_liquidity(
         &self,
         deps: Deps,
-        api: &DexApi,
         pair_address: Addr,
         lp_token: Asset,
-    ) -> DexResult {
+    ) -> Result<Vec<CosmosMsg>, DexError> {
         // approve lp token spend
         let mut msgs = cw_approve_msgs(&[lp_token.clone()], &pair_address)?;
         // dex msg
@@ -238,7 +234,7 @@ impl DEX for JunoSwap {
             vec![],
         )?;
         msgs.push(junoswap_msg.into());
-        api.os_execute(deps, msgs).map_err(From::from)
+        Ok(msgs)
     }
 
     fn simulate_swap(

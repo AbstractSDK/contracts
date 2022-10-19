@@ -10,6 +10,8 @@ use crate::objects::{AssetEntry, ContractEntry};
 type DexName = String;
 pub type OfferAsset = (AssetEntry, Uint128);
 
+pub const IBC_DEX_ID: u32 = 11335;
+
 #[cosmwasm_schema::cw_serde]
 /// Possible actions to perform on the DEX
 pub enum DexAction {
