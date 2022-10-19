@@ -3,7 +3,7 @@ use std::fs::create_dir_all;
 
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 
-use simple_ica::msg::{
+use abstract_os::ibc_client::{
     AccountResponse, ConfigResponse, ExecuteMsg, InstantiateMsg, ListAccountsResponse, QueryMsg,
 };
 
@@ -16,7 +16,7 @@ fn main() {
     export_schema(&schema_for!(ExecuteMsg), &out_dir);
     export_schema(&schema_for!(InstantiateMsg), &out_dir);
     export_schema(&schema_for!(QueryMsg), &out_dir);
-    export_schema(&schema_for!(AdminResponse), &out_dir);
+    export_schema(&schema_for!(ConfigResponse), &out_dir);
     export_schema(&schema_for!(AccountResponse), &out_dir);
     export_schema(&schema_for!(ListAccountsResponse), &out_dir);
 }
