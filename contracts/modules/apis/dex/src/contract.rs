@@ -9,7 +9,7 @@ use abstract_os::{
 
 use abstract_sdk::{host_ibc_action, ics20_transfer, memory::Memory, MemoryOperation, Resolve};
 use cosmwasm_std::{
-    entry_point, to_binary, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
+    to_binary, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
     Uint128,
 };
 use cw_asset::Asset;

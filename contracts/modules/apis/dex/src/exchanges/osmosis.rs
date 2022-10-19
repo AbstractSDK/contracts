@@ -1,11 +1,10 @@
 use crate::{
-    contract::{DexApi, DexResult},
     dex_trait::{Fee, FeeOnInput, Return, Spread},
     error::DexError,
     DEX,
 };
 
-use cosmwasm_std::{Addr, Decimal, Deps, Uint128};
+use cosmwasm_std::{Addr, Decimal, Deps};
 use cw_asset::{Asset, AssetInfo};
 
 pub const OSMOSIS: &str = "osmosis";
@@ -22,51 +21,51 @@ impl DEX for Osmosis {
 
     fn swap(
         &self,
-        deps: Deps,
-        pair_address: Addr,
-        offer_asset: Asset,
-        ask_asset: AssetInfo,
-        belief_price: Option<Decimal>,
-        max_spread: Option<Decimal>,
+        _deps: Deps,
+        _pair_address: Addr,
+        _offer_asset: Asset,
+        _ask_asset: AssetInfo,
+        _belief_price: Option<Decimal>,
+        _max_spread: Option<Decimal>,
     ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
         todo!()
     }
 
     fn provide_liquidity(
         &self,
-        deps: Deps,
-        pair_address: Addr,
-        offer_assets: Vec<Asset>,
-        max_spread: Option<Decimal>,
+        _deps: Deps,
+        _pair_address: Addr,
+        _offer_assets: Vec<Asset>,
+        _max_spread: Option<Decimal>,
     ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
         todo!()
     }
 
     fn provide_liquidity_symmetric(
         &self,
-        deps: Deps,
-        pair_address: Addr,
-        offer_asset: Asset,
-        paired_assets: Vec<AssetInfo>,
+        _deps: Deps,
+        _pair_address: Addr,
+        _offer_asset: Asset,
+        _paired_assets: Vec<AssetInfo>,
     ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
         todo!()
     }
 
     fn withdraw_liquidity(
         &self,
-        deps: Deps,
-        pair_address: Addr,
-        lp_token: Asset,
+        _deps: Deps,
+        _pair_address: Addr,
+        _lp_token: Asset,
     ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
         todo!()
     }
 
     fn simulate_swap(
         &self,
-        deps: Deps,
-        pair_address: Addr,
-        offer_asset: Asset,
-        ask_asset: AssetInfo,
+        _deps: Deps,
+        _pair_address: Addr,
+        _offer_asset: Asset,
+        _ask_asset: AssetInfo,
     ) -> Result<(Return, Spread, Fee, FeeOnInput), DexError> {
         todo!()
     }
