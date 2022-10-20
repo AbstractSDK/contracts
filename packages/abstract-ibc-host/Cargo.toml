@@ -31,5 +31,5 @@ thiserror = { version = "1.0.21" }
 cw2 = "0.14.0"
 
 abstract-sdk = { version = "0.1.0", path = "../abstract-sdk" }
-abstract-os = {version = "0.1.0", path = "../abstract-os", features = ["ibc"]}
+abstract-os = {version = "0.1.0", path = "../abstract-os"}
 

@@ -31,4 +31,4 @@ cw2 = { version = "0.14" }
 cw20 = { version = "0.14" }
 cw20-base = { version = "0.14", features = ["library"] }
 
-simple-ica = {path = "../simple-ica", optional = true}
+simple-ica = {path = "../simple-ica"}

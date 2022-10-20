@@ -12,9 +12,7 @@ use cosmwasm_std::{
 };
 use serde::{de::DeserializeOwned, Serialize};
 
-#[cfg(feature = "ibc")]
 use simple_ica::{IbcResponseMsg, StdAck};
-#[cfg(feature = "ibc")]
 type IbcHandlerFn<T, C, RequestError> = Option<
     fn(
         DepsMut,

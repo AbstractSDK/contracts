@@ -17,7 +17,7 @@ default = []
 backtraces = ["cosmwasm-std/backtraces"]
 # # use library feature to disable all instantiate/execute/query exports
 library = []
-ibc = ["dep:simple-ica","abstract-os/ibc"]
+# ibc = ["dep:simple-ica","abstract-os/ibc"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -33,4 +33,4 @@ abstract-sdk = { version = "0.1.0", path = "../abstract-sdk" }
 abstract-os = {version = "0.1.0", path = "../abstract-os"}
 
 # Ibc deps
-simple-ica = {path = "../simple-ica", optional = true}
+simple-ica = {path = "../simple-ica"}
