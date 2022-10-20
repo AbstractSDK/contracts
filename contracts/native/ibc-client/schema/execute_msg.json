@@ -85,7 +85,8 @@
           "type": "object",
           "required": [
             "action",
-            "host_chain"
+            "host_chain",
+            "retries"
           ],
           "properties": {
             "action": {
@@ -110,6 +111,12 @@
             "host_chain": {
               "description": "host chain to be executed on Example: \"osmosis\"",
               "type": "string"
+            },
+            "retries": {
+              "description": "Number of retries if packet errors",
+              "type": "integer",
+              "format": "uint8",
+              "minimum": 0.0
             }
           },
           "additionalProperties": false
