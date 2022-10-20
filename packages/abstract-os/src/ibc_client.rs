@@ -54,6 +54,9 @@ pub struct InstantiateMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
+pub struct MigrateMsg {}
+
+#[cosmwasm_schema::cw_serde]
 pub struct CallbackInfo {
     pub id: String,
     pub receiver: String,

@@ -16,7 +16,7 @@ use crate::ibc::PACKET_LIFETIME;
 use abstract_os::ibc_client::state::{Config, ACCOUNTS, CHANNELS, CONFIG, LATEST_QUERIES, MEMORY};
 use abstract_os::ibc_client::{
     AccountInfo, AccountResponse, CallbackInfo, ConfigResponse, ExecuteMsg, InstantiateMsg,
-    LatestQueryResponse, ListAccountsResponse, QueryMsg,
+    LatestQueryResponse, ListAccountsResponse, QueryMsg, MigrateMsg,
 };
 
 const MAX_RETRIES: u8 = 5;
@@ -269,6 +269,16 @@ fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
         chain,
         version_control_address: version_control_address.into_string(),
     })
+}
+
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
+    // let version: Version = CONTRACT_VERSION.parse().unwrap();
+    // let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
+    // if storage_version < version {
+    //     set_contract_version(deps.storage, OSMOSIS_HOST, CONTRACT_VERSION)?;
+    // }
+    Ok(Response::default())
 }
 
 #[cfg(test)]
