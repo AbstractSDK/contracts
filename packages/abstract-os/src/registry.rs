@@ -28,3 +28,4 @@ pub static NATIVE_CONTRACTS: &[&str] =
     &[MEMORY, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL, "cw20"];
 pub static API_CONTRACTS: &[&str] = &[EXCHANGE, TENDERMINT_STAKING];
 pub static APPS: &[&str] = &[ETF];
+pub static CORE: &[&str] = &[MANAGER, PROXY];
