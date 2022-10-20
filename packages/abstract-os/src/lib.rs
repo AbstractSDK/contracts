@@ -38,6 +38,10 @@
 //! ```
 #[cfg(feature = "ibc")]
 pub extern crate simple_ica;
+#[cfg(feature = "ibc")]
+pub mod ibc_client;
+#[cfg(feature = "ibc")]
+pub mod ibc_host;
 
 pub use registry::*;
 
@@ -46,8 +50,6 @@ pub mod add_on;
 pub mod api;
 pub mod dex;
 pub mod etf;
-pub mod ibc_client;
-pub mod ibc_host;
 pub mod manager;
 pub mod memory;
 pub mod module_factory;
