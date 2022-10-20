@@ -28,6 +28,19 @@
         }
       },
       "additionalProperties": false
+    },
+    {
+      "description": "IbcReceive, only on IBC enabled API's",
+      "type": "object",
+      "required": [
+        "ibc_callback"
+      ],
+      "properties": {
+        "ibc_callback": {
+          "$ref": "#/definitions/IbcResponseMsg"
+        }
+      },
+      "additionalProperties": false
     }
   ],
   "definitions": {
@@ -107,6 +120,28 @@
           "additionalProperties": false
         }
       ]
+    },
+    "Binary": {
+      "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
+      "type": "string"
+    },
+    "IbcResponseMsg": {
+      "description": "IbcResponseMsg should be de/serialized under `Receive()` variant in a ExecuteMsg",
+      "type": "object",
+      "required": [
+        "id",
+        "msg"
+      ],
+      "properties": {
+        "id": {
+          "description": "The ID chosen by the caller in the `callback_id`",
+          "type": "string"
+        },
+        "msg": {
+          "$ref": "#/definitions/StdAck"
+        }
+      },
+      "additionalProperties": false
     },
     "RequestMsg": {
       "oneOf": [
@@ -272,6 +307,35 @@
             "withdraw_all_rewards": {
               "type": "object",
               "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "StdAck": {
+      "description": "This is a generic ICS acknowledgement format. Proto defined here: https://github.com/cosmos/cosmos-sdk/blob/v0.42.0/proto/ibc/core/channel/v1/channel.proto#L141-L147 If ibc_receive_packet returns Err(), then x/wasm runtime will rollback the state and return an error message in this format",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "result"
+          ],
+          "properties": {
+            "result": {
+              "$ref": "#/definitions/Binary"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "error"
+          ],
+          "properties": {
+            "error": {
+              "type": "string"
             }
           },
           "additionalProperties": false
