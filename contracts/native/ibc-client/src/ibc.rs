@@ -4,7 +4,7 @@ use cosmwasm_std::entry_point;
 use cosmwasm_std::{
     from_slice, to_binary, DepsMut, Env, Ibc3ChannelOpenResponse, IbcBasicResponse,
     IbcChannelCloseMsg, IbcChannelConnectMsg, IbcChannelOpenMsg, IbcMsg, IbcPacketAckMsg,
-    IbcPacketReceiveMsg, IbcPacketTimeoutMsg, IbcReceiveResponse, StdResult, IbcTimeout,
+    IbcPacketReceiveMsg, IbcPacketTimeoutMsg, IbcReceiveResponse, IbcTimeout, StdResult,
 };
 
 use abstract_os::simple_ica::{
@@ -122,7 +122,7 @@ pub fn ibc_packet_ack(
             }));
         }
     }
-    
+
     let PacketMsg {
         os_id,
         callback_info,

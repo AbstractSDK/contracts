@@ -19,7 +19,7 @@ pub fn host_ibc_action(
             host_chain,
             action,
             callback_info: callback,
-            retries
+            retries,
         }],
         proxy_address,
     )
