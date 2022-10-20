@@ -10,7 +10,6 @@
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
 use serde::Serialize;
-#[cfg(feature = "ibc")]
 use simple_ica::IbcResponseMsg;
 
 /// Used by Abstract to instantiate the contract
@@ -31,7 +30,6 @@ pub enum ExecuteMsg<T: Serialize> {
     /// A configuration message to whitelist traders.
     Configure(BaseExecuteMsg),
     /// IbcReceive, only on IBC enabled API's
-    #[cfg(feature = "ibc")]
     IbcCallback(IbcResponseMsg),
 }
 

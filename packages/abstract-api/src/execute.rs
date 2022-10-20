@@ -41,7 +41,7 @@ impl<'a, T: Serialize + DeserializeOwned, C: Serialize + DeserializeOwned> ApiCo
             ApiContract<T, C>,
             T,
         ) -> Result<Response, RequestError>,
-        #[cfg(feature = "ibc")] ibc_callback_handler: IbcHandlerFn<T, C, RequestError>,
+        ibc_callback_handler: IbcHandlerFn<T, C, RequestError>,
     ) -> Result<Response, RequestError> {
         let sender = &info.sender;
         match msg {
@@ -70,7 +70,6 @@ impl<'a, T: Serialize + DeserializeOwned, C: Serialize + DeserializeOwned> ApiCo
             ExecuteMsg::Configure(exec_msg) => self
                 .execute(deps, env, info.clone(), exec_msg)
                 .map_err(From::from),
-            #[cfg(feature = "ibc")]
             ExecuteMsg::IbcCallback(IbcResponseMsg { id, msg }) => {
                 if let Some(callback_fn) = ibc_callback_handler {
                     callback_fn(deps, env, info, self, id, msg)
