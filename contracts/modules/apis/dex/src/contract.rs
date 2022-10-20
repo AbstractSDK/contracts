@@ -19,6 +19,7 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub type DexApi<'a> = ApiContract<'a, RequestMsg>;
 pub type DexResult = Result<Response, DexError>;
 const DEX_API: DexApi<'static> = DexApi::new(&[]);
+const ACTION_RETRIES: u8 = 3;
 
 // Supported exchanges on XXX
 // ...
@@ -75,6 +76,7 @@ pub fn handle_api_request(
                 id: IBC_DEX_ID.to_string(),
                 receiver: env.contract.address.to_string(),
             }),
+            ACTION_RETRIES,
         )?;
         // call both messages on the proxy
         Ok(Response::new().add_messages(vec![ics20_transfer_msg, ibc_action_msg]))

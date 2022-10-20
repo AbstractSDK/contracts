@@ -12,12 +12,14 @@ pub fn host_ibc_action(
     host_chain: String,
     action: HostAction,
     callback: Option<CallbackInfo>,
+    retries: u8,
 ) -> Result<OsAction, StdError> {
     os_ibc_action(
         vec![IbcClientMsg::SendPacket {
             host_chain,
             action,
             callback_info: callback,
+            retries
         }],
         proxy_address,
     )

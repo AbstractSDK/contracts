@@ -19,6 +19,8 @@ use abstract_os::ibc_client::{
     LatestQueryResponse, ListAccountsResponse, QueryMsg,
 };
 
+const MAX_RETRIES: u8 = 5;
+
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
     deps: DepsMut,
@@ -57,7 +59,8 @@ pub fn execute(
             host_chain,
             action,
             callback_info,
-        } => execute_send_packet(deps, env, info, host_chain, action, callback_info),
+            retries,
+        } => execute_send_packet(deps, env, info, host_chain, action, callback_info, retries),
         // ExecuteMsg::CheckRemoteBalance { host_chain } => {
         //     execute_check_remote_balance(deps, env, info, host_chain).map_err(Into::into)
         // }
@@ -93,6 +96,7 @@ pub fn execute_send_packet(
     host_chain: String,
     action: HostAction,
     callback_info: Option<CallbackInfo>,
+    mut retries: u8,
 ) -> Result<Response, ClientError> {
     // auth check
     let cfg = CONFIG.load(deps.storage)?;
@@ -102,11 +106,15 @@ pub fn execute_send_packet(
     if let HostAction::Internal(_) = action {
         return Err(ClientError::ForbiddenInternalCall {});
     }
+    // Set max retries
+    retries = retries.min(MAX_RETRIES);
+
     // get os_id
     let os_id = query_os_id(&deps.querier, &core.manager)?;
     // ensure the channel exists and loads it.
     let channel = CHANNELS.load(deps.storage, &host_chain)?;
     let packet = PacketMsg {
+        retries,
         client_chain: cfg.chain,
         os_id,
         callback_info,
@@ -140,6 +148,7 @@ pub fn execute_register_os(
 
     // construct a packet to send
     let packet = PacketMsg {
+        retries: 0u8,
         client_chain: cfg.chain,
         os_id,
         callback_info: None,
@@ -157,42 +166,6 @@ pub fn execute_register_os(
         .add_attribute("action", "handle_register");
     Ok(res)
 }
-
-// pub fn execute_check_remote_balance(
-//     deps: DepsMut,
-//     env: Env,
-//     info: MessageInfo,
-//     host_chain: String,
-// ) -> StdResult<Response> {
-//     // auth check
-//     let cfg = CONFIG.load(deps.storage)?;
-//     // Verify that the sender is a proxy contract
-//     let core = verify_os_proxy(&deps.querier, &info.sender, &cfg.version_control_address)?;
-//     let channel_id = CHANNELS.load(deps.storage, &host_chain)?;
-//     // get os_id
-//     let os_id = query_os_id(&deps.querier, &core.manager)?;
-
-//     // ensure the channel exists (not found if not registered)
-//     let acc = ACCOUNTS.load(deps.storage, (&channel_id,os_id))?;
-
-//     // construct a packet to send
-//     let packet = PacketMsg {
-//         client_chain: cfg.chain,
-//         os_id,
-//         callback_info: None,
-//         action: HostAction::Balances {  },
-//     };
-//     let msg = IbcMsg::SendPacket {
-//         channel_id,
-//         data: to_binary(&packet)?,
-//         timeout: env.block.time.plus_seconds(PACKET_LIFETIME).into(),
-//     };
-
-//     let res = Response::new()
-//         .add_message(msg)
-//         .add_attribute("action", "handle_check_remote_balance");
-//     Ok(res)
-// }
 
 pub fn execute_send_funds(
     deps: DepsMut,

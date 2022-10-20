@@ -88,6 +88,8 @@ pub enum ExecuteMsg {
         action: HostAction,
         /// optional callback info
         callback_info: Option<CallbackInfo>,
+        /// Number of retries if packet errors
+        retries: u8,
     },
     // CheckRemoteBalance {
     //     host_chain: String,

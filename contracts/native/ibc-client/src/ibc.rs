@@ -4,7 +4,7 @@ use cosmwasm_std::entry_point;
 use cosmwasm_std::{
     from_slice, to_binary, DepsMut, Env, Ibc3ChannelOpenResponse, IbcBasicResponse,
     IbcChannelCloseMsg, IbcChannelConnectMsg, IbcChannelOpenMsg, IbcMsg, IbcPacketAckMsg,
-    IbcPacketReceiveMsg, IbcPacketTimeoutMsg, IbcReceiveResponse, StdResult,
+    IbcPacketReceiveMsg, IbcPacketTimeoutMsg, IbcReceiveResponse, StdResult, IbcTimeout,
 };
 
 use abstract_os::simple_ica::{
@@ -55,6 +55,7 @@ pub fn ibc_channel_connect(
         client_chain: cfg.chain,
         os_id: 0,
         callback_info: None,
+        retries: 0,
     };
 
     let _msg = IbcMsg::SendPacket {
@@ -107,13 +108,26 @@ pub fn ibc_packet_ack(
     // which local channel was this packet send from
     let channel_id = msg.original_packet.src.channel_id.clone();
     // we need to parse the ack based on our request
-    let original_packet: PacketMsg = from_slice(&msg.original_packet.data)?;
+    let mut original_packet: PacketMsg = from_slice(&msg.original_packet.data)?;
     let res: StdAck = from_slice(&msg.acknowledgement.data)?;
+    // retry if error
+    if let StdAck::Error(_) = res {
+        if original_packet.retries > 0 {
+            original_packet.retries -= 1;
+            // retry sending the packet
+            return Ok(IbcBasicResponse::new().add_message(IbcMsg::SendPacket {
+                channel_id: msg.original_packet.src.channel_id,
+                data: to_binary(&original_packet)?,
+                timeout: IbcTimeout::with_timestamp(env.block.time.plus_seconds(PACKET_LIFETIME)),
+            }));
+        }
+    }
+    
     let PacketMsg {
-        client_chain: _,
         os_id,
         callback_info,
         action,
+        ..
     } = original_packet;
     match action {
         HostAction::Dispatch { .. } => acknowledge_dispatch(deps, env, callback_info, msg),

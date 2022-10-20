@@ -56,11 +56,13 @@ impl HostAction {
     pub fn into_packet(
         self,
         os_id: u32,
+        retries: u8,
         client_chain: String,
         callback_info: Option<CallbackInfo>,
     ) -> PacketMsg {
         PacketMsg {
             client_chain,
+            retries,
             callback_info,
             os_id,
             action: self,
@@ -72,7 +74,10 @@ impl HostAction {
 pub struct PacketMsg {
     /// Chain of the client
     pub client_chain: String,
+    /// Amount of retries to attempt if packet returns with StdAck::Error
+    pub retries: u8,
     pub os_id: u32,
+    /// Callback performed after receiving an StdAck::Result
     pub callback_info: Option<CallbackInfo>,
     /// execute the custom host function
     pub action: HostAction,

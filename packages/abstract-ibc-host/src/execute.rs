@@ -43,8 +43,8 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
         let PacketMsg {
             client_chain,
             os_id,
-            callback_info: _,
             action,
+            ..
         } = from_slice(&packet.data)?;
         match action {
             HostAction::Internal(InternalAction::Register) => {
