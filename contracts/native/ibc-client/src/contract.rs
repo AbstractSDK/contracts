@@ -17,7 +17,7 @@ use crate::ibc::PACKET_LIFETIME;
 use abstract_os::ibc_client::state::{Config, ACCOUNTS, CHANNELS, CONFIG, LATEST_QUERIES, MEMORY};
 use abstract_os::ibc_client::{
     AccountInfo, AccountResponse, CallbackInfo, ConfigResponse, ExecuteMsg, InstantiateMsg,
-    LatestQueryResponse, ListAccountsResponse, MigrateMsg, QueryMsg,
+    LatestQueryResponse, ListAccountsResponse, MigrateMsg, QueryMsg, ListChannelsResponse,
 };
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 const MAX_RETRIES: u8 = 5;
@@ -231,6 +231,9 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<QueryResponse> {
         QueryMsg::ListAccounts {} => to_binary(&query_list_accounts(deps)?),
         QueryMsg::LatestQueryResult { chain, os_id } => {
             to_binary(&query_latest_ibc_query_result(deps, chain, os_id)?)
+        },
+        QueryMsg::ListChannels {  } => {
+            to_binary(&query_list_channels(deps)?)
         }
     }
 }
@@ -250,6 +253,7 @@ fn query_latest_ibc_query_result(
     LATEST_QUERIES.load(deps.storage, (&channel, os_id))
 }
 
+// TODO: paging
 fn query_list_accounts(deps: Deps) -> StdResult<ListAccountsResponse> {
     let accounts = ACCOUNTS
         .range(deps.storage, None, None, Order::Ascending)
@@ -260,6 +264,14 @@ fn query_list_accounts(deps: Deps) -> StdResult<ListAccountsResponse> {
         .collect::<StdResult<_>>()?;
     Ok(ListAccountsResponse { accounts })
 }
+
+fn query_list_channels(deps: Deps) -> StdResult<ListChannelsResponse> {
+    let channels = CHANNELS
+        .range(deps.storage, None, None, Order::Ascending)
+        .collect::<StdResult<_>>()?;
+    Ok(ListChannelsResponse { channels })
+}
+
 
 fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
     let Config {
