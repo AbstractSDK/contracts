@@ -1,7 +1,7 @@
 use abstract_os::ibc_host::{HostAction, InternalAction, PacketMsg};
 use abstract_os::objects::memory::Memory;
 use abstract_os::objects::ChannelEntry;
-use abstract_os::ICS20;
+use abstract_os::{ICS20, IBC_CLIENT};
 use abstract_sdk::proxy::query_os_id;
 use abstract_sdk::{os_module_action, verify_os_proxy, Resolve};
 #[cfg(not(feature = "library"))]
@@ -10,15 +10,16 @@ use cosmwasm_std::{
     to_binary, Coin, CosmosMsg, Deps, DepsMut, Env, IbcMsg, MessageInfo, Order, QueryResponse,
     Response, StdError, StdResult,
 };
+use cw2::set_contract_version;
 
 use crate::error::ClientError;
 use crate::ibc::PACKET_LIFETIME;
 use abstract_os::ibc_client::state::{Config, ACCOUNTS, CHANNELS, CONFIG, LATEST_QUERIES, MEMORY};
 use abstract_os::ibc_client::{
     AccountInfo, AccountResponse, CallbackInfo, ConfigResponse, ExecuteMsg, InstantiateMsg,
-    LatestQueryResponse, ListAccountsResponse, QueryMsg, MigrateMsg,
+    LatestQueryResponse, ListAccountsResponse, MigrateMsg, QueryMsg,
 };
-
+const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 const MAX_RETRIES: u8 = 5;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -40,6 +41,8 @@ pub fn instantiate(
             address: deps.api.addr_validate(&msg.memory_address)?,
         },
     )?;
+    set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
+
 
     Ok(Response::new().add_attribute("action", "instantiate"))
 }
@@ -272,11 +275,13 @@ fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
+pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
+    set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
+
     // let version: Version = CONTRACT_VERSION.parse().unwrap();
     // let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
     // if storage_version < version {
-    //     set_contract_version(deps.storage, OSMOSIS_HOST, CONTRACT_VERSION)?;
+        // set_contract_version(deps.storage, OSMOSIS_HOST, CONTRACT_VERSION)?;
     // }
     Ok(Response::default())
 }
