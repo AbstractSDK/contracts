@@ -36,11 +36,8 @@
 //! ```no_run
 //! use abstract_os::PROXY;
 //! ```
-#[cfg(feature = "ibc")]
 pub extern crate simple_ica;
-#[cfg(feature = "ibc")]
 pub mod ibc_client;
-#[cfg(feature = "ibc")]
 pub mod ibc_host;
 
 pub use registry::*;
