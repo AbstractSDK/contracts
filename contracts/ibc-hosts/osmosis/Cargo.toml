@@ -1,5 +1,5 @@
 [package]
-name = "osmosis-outpost"
+name = "osmosis-host"
 version = "0.1.0"
 authors = ["CyberHoward <cyberhoward@users.noreply.github.com>"]
 edition = "2021"

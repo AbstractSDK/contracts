@@ -109,6 +109,8 @@ pub enum QueryMsg {
     Account { chain: String, os_id: u32 },
     // Get remote account info for a chain + OS
     LatestQueryResult { chain: String, os_id: u32 },
+    // get the channels
+    ListChannels {},
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -122,6 +124,11 @@ pub struct ConfigResponse {
 pub struct ListAccountsResponse {
     pub accounts: Vec<AccountInfo>,
 }
+#[cosmwasm_schema::cw_serde]
+pub struct ListChannelsResponse {
+    pub channels: Vec<(String,String)>,
+}
+
 
 #[cosmwasm_schema::cw_serde]
 pub struct LatestQueryResponse {

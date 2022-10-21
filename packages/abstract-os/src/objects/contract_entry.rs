@@ -39,7 +39,7 @@ impl TryFrom<String> for UncheckedContractEntry {
         let composite: Vec<&str> = entry.split(':').collect();
         if composite.len() != 2 {
             return Err(StdError::generic_err(
-                "contract entry should be formatted as \"protocol/contract_name\".",
+                "contract entry should be formatted as \"protocol:contract_name\".",
             ));
         }
         Ok(Self::new(composite[0], composite[1]))

@@ -1,3 +1,5 @@
+#[cfg(not(feature = "library"))]
+use cosmwasm_std::entry_point;
 use abstract_api::{ApiContract, ApiResult};
 use abstract_os::{
     api::{BaseInstantiateMsg, ExecuteMsg, QueryMsg},
@@ -6,10 +8,11 @@ use abstract_os::{
     objects::AssetEntry,
     EXCHANGE,
 };
-
 use abstract_sdk::{host_ibc_action, ics20_transfer, memory::Memory, MemoryOperation, Resolve};
 use cosmwasm_std::{
-    to_binary, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Uint128,
+    to_binary, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Uint128, 
+    
+    
 };
 use cw_asset::Asset;
 
