@@ -58,14 +58,14 @@ pub fn ibc_channel_connect(
         retries: 0,
     };
 
-    let _msg = IbcMsg::SendPacket {
+    let msg = IbcMsg::SendPacket {
         channel_id: channel_id.clone(),
         data: to_binary(&packet)?,
         timeout: env.block.time.plus_seconds(PACKET_LIFETIME).into(),
     };
 
     Ok(IbcBasicResponse::new()
-        // .add_message(msg)
+        .add_message(msg)
         .add_attribute("action", "ibc_connect")
         .add_attribute("channel_id", channel_id))
 }
