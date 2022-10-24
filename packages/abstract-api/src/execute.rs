@@ -13,22 +13,21 @@ use cosmwasm_std::{
 use serde::{de::DeserializeOwned, Serialize};
 
 use simple_ica::{IbcResponseMsg, StdAck};
-type IbcHandlerFn<T, C, RequestError> = Option<
+pub type IbcHandlerFn<T, E, C> =
     fn(
         DepsMut,
         Env,
         MessageInfo,
-        ApiContract<T, C>,
+        ApiContract<T, E, C>,
         String,
         StdAck,
-    ) -> Result<Response, RequestError>,
->;
+    ) -> Result<Response, E>;
 
 /// The api-contract base implementation.
-impl<'a, T: Serialize + DeserializeOwned, C: Serialize + DeserializeOwned> ApiContract<'a, T, C> {
+impl<'a, T: Serialize + DeserializeOwned, C: Serialize + DeserializeOwned, E: From<cosmwasm_std::StdError> + From<ApiError>> ApiContract<'a, T, E, C> {
     /// Takes request, sets destination and executes request handler
     /// This fn is the only way to get an ApiContract instance which ensures the destination address is set correctly.
-    pub fn handle_request<RequestError: From<cosmwasm_std::StdError> + From<ApiError>>(
+    pub fn handle_request(
         mut self,
         deps: DepsMut,
         env: Env,
@@ -38,11 +37,10 @@ impl<'a, T: Serialize + DeserializeOwned, C: Serialize + DeserializeOwned> ApiCo
             DepsMut,
             Env,
             MessageInfo,
-            ApiContract<T, C>,
+            ApiContract<T, E, C>,
             T,
-        ) -> Result<Response, RequestError>,
-        ibc_callback_handler: IbcHandlerFn<T, C, RequestError>,
-    ) -> Result<Response, RequestError> {
+        ) -> Result<Response, E>,
+    ) -> Result<Response, E> {
         let sender = &info.sender;
         match msg {
             ExecuteMsg::Request(request) => {
@@ -71,11 +69,12 @@ impl<'a, T: Serialize + DeserializeOwned, C: Serialize + DeserializeOwned> ApiCo
                 .execute(deps, env, info.clone(), exec_msg)
                 .map_err(From::from),
             ExecuteMsg::IbcCallback(IbcResponseMsg { id, msg }) => {
-                if let Some(callback_fn) = ibc_callback_handler {
-                    callback_fn(deps, env, info, self, id, msg)
-                } else {
-                    Err(ApiError::MissingIbcCallbackHandler {}.into())
+                for ibc_callback_handler in self.ibc_callbacks {
+                    if ibc_callback_handler.0 == &id {
+                        return ibc_callback_handler.1(deps, env, info, self, id, msg)
+                    }
                 }
+                Ok(Response::new().add_attribute("action", "ibc_response").add_attribute("response_id", id))
             }
             #[allow(unreachable_patterns)]
             _ => Err(StdError::generic_err("Unsupported API execute message variant").into()),
@@ -84,7 +83,7 @@ impl<'a, T: Serialize + DeserializeOwned, C: Serialize + DeserializeOwned> ApiCo
     pub fn execute(
         &mut self,
         deps: DepsMut,
-        env: Env,
+        env: Env, 
         info: MessageInfo,
         message: BaseExecuteMsg,
     ) -> ApiResult {

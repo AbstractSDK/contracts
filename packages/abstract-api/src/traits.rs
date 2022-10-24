@@ -10,8 +10,8 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{ApiContract, ApiError};
 
-impl<T: Serialize + DeserializeOwned, C: Serialize + DeserializeOwned> MemoryOperation
-    for ApiContract<'_, T, C>
+impl<T: Serialize + DeserializeOwned, C: Serialize + DeserializeOwned, E: From<cosmwasm_std::StdError> + From<ApiError>> MemoryOperation
+    for ApiContract<'_, T,E, C>
 {
     fn load_memory(&self, store: &dyn Storage) -> StdResult<abstract_sdk::memory::Memory> {
         Ok(self.base_state.load(store)?.memory)
@@ -19,8 +19,8 @@ impl<T: Serialize + DeserializeOwned, C: Serialize + DeserializeOwned> MemoryOpe
 }
 
 /// Execute a set of CosmosMsgs on the proxy contract of an OS.
-impl<T: Serialize + DeserializeOwned, C: Serialize + DeserializeOwned> OsExecute
-    for ApiContract<'_, T, C>
+impl<T: Serialize + DeserializeOwned, C: Serialize + DeserializeOwned,E: From<cosmwasm_std::StdError> + From<ApiError>> OsExecute
+    for ApiContract<'_, T,E, C>
 {
     type Err = ApiError;
 
@@ -49,8 +49,8 @@ impl<T: Serialize + DeserializeOwned, C: Serialize + DeserializeOwned> OsExecute
 }
 
 /// Implement the dependency functions for an API contract
-impl<T: Serialize + DeserializeOwned, C: Serialize + DeserializeOwned> Dependency
-    for ApiContract<'_, T, C>
+impl<T: Serialize + DeserializeOwned, C: Serialize + DeserializeOwned,E: From<cosmwasm_std::StdError> + From<ApiError>> Dependency
+    for ApiContract<'_, T,E, C>
 {
     fn dependency_address(
         &self,
@@ -68,11 +68,11 @@ impl<T: Serialize + DeserializeOwned, C: Serialize + DeserializeOwned> Dependenc
         query_module_address(deps, manager_addr, dependency_name)
     }
 
-    fn call_api_dependency<E: Serialize>(
+    fn call_api_dependency<R: Serialize>(
         &self,
         deps: Deps,
         dependency_name: &str,
-        request_msg: &E,
+        request_msg: &R,
         funds: Vec<cosmwasm_std::Coin>,
     ) -> cosmwasm_std::StdResult<CosmosMsg> {
         let proxy = self

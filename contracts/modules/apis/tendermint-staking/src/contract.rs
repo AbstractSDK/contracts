@@ -12,7 +12,7 @@ use crate::error::TendermintStakeError;
 use abstract_os::TENDERMINT_STAKING;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub type TendermintStakeApi<'a> = ApiContract<'a, RequestMsg>;
+pub type TendermintStakeApi<'a> = ApiContract<'a, RequestMsg, TendermintStakeError>;
 pub type TendermintStakeResult = Result<Response, TendermintStakeError>;
 const STAKING_API: TendermintStakeApi<'static> = TendermintStakeApi::new(&[]);
 
@@ -43,14 +43,14 @@ pub fn execute(
     info: MessageInfo,
     msg: ExecuteMsg<RequestMsg>,
 ) -> TendermintStakeResult {
-    STAKING_API.handle_request(deps, env, info, msg, handle_api_request, None)
+    STAKING_API.handle_request(deps, env, info, msg, handle_api_request)
 }
 
 pub fn handle_api_request(
     deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    api: ApiContract<RequestMsg>,
+    api: TendermintStakeApi,
     msg: RequestMsg,
 ) -> TendermintStakeResult {
     match msg {

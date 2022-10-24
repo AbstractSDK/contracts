@@ -17,9 +17,9 @@ use cw_asset::Asset;
 use crate::{commands::*, error::DexError, queries::simulate_swap};
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub type DexApi<'a> = ApiContract<'a, RequestMsg>;
+pub type DexApi<'a> = ApiContract<'a, RequestMsg,DexError>;
 pub type DexResult = Result<Response, DexError>;
-const DEX_API: DexApi<'static> = DexApi::new(&[]);
+const DEX_API: DexApi<'static> = DexApi::new(&[]).with_ibc_callbacks(&[]);
 const ACTION_RETRIES: u8 = 3;
 
 // Supported exchanges on XXX
@@ -42,7 +42,7 @@ pub fn execute(
     info: MessageInfo,
     msg: ExecuteMsg<RequestMsg>,
 ) -> DexResult {
-    DEX_API.handle_request(deps, env, info, msg, handle_api_request, None)
+    DEX_API.handle_request(deps, env, info, msg, handle_api_request)
 }
 
 pub fn handle_api_request(
