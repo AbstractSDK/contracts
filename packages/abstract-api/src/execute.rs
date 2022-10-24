@@ -14,17 +14,16 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use simple_ica::{IbcResponseMsg, StdAck};
 pub type IbcHandlerFn<T, E, C> =
-    fn(
-        DepsMut,
-        Env,
-        MessageInfo,
-        ApiContract<T, E, C>,
-        String,
-        StdAck,
-    ) -> Result<Response, E>;
+    fn(DepsMut, Env, MessageInfo, ApiContract<T, E, C>, String, StdAck) -> Result<Response, E>;
 
 /// The api-contract base implementation.
-impl<'a, T: Serialize + DeserializeOwned, C: Serialize + DeserializeOwned, E: From<cosmwasm_std::StdError> + From<ApiError>> ApiContract<'a, T, E, C> {
+impl<
+        'a,
+        T: Serialize + DeserializeOwned,
+        C: Serialize + DeserializeOwned,
+        E: From<cosmwasm_std::StdError> + From<ApiError>,
+    > ApiContract<'a, T, E, C>
+{
     /// Takes request, sets destination and executes request handler
     /// This fn is the only way to get an ApiContract instance which ensures the destination address is set correctly.
     pub fn handle_request(
@@ -71,10 +70,12 @@ impl<'a, T: Serialize + DeserializeOwned, C: Serialize + DeserializeOwned, E: Fr
             ExecuteMsg::IbcCallback(IbcResponseMsg { id, msg }) => {
                 for ibc_callback_handler in self.ibc_callbacks {
                     if ibc_callback_handler.0 == &id {
-                        return ibc_callback_handler.1(deps, env, info, self, id, msg)
+                        return ibc_callback_handler.1(deps, env, info, self, id, msg);
                     }
                 }
-                Ok(Response::new().add_attribute("action", "ibc_response").add_attribute("response_id", id))
+                Ok(Response::new()
+                    .add_attribute("action", "ibc_response")
+                    .add_attribute("response_id", id))
             }
             #[allow(unreachable_patterns)]
             _ => Err(StdError::generic_err("Unsupported API execute message variant").into()),
@@ -83,7 +84,7 @@ impl<'a, T: Serialize + DeserializeOwned, C: Serialize + DeserializeOwned, E: Fr
     pub fn execute(
         &mut self,
         deps: DepsMut,
-        env: Env, 
+        env: Env,
         info: MessageInfo,
         message: BaseExecuteMsg,
     ) -> ApiResult {

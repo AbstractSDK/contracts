@@ -3,14 +3,14 @@ use std::{collections::HashSet, marker::PhantomData};
 use abstract_os::version_control::Core;
 use abstract_sdk::{memory::Memory, BASE_STATE};
 
-use cosmwasm_std::{Addr, Empty, StdResult, Storage, Env, Deps, StdError};
+use cosmwasm_std::{Addr, Deps, Empty, Env, StdError, StdResult, Storage};
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use simple_ica::IbcResponseMsg;
 
-use crate::{ApiError, execute::IbcHandlerFn};
+use crate::{execute::IbcHandlerFn, ApiError};
 
 pub const TRADER_NAMESPACE: &str = "traders";
 
@@ -29,7 +29,7 @@ pub struct ApiContract<
     pub version: Item<'a, ContractVersion>,
 
     pub dependencies: &'static [&'static str],
-    pub ibc_callbacks:  &'a[(&'static str, IbcHandlerFn<Request,Error, Callback>)],
+    pub ibc_callbacks: &'a [(&'static str, IbcHandlerFn<Request, Error, Callback>)],
 
     pub target_os: Option<Core>,
     _phantom_data: PhantomData<Request>,
@@ -37,8 +37,12 @@ pub struct ApiContract<
     _phantom_data_callbacks: PhantomData<Callback>,
 }
 
-impl<'a, T: Serialize + DeserializeOwned, C: Serialize + DeserializeOwned, E: From<cosmwasm_std::StdError> + From<ApiError>> Default
-    for ApiContract<'a, T, E, C>
+impl<
+        'a,
+        T: Serialize + DeserializeOwned,
+        C: Serialize + DeserializeOwned,
+        E: From<cosmwasm_std::StdError> + From<ApiError>,
+    > Default for ApiContract<'a, T, E, C>
 {
     fn default() -> Self {
         Self::new(&[])
@@ -46,7 +50,13 @@ impl<'a, T: Serialize + DeserializeOwned, C: Serialize + DeserializeOwned, E: Fr
 }
 
 /// Constructor
-impl<'a, T: Serialize + DeserializeOwned, C: Serialize + DeserializeOwned, E: From<cosmwasm_std::StdError> + From<ApiError>> ApiContract<'a, T, E, C> {
+impl<
+        'a,
+        T: Serialize + DeserializeOwned,
+        C: Serialize + DeserializeOwned,
+        E: From<cosmwasm_std::StdError> + From<ApiError>,
+    > ApiContract<'a, T, E, C>
+{
     pub const fn new(dependencies: &'static [&'static str]) -> Self {
         Self {
             version: CONTRACT,
@@ -62,7 +72,10 @@ impl<'a, T: Serialize + DeserializeOwned, C: Serialize + DeserializeOwned, E: Fr
     }
 
     /// add IBC callback handler to contract
-    pub const fn with_ibc_callbacks(mut self, callbacks: &'a[(&'static str, IbcHandlerFn<T,E,C>)]) -> Self {
+    pub const fn with_ibc_callbacks(
+        mut self,
+        callbacks: &'a [(&'static str, IbcHandlerFn<T, E, C>)],
+    ) -> Self {
         self.ibc_callbacks = callbacks;
         self
     }

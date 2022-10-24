@@ -17,7 +17,7 @@ use cw_asset::Asset;
 use crate::{commands::*, error::DexError, queries::simulate_swap};
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub type DexApi<'a> = ApiContract<'a, RequestMsg,DexError>;
+pub type DexApi<'a> = ApiContract<'a, RequestMsg, DexError>;
 pub type DexResult = Result<Response, DexError>;
 const DEX_API: DexApi<'static> = DexApi::new(&[]).with_ibc_callbacks(&[]);
 const ACTION_RETRIES: u8 = 3;

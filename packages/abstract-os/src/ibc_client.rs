@@ -72,7 +72,9 @@ impl CallbackInfo {
 #[cosmwasm_schema::cw_serde]
 pub enum ExecuteMsg {
     /// Changes the admin
-    UpdateAdmin { admin: String },
+    UpdateAdmin {
+        admin: String,
+    },
     /// Only callable by OS proxy
     /// Will attempt to forward the specified funds to the corresponding
     /// address on the remote chain.
@@ -82,7 +84,9 @@ pub enum ExecuteMsg {
     },
     /// Register an OS on a remote chain over IBC
     /// This action creates a proxy for them on the remote chain.
-    Register { host_chain: String },
+    Register {
+        host_chain: String,
+    },
     SendPacket {
         /// host chain to be executed on
         /// Example: "osmosis"
@@ -126,9 +130,8 @@ pub struct ListAccountsResponse {
 }
 #[cosmwasm_schema::cw_serde]
 pub struct ListChannelsResponse {
-    pub channels: Vec<(String,String)>,
+    pub channels: Vec<(String, String)>,
 }
-
 
 #[cosmwasm_schema::cw_serde]
 pub struct LatestQueryResponse {
