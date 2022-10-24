@@ -31,7 +31,7 @@ impl<
         match msg {
             ExecuteMsg::Request(request) => request_handler(deps, env, info, self, request),
             ExecuteMsg::Configure(exec_msg) => self
-                .execute(deps, env, info.clone(), exec_msg)
+                .execute(deps, env, info, exec_msg)
                 .map_err(From::from),
             ExecuteMsg::IbcCallback(IbcResponseMsg { id, msg }) => {
                 for ibc_callback_handler in self.ibc_callbacks {

@@ -24,7 +24,6 @@ impl<
     > AddOnContract<'a, T, E, C>
 {
     pub fn instantiate(
-        &self,
         deps: DepsMut,
         _env: Env,
         info: MessageInfo,
@@ -32,6 +31,7 @@ impl<
         module_name: &str,
         module_version: &str,
     ) -> StdResult<Self> {
+        let add_on = Self::default();
         let memory = Memory {
             address: deps.api.addr_validate(&msg.memory_address)?,
         };
@@ -58,8 +58,8 @@ impl<
         };
 
         set_contract_version(deps.storage, module_name, module_version)?;
-        self.base_state.save(deps.storage, &state)?;
-        self.admin.set(deps, Some(core.manager))?;
+        add_on.base_state.save(deps.storage, &state)?;
+        add_on.admin.set(deps, Some(core.manager))?;
 
         Ok(AddOnContract::default())
     }

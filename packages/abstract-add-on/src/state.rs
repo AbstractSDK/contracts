@@ -1,7 +1,6 @@
 use std::marker::PhantomData;
 
-use abstract_os::simple_ica::StdAck;
-use cosmwasm_std::{Addr, DepsMut, Empty, Env, MessageInfo, Response, StdResult, Storage};
+use cosmwasm_std::{Addr, Empty, StdResult, Storage};
 use cw2::{ContractVersion, CONTRACT};
 use cw_controllers::Admin;
 use cw_storage_plus::Item;

@@ -65,7 +65,7 @@ pub fn instantiate(
     STATE.save(deps.storage, &state)?;
     FEE.save(deps.storage, &Fee::new(msg.fee)?)?;
 
-    VaultAddOn::default().instantiate(
+    VaultAddOn::instantiate(
         deps.branch(),
         env.clone(),
         info,

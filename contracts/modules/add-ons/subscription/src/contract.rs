@@ -82,7 +82,7 @@ pub fn instantiate(
         INCOME_TWA.instantiate(deps.storage, &env, None, msg.income_averaging_period.u64())?;
     }
 
-    SubscriptionAddOn::default().instantiate(
+    SubscriptionAddOn::instantiate(
         deps.branch(),
         env,
         info,
