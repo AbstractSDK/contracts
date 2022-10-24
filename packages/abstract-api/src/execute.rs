@@ -69,7 +69,7 @@ impl<
                 .map_err(From::from),
             ExecuteMsg::IbcCallback(IbcResponseMsg { id, msg }) => {
                 for ibc_callback_handler in self.ibc_callbacks {
-                    if ibc_callback_handler.0 == &id {
+                    if ibc_callback_handler.0 == id {
                         return ibc_callback_handler.1(deps, env, info, self, id, msg);
                     }
                 }
