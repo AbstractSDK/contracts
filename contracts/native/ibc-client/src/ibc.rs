@@ -225,6 +225,10 @@ fn acknowledge_who_am_i(
                 .add_attribute("error", e))
         }
     };
+    // ensure no third-party can overwrite
+    if CHANNELS.has(deps.storage, &chain) {
+        return Err(ClientError::HostAlreadyExists{})
+    }
     // Now we know over what channel to communicate!
     CHANNELS.save(deps.storage, &chain, &channel_id)?;
 

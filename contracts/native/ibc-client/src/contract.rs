@@ -14,7 +14,7 @@ use cw2::set_contract_version;
 
 use crate::error::ClientError;
 use crate::ibc::PACKET_LIFETIME;
-use abstract_os::ibc_client::state::{Config, ACCOUNTS, CHANNELS, CONFIG, LATEST_QUERIES, MEMORY};
+use abstract_os::ibc_client::state::{Config, ACCOUNTS, CHANNELS, CONFIG, LATEST_QUERIES, MEMORY, AccountData};
 use abstract_os::ibc_client::{
     AccountInfo, AccountResponse, CallbackInfo, ConfigResponse, ExecuteMsg, InstantiateMsg,
     LatestQueryResponse, ListAccountsResponse, MigrateMsg, QueryMsg, ListChannelsResponse,
@@ -64,13 +64,11 @@ pub fn execute(
             callback_info,
             retries,
         } => execute_send_packet(deps, env, info, host_chain, action, callback_info, retries),
-        // ExecuteMsg::CheckRemoteBalance { host_chain } => {
-        //     execute_check_remote_balance(deps, env, info, host_chain).map_err(Into::into)
-        // }
         ExecuteMsg::SendFunds { host_chain, funds } => {
             execute_send_funds(deps, env, info, host_chain, funds).map_err(Into::into)
         }
         ExecuteMsg::Register { host_chain } => execute_register_os(deps, env, info, host_chain),
+        ExecuteMsg::RemoveHost { host_chain } => execute_remove_host(deps,info,host_chain).map_err(Into::into)
     }
 }
 
@@ -89,6 +87,24 @@ pub fn execute_update_admin(
 
     Ok(Response::new()
         .add_attribute("action", "handle_update_admin")
+        .add_attribute("new_admin", cfg.admin))
+}
+
+// allows admins to clear host if needed
+pub fn execute_remove_host(
+    deps: DepsMut,
+    info: MessageInfo,
+    host_chain: String,
+) -> StdResult<Response> {
+    // auth check
+    let cfg = CONFIG.load(deps.storage)?;
+    if info.sender != cfg.admin {
+        return Err(StdError::generic_err("Only admin may remove hosts"));
+    }
+    CHANNELS.remove(deps.storage, &host_chain);
+
+    Ok(Response::new()
+        .add_attribute("action", "handle_remove_host")
         .add_attribute("new_admin", cfg.admin))
 }
 
@@ -157,7 +173,11 @@ pub fn execute_register_os(
         callback_info: None,
         action: HostAction::Internal(InternalAction::Register),
     };
-
+    
+    // save a default value to account
+    let account = AccountData::default();
+    ACCOUNTS.save(deps.storage, (&channel_id, os_id), &account)?;
+    
     let msg = IbcMsg::SendPacket {
         channel_id,
         data: to_binary(&packet)?,

@@ -28,18 +28,18 @@ impl UncheckedChannelEntry {
     }
 }
 
-// impl TryFrom<String> for UncheckedChannelEntry {
-//     type Error = StdError;
-//     fn try_from(entry: String) -> Result<Self, Self::Error> {
-//         let composite: Vec<&str> = entry.split(':').collect();
-//         if composite.len() != 2 {
-//             return Err(StdError::generic_err(
-//                 "connected_chain entry should be formatted as \"connected_chain_name/protocol\".",
-//             ));
-//         }
-//         Ok(Self::new(composite[0], composite[1]))
-//     }
-// }
+impl TryFrom<String> for UncheckedChannelEntry {
+    type Error = StdError;
+    fn try_from(entry: String) -> Result<Self, Self::Error> {
+        let composite: Vec<&str> = entry.split('/').collect();
+        if composite.len() != 2 {
+            return Err(StdError::generic_err(
+                "connected_chain entry should be formatted as \"connected_chain_name/protocol\".",
+            ));
+        }
+        Ok(Self::new(composite[0], composite[1]))
+    }
+}
 
 /// Key to get the Address of a connected_chain
 /// Use [`UncheckedChannelEntry`] to construct this type.  

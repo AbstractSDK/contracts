@@ -20,4 +20,7 @@ pub enum ClientError {
 
     #[error("packages that contain internal calls are not allowed")]
     ForbiddenInternalCall {},
+
+    #[error("The host you are trying to connect is already connected")]
+    HostAlreadyExists {},
 }

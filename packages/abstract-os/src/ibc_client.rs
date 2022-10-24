@@ -94,9 +94,9 @@ pub enum ExecuteMsg {
         /// Number of retries if packet errors
         retries: u8,
     },
-    // CheckRemoteBalance {
-    //     host_chain: String,
-    // },
+    RemoveHost {
+        host_chain: String,
+    },
 }
 
 #[cosmwasm_schema::cw_serde]
