@@ -123,6 +123,27 @@
         }
       },
       "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "remove_host"
+      ],
+      "properties": {
+        "remove_host": {
+          "type": "object",
+          "required": [
+            "host_chain"
+          ],
+          "properties": {
+            "host_chain": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
     }
   ],
   "definitions": {
