@@ -14,7 +14,7 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub type TendermintStakeApi<'a> = ApiContract<'a, RequestMsg, TendermintStakeError>;
 pub type TendermintStakeResult = Result<Response, TendermintStakeError>;
-const STAKING_API: TendermintStakeApi<'static> = TendermintStakeApi::new(&[]);
+const STAKING_API: TendermintStakeApi<'static> = TendermintStakeApi::new();
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(

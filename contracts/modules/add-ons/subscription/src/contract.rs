@@ -21,7 +21,7 @@ use abstract_os::subscription::{
 };
 
 pub type SubscriptionResult = Result<Response, SubscriptionError>;
-pub type SubscriptionAddOn<'a> = AddOnContract<'a>;
+pub type SubscriptionAddOn<'a> = AddOnContract<'a, ExecuteMsg, SubscriptionError>;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 

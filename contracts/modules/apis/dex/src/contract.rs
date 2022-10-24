@@ -19,7 +19,7 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub type DexApi<'a> = ApiContract<'a, RequestMsg, DexError>;
 pub type DexResult = Result<Response, DexError>;
-const DEX_API: DexApi<'static> = DexApi::new(&[]).with_ibc_callbacks(&[]);
+const DEX_API: DexApi<'static> = DexApi::new();
 const ACTION_RETRIES: u8 = 3;
 
 // Supported exchanges on XXX

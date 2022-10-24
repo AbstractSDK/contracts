@@ -29,7 +29,7 @@ const DEFAULT_LP_TOKEN_SYMBOL: &str = "etfLP";
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub type VaultAddOn<'a> = AddOnContract<'a>;
+pub type VaultAddOn<'a> = AddOnContract<'a, ExecuteMsg, VaultError>;
 pub type VaultResult = Result<Response, VaultError>;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
