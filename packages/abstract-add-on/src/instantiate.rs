@@ -7,12 +7,22 @@ use cosmwasm_std::{
 };
 
 use abstract_sdk::memory::Memory;
+use serde::{de::DeserializeOwned, Serialize};
 
-use crate::state::{AddOnContract, AddOnState};
+use crate::{
+    state::{AddOnContract, AddOnState},
+    AddOnError,
+};
 
 use cw2::set_contract_version;
 
-impl<'a> AddOnContract<'a> {
+impl<
+        'a,
+        T: Serialize + DeserializeOwned,
+        C: Serialize + DeserializeOwned,
+        E: From<cosmwasm_std::StdError> + From<AddOnError>,
+    > AddOnContract<'a, T, E, C>
+{
     pub fn instantiate(
         &self,
         deps: DepsMut,

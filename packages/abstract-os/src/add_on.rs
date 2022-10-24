@@ -8,6 +8,8 @@
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
 use cw_controllers::AdminResponse;
+use serde::Serialize;
+use simple_ica::IbcResponseMsg;
 
 /// Used by Module Factory to instantiate AddOn
 #[cosmwasm_schema::cw_serde]
@@ -15,10 +17,31 @@ pub struct BaseInstantiateMsg {
     pub memory_address: String,
 }
 
+/// Interface to the AddOn.
+#[cosmwasm_schema::cw_serde]
+#[serde(tag = "type")]
+pub enum ExecuteMsg<T: Serialize> {
+    /// An Add-On request.
+    Request(T),
+    /// A configuration message.
+    Configure(BaseExecuteMsg),
+    /// IbcReceive to process callbacks
+    IbcCallback(IbcResponseMsg),
+}
+
 #[cosmwasm_schema::cw_serde]
 pub enum BaseExecuteMsg {
     /// Updates the base config
     UpdateConfig { memory_address: Option<String> },
+}
+
+#[cosmwasm_schema::cw_serde]
+#[serde(tag = "type")]
+pub enum QueryMsg<Q: Serialize> {
+    /// An AddOn query message. Forwards the msg to the associated proxy.
+    AddOn(Q),
+    /// A configuration message to whitelist traders.
+    Base(BaseQueryMsg),
 }
 
 #[cosmwasm_schema::cw_serde]

@@ -32,13 +32,7 @@ impl<
         env: Env,
         info: MessageInfo,
         msg: ExecuteMsg<T>,
-        request_handler: impl FnOnce(
-            DepsMut,
-            Env,
-            MessageInfo,
-            ApiContract<T, E, C>,
-            T,
-        ) -> Result<Response, E>,
+        request_handler: impl FnOnce(DepsMut, Env, MessageInfo, Self, T) -> Result<Response, E>,
     ) -> Result<Response, E> {
         let sender = &info.sender;
         match msg {

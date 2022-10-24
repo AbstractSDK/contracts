@@ -32,7 +32,7 @@ pub struct ApiContract<
 
     pub target_os: Option<Core>,
     _phantom_data: PhantomData<Request>,
-    _phantom_data_error: PhantomData<Request>,
+    _phantom_data_error: PhantomData<Error>,
     _phantom_data_callbacks: PhantomData<Callback>,
 }
 
@@ -44,7 +44,7 @@ impl<
     > Default for ApiContract<'a, T, E, C>
 {
     fn default() -> Self {
-        Self::new(&[])
+        Self::new()
     }
 }
 
@@ -56,14 +56,14 @@ impl<
         E: From<cosmwasm_std::StdError> + From<ApiError>,
     > ApiContract<'a, T, E, C>
 {
-    pub const fn new(dependencies: &'static [&'static str]) -> Self {
+    pub const fn new() -> Self {
         Self {
             version: CONTRACT,
             base_state: Item::new(BASE_STATE),
             traders: Map::new(TRADER_NAMESPACE),
             target_os: None,
             ibc_callbacks: &[],
-            dependencies,
+            dependencies: &[],
             _phantom_data: PhantomData,
             _phantom_data_callbacks: PhantomData,
             _phantom_data_error: PhantomData,
@@ -76,6 +76,12 @@ impl<
         callbacks: &'a [(&'static str, IbcHandlerFn<T, E, C>)],
     ) -> Self {
         self.ibc_callbacks = callbacks;
+        self
+    }
+
+    /// add dependencies to the contract
+    pub const fn with_dependencies(mut self, dependencies: &'static [&'static str]) -> Self {
+        self.dependencies = dependencies;
         self
     }
 

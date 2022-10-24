@@ -24,12 +24,13 @@ pub struct BaseInstantiateMsg {
 
 /// Interface to the API.
 #[cosmwasm_schema::cw_serde]
+#[serde(tag = "type")]
 pub enum ExecuteMsg<T: Serialize> {
     /// An API request.
     Request(ApiRequestMsg<T>),
     /// A configuration message to whitelist traders.
     Configure(BaseExecuteMsg),
-    /// IbcReceive, only on IBC enabled API's
+    /// IbcReceive to process callbacks
     IbcCallback(IbcResponseMsg),
 }
 
@@ -76,6 +77,7 @@ pub enum BaseExecuteMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
+#[serde(tag = "type")]
 pub enum QueryMsg<Q: Serialize> {
     /// An API query message. Forwards the msg to the associated proxy.
     Api(Q),
@@ -91,7 +93,7 @@ pub enum BaseQueryMsg {
     #[returns(ApiConfigResponse)]
     Config {},
     /// Returns [`TradersResponse`].
-    /// TODO: enable pagination of some sort
+    /// TODO: enable pagination
     #[returns(TradersResponse)]
     Traders { proxy_address: String },
 }

@@ -6,16 +6,27 @@ use abstract_sdk::{
     Dependency, MemoryOperation, OsExecute,
 };
 use cosmwasm_std::{Addr, Deps, Response, StdError, StdResult, Storage};
+use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{AddOnContract, AddOnError};
 
-impl MemoryOperation for AddOnContract<'_> {
+impl<
+        T: Serialize + DeserializeOwned,
+        C: Serialize + DeserializeOwned,
+        E: From<cosmwasm_std::StdError> + From<AddOnError>,
+    > MemoryOperation for AddOnContract<'_, T, E, C>
+{
     fn load_memory(&self, store: &dyn Storage) -> StdResult<abstract_sdk::memory::Memory> {
         Ok(self.base_state.load(store)?.memory)
     }
 }
 
-impl OsExecute for AddOnContract<'_> {
+impl<
+        T: Serialize + DeserializeOwned,
+        C: Serialize + DeserializeOwned,
+        E: From<cosmwasm_std::StdError> + From<AddOnError>,
+    > OsExecute for AddOnContract<'_, T, E, C>
+{
     type Err = AddOnError;
     fn os_execute(
         &self,
@@ -35,7 +46,12 @@ impl OsExecute for AddOnContract<'_> {
     }
 }
 
-impl Dependency for AddOnContract<'_> {
+impl<
+        T: Serialize + DeserializeOwned,
+        C: Serialize + DeserializeOwned,
+        E: From<cosmwasm_std::StdError> + From<AddOnError>,
+    > Dependency for AddOnContract<'_, T, E, C>
+{
     fn dependency_address(&self, deps: Deps, dependency_name: &str) -> StdResult<Addr> {
         let manager_addr = &self
             .admin
@@ -43,11 +59,11 @@ impl Dependency for AddOnContract<'_> {
             .ok_or_else(|| StdError::generic_err("No admin on add-on"))?;
         query_module_address(deps, manager_addr, dependency_name)
     }
-    fn call_api_dependency<E: serde::Serialize>(
+    fn call_api_dependency<R: serde::Serialize>(
         &self,
         deps: Deps,
         dependency_name: &str,
-        request_msg: &E,
+        request_msg: &R,
         funds: Vec<cosmwasm_std::Coin>,
     ) -> StdResult<cosmwasm_std::CosmosMsg> {
         let dep_addr = self.dependency_address(deps, dependency_name)?;
