@@ -3,12 +3,11 @@ use std::{collections::HashSet, marker::PhantomData};
 use abstract_os::version_control::Core;
 use abstract_sdk::{memory::Memory, BASE_STATE};
 
-use cosmwasm_std::{Addr, Deps, Empty, Env, StdError, StdResult, Storage};
+use cosmwasm_std::{Addr, Empty, StdResult, Storage};
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use simple_ica::IbcResponseMsg;
 
 use crate::{execute::IbcHandlerFn, ApiError};
 
