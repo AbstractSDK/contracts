@@ -1,7 +1,7 @@
 use abstract_os::ibc_host::{HostAction, InternalAction, PacketMsg};
 use abstract_os::objects::memory::Memory;
 use abstract_os::objects::ChannelEntry;
-use abstract_os::{ICS20, IBC_CLIENT};
+use abstract_os::{IBC_CLIENT, ICS20};
 use abstract_sdk::proxy::query_os_id;
 use abstract_sdk::{os_module_action, verify_os_proxy, Resolve};
 #[cfg(not(feature = "library"))]
@@ -14,10 +14,12 @@ use cw2::set_contract_version;
 
 use crate::error::ClientError;
 use crate::ibc::PACKET_LIFETIME;
-use abstract_os::ibc_client::state::{Config, ACCOUNTS, CHANNELS, CONFIG, LATEST_QUERIES, MEMORY, AccountData};
+use abstract_os::ibc_client::state::{
+    AccountData, Config, ACCOUNTS, CHANNELS, CONFIG, LATEST_QUERIES, MEMORY,
+};
 use abstract_os::ibc_client::{
     AccountInfo, AccountResponse, CallbackInfo, ConfigResponse, ExecuteMsg, InstantiateMsg,
-    LatestQueryResponse, ListAccountsResponse, MigrateMsg, QueryMsg, ListChannelsResponse,
+    LatestQueryResponse, ListAccountsResponse, ListChannelsResponse, MigrateMsg, QueryMsg,
 };
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 const MAX_RETRIES: u8 = 5;
@@ -43,7 +45,6 @@ pub fn instantiate(
     )?;
     set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
 
-
     Ok(Response::new().add_attribute("action", "instantiate"))
 }
 
@@ -68,7 +69,9 @@ pub fn execute(
             execute_send_funds(deps, env, info, host_chain, funds).map_err(Into::into)
         }
         ExecuteMsg::Register { host_chain } => execute_register_os(deps, env, info, host_chain),
-        ExecuteMsg::RemoveHost { host_chain } => execute_remove_host(deps,info,host_chain).map_err(Into::into)
+        ExecuteMsg::RemoveHost { host_chain } => {
+            execute_remove_host(deps, info, host_chain).map_err(Into::into)
+        }
     }
 }
 
@@ -173,11 +176,11 @@ pub fn execute_register_os(
         callback_info: None,
         action: HostAction::Internal(InternalAction::Register),
     };
-    
+
     // save a default value to account
     let account = AccountData::default();
     ACCOUNTS.save(deps.storage, (&channel_id, os_id), &account)?;
-    
+
     let msg = IbcMsg::SendPacket {
         channel_id,
         data: to_binary(&packet)?,
@@ -251,10 +254,8 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<QueryResponse> {
         QueryMsg::ListAccounts {} => to_binary(&query_list_accounts(deps)?),
         QueryMsg::LatestQueryResult { chain, os_id } => {
             to_binary(&query_latest_ibc_query_result(deps, chain, os_id)?)
-        },
-        QueryMsg::ListChannels {  } => {
-            to_binary(&query_list_channels(deps)?)
         }
+        QueryMsg::ListChannels {} => to_binary(&query_list_channels(deps)?),
     }
 }
 
@@ -292,7 +293,6 @@ fn query_list_channels(deps: Deps) -> StdResult<ListChannelsResponse> {
     Ok(ListChannelsResponse { channels })
 }
 
-
 fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
     let Config {
         admin,
@@ -313,7 +313,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response
     // let version: Version = CONTRACT_VERSION.parse().unwrap();
     // let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
     // if storage_version < version {
-        // set_contract_version(deps.storage, OSMOSIS_HOST, CONTRACT_VERSION)?;
+    // set_contract_version(deps.storage, OSMOSIS_HOST, CONTRACT_VERSION)?;
     // }
     Ok(Response::default())
 }

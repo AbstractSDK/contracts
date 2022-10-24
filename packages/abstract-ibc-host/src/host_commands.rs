@@ -320,7 +320,7 @@ pub fn receive_send_all_back(
     // create the message to re-dispatch to the reflect contract
     let reflect_msg = cw1_whitelist::msg::ExecuteMsg::Execute { msgs };
     let wasm_msg: CosmosMsg<Empty> = wasm_execute(reflect_addr, &reflect_msg, vec![])?.into();
-    
+
     // reset the data field
     RESULTS.save(deps.storage, &vec![])?;
 
