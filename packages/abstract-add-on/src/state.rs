@@ -7,34 +7,45 @@ use cw_storage_plus::Item;
 use schemars::JsonSchema;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
-use abstract_sdk::{memory::Memory, ADMIN, BASE_STATE};
+use abstract_sdk::{memory::Memory, ADMIN, BASE_STATE, IbcCallbackHandlerFn, ReceiveHandlerFn};
 
-use crate::{execute::IbcHandlerFn, AddOnError};
+use crate::{ AddOnError};
+
+/// The BaseState contains the main addresses needed for sending and verifying messages
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct AddOnState {
+    /// Proxy contract address for relaying transactions
+    pub proxy_address: Addr,
+    /// Memory contract struct (address)
+    pub memory: Memory,
+}
 
 /// The state variables for our AddOnContract.
 pub struct AddOnContract<
     'a,
     Request: Serialize + DeserializeOwned,
     Error: From<cosmwasm_std::StdError> + From<AddOnError>,
-    Callback: Serialize + DeserializeOwned = Empty,
+    Receive: Serialize + DeserializeOwned = Empty,
 > {
     // Every DApp should use the provided memory contract for token/contract address resolution
     pub base_state: Item<'a, AddOnState>,
     pub version: Item<'a, ContractVersion>,
     pub admin: Admin<'a>,
     pub dependencies: &'static [&'static str],
-    pub ibc_callbacks: &'a [(&'static str, IbcHandlerFn<Request, Error, Callback>)],
+    
+    pub (crate) ibc_callbacks: &'a [(&'static str, IbcCallbackHandlerFn<Self, Error>)],
+    pub(crate) receive_handler: Option<ReceiveHandlerFn<Self, Receive, Error>>,
 
     _phantom_data: PhantomData<Request>,
     _phantom_data_error: PhantomData<Error>,
-    _phantom_data_callbacks: PhantomData<Callback>,
+    _phantom_data_callbacks: PhantomData<Receive>,
 }
 
 impl<
         'a,
         T: Serialize + DeserializeOwned,
-        C: Serialize + DeserializeOwned,
         E: From<cosmwasm_std::StdError> + From<AddOnError>,
+        C: Serialize + DeserializeOwned,
     > Default for AddOnContract<'a, T, E, C>
 {
     fn default() -> Self {
@@ -46,9 +57,9 @@ impl<
 impl<
         'a,
         T: Serialize + DeserializeOwned,
-        C: Serialize + DeserializeOwned,
         E: From<cosmwasm_std::StdError> + From<AddOnError>,
-    > AddOnContract<'a, T, E, C>
+        Receive: Serialize + DeserializeOwned,
+    > AddOnContract<'a, T, E, Receive>
 {
     fn new() -> Self {
         Self {
@@ -57,6 +68,7 @@ impl<
             admin: Admin::new(ADMIN),
             ibc_callbacks: &[],
             dependencies: &[],
+            receive_handler: None,
             _phantom_data: PhantomData,
             _phantom_data_callbacks: PhantomData,
             _phantom_data_error: PhantomData,
@@ -65,9 +77,14 @@ impl<
     /// add IBC callback handler to contract
     pub const fn with_ibc_callbacks(
         mut self,
-        callbacks: &'a [(&'static str, IbcHandlerFn<T, E, C>)],
+        callbacks: &'a [(&'static str, IbcCallbackHandlerFn<Self, E>)],
     ) -> Self {
         self.ibc_callbacks = callbacks;
+        self
+    }
+
+    pub const fn with_receive(mut self, receive_handler: ReceiveHandlerFn<Self, Receive, E>) -> Self {
+        self.receive_handler = Some(receive_handler);
         self
     }
 
@@ -86,11 +103,3 @@ impl<
     }
 }
 
-/// The BaseState contains the main addresses needed for sending and verifying messages
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct AddOnState {
-    /// Proxy contract address for relaying transactions
-    pub proxy_address: Addr,
-    /// Memory contract struct (address)
-    pub memory: Memory,
-}

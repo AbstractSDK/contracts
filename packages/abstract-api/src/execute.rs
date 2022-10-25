@@ -5,35 +5,34 @@ use abstract_os::{
 };
 use abstract_sdk::{
     proxy::query_os_manager_address, query_module_address, verify_os_manager, verify_os_proxy,
-    OsExecute,
+    AbstractExecute, IbcCallbackEndpoint, OsExecute, ReceiveEndpoint,
 };
 use cosmwasm_std::{
     to_binary, Addr, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdError, WasmMsg,
 };
 use serde::{de::DeserializeOwned, Serialize};
 
-use simple_ica::{IbcResponseMsg, StdAck};
-pub type IbcHandlerFn<T, E, C> =
-    fn(DepsMut, Env, MessageInfo, ApiContract<T, E, C>, String, StdAck) -> Result<Response, E>;
-
-/// The api-contract base implementation.
 impl<
         'a,
         T: Serialize + DeserializeOwned,
-        C: Serialize + DeserializeOwned,
         E: From<cosmwasm_std::StdError> + From<ApiError>,
-    > ApiContract<'a, T, E, C>
+        C: Serialize + DeserializeOwned,
+    > AbstractExecute for ApiContract<'a, T, E, C>
 {
-    /// Takes request, sets destination and executes request handler
-    /// This fn is the only way to get an ApiContract instance which ensures the destination address is set correctly.
-    pub fn handle_request(
+    type RequestMsg = T;
+
+    type ExecuteMsg<P> = ExecuteMsg<T, C>;
+
+    type ContractError = E;
+
+    fn execute(
         mut self,
         deps: DepsMut,
         env: Env,
         info: MessageInfo,
-        msg: ExecuteMsg<T>,
+        msg: Self::ExecuteMsg<Self::RequestMsg>,
         request_handler: impl FnOnce(DepsMut, Env, MessageInfo, Self, T) -> Result<Response, E>,
-    ) -> Result<Response, E> {
+    ) -> Result<Response, Self::ContractError> {
         let sender = &info.sender;
         match msg {
             ExecuteMsg::Request(request) => {
@@ -59,23 +58,25 @@ impl<
                 request_handler(deps, env, info, self, request.request)
             }
             ExecuteMsg::Configure(exec_msg) => self
-                .execute(deps, env, info.clone(), exec_msg)
+                .base_execute(deps, env, info.clone(), exec_msg)
                 .map_err(From::from),
-            ExecuteMsg::IbcCallback(IbcResponseMsg { id, msg }) => {
-                for ibc_callback_handler in self.ibc_callbacks {
-                    if ibc_callback_handler.0 == id {
-                        return ibc_callback_handler.1(deps, env, info, self, id, msg);
-                    }
-                }
-                Ok(Response::new()
-                    .add_attribute("action", "ibc_response")
-                    .add_attribute("response_id", id))
-            }
+            ExecuteMsg::IbcCallback(msg) => self.handle_ibc_callback(deps, env, info, msg),
+            ExecuteMsg::Receive(msg) => self.handle_receive(deps, env, info, msg),
             #[allow(unreachable_patterns)]
             _ => Err(StdError::generic_err("Unsupported API execute message variant").into()),
         }
     }
-    pub fn execute(
+}
+
+/// The api-contract base implementation.
+impl<
+        'a,
+        T: Serialize + DeserializeOwned,
+        C: Serialize + DeserializeOwned,
+        E: From<cosmwasm_std::StdError> + From<ApiError>,
+    > ApiContract<'a, T, E, C>
+{
+    fn base_execute(
         &mut self,
         deps: DepsMut,
         env: Env,

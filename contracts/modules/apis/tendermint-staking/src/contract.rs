@@ -4,7 +4,7 @@ use cosmwasm_std::Empty;
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response};
 
 use abstract_os::tendermint_staking::RequestMsg;
-use abstract_sdk::tendermint_staking::*;
+use abstract_sdk::{tendermint_staking::*, AbstractExecute};
 use abstract_sdk::OsExecute;
 
 use crate::error::TendermintStakeError;
@@ -43,7 +43,7 @@ pub fn execute(
     info: MessageInfo,
     msg: ExecuteMsg<RequestMsg>,
 ) -> TendermintStakeResult {
-    STAKING_API.handle_request(deps, env, info, msg, handle_api_request)
+    STAKING_API.execute(deps, env, info, msg, handle_api_request)
 }
 
 pub fn handle_api_request(

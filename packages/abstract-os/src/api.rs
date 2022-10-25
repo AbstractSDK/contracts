@@ -8,9 +8,19 @@
 //! The API structure is well-suited for implementing standard interfaces to external services like dexes, lending platforms, etc.
 
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, Empty};
 use serde::Serialize;
 use simple_ica::IbcResponseMsg;
+
+/// Used by Abstract to instantiate the contract
+/// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::AddApi`].
+#[cosmwasm_schema::cw_serde]
+pub struct InstantiateMsg<I: Serialize = Empty> {
+    /// base api instantiate information
+    pub base: BaseInstantiateMsg,
+    /// custom instantiate msg attributes
+    pub custom: I,
+}
 
 /// Used by Abstract to instantiate the contract
 /// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::AddApi`].
@@ -25,13 +35,15 @@ pub struct BaseInstantiateMsg {
 /// Interface to the API.
 #[cosmwasm_schema::cw_serde]
 #[serde(tag = "type")]
-pub enum ExecuteMsg<T: Serialize> {
+pub enum ExecuteMsg<T: Serialize, R: Serialize = Empty> {
     /// An API request.
     Request(ApiRequestMsg<T>),
     /// A configuration message to whitelist traders.
     Configure(BaseExecuteMsg),
     /// IbcReceive to process callbacks
     IbcCallback(IbcResponseMsg),
+    /// Receive endpoint for CW20 / external service integrations
+    Receive(R),
 }
 
 impl<T: Serialize> From<BaseExecuteMsg> for ExecuteMsg<T> {

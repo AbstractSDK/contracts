@@ -10,6 +10,19 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{ApiContract, ApiError};
 
+// Default constructor
+impl<
+        'a,
+        T: Serialize + DeserializeOwned,
+        C: Serialize + DeserializeOwned,
+        E: From<cosmwasm_std::StdError> + From<ApiError>,
+    > Default for ApiContract<'a, T, E, C>
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<
         T: Serialize + DeserializeOwned,
         C: Serialize + DeserializeOwned,

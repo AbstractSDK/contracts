@@ -6,7 +6,7 @@ use abstract_os::{
     objects::AssetEntry,
     EXCHANGE,
 };
-use abstract_sdk::{host_ibc_action, ics20_transfer, memory::Memory, MemoryOperation, Resolve};
+use abstract_sdk::{host_ibc_action, ics20_transfer, memory::Memory, MemoryOperation, Resolve, AbstractExecute};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
@@ -42,7 +42,7 @@ pub fn execute(
     info: MessageInfo,
     msg: ExecuteMsg<RequestMsg>,
 ) -> DexResult {
-    DEX_API.handle_request(deps, env, info, msg, handle_api_request)
+    DEX_API.execute(deps, env, info, msg, handle_api_request)
 }
 
 pub fn handle_api_request(
