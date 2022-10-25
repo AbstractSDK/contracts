@@ -31,6 +31,7 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub type VaultAddOn<'a> = AddOnContract<'a, ExecuteMsg, VaultError>;
 pub type VaultResult = Result<Response, VaultError>;
+const VAULT: VaultAddOn<'static> = VaultAddOn::new();
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VaultResult {
@@ -104,10 +105,6 @@ pub fn instantiate(
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> VaultResult {
     let dapp = VaultAddOn::default();
     match msg {
-        ExecuteMsg::Base(dapp_msg) => dapp
-            .execute(deps, env, info, dapp_msg)
-            .map_err(VaultError::from),
-        ExecuteMsg::Receive(msg) => commands::receive_cw20(deps, env, info, dapp, msg),
         ExecuteMsg::ProvideLiquidity { asset } => {
             // Check asset
             let asset = asset.check(deps.api, None)?;

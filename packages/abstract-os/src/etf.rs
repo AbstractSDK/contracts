@@ -86,12 +86,6 @@ pub struct InstantiateMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub enum ExecuteMsg {
-    /// Execute on the base-add-on contract logic
-    Base(BaseExecuteMsg),
-    /// Handler called by the CW-20 contract on a send-call
-    /// Acts as the withdraw/provide liquidity function.
-    /// Provide the token send message with a [`DepositHookMsg`]
-    Receive(Cw20ReceiveMsg),
     /// Provide liquidity to the attached proxy using a native token.
     ProvideLiquidity { asset: AssetUnchecked },
     /// Set the withdraw fee

@@ -61,7 +61,7 @@ impl<
         Receive: Serialize + DeserializeOwned,
     > AddOnContract<'a, T, E, Receive>
 {
-    fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             version: CONTRACT,
             base_state: Item::new(BASE_STATE),
