@@ -4,8 +4,8 @@ use cosmwasm_std::Empty;
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response};
 
 use abstract_os::tendermint_staking::RequestMsg;
-use abstract_sdk::{tendermint_staking::*, AbstractExecute};
 use abstract_sdk::OsExecute;
+use abstract_sdk::{tendermint_staking::*, AbstractExecute};
 
 use crate::error::TendermintStakeError;
 

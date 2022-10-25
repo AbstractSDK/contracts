@@ -1,4 +1,3 @@
-
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use serde::Serialize;
 

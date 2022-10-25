@@ -8,7 +8,8 @@ pub trait IbcCallbackEndpoint: Sized {
     type ContractError: From<cosmwasm_std::StdError>;
     /// Takes request, sets destination and executes request handler
     /// This fn is the only way to get an ApiContract instance which ensures the destination address is set correctly.
-    fn callback_handler(&self, id: &str) -> Option<IbcCallbackHandlerFn<Self, Self::ContractError>>;
+    fn callback_handler(&self, id: &str)
+        -> Option<IbcCallbackHandlerFn<Self, Self::ContractError>>;
     fn handle_ibc_callback(
         self,
         deps: DepsMut,

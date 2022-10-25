@@ -7,9 +7,9 @@ use cw_storage_plus::Item;
 use schemars::JsonSchema;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
-use abstract_sdk::{memory::Memory, ADMIN, BASE_STATE, IbcCallbackHandlerFn, ReceiveHandlerFn};
+use abstract_sdk::{memory::Memory, IbcCallbackHandlerFn, ReceiveHandlerFn, ADMIN, BASE_STATE};
 
-use crate::{ AddOnError};
+use crate::AddOnError;
 
 /// The BaseState contains the main addresses needed for sending and verifying messages
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -32,8 +32,8 @@ pub struct AddOnContract<
     pub version: Item<'a, ContractVersion>,
     pub admin: Admin<'a>,
     pub dependencies: &'static [&'static str],
-    
-    pub (crate) ibc_callbacks: &'a [(&'static str, IbcCallbackHandlerFn<Self, Error>)],
+
+    pub(crate) ibc_callbacks: &'a [(&'static str, IbcCallbackHandlerFn<Self, Error>)],
     pub(crate) receive_handler: Option<ReceiveHandlerFn<Self, Receive, Error>>,
 
     _phantom_data: PhantomData<Request>,
@@ -83,7 +83,10 @@ impl<
         self
     }
 
-    pub const fn with_receive(mut self, receive_handler: ReceiveHandlerFn<Self, Receive, E>) -> Self {
+    pub const fn with_receive(
+        mut self,
+        receive_handler: ReceiveHandlerFn<Self, Receive, E>,
+    ) -> Self {
         self.receive_handler = Some(receive_handler);
         self
     }
@@ -102,4 +105,3 @@ impl<
         self.version.load(store)
     }
 }
-

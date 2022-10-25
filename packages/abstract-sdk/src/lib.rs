@@ -35,7 +35,9 @@ pub use memory_traits::Resolve;
 pub use module_traits::{Dependency, MemoryOperation, OsExecute};
 pub use proxy::{os_module_action, query_total_value};
 pub use traits::{
-    execute::AbstractExecute, ibc_callback::{IbcCallbackEndpoint,IbcCallbackHandlerFn}, receive::{ReceiveEndpoint,ReceiveHandlerFn},
+    execute::AbstractExecute,
+    ibc_callback::{IbcCallbackEndpoint, IbcCallbackHandlerFn},
+    receive::{ReceiveEndpoint, ReceiveHandlerFn},
 };
 pub use version_control::{get_module, get_os_core, verify_os_manager, verify_os_proxy};
 pub extern crate abstract_os;

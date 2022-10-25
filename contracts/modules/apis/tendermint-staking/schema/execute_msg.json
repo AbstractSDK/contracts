@@ -124,6 +124,21 @@
         }
       },
       "additionalProperties": false
+    },
+    {
+      "description": "Receive endpoint for CW20 / external service integrations",
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "receive"
+          ]
+        }
+      }
     }
   ],
   "definitions": {

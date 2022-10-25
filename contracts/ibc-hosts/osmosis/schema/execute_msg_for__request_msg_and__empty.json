@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "ExecuteMsg_for_RequestMsg",
+  "title": "ExecuteMsg_for_RequestMsg_and_Empty",
   "description": "Interface to the API.",
   "oneOf": [
     {
@@ -124,6 +124,21 @@
         }
       },
       "additionalProperties": false
+    },
+    {
+      "description": "Receive endpoint for CW20 / external service integrations",
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "receive"
+          ]
+        }
+      }
     }
   ],
   "definitions": {

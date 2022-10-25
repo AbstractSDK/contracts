@@ -1,13 +1,12 @@
 use abstract_os::{
     add_on::{BaseExecuteMsg, ExecuteMsg},
-    simple_ica::{IbcResponseMsg},
+    simple_ica::IbcResponseMsg,
 };
 
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{state::AddOnContract, AddOnError, AddOnResult};
-
 
 impl<
         'a,
