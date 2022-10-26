@@ -326,7 +326,7 @@ pub fn update_os_status(deps: DepsMut, info: MessageInfo, new_status: Subscribed
 pub fn enable_ibc(deps: DepsMut, msg_info: MessageInfo, new_status: bool) -> ManagerResult {
     // Only root can update IBC status
     ROOT.assert_admin(deps.as_ref(), &msg_info.sender)?;
-    let maybe_client = OS_MODULES.may_load(deps.storage, &IBC_CLIENT)?;
+    let maybe_client = OS_MODULES.may_load(deps.storage, IBC_CLIENT)?;
     let proxy = OS_MODULES.load(deps.storage, PROXY)?;
     let msg = if let Some(ibc_client) = maybe_client {
         // we have an IBC client so can't add more
@@ -339,7 +339,7 @@ pub fn enable_ibc(deps: DepsMut, msg_info: MessageInfo, new_status: bool) -> Man
             proxy.into_string(),
             ibc_client.into_string(),
         )?;
-        OS_MODULES.remove(deps.storage, &IBC_CLIENT);
+        OS_MODULES.remove(deps.storage,IBC_CLIENT);
         remove_from_proxy_msg
     } else {
         if !new_status {
@@ -356,7 +356,7 @@ pub fn enable_ibc(deps: DepsMut, msg_info: MessageInfo, new_status: bool) -> Man
             proxy.into_string(),
             ibc_client_addr.to_string(),
         )?;
-        OS_MODULES.save(deps.storage, &IBC_CLIENT,&ibc_client_addr)?;
+        OS_MODULES.save(deps.storage, IBC_CLIENT,&ibc_client_addr)?;
         add_to_proxy_msg
     };
     
