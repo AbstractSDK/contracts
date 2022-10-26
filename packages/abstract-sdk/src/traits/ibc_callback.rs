@@ -1,10 +1,12 @@
-use abstract_os::simple_ica::{IbcResponseMsg, StdAck};
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
+use abstract_os::{simple_ica::{IbcResponseMsg, StdAck}, IBC_CLIENT, objects::UncheckedContractEntry};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
+
+use crate::MemoryOperation;
 
 pub type IbcCallbackHandlerFn<Module, Error> =
     fn(DepsMut, Env, MessageInfo, Module, String, StdAck) -> Result<Response, Error>;
 
-pub trait IbcCallbackEndpoint: Sized {
+pub trait IbcCallbackEndpoint: Sized + MemoryOperation {
     type ContractError: From<cosmwasm_std::StdError>;
     /// Takes request, sets destination and executes request handler
     /// This fn is the only way to get an ApiContract instance which ensures the destination address is set correctly.
@@ -17,6 +19,10 @@ pub trait IbcCallbackEndpoint: Sized {
         info: MessageInfo,
         msg: IbcResponseMsg,
     ) -> Result<Response, Self::ContractError> {
+        let ibc_client = self.resolve(deps.as_ref(),&UncheckedContractEntry::try_from(IBC_CLIENT.to_string())?.check())?;
+        if info.sender.ne(&ibc_client) {
+            return Err(StdError::GenericErr { msg: format!{"ibc callback can only be called by local ibc client {}",ibc_client }}.into())
+        }
         let IbcResponseMsg { id, msg: ack } = msg;
         let maybe_handler = self.callback_handler(&id);
         maybe_handler.map_or_else(
