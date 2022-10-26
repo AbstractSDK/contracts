@@ -739,6 +739,7 @@
             "additionalProperties": false
           },
           {
+            "description": "Fill with [`Option::None`] on call. Gets filled by IBC client.",
             "type": "object",
             "required": [
               "send_all_back"
@@ -746,12 +747,12 @@
             "properties": {
               "send_all_back": {
                 "type": "object",
-                "required": [
-                  "os_proxy_address"
-                ],
                 "properties": {
                   "os_proxy_address": {
-                    "type": "string"
+                    "type": [
+                      "string",
+                      "null"
+                    ]
                   }
                 },
                 "additionalProperties": false
