@@ -40,4 +40,4 @@ abstract-os = {workspace = true}
 [dev-dependencies]
 cw-multi-test = {workspace = true}
 cw20 = {workspace = true}
-proxy = { version = "0.1.0", path = "../../../core/proxy" }
+proxy = {path = "../../../core/proxy" }

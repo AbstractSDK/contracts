@@ -14,9 +14,9 @@ then
 fi
 
 # these are imported by other packages
-BASE_PACKAGES="abstract-os"
+BASE_PACKAGES="abstract-ica abstract-os"
 UTILS_PACKAGES="abstract-sdk"
-ALL_PACKAGES="abstract-api abstract-add-on"
+ALL_PACKAGES="abstract-api abstract-add-on abstract-ibc-host"
 
 SLEEP_TIME=30
 

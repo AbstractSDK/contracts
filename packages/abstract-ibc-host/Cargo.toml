@@ -1,9 +1,9 @@
 [package]
 name = "abstract-ibc-host"
-version = "0.1.0"
-edition = "2021"
+version = {workspace = true}
+edition = {workspace = true}
+license = {workspace = true}
 description = "base API contract implementation"
-license = "GPL-2.0-or-later"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -21,8 +21,8 @@ library = []
 
 [dependencies]
 cosmwasm-std = { workspace = true, features = ["ibc3"] }
-cw-utils = { version = "0.14.0" }
-cw1-whitelist = { version = "0.14.0", features = ["library"]}
+cw-utils = { workspace = true }
+cw1-whitelist = { version = "0.16.0", features = ["library"]}
 cw-storage-plus = {workspace = true}
 serde = {workspace = true}
 schemars = {workspace = true}
