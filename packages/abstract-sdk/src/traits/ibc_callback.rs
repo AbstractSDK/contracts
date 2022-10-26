@@ -23,6 +23,7 @@ pub trait IbcCallbackEndpoint: Sized + MemoryOperation {
         info: MessageInfo,
         msg: IbcResponseMsg,
     ) -> Result<Response, Self::ContractError> {
+        // Todo: Change to use version control instead?
         let ibc_client = self.resolve(
             deps.as_ref(),
             &UncheckedContractEntry::try_from(IBC_CLIENT.to_string())?.check(),
