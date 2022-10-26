@@ -1,4 +1,8 @@
-use abstract_os::{simple_ica::{IbcResponseMsg, StdAck}, IBC_CLIENT, objects::UncheckedContractEntry};
+use abstract_os::{
+    objects::UncheckedContractEntry,
+    simple_ica::{IbcResponseMsg, StdAck},
+    IBC_CLIENT,
+};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
 
 use crate::MemoryOperation;
@@ -19,9 +23,15 @@ pub trait IbcCallbackEndpoint: Sized + MemoryOperation {
         info: MessageInfo,
         msg: IbcResponseMsg,
     ) -> Result<Response, Self::ContractError> {
-        let ibc_client = self.resolve(deps.as_ref(),&UncheckedContractEntry::try_from(IBC_CLIENT.to_string())?.check())?;
+        let ibc_client = self.resolve(
+            deps.as_ref(),
+            &UncheckedContractEntry::try_from(IBC_CLIENT.to_string())?.check(),
+        )?;
         if info.sender.ne(&ibc_client) {
-            return Err(StdError::GenericErr { msg: format!{"ibc callback can only be called by local ibc client {}",ibc_client }}.into())
+            return Err(StdError::GenericErr {
+                msg: format! {"ibc callback can only be called by local ibc client {}",ibc_client },
+            }
+            .into());
         }
         let IbcResponseMsg { id, msg: ack } = msg;
         let maybe_handler = self.callback_handler(&id);

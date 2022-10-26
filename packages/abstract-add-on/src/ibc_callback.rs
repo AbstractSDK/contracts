@@ -1,4 +1,7 @@
-use abstract_os::{objects::{ContractEntry, UncheckedContractEntry}, IBC_CLIENT};
+use abstract_os::{
+    objects::{ContractEntry, UncheckedContractEntry},
+    IBC_CLIENT,
+};
 use abstract_sdk::{IbcCallbackEndpoint, IbcCallbackHandlerFn, MemoryOperation};
 use serde::{de::DeserializeOwned, Serialize};
 
