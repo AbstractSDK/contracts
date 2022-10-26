@@ -28,10 +28,11 @@ cosmwasm-std = { version = "1.1" }
 cosmwasm-storage = { version = "1.1" }
 cosmwasm-schema = { version = "1.1" }
 cw-controllers = { version ="0.16" }
+cw-utils = {version = "0.16"}
 cw-storage-plus = "0.16"
 cw2 = {version = "0.16"}
 cw20 = { version = "0.16" }
-cw20-base = { version = "0.16" }
+cw20-base = { version = "0.16", features = ["library"] }
 cw-asset = {version = "2.2"}
 schemars = "0.8"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
@@ -43,6 +44,7 @@ abstract-sdk = {path = "packages/abstract-sdk"}
 abstract-os = {path = "packages/abstract-os" }
 abstract-add-on = { path = "packages/abstract-add-on", features = ["library"] }
 abstract-api = { path = "packages/abstract-api", features = ["library"] }
+abstract-ibc-host = { path = "packages/abstract-ibc-host" }
 
 cw-multi-test = {git = "https://github.com/Abstract-OS/cw-plus.git", branch="main"}
 

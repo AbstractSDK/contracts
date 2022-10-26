@@ -22,7 +22,7 @@ backtraces = ["cosmwasm-std/backtraces"]
 # Keep as is until TendermintStake updates.
 [dependencies]
 cosmwasm-schema = { workspace = true }
-cosmwasm-std = "1.1"
+cosmwasm-std = {workspace = true}
 schemars = {workspace = true}
 serde = {workspace = true}
 thiserror = {workspace = true}

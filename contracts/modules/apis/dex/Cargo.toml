@@ -26,7 +26,7 @@ osmosis = ["library","dep:osmosis-std", "cosmwasm-std/stargate"]
 
 # Keep as is until TendermintStake updates.
 [dependencies]
-cosmwasm-std = "1.1"
+cosmwasm-std = {workspace = true}
 schemars = {workspace = true}
 serde = {workspace = true}
 thiserror = {workspace = true}

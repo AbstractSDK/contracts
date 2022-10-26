@@ -39,11 +39,11 @@ semver = {workspace = true}
 cw-multi-test = { workspace = true}
 cw20 = {workspace = true}
 
-proxy = { version = "0.1.0", path = "../proxy" }
-memory = { version = "0.1.0", path = "../../native/memory" }
-os-factory = { version = "0.1.0", path = "../../native/factory" }
-module-factory = { version = "0.1.0", path = "../../native/module_factory" }
-version-control = { version = "0.1.0", path = "../../native/version_control" }
+proxy = { path = "../proxy" }
+memory = { path = "../../native/memory" }
+os-factory = { path = "../../native/factory" }
+module-factory = { path = "../../native/module_factory" }
+version-control = { path = "../../native/version_control" }
 
 
 [package.metadata.scripts]

@@ -28,7 +28,7 @@ thiserror = {workspace = true}
 # Osmosis feature also enables library feature
 dex = { path = "../../modules/apis/dex", features = ["osmosis", "library"] }
 abstract-os = {workspace = true}
-abstract-ibc-host = { version = "0.1.0", path = "../../../packages/abstract-ibc-host" }
+abstract-ibc-host = { workspace = true}
 abstract-sdk = {workspace = true}
 cw2 = {workspace = true}
 semver = {workspace = true}
