@@ -32,6 +32,7 @@ use cosmwasm_std::{CosmosMsg, Empty};
 pub use ibc_client::{host_ibc_action, ics20_transfer};
 pub use manager::{query_module_address, query_module_version};
 pub use memory_traits::Resolve;
+pub use exchange::Exchange;
 pub use module_traits::{Dependency, MemoryOperation, OsExecute};
 pub use proxy::{os_module_action, query_total_value};
 pub use traits::{

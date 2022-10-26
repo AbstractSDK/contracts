@@ -1,5 +1,5 @@
 use abstract_os::{
-    dex::{DexAction, OfferAsset},
+    dex::{DexAction, OfferAsset, SwapRouter},
     objects::AssetEntry,
     EXCHANGE,
 };
@@ -28,6 +28,29 @@ pub trait Exchange: Dependency {
                     ask_asset,
                     max_spread: None,
                     belief_price: None,
+                },
+            },
+            vec![],
+        )
+    }
+    fn custom_swap(
+        &self,
+        deps: Deps,
+        dex: String,
+        offer_assets: Vec<OfferAsset>,
+        ask_assets: Vec<OfferAsset>,
+        router: Option<SwapRouter>,
+    ) -> StdResult<CosmosMsg> {
+        self.call_api_dependency(
+            deps,
+            EXCHANGE,
+            &RequestMsg {
+                dex,
+                action: DexAction::CustomSwap {
+                    offer_assets,
+                    ask_assets,
+                    max_spread: None,
+                    router,
                 },
             },
             vec![],

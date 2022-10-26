@@ -3,11 +3,11 @@
 //! `abstract_os::dex` is a generic dex-interfacing contract that handles address retrievals and dex-interactions.
 
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Decimal, Uint128};
+use cosmwasm_std::{Addr, Coin, Decimal, Uint128};
 
 use crate::objects::{AssetEntry, ContractEntry};
 
-type DexName = String;
+pub type DexName = String;
 pub type OfferAsset = (AssetEntry, Uint128);
 
 pub const IBC_DEX_ID: u32 = 11335;
@@ -37,6 +37,20 @@ pub enum DexAction {
         max_spread: Option<Decimal>,
         belief_price: Option<Decimal>,
     },
+    CustomSwap {
+        offer_assets: Vec<OfferAsset>,
+        ask_assets: Vec<OfferAsset>,
+        max_spread: Option<Decimal>,
+        router: Option<SwapRouter>,
+    },
+}
+
+#[cosmwasm_schema::cw_serde]
+pub enum SwapRouter {
+    /// Matrix router
+    Matrix,
+    /// Use a custom router (using String type for cross-chain compatibility)
+    Custom(String),
 }
 
 /// Dex Execute msg

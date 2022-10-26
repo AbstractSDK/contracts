@@ -1,16 +1,17 @@
 use abstract_ibc_host::chains::OSMOSIS;
 use abstract_ibc_host::Host;
 use abstract_ibc_host::HostError;
+use abstract_os::dex::DexAction;
+use osmo_bindings::OsmosisQuery;
+use abstract_os::dex::SwapRouter;
 use abstract_os::ibc_host::{BaseInstantiateMsg, MigrateMsg, QueryMsg};
 use abstract_os::{dex::RequestMsg, OSMOSIS_HOST};
 
-use cosmwasm_std::{
-    entry_point, Binary, Deps, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo,
-    Response, StdResult,
-};
+use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo, Response, StdResult, Empty};
 use cw2::{get_contract_version, set_contract_version};
 use semver::Version;
 
+use crate::commands;
 use crate::error::OsmoError;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -40,6 +41,7 @@ pub fn instantiate(
     Ok(Response::default())
 }
 
+pub type IbcHostResult = Result<IbcReceiveResponse, HostError>;
 /// we look for a the proper reflect contract to relay to and send the message
 /// We cannot return any meaningful response value as we do not know the response value
 /// of execution. We just return ok if we dispatched, error if we failed to dispatch
@@ -48,7 +50,7 @@ pub fn ibc_packet_receive(
     deps: DepsMut,
     env: Env,
     msg: IbcPacketReceiveMsg,
-) -> Result<IbcReceiveResponse, HostError> {
+) -> IbcHostResult {
     OSMO_HOST.handle_packet(deps, env, msg, handle_packet)
 }
 
@@ -57,8 +59,28 @@ fn handle_packet(
     _env: Env,
     _caller_channel: String,
     _host: OsmoHost,
-    _packet: RequestMsg,
-) -> Result<IbcReceiveResponse, HostError> {
+    packet: RequestMsg,
+) -> IbcHostResult {
+    // match packet.action {
+    //     DexAction::CustomSwap {
+    //         offer_assets,
+    //         ask_assets,
+    //         max_spread,
+    //         router
+    //     } => {
+    //         if let Some(router) = router {
+    //             match router {
+    //               SwapRouter::Matrix => commands::handle_matrix_swap(offer_assets, ask_assets, max_spread),
+    //               SwapRouter::Custom(_) => todo!(),
+    //             }
+    //           } else {
+    //             // default swap
+    //             commands::handle_default_swap(offer_assets, ask_assets, max_spread),
+    //           }
+    //         todo!()
+    //     }
+    //     _ => todo!()
+    // }
     todo!()
     // match packet {
     //     RequestMsg::ProvideLiquidity {
@@ -130,7 +152,18 @@ fn handle_packet(
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> Result<Binary, OsmoError> {
-    OSMO_HOST.handle_query(deps, env, msg, None)
+    match msg {
+        QueryMsg::App(_) => OSMO_HOST.handle_query(deps, env, msg, Some(handle_osmosis_query)),
+        QueryMsg::Base(base) => todo!()
+    }
+
+}
+
+/// Osmosis query handler
+fn handle_osmosis_query(deps: Deps, env: Env, query: OsmosisQuery) -> Result<Binary, OsmoError> {
+    match query {
+
+    }
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]

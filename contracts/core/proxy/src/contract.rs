@@ -4,19 +4,14 @@ use abstract_sdk::memory::Memory;
 use abstract_sdk::Resolve;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{
-    to_binary, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Order, Response, StdError, StdResult,
-};
+use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Order, Response, StdError, StdResult, Uint128};
 
 use crate::commands::*;
 use crate::error::ProxyError;
 use crate::queries::*;
 use abstract_os::objects::proxy_asset::ProxyAsset;
 use abstract_os::proxy::state::{State, ADMIN, MEMORY, STATE, VAULT_ASSETS};
-use abstract_os::proxy::{
-    AssetConfigResponse, BaseAssetResponse, ExecuteMsg, HoldingAmountResponse,
-    HoldingValueResponse, InstantiateMsg, MigrateMsg, QueryMsg, TotalValueResponse,
-};
+use abstract_os::proxy::{AssetConfigResponse, BaseAssetResponse, ExecuteMsg, HoldingAmountResponse, HoldingValueResponse, InstantiateMsg, MigrateMsg, QueryMsg, TokenValueResponse, TotalValueResponse};
 use abstract_os::PROXY;
 use cw2::{get_contract_version, set_contract_version};
 use semver::Version;
@@ -97,6 +92,10 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
                 amount: asset_info.query_balance(&deps.querier, env.contract.address)?,
             })
         }
+        QueryMsg::TokenValue { identifier, amount } => to_binary(&TokenValueResponse {
+            // Default the value calculation to one so that the caller doesn't need to provide a default
+            value: compute_token_value(deps, &env, identifier, amount.or(Some(Uint128::one())))?,
+        }),
         QueryMsg::HoldingValue { identifier } => to_binary(&HoldingValueResponse {
             value: compute_holding_value(deps, &env, identifier)?,
         }),

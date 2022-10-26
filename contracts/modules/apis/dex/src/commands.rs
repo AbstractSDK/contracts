@@ -1,15 +1,15 @@
 // #![allow(unused)]
 use abstract_sdk::{MemoryOperation, OsExecute};
-use cosmwasm_std::{Decimal, Deps, Env, MessageInfo};
+use cosmwasm_std::{CosmosMsg, Decimal, Deps, Env, MessageInfo};
 use cw_asset::{Asset, AssetInfo};
 
 use crate::{
     contract::{DexApi, DexResult},
     error::DexError,
-    DEX,
+    DEX, exchanges::osmosis::{OSMOSIS, Osmosis},
 };
 use abstract_os::{
-    dex::OfferAsset,
+    dex::{OfferAsset, SwapRouter},
     objects::{AssetEntry, UncheckedContractEntry},
 };
 
@@ -27,6 +27,8 @@ pub(crate) fn resolve_exchange(value: &str) -> Result<&'static dyn DEX, DexError
     match value {
         #[cfg(feature = "juno")]
         JUNOSWAP => Ok(&JunoSwap {}),
+        #[cfg(feature = "juno")]
+        OSMOSIS => Ok(&Osmosis {}),
         #[cfg(any(feature = "juno", feature = "terra"))]
         LOOP => Ok(&Loop {}),
         #[cfg(feature = "terra")]
@@ -65,6 +67,41 @@ pub fn swap(
         max_spread,
     )?;
     api.os_execute(deps, msgs).map_err(From::from)
+}
+
+pub fn custom_swap(
+    deps: Deps,
+    _env: Env,
+    _info: MessageInfo,
+    api: DexApi,
+    offer_assets: Vec<OfferAsset>,
+    ask_assets: Vec<OfferAsset>,
+    exchange: &dyn DEX,
+    max_spread: Option<Decimal>,
+    rotuer: Option<SwapRouter>,
+) -> DexResult {
+    todo!()
+
+    // let memory = api.load_memory(deps.storage)?;
+    //
+    // // Resolve the asset information
+    // let mut offer_asset_infos: Vec<AssetInfo> =
+    //     exchange.resolve_assets(deps, &api, offer_assets.into_iter().unzip().0)?;
+    // let mut ask_asset_infos: Vec<AssetInfo> =
+    //     exchange.resolve_assets(deps, &api, ask_assets.into_iter().unzip().0)?;
+    //
+    // let offer_assets: Vec<Asset> = offer_assets
+    //     .into_iter()
+    //     .zip(offer_asset_infos)
+    //     .map(|(asset, info)| Asset::new(info, asset.1))
+    //     .collect();
+    // let ask_assets: Vec<Asset> = ask_assets
+    //     .into_iter()
+    //     .zip(ask_asset_infos)
+    //     .map(|(asset, info)| Asset::new(info, asset.1))
+    //     .collect();
+    //
+    // exchange.custom_swap(deps, offer_assets, ask_assets, max_spread)
 }
 
 pub fn provide_liquidity(

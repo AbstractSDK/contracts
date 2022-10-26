@@ -1,7 +1,7 @@
 use abstract_api::{ApiContract, ApiResult};
 use abstract_os::{
     api::{BaseInstantiateMsg, ExecuteMsg, QueryMsg},
-    dex::{ApiQueryMsg, DexAction, RequestMsg, IBC_DEX_ID},
+    dex::{ApiQueryMsg, DexAction, RequestMsg, IBC_DEX_ID, DexName},
     ibc_client::CallbackInfo,
     objects::AssetEntry,
     EXCHANGE,
@@ -61,28 +61,7 @@ pub fn handle_api_request(
     let exchange = resolve_exchange(&dex_name)?;
     // if exchange is on an app-chain,
     if exchange.over_ibc() {
-        let host_chain = dex_name;
-        let memory = api.load_memory(deps.storage)?;
-        // get the to-be-sent assets from the action
-        let coins = assets_to_transfer(deps.as_ref(), &action, &memory)?;
-        // construct the ics20 call(s)
-        let ics20_transfer_msg = ics20_transfer(api.target()?, host_chain.clone(), coins)?;
-        // construct the action to be called on the host
-        let action = abstract_os::ibc_host::HostAction::App {
-            msg: to_binary(&action)?,
-        };
-        let ibc_action_msg = host_ibc_action(
-            api.target()?,
-            host_chain,
-            action,
-            Some(CallbackInfo {
-                id: IBC_DEX_ID.to_string(),
-                receiver: env.contract.address.to_string(),
-            }),
-            ACTION_RETRIES,
-        )?;
-        // call both messages on the proxy
-        Ok(Response::new().add_messages(vec![ics20_transfer_msg, ibc_action_msg]))
+        handle_ibc_api_request(&deps, &env, &api, dex_name, &action)
     } else {
         // the action can be executed on the local chain
         match action {
@@ -128,8 +107,57 @@ pub fn handle_api_request(
                 max_spread,
                 belief_price,
             ),
+            DexAction::CustomSwap {
+                offer_assets,
+                ask_assets,
+                max_spread,
+                router,
+            } => custom_swap(
+                deps.as_ref(),
+                env,
+                info,
+                api,
+                offer_assets,
+                ask_assets,
+                exchange,
+                max_spread,
+                router,
+            ),
         }
     }
+}
+
+fn handle_ibc_api_request(
+    deps: &DepsMut,
+    env: &Env,
+    api: &DexApi,
+    dex_name: DexName,
+    action: &DexAction,
+) -> DexResult {
+    let host_chain = dex_name;
+    let memory = api.load_memory(deps.storage)?;
+    // get the to-be-sent assets from the action
+    let coins = resolve_assets_to_transfer(deps.as_ref(), &action, &memory)?;
+    // construct the ics20 call(s)
+    let ics20_transfer_msg = ics20_transfer(api.target()?, host_chain.clone(), coins)?;
+    // construct the action to be called on the host
+    let action = abstract_os::ibc_host::HostAction::App {
+        msg: to_binary(&action)?,
+    };
+
+    let ibc_action_msg = host_ibc_action(
+        api.target()?,
+        host_chain,
+        action,
+        Some(CallbackInfo {
+            id: IBC_DEX_ID.to_string(),
+            receiver: env.contract.address.to_string(),
+        }),
+        ACTION_RETRIES,
+    )?;
+
+    // call both messages on the proxy
+    Ok(Response::new().add_messages(vec![ics20_transfer_msg, ibc_action_msg]))
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -147,7 +175,7 @@ fn query_handler(deps: Deps, env: Env, msg: ApiQueryMsg) -> Result<Binary, DexEr
     }
 }
 
-fn assets_to_transfer(deps: Deps, dex_action: &DexAction, memory: &Memory) -> StdResult<Vec<Coin>> {
+fn resolve_assets_to_transfer(deps: Deps, dex_action: &DexAction, memory: &Memory) -> StdResult<Vec<Coin>> {
     // resolve asset to native asset
     let offer_to_coin = |offer: &(AssetEntry, Uint128)| {
         Asset {
@@ -170,5 +198,9 @@ fn assets_to_transfer(deps: Deps, dex_action: &DexAction, memory: &Memory) -> St
             amount.to_owned(),
         ))?]),
         DexAction::Swap { offer_asset, .. } => Ok(vec![offer_to_coin(offer_asset)?]),
+        DexAction::CustomSwap { offer_assets, .. } => {
+            let coins: Result<Vec<Coin>, _> = offer_assets.iter().map(offer_to_coin).collect();
+            coins
+        }
     }
 }

@@ -27,4 +27,7 @@ pub enum DexError {
 
     #[error("Pair {0} on DEX {1} does not match with pair address {2}")]
     DexMismatch(String, String, String),
+
+    #[error("Not implemented for dex {0}")]
+    NotImplemented(String),
 }

@@ -47,11 +47,23 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
 
 /// Returns the value of a specified asset.
 pub fn compute_holding_value(deps: Deps, env: &Env, asset_entry: String) -> StdResult<Uint128> {
+    compute_token_value(deps, env, asset_entry, None)
+}
+
+/// Returns the value of the amount of the specified asset
+/// @param amount: The amount of the asset to compute the value of. If None, the holding value of the calling account is returned.
+pub fn compute_token_value(
+    deps: Deps,
+    env: &Env,
+    asset_entry: String,
+    amount: Option<Uint128>,
+) -> StdResult<Uint128> {
     let mut vault_asset: ProxyAsset = VAULT_ASSETS.load(deps.storage, asset_entry.into())?;
     let memory = MEMORY.load(deps.storage)?;
-    let value = vault_asset.value(deps, env, &memory, None)?;
+    let value = vault_asset.value(deps, env, &memory, amount)?;
     Ok(value)
 }
+
 
 /// Computes the total value locked in this contract
 pub fn compute_total_value(deps: Deps, env: Env) -> StdResult<Uint128> {
