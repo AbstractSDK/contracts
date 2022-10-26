@@ -44,8 +44,9 @@ pub enum HostAction {
     Query {
         msgs: Vec<QueryRequest<Empty>>,
     },
+    /// Fill with [`Option::None`] on call. Gets filled by IBC client.
     SendAllBack {
-        os_proxy_address: String,
+        os_proxy_address: Option<String>,
     },
     Balances {},
     /// Can't be called through the packet endpoint directly
