@@ -1,4 +1,4 @@
-use abstract_os::simple_ica::{
+use abstract_os::abstract_ica::{
     check_order, check_version, BalancesResponse, DispatchResponse, IbcQueryResponse,
     RegisterResponse, SendAllBackResponse, StdAck, WhoAmIResponse, IBC_APP_VERSION,
 };
@@ -68,8 +68,8 @@ pub fn ibc_channel_open(
 }
 
 #[entry_point]
-/// channel established
 #[allow(unused)]
+/// channel established
 pub fn ibc_channel_connect(
     deps: DepsMut,
     env: Env,
@@ -373,7 +373,7 @@ pub fn ibc_packet_timeout(
 //         attr, coin, coins, from_slice, BankMsg, Binary, OwnedDeps, SubMsgResponse, SubMsgResult,
 //         WasmMsg,
 //     };
-//     use simple_ica::{APP_ORDER, BAD_APP_ORDER};
+//     use abstract_ica::{APP_ORDER, BAD_APP_ORDER};
 
 //     const CREATOR: &str = "creator";
 //     // code id of the reflect contract

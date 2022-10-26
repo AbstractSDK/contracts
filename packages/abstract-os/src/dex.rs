@@ -3,7 +3,7 @@
 //! `abstract_os::dex` is a generic dex-interfacing contract that handles address retrievals and dex-interactions.
 
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Coin, Decimal, Uint128};
+use cosmwasm_std::{Decimal, Uint128};
 
 use crate::objects::{AssetEntry, ContractEntry};
 
