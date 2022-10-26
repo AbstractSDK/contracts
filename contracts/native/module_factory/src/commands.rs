@@ -88,8 +88,8 @@ pub fn execute_create_module(
                 })?,
             });
             Ok(Response::new().add_message(register_msg))
-        },
-        _ => Err(ModuleFactoryError::ModuleNotInstallable{})
+        }
+        _ => Err(ModuleFactoryError::ModuleNotInstallable {}),
     }
 }
 

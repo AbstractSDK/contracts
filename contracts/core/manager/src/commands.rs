@@ -7,11 +7,12 @@ use abstract_os::{
         module_reference::ModuleReference,
     },
     proxy::ExecuteMsg as TreasuryMsg,
-    version_control::{state::MODULE_LIBRARY, ModuleResponse, QueryMsg as VersionQuery}, IBC_CLIENT,
+    version_control::{state::MODULE_LIBRARY, ModuleResponse, QueryMsg as VersionQuery},
+    IBC_CLIENT,
 };
 use cosmwasm_std::{
     to_binary, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo, QueryRequest,
-    Response, StdResult, WasmMsg, WasmQuery, StdError,
+    Response, StdError, StdResult, WasmMsg, WasmQuery,
 };
 use cw2::{get_contract_version, ContractVersion};
 use semver::Version;
@@ -322,7 +323,6 @@ pub fn update_os_status(deps: DepsMut, info: MessageInfo, new_status: Subscribed
     Err(ManagerError::CallerNotSubscriptionContract {})
 }
 
-
 pub fn enable_ibc(deps: DepsMut, msg_info: MessageInfo, new_status: bool) -> ManagerResult {
     // Only root can update IBC status
     ROOT.assert_admin(deps.as_ref(), &msg_info.sender)?;
@@ -331,24 +331,27 @@ pub fn enable_ibc(deps: DepsMut, msg_info: MessageInfo, new_status: bool) -> Man
     let msg = if let Some(ibc_client) = maybe_client {
         // we have an IBC client so can't add more
         if new_status {
-            return Err(ManagerError::ModuleAlreadyAdded {  });
+            return Err(ManagerError::ModuleAlreadyAdded {});
         }
 
-        let remove_from_proxy_msg = remove_dapp_from_proxy(
-            deps.as_ref(),
-            proxy.into_string(),
-            ibc_client.into_string(),
-        )?;
-        OS_MODULES.remove(deps.storage,IBC_CLIENT);
+        let remove_from_proxy_msg =
+            remove_dapp_from_proxy(deps.as_ref(), proxy.into_string(), ibc_client.into_string())?;
+        OS_MODULES.remove(deps.storage, IBC_CLIENT);
         remove_from_proxy_msg
     } else {
         if !new_status {
-            return Err(ManagerError::Std(StdError::generic_err("ibc_client is not installed")));
+            return Err(ManagerError::Std(StdError::generic_err(
+                "ibc_client is not installed",
+            )));
         }
-        let ibc_client = get_module(deps.as_ref(), ModuleInfo::from_id(IBC_CLIENT, ModuleVersion::Latest {  })?, None)?;
+        let ibc_client = get_module(
+            deps.as_ref(),
+            ModuleInfo::from_id(IBC_CLIENT, ModuleVersion::Latest {})?,
+            None,
+        )?;
         let ibc_client_addr = match ibc_client {
             ModuleReference::Native(addr) => addr,
-            _ => return Err(StdError::generic_err("ibc_client must be native contract").into())
+            _ => return Err(StdError::generic_err("ibc_client must be native contract").into()),
         };
 
         let add_to_proxy_msg = whitelist_dapp_on_proxy(
@@ -356,10 +359,9 @@ pub fn enable_ibc(deps: DepsMut, msg_info: MessageInfo, new_status: bool) -> Man
             proxy.into_string(),
             ibc_client_addr.to_string(),
         )?;
-        OS_MODULES.save(deps.storage, IBC_CLIENT,&ibc_client_addr)?;
+        OS_MODULES.save(deps.storage, IBC_CLIENT, &ibc_client_addr)?;
         add_to_proxy_msg
     };
-    
 
     Ok(Response::new()
         .add_message(msg)

@@ -2,7 +2,7 @@ use cosmwasm_std::Addr;
 
 #[cosmwasm_schema::cw_serde]
 pub enum ModuleReference {
-    /// Native Abstract Contracts 
+    /// Native Abstract Contracts
     Native(Addr),
     /// Installable extensions
     Extension(Addr),

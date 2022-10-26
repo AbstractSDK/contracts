@@ -17,5 +17,5 @@ pub enum ModuleFactoryError {
     UnexpectedReply(),
 
     #[error("This module type can not be installed on your OS")]
-    ModuleNotInstallable{}
+    ModuleNotInstallable {},
 }

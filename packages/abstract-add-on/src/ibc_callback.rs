@@ -1,4 +1,3 @@
-
 use abstract_sdk::{IbcCallbackEndpoint, IbcCallbackHandlerFn};
 use serde::{de::DeserializeOwned, Serialize};
 
