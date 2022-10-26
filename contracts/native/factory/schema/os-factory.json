@@ -164,7 +164,8 @@
           "sender": {
             "type": "string"
           }
-        }
+        },
+        "additionalProperties": false
       },
       "GovernanceDetails": {
         "description": "Governance types",
