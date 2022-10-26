@@ -26,4 +26,7 @@ pub enum HostError {
 
     #[error("This channel has not been closed.")]
     ChannelNotClosed,
+
+    #[error("A valid proxy address must be provided.")]
+    MissingProxyAddress,
 }

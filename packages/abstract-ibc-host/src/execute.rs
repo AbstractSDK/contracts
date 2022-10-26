@@ -69,7 +69,7 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
                     deps,
                     env,
                     os_id,
-                    os_proxy_address,
+                    os_proxy_address.ok_or(HostError::MissingProxyAddress{})?,
                     ics20_channel_id,
                     channel,
                 )
