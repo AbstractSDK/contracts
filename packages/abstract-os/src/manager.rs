@@ -120,6 +120,7 @@ pub enum ExecuteMsg {
     },
     /// Suspend manager contract
     SuspendOs { new_status: bool },
+    EnableIBC { new_status: bool },
 }
 
 #[cosmwasm_schema::cw_serde]
