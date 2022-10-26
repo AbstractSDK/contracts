@@ -53,3 +53,7 @@ for pack in $ALL_PACKAGES; do
 done
 
 echo "Everything is published!"
+
+VERSION=$(cat Cargo.toml | grep -m 1 version | sed 's/-/_/g' | grep -o '".*"' | sed 's/"//g');
+git tag v$VERSION
+git push origin
