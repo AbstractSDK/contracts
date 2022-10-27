@@ -32,8 +32,9 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
         packet_handler: impl FnOnce(
             DepsMut,
             Env,
-            String,
             Host<T>,
+            String,
+            u32,
             T,
         ) -> Result<IbcReceiveResponse, RequestError>,
     ) -> Result<IbcReceiveResponse, RequestError> {
@@ -48,7 +49,7 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
         } = from_slice(&packet.data)?;
         match action {
             HostAction::Internal(InternalAction::Register) => {
-                receive_register(deps, env, channel, os_id)
+                receive_register(deps, env, self, channel, os_id)
             }
             HostAction::Internal(InternalAction::WhoAmI) => {
                 let this_chain = self.base_state.load(deps.storage)?.chain;
@@ -75,7 +76,7 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
                 )
             }
             HostAction::App { msg } => {
-                return packet_handler(deps, env, channel, self, from_binary(&msg)?)
+                return packet_handler(deps, env, self, channel, os_id, from_binary(&msg)?)
             }
         }
         .map_err(Into::into)

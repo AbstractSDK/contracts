@@ -19,7 +19,7 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
         module_version: &str,
         chain: &str,
     ) -> StdResult<Self> {
-        let api = Self::default();
+        let api = Self::new();
         let memory = Memory {
             address: deps.api.addr_validate(&msg.memory_address)?,
         };
