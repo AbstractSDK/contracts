@@ -4,8 +4,12 @@ use crate::{
     DEX,
 };
 
-use cosmwasm_std::{Addr, Decimal, Deps};
+use cosmwasm_std::{Addr, Coin, CosmosMsg, Decimal, Deps, Uint128};
 use cw_asset::{Asset, AssetInfo};
+
+use osmosis_std::types::osmosis::gamm::v1beta1::{
+    MsgExitPool, MsgJoinPool, MsgSwapExactAmountIn, MsgSwapExactAmountOut, SwapAmountInRoute,
+};
 
 pub const OSMOSIS: &str = "osmosis";
 // Source https://github.com/wasmswap/wasmswap-contracts
@@ -22,14 +26,35 @@ impl DEX for Osmosis {
 
     fn swap(
         &self,
-        _deps: Deps,
-        _pair_address: Addr,
-        _offer_asset: Asset,
-        _ask_asset: AssetInfo,
-        _belief_price: Option<Decimal>,
-        _max_spread: Option<Decimal>,
+        deps: Deps,
+        pair_address: Addr,
+        offer_asset: Asset,
+        ask_asset: AssetInfo,
+        belief_price: Option<Decimal>,
+        max_spread: Option<Decimal>,
     ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
-        todo!()
+        let token_out_denom = match ask_asset {
+            AssetInfo::Native { .. } => "uosmo".to_string(),
+            AssetInfo::Cw20(contract_addr) => contract_addr.to_string(),
+            _ => return Err(DexError::Cw1155Unsupported),
+        };
+
+        let routes: Vec<SwapAmountInRoute> = vec![SwapAmountInRoute {
+            pool_id: pair_address.to_string().parse::<u64>().unwrap(),
+            token_out_denom,
+        }];
+
+        let token_in = Coin::try_from(offer_asset)?;
+
+        let swap_msg: CosmosMsg = MsgSwapExactAmountIn {
+            sender,
+            routes,
+            token_in: Some(token_in.into()),
+            token_out_min_amount: Uint128::zero().to_string(),
+        }
+        .into();
+
+        return Ok(vec![swap_msg]);
     }
 
     fn custom_swap(
@@ -52,7 +77,6 @@ impl DEX for Osmosis {
         _offer_assets: Vec<Asset>,
         _max_spread: Option<Decimal>,
     ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
-        Err(DexError::NotImplemented(self.name().to_string()))
     }
 
     fn provide_liquidity_symmetric(
