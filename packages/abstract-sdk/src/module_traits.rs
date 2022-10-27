@@ -1,5 +1,5 @@
 use abstract_os::objects::memory::Memory;
-use cosmwasm_std::{Addr, Coin, CosmosMsg, Deps, Response, StdResult, Storage};
+use cosmwasm_std::{Addr, Coin, CosmosMsg, Deps, Response, StdResult, Storage, ReplyOn};
 use serde::Serialize;
 
 use crate::Resolve;
@@ -14,6 +14,12 @@ pub trait OsExecute {
         deps: Deps,
         msgs: Vec<abstract_os::ibc_client::ExecuteMsg>,
     ) -> Result<Response, Self::Err>;
+    fn os_execute_with_reply(&self, deps: Deps, msgs: Vec<CosmosMsg>, reply_on: ReplyOn, id: u64 ) -> Result<Response, Self::Err> {
+        let mut resp = self.os_execute(deps, msgs)?;
+        resp.messages[0].reply_on = reply_on;
+        resp.messages[0].id = id;
+        Ok(resp)
+    }
 }
 
 /// easily retrieve the memory object from the contract to perform queries
@@ -21,6 +27,8 @@ pub trait MemoryOperation {
     /// Load the Memory object
     fn load_memory(&self, store: &dyn Storage) -> StdResult<Memory>;
     /// Resolve a query on the memory contract
+    /// Use if only 1-2 queries are required
+    /// loads the Memory var every call
     fn resolve<T: Resolve>(&self, deps: Deps, memory_entry: &T) -> StdResult<T::Output> {
         memory_entry.resolve(deps, &self.load_memory(deps.storage)?)
     }
