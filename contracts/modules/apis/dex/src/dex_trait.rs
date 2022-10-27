@@ -37,10 +37,10 @@ pub trait DEX {
     ) -> Result<Vec<CosmosMsg>, DexError>;
     fn custom_swap(
         &self,
-        deps: Deps,
-        offer_assets: Vec<Asset>,
-        ask_assets: Vec<Asset>,
-        max_spread: Option<Decimal>,
+        _deps: Deps,
+        _offer_assets: Vec<Asset>,
+        _ask_assets: Vec<Asset>,
+        _max_spread: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
         // Must be implemented in the base to be available
         Err(DexError::NotImplemented(self.name().to_string()))

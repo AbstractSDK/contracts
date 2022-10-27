@@ -154,7 +154,7 @@ fn handle_ibc_api_request(
     let host_chain = dex_name;
     let memory = api.load_memory(deps.storage)?;
     // get the to-be-sent assets from the action
-    let coins = resolve_assets_to_transfer(deps.as_ref(), &action, &memory)?;
+    let coins = resolve_assets_to_transfer(deps.as_ref(), action, &memory)?;
     // construct the ics20 call(s)
     let ics20_transfer_msg = ics20_transfer(api.target()?, host_chain.clone(), coins)?;
     // construct the action to be called on the host

@@ -1,20 +1,17 @@
 use abstract_ibc_host::chains::OSMOSIS;
 use abstract_ibc_host::Host;
 use abstract_ibc_host::HostError;
-use abstract_os::dex::DexAction;
-use abstract_os::dex::SwapRouter;
+
 use abstract_os::ibc_host::{BaseInstantiateMsg, MigrateMsg, QueryMsg};
 use abstract_os::{dex::RequestMsg, OSMOSIS_HOST};
-use osmo_bindings::OsmosisQuery;
 
 use cosmwasm_std::{
-    entry_point, Binary, Deps, DepsMut, Empty, Env, IbcPacketReceiveMsg, IbcReceiveResponse,
-    MessageInfo, Response, StdResult,
+    entry_point, Binary, Deps, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo,
+    Response, StdResult,
 };
 use cw2::{get_contract_version, set_contract_version};
 use semver::Version;
 
-use crate::commands;
 use crate::error::OsmoError;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -58,7 +55,7 @@ fn handle_packet(
     _env: Env,
     _caller_channel: String,
     _host: OsmoHost,
-    packet: RequestMsg,
+    _packet: RequestMsg,
 ) -> IbcHostResult {
     // match packet.action {
     //     DexAction::CustomSwap {
@@ -150,14 +147,14 @@ fn handle_packet(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> Result<Binary, OsmoError> {
+pub fn query(_deps: Deps, _env: Env, msg: QueryMsg) -> Result<Binary, OsmoError> {
     // TODO: create const osmo host
     // let host = OsmoHost::default();
     // host.
     match msg {
         QueryMsg::App(_) => todo!(),
         // QueryMsg::App(_) => OSMO_HOST.handle_query(deps, env, msg, Some(handle_osmosis_query)),
-        QueryMsg::Base(base) => todo!(),
+        QueryMsg::Base(_base) => todo!(),
     }
 }
 

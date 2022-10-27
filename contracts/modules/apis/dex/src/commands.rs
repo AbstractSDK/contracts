@@ -1,6 +1,6 @@
 // #![allow(unused)]
 use abstract_sdk::{MemoryOperation, OsExecute};
-use cosmwasm_std::{CosmosMsg, Decimal, Deps, Env, MessageInfo};
+use cosmwasm_std::{Decimal, Deps, Env, MessageInfo};
 use cw_asset::{Asset, AssetInfo};
 
 use crate::{
@@ -70,16 +70,17 @@ pub fn swap(
     api.os_execute(deps, msgs).map_err(From::from)
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn custom_swap(
-    deps: Deps,
+    _deps: Deps,
     _env: Env,
     _info: MessageInfo,
-    api: DexApi,
-    offer_assets: Vec<OfferAsset>,
-    ask_assets: Vec<OfferAsset>,
-    exchange: &dyn DEX,
-    max_spread: Option<Decimal>,
-    rotuer: Option<SwapRouter>,
+    _api: DexApi,
+    _offer_assets: Vec<OfferAsset>,
+    _ask_assets: Vec<OfferAsset>,
+    _exchange: &dyn DEX,
+    _max_spread: Option<Decimal>,
+    _router: Option<SwapRouter>,
 ) -> DexResult {
     todo!()
 

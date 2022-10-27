@@ -34,10 +34,10 @@ impl DEX for Osmosis {
 
     fn custom_swap(
         &self,
-        deps: Deps,
-        offer_assets: Vec<Asset>,
-        ask_assets: Vec<Asset>,
-        max_spread: Option<Decimal>,
+        _deps: Deps,
+        _offer_assets: Vec<Asset>,
+        _ask_assets: Vec<Asset>,
+        _max_spread: Option<Decimal>,
     ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
         // The offer_assets have already been sent to the host contract
         // The ask_assets are the assets we want to receive
