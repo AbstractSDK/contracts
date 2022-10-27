@@ -6,7 +6,7 @@ use abstract_sdk::MemoryOperation;
 use cosmwasm_std::{to_binary, Binary, Deps, Env};
 use cw_asset::Asset;
 
-use crate::{commands::resolve_exchange, contract::DexApi, error::DexError};
+use crate::{commands::resolve_exchange, contract::{DexApi, DEX_API}, error::DexError};
 
 pub fn simulate_swap(
     deps: Deps,
@@ -16,7 +16,7 @@ pub fn simulate_swap(
     dex: String,
 ) -> Result<Binary, DexError> {
     let exchange = resolve_exchange(&dex)?;
-    let api = DexApi::default();
+    let api = DEX_API;
     // format input
     let (mut offer_asset, offer_amount) = offer_asset;
     offer_asset.format();
