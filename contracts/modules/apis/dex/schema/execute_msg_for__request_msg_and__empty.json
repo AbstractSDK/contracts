@@ -158,6 +158,7 @@
       "description": "Possible actions to perform on the DEX",
       "oneOf": [
         {
+          "description": "Provide arbitrary liquidity",
           "type": "object",
           "required": [
             "provide_liquidity"
@@ -203,6 +204,7 @@
           "additionalProperties": false
         },
         {
+          "description": "Provide liquidity equally between assets to a pool",
           "type": "object",
           "required": [
             "provide_liquidity_symmetric"
@@ -242,6 +244,7 @@
           "additionalProperties": false
         },
         {
+          "description": "Withdraw liquidity from a pool",
           "type": "object",
           "required": [
             "withdraw_liquidity"
@@ -267,6 +270,7 @@
           "additionalProperties": false
         },
         {
+          "description": "Standard swap between one asset to another",
           "type": "object",
           "required": [
             "swap"
@@ -322,6 +326,7 @@
           "additionalProperties": false
         },
         {
+          "description": "Allow alternative swap routers and methods",
           "type": "object",
           "required": [
             "custom_swap"
@@ -377,6 +382,7 @@
                   }
                 },
                 "router": {
+                  "description": "Optionally supply a router to use",
                   "anyOf": [
                     {
                       "$ref": "#/definitions/SwapRouter"

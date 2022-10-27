@@ -158,6 +158,7 @@
       "description": "Possible actions to perform on the DEX",
       "oneOf": [
         {
+          "description": "Provide arbitrary liquidity",
           "type": "object",
           "required": [
             "provide_liquidity"
@@ -203,6 +204,7 @@
           "additionalProperties": false
         },
         {
+          "description": "Provide liquidity equally between assets to a pool",
           "type": "object",
           "required": [
             "provide_liquidity_symmetric"
@@ -242,6 +244,7 @@
           "additionalProperties": false
         },
         {
+          "description": "Withdraw liquidity from a pool",
           "type": "object",
           "required": [
             "withdraw_liquidity"
@@ -267,6 +270,7 @@
           "additionalProperties": false
         },
         {
+          "description": "Standard swap between one asset to another",
           "type": "object",
           "required": [
             "swap"
@@ -320,6 +324,79 @@
             }
           },
           "additionalProperties": false
+        },
+        {
+          "description": "Allow alternative swap routers and methods",
+          "type": "object",
+          "required": [
+            "custom_swap"
+          ],
+          "properties": {
+            "custom_swap": {
+              "type": "object",
+              "required": [
+                "ask_assets",
+                "offer_assets"
+              ],
+              "properties": {
+                "ask_assets": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "$ref": "#/definitions/AssetEntry"
+                      },
+                      {
+                        "$ref": "#/definitions/Uint128"
+                      }
+                    ],
+                    "maxItems": 2,
+                    "minItems": 2
+                  }
+                },
+                "max_spread": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/Decimal"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "offer_assets": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "$ref": "#/definitions/AssetEntry"
+                      },
+                      {
+                        "$ref": "#/definitions/Uint128"
+                      }
+                    ],
+                    "maxItems": 2,
+                    "minItems": 2
+                  }
+                },
+                "router": {
+                  "description": "Optionally supply a router to use",
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/SwapRouter"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
         }
       ]
     },
@@ -362,6 +439,29 @@
           ],
           "properties": {
             "error": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "SwapRouter": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "matrix"
+          ]
+        },
+        {
+          "description": "Use a custom router (using String type for cross-chain compatibility)",
+          "type": "object",
+          "required": [
+            "custom"
+          ],
+          "properties": {
+            "custom": {
               "type": "string"
             }
           },
