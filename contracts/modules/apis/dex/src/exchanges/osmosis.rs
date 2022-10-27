@@ -36,7 +36,7 @@ impl DEX for Osmosis {
         max_spread: Option<Decimal>,
     ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
         let token_out_denom = match ask_asset {
-            AssetInfo::Native { .. } => "uosmo".to_string(),
+            AssetInfo::Native { .. } => "uosmo".to_string(), // TODO: check if this is correct
             AssetInfo::Cw20(contract_addr) => contract_addr.to_string(),
             _ => return Err(DexError::Cw1155Unsupported),
         };
@@ -128,7 +128,7 @@ impl DEX for Osmosis {
         let routes: Vec<SwapAmountInRoute> = vec![SwapAmountInRoute {
             pool_id: pair_address.to_string().parse::<u64>().unwrap(),
             token_out_denom: match ask_asset {
-                AssetInfo::Native { .. } => "uosmo".to_string(),
+                AssetInfo::Native { .. } => "uosmo".to_string(), // TODO: check if this is correct
                 AssetInfo::Cw20(contract_addr) => contract_addr.to_string(),
                 _ => return Err(DexError::Cw1155Unsupported),
             },
@@ -144,6 +144,6 @@ impl DEX for Osmosis {
         }
         .into();
 
-        return vec![osmo_msg];
+        return vec![osmo_msg]; // TODO: Is this the right approach? Return type is different
     }
 }
