@@ -5,11 +5,16 @@ use crate::{
 };
 
 use cosmwasm_std::{
-    from_binary, to_binary, Addr, Coin, CosmosMsg, Decimal, Deps, QueryRequest, Uint128,
+    from_binary, to_binary, Addr, Coin, CosmosMsg, Decimal, Deps, QueryRequest, StdResult, Uint128,
 };
 use cw_asset::{Asset, AssetInfo};
 
-use osmosis_std::types::cosmos::base::v1beta1::Coin as OsmoCoin;
+use osmosis_std::types::{
+    cosmos::base::v1beta1::Coin as OsmoCoin,
+    osmosis::gamm::v1beta1::{
+        Pool, QueryPoolParamsRequest, QueryPoolParamsResponse, QueryPoolRequest, QueryPoolResponse,
+    },
+};
 
 use osmosis_std::types::osmosis::gamm::v1beta1::{
     MsgExitPool, MsgJoinPool, MsgSwapExactAmountIn, MsgSwapExactAmountOut,
@@ -83,20 +88,24 @@ impl DEX for Osmosis {
         offer_assets: Vec<Asset>,
         max_spread: Option<Decimal>,
     ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
+        let pool_id = pair_address.to_string().parse::<u64>().unwrap();
         let token_in_maxs: Vec<OsmoCoin> = offer_assets
             .iter()
             .map(|asset| Coin::try_from(asset).unwrap().into())
             .collect();
 
-        // TODO: Use querier to get pool data and calculate shareAmountOut
+        // FIXME: THIS FUNCTION IS NOT DONE
+        let share_amount_out = compute_osmo_share_out_amount(token_in_maxs, pool_id, deps)?;
 
         let osmo_msg: CosmosMsg = MsgJoinPool {
             sender: self.sender_addr.clone(),
-            pool_id: pair_address.to_string().parse::<u64>().unwrap(),
+            pool_id,
             share_out_amount: todo!(), // TODO: Ask osmosis discord for options?
             token_in_maxs,
         }
         .into();
+
+        return Ok(vec![osmo_msg]);
     }
 
     fn provide_liquidity_symmetric(
@@ -152,7 +161,7 @@ impl DEX for Osmosis {
         // .into();
 
         let query_request = QueryRequest::Stargate {
-            path: QuerySwapExactAmountInRequest::TYPE_URL.to_owned(),
+            path: QuerySwapExactAmountInRequest::TYPE_URL.to_string(),
             data: to_binary(&sim_msg)?,
         };
         let res = deps.querier.query(&query_request)?; // Querier is on osmosis!
@@ -168,4 +177,49 @@ impl DEX for Osmosis {
             false,
         ));
     }
+}
+
+fn compute_osmo_share_out_amount(
+    offer_assets: Vec<OsmoCoin>,
+    pool_id: u64,
+    deps: Deps,
+) -> StdResult<Uint128> {
+    let res: QueryPoolResponse = deps
+        .querier
+        .query(&QueryRequest::Stargate {
+            path: QueryPoolRequest::TYPE_URL.to_string(),
+            data: to_binary(&QueryPoolRequest { pool_id }).unwrap(),
+        })
+        .unwrap();
+
+    let pool: Pool = from_binary(&res.pool).unwrap(); // FIXME: find out how to parse this weird type
+
+    let mut share_out_amount = Uint128::zero();
+    let Coin {
+        denom: token_in1_denom,
+        amount: token_in1_amount,
+    } = Coin::try_from(offer_assets[0])?;
+    let Coin {
+        denom: token_in2_denom,
+        amount: token_in2_amount,
+    } = Coin::try_from(offer_assets[1])?;
+
+    let (idx0, idx1) = (0, 1);
+    if (token_in1_denom == offer_assets[0].denom) && (token_in2_denom == offer_assets[1].denom) {
+        (idx0, idx1) = (0, 1);
+    } else if (token_in1_denom == offer_assets[1].denom)
+        && (token_in2_denom == offer_assets[2].denom)
+    {
+        (idx0, idx1) = (1, 0);
+    }
+
+    let price2 = Decimal::from_ratio(token_in1_amount, token_in2_amount);
+
+    // TODO: compute which token is overrepresented in the offer_assets
+
+    // TODO: compute how much of the overrepressentedd token we need to add to the pool
+
+    // TODO: compute how much GAMM tokens well get for that
+
+    return Ok(Uint128::zero());
 }
