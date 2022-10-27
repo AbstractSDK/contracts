@@ -4,18 +4,23 @@ use crate::{
     DEX,
 };
 
-use cosmwasm_std::{Addr, Coin, CosmosMsg, Decimal, Deps, Uint128};
+use cosmwasm_std::{
+    from_binary, to_binary, Addr, Coin, CosmosMsg, Decimal, Deps, QueryRequest, Uint128,
+};
 use cw_asset::{Asset, AssetInfo};
 
 use osmosis_std::types::cosmos::base::v1beta1::Coin as OsmoCoin;
+
 use osmosis_std::types::osmosis::gamm::v1beta1::{
     MsgExitPool, MsgJoinPool, MsgSwapExactAmountIn, MsgSwapExactAmountOut,
-    QuerySwapExactAmountInRequest, SwapAmountInRoute,
+    QuerySwapExactAmountInRequest, QuerySwapExactAmountInResponse, SwapAmountInRoute,
 };
 
 pub const OSMOSIS: &str = "osmosis";
 // Source https://github.com/wasmswap/wasmswap-contracts
-pub struct Osmosis {}
+pub struct Osmosis {
+    pub sender_addr: String,
+}
 
 /// Osmosis app-chain dex implementation
 impl DEX for Osmosis {
@@ -36,8 +41,7 @@ impl DEX for Osmosis {
         max_spread: Option<Decimal>,
     ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
         let token_out_denom = match ask_asset {
-            AssetInfo::Native { .. } => "uosmo".to_string(), // TODO: check if this is correct
-            AssetInfo::Cw20(contract_addr) => contract_addr.to_string(),
+            AssetInfo::Native(denom) => denom,
             _ => return Err(DexError::Cw1155Unsupported),
         };
 
@@ -49,7 +53,7 @@ impl DEX for Osmosis {
         let token_in = Coin::try_from(offer_asset)?;
 
         let swap_msg: CosmosMsg = MsgSwapExactAmountIn {
-            sender, // TODO: get sender
+            sender: self.sender_addr.clone(),
             routes,
             token_in: Some(token_in.into()),
             token_out_min_amount: Uint128::zero().to_string(),
@@ -84,10 +88,12 @@ impl DEX for Osmosis {
             .map(|asset| Coin::try_from(asset).unwrap().into())
             .collect();
 
+        // TODO: Use querier to get pool data and calculate shareAmountOut
+
         let osmo_msg: CosmosMsg = MsgJoinPool {
-            sender: "".to_string(),
+            sender: self.sender_addr.clone(),
             pool_id: pair_address.to_string().parse::<u64>().unwrap(),
-            share_out_amount: todo!(), // TODO: calculate share_out_amount
+            share_out_amount: todo!(), // TODO: Ask osmosis discord for options?
             token_in_maxs,
         }
         .into();
@@ -110,12 +116,14 @@ impl DEX for Osmosis {
         lp_token: Asset,
     ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
         let osmo_msg: CosmosMsg = MsgExitPool {
-            sender: todo!(), // TODO: get sender
+            sender: self.sender_addr.clone(),
             pool_id: pair_address.to_string().parse::<u64>().unwrap(),
             share_in_amount: lp_token.amount.to_string(),
-            token_out_mins: todo!(), // TODO: Set zero for all tokens?
+            token_out_mins: vec![], // TODO: Set zero for all tokens?  Check osmo docs
         }
         .into();
+
+        Ok(vec![osmo_msg])
     }
 
     fn simulate_swap(
@@ -128,22 +136,36 @@ impl DEX for Osmosis {
         let routes: Vec<SwapAmountInRoute> = vec![SwapAmountInRoute {
             pool_id: pair_address.to_string().parse::<u64>().unwrap(),
             token_out_denom: match ask_asset {
-                AssetInfo::Native { .. } => "uosmo".to_string(), // TODO: check if this is correct
-                AssetInfo::Cw20(contract_addr) => contract_addr.to_string(),
+                AssetInfo::Native(denom) => denom,
                 _ => return Err(DexError::Cw1155Unsupported),
             },
         }];
 
         let token_in = Coin::try_from(offer_asset)?.to_string();
 
-        let osmo_msg: CosmosMsg = QuerySwapExactAmountInRequest {
-            sender: "sender".to_string(),
+        let sim_msg = QuerySwapExactAmountInRequest {
+            sender: self.sender_addr.clone(),
             pool_id: pair_address.to_string().parse::<u64>().unwrap(),
             token_in,
             routes,
-        }
-        .into();
+        };
+        // .into();
 
-        return vec![osmo_msg]; // TODO: Is this the right approach? Return type is different
+        let query_request = QueryRequest::Stargate {
+            path: QuerySwapExactAmountInRequest::TYPE_URL.to_owned(),
+            data: to_binary(&sim_msg)?,
+        };
+        let res = deps.querier.query(&query_request)?; // Querier is on osmosis!
+        let swap_exact_amount_in_response: QuerySwapExactAmountInResponse = from_binary(&res)?;
+
+        return Ok((
+            swap_exact_amount_in_response
+                .token_out_amount
+                .parse::<Uint128>()
+                .unwrap(),
+            Uint128::zero(),
+            Uint128::zero(),
+            false,
+        ));
     }
 }
