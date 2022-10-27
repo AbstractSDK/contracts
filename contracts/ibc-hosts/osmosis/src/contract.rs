@@ -2,7 +2,7 @@ use abstract_ibc_host::chains::OSMOSIS;
 use abstract_ibc_host::Host;
 use abstract_ibc_host::HostError;
 use abstract_os::ibc_host::{BaseInstantiateMsg, MigrateMsg, QueryMsg};
-use abstract_os::{dex::RequestMsg, OSMOSIS_HOST};
+use abstract_os::{dex::DexRequestMsg, OSMOSIS_HOST};
 
 use cosmwasm_std::{
     entry_point, Binary, Deps, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo,
@@ -14,7 +14,7 @@ use semver::Version;
 use crate::error::OsmoError;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub type OsmoHost<'a> = Host<'a, RequestMsg>;
+pub type OsmoHost<'a> = Host<'a, DexRequestMsg>;
 pub type OsmoResult = Result<Response, OsmoError>;
 const OSMO_HOST: OsmoHost<'static> = OsmoHost::new(&[]);
 
@@ -57,7 +57,7 @@ fn handle_packet(
     _env: Env,
     _caller_channel: String,
     _host: OsmoHost,
-    _packet: RequestMsg,
+    _packet: DexRequestMsg,
 ) -> Result<IbcReceiveResponse, HostError> {
     todo!()
     // match packet {
