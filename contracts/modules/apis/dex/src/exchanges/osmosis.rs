@@ -9,7 +9,8 @@ use cw_asset::{Asset, AssetInfo};
 
 use osmosis_std::types::cosmos::base::v1beta1::Coin as OsmoCoin;
 use osmosis_std::types::osmosis::gamm::v1beta1::{
-    MsgExitPool, MsgJoinPool, MsgSwapExactAmountIn, MsgSwapExactAmountOut, SwapAmountInRoute,
+    MsgExitPool, MsgJoinPool, MsgSwapExactAmountIn, MsgSwapExactAmountOut,
+    QuerySwapExactAmountInRequest, SwapAmountInRoute,
 };
 
 pub const OSMOSIS: &str = "osmosis";
@@ -104,20 +105,45 @@ impl DEX for Osmosis {
 
     fn withdraw_liquidity(
         &self,
-        _deps: Deps,
-        _pair_address: Addr,
-        _lp_token: Asset,
+        deps: Deps,
+        pair_address: Addr,
+        lp_token: Asset,
     ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
-        Err(DexError::NotImplemented(self.name().to_string()))
+        let osmo_msg: CosmosMsg = MsgExitPool {
+            sender: todo!(), // TODO: get sender
+            pool_id: pair_address.to_string().parse::<u64>().unwrap(),
+            share_in_amount: lp_token.amount.to_string(),
+            token_out_mins: todo!(), // TODO: Set zero for all tokens?
+        }
+        .into();
     }
 
     fn simulate_swap(
         &self,
-        _deps: Deps,
-        _pair_address: Addr,
-        _offer_asset: Asset,
-        _ask_asset: AssetInfo,
+        deps: Deps,
+        pair_address: Addr,
+        offer_asset: Asset,
+        ask_asset: AssetInfo,
     ) -> Result<(Return, Spread, Fee, FeeOnInput), DexError> {
-        Err(DexError::NotImplemented(self.name().to_string()))
+        let routes: Vec<SwapAmountInRoute> = vec![SwapAmountInRoute {
+            pool_id: pair_address.to_string().parse::<u64>().unwrap(),
+            token_out_denom: match ask_asset {
+                AssetInfo::Native { .. } => "uosmo".to_string(),
+                AssetInfo::Cw20(contract_addr) => contract_addr.to_string(),
+                _ => return Err(DexError::Cw1155Unsupported),
+            },
+        }];
+
+        let token_in = Coin::try_from(offer_asset)?.to_string();
+
+        let osmo_msg: CosmosMsg = QuerySwapExactAmountInRequest {
+            sender: "sender".to_string(),
+            pool_id: pair_address.to_string().parse::<u64>().unwrap(),
+            token_in,
+            routes,
+        }
+        .into();
+
+        return vec![osmo_msg];
     }
 }
