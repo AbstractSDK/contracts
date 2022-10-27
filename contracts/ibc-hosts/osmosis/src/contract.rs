@@ -150,17 +150,14 @@ fn handle_packet(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, env: Env, msg: QueryMsg<OsmosisQuery>) -> Result<Binary, OsmoError> {
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> Result<Binary, OsmoError> {
+    // TODO: create const osmo host
+    // let host = OsmoHost::default();
+    // host.
     match msg {
-        QueryMsg::App(_) => OSMO_HOST.handle_query(deps, env, msg, Some(handle_osmosis_query)),
+        QueryMsg::App(_) => todo!(),
+        // QueryMsg::App(_) => OSMO_HOST.handle_query(deps, env, msg, Some(handle_osmosis_query)),
         QueryMsg::Base(base) => todo!(),
-    }
-}
-
-/// Osmosis query handler
-fn handle_osmosis_query(deps: Deps, env: Env, query: OsmosisQuery) -> Result<Binary, OsmoError> {
-    match query {
-        _ => todo!(),
     }
 }
 

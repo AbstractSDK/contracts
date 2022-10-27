@@ -12,7 +12,7 @@ pub fn handle_matrix_swap(
     ask_assets: Vec<OfferAsset>,
     max_spread: Option<Decimal>,
 ) -> IbcHostResult {
-    // the sasets have alneady been transfered
+    // the assets have alneady been transfered
     todo!()
 }
 

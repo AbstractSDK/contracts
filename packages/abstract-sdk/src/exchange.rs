@@ -57,3 +57,6 @@ pub trait Exchange: Dependency {
         )
     }
 }
+
+//
+impl<T> Exchange for T where T: Dependency {}
