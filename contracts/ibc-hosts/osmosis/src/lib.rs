@@ -1,6 +1,6 @@
+mod commands;
 pub mod contract;
 pub mod error;
-mod commands;
 mod queries;
 // TODO: FIX
 // #[cfg(test)]

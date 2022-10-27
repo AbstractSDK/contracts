@@ -320,6 +320,77 @@
             }
           },
           "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "custom_swap"
+          ],
+          "properties": {
+            "custom_swap": {
+              "type": "object",
+              "required": [
+                "ask_assets",
+                "offer_assets"
+              ],
+              "properties": {
+                "ask_assets": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "$ref": "#/definitions/AssetEntry"
+                      },
+                      {
+                        "$ref": "#/definitions/Uint128"
+                      }
+                    ],
+                    "maxItems": 2,
+                    "minItems": 2
+                  }
+                },
+                "max_spread": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/Decimal"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "offer_assets": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "$ref": "#/definitions/AssetEntry"
+                      },
+                      {
+                        "$ref": "#/definitions/Uint128"
+                      }
+                    ],
+                    "maxItems": 2,
+                    "minItems": 2
+                  }
+                },
+                "router": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/SwapRouter"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
         }
       ]
     },
@@ -362,6 +433,29 @@
           ],
           "properties": {
             "error": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "SwapRouter": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "matrix"
+          ]
+        },
+        {
+          "description": "Use a custom router (using String type for cross-chain compatibility)",
+          "type": "object",
+          "required": [
+            "custom"
+          ],
+          "properties": {
+            "custom": {
               "type": "string"
             }
           },

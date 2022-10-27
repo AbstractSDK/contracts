@@ -1,7 +1,7 @@
 use abstract_api::{ApiContract, ApiResult};
 use abstract_os::{
     api::{BaseInstantiateMsg, ExecuteMsg, QueryMsg},
-    dex::{ApiQueryMsg, DexAction, RequestMsg, IBC_DEX_ID, DexName},
+    dex::{ApiQueryMsg, DexAction, DexName, RequestMsg, IBC_DEX_ID},
     ibc_client::CallbackInfo,
     objects::AssetEntry,
     EXCHANGE,
@@ -175,7 +175,11 @@ fn query_handler(deps: Deps, env: Env, msg: ApiQueryMsg) -> Result<Binary, DexEr
     }
 }
 
-fn resolve_assets_to_transfer(deps: Deps, dex_action: &DexAction, memory: &Memory) -> StdResult<Vec<Coin>> {
+fn resolve_assets_to_transfer(
+    deps: Deps,
+    dex_action: &DexAction,
+    memory: &Memory,
+) -> StdResult<Vec<Coin>> {
     // resolve asset to native asset
     let offer_to_coin = |offer: &(AssetEntry, Uint128)| {
         Asset {

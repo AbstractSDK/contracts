@@ -1,7 +1,7 @@
-use std::io::Empty;
-use cosmwasm_std::{Deps};
 use crate::error::OsmoError;
+use cosmwasm_std::Deps;
 use osmosis_std::shim::Timestamp;
+use std::io::Empty;
 
 use osmosis_std::types::osmosis::twap::v1beta1::{
     ArithmeticTwapToNowRequest, ArithmeticTwapToNowResponse, TwapQuerier,

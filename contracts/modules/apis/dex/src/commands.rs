@@ -6,7 +6,8 @@ use cw_asset::{Asset, AssetInfo};
 use crate::{
     contract::{DexApi, DexResult},
     error::DexError,
-    DEX, exchanges::osmosis::{OSMOSIS, Osmosis},
+    exchanges::osmosis::{Osmosis, OSMOSIS},
+    DEX,
 };
 use abstract_os::{
     dex::{OfferAsset, SwapRouter},
