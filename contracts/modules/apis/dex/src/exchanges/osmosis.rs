@@ -7,6 +7,7 @@ use crate::{
 use cosmwasm_std::{Addr, Coin, CosmosMsg, Decimal, Deps, Uint128};
 use cw_asset::{Asset, AssetInfo};
 
+use osmosis_std::types::cosmos::base::v1beta1::Coin as OsmoCoin;
 use osmosis_std::types::osmosis::gamm::v1beta1::{
     MsgExitPool, MsgJoinPool, MsgSwapExactAmountIn, MsgSwapExactAmountOut, SwapAmountInRoute,
 };
@@ -47,7 +48,7 @@ impl DEX for Osmosis {
         let token_in = Coin::try_from(offer_asset)?;
 
         let swap_msg: CosmosMsg = MsgSwapExactAmountIn {
-            sender,
+            sender, // TODO: get sender
             routes,
             token_in: Some(token_in.into()),
             token_out_min_amount: Uint128::zero().to_string(),
@@ -72,11 +73,23 @@ impl DEX for Osmosis {
 
     fn provide_liquidity(
         &self,
-        _deps: Deps,
-        _pair_address: Addr,
-        _offer_assets: Vec<Asset>,
-        _max_spread: Option<Decimal>,
+        deps: Deps,
+        pair_address: Addr,
+        offer_assets: Vec<Asset>,
+        max_spread: Option<Decimal>,
     ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
+        let token_in_maxs: Vec<OsmoCoin> = offer_assets
+            .iter()
+            .map(|asset| Coin::try_from(asset).unwrap().into())
+            .collect();
+
+        let osmo_msg: CosmosMsg = MsgJoinPool {
+            sender: "".to_string(),
+            pool_id: pair_address.to_string().parse::<u64>().unwrap(),
+            share_out_amount: todo!(), // TODO: calculate share_out_amount
+            token_in_maxs,
+        }
+        .into();
     }
 
     fn provide_liquidity_symmetric(
