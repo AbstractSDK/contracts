@@ -15,32 +15,38 @@ pub const IBC_DEX_ID: u32 = 11335;
 #[cosmwasm_schema::cw_serde]
 /// Possible actions to perform on the DEX
 pub enum DexAction {
+    /// Provide arbitrary liquidity
     ProvideLiquidity {
         // support complex pool types
         /// Assets to add
         assets: Vec<OfferAsset>,
         max_spread: Option<Decimal>,
     },
+    /// Provide liquidity equally between assets to a pool
     ProvideLiquiditySymmetric {
         offer_asset: OfferAsset,
         // support complex pool types
         /// Assets that are paired with the offered asset
         paired_assets: Vec<AssetEntry>,
     },
+    /// Withdraw liquidity from a pool
     WithdrawLiquidity {
         lp_token: AssetEntry,
         amount: Uint128,
     },
+    /// Standard swap between one asset to another
     Swap {
         offer_asset: OfferAsset,
         ask_asset: AssetEntry,
         max_spread: Option<Decimal>,
         belief_price: Option<Decimal>,
     },
+    /// Allow alternative swap routers and methods
     CustomSwap {
         offer_assets: Vec<OfferAsset>,
         ask_assets: Vec<OfferAsset>,
         max_spread: Option<Decimal>,
+        /// Optionally supply a router to use
         router: Option<SwapRouter>,
     },
 }

@@ -80,7 +80,10 @@ pub enum QueryMsg {
     /// Returns the value of amount OR one token of a specific asset
     /// [`TokenValueResponse`]
     #[returns(TokenValueResponse)]
-    TokenValue { identifier: String, amount: Option<Uint128> },
+    TokenValue {
+        identifier: String,
+        amount: Option<Uint128>,
+    },
     /// Returns the value of one specific asset
     /// [`HoldingValueResponse`]
     #[returns(HoldingValueResponse)]

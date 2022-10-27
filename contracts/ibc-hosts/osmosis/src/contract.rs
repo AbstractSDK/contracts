@@ -2,12 +2,14 @@ use abstract_ibc_host::chains::OSMOSIS;
 use abstract_ibc_host::Host;
 use abstract_ibc_host::HostError;
 use abstract_os::dex::DexAction;
-use osmo_bindings::OsmosisQuery;
 use abstract_os::dex::SwapRouter;
 use abstract_os::ibc_host::{BaseInstantiateMsg, MigrateMsg, QueryMsg};
 use abstract_os::{dex::RequestMsg, OSMOSIS_HOST};
 
-use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo, Response, StdResult, Empty};
+use cosmwasm_std::{
+    entry_point, Binary, Deps, DepsMut, Empty, Env, IbcPacketReceiveMsg, IbcReceiveResponse,
+    MessageInfo, Response, StdResult,
+};
 use cw2::{get_contract_version, set_contract_version};
 use semver::Version;
 
@@ -46,11 +48,7 @@ pub type IbcHostResult = Result<IbcReceiveResponse, HostError>;
 /// We cannot return any meaningful response value as we do not know the response value
 /// of execution. We just return ok if we dispatched, error if we failed to dispatch
 #[entry_point]
-pub fn ibc_packet_receive(
-    deps: DepsMut,
-    env: Env,
-    msg: IbcPacketReceiveMsg,
-) -> IbcHostResult {
+pub fn ibc_packet_receive(deps: DepsMut, env: Env, msg: IbcPacketReceiveMsg) -> IbcHostResult {
     OSMO_HOST.handle_packet(deps, env, msg, handle_packet)
 }
 
@@ -151,18 +149,14 @@ fn handle_packet(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, env: Env, msg: QueryMsg<OsmosisQuery>) -> Result<Binary, OsmoError> {
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> Result<Binary, OsmoError> {
+    // TODO: create const osmo host
+    // let host = OsmoHost::default();
+    // host.
     match msg {
-        QueryMsg::App(_) => OSMO_HOST.handle_query(deps, env, msg, Some(handle_osmosis_query)),
-        QueryMsg::Base(base) => todo!()
-    }
-
-}
-
-/// Osmosis query handler
-fn handle_osmosis_query(deps: Deps, env: Env, query: OsmosisQuery) -> Result<Binary, OsmoError> {
-    match query {
-    _ => todo!()
+        QueryMsg::App(_) => todo!(),
+        // QueryMsg::App(_) => OSMO_HOST.handle_query(deps, env, msg, Some(handle_osmosis_query)),
+        QueryMsg::Base(base) => todo!(),
     }
 }
 

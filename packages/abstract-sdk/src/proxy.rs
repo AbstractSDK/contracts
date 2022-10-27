@@ -2,7 +2,10 @@
 use abstract_os::{
     ibc_client,
     objects::{proxy_asset::ProxyAsset, AssetEntry},
-    proxy::{state::VAULT_ASSETS, AssetsResponse, ExecuteMsg, QueryMsg, TotalValueResponse, HoldingValueResponse},
+    proxy::{
+        state::VAULT_ASSETS, AssetsResponse, ExecuteMsg, HoldingValueResponse, QueryMsg,
+        TotalValueResponse,
+    },
 };
 use cosmwasm_std::{
     to_binary, Addr, CosmosMsg, Deps, QuerierWrapper, QueryRequest, StdError, StdResult, Uint128,

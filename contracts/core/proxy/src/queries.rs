@@ -64,7 +64,6 @@ pub fn compute_token_value(
     Ok(value)
 }
 
-
 /// Computes the total value locked in this contract
 pub fn compute_total_value(deps: Deps, env: Env) -> StdResult<Uint128> {
     // Get all assets from storage

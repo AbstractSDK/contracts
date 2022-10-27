@@ -1,7 +1,7 @@
 use abstract_api::{ApiContract, ApiResult};
 use abstract_os::{
     api::{BaseInstantiateMsg, ExecuteMsg, QueryMsg},
-    dex::{ApiQueryMsg, DexAction, RequestMsg, IBC_DEX_ID, DexName},
+    dex::{ApiQueryMsg, DexAction, DexName, RequestMsg, IBC_DEX_ID},
     ibc_client::CallbackInfo,
     objects::AssetEntry,
     EXCHANGE,
@@ -16,7 +16,7 @@ use cosmwasm_std::{
 };
 use cw_asset::Asset;
 
-use crate::{commands::*, error::DexError, queries::simulate_swap};
+use crate::{commands, error::DexError, queries::simulate_swap, DEX};
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub type DexApi<'a> = ApiContract<'a, RequestMsg, DexError>;
@@ -58,72 +58,89 @@ pub fn handle_api_request(
         dex: dex_name,
         action,
     } = msg;
-    let exchange = resolve_exchange(&dex_name)?;
-    // if exchange is on an app-chain,
+    let exchange = commands::resolve_exchange(&dex_name)?;
+    // if exchange is on an app-chain, execute the action on the app-chain
     if exchange.over_ibc() {
         handle_ibc_api_request(&deps, &env, &api, dex_name, &action)
     } else {
         // the action can be executed on the local chain
-        match action {
-            DexAction::ProvideLiquidity { assets, max_spread } => {
-                if assets.len() < 2 {
-                    return Err(DexError::TooFewAssets {});
-                }
-                provide_liquidity(deps.as_ref(), env, info, api, assets, exchange, max_spread)
+        handle_local_api_request(deps, env, info, api, action, exchange)
+    }
+}
+
+/// Handle an API request that can be executed on the local chain
+fn handle_local_api_request(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    api: DexApi,
+    action: DexAction,
+    exchange: &dyn DEX,
+) -> DexResult {
+    match action {
+        DexAction::ProvideLiquidity { assets, max_spread } => {
+            if assets.len() < 2 {
+                return Err(DexError::TooFewAssets {});
             }
-            DexAction::ProvideLiquiditySymmetric {
+            commands::provide_liquidity(deps.as_ref(), env, info, api, assets, exchange, max_spread)
+        }
+        DexAction::ProvideLiquiditySymmetric {
+            offer_asset,
+            paired_assets,
+        } => {
+            if paired_assets.is_empty() {
+                return Err(DexError::TooFewAssets {});
+            }
+            commands::provide_liquidity_symmetric(
+                deps.as_ref(),
+                env,
+                info,
+                api,
                 offer_asset,
                 paired_assets,
-            } => {
-                if paired_assets.is_empty() {
-                    return Err(DexError::TooFewAssets {});
-                }
-                provide_liquidity_symmetric(
-                    deps.as_ref(),
-                    env,
-                    info,
-                    api,
-                    offer_asset,
-                    paired_assets,
-                    exchange,
-                )
-            }
-            DexAction::WithdrawLiquidity { lp_token, amount } => {
-                withdraw_liquidity(deps.as_ref(), env, info, api, (lp_token, amount), exchange)
-            }
-            DexAction::Swap {
-                offer_asset,
-                ask_asset,
-                max_spread,
-                belief_price,
-            } => swap(
-                deps.as_ref(),
-                env,
-                info,
-                api,
-                offer_asset,
-                ask_asset,
                 exchange,
-                max_spread,
-                belief_price,
-            ),
-            DexAction::CustomSwap {
-                offer_assets,
-                ask_assets,
-                max_spread,
-                router,
-            } => custom_swap(
-                deps.as_ref(),
-                env,
-                info,
-                api,
-                offer_assets,
-                ask_assets,
-                exchange,
-                max_spread,
-                router,
-            ),
+            )
         }
+        DexAction::WithdrawLiquidity { lp_token, amount } => commands::withdraw_liquidity(
+            deps.as_ref(),
+            env,
+            info,
+            api,
+            (lp_token, amount),
+            exchange,
+        ),
+        DexAction::Swap {
+            offer_asset,
+            ask_asset,
+            max_spread,
+            belief_price,
+        } => commands::swap(
+            deps.as_ref(),
+            env,
+            info,
+            api,
+            offer_asset,
+            ask_asset,
+            exchange,
+            max_spread,
+            belief_price,
+        ),
+        DexAction::CustomSwap {
+            offer_assets,
+            ask_assets,
+            max_spread,
+            router,
+        } => commands::custom_swap(
+            deps.as_ref(),
+            env,
+            info,
+            api,
+            offer_assets,
+            ask_assets,
+            exchange,
+            max_spread,
+            router,
+        ),
     }
 }
 
@@ -175,7 +192,11 @@ fn query_handler(deps: Deps, env: Env, msg: ApiQueryMsg) -> Result<Binary, DexEr
     }
 }
 
-fn resolve_assets_to_transfer(deps: Deps, dex_action: &DexAction, memory: &Memory) -> StdResult<Vec<Coin>> {
+fn resolve_assets_to_transfer(
+    deps: Deps,
+    dex_action: &DexAction,
+    memory: &Memory,
+) -> StdResult<Vec<Coin>> {
     // resolve asset to native asset
     let offer_to_coin = |offer: &(AssetEntry, Uint128)| {
         Asset {
