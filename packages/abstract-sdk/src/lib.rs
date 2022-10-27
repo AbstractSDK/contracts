@@ -39,6 +39,7 @@ pub use traits::{
     execute::AbstractExecute,
     ibc_callback::{IbcCallbackEndpoint, IbcCallbackHandlerFn},
     receive::{ReceiveEndpoint, ReceiveHandlerFn},
+    reply::{ReplyEndpoint, ReplyHandlerFn},
 };
 pub use version_control::{get_module, get_os_core, verify_os_manager, verify_os_proxy};
 pub extern crate abstract_os;
