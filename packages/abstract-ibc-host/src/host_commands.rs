@@ -6,47 +6,22 @@ use cosmwasm_std::{
     entry_point, to_binary, to_vec, wasm_execute, Binary, ContractResult, CosmosMsg, Deps, DepsMut,
     Empty, Env, Event, Ibc3ChannelOpenResponse, IbcBasicResponse, IbcChannelCloseMsg,
     IbcChannelConnectMsg, IbcChannelOpenMsg, IbcChannelOpenResponse, IbcMsg, IbcPacketAckMsg,
-    IbcPacketTimeoutMsg, IbcReceiveResponse, Order, QuerierWrapper, QueryRequest, Reply, Response,
+    IbcPacketTimeoutMsg, IbcReceiveResponse, QuerierWrapper, QueryRequest, Reply, Response,
     StdError, StdResult, SubMsg, SystemResult, WasmMsg,
 };
 use cw_utils::parse_reply_instantiate_data;
 
 use crate::state::{ACCOUNTS, CLOSED_CHANNELS, PENDING, RESULTS};
 use crate::{Host, HostError};
-use abstract_os::ibc_host::{AccountInfo, AccountResponse, ListAccountsResponse};
 
 pub const RECEIVE_DISPATCH_ID: u64 = 1234;
 pub const INIT_CALLBACK_ID: u64 = 7890;
 // one hour
 pub const PACKET_LIFETIME: u64 = 60 * 60;
 
-#[allow(unused)]
-pub fn query_account(deps: Deps, channel_id: String, os_id: u32) -> StdResult<AccountResponse> {
-    let account = ACCOUNTS.load(deps.storage, (&channel_id, os_id))?;
-    Ok(AccountResponse {
-        account: Some(account.into()),
-    })
-}
-
-#[allow(unused)]
-pub fn query_list_accounts(deps: Deps) -> StdResult<ListAccountsResponse> {
-    let accounts = ACCOUNTS
-        .range(deps.storage, None, None, Order::Ascending)
-        .map(|item| {
-            let ((channel_id, os_id), account) = item?;
-            Ok(AccountInfo {
-                os_id,
-                account: account.into(),
-                channel_id,
-            })
-        })
-        .collect::<StdResult<_>>()?;
-    Ok(ListAccountsResponse { accounts })
-}
-
 #[entry_point]
-/// enforces ordering and versioing constraints
 #[allow(unused)]
+/// enforces ordering and versioing constraints
 pub fn ibc_channel_open(
     _deps: DepsMut,
     _env: Env,

@@ -35,4 +35,3 @@ semver = {workspace = true}
 cw-asset= {workspace = true}
 cosmwasm-schema = { workspace = true }
 osmosis-std = "0.12.0"
-osmo-bindings = "0.5.1"
