@@ -1,5 +1,5 @@
-use abstract_sdk::{MemoryOperation, OsExecute, os_module_action};
-use cosmwasm_std::{StdResult, Storage, Deps, Response};
+use abstract_sdk::{MemoryOperation, OsExecute};
+use cosmwasm_std::{wasm_execute, Deps, StdError, StdResult, Storage, SubMsg};
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{Host, HostError};
@@ -12,28 +12,24 @@ impl<T: Serialize + DeserializeOwned> MemoryOperation for Host<'_, T> {
 
 /// Execute a set of CosmosMsgs on the proxy contract of an OS.
 impl<T: Serialize + DeserializeOwned> OsExecute for Host<'_, T> {
-    type Err = HostError;
-
     fn os_execute(
         &self,
         _deps: Deps,
         msgs: Vec<cosmwasm_std::CosmosMsg>,
-    ) -> Result<Response, Self::Err> {
-        if let Some(target) = &self.target_os {
-            Ok(Response::new().add_message(os_module_action(msgs, &target.proxy)?))
+    ) -> Result<SubMsg, StdError> {
+        if let Some(target) = &self.proxy_address {
+            let reflect_msg = cw1_whitelist::msg::ExecuteMsg::Execute { msgs };
+            let wasm_msg = wasm_execute(target, &reflect_msg, vec![])?;
+            Ok(SubMsg::new(wasm_msg))
         } else {
-            Err(ApiError::NoTargetOS {})
+            Err(StdError::generic_err(HostError::NoTarget.to_string()))
         }
     }
     fn os_ibc_execute(
         &self,
         _deps: Deps,
-        msgs: Vec<abstract_os::ibc_client::ExecuteMsg>,
-    ) -> Result<Response, Self::Err> {
-        if let Some(target) = &self.target_os {
-            Ok(Response::new().add_message(os_ibc_action(msgs, &target.proxy)?))
-        } else {
-            Err(ApiError::NoTargetOS {})
-        }
+        _msgs: Vec<abstract_os::ibc_client::ExecuteMsg>,
+    ) -> Result<SubMsg, StdError> {
+        Err(StdError::generic_err(HostError::IbcHopping.to_string()))
     }
 }

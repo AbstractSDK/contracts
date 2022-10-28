@@ -1,24 +1,28 @@
 use abstract_os::objects::memory::Memory;
-use cosmwasm_std::{Addr, Coin, CosmosMsg, Deps, Response, StdResult, Storage, ReplyOn};
+use cosmwasm_std::{Addr, Coin, CosmosMsg, Deps, ReplyOn, StdError, StdResult, Storage, SubMsg};
 use serde::Serialize;
 
 use crate::Resolve;
 
-/// execute an operation on the os
+/// Construct the call on the proxy contract of the OS
 pub trait OsExecute {
-    type Err: ToString;
-
-    fn os_execute(&self, deps: Deps, msgs: Vec<CosmosMsg>) -> Result<Response, Self::Err>;
+    fn os_execute(&self, deps: Deps, msgs: Vec<CosmosMsg>) -> Result<SubMsg, StdError>;
     fn os_ibc_execute(
         &self,
         deps: Deps,
         msgs: Vec<abstract_os::ibc_client::ExecuteMsg>,
-    ) -> Result<Response, Self::Err>;
-    fn os_execute_with_reply(&self, deps: Deps, msgs: Vec<CosmosMsg>, reply_on: ReplyOn, id: u64 ) -> Result<Response, Self::Err> {
-        let mut resp = self.os_execute(deps, msgs)?;
-        resp.messages[0].reply_on = reply_on;
-        resp.messages[0].id = id;
-        Ok(resp)
+    ) -> Result<SubMsg, StdError>;
+    fn os_execute_with_reply(
+        &self,
+        deps: Deps,
+        msgs: Vec<CosmosMsg>,
+        reply_on: ReplyOn,
+        id: u64,
+    ) -> Result<SubMsg, StdError> {
+        let mut msg = self.os_execute(deps, msgs)?;
+        msg.reply_on = reply_on;
+        msg.id = id;
+        Ok(msg)
     }
 }
 
