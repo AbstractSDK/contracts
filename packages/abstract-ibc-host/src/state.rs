@@ -9,7 +9,7 @@ use schemars::JsonSchema;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 use crate::{
-    reply::{reply_dispatch_callback, INIT_CALLBACK_ID, RECEIVE_DISPATCH_ID, reply_init_callback},
+    reply::{reply_dispatch_callback, reply_init_callback, INIT_CALLBACK_ID, RECEIVE_DISPATCH_ID},
     HostError,
 };
 
@@ -28,6 +28,8 @@ pub struct Host<'a, T: Serialize + DeserializeOwned> {
     pub base_state: Item<'a, HostState>,
     /// Stores the API version
     pub version: Item<'a, ContractVersion>,
+    /// Store the reflect address to use
+    pub proxy_address: Option<Addr>,
     /// Reply handlers, map reply_id to reply function
     pub(crate) reply_handlers: &'a [(u64, ReplyHandlerFn<Self, HostError>)],
     /// Signal the expected execute message struct
@@ -39,12 +41,13 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
         Self {
             version: CONTRACT,
             base_state: Item::new(BASE_STATE),
-            _phantom_data: PhantomData,
+            proxy_address: None,
             reply_handlers: &[
                 // add reply handlers we want to support by default
                 (RECEIVE_DISPATCH_ID, reply_dispatch_callback),
                 (INIT_CALLBACK_ID, reply_init_callback),
             ],
+            _phantom_data: PhantomData,
         }
     }
 
@@ -63,6 +66,10 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
 
     pub fn version(&self, store: &dyn Storage) -> StdResult<ContractVersion> {
         self.version.load(store)
+    }
+
+    pub fn target(&self) -> Result<&Addr, HostError> {
+        self.proxy_address.as_ref().ok_or(HostError::NoTarget)
     }
 }
 

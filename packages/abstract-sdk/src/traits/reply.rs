@@ -1,9 +1,4 @@
-use abstract_os::{
-    abstract_ica::{IbcResponseMsg, StdAck},
-    objects::UncheckedContractEntry,
-    IBC_CLIENT,
-};
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Reply, Response, StdError};
+use cosmwasm_std::{DepsMut, Env, Reply, Response, StdError};
 
 pub type ReplyHandlerFn<Module, Error> = fn(DepsMut, Env, Module, Reply) -> Result<Response, Error>;
 
@@ -25,6 +20,5 @@ pub trait ReplyEndpoint: Sized {
                 msg: "Invalid reply id".into(),
             })
             .map(|f| f(deps, env, self, msg))?
-            .map_err(|e| e.into())
     }
 }

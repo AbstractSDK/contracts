@@ -11,6 +11,7 @@ pub mod error;
 mod execute;
 pub(crate) mod host_commands;
 pub mod instantiate;
+pub mod os_actions;
 mod query;
 mod reply;
 pub mod state;

@@ -1,20 +1,19 @@
 use abstract_os::abstract_ica::{
-    check_order, check_version, BalancesResponse, DispatchResponse, IbcQueryResponse,
-    RegisterResponse, SendAllBackResponse, StdAck, WhoAmIResponse, IBC_APP_VERSION,
+    check_order, check_version, IbcQueryResponse, StdAck, WhoAmIResponse, IBC_APP_VERSION,
 };
 use cosmwasm_std::{
-    entry_point, to_binary, to_vec, wasm_execute, Binary, ContractResult, CosmosMsg, Deps, DepsMut,
-    Empty, Env, Event, Ibc3ChannelOpenResponse, IbcBasicResponse, IbcChannelCloseMsg,
-    IbcChannelConnectMsg, IbcChannelOpenMsg, IbcChannelOpenResponse, IbcMsg, IbcPacketAckMsg,
-    IbcPacketTimeoutMsg, IbcReceiveResponse, QuerierWrapper, QueryRequest, Reply, Response,
-    StdError, StdResult, SubMsg, SystemResult, WasmMsg,
+    entry_point, to_binary, to_vec, Binary, ContractResult, Deps, DepsMut, Empty, Env, Event,
+    Ibc3ChannelOpenResponse, IbcBasicResponse, IbcChannelCloseMsg, IbcChannelConnectMsg,
+    IbcChannelOpenMsg, IbcChannelOpenResponse, IbcPacketAckMsg, IbcPacketTimeoutMsg,
+    IbcReceiveResponse, QuerierWrapper, QueryRequest, StdError, StdResult, SubMsg, SystemResult,
+    WasmMsg,
 };
-use cw_utils::parse_reply_instantiate_data;
+
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
-use crate::reply::{RECEIVE_DISPATCH_ID, INIT_CALLBACK_ID};
-use crate::state::{ACCOUNTS, CLOSED_CHANNELS, PENDING, RESULTS};
+use crate::reply::INIT_CALLBACK_ID;
+use crate::state::{CLOSED_CHANNELS, PENDING};
 use crate::{Host, HostError};
 
 // one hour
@@ -173,95 +172,6 @@ pub fn receive_register<T: Serialize + DeserializeOwned>(
         .add_attribute("action", "register"))
 }
 
-// processes PacketMsg::Balances variant
-pub fn receive_balances(
-    deps: DepsMut,
-    caller: String,
-    os_id: u32,
-) -> Result<IbcReceiveResponse, HostError> {
-    let account = ACCOUNTS.load(deps.storage, (&caller, os_id))?;
-    let balances = deps.querier.query_all_balances(&account)?;
-    let response = BalancesResponse {
-        account: account.into(),
-        balances,
-    };
-    let acknowledgement = StdAck::success(&response);
-    // and we are golden
-    Ok(IbcReceiveResponse::new()
-        .set_ack(acknowledgement)
-        .add_attribute("action", "receive_balances"))
-}
-
-// processes PacketMsg::Dispatch variant
-pub fn receive_dispatch(
-    deps: DepsMut,
-    caller_channel: String,
-    os_id: u32,
-    msgs: Vec<CosmosMsg>,
-) -> Result<IbcReceiveResponse, HostError> {
-    // what is the reflect contract here
-    let reflect_addr = ACCOUNTS.load(deps.storage, (&caller_channel, os_id))?;
-
-    // let them know we're fine
-    let response = DispatchResponse { results: vec![] };
-    let acknowledgement = StdAck::success(&response);
-    // create the message to re-dispatch to the reflect contract
-    let reflect_msg = cw1_whitelist::msg::ExecuteMsg::Execute { msgs };
-    let wasm_msg = wasm_execute(reflect_addr, &reflect_msg, vec![])?;
-
-    // we wrap it in a submessage to properly report results
-    let msg = SubMsg::reply_on_success(wasm_msg, RECEIVE_DISPATCH_ID);
-
-    // reset the data field
-    RESULTS.save(deps.storage, &vec![])?;
-
-    Ok(IbcReceiveResponse::new()
-        .set_ack(acknowledgement)
-        .add_submessage(msg)
-        .add_attribute("action", "receive_dispatch"))
-}
-
-// processes PacketMsg::SendAllBack variant
-pub fn receive_send_all_back(
-    deps: DepsMut,
-    env: Env,
-    os_id: u32,
-    os_proxy_address: String,
-    transfer_channel: String,
-    channel_id: String,
-) -> Result<IbcReceiveResponse, HostError> {
-    // what is the reflect contract here
-    let reflect_addr = ACCOUNTS.load(deps.storage, (&channel_id, os_id))?;
-
-    // let them know we're fine
-    let response = SendAllBackResponse {};
-    let acknowledgement = StdAck::success(&response);
-
-    let coins = deps.querier.query_all_balances(&reflect_addr)?;
-    let mut msgs: Vec<CosmosMsg> = vec![];
-    for coin in coins {
-        msgs.push(
-            IbcMsg::Transfer {
-                channel_id: transfer_channel.clone(),
-                to_address: os_proxy_address.to_string(),
-                amount: coin,
-                timeout: env.block.time.plus_seconds(PACKET_LIFETIME).into(),
-            }
-            .into(),
-        )
-    }
-    // create the message to re-dispatch to the reflect contract
-    let reflect_msg = cw1_whitelist::msg::ExecuteMsg::Execute { msgs };
-    let wasm_msg: CosmosMsg<Empty> = wasm_execute(reflect_addr, &reflect_msg, vec![])?.into();
-
-    // reset the data field
-    RESULTS.save(deps.storage, &vec![])?;
-
-    Ok(IbcReceiveResponse::new()
-        .set_ack(acknowledgement)
-        .add_message(wasm_msg)
-        .add_attribute("action", "receive_dispatch"))
-}
 // processes PacketMsg::WhoAmI variant
 pub fn receive_who_am_i(this_chain: String) -> Result<IbcReceiveResponse, HostError> {
     // let them know we're fine
