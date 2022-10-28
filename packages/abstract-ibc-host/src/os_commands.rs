@@ -1,6 +1,9 @@
 use abstract_os::abstract_ica::{BalancesResponse, DispatchResponse, SendAllBackResponse, StdAck};
+use abstract_os::objects::ChannelEntry;
+use abstract_os::ICS20;
+use abstract_sdk::{MemoryOperation, Resolve};
 use cosmwasm_std::{
-    wasm_execute, CosmosMsg, DepsMut, Empty, Env, IbcMsg, IbcReceiveResponse, SubMsg,
+    wasm_execute, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg, IbcReceiveResponse, SubMsg,
 };
 
 use serde::de::DeserializeOwned;
@@ -54,26 +57,53 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
             .add_attribute("action", "receive_dispatch"))
     }
 
-    // processes PacketMsg::SendAllBack variant
+    /// processes PacketMsg::SendAllBack variant
     pub fn receive_send_all_back(
         &self,
         deps: DepsMut,
         env: Env,
-        os_proxy_address: String,
-        transfer_channel: String,
+        client_proxy_address: String,
+        client_chain: String,
     ) -> Result<IbcReceiveResponse, HostError> {
-        let reflect_addr = self.proxy_address.as_ref().unwrap();
         // let them know we're fine
         let response = SendAllBackResponse {};
         let acknowledgement = StdAck::success(&response);
 
+        let wasm_msg =
+            self.send_all_back(deps.as_ref(), env, client_proxy_address, client_chain)?;
+        // reset the data field
+        RESULTS.save(deps.storage, &vec![])?;
+
+        Ok(IbcReceiveResponse::new()
+            .set_ack(acknowledgement)
+            .add_message(wasm_msg)
+            .add_attribute("action", "receive_dispatch"))
+    }
+
+    /// construct the msg to send all the assets back
+    pub fn send_all_back(
+        &self,
+        deps: Deps,
+        env: Env,
+        client_proxy_address: String,
+        client_chain: String,
+    ) -> Result<CosmosMsg, HostError> {
+        let mem = self.load_memory(deps.storage)?;
+        let ics20_channel_entry = ChannelEntry {
+            connected_chain: client_chain,
+            protocol: ICS20.to_string(),
+        };
+        // get the ics20 channel to send funds back to client
+        let ics20_channel_id = ics20_channel_entry.resolve(deps, &mem)?;
+
+        let reflect_addr = self.proxy_address.as_ref().unwrap();
         let coins = deps.querier.query_all_balances(reflect_addr)?;
         let mut msgs: Vec<CosmosMsg> = vec![];
         for coin in coins {
             msgs.push(
                 IbcMsg::Transfer {
-                    channel_id: transfer_channel.clone(),
-                    to_address: os_proxy_address.to_string(),
+                    channel_id: ics20_channel_id.clone(),
+                    to_address: client_proxy_address.to_string(),
                     amount: coin,
                     timeout: env.block.time.plus_seconds(PACKET_LIFETIME).into(),
                 }
@@ -83,13 +113,6 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
         // create the message to re-dispatch to the reflect contract
         let reflect_msg = cw1_whitelist::msg::ExecuteMsg::Execute { msgs };
         let wasm_msg: CosmosMsg<Empty> = wasm_execute(reflect_addr, &reflect_msg, vec![])?.into();
-
-        // reset the data field
-        RESULTS.save(deps.storage, &vec![])?;
-
-        Ok(IbcReceiveResponse::new()
-            .set_ack(acknowledgement)
-            .add_message(wasm_msg)
-            .add_attribute("action", "receive_dispatch"))
+        Ok(wasm_msg)
     }
 }
