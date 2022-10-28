@@ -7,6 +7,12 @@ pub(crate) mod queries;
 
 pub use dex_trait::DEX;
 
+#[cfg(any(feature = "juno", feature = "osmosis"))]
+pub mod host_exchange {
+    pub use super::commands::LocalDex;
+    pub use super::exchanges::osmosis::Osmosis;
+}
+
 // TODO: FIX
 // #[cfg(test)]
 // #[cfg(not(target_arch = "wasm32"))]

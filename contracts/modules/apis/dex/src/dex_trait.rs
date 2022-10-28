@@ -1,9 +1,9 @@
 use abstract_os::objects::{AssetEntry, ContractEntry};
-use abstract_sdk::MemoryOperation;
+use abstract_sdk::memory::Memory;
 use cosmwasm_std::{Addr, CosmosMsg, Decimal, Deps, StdResult, Uint128};
 use cw_asset::{Asset, AssetInfo};
 
-use crate::{contract::DexApi, error::DexError};
+use crate::error::DexError;
 
 pub type Return = Uint128;
 pub type Spread = Uint128;
@@ -14,11 +14,11 @@ pub trait DEX {
     fn pair_address(
         &self,
         deps: Deps,
-        api: &DexApi,
+        memory: &Memory,
         assets: &mut Vec<&AssetEntry>,
     ) -> StdResult<Addr> {
         let dex_pair = self.pair_contract(assets);
-        api.resolve(deps, &dex_pair)
+        memory.query_contract(deps, &dex_pair)
     }
     fn pair_contract(&self, assets: &mut Vec<&AssetEntry>) -> ContractEntry {
         ContractEntry::construct_dex_entry(self.name(), assets)

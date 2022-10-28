@@ -16,13 +16,41 @@ use cosmwasm_std::{
 };
 use cw_asset::Asset;
 
-use crate::{commands, error::DexError, queries::simulate_swap, DEX};
+use crate::{commands::LocalDex, error::DexError, queries::simulate_swap, DEX};
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub type DexApi<'a> = ApiContract<'a, RequestMsg, DexError>;
 pub type DexResult = Result<Response, DexError>;
 pub const DEX_API: DexApi<'static> = DexApi::new();
+
 const ACTION_RETRIES: u8 = 3;
+
+// Supported exchanges on Juno
+#[cfg(feature = "juno")]
+pub use crate::exchanges::junoswap::{JunoSwap, JUNOSWAP};
+
+#[cfg(any(feature = "juno", feature = "terra"))]
+pub use crate::exchanges::loop_dex::{Loop, LOOP};
+
+#[cfg(feature = "terra")]
+pub use crate::exchanges::terraswap::{Terraswap, TERRASWAP};
+
+#[cfg(feature = "osmosis")]
+pub use crate::exchanges::osmosis::{Osmosis, OSMOSIS};
+
+pub(crate) fn resolve_exchange(value: &str) -> Result<&'static dyn DEX, DexError> {
+    match value {
+        #[cfg(feature = "juno")]
+        JUNOSWAP => Ok(&JunoSwap {}),
+        #[cfg(feature = "juno")]
+        OSMOSIS => Ok(&Osmosis {}),
+        #[cfg(any(feature = "juno", feature = "terra"))]
+        LOOP => Ok(&Loop {}),
+        #[cfg(feature = "terra")]
+        TERRASWAP => Ok(&Terraswap {}),
+        _ => Err(DexError::UnknownDex(value.to_owned())),
+    }
+}
 
 // Supported exchanges on XXX
 // ...
@@ -58,7 +86,7 @@ pub fn handle_api_request(
         dex: dex_name,
         action,
     } = msg;
-    let exchange = commands::resolve_exchange(&dex_name)?;
+    let exchange = resolve_exchange(&dex_name)?;
     // if exchange is on an app-chain, execute the action on the app-chain
     if exchange.over_ibc() {
         handle_ibc_api_request(&deps, &env, &api, dex_name, &action)
@@ -71,77 +99,13 @@ pub fn handle_api_request(
 /// Handle an API request that can be executed on the local chain
 fn handle_local_api_request(
     deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
+    _env: Env,
+    _info: MessageInfo,
     api: DexApi,
     action: DexAction,
     exchange: &dyn DEX,
 ) -> DexResult {
-    match action {
-        DexAction::ProvideLiquidity { assets, max_spread } => {
-            if assets.len() < 2 {
-                return Err(DexError::TooFewAssets {});
-            }
-            commands::provide_liquidity(deps.as_ref(), env, info, api, assets, exchange, max_spread)
-        }
-        DexAction::ProvideLiquiditySymmetric {
-            offer_asset,
-            paired_assets,
-        } => {
-            if paired_assets.is_empty() {
-                return Err(DexError::TooFewAssets {});
-            }
-            commands::provide_liquidity_symmetric(
-                deps.as_ref(),
-                env,
-                info,
-                api,
-                offer_asset,
-                paired_assets,
-                exchange,
-            )
-        }
-        DexAction::WithdrawLiquidity { lp_token, amount } => commands::withdraw_liquidity(
-            deps.as_ref(),
-            env,
-            info,
-            api,
-            (lp_token, amount),
-            exchange,
-        ),
-        DexAction::Swap {
-            offer_asset,
-            ask_asset,
-            max_spread,
-            belief_price,
-        } => commands::swap(
-            deps.as_ref(),
-            env,
-            info,
-            api,
-            offer_asset,
-            ask_asset,
-            exchange,
-            max_spread,
-            belief_price,
-        ),
-        DexAction::CustomSwap {
-            offer_assets,
-            ask_assets,
-            max_spread,
-            router,
-        } => commands::custom_swap(
-            deps.as_ref(),
-            env,
-            info,
-            api,
-            offer_assets,
-            ask_assets,
-            exchange,
-            max_spread,
-            router,
-        ),
-    }
+    Ok(Response::new().add_submessage(api.resolve_dex_action(deps, action, exchange, false)?))
 }
 
 fn handle_ibc_api_request(
