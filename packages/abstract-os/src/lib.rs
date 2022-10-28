@@ -41,7 +41,6 @@ pub mod ibc_client;
 pub mod ibc_host;
 
 pub use registry::*;
-
 pub mod abstract_token;
 pub mod add_on;
 pub mod api;
