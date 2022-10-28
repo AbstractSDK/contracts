@@ -1,9 +1,12 @@
+use std::ops::Mul;
+
 use crate::{
     dex_trait::{Fee, FeeOnInput, Return, Spread},
     error::DexError,
     DEX,
 };
 
+use abstract_os::dex::OfferAsset;
 use cosmwasm_std::{
     from_binary, to_binary, Addr, Coin, CosmosMsg, Decimal, Deps, QueryRequest, StdResult, Uint128,
 };
@@ -95,13 +98,14 @@ impl DEX for Osmosis {
             .collect();
 
         // FIXME: THIS FUNCTION IS NOT DONE
-        let share_amount_out = compute_osmo_share_out_amount(token_in_maxs, pool_id, deps)?;
+        let share_out_amount =
+            compute_osmo_share_out_amount(token_in_maxs, pool_id, deps)?.to_string();
 
         let osmo_msg: CosmosMsg = MsgJoinPool {
             sender: self.sender_addr.clone(),
             pool_id,
-            share_out_amount: todo!(), // TODO: Ask osmosis discord for options?
-            token_in_maxs,
+            share_out_amount,
+            token_in_maxs, // TODO: Check with Maxi it this is the right approach
         }
         .into();
 
@@ -128,7 +132,7 @@ impl DEX for Osmosis {
             sender: self.sender_addr.clone(),
             pool_id: pair_address.to_string().parse::<u64>().unwrap(),
             share_in_amount: lp_token.amount.to_string(),
-            token_out_mins: vec![], // TODO: Set zero for all tokens?  Check osmo docs
+            token_out_mins: vec![], // TODO: Set zero for all tokens?  Check osmo docs: https://github.com/osmosis-labs/osmosis/blob/c51a248d67cd58e47587d6a955c3d765734eddd7/x/gamm/keeper/pool_service.go#L372
         }
         .into();
 
@@ -192,34 +196,50 @@ fn compute_osmo_share_out_amount(
         })
         .unwrap();
 
-    let pool: Pool = from_binary(&res.pool).unwrap(); // FIXME: find out how to parse this weird type
+    let pool: Pool = from_binary(&res.pool).unwrap(); // FIXME: find out how to parse this weird type\
 
-    let mut share_out_amount = Uint128::zero();
-    let Coin {
-        denom: token_in1_denom,
-        amount: token_in1_amount,
-    } = Coin::try_from(offer_assets[0])?;
-    let Coin {
-        denom: token_in2_denom,
-        amount: token_in2_amount,
-    } = Coin::try_from(offer_assets[1])?;
+    let pool_assets: Vec<OsmoCoin> = pool
+        .pool_assets
+        .iter()
+        .map(|asset| asset.token.unwrap())
+        .collect(); // TODO: Check with rustmaxi Howard if this wont create unwanted behaviour
 
-    let (idx0, idx1) = (0, 1);
-    if (token_in1_denom == offer_assets[0].denom) && (token_in2_denom == offer_assets[1].denom) {
-        (idx0, idx1) = (0, 1);
-    } else if (token_in1_denom == offer_assets[1].denom)
-        && (token_in2_denom == offer_assets[2].denom)
-    {
-        (idx0, idx1) = (1, 0);
-    }
+    let deposits: [Uint128; 2] = [
+        offer_assets
+            .iter()
+            .find(|coin| coin.denom == pool_assets[0].denom)
+            .map(|coin| coin.amount.parse::<Uint128>().unwrap())
+            .expect("wrong asset provided"),
+        offer_assets
+            .iter()
+            .find(|coin| coin.denom == pool_assets[0].denom)
+            .map(|coin| coin.amount.parse::<Uint128>().unwrap())
+            .expect("wrong asset provided"),
+    ];
 
-    let price2 = Decimal::from_ratio(token_in1_amount, token_in2_amount);
+    let total_share = pool
+        .total_shares
+        .unwrap()
+        .amount
+        .parse::<Uint128>()
+        .unwrap();
 
-    // TODO: compute which token is overrepresented in the offer_assets
+    // ~ source: terraswap contract ~
+    // min(1, 2)
+    // 1. sqrt(deposit_0 * exchange_rate_0_to_1 * deposit_0) * (total_share / sqrt(pool_0 * pool_1))
+    // == deposit_0 * total_share / pool_0
+    // 2. sqrt(deposit_1 * exchange_rate_1_to_0 * deposit_1) * (total_share / sqrt(pool_1 * pool_1))
+    // == deposit_1 * total_share / pool_1
+    let share_amount_out = std::cmp::min(
+        deposits[0].multiply_ratio(
+            total_share,
+            pool_assets[0].amount.parse::<Uint128>().unwrap(),
+        ),
+        deposits[1].multiply_ratio(
+            total_share,
+            pool_assets[1].amount.parse::<Uint128>().unwrap(),
+        ),
+    );
 
-    // TODO: compute how much of the overrepressentedd token we need to add to the pool
-
-    // TODO: compute how much GAMM tokens well get for that
-
-    return Ok(Uint128::zero());
+    Ok(share_amount_out)
 }
