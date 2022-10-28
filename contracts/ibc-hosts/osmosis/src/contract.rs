@@ -59,10 +59,12 @@ pub fn ibc_packet_receive(deps: DepsMut, env: Env, msg: IbcPacketReceiveMsg) -> 
 fn handle_app_action(
     deps: DepsMut,
     _env: Env,
-    _host: OsmoHost,
+    host: OsmoHost,
     packet: RequestMsg,
 ) -> IbcOsmoResult {
-    let exchange = Osmosis {};
+    let exchange = Osmosis {
+        local_proxy_addr: host.proxy_address,
+    };
     let action = packet.action;
     let acknowledgement = StdAck::fail(format!("action {:?} failed", action));
 

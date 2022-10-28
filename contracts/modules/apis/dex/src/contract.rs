@@ -43,7 +43,9 @@ pub(crate) fn resolve_exchange(value: &str) -> Result<&'static dyn DEX, DexError
         #[cfg(feature = "juno")]
         JUNOSWAP => Ok(&JunoSwap {}),
         #[cfg(feature = "juno")]
-        OSMOSIS => Ok(&Osmosis {}),
+        OSMOSIS => Ok(&Osmosis {
+            local_proxy_addr: None,
+        }),
         #[cfg(any(feature = "juno", feature = "terra"))]
         LOOP => Ok(&Loop {}),
         #[cfg(feature = "terra")]

@@ -1,12 +1,9 @@
-use std::ops::Mul;
-
 use crate::{
     dex_trait::{Fee, FeeOnInput, Return, Spread},
     error::DexError,
     DEX,
 };
 
-use abstract_os::dex::OfferAsset;
 use cosmwasm_std::{
     from_binary, to_binary, Addr, Coin, CosmosMsg, Decimal, Deps, QueryRequest, StdResult, Uint128,
 };
@@ -14,20 +11,18 @@ use cw_asset::{Asset, AssetInfo};
 
 use osmosis_std::types::{
     cosmos::base::v1beta1::Coin as OsmoCoin,
-    osmosis::gamm::v1beta1::{
-        Pool, QueryPoolParamsRequest, QueryPoolParamsResponse, QueryPoolRequest, QueryPoolResponse,
-    },
+    osmosis::gamm::v1beta1::{Pool, QueryPoolRequest, QueryPoolResponse},
 };
 
 use osmosis_std::types::osmosis::gamm::v1beta1::{
-    MsgExitPool, MsgJoinPool, MsgSwapExactAmountIn, MsgSwapExactAmountOut,
-    QuerySwapExactAmountInRequest, QuerySwapExactAmountInResponse, SwapAmountInRoute,
+    MsgExitPool, MsgJoinPool, MsgSwapExactAmountIn, QuerySwapExactAmountInRequest,
+    QuerySwapExactAmountInResponse, SwapAmountInRoute,
 };
 
 pub const OSMOSIS: &str = "osmosis";
 // Source https://github.com/wasmswap/wasmswap-contracts
 pub struct Osmosis {
-    pub sender_addr: String,
+    pub local_proxy_addr: Option<Addr>,
 }
 
 /// Osmosis app-chain dex implementation
@@ -41,12 +36,12 @@ impl DEX for Osmosis {
 
     fn swap(
         &self,
-        deps: Deps,
+        _deps: Deps,
         pair_address: Addr,
         offer_asset: Asset,
         ask_asset: AssetInfo,
-        belief_price: Option<Decimal>,
-        max_spread: Option<Decimal>,
+        _belief_price: Option<Decimal>,
+        _max_spread: Option<Decimal>,
     ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
         let token_out_denom = match ask_asset {
             AssetInfo::Native(denom) => denom,
@@ -61,14 +56,14 @@ impl DEX for Osmosis {
         let token_in = Coin::try_from(offer_asset)?;
 
         let swap_msg: CosmosMsg = MsgSwapExactAmountIn {
-            sender: self.sender_addr.clone(),
+            sender: self.local_proxy_addr.as_ref().unwrap().to_string(),
             routes,
             token_in: Some(token_in.into()),
             token_out_min_amount: Uint128::zero().to_string(),
         }
         .into();
 
-        return Ok(vec![swap_msg]);
+        Ok(vec![swap_msg])
     }
 
     fn custom_swap(
@@ -89,7 +84,7 @@ impl DEX for Osmosis {
         deps: Deps,
         pair_address: Addr,
         offer_assets: Vec<Asset>,
-        max_spread: Option<Decimal>,
+        _max_spread: Option<Decimal>,
     ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
         let pool_id = pair_address.to_string().parse::<u64>().unwrap();
         let token_in_maxs: Vec<OsmoCoin> = offer_assets
@@ -102,17 +97,17 @@ impl DEX for Osmosis {
         // TODO: Slippage check
 
         let share_out_amount =
-            compute_osmo_share_out_amount(token_in_maxs, pool_id, deps)?.to_string();
+            compute_osmo_share_out_amount(&token_in_maxs, pool_id, deps)?.to_string();
 
         let osmo_msg: CosmosMsg = MsgJoinPool {
-            sender: self.sender_addr.clone(),
+            sender: self.local_proxy_addr.as_ref().unwrap().to_string(),
             pool_id,
             share_out_amount,
             token_in_maxs,
         }
         .into();
 
-        return Ok(vec![osmo_msg]);
+        Ok(vec![osmo_msg])
     }
 
     fn provide_liquidity_symmetric(
@@ -127,12 +122,12 @@ impl DEX for Osmosis {
 
     fn withdraw_liquidity(
         &self,
-        deps: Deps,
+        _deps: Deps,
         pair_address: Addr,
         lp_token: Asset,
     ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
         let osmo_msg: CosmosMsg = MsgExitPool {
-            sender: self.sender_addr.clone(),
+            sender: self.local_proxy_addr.as_ref().unwrap().to_string(),
             pool_id: pair_address.to_string().parse::<u64>().unwrap(),
             share_in_amount: lp_token.amount.to_string(),
             token_out_mins: vec![], // This is fine! see: https://github.com/osmosis-labs/osmosis/blob/c51a248d67cd58e47587d6a955c3d765734eddd7/x/gamm/keeper/pool_service.go#L372
@@ -160,7 +155,7 @@ impl DEX for Osmosis {
         let token_in = Coin::try_from(offer_asset)?.to_string();
 
         let sim_msg = QuerySwapExactAmountInRequest {
-            sender: self.sender_addr.clone(),
+            sender: self.local_proxy_addr.as_ref().unwrap().to_string(),
             pool_id: pair_address.to_string().parse::<u64>().unwrap(),
             token_in,
             routes,
@@ -174,7 +169,7 @@ impl DEX for Osmosis {
         let res = deps.querier.query(&query_request)?; // Querier is on osmosis!
         let swap_exact_amount_in_response: QuerySwapExactAmountInResponse = from_binary(&res)?;
 
-        return Ok((
+        Ok((
             swap_exact_amount_in_response
                 .token_out_amount
                 .parse::<Uint128>()
@@ -182,12 +177,12 @@ impl DEX for Osmosis {
             Uint128::zero(),
             Uint128::zero(),
             false,
-        ));
+        ))
     }
 }
 
 fn compute_osmo_share_out_amount(
-    offer_assets: Vec<OsmoCoin>,
+    offer_assets: &[OsmoCoin],
     pool_id: u64,
     deps: Deps,
 ) -> StdResult<Uint128> {
@@ -203,7 +198,7 @@ fn compute_osmo_share_out_amount(
 
     let pool_assets: Vec<OsmoCoin> = pool
         .pool_assets
-        .iter()
+        .into_iter()
         .map(|asset| asset.token.unwrap())
         .collect();
 
