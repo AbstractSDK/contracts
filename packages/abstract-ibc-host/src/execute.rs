@@ -1,10 +1,5 @@
-use abstract_os::{
-    ibc_host::{ExecuteMsg, HostAction, InternalAction, PacketMsg},
-    objects::ChannelEntry,
-    ICS20,
-};
+use abstract_os::ibc_host::{ExecuteMsg, HostAction, InternalAction, PacketMsg};
 
-use abstract_sdk::{MemoryOperation, Resolve};
 use cosmwasm_std::{
     from_binary, from_slice, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo,
     Response,
@@ -14,7 +9,7 @@ use serde::{de::DeserializeOwned, Serialize};
 use crate::{
     error::HostError,
     host_commands::{receive_query, receive_register, receive_who_am_i},
-    state::{Host, ACCOUNTS, CLOSED_CHANNELS},
+    state::{Host, ACCOUNTS, CLIENT_PROXY, CLOSED_CHANNELS, PROCESSING_PACKET},
 };
 
 /// The host contract base implementation.
@@ -42,11 +37,11 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
             action,
             ..
         } = from_slice(&packet.data)?;
-        // what is the reflect contract here
+        // fill the local proxy address
         self.proxy_address = Some(ACCOUNTS.load(deps.storage, (&channel, os_id))?);
         match action {
-            HostAction::Internal(InternalAction::Register) => {
-                receive_register(deps, env, self, channel, os_id)
+            HostAction::Internal(InternalAction::Register { os_proxy_address }) => {
+                receive_register(deps, env, self, channel, os_id, os_proxy_address)
             }
             HostAction::Internal(InternalAction::WhoAmI) => {
                 let this_chain = self.base_state.load(deps.storage)?.chain;
@@ -55,22 +50,15 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
             HostAction::Dispatch { msgs, .. } => self.receive_dispatch(deps, msgs),
             HostAction::Query { msgs, .. } => receive_query(deps.as_ref(), msgs),
             HostAction::Balances {} => self.receive_balances(deps),
-            HostAction::SendAllBack { os_proxy_address } => {
-                let mem = self.load_memory(deps.storage)?;
-                let ics20_channel_entry = ChannelEntry {
-                    connected_chain: client_chain,
-                    protocol: ICS20.to_string(),
-                };
-                let ics20_channel_id = ics20_channel_entry.resolve(deps.as_ref(), &mem)?;
-
-                self.receive_send_all_back(
-                    deps,
-                    env,
-                    os_proxy_address.ok_or(HostError::MissingProxyAddress {})?,
-                    ics20_channel_id,
-                )
+            HostAction::SendAllBack {} => {
+                // address of the proxy on the client chain
+                let client_proxy_address = CLIENT_PROXY.load(deps.storage, (&channel, os_id))?;
+                self.receive_send_all_back(deps, env, client_proxy_address, client_chain)
             }
-            HostAction::App { msg } => return packet_handler(deps, env, self, from_binary(&msg)?),
+            HostAction::App { msg } => {
+                PROCESSING_PACKET.save(deps.storage, &(from_slice(&packet.data)?, channel))?;
+                return packet_handler(deps, env, self, from_binary(&msg)?);
+            }
         }
         .map_err(Into::into)
     }

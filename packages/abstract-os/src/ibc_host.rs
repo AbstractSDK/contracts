@@ -28,7 +28,7 @@ pub struct MigrateMsg {}
 
 #[cosmwasm_schema::cw_serde]
 pub enum InternalAction {
-    Register,
+    Register { os_proxy_address: String },
     WhoAmI,
 }
 
@@ -44,10 +44,7 @@ pub enum HostAction {
     Query {
         msgs: Vec<QueryRequest<Empty>>,
     },
-    /// Fill with [`Option::None`] on call. Gets filled by IBC client.
-    SendAllBack {
-        os_proxy_address: Option<String>,
-    },
+    SendAllBack {},
     Balances {},
     /// Can't be called through the packet endpoint directly
     Internal(InternalAction),

@@ -1,5 +1,6 @@
 use std::marker::PhantomData;
 
+use abstract_os::ibc_host::PacketMsg;
 use abstract_sdk::{memory::Memory, ReplyHandlerFn, BASE_STATE};
 
 use cosmwasm_std::{Addr, Binary, StdResult, Storage};
@@ -15,9 +16,16 @@ use crate::{
 
 pub const TRADER_NAMESPACE: &str = "traders";
 
+/// Store channel information for proxy contract creation reply
 pub const PENDING: Item<(String, u32)> = Item::new("pending");
-/// (channel-id,os_id) -> remote_addr
+/// Store the processing packet information for processing in Reply along with the channel id it came from
+pub const PROCESSING_PACKET: Item<(PacketMsg, String)> = Item::new("processing");
+/// (channel-id,os_id) -> local_proxy_addr
 pub const ACCOUNTS: Map<(&str, u32), Addr> = Map::new("accounts");
+/// (channel-id,os_id) -> client_proxy_addr
+pub const CLIENT_PROXY: Map<(&str, u32), String> = Map::new("client_proxy");
+/// List of closed channels
+/// Allows for fund recovery
 pub const CLOSED_CHANNELS: Item<Vec<String>> = Item::new("closed");
 // this stores all results from current dispatch
 pub const RESULTS: Item<Vec<Binary>> = Item::new("results");

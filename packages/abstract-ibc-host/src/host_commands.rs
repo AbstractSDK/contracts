@@ -13,7 +13,7 @@ use serde::de::DeserializeOwned;
 use serde::Serialize;
 
 use crate::reply::INIT_CALLBACK_ID;
-use crate::state::{CLOSED_CHANNELS, PENDING};
+use crate::state::{CLIENT_PROXY, CLOSED_CHANNELS, PENDING};
 use crate::{Host, HostError};
 
 // one hour
@@ -145,6 +145,7 @@ pub fn receive_register<T: Serialize + DeserializeOwned>(
     host: Host<T>,
     channel: String,
     os_id: u32,
+    os_proxy_address: String,
 ) -> Result<IbcReceiveResponse, HostError> {
     let cfg = host.base_state.load(deps.storage)?;
     let init_msg = cw1_whitelist::msg::InstantiateMsg {
@@ -160,6 +161,8 @@ pub fn receive_register<T: Serialize + DeserializeOwned>(
     };
     let msg = SubMsg::reply_on_success(msg, INIT_CALLBACK_ID);
 
+    // store the proxy address of the OS on the client chain.
+    CLIENT_PROXY.save(deps.storage, (&channel, os_id), &os_proxy_address)?;
     // store the os info for the reply handler
     PENDING.save(deps.storage, &(channel, os_id))?;
 
