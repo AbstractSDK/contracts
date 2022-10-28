@@ -97,7 +97,10 @@ impl DEX for Osmosis {
             .map(|asset| Coin::try_from(asset).unwrap().into())
             .collect();
 
-        // FIXME: THIS FUNCTION IS NOT DONE
+        // TODO: Check if pool is 50/50, otherwise error
+
+        // TODO: Slippage check
+
         let share_out_amount =
             compute_osmo_share_out_amount(token_in_maxs, pool_id, deps)?.to_string();
 
@@ -105,7 +108,7 @@ impl DEX for Osmosis {
             sender: self.sender_addr.clone(),
             pool_id,
             share_out_amount,
-            token_in_maxs, // TODO: Check with Maxi it this is the right approach
+            token_in_maxs,
         }
         .into();
 
@@ -132,7 +135,7 @@ impl DEX for Osmosis {
             sender: self.sender_addr.clone(),
             pool_id: pair_address.to_string().parse::<u64>().unwrap(),
             share_in_amount: lp_token.amount.to_string(),
-            token_out_mins: vec![], // TODO: Set zero for all tokens?  Check osmo docs: https://github.com/osmosis-labs/osmosis/blob/c51a248d67cd58e47587d6a955c3d765734eddd7/x/gamm/keeper/pool_service.go#L372
+            token_out_mins: vec![], // This is fine! see: https://github.com/osmosis-labs/osmosis/blob/c51a248d67cd58e47587d6a955c3d765734eddd7/x/gamm/keeper/pool_service.go#L372
         }
         .into();
 
@@ -196,13 +199,13 @@ fn compute_osmo_share_out_amount(
         })
         .unwrap();
 
-    let pool: Pool = from_binary(&res.pool).unwrap(); // FIXME: find out how to parse this weird type\
+    let pool = Pool::try_from(res.pool.unwrap()).unwrap();
 
     let pool_assets: Vec<OsmoCoin> = pool
         .pool_assets
         .iter()
         .map(|asset| asset.token.unwrap())
-        .collect(); // TODO: Check with rustmaxi Howard if this wont create unwanted behaviour
+        .collect();
 
     let deposits: [Uint128; 2] = [
         offer_assets
