@@ -234,42 +234,6 @@ fn compute_osmo_share_out_amount(
     deposits: &[Uint128; 2],
     total_share: Uint128,
 ) -> StdResult<Uint128> {
-    // let res: QueryPoolResponse = deps
-    //     .querier
-    //     .query(&QueryRequest::Stargate {
-    //         path: QueryPoolRequest::TYPE_URL.to_string(),
-    //         data: to_binary(&QueryPoolRequest { pool_id }).unwrap(),
-    //     })
-    //     .unwrap();
-
-    // let pool = Pool::try_from(res.pool.unwrap()).unwrap();
-
-    // let pool_assets: Vec<OsmoCoin> = pool
-    //     .pool_assets
-    //     .into_iter()
-    //     .map(|asset| asset.token.unwrap())
-    //     .collect();
-
-    // let deposits: [Uint128; 2] = [
-    //     offer_assets
-    //         .iter()
-    //         .find(|coin| coin.denom == pool_assets[0].denom)
-    //         .map(|coin| coin.amount.parse::<Uint128>().unwrap())
-    //         .expect("wrong asset provided"),
-    //     offer_assets
-    //         .iter()
-    //         .find(|coin| coin.denom == pool_assets[0].denom)
-    //         .map(|coin| coin.amount.parse::<Uint128>().unwrap())
-    //         .expect("wrong asset provided"),
-    // ];
-
-    // let total_share = pool
-    //     .total_shares
-    //     .unwrap()
-    //     .amount
-    //     .parse::<Uint128>()
-    //     .unwrap();
-
     // ~ source: terraswap contract ~
     // min(1, 2)
     // 1. sqrt(deposit_0 * exchange_rate_0_to_1 * deposit_0) * (total_share / sqrt(pool_0 * pool_1))
