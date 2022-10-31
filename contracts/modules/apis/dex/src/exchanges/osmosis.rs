@@ -5,8 +5,7 @@ use crate::{
 };
 
 use cosmwasm_std::{
-    Addr, Coin, CosmosMsg, Decimal, Decimal256, Deps,
-    StdError, StdResult, Uint128, Uint256,
+    Addr, Coin, CosmosMsg, Decimal, Decimal256, Deps, StdError, StdResult, Uint128, Uint256,
 };
 use cw_asset::{Asset, AssetInfo};
 #[cfg(feature = "osmosis")]
@@ -214,10 +213,7 @@ impl DEX for Osmosis {
 }
 
 #[cfg(feature = "osmosis")]
-fn query_pool_data(
-    deps: Deps,
-    pool_id: u64,
-) -> StdResult<Pool> {
+fn query_pool_data(deps: Deps, pool_id: u64) -> StdResult<Pool> {
     let res = QueryPoolRequest { pool_id }.query(&deps.querier).unwrap();
 
     let pool = Pool::try_from(res.pool.unwrap()).unwrap();
@@ -259,9 +255,9 @@ fn assert_slippage_tolerance(
     if let Some(slippage_tolerance) = *slippage_tolerance {
         let slippage_tolerance: Decimal256 = slippage_tolerance.into();
         if slippage_tolerance > Decimal256::one() {
-            return Err(DexError::Std(
-                StdError::generic_err("slippage_tolerance cannot bigger than 1")
-            ));
+            return Err(DexError::Std(StdError::generic_err(
+                "slippage_tolerance cannot bigger than 1",
+            )));
         }
 
         let one_minus_slippage_tolerance = Decimal256::one() - slippage_tolerance;
