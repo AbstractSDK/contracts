@@ -2,7 +2,7 @@ use abstract_os::ibc_host::{ExecuteMsg, HostAction, InternalAction, PacketMsg};
 
 use cosmwasm_std::{
     from_binary, from_slice, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo,
-    Response,
+    Response, StdError,
 };
 use serde::{de::DeserializeOwned, Serialize};
 
@@ -38,7 +38,7 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
             ..
         } = from_slice(&packet.data)?;
         // fill the local proxy address
-        self.proxy_address = Some(ACCOUNTS.load(deps.storage, (&channel, os_id))?);
+        self.proxy_address = ACCOUNTS.may_load(deps.storage, (&channel, os_id))?;
         match action {
             HostAction::Internal(InternalAction::Register { os_proxy_address }) => {
                 receive_register(deps, env, self, channel, os_id, os_proxy_address)
@@ -66,10 +66,15 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
         &mut self,
         deps: DepsMut,
         _env: Env,
-        _info: MessageInfo,
+        info: MessageInfo,
         message: ExecuteMsg,
     ) -> Result<Response, HostError> {
         match message {
+            ExecuteMsg::UpdateConfig {
+                memory_address,
+                cw1_code_id,
+                admin,
+            } => self.update_config(deps, info, memory_address, cw1_code_id, admin),
             ExecuteMsg::ClearAccount {
                 closed_channel,
                 os_id,
@@ -84,5 +89,34 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
                 todo!();
             }
         }
+    }
+
+    fn update_config(
+        &self,
+        deps: DepsMut,
+        info: MessageInfo,
+        memory_address: Option<String>,
+        cw1_code_id: Option<u64>,
+        admin: Option<String>,
+    ) -> Result<Response, HostError> {
+        let mut state = self.state(deps.storage)?;
+
+        if info.sender != state.admin {
+            return Err(StdError::generic_err("Only admin can update config.").into());
+        }
+
+        if let Some(memory_address) = memory_address {
+            // validate address format
+            state.memory.address = deps.api.addr_validate(&memory_address)?;
+        }
+        if let Some(cw1_code_id) = cw1_code_id {
+            // validate address format
+            state.cw1_code_id = cw1_code_id;
+        }
+        if let Some(admin) = admin {
+            // validate address format
+            state.admin = deps.api.addr_validate(&admin)?;
+        }
+        Ok(Response::new())
     }
 }

@@ -13,7 +13,7 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
     pub fn instantiate(
         deps: DepsMut,
         _env: Env,
-        _info: MessageInfo,
+        info: MessageInfo,
         msg: BaseInstantiateMsg,
         module_name: &str,
         module_version: &str,
@@ -29,6 +29,7 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
             chain: chain.to_string(),
             memory,
             cw1_code_id: msg.cw1_code_id,
+            admin: info.sender,
         };
         // Keep track of all the closed channels, allows for fund recovery if channel closes.
         let closed_channels = vec![];

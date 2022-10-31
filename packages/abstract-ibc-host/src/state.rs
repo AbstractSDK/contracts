@@ -64,6 +64,7 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
         mut self,
         reply_handlers: &'a [(u64, ReplyHandlerFn<Self, HostError>)],
     ) -> Self {
+        // update this to store static iterators
         self.reply_handlers = reply_handlers;
         self
     }
@@ -90,4 +91,5 @@ pub struct HostState {
     pub cw1_code_id: u64,
     /// Chain identifier
     pub chain: String,
+    pub admin: Addr,
 }
