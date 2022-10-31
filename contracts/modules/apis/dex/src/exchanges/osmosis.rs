@@ -4,7 +4,10 @@ use crate::{
     DEX,
 };
 
-use cosmwasm_std::{Addr, Coin, CosmosMsg, Decimal, Deps, StdResult, Uint128};
+use cosmwasm_std::{
+    from_binary, to_binary, Addr, Coin, CosmosMsg, Decimal, Decimal256, Deps, QueryRequest,
+    StdError, StdResult, Uint128, Uint256,
+};
 use cw_asset::{Asset, AssetInfo};
 #[cfg(feature = "osmosis")]
 use osmosis_std::types::osmosis::gamm::v1beta1::{
@@ -84,20 +87,55 @@ impl DEX for Osmosis {
         deps: Deps,
         pair_address: Addr,
         offer_assets: Vec<Asset>,
-        _max_spread: Option<Decimal>,
+        max_spread: Option<Decimal>,
     ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
+        if offer_assets.len() > 2 {
+            return Err(DexError::TooManyAssets(2));
+        }
+
         let pool_id = pair_address.to_string().parse::<u64>().unwrap();
         let token_in_maxs: Vec<OsmoCoin> = offer_assets
             .iter()
             .map(|asset| Coin::try_from(asset).unwrap().into())
             .collect();
 
-        // TODO: Check if pool is 50/50, otherwise error
+        let pool = query_pool_data(deps, pool_id)?;
 
-        // TODO: Slippage check
+        // check for symmetric pools
+        if pool.pool_assets[0].weight != pool.pool_assets[1].weight {
+            return Err(DexError::BalancerNotSupported(OSMOSIS.to_string()));
+        }
+
+        let pool_assets: Vec<OsmoCoin> = pool
+            .pool_assets
+            .into_iter()
+            .map(|asset| asset.token.unwrap())
+            .collect();
+
+        let deposits: [Uint128; 2] = [
+            token_in_maxs
+                .iter()
+                .find(|coin| coin.denom == pool_assets[0].denom)
+                .map(|coin| coin.amount.parse::<Uint128>().unwrap())
+                .expect("wrong asset provided"),
+            token_in_maxs
+                .iter()
+                .find(|coin| coin.denom == pool_assets[0].denom)
+                .map(|coin| coin.amount.parse::<Uint128>().unwrap())
+                .expect("wrong asset provided"),
+        ];
+
+        assert_slippage_tolerance(&max_spread, &deposits, &pool_assets)?;
+
+        let total_share = pool
+            .total_shares
+            .unwrap()
+            .amount
+            .parse::<Uint128>()
+            .unwrap();
 
         let share_out_amount =
-            compute_osmo_share_out_amount(&token_in_maxs, pool_id, deps)?.to_string();
+            compute_osmo_share_out_amount(&pool_assets, &deposits, total_share)?.to_string();
 
         let osmo_msg: CosmosMsg = MsgJoinPool {
             sender: self.local_proxy_addr.as_ref().unwrap().to_string(),
@@ -176,41 +214,22 @@ impl DEX for Osmosis {
 }
 
 #[cfg(feature = "osmosis")]
-fn compute_osmo_share_out_amount(
-    offer_assets: &[OsmoCoin],
-    pool_id: u64,
+fn query_pool_data(
     deps: Deps,
-) -> StdResult<Uint128> {
-    let res: QueryPoolResponse = QueryPoolRequest { pool_id }.query(&deps.querier).unwrap();
+    pool_id: u64,
+) -> StdResult<Pool> {
+    let res = QueryPoolRequest { pool_id }.query(&deps.querier).unwrap();
 
     let pool = Pool::try_from(res.pool.unwrap()).unwrap();
+    Ok(pool)
+}
 
-    let pool_assets: Vec<OsmoCoin> = pool
-        .pool_assets
-        .into_iter()
-        .map(|asset| asset.token.unwrap())
-        .collect();
-
-    let deposits: [Uint128; 2] = [
-        offer_assets
-            .iter()
-            .find(|coin| coin.denom == pool_assets[0].denom)
-            .map(|coin| coin.amount.parse::<Uint128>().unwrap())
-            .expect("wrong asset provided"),
-        offer_assets
-            .iter()
-            .find(|coin| coin.denom == pool_assets[0].denom)
-            .map(|coin| coin.amount.parse::<Uint128>().unwrap())
-            .expect("wrong asset provided"),
-    ];
-
-    let total_share = pool
-        .total_shares
-        .unwrap()
-        .amount
-        .parse::<Uint128>()
-        .unwrap();
-
+#[cfg(feature = "osmosis")]
+fn compute_osmo_share_out_amount(
+    pool_assets: &[OsmoCoin],
+    deposits: &[Uint128; 2],
+    total_share: Uint128,
+) -> StdResult<Uint128> {
     // ~ source: terraswap contract ~
     // min(1, 2)
     // 1. sqrt(deposit_0 * exchange_rate_0_to_1 * deposit_0) * (total_share / sqrt(pool_0 * pool_1))
@@ -229,4 +248,41 @@ fn compute_osmo_share_out_amount(
     );
 
     Ok(share_amount_out)
+}
+
+#[cfg(feature = "osmosis")]
+fn assert_slippage_tolerance(
+    slippage_tolerance: &Option<Decimal>,
+    deposits: &[Uint128; 2],
+    pool_assets: &[OsmoCoin],
+) -> Result<(), DexError> {
+    if let Some(slippage_tolerance) = *slippage_tolerance {
+        let slippage_tolerance: Decimal256 = slippage_tolerance.into();
+        if slippage_tolerance > Decimal256::one() {
+            return Err(DexError::Std(
+                StdError::generic_err("slippage_tolerance cannot bigger than 1").into(),
+            ));
+        }
+
+        let one_minus_slippage_tolerance = Decimal256::one() - slippage_tolerance;
+        let deposits: [Uint256; 2] = [deposits[0].into(), deposits[1].into()];
+        let pools: [Uint256; 2] = [
+            pool_assets[0].amount.parse::<Uint256>().unwrap(),
+            pool_assets[1].amount.parse::<Uint256>().unwrap(),
+        ];
+
+        // Ensure each prices are not dropped as much as slippage tolerance rate
+        if Decimal256::from_ratio(deposits[0], deposits[1]) * one_minus_slippage_tolerance
+            > Decimal256::from_ratio(pools[0], pools[1])
+            || Decimal256::from_ratio(deposits[1], deposits[0]) * one_minus_slippage_tolerance
+                > Decimal256::from_ratio(pools[1], pools[0])
+        {
+            return Err(DexError::MaxSlippageAssertion(
+                slippage_tolerance.to_string(),
+                OSMOSIS.to_owned(),
+            ));
+        }
+    }
+
+    Ok(())
 }
