@@ -4,14 +4,12 @@ use crate::{
     DEX,
 };
 
-use cosmwasm_std::{
-    from_binary, to_binary, Addr, Coin, CosmosMsg, Decimal, Deps, QueryRequest, StdResult, Uint128,
-};
+use cosmwasm_std::{Addr, Coin, CosmosMsg, Decimal, Deps, StdResult, Uint128};
 use cw_asset::{Asset, AssetInfo};
 #[cfg(feature = "osmosis")]
 use osmosis_std::types::osmosis::gamm::v1beta1::{
     MsgExitPool, MsgJoinPool, MsgSwapExactAmountIn, QuerySwapExactAmountInRequest,
-    QuerySwapExactAmountInResponse, SwapAmountInRoute,
+    SwapAmountInRoute,
 };
 #[cfg(feature = "osmosis")]
 use osmosis_std::types::{
@@ -20,7 +18,6 @@ use osmosis_std::types::{
 };
 
 pub const OSMOSIS: &str = "osmosis";
-// Source https://github.com/wasmswap/wasmswap-contracts
 pub struct Osmosis {
     pub local_proxy_addr: Option<Addr>,
 }
@@ -62,7 +59,7 @@ impl DEX for Osmosis {
             sender: self.local_proxy_addr.as_ref().unwrap().to_string(),
             routes,
             token_in: Some(token_in.into()),
-            token_out_min_amount: Uint128::zero().to_string(),
+            token_out_min_amount: Uint128::one().to_string(),
         }
         .into();
 
@@ -157,20 +154,14 @@ impl DEX for Osmosis {
 
         let token_in = Coin::try_from(offer_asset)?.to_string();
 
-        let sim_msg = QuerySwapExactAmountInRequest {
+        let swap_exact_amount_in_response = QuerySwapExactAmountInRequest {
             sender: self.local_proxy_addr.as_ref().unwrap().to_string(),
             pool_id: pair_address.to_string().parse::<u64>().unwrap(),
             token_in,
             routes,
-        };
-        // .into();
-
-        let query_request = QueryRequest::Stargate {
-            path: QuerySwapExactAmountInRequest::TYPE_URL.to_string(),
-            data: to_binary(&sim_msg)?,
-        };
-        let res = deps.querier.query(&query_request)?; // Querier is on osmosis!
-        let swap_exact_amount_in_response: QuerySwapExactAmountInResponse = from_binary(&res)?;
+        }
+        .query(&deps.querier)
+        .unwrap();
 
         Ok((
             swap_exact_amount_in_response
@@ -190,13 +181,7 @@ fn compute_osmo_share_out_amount(
     pool_id: u64,
     deps: Deps,
 ) -> StdResult<Uint128> {
-    let res: QueryPoolResponse = deps
-        .querier
-        .query(&QueryRequest::Stargate {
-            path: QueryPoolRequest::TYPE_URL.to_string(),
-            data: to_binary(&QueryPoolRequest { pool_id }).unwrap(),
-        })
-        .unwrap();
+    let res: QueryPoolResponse = QueryPoolRequest { pool_id }.query(&deps.querier).unwrap();
 
     let pool = Pool::try_from(res.pool.unwrap()).unwrap();
 
