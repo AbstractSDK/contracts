@@ -248,7 +248,7 @@ fn acknowledge_register(
         StdAck::Result(res) => from_slice(&res)?,
         StdAck::Error(e) => {
             return Ok(IbcBasicResponse::new()
-                .add_attribute("action", "acknowledge_who_am_i")
+                .add_attribute("action", "acknowledge_register")
                 .add_attribute("error", e))
         }
     };

@@ -9,8 +9,14 @@ pub type Return = Uint128;
 pub type Spread = Uint128;
 pub type Fee = Uint128;
 pub type FeeOnInput = bool;
+
+pub trait Identify {
+    fn over_ibc(&self) -> bool;
+    fn name(&self) -> &'static str;
+}
+
 /// DEX trait resolves asset names and dex to pair and lp address and ensures supported dexes support swaps and liquidity provisioning.
-pub trait DEX {
+pub trait DEX: Identify {
     fn pair_address(
         &self,
         deps: Deps,
@@ -23,8 +29,6 @@ pub trait DEX {
     fn pair_contract(&self, assets: &mut Vec<&AssetEntry>) -> ContractEntry {
         ContractEntry::construct_dex_entry(self.name(), assets)
     }
-    fn over_ibc(&self) -> bool;
-    fn name(&self) -> &'static str;
     #[allow(clippy::too_many_arguments)]
     fn swap(
         &self,

@@ -1,12 +1,14 @@
 use abstract_ibc_host::chains::OSMOSIS;
 use abstract_ibc_host::Host;
 
+use abstract_ibc_host::state::HostState;
 use abstract_os::abstract_ica::StdAck;
 use abstract_os::ibc_host::{BaseInstantiateMsg, MigrateMsg, QueryMsg};
 use abstract_os::{dex::RequestMsg, OSMOSIS_HOST};
 
 use abstract_sdk::ReplyEndpoint;
-use cosmwasm_std::Reply;
+use abstract_sdk::memory::Memory;
+use cosmwasm_std::{Reply, Addr};
 use cosmwasm_std::{
     entry_point, Binary, Deps, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo,
     Response, StdResult,
@@ -24,8 +26,7 @@ pub type OsmoHost<'a> = Host<'a, RequestMsg>;
 pub type OsmoResult = Result<Response, OsmoError>;
 pub type IbcOsmoResult = Result<IbcReceiveResponse, OsmoError>;
 
-const OSMO_HOST: OsmoHost = OsmoHost::new().with_reply_handlers(&[]);
-
+const OSMO_HOST: OsmoHost = OsmoHost::new();
 // Supported exchanges on XXX
 // ...
 
@@ -77,26 +78,19 @@ fn handle_app_action(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-#[entry_point]
 pub fn reply(deps: DepsMut, env: Env, reply: Reply) -> OsmoResult {
     OSMO_HOST.handle_reply(deps, env, reply).map_err(Into::into)
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(_deps: Deps, _env: Env, msg: QueryMsg) -> Result<Binary, OsmoError> {
-    // TODO: create const osmo host
-    // let host = OsmoHost::default();
-    // host.
-    match msg {
-        QueryMsg::App(_) => todo!(),
-        // QueryMsg::App(_) => OSMO_HOST.handle_query(deps, env, msg, Some(handle_osmosis_query)),
-        QueryMsg::Base(_base) => todo!(),
-    }
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> Result<Binary, OsmoError> {
+    OSMO_HOST.handle_query(deps, env, msg, None)
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
+pub fn migrate(deps: DepsMut, _env: Env, msg: MigrateMsg) -> StdResult<Response> {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
+    OSMO_HOST.base_state.save(deps.storage, &HostState{memory: msg.memory, cw1_code_id: msg.cw1_code_id, chain: msg.chain, admin: msg.admin })?;
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
     if storage_version < version {
         set_contract_version(deps.storage, OSMOSIS_HOST, CONTRACT_VERSION)?;

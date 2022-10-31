@@ -16,7 +16,9 @@ use cosmwasm_std::{
 };
 use cw_asset::Asset;
 
-use crate::{commands::LocalDex, error::DexError, queries::simulate_swap, DEX};
+use crate::{
+    commands::LocalDex, dex_trait::Identify, error::DexError, queries::simulate_swap, DEX,
+};
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub type DexApi<'a> = ApiContract<'a, RequestMsg, DexError>;
@@ -35,10 +37,10 @@ pub use crate::exchanges::loop_dex::{Loop, LOOP};
 #[cfg(feature = "terra")]
 pub use crate::exchanges::terraswap::{Terraswap, TERRASWAP};
 
-#[cfg(feature = "osmosis")]
+#[cfg(any(feature = "juno", feature = "osmosis"))]
 pub use crate::exchanges::osmosis::{Osmosis, OSMOSIS};
 
-pub(crate) fn resolve_exchange(value: &str) -> Result<&'static dyn DEX, DexError> {
+pub(crate) fn identify_exchange(value: &str) -> Result<&'static dyn Identify, DexError> {
     match value {
         #[cfg(feature = "juno")]
         JUNOSWAP => Ok(&JunoSwap {}),
@@ -46,6 +48,22 @@ pub(crate) fn resolve_exchange(value: &str) -> Result<&'static dyn DEX, DexError
         OSMOSIS => Ok(&Osmosis {
             local_proxy_addr: None,
         }),
+        #[cfg(any(feature = "juno", feature = "terra"))]
+        LOOP => Ok(&Loop {}),
+        #[cfg(feature = "terra")]
+        TERRASWAP => Ok(&Terraswap {}),
+        _ => Err(DexError::UnknownDex(value.to_owned())),
+    }
+}
+
+pub(crate) fn resolve_exchange(value: &str) -> Result<&'static dyn DEX, DexError> {
+    match value {
+        #[cfg(feature = "juno")]
+        JUNOSWAP => Ok(&JunoSwap {}),
+        // #[cfg(feature = "osmosis")]
+        // OSMOSIS => Ok(&Osmosis {
+        //     local_proxy_addr: None,
+        // }),
         #[cfg(any(feature = "juno", feature = "terra"))]
         LOOP => Ok(&Loop {}),
         #[cfg(feature = "terra")]
@@ -88,13 +106,13 @@ pub fn handle_api_request(
         dex: dex_name,
         action,
     } = msg;
-    let exchange = resolve_exchange(&dex_name)?;
+    let exchange = identify_exchange(&dex_name)?;
     // if exchange is on an app-chain, execute the action on the app-chain
     if exchange.over_ibc() {
         handle_ibc_api_request(&deps, &env, &api, dex_name, &action)
     } else {
         // the action can be executed on the local chain
-        handle_local_api_request(deps, env, info, api, action, exchange)
+        handle_local_api_request(deps, env, info, api, action, dex_name)
     }
 }
 
@@ -105,8 +123,9 @@ fn handle_local_api_request(
     _info: MessageInfo,
     api: DexApi,
     action: DexAction,
-    exchange: &dyn DEX,
+    exchange: String,
 ) -> DexResult {
+    let exchange = resolve_exchange(&exchange)?;
     Ok(Response::new().add_submessage(api.resolve_dex_action(deps, action, exchange, false)?))
 }
 

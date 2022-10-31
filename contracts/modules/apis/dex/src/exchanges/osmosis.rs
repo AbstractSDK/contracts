@@ -1,5 +1,5 @@
 use crate::{
-    dex_trait::{Fee, FeeOnInput, Return, Spread},
+    dex_trait::{Fee, FeeOnInput, Identify, Return, Spread},
     error::DexError,
     DEX,
 };
@@ -8,15 +8,15 @@ use cosmwasm_std::{
     from_binary, to_binary, Addr, Coin, CosmosMsg, Decimal, Deps, QueryRequest, StdResult, Uint128,
 };
 use cw_asset::{Asset, AssetInfo};
-
-use osmosis_std::types::{
-    cosmos::base::v1beta1::Coin as OsmoCoin,
-    osmosis::gamm::v1beta1::{Pool, QueryPoolRequest, QueryPoolResponse},
-};
-
+#[cfg(feature = "osmosis")]
 use osmosis_std::types::osmosis::gamm::v1beta1::{
     MsgExitPool, MsgJoinPool, MsgSwapExactAmountIn, QuerySwapExactAmountInRequest,
     QuerySwapExactAmountInResponse, SwapAmountInRoute,
+};
+#[cfg(feature = "osmosis")]
+use osmosis_std::types::{
+    cosmos::base::v1beta1::Coin as OsmoCoin,
+    osmosis::gamm::v1beta1::{Pool, QueryPoolRequest, QueryPoolResponse},
 };
 
 pub const OSMOSIS: &str = "osmosis";
@@ -25,15 +25,18 @@ pub struct Osmosis {
     pub local_proxy_addr: Option<Addr>,
 }
 
-/// Osmosis app-chain dex implementation
-impl DEX for Osmosis {
+impl Identify for Osmosis {
     fn over_ibc(&self) -> bool {
         true
     }
     fn name(&self) -> &'static str {
         OSMOSIS
     }
+}
 
+/// Osmosis app-chain dex implementation
+#[cfg(feature = "osmosis")]
+impl DEX for Osmosis {
     fn swap(
         &self,
         _deps: Deps,
@@ -181,6 +184,7 @@ impl DEX for Osmosis {
     }
 }
 
+#[cfg(feature = "osmosis")]
 fn compute_osmo_share_out_amount(
     offer_assets: &[OsmoCoin],
     pool_id: u64,
