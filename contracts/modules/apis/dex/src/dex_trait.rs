@@ -15,7 +15,8 @@ pub trait Identify {
     fn name(&self) -> &'static str;
 }
 
-/// DEX trait resolves asset names and dex to pair and lp address and ensures supported dexes support swaps and liquidity provisioning.
+/// DEX ensures supported dexes support the expected functionality.
+/// Trait that implements the actual dex interaction.
 pub trait DEX: Identify {
     fn pair_address(
         &self,

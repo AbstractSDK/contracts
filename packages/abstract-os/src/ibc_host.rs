@@ -84,7 +84,15 @@ pub struct PacketMsg {
 /// Interface to the Host.
 #[cosmwasm_schema::cw_serde]
 pub enum ExecuteMsg {
-    ClearAccount { closed_channel: String, os_id: u32 },
+    UpdateConfig {
+        memory_address: Option<String>,
+        cw1_code_id: Option<u64>,
+        admin: Option<String>,
+    },
+    ClearAccount {
+        closed_channel: String,
+        os_id: u32,
+    },
 }
 
 #[cosmwasm_schema::cw_serde]

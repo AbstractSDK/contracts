@@ -5,11 +5,11 @@ pub mod error;
 mod exchanges;
 pub(crate) mod queries;
 
+pub use commands::LocalDex;
 pub use dex_trait::DEX;
 
 #[cfg(any(feature = "juno", feature = "osmosis"))]
 pub mod host_exchange {
-    pub use super::commands::LocalDex;
     pub use super::exchanges::osmosis::Osmosis;
 }
 
