@@ -1,34 +1,31 @@
 use abstract_ibc_host::chains::OSMOSIS;
 use abstract_ibc_host::Host;
 
-use abstract_ibc_host::state::HostState;
 use abstract_os::abstract_ica::StdAck;
+use abstract_os::dex::DexAction;
 use abstract_os::ibc_host::{BaseInstantiateMsg, MigrateMsg, QueryMsg};
-use abstract_os::{dex::RequestMsg, OSMOSIS_HOST};
+use abstract_os::OSMOSIS_HOST;
 
 use abstract_sdk::ReplyEndpoint;
-use abstract_sdk::memory::Memory;
-use cosmwasm_std::{Reply, Addr};
+use cosmwasm_std::Reply;
 use cosmwasm_std::{
     entry_point, Binary, Deps, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo,
     Response, StdResult,
 };
 use cw2::{get_contract_version, set_contract_version};
 
-use dex::host_exchange::LocalDex;
 use dex::host_exchange::Osmosis;
+use dex::LocalDex;
 use semver::Version;
 
 use crate::error::OsmoError;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub type OsmoHost<'a> = Host<'a, RequestMsg>;
+pub type OsmoHost<'a> = Host<'a, DexAction>;
 pub type OsmoResult = Result<Response, OsmoError>;
 pub type IbcOsmoResult = Result<IbcReceiveResponse, OsmoError>;
 
 const OSMO_HOST: OsmoHost = OsmoHost::new();
-// Supported exchanges on XXX
-// ...
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -57,20 +54,15 @@ pub fn ibc_packet_receive(deps: DepsMut, env: Env, msg: IbcPacketReceiveMsg) -> 
     OSMO_HOST.handle_packet(deps, env, msg, handle_app_action)
 }
 
-fn handle_app_action(
-    deps: DepsMut,
-    _env: Env,
-    host: OsmoHost,
-    packet: RequestMsg,
-) -> IbcOsmoResult {
+fn handle_app_action(deps: DepsMut, _env: Env, host: OsmoHost, packet: DexAction) -> IbcOsmoResult {
     let exchange = Osmosis {
-        local_proxy_addr: host.proxy_address,
+        local_proxy_addr: host.proxy_address.clone(),
     };
-    let action = packet.action;
+    let action = packet;
     let acknowledgement = StdAck::fail(format!("action {:?} failed", action));
 
     // execute and expect reply after execution
-    let proxy_msg = OSMO_HOST.resolve_dex_action(deps, action, &exchange, true)?;
+    let proxy_msg = host.resolve_dex_action(deps, action, &exchange, true)?;
     Ok(IbcReceiveResponse::new()
         .set_ack(acknowledgement)
         .add_submessage(proxy_msg)
@@ -88,9 +80,8 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> Result<Binary, OsmoError> {
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, msg: MigrateMsg) -> StdResult<Response> {
+pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
-    OSMO_HOST.base_state.save(deps.storage, &HostState{memory: msg.memory, cw1_code_id: msg.cw1_code_id, chain: msg.chain, admin: msg.admin })?;
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
     if storage_version < version {
         set_contract_version(deps.storage, OSMOSIS_HOST, CONTRACT_VERSION)?;
