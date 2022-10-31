@@ -1,11 +1,14 @@
-use abstract_os::abstract_ica::{DispatchResponse, RegisterResponse, StdAck};
+use abstract_os::{
+    abstract_ica::{DispatchResponse, RegisterResponse, StdAck},
+    ibc_host::PacketMsg,
+};
 use abstract_sdk::ReplyEndpoint;
-use cosmwasm_std::{DepsMut, Env, Reply, Response};
+use cosmwasm_std::{DepsMut, Empty, Env, Reply, Response};
 use cw_utils::parse_reply_instantiate_data;
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
-    state::{ACCOUNTS, PENDING, RESULTS},
+    state::{ACCOUNTS, CLIENT_PROXY, PENDING, PROCESSING_PACKET, RESULTS},
     Host, HostError,
 };
 
@@ -25,6 +28,36 @@ impl<T: Serialize + DeserializeOwned> ReplyEndpoint for Host<'_, T> {
             }
         }
         None
+    }
+    fn handle_reply(
+        mut self,
+        deps: DepsMut,
+        env: Env,
+        msg: Reply,
+    ) -> Result<Response, Self::ContractError> {
+        let id = msg.id;
+        let maybe_handler = self.reply_handler(id);
+        if let Some(reply_fn) = maybe_handler {
+            reply_fn(deps, env, self, msg)
+        } else {
+            let (packet, channel) = PROCESSING_PACKET.load(deps.storage)?;
+            PROCESSING_PACKET.remove(deps.storage);
+            let PacketMsg {
+                client_chain,
+                os_id,
+                ..
+            } = packet;
+            let client_proxy_addr = CLIENT_PROXY.load(deps.storage, (&channel, os_id))?;
+            let local_proxy_addr = ACCOUNTS.load(deps.storage, (&channel, os_id))?;
+            self.proxy_address = Some(local_proxy_addr);
+            // send everything back to client
+            let send_back_msg =
+                self.send_all_back(deps.as_ref(), env, client_proxy_addr, client_chain)?;
+
+            Ok(Response::new()
+                .add_message(send_back_msg)
+                .set_data(StdAck::success(&Empty {})))
+        }
     }
 }
 
