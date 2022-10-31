@@ -5,7 +5,7 @@ use crate::{
 };
 
 use cosmwasm_std::{
-    from_binary, to_binary, Addr, Coin, CosmosMsg, Decimal, Decimal256, Deps, QueryRequest,
+    Addr, Coin, CosmosMsg, Decimal, Decimal256, Deps,
     StdError, StdResult, Uint128, Uint256,
 };
 use cw_asset::{Asset, AssetInfo};
@@ -17,7 +17,7 @@ use osmosis_std::types::osmosis::gamm::v1beta1::{
 #[cfg(feature = "osmosis")]
 use osmosis_std::types::{
     cosmos::base::v1beta1::Coin as OsmoCoin,
-    osmosis::gamm::v1beta1::{Pool, QueryPoolRequest, QueryPoolResponse},
+    osmosis::gamm::v1beta1::{Pool, QueryPoolRequest},
 };
 
 pub const OSMOSIS: &str = "osmosis";
@@ -260,7 +260,7 @@ fn assert_slippage_tolerance(
         let slippage_tolerance: Decimal256 = slippage_tolerance.into();
         if slippage_tolerance > Decimal256::one() {
             return Err(DexError::Std(
-                StdError::generic_err("slippage_tolerance cannot bigger than 1").into(),
+                StdError::generic_err("slippage_tolerance cannot bigger than 1")
             ));
         }
 
