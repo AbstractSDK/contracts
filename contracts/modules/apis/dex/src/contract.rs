@@ -109,7 +109,7 @@ pub fn handle_api_request(
     let exchange = identify_exchange(&dex_name)?;
     // if exchange is on an app-chain, execute the action on the app-chain
     if exchange.over_ibc() {
-        handle_ibc_api_request(&deps, &env, &api, dex_name, &action)
+        handle_ibc_api_request(&deps, info, &api, dex_name, &action)
     } else {
         // the action can be executed on the local chain
         handle_local_api_request(deps, env, info, api, action, dex_name)
@@ -131,7 +131,7 @@ fn handle_local_api_request(
 
 fn handle_ibc_api_request(
     deps: &DepsMut,
-    env: &Env,
+    info: MessageInfo,
     api: &DexApi,
     dex_name: DexName,
     action: &DexAction,
@@ -146,17 +146,17 @@ fn handle_ibc_api_request(
     let action = abstract_os::ibc_host::HostAction::App {
         msg: to_binary(&action)?,
     };
-
-    let ibc_action_msg = host_ibc_action(
-        api.target()?,
-        host_chain,
-        action,
+    let maybe_contract_info = deps.querier.query_wasm_contract_info(info.sender.clone());
+    let callback = if maybe_contract_info.is_err() {
+        None
+    } else {
         Some(CallbackInfo {
             id: IBC_DEX_ID.to_string(),
-            receiver: env.contract.address.to_string(),
-        }),
-        ACTION_RETRIES,
-    )?;
+            receiver: info.sender.into_string(),
+        })
+    };
+    let ibc_action_msg =
+        host_ibc_action(api.target()?, host_chain, action, callback, ACTION_RETRIES)?;
 
     // call both messages on the proxy
     Ok(Response::new().add_messages(vec![ics20_transfer_msg, ibc_action_msg]))
