@@ -8,11 +8,8 @@
 use cosmwasm_schema::QueryResponses;
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 
-use crate::objects::{
-    asset_entry::AssetEntry,
-    contract_entry::{ContractEntry, UncheckedContractEntry},
-    ChannelEntry, UncheckedChannelEntry,
-};
+use crate::objects::{asset_entry::AssetEntry, contract_entry::{ContractEntry, UncheckedContractEntry}, ChannelEntry, UncheckedChannelEntry, DexPairEntry};
+use crate::objects::dex_pair_entry::UncheckedDexPairEntry;
 
 /// Memory state details
 pub mod state {
@@ -22,6 +19,7 @@ pub mod state {
     use cw_storage_plus::Map;
 
     use crate::objects::{asset_entry::AssetEntry, contract_entry::ContractEntry, ChannelEntry};
+    use crate::objects::dex_pair_entry::DexPairEntry;
 
     /// Admin address store
     pub const ADMIN: Admin = Admin::new("admin");
@@ -30,12 +28,17 @@ pub mod state {
     pub const ASSET_ADDRESSES: Map<AssetEntry, AssetInfo> = Map::new("assets");
 
     /// Stores contract addresses
-    /// Pairs are stored here as (dex_name, pair_id)
-    /// pair_id is "asset1_asset2" where the asset names are sorted alphabetically.
     pub const CONTRACT_ADDRESSES: Map<ContractEntry, Addr> = Map::new("contracts");
 
     /// stores channel-ids
     pub const CHANNELS: Map<ChannelEntry, String> = Map::new("channels");
+
+    /// TODO: should use multi index map or something
+    /// stores dex pairs
+    /// pair_id is "asset1_asset2" where the asset names are sorted alphabetically.
+    /// { dex: junoswap, pair: "asset1_asset2" } => junoXXX
+    /// { dex: osmosis, pair: "asset1_asset2" } => 523
+    pub const DEX_PAIRS: Map<DexPairEntry, String> = Map::new("dex_pairs");
 }
 
 /// Memory Instantiate msg
@@ -65,6 +68,13 @@ pub enum ExecuteMsg {
         to_add: Vec<(UncheckedChannelEntry, String)>,
         /// Assets to remove
         to_remove: Vec<UncheckedChannelEntry>,
+    },
+    /// Updates the dex pairs
+    UpdateDexPairs {
+        /// Pairs to update or add
+        to_add: Vec<(UncheckedDexPairEntry, String)>,
+        /// Pairs to remove
+        to_remove: Vec<UncheckedDexPairEntry>,
     },
     /// Sets a new Admin
     SetAdmin { admin: String },
@@ -102,11 +112,11 @@ pub enum QueryMsg {
         page_token: Option<ContractEntry>,
         page_size: Option<u8>,
     },
-    /// Queries contracts based on name
+    /// Queries channels based on name
     /// returns [`ChannelsResponse`]
     #[returns(ChannelsResponse)]
     Channels {
-        /// Project and contract names of contracts to query
+        /// Project and channel names of channels to query
         names: Vec<ChannelEntry>,
     },
     /// Page over contracts
@@ -114,6 +124,20 @@ pub enum QueryMsg {
     #[returns(ChannelListResponse)]
     ChannelList {
         page_token: Option<ChannelEntry>,
+        page_size: Option<u8>,
+    },
+    /// Queries dex_pairs based on dex and asset_pair
+    /// returns [`ChannelsResponse`]
+    #[returns(DexPairsResponse)]
+    DexPairs {
+        /// Project and channel names of channels to query
+        names: Vec<DexPairEntry>,
+    },
+    /// Page over dex pairs
+    /// returns [`DexPairListResponse`]
+    #[returns(DexPairListResponse)]
+    DexPairList {
+        page_token: Option<DexPairEntry>,
         page_size: Option<u8>,
     },
 }
@@ -154,4 +178,14 @@ pub struct ChannelsResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct ChannelListResponse {
     pub channels: Vec<(ChannelEntry, String)>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct DexPairsResponse {
+    pub pairs: Vec<(DexPairEntry, String)>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct DexPairListResponse {
+    pub pairs: Vec<(DexPairEntry, String)>,
 }

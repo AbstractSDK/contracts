@@ -1,4 +1,4 @@
-use abstract_os::objects::{UncheckedChannelEntry, UncheckedContractEntry};
+use abstract_os::objects::{UncheckedChannelEntry, UncheckedContractEntry, UncheckedDexPairEntry};
 use cosmwasm_std::Env;
 use cosmwasm_std::{Addr, DepsMut, Empty, MessageInfo, Response, StdResult};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
@@ -8,7 +8,7 @@ use abstract_os::memory::state::*;
 use abstract_os::memory::ExecuteMsg;
 
 /// Handles the common base execute messages
-pub fn handle_message(
+pub fn handle_execute(
     deps: DepsMut,
     info: MessageInfo,
     _env: Env,
@@ -24,6 +24,9 @@ pub fn handle_message(
         }
         ExecuteMsg::UpdateChannels { to_add, to_remove } => {
             update_channels(deps, info, to_add, to_remove)
+        }
+        ExecuteMsg::UpdateDexPairs { to_add, to_remove } => {
+            update_dex_pairs(deps, info, to_add, to_remove)
         }
     }
 }
@@ -109,6 +112,31 @@ pub fn update_channels(
     }
 
     Ok(Response::new().add_attribute("action", "updated contract addresses"))
+}
+
+/// Adds, updates, or removes the pairings for a dex.
+pub fn update_dex_pairs(
+    deps: DepsMut,
+    msg_info: MessageInfo,
+    to_add: Vec<(UncheckedDexPairEntry, String)>,
+    to_remove: Vec<UncheckedDexPairEntry>,
+) -> MemoryResult {
+    // Only Admin can call this method
+    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
+
+    for (dex_pair_key, pair_id) in to_add.into_iter() {
+        let key = dex_pair_key.check();
+        // Update function for new or existing keys
+        let insert = |_| -> StdResult<String> { Ok(pair_id) };
+        DEX_PAIRS.update(deps.storage, key, insert)?;
+    }
+
+    for dex_pair_key in to_remove {
+        let key = dex_pair_key.check();
+        DEX_PAIRS.remove(deps.storage, key);
+    }
+
+    Ok(Response::new().add_attribute("action", "updated dex pairs"))
 }
 
 pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> MemoryResult {

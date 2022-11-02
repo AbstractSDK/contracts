@@ -29,7 +29,7 @@ pub fn instantiate(
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> MemoryResult {
-    handle_message(deps, info, env, msg)
+    handle_execute(deps, info, env, msg)
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -50,6 +50,11 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             page_token,
             page_size,
         } => queries::query_channel_list(deps, page_token, page_size),
+        QueryMsg::DexPairs { names } => queries::query_dex_pair(deps, env, names),
+        QueryMsg::DexPairList {
+            page_token,
+            page_size,
+        } => queries::query_dex_pair_list(deps, page_token, page_size),
     }
 }
 

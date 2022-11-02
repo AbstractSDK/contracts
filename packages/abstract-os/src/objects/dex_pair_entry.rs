@@ -6,56 +6,56 @@ use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-/// Key to get the Address of a connected_chain
+/// Key to get the Address of a dex
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord)]
-pub struct UncheckedChannelEntry {
-    pub connected_chain: String,
-    pub protocol: String,
+pub struct UncheckedDexPairEntry {
+    pub dex: String,
+    pub asset_pair: String,
 }
 
-impl UncheckedChannelEntry {
-    pub fn new<T: ToString>(connected_chain: T, protocol: T) -> Self {
+impl UncheckedDexPairEntry {
+    pub fn new<T: ToString>(dex: T, asset_pair: T) -> Self {
         Self {
-            protocol: protocol.to_string(),
-            connected_chain: connected_chain.to_string(),
+            dex: dex.to_string(),
+            asset_pair: asset_pair.to_string(),
         }
     }
-    pub fn check(self) -> ChannelEntry {
-        ChannelEntry {
-            connected_chain: self.connected_chain.to_ascii_lowercase(),
-            protocol: self.protocol.to_ascii_lowercase(),
+    pub fn check(self) -> DexPairEntry {
+        DexPairEntry {
+            dex: self.dex.to_ascii_lowercase(),
+            asset_pair: self.asset_pair.to_ascii_lowercase(),
         }
     }
 }
 
-impl TryFrom<String> for UncheckedChannelEntry {
+impl TryFrom<String> for UncheckedDexPairEntry {
     type Error = StdError;
     fn try_from(entry: String) -> Result<Self, Self::Error> {
         let composite: Vec<&str> = entry.split('/').collect();
         if composite.len() != 2 {
             return Err(StdError::generic_err(
-                "connected_chain entry should be formatted as \"connected_chain_name/protocol\".",
+                "dex entry should be formatted as \"dex/asset_pair\".",
             ));
         }
         Ok(Self::new(composite[0], composite[1]))
     }
 }
 
-/// Key to get the Address of a connected_chain
-/// Use [`UncheckedChannelEntry`] to construct this type.  
+/// Key to get the Address of a dex
+/// Use [`UncheckedDexPairEntry`] to construct this type.  
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema, Eq, PartialOrd, Ord)]
-pub struct ChannelEntry {
-    pub connected_chain: String,
-    pub protocol: String,
+pub struct DexPairEntry {
+    pub dex: String,
+    pub asset_pair: String,
 }
 
-impl Display for ChannelEntry {
+impl Display for DexPairEntry {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}/{}", self.connected_chain, self.protocol)
+        write!(f, "{}/{}", self.dex, self.asset_pair)
     }
 }
 
-impl<'a> PrimaryKey<'a> for ChannelEntry {
+impl<'a> PrimaryKey<'a> for DexPairEntry {
     type Prefix = String;
 
     type SubPrefix = ();
@@ -65,21 +65,21 @@ impl<'a> PrimaryKey<'a> for ChannelEntry {
     type SuperSuffix = Self;
 
     fn key(&self) -> Vec<cw_storage_plus::Key> {
-        let mut keys = self.connected_chain.key();
-        keys.extend(self.protocol.key());
+        let mut keys = self.dex.key();
+        keys.extend(self.asset_pair.key());
         keys
     }
 }
 
-impl<'a> Prefixer<'a> for ChannelEntry {
+impl<'a> Prefixer<'a> for DexPairEntry {
     fn prefix(&self) -> Vec<Key> {
-        let mut res = self.connected_chain.prefix();
-        res.extend(self.protocol.prefix().into_iter());
+        let mut res = self.dex.prefix();
+        res.extend(self.asset_pair.prefix().into_iter());
         res
     }
 }
 
-impl KeyDeserialize for ChannelEntry {
+impl KeyDeserialize for DexPairEntry {
     type Output = Self;
 
     #[inline(always)]
@@ -89,8 +89,8 @@ impl KeyDeserialize for ChannelEntry {
         let u = tu.split_off(t_len);
 
         Ok(Self {
-            connected_chain: String::from_vec(tu)?,
-            protocol: String::from_vec(u)?,
+            dex: String::from_vec(tu)?,
+            asset_pair: String::from_vec(u)?,
         })
     }
 }
@@ -115,26 +115,26 @@ mod test {
     use cosmwasm_std::{testing::mock_dependencies, Addr, Order};
     use cw_storage_plus::Map;
 
-    fn mock_key() -> ChannelEntry {
-        ChannelEntry {
-            connected_chain: "osmosis".to_string(),
-            protocol: "ics20".to_string(),
+    fn mock_key() -> DexPairEntry {
+        DexPairEntry {
+            dex: "osmosis".to_string(),
+            asset_pair: "ics20".to_string(),
         }
     }
 
-    fn mock_keys() -> (ChannelEntry, ChannelEntry, ChannelEntry) {
+    fn mock_keys() -> (DexPairEntry, DexPairEntry, DexPairEntry) {
         (
-            ChannelEntry {
-                connected_chain: "osmosis".to_string(),
-                protocol: "ics20".to_string(),
+            DexPairEntry {
+                dex: "osmosis".to_string(),
+                asset_pair: "ics20".to_string(),
             },
-            ChannelEntry {
-                connected_chain: "osmosis".to_string(),
-                protocol: "ics".to_string(),
+            DexPairEntry {
+                dex: "osmosis".to_string(),
+                asset_pair: "ics".to_string(),
             },
-            ChannelEntry {
-                connected_chain: "cosmos".to_string(),
-                protocol: "abstract".to_string(),
+            DexPairEntry {
+                dex: "cosmos".to_string(),
+                asset_pair: "abstract".to_string(),
             },
         )
     }
@@ -143,7 +143,7 @@ mod test {
     fn storage_key_works() {
         let mut deps = mock_dependencies();
         let key = mock_key();
-        let map: Map<ChannelEntry, u64> = Map::new("map");
+        let map: Map<DexPairEntry, u64> = Map::new("map");
 
         map.save(deps.as_mut().storage, key.clone(), &42069)
             .unwrap();
@@ -163,7 +163,7 @@ mod test {
     fn composite_key_works() {
         let mut deps = mock_dependencies();
         let key = mock_key();
-        let map: Map<(ChannelEntry, Addr), u64> = Map::new("map");
+        let map: Map<(DexPairEntry, Addr), u64> = Map::new("map");
 
         map.save(
             deps.as_mut().storage,
@@ -194,7 +194,7 @@ mod test {
     fn partial_key_works() {
         let mut deps = mock_dependencies();
         let (key1, key2, key3) = mock_keys();
-        let map: Map<ChannelEntry, u64> = Map::new("map");
+        let map: Map<DexPairEntry, u64> = Map::new("map");
 
         map.save(deps.as_mut().storage, key1, &42069).unwrap();
 

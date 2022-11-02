@@ -3,6 +3,7 @@
 
 pub(crate) mod asset_entry;
 pub(crate) mod channel_entry;
+pub(crate) mod dex_pair_entry;
 pub mod common_namespace;
 pub(crate) mod contract_entry;
 pub mod core;
@@ -16,7 +17,9 @@ pub mod module_reference;
 pub mod paged_map;
 pub mod proxy_asset;
 pub mod time_weighted_average;
+pub mod pool_info;
 
 pub use asset_entry::AssetEntry;
 pub use channel_entry::{ChannelEntry, UncheckedChannelEntry};
+pub use dex_pair_entry::{DexPairEntry, UncheckedDexPairEntry};
 pub use contract_entry::{ContractEntry, UncheckedContractEntry};
