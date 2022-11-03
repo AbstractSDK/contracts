@@ -65,6 +65,19 @@ pub fn query_dex_pools(deps: Deps, _env: Env, dex: String) -> StdResult<Binary> 
     to_binary(&DexPoolsResponse { pools })
 }
 
+pub fn query_asset_pair_pools(deps: Deps, _env: Env, asset_pair: String) -> StdResult<Binary> {
+    let res: Result<Vec<Record<DexPoolData>>, _> = dex_pools()
+        .idx
+        .assets
+        .prefix(asset_pair)
+        .range_raw(deps.storage, None, None, Order::Ascending)
+        .collect();
+
+    let pools: Vec<UncheckedPool> = res?.into_iter().map(|(_, data)| data.info).collect();
+
+    to_binary(&DexPoolsResponse { pools })
+}
+
 pub fn query_asset_list(
     deps: Deps,
     last_asset_name: Option<String>,

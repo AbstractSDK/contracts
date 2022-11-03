@@ -51,11 +51,13 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             page_size,
         } => queries::query_channel_list(deps, page_token, page_size),
         QueryMsg::DexPools { dex, asset_pair } => {
-            if dex.is_none() && asset_pair.is_none() {
+            if let Some(asset_pair) = asset_pair {
+                queries::query_asset_pair_pools(deps, env, asset_pair)
+            } else if let Some(dex) = dex {
+                queries::query_dex_pools(deps, env, dex)
+            } else {
                 return Err(StdError::generic_err("Must provide either dex or asset_pair"))
             }
-            // TODO: TEMP using osmosis as default
-            queries::query_dex_pools(deps, env, dex.unwrap_or("osmosis".to_string()))
         }
         QueryMsg::DexPoolList {
             page_token,
