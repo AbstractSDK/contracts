@@ -3,12 +3,8 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{ApiContract, ApiError};
 
-impl<
-        'a,
-        T: Serialize + DeserializeOwned,
-        C: Serialize + DeserializeOwned,
-        E: From<cosmwasm_std::StdError> + From<ApiError>,
-    > IbcCallbackEndpoint for ApiContract<'a, T, E, C>
+impl<'a, T, C, E: From<cosmwasm_std::StdError> + From<ApiError>> IbcCallbackEndpoint
+    for ApiContract<'a, T, E, C>
 {
     type ContractError = E;
 

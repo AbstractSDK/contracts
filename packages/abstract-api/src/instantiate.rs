@@ -11,9 +11,7 @@ use crate::{
 
 use cw2::set_contract_version;
 
-impl<'a, T: Serialize + DeserializeOwned, E: From<cosmwasm_std::StdError> + From<ApiError>>
-    ApiContract<'a, T, E>
-{
+impl<'a, T, E: From<cosmwasm_std::StdError> + From<ApiError>> ApiContract<'a, T, E> {
     /// Instantiate the API
     pub fn instantiate(
         deps: DepsMut,

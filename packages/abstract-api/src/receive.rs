@@ -4,12 +4,8 @@ use abstract_sdk::{ReceiveEndpoint, ReceiveHandlerFn};
 
 use serde::{de::DeserializeOwned, Serialize};
 
-impl<
-        'a,
-        T: Serialize + DeserializeOwned,
-        E: From<cosmwasm_std::StdError> + From<ApiError>,
-        R: Serialize + DeserializeOwned,
-    > ReceiveEndpoint for ApiContract<'a, T, E, R>
+impl<'a, T, E: From<cosmwasm_std::StdError> + From<ApiError>, R> ReceiveEndpoint
+    for ApiContract<'a, T, E, R>
 {
     type ContractError = E;
     type ReceiveMsg = R;

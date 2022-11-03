@@ -34,7 +34,7 @@ pub struct BaseInstantiateMsg {
 
 /// Interface to the API.
 #[cosmwasm_schema::cw_serde]
-pub enum ExecuteMsg<T: Serialize, R: Serialize = Empty> {
+pub enum ExecuteMsg<T, R = Empty> {
     /// An API request.
     Request(ApiRequestMsg<T>),
     /// A configuration message to whitelist traders.
@@ -59,7 +59,7 @@ impl<T: Serialize> From<ApiRequestMsg<T>> for ExecuteMsg<T> {
 /// An API request.
 /// If proxy is None, then the sender must be an OS manager and the proxy address is extrapolated from the OS id.
 #[cosmwasm_schema::cw_serde]
-pub struct ApiRequestMsg<T: Serialize> {
+pub struct ApiRequestMsg<T> {
     pub proxy_address: Option<String>,
     /// The actual request
     pub request: T,
@@ -88,7 +88,7 @@ pub enum BaseExecuteMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub enum QueryMsg<Q: Serialize> {
+pub enum QueryMsg<Q> {
     /// An API query message. Forwards the msg to the associated proxy.
     Api(Q),
     /// A configuration message to whitelist traders.

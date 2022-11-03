@@ -24,9 +24,9 @@ pub struct ApiState {
 /// The state variables for our ApiContract.
 pub struct ApiContract<
     'a,
-    Request: Serialize + DeserializeOwned,
+    Request,
     Error: From<cosmwasm_std::StdError> + From<ApiError>,
-    Receive: Serialize + DeserializeOwned = Empty,
+    Receive = Empty,
 > {
     // Map ProxyAddr -> WhitelistedTraders
     pub traders: Map<'a, Addr, HashSet<Addr>>,
@@ -46,13 +46,7 @@ pub struct ApiContract<
 }
 
 /// Constructor
-impl<
-        'a,
-        T: Serialize + DeserializeOwned,
-        R: Serialize + DeserializeOwned,
-        E: From<cosmwasm_std::StdError> + From<ApiError>,
-    > ApiContract<'a, T, E, R>
-{
+impl<'a, T, R, E: From<cosmwasm_std::StdError> + From<ApiError>> ApiContract<'a, T, E, R> {
     pub const fn new() -> Self {
         Self {
             version: CONTRACT,

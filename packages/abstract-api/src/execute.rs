@@ -12,12 +12,8 @@ use cosmwasm_std::{
 };
 use serde::{de::DeserializeOwned, Serialize};
 
-impl<
-        'a,
-        T: Serialize + DeserializeOwned,
-        E: From<cosmwasm_std::StdError> + From<ApiError>,
-        C: Serialize + DeserializeOwned,
-    > AbstractExecute for ApiContract<'a, T, E, C>
+impl<'a, T, E: From<cosmwasm_std::StdError> + From<ApiError>, C> AbstractExecute
+    for ApiContract<'a, T, E, C>
 {
     type RequestMsg = T;
 
@@ -69,13 +65,7 @@ impl<
 }
 
 /// The api-contract base implementation.
-impl<
-        'a,
-        T: Serialize + DeserializeOwned,
-        C: Serialize + DeserializeOwned,
-        E: From<cosmwasm_std::StdError> + From<ApiError>,
-    > ApiContract<'a, T, E, C>
-{
+impl<'a, T, C, E: From<cosmwasm_std::StdError> + From<ApiError>> ApiContract<'a, T, E, C> {
     fn base_execute(
         &mut self,
         deps: DepsMut,
