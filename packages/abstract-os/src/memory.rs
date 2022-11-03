@@ -171,10 +171,10 @@ pub enum QueryMsg {
     /// returns [`ChannelsResponse`]
     #[returns(DexPoolsResponse)]
     DexPools {
-        /// [{ dex, asset_pair }] of dex_pools to query
-        // entries: Option<Vec<DexPoolEntry>>,
         /// name of the dex to query
         dex: Option<String>,
+        /// name of the asset_pair to query
+        asset_pair: Option<String>,
     },
     /// Page over dex pairs
     /// returns [`DexPoolListResponse`]

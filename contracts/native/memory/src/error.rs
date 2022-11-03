@@ -15,4 +15,7 @@ pub enum MemoryError {
 
     #[error("{} is not part of the provided pool", id)]
     NotInPool { id: String },
+
+    #[error("Missing arguments, msg: {}", msg)]
+    MissingArguments { msg: String },
 }

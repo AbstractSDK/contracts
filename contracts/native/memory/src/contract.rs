@@ -1,4 +1,4 @@
-use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult, StdError};
 use cw2::{get_contract_version, set_contract_version};
 use semver::Version;
 
@@ -50,7 +50,10 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             page_token,
             page_size,
         } => queries::query_channel_list(deps, page_token, page_size),
-        QueryMsg::DexPools { dex } => {
+        QueryMsg::DexPools { dex, asset_pair } => {
+            if dex.is_none() && asset_pair.is_none() {
+                return Err(StdError::generic_err("Must provide either dex or asset_pair"))
+            }
             // TODO: TEMP using osmosis as default
             queries::query_dex_pools(deps, env, dex.unwrap_or("osmosis".to_string()))
         }

@@ -51,6 +51,7 @@ pub fn query_channel(deps: Deps, _env: Env, names: Vec<ChannelEntry>) -> StdResu
     to_binary(&ChannelsResponse { channels: res? })
 }
 
+/// Query the pools associated with a dex
 pub fn query_dex_pools(deps: Deps, _env: Env, dex: String) -> StdResult<Binary> {
     let res: Result<Vec<Record<DexPoolData>>, _> = dex_pools()
         .idx
