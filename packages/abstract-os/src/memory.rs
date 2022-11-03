@@ -7,19 +7,29 @@
 
 use cosmwasm_schema::QueryResponses;
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
+use crate::memory::state::DexPoolData;
 
-use crate::objects::{asset_entry::AssetEntry, contract_entry::{ContractEntry, UncheckedContractEntry}, ChannelEntry, UncheckedChannelEntry, DexPairEntry};
-use crate::objects::dex_pair_entry::UncheckedDexPairEntry;
+use crate::objects::dex_pool_entry::UncheckedDexPoolEntry;
+use crate::objects::pool_id::{PoolId, UncheckedPoolId};
+use crate::objects::{
+    asset_entry::AssetEntry,
+    contract_entry::{ContractEntry, UncheckedContractEntry},
+    ChannelEntry, DexPoolEntry, UncheckedChannelEntry,
+};
 
 /// Memory state details
 pub mod state {
     use cosmwasm_std::Addr;
     use cw_asset::AssetInfo;
     use cw_controllers::Admin;
-    use cw_storage_plus::Map;
+    use cw_storage_plus::{Index, IndexList, IndexedMap, Map, MultiIndex, UniqueIndex};
+    use schemars::JsonSchema;
+    use serde::{Deserialize, Serialize};
 
+    use crate::objects::dex_pool_entry::DexPoolEntry;
+    use crate::objects::pool_id::{PoolId, UncheckedPoolId};
+    use crate::objects::pool_info::{Pool, UncheckedPool};
     use crate::objects::{asset_entry::AssetEntry, contract_entry::ContractEntry, ChannelEntry};
-    use crate::objects::dex_pair_entry::DexPairEntry;
 
     /// Admin address store
     pub const ADMIN: Admin = Admin::new("admin");
@@ -33,12 +43,46 @@ pub mod state {
     /// stores channel-ids
     pub const CHANNELS: Map<ChannelEntry, String> = Map::new("channels");
 
-    /// TODO: should use multi index map or something
-    /// stores dex pairs
-    /// pair_id is "asset1_asset2" where the asset names are sorted alphabetically.
-    /// { dex: junoswap, pair: "asset1_asset2" } => junoXXX
-    /// { dex: osmosis, pair: "asset1_asset2" } => 523
-    pub const DEX_PAIRS: Map<DexPairEntry, String> = Map::new("dex_pairs");
+    #[derive(Serialize, Deserialize, PartialEq, Debug, Clone, JsonSchema)]
+    pub struct DexPoolData {
+        pub dex: String,
+        // TODO: checked (Pool)
+        pub info: UncheckedPool,
+    }
+
+    pub struct DexPoolDataIndexes<'a> {
+        pub dex: MultiIndex<'a, String, DexPoolData, String>,
+        pub assets: MultiIndex<'a, String, DexPoolData, String>,
+        // TODO: checked (PoolId)
+        pub pool_id: MultiIndex<'a, UncheckedPoolId, DexPoolData, String>,
+        // // should be unique across the map
+        // pub dex_assets: UniqueIndex<'a, (Vec<u8>, Vec<u8>), DexPoolData, String>,
+    }
+
+    impl<'a> IndexList<DexPoolData> for DexPoolDataIndexes<'a> {
+        fn get_indexes(&'_ self) -> Box<dyn Iterator<Item = &'_ dyn Index<DexPoolData>> + '_> {
+            let v: Vec<&dyn Index<DexPoolData>> = vec![&self.dex, &self.pool_id, &self.assets];
+            Box::new(v.into_iter())
+        }
+    }
+
+    // TODO: when cw_storage_plus supports const indexed maps, switch to that
+    pub fn dex_pools<'a>() -> IndexedMap<'a, DexPoolEntry, DexPoolData, DexPoolDataIndexes<'a>> {
+        let indexes = DexPoolDataIndexes {
+            assets: MultiIndex::new(
+                |_pk, pool| pool.info.assets.clone(),
+                "data",
+                "data__assets",
+            ),
+            dex: MultiIndex::new(|_pk, pool| pool.dex.clone(), "data", "data__dex"),
+            pool_id: MultiIndex::new(|_pk, pool| pool.info.id.clone(), "data", "data__pool_id"),
+            // dex_assets:  UniqueIndex::new(
+            // |d| (d.dex.as_bytes().to_vec(), d.assets.as_bytes().to_vec()),
+            // "data__dex_assets",
+            // ),
+        };
+        IndexedMap::new("dex_pools", indexes)
+    }
 }
 
 /// Memory Instantiate msg
@@ -70,11 +114,11 @@ pub enum ExecuteMsg {
         to_remove: Vec<UncheckedChannelEntry>,
     },
     /// Updates the dex pairs
-    UpdateDexPairs {
+    UpdateDexPools {
         /// Pairs to update or add
-        to_add: Vec<(UncheckedDexPairEntry, String)>,
+        to_add: Vec<(UncheckedDexPoolEntry, UncheckedPoolId)>,
         /// Pairs to remove
-        to_remove: Vec<UncheckedDexPairEntry>,
+        to_remove: Vec<UncheckedDexPoolEntry>,
     },
     /// Sets a new Admin
     SetAdmin { admin: String },
@@ -126,18 +170,20 @@ pub enum QueryMsg {
         page_token: Option<ChannelEntry>,
         page_size: Option<u8>,
     },
-    /// Queries dex_pairs based on dex and asset_pair
+    /// Queries dex_pools based on dex and asset_pair
     /// returns [`ChannelsResponse`]
-    #[returns(DexPairsResponse)]
-    DexPairs {
-        /// Project and channel names of channels to query
-        names: Vec<DexPairEntry>,
+    #[returns(DexPoolsResponse)]
+    DexPools {
+        /// [{ dex, asset_pair }] of dex_pools to query
+        entries: Option<Vec<DexPoolEntry>>,
+        /// name of the dex to query
+        dex: Option<String>
     },
     /// Page over dex pairs
-    /// returns [`DexPairListResponse`]
-    #[returns(DexPairListResponse)]
-    DexPairList {
-        page_token: Option<DexPairEntry>,
+    /// returns [`DexPoolListResponse`]
+    #[returns(DexPoolListResponse)]
+    DexPoolList {
+        page_token: Option<DexPoolEntry>,
         page_size: Option<u8>,
     },
 }
@@ -181,11 +227,11 @@ pub struct ChannelListResponse {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct DexPairsResponse {
-    pub pairs: Vec<(DexPairEntry, String)>,
+pub struct DexPoolsResponse {
+    pub pairs: Vec<(DexPoolEntry, DexPoolData)>,
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct DexPairListResponse {
-    pub pairs: Vec<(DexPairEntry, String)>,
+pub struct DexPoolListResponse {
+    pub pairs: Vec<(DexPoolEntry, PoolId)>,
 }

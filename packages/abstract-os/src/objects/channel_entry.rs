@@ -102,7 +102,7 @@ fn parse_length(value: &[u8]) -> StdResult<usize> {
             .try_into()
             .map_err(|_| StdError::generic_err("Could not read 2 byte length"))?,
     )
-        .into())
+    .into())
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -170,14 +170,14 @@ mod test {
             (key.clone(), Addr::unchecked("larry")),
             &42069,
         )
-            .unwrap();
+        .unwrap();
 
         map.save(
             deps.as_mut().storage,
             (key.clone(), Addr::unchecked("jake")),
             &69420,
         )
-            .unwrap();
+        .unwrap();
 
         let items = map
             .prefix(key)

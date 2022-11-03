@@ -1,5 +1,9 @@
 use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, StdResult};
 
+use abstract_os::memory::state::{dex_pools, DexPoolData};
+use abstract_os::memory::{DexPoolListResponse, DexPoolsResponse};
+use abstract_os::objects::pool_id::PoolId;
+use abstract_os::objects::DexPoolEntry;
 use abstract_os::{
     memory::{
         state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES},
@@ -10,9 +14,6 @@ use abstract_os::{
 };
 use cw_asset::AssetInfo;
 use cw_storage_plus::Bound;
-use abstract_os::memory::{DexPairListResponse, DexPairsResponse};
-use abstract_os::memory::state::DEX_PAIRS;
-use abstract_os::objects::DexPairEntry;
 
 const DEFAULT_LIMIT: u8 = 15;
 const MAX_LIMIT: u8 = 25;
@@ -49,13 +50,13 @@ pub fn query_channel(deps: Deps, _env: Env, names: Vec<ChannelEntry>) -> StdResu
     to_binary(&ChannelsResponse { channels: res? })
 }
 
-pub fn query_dex_pair(deps: Deps, _env: Env, entries: Vec<DexPairEntry>) -> StdResult<Binary> {
-    let res: Result<Vec<(DexPairEntry, String)>, _> = DEX_PAIRS
+pub fn query_dex_pool(deps: Deps, _env: Env, entries: Vec<DexPoolEntry>) -> StdResult<Binary> {
+    let res: Result<Vec<(DexPoolEntry, DexPoolData)>, _> = dex_pools()
         .range(deps.storage, None, None, Order::Ascending)
         .filter(|e| entries.contains(&e.as_ref().unwrap().0))
         .collect();
 
-    to_binary(&DexPairsResponse { pairs: res? })
+    to_binary(&DexPoolsResponse { pairs: res? })
 }
 
 pub fn query_asset_list(
@@ -106,17 +107,17 @@ pub fn query_channel_list(
     to_binary(&ChannelListResponse { channels: res? })
 }
 
-pub fn query_dex_pair_list(
-    deps: Deps,
-    last_pair: Option<DexPairEntry>,
-    limit: Option<u8>,
-) -> StdResult<Binary> {
-    let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
-    let start_bound = last_pair.as_deref().map(Bound::exclusive);
-
-    let pairs_res: Result<Vec<(DexPairEntry, String)>, _> = DEX_PAIRS
-        .range(deps.storage, start_bound, None, Order::Ascending)
-        .take(limit)
-        .collect();
-    to_binary(&DexPairListResponse { pairs: pairs_res? })
-}
+// pub fn query_dex_pool_list(
+//     deps: Deps,
+//     last_pool: Option<DexPoolEntry>,
+//     limit: Option<u8>,
+// ) -> StdResult<Binary> {
+//     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
+//     let start_bound = last_pool.map(Bound::exclusive);
+//
+//     let pairs_res: Result<Vec<(DexPoolEntry, PoolId)>, _> = dex_pools()
+//         .range(deps.storage, start_bound, None, Order::Ascending)
+//         .take(limit)
+//         .collect();
+//     to_binary(&DexPoolListResponse { pairs: pairs_res? })
+// }

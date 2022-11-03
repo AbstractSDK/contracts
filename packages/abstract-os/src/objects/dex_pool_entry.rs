@@ -8,27 +8,27 @@ use serde::{Deserialize, Serialize};
 
 /// Key to get the Address of a dex
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord)]
-pub struct UncheckedDexPairEntry {
+pub struct UncheckedDexPoolEntry {
     pub dex: String,
     pub asset_pair: String,
 }
 
-impl UncheckedDexPairEntry {
+impl UncheckedDexPoolEntry {
     pub fn new<T: ToString>(dex: T, asset_pair: T) -> Self {
         Self {
             dex: dex.to_string(),
             asset_pair: asset_pair.to_string(),
         }
     }
-    pub fn check(self) -> DexPairEntry {
-        DexPairEntry {
+    pub fn check(self) -> DexPoolEntry {
+        DexPoolEntry {
             dex: self.dex.to_ascii_lowercase(),
             asset_pair: self.asset_pair.to_ascii_lowercase(),
         }
     }
 }
 
-impl TryFrom<String> for UncheckedDexPairEntry {
+impl TryFrom<String> for UncheckedDexPoolEntry {
     type Error = StdError;
     fn try_from(entry: String) -> Result<Self, Self::Error> {
         let composite: Vec<&str> = entry.split('/').collect();
@@ -42,20 +42,20 @@ impl TryFrom<String> for UncheckedDexPairEntry {
 }
 
 /// Key to get the Address of a dex
-/// Use [`UncheckedDexPairEntry`] to construct this type.  
+/// Use [`UncheckedDexPoolEntry`] to construct this type.
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema, Eq, PartialOrd, Ord)]
-pub struct DexPairEntry {
+pub struct DexPoolEntry {
     pub dex: String,
     pub asset_pair: String,
 }
 
-impl Display for DexPairEntry {
+impl Display for DexPoolEntry {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}/{}", self.dex, self.asset_pair)
     }
 }
 
-impl<'a> PrimaryKey<'a> for DexPairEntry {
+impl<'a> PrimaryKey<'a> for DexPoolEntry {
     type Prefix = String;
 
     type SubPrefix = ();
@@ -71,7 +71,7 @@ impl<'a> PrimaryKey<'a> for DexPairEntry {
     }
 }
 
-impl<'a> Prefixer<'a> for DexPairEntry {
+impl<'a> Prefixer<'a> for DexPoolEntry {
     fn prefix(&self) -> Vec<Key> {
         let mut res = self.dex.prefix();
         res.extend(self.asset_pair.prefix().into_iter());
@@ -79,7 +79,7 @@ impl<'a> Prefixer<'a> for DexPairEntry {
     }
 }
 
-impl KeyDeserialize for DexPairEntry {
+impl KeyDeserialize for DexPoolEntry {
     type Output = Self;
 
     #[inline(always)]
@@ -102,7 +102,7 @@ fn parse_length(value: &[u8]) -> StdResult<usize> {
             .try_into()
             .map_err(|_| StdError::generic_err("Could not read 2 byte length"))?,
     )
-        .into())
+    .into())
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -115,24 +115,24 @@ mod test {
     use cosmwasm_std::{testing::mock_dependencies, Addr, Order};
     use cw_storage_plus::Map;
 
-    fn mock_key() -> DexPairEntry {
-        DexPairEntry {
+    fn mock_key() -> DexPoolEntry {
+        DexPoolEntry {
             dex: "osmosis".to_string(),
             asset_pair: "ics20".to_string(),
         }
     }
 
-    fn mock_keys() -> (DexPairEntry, DexPairEntry, DexPairEntry) {
+    fn mock_keys() -> (DexPoolEntry, DexPoolEntry, DexPoolEntry) {
         (
-            DexPairEntry {
+            DexPoolEntry {
                 dex: "osmosis".to_string(),
                 asset_pair: "ics20".to_string(),
             },
-            DexPairEntry {
+            DexPoolEntry {
                 dex: "osmosis".to_string(),
                 asset_pair: "ics".to_string(),
             },
-            DexPairEntry {
+            DexPoolEntry {
                 dex: "cosmos".to_string(),
                 asset_pair: "abstract".to_string(),
             },
@@ -143,7 +143,7 @@ mod test {
     fn storage_key_works() {
         let mut deps = mock_dependencies();
         let key = mock_key();
-        let map: Map<DexPairEntry, u64> = Map::new("map");
+        let map: Map<DexPoolEntry, u64> = Map::new("map");
 
         map.save(deps.as_mut().storage, key.clone(), &42069)
             .unwrap();
@@ -163,21 +163,21 @@ mod test {
     fn composite_key_works() {
         let mut deps = mock_dependencies();
         let key = mock_key();
-        let map: Map<(DexPairEntry, Addr), u64> = Map::new("map");
+        let map: Map<(DexPoolEntry, Addr), u64> = Map::new("map");
 
         map.save(
             deps.as_mut().storage,
             (key.clone(), Addr::unchecked("larry")),
             &42069,
         )
-            .unwrap();
+        .unwrap();
 
         map.save(
             deps.as_mut().storage,
             (key.clone(), Addr::unchecked("jake")),
             &69420,
         )
-            .unwrap();
+        .unwrap();
 
         let items = map
             .prefix(key)
@@ -194,7 +194,7 @@ mod test {
     fn partial_key_works() {
         let mut deps = mock_dependencies();
         let (key1, key2, key3) = mock_keys();
-        let map: Map<DexPairEntry, u64> = Map::new("map");
+        let map: Map<DexPoolEntry, u64> = Map::new("map");
 
         map.save(deps.as_mut().storage, key1, &42069).unwrap();
 

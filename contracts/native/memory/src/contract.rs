@@ -50,11 +50,12 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             page_token,
             page_size,
         } => queries::query_channel_list(deps, page_token, page_size),
-        QueryMsg::DexPairs { names } => queries::query_dex_pair(deps, env, names),
-        QueryMsg::DexPairList {
+        QueryMsg::DexPools { entries, dex } => queries::query_dex_pool(deps, env, entries),
+        QueryMsg::DexPoolList {
             page_token,
             page_size,
-        } => queries::query_dex_pair_list(deps, page_token, page_size),
+        } => todo!()
+        // } => queries::query_dex_pool_list(deps, page_token, page_size),
     }
 }
 
