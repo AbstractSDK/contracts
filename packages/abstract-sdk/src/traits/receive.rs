@@ -8,7 +8,7 @@ pub trait ReceiveEndpoint: Sized {
     // abstract out into separate trait
     type ContractError: From<cosmwasm_std::StdError>;
     // Update to serde::Value type later
-    type ReceiveMsg: Serialize;
+    type ReceiveMsg;
 
     fn receive_handler(
         &self,

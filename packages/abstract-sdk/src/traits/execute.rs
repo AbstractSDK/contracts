@@ -2,8 +2,8 @@ use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use serde::Serialize;
 
 pub trait AbstractExecute: Sized {
-    type RequestMsg: Serialize;
-    type ExecuteMsg<T>: Serialize;
+    type RequestMsg;
+    type ExecuteMsg<T>;
     type ContractError: From<cosmwasm_std::StdError>;
 
     /// Takes request, sets destination and executes request handler

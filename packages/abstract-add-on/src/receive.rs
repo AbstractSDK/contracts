@@ -6,9 +6,9 @@ use serde::{de::DeserializeOwned, Serialize};
 
 impl<
         'a,
-        T: Serialize + DeserializeOwned,
+        T,
         E: From<cosmwasm_std::StdError> + From<AddOnError>,
-        R: Serialize + DeserializeOwned,
+        R,
     > ReceiveEndpoint for AddOnContract<'a, T, E, R>
 {
     type ContractError = E;

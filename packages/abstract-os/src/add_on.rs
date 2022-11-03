@@ -14,7 +14,7 @@ use serde::Serialize;
 /// Used by Abstract to instantiate the contract
 /// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::AddApi`].
 #[cosmwasm_schema::cw_serde]
-pub struct InstantiateMsg<I: Serialize = Empty> {
+pub struct InstantiateMsg<I = Empty> {
     /// base api instantiate information
     pub base: BaseInstantiateMsg,
     /// custom instantiate msg attributes
@@ -30,7 +30,7 @@ pub struct BaseInstantiateMsg {
 /// Interface to the AddOn.
 #[cosmwasm_schema::cw_serde]
 #[serde(tag = "type")]
-pub enum ExecuteMsg<T: Serialize, R: Serialize = Empty> {
+pub enum ExecuteMsg<T, R = Empty> {
     /// An Add-On request.
     Request(T),
     /// A configuration message.
@@ -49,7 +49,7 @@ pub enum BaseExecuteMsg {
 
 #[cosmwasm_schema::cw_serde]
 #[serde(tag = "type")]
-pub enum QueryMsg<Q: Serialize = Empty> {
+pub enum QueryMsg<Q = Empty> {
     /// An AddOn query message. Forwards the msg to the associated proxy.
     AddOn(Q),
     /// A configuration message to whitelist traders.

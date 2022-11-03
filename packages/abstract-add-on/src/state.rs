@@ -23,9 +23,9 @@ pub struct AddOnState {
 /// The state variables for our AddOnContract.
 pub struct AddOnContract<
     'a,
-    Request: Serialize + DeserializeOwned,
+    Request,
     Error: From<cosmwasm_std::StdError> + From<AddOnError>,
-    Receive: Serialize + DeserializeOwned = Empty,
+    Receive = Empty,
 > {
     // Every DApp should use the provided memory contract for token/contract address resolution
     pub base_state: Item<'a, AddOnState>,
@@ -44,9 +44,9 @@ pub struct AddOnContract<
 /// Constructor
 impl<
         'a,
-        T: Serialize + DeserializeOwned,
+        T,
         E: From<cosmwasm_std::StdError> + From<AddOnError>,
-        Receive: Serialize + DeserializeOwned,
+        Receive,
     > AddOnContract<'a, T, E, Receive>
 {
     pub const fn new() -> Self {

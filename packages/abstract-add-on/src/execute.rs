@@ -11,9 +11,9 @@ use crate::{state::AddOnContract, AddOnError, AddOnResult};
 
 impl<
         'a,
-        T: Serialize + DeserializeOwned,
+        T,
         E: From<cosmwasm_std::StdError> + From<AddOnError>,
-        C: Serialize + DeserializeOwned,
+        C,
     > AbstractExecute for AddOnContract<'a, T, E, C>
 {
     type RequestMsg = T;
@@ -53,8 +53,8 @@ impl<
 
 impl<
         'a,
-        T: Serialize + DeserializeOwned,
-        C: Serialize + DeserializeOwned,
+        T,
+        C,
         E: From<cosmwasm_std::StdError> + From<AddOnError>,
     > AddOnContract<'a, T, E, C>
 {

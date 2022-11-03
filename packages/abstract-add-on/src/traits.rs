@@ -11,8 +11,8 @@ use serde::{de::DeserializeOwned, Serialize};
 use crate::{AddOnContract, AddOnError};
 
 impl<
-        T: Serialize + DeserializeOwned,
-        C: Serialize + DeserializeOwned,
+        T,
+        C,
         E: From<cosmwasm_std::StdError> + From<AddOnError>,
     > MemoryOperation for AddOnContract<'_, T, E, C>
 {
@@ -22,8 +22,8 @@ impl<
 }
 
 impl<
-        T: Serialize + DeserializeOwned,
-        C: Serialize + DeserializeOwned,
+        T,
+        C,
         E: From<cosmwasm_std::StdError> + From<AddOnError>,
     > OsExecute for AddOnContract<'_, T, E, C>
 {
@@ -46,8 +46,8 @@ impl<
 }
 
 impl<
-        T: Serialize + DeserializeOwned,
-        C: Serialize + DeserializeOwned,
+        T,
+        C,
         E: From<cosmwasm_std::StdError> + From<AddOnError>,
     > Dependency for AddOnContract<'_, T, E, C>
 {

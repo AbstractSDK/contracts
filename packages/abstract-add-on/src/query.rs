@@ -9,8 +9,8 @@ use crate::{state::AddOnContract, AddOnError};
 /// These BaseQueryMsg declarations can be found in `abstract_os::common_module::add_on_msg`
 impl<
         'a,
-        T: Serialize + DeserializeOwned,
-        C: Serialize + DeserializeOwned,
+        T,
+        C,
         E: From<cosmwasm_std::StdError> + From<AddOnError>,
     > AddOnContract<'a, T, E, C>
 {

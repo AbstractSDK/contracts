@@ -5,8 +5,8 @@ use crate::{AddOnContract, AddOnError};
 
 impl<
         'a,
-        T: Serialize + DeserializeOwned,
-        C: Serialize + DeserializeOwned,
+        T,
+        C,
         E: From<cosmwasm_std::StdError> + From<AddOnError>,
     > IbcCallbackEndpoint for AddOnContract<'a, T, E, C>
 {

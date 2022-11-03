@@ -18,8 +18,8 @@ use cw2::set_contract_version;
 
 impl<
         'a,
-        T: Serialize + DeserializeOwned,
-        C: Serialize + DeserializeOwned,
+        T,
+        C,
         E: From<cosmwasm_std::StdError> + From<AddOnError>,
     > AddOnContract<'a, T, E, C>
 {
