@@ -136,7 +136,7 @@ fn request_handler(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg<EtfQueryMsg>) -> StdResult<Binary> {
     match msg {
-        AddOnQueryMsg::Base(dapp_msg) => VAULT.query(deps, env, dapp_msg),
+        QueryMsg::Base(dapp_msg) => ETF_ADDON.query(deps, env, dapp_msg),
         // handle dapp-specific queries here
         QueryMsg::AddOn(EtfQueryMsg::State {}) => {
             let fee = FEE.load(deps.storage)?;

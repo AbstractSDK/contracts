@@ -44,7 +44,7 @@ pub trait Exchange: Dependency {
         self.call_api_dependency(
             deps,
             EXCHANGE,
-            &RequestMsg {
+            &DexRequestMsg {
                 dex,
                 action: DexAction::CustomSwap {
                     offer_assets,
