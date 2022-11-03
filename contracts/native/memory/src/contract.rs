@@ -50,12 +50,14 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             page_token,
             page_size,
         } => queries::query_channel_list(deps, page_token, page_size),
-        QueryMsg::DexPools { entries, dex } => queries::query_dex_pool(deps, env, entries),
+        QueryMsg::DexPools { dex } => {
+            // TODO: TEMP using osmosis as default
+            queries::query_dex_pools(deps, env, dex.unwrap_or("osmosis".to_string()))
+        }
         QueryMsg::DexPoolList {
             page_token,
             page_size,
-        } => todo!()
-        // } => queries::query_dex_pool_list(deps, page_token, page_size),
+        } => todo!(), // } => queries::query_dex_pool_list(deps, page_token, page_size),
     }
 }
 

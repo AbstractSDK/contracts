@@ -1,4 +1,4 @@
-use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, StdResult};
+use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, Record, StdResult};
 
 use abstract_os::memory::state::{dex_pools, DexPoolData};
 use abstract_os::memory::{DexPoolListResponse, DexPoolsResponse};
@@ -14,6 +14,7 @@ use abstract_os::{
 };
 use cw_asset::AssetInfo;
 use cw_storage_plus::Bound;
+use abstract_os::objects::pool_info::UncheckedPool;
 
 const DEFAULT_LIMIT: u8 = 15;
 const MAX_LIMIT: u8 = 25;
@@ -50,13 +51,17 @@ pub fn query_channel(deps: Deps, _env: Env, names: Vec<ChannelEntry>) -> StdResu
     to_binary(&ChannelsResponse { channels: res? })
 }
 
-pub fn query_dex_pool(deps: Deps, _env: Env, entries: Vec<DexPoolEntry>) -> StdResult<Binary> {
-    let res: Result<Vec<(DexPoolEntry, DexPoolData)>, _> = dex_pools()
-        .range(deps.storage, None, None, Order::Ascending)
-        .filter(|e| entries.contains(&e.as_ref().unwrap().0))
+pub fn query_dex_pools(deps: Deps, _env: Env, dex: String) -> StdResult<Binary> {
+    let res: Result<Vec<Record<DexPoolData>>, _> = dex_pools()
+        .idx
+        .dex
+        .prefix(dex)
+        .range_raw(deps.storage, None, None, Order::Ascending)
         .collect();
 
-    to_binary(&DexPoolsResponse { pairs: res? })
+    let pools: Vec<UncheckedPool> = res?.into_iter().map(|(_, data)| data.info).collect();
+
+    to_binary(&DexPoolsResponse { pools })
 }
 
 pub fn query_asset_list(

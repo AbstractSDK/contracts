@@ -1,12 +1,12 @@
+use crate::objects::pool_info::Pool;
+use crate::objects::{AssetEntry, DexPoolEntry};
 use cosmwasm_std::{Addr, Api, StdError, StdResult, Uint128};
+use cw_storage_plus::{KeyDeserialize, PrimaryKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::fmt::Debug;
 use std::str::FromStr;
-use cw_storage_plus::{KeyDeserialize, PrimaryKey};
-use crate::objects::{AssetEntry, DexPoolEntry};
-use crate::objects::pool_info::Pool;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[non_exhaustive]
@@ -133,9 +133,9 @@ impl<'a> PrimaryKey<'a> for UncheckedPoolId {
     type SuperSuffix = Self;
 
     fn key(&self) -> Vec<cw_storage_plus::Key> {
-      match self {
+        match self {
             UncheckedPoolId::Contract(contract_addr) => contract_addr.key(),
-            UncheckedPoolId::Id(id) => id.key()
+            UncheckedPoolId::Id(id) => id.key(),
         }
     }
 }

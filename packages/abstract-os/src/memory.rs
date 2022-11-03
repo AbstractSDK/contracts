@@ -5,9 +5,9 @@
 //! ## Description
 //! Contract and asset addresses are stored on the memory contract and are retrievable trough smart or raw queries.
 
+use crate::memory::state::DexPoolData;
 use cosmwasm_schema::QueryResponses;
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
-use crate::memory::state::DexPoolData;
 
 use crate::objects::dex_pool_entry::UncheckedDexPoolEntry;
 use crate::objects::pool_id::{PoolId, UncheckedPoolId};
@@ -16,6 +16,7 @@ use crate::objects::{
     contract_entry::{ContractEntry, UncheckedContractEntry},
     ChannelEntry, DexPoolEntry, UncheckedChannelEntry,
 };
+use crate::objects::pool_info::UncheckedPool;
 
 /// Memory state details
 pub mod state {
@@ -69,11 +70,7 @@ pub mod state {
     // TODO: when cw_storage_plus supports const indexed maps, switch to that
     pub fn dex_pools<'a>() -> IndexedMap<'a, DexPoolEntry, DexPoolData, DexPoolDataIndexes<'a>> {
         let indexes = DexPoolDataIndexes {
-            assets: MultiIndex::new(
-                |_pk, pool| pool.info.assets.clone(),
-                "data",
-                "data__assets",
-            ),
+            assets: MultiIndex::new(|_pk, pool| pool.info.assets.clone(), "data", "data__assets"),
             dex: MultiIndex::new(|_pk, pool| pool.dex.clone(), "data", "data__dex"),
             pool_id: MultiIndex::new(|_pk, pool| pool.info.id.clone(), "data", "data__pool_id"),
             // dex_assets:  UniqueIndex::new(
@@ -175,9 +172,9 @@ pub enum QueryMsg {
     #[returns(DexPoolsResponse)]
     DexPools {
         /// [{ dex, asset_pair }] of dex_pools to query
-        entries: Option<Vec<DexPoolEntry>>,
+        // entries: Option<Vec<DexPoolEntry>>,
         /// name of the dex to query
-        dex: Option<String>
+        dex: Option<String>,
     },
     /// Page over dex pairs
     /// returns [`DexPoolListResponse`]
@@ -228,7 +225,7 @@ pub struct ChannelListResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct DexPoolsResponse {
-    pub pairs: Vec<(DexPoolEntry, DexPoolData)>,
+    pub pools: Vec<UncheckedPool>,
 }
 
 #[cosmwasm_schema::cw_serde]

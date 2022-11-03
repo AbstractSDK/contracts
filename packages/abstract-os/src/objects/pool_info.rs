@@ -51,10 +51,12 @@ impl FromStr for UncheckedPool {
                 }
                 UncheckedPoolId::from_str(words[1])?
             }
-            unknown => return Err(StdError::generic_err(format!(
-                "invalid pool id type `{}`; must be `contract` or `id`",
-                unknown
-            ))),
+            unknown => {
+                return Err(StdError::generic_err(format!(
+                    "invalid pool id type `{}`; must be `contract` or `id`",
+                    unknown
+                )))
+            }
         };
 
         let assets = String::from(words[words.len() - 1]);
