@@ -15,7 +15,7 @@ use crate::{
 pub const RECEIVE_DISPATCH_ID: u64 = 1234;
 pub const INIT_CALLBACK_ID: u64 = 7890;
 
-impl<T: Serialize + DeserializeOwned> ReplyEndpoint for Host<'_, T> {
+impl<T> ReplyEndpoint for Host<'_, T> {
     type ContractError = HostError;
 
     fn reply_handler(

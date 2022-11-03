@@ -96,7 +96,7 @@ pub enum ExecuteMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub enum QueryMsg<Q: Serialize = Empty> {
+pub enum QueryMsg<Q= Empty> {
     App(Q),
     /// A configuration message to whitelist traders.
     Base(BaseQueryMsg),

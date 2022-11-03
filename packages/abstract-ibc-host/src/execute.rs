@@ -13,7 +13,7 @@ use crate::{
 };
 
 /// The host contract base implementation.
-impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
+impl<'a, T> Host<'a, T> {
     /// Takes ibc request, matches and executes
     /// This fn is the only way to get an Host instance.
     pub fn handle_packet<RequestError: From<cosmwasm_std::StdError> + From<HostError>>(
@@ -27,7 +27,7 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
             Host<T>,
             T,
         ) -> Result<IbcReceiveResponse, RequestError>,
-    ) -> Result<IbcReceiveResponse, RequestError> {
+    ) -> Result<IbcReceiveResponse, RequestError> where T: DeserializeOwned {
         let packet = packet.packet;
         // which local channel did this packet come on
         let channel = packet.dest.channel_id;

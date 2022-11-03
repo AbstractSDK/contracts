@@ -8,7 +8,7 @@ use crate::state::{Host, HostState, CLOSED_CHANNELS};
 
 use cw2::set_contract_version;
 
-impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
+impl<'a, T> Host<'a, T> {
     /// Instantiate the API
     pub fn instantiate(
         deps: DepsMut,

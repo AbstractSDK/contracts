@@ -139,7 +139,7 @@ pub fn receive_query(
 
 // processes PacketMsg::Register variant
 /// Creates and registers proxy for remote OS
-pub fn receive_register<T: Serialize + DeserializeOwned>(
+pub fn receive_register<T>(
     deps: DepsMut,
     env: Env,
     host: Host<T>,
