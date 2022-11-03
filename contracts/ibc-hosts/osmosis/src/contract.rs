@@ -25,7 +25,7 @@ pub type OsmoHost<'a> = Host<'a, DexAction>;
 pub type OsmoResult = Result<Response, OsmoError>;
 pub type IbcOsmoResult = Result<IbcReceiveResponse, OsmoError>;
 
-const OSMO_HOST: OsmoHost = OsmoHost::new();
+const OSMO_HOST: OsmoHost = OsmoHost::new(&[]);
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(

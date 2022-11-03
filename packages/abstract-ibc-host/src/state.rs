@@ -7,7 +7,7 @@ use cosmwasm_std::{Addr, Binary, StdResult, Storage};
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 use crate::{
     reply::{reply_dispatch_callback, reply_init_callback, INIT_CALLBACK_ID, RECEIVE_DISPATCH_ID},
@@ -31,7 +31,7 @@ pub const CLOSED_CHANNELS: Item<Vec<String>> = Item::new("closed");
 pub const RESULTS: Item<Vec<Binary>> = Item::new("results");
 
 /// The state variables for our host contract.
-pub struct Host<'a, T: Serialize + DeserializeOwned> {
+pub struct Host<'a, T> {
     // Every DApp should use the provided memory contract for token/contract address resolution
     pub base_state: Item<'a, HostState>,
     /// Stores the API version
@@ -39,35 +39,38 @@ pub struct Host<'a, T: Serialize + DeserializeOwned> {
     /// Store the reflect address to use
     pub proxy_address: Option<Addr>,
     /// Reply handlers, map reply_id to reply function
-    pub(crate) reply_handlers: &'a [(u64, ReplyHandlerFn<Self, HostError>)],
+    pub(crate) reply_handlers: [&'a [(u64, ReplyHandlerFn<Self, HostError>)]; 2],
     /// Signal the expected execute message struct
     _phantom_data: PhantomData<T>,
 }
 /// Constructor
-impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
-    pub const fn new() -> Self {
+impl<'a, T> Host<'a, T> {
+    pub const fn new(reply_handlers: &'a [(u64, ReplyHandlerFn<Self, HostError>)]) -> Self {
         Self {
             version: CONTRACT,
             base_state: Item::new(BASE_STATE),
             proxy_address: None,
-            reply_handlers: &[
-                // add reply handlers we want to support by default
-                (RECEIVE_DISPATCH_ID, reply_dispatch_callback),
-                (INIT_CALLBACK_ID, reply_init_callback),
+            reply_handlers: [
+                &[
+                    // add reply handlers we want to support by default
+                    (RECEIVE_DISPATCH_ID, reply_dispatch_callback),
+                    (INIT_CALLBACK_ID, reply_init_callback),
+                ],
+                reply_handlers,
             ],
             _phantom_data: PhantomData,
         }
     }
 
     /// add IBC callback handler to contract
-    pub const fn with_reply_handlers(
-        mut self,
-        reply_handlers: &'a [(u64, ReplyHandlerFn<Self, HostError>)],
-    ) -> Self {
-        // update this to store static iterators
-        self.reply_handlers = reply_handlers;
-        self
-    }
+    // pub const fn with_reply_handlers(
+    //     mut self,
+    //     reply_handlers: &'a [(u64, ReplyHandlerFn<Self, HostError>)],
+    // ) -> Self {
+    //     // update this to store static iterators
+    //     self.reply_handlers = reply_handlers;
+    //     self
+    // }
 
     pub fn state(&self, store: &dyn Storage) -> StdResult<HostState> {
         self.base_state.load(store)

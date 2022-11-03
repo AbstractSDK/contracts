@@ -22,9 +22,11 @@ impl<T: Serialize + DeserializeOwned> ReplyEndpoint for Host<'_, T> {
         &self,
         id: u64,
     ) -> Option<abstract_sdk::ReplyHandlerFn<Self, Self::ContractError>> {
-        for reply_handler in self.reply_handlers {
-            if reply_handler.0 == id {
-                return Some(reply_handler.1);
+        for reply_handlers in self.reply_handlers {
+            for handler in reply_handlers {
+                if handler.0 == id {
+                    return Some(handler.1);
+                }
             }
         }
         None
@@ -61,7 +63,7 @@ impl<T: Serialize + DeserializeOwned> ReplyEndpoint for Host<'_, T> {
     }
 }
 
-pub fn reply_dispatch_callback<T: Serialize + DeserializeOwned>(
+pub fn reply_dispatch_callback<T>(
     deps: DepsMut,
     _env: Env,
     _host: Host<'_, T>,
@@ -77,7 +79,7 @@ pub fn reply_dispatch_callback<T: Serialize + DeserializeOwned>(
     Ok(Response::new().set_data(data))
 }
 
-pub fn reply_init_callback<T: Serialize + DeserializeOwned>(
+pub fn reply_init_callback<T>(
     deps: DepsMut,
     _env: Env,
     _host: Host<'_, T>,
