@@ -22,5 +22,9 @@ fn main() {
     export_schema_with_title(&schema_for!(ApiConfigResponse), &out_dir, "ConfigResponse");
 
     // export_schema_with_title(&schema_for!(ApiQueryMsg), &out_dir, "QueryMsg");
-    export_schema_with_title(&schema_for!(ExecuteMsg<DexRequestMsg>), &out_dir, "ExecuteMsg");
+    export_schema_with_title(
+        &schema_for!(ExecuteMsg<DexRequestMsg>),
+        &out_dir,
+        "ExecuteMsg",
+    );
 }

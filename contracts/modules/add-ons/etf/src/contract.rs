@@ -2,9 +2,7 @@ use std::vec;
 
 use abstract_add_on::AddOnContract;
 
-use abstract_os::add_on::{
-    ExecuteMsg, InstantiateMsg, QueryMsg,
-};
+use abstract_os::add_on::{ExecuteMsg, InstantiateMsg, QueryMsg};
 use abstract_sdk::AbstractExecute;
 use cosmwasm_std::{
     entry_point, to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, ReplyOn,
@@ -16,7 +14,7 @@ use cw20::{Cw20ReceiveMsg, MinterResponse};
 use protobuf::Message;
 use semver::Version;
 
-use abstract_os::etf::{EtfExecuteMsg, EtfInstantiateMsg, MigrateMsg, EtfQueryMsg, StateResponse};
+use abstract_os::etf::{EtfExecuteMsg, EtfInstantiateMsg, EtfQueryMsg, MigrateMsg, StateResponse};
 use abstract_os::objects::fee::Fee;
 use abstract_os::ETF;
 use cw20_base::msg::InstantiateMsg as TokenInstantiateMsg;
