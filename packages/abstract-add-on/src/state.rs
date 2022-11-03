@@ -42,12 +42,8 @@ pub struct AddOnContract<
 }
 
 /// Constructor
-impl<
-        'a,
-        T,
-        E: From<cosmwasm_std::StdError> + From<AddOnError>,
-        Receive,
-    > AddOnContract<'a, T, E, Receive>
+impl<'a, T, E: From<cosmwasm_std::StdError> + From<AddOnError>, Receive>
+    AddOnContract<'a, T, E, Receive>
 {
     pub const fn new() -> Self {
         Self {

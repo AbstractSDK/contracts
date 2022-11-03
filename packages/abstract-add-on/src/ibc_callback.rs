@@ -3,12 +3,8 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{AddOnContract, AddOnError};
 
-impl<
-        'a,
-        T,
-        C,
-        E: From<cosmwasm_std::StdError> + From<AddOnError>,
-    > IbcCallbackEndpoint for AddOnContract<'a, T, E, C>
+impl<'a, T, C, E: From<cosmwasm_std::StdError> + From<AddOnError>> IbcCallbackEndpoint
+    for AddOnContract<'a, T, E, C>
 {
     type ContractError = E;
 

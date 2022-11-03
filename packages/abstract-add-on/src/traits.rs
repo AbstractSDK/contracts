@@ -10,22 +10,16 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{AddOnContract, AddOnError};
 
-impl<
-        T,
-        C,
-        E: From<cosmwasm_std::StdError> + From<AddOnError>,
-    > MemoryOperation for AddOnContract<'_, T, E, C>
+impl<T, C, E: From<cosmwasm_std::StdError> + From<AddOnError>> MemoryOperation
+    for AddOnContract<'_, T, E, C>
 {
     fn load_memory(&self, store: &dyn Storage) -> StdResult<abstract_sdk::memory::Memory> {
         Ok(self.base_state.load(store)?.memory)
     }
 }
 
-impl<
-        T,
-        C,
-        E: From<cosmwasm_std::StdError> + From<AddOnError>,
-    > OsExecute for AddOnContract<'_, T, E, C>
+impl<T, C, E: From<cosmwasm_std::StdError> + From<AddOnError>> OsExecute
+    for AddOnContract<'_, T, E, C>
 {
     fn os_execute(
         &self,
@@ -45,11 +39,8 @@ impl<
     }
 }
 
-impl<
-        T,
-        C,
-        E: From<cosmwasm_std::StdError> + From<AddOnError>,
-    > Dependency for AddOnContract<'_, T, E, C>
+impl<T, C, E: From<cosmwasm_std::StdError> + From<AddOnError>> Dependency
+    for AddOnContract<'_, T, E, C>
 {
     fn dependency_address(&self, deps: Deps, dependency_name: &str) -> StdResult<Addr> {
         let manager_addr = &self

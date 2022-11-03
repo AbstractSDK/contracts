@@ -7,13 +7,7 @@ use crate::{state::AddOnContract, AddOnError};
 
 /// Where we dispatch the queries for the AddOnContract
 /// These BaseQueryMsg declarations can be found in `abstract_os::common_module::add_on_msg`
-impl<
-        'a,
-        T,
-        C,
-        E: From<cosmwasm_std::StdError> + From<AddOnError>,
-    > AddOnContract<'a, T, E, C>
-{
+impl<'a, T, C, E: From<cosmwasm_std::StdError> + From<AddOnError>> AddOnContract<'a, T, E, C> {
     pub fn query(&self, deps: Deps, _env: Env, query: BaseQueryMsg) -> StdResult<Binary> {
         match query {
             BaseQueryMsg::Config {} => to_binary(&self.dapp_config(deps)?),

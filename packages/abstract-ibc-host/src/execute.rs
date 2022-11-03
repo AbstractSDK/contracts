@@ -27,7 +27,10 @@ impl<'a, T> Host<'a, T> {
             Host<T>,
             T,
         ) -> Result<IbcReceiveResponse, RequestError>,
-    ) -> Result<IbcReceiveResponse, RequestError> where T: DeserializeOwned {
+    ) -> Result<IbcReceiveResponse, RequestError>
+    where
+        T: DeserializeOwned,
+    {
         let packet = packet.packet;
         // which local channel did this packet come on
         let channel = packet.dest.channel_id;

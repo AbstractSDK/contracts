@@ -16,10 +16,7 @@ pub type HostQueryHandlerFn<Q, QueryError> = Option<fn(Deps, Env, Q) -> Result<B
 /// Where we dispatch the queries for the Host
 /// These ApiQueryMsg declarations can be found in `abstract_os::common_module::add_on_msg`
 impl<'a, T> Host<'a, T> {
-    pub fn handle_query<
-        Q,
-        QueryError: From<cosmwasm_std::StdError> + From<HostError>,
-    >(
+    pub fn handle_query<Q, QueryError: From<cosmwasm_std::StdError> + From<HostError>>(
         &self,
         deps: Deps,
         env: Env,

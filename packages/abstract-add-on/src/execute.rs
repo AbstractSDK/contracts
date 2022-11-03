@@ -9,12 +9,8 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{state::AddOnContract, AddOnError, AddOnResult};
 
-impl<
-        'a,
-        T,
-        E: From<cosmwasm_std::StdError> + From<AddOnError>,
-        C,
-    > AbstractExecute for AddOnContract<'a, T, E, C>
+impl<'a, T, E: From<cosmwasm_std::StdError> + From<AddOnError>, C> AbstractExecute
+    for AddOnContract<'a, T, E, C>
 {
     type RequestMsg = T;
 
@@ -51,13 +47,7 @@ impl<
     }
 }
 
-impl<
-        'a,
-        T,
-        C,
-        E: From<cosmwasm_std::StdError> + From<AddOnError>,
-    > AddOnContract<'a, T, E, C>
-{
+impl<'a, T, C, E: From<cosmwasm_std::StdError> + From<AddOnError>> AddOnContract<'a, T, E, C> {
     fn base_execute(
         &self,
         deps: DepsMut,

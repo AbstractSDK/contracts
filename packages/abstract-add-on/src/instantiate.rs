@@ -16,13 +16,7 @@ use crate::{
 
 use cw2::set_contract_version;
 
-impl<
-        'a,
-        T,
-        C,
-        E: From<cosmwasm_std::StdError> + From<AddOnError>,
-    > AddOnContract<'a, T, E, C>
-{
+impl<'a, T, C, E: From<cosmwasm_std::StdError> + From<AddOnError>> AddOnContract<'a, T, E, C> {
     pub fn instantiate(
         deps: DepsMut,
         _env: Env,
