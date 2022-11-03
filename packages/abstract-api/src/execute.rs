@@ -10,7 +10,6 @@ use abstract_sdk::{
 use cosmwasm_std::{
     to_binary, Addr, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdError, WasmMsg,
 };
-use serde::{de::DeserializeOwned, Serialize};
 
 impl<'a, T, E: From<cosmwasm_std::StdError> + From<ApiError>, C> AbstractExecute
     for ApiContract<'a, T, E, C>

@@ -9,9 +9,6 @@ use cosmwasm_std::{
     WasmMsg,
 };
 
-use serde::de::DeserializeOwned;
-use serde::Serialize;
-
 use crate::reply::INIT_CALLBACK_ID;
 use crate::state::{CLIENT_PROXY, CLOSED_CHANNELS, PENDING};
 use crate::{Host, HostError};

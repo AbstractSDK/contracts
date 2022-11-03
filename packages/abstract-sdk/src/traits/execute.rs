@@ -1,5 +1,4 @@
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
-use serde::Serialize;
 
 pub trait AbstractExecute: Sized {
     type RequestMsg;

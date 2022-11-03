@@ -5,7 +5,7 @@ use cw2::{ContractVersion, CONTRACT};
 use cw_controllers::Admin;
 use cw_storage_plus::Item;
 use schemars::JsonSchema;
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 use abstract_sdk::{memory::Memory, IbcCallbackHandlerFn, ReceiveHandlerFn, ADMIN, BASE_STATE};
 

@@ -4,7 +4,6 @@ use abstract_os::{
     ibc_host::{AccountInfo, AccountResponse, HostConfigResponse, ListAccountsResponse},
     ibc_host::{BaseQueryMsg, QueryMsg},
 };
-use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
     state::{Host, ACCOUNTS},

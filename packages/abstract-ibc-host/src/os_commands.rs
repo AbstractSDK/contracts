@@ -6,9 +6,6 @@ use cosmwasm_std::{
     wasm_execute, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg, IbcReceiveResponse, SubMsg,
 };
 
-use serde::de::DeserializeOwned;
-use serde::Serialize;
-
 use crate::host_commands::PACKET_LIFETIME;
 use crate::reply::RECEIVE_DISPATCH_ID;
 use crate::state::RESULTS;

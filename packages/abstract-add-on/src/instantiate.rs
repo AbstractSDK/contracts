@@ -7,7 +7,6 @@ use cosmwasm_std::{
 };
 
 use abstract_sdk::memory::Memory;
-use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
     state::{AddOnContract, AddOnState},

@@ -1,6 +1,5 @@
 use abstract_sdk::{MemoryOperation, OsExecute};
 use cosmwasm_std::{wasm_execute, Deps, StdError, StdResult, Storage, SubMsg};
-use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{Host, HostError};
 

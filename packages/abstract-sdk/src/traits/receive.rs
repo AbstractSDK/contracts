@@ -1,5 +1,4 @@
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
-use serde::Serialize;
 
 pub type ReceiveHandlerFn<App, Msg, Error> =
     fn(DepsMut, Env, MessageInfo, App, Msg) -> Result<Response, Error>;

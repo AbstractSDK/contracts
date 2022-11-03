@@ -5,7 +5,6 @@ use abstract_os::{
 
 use abstract_sdk::AbstractExecute;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
-use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{state::AddOnContract, AddOnError, AddOnResult};
 

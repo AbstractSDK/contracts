@@ -1,5 +1,4 @@
 use abstract_sdk::{IbcCallbackEndpoint, IbcCallbackHandlerFn};
-use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{AddOnContract, AddOnError};
 

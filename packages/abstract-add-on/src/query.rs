@@ -1,7 +1,6 @@
 use abstract_os::add_on::{AddOnConfigResponse, BaseQueryMsg};
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
 use cw_controllers::AdminResponse;
-use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{state::AddOnContract, AddOnError};
 

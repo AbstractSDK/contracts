@@ -6,7 +6,6 @@ use abstract_sdk::{
     Dependency, MemoryOperation, OsExecute,
 };
 use cosmwasm_std::{Addr, Deps, StdError, StdResult, Storage, SubMsg};
-use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{AddOnContract, AddOnError};
 

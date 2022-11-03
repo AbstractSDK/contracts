@@ -1,7 +1,6 @@
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
 
 use abstract_os::api::{ApiConfigResponse, BaseQueryMsg, QueryMsg, TradersResponse};
-use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{state::ApiContract, ApiError};
 

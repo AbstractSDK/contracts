@@ -2,8 +2,6 @@ use crate::{error::ApiError, state::ApiContract};
 
 use abstract_sdk::{ReceiveEndpoint, ReceiveHandlerFn};
 
-use serde::{de::DeserializeOwned, Serialize};
-
 impl<'a, T, E: From<cosmwasm_std::StdError> + From<ApiError>, R> ReceiveEndpoint
     for ApiContract<'a, T, E, R>
 {

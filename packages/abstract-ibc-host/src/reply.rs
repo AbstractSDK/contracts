@@ -5,7 +5,6 @@ use abstract_os::{
 use abstract_sdk::ReplyEndpoint;
 use cosmwasm_std::{DepsMut, Empty, Env, Reply, Response};
 use cw_utils::parse_reply_instantiate_data;
-use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
     state::{ACCOUNTS, CLIENT_PROXY, PENDING, PROCESSING_PACKET, RESULTS},

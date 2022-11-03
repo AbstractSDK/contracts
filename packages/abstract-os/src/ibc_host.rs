@@ -9,7 +9,6 @@
 
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Binary, CosmosMsg, Empty, QueryRequest};
-use serde::Serialize;
 
 use crate::ibc_client::CallbackInfo;
 
