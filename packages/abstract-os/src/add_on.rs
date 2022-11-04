@@ -14,7 +14,7 @@ use cw_controllers::AdminResponse;
 /// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::AddApi`].
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg<I = Empty> {
-    /// base api instantiate information
+    /// base instantiate information
     pub base: BaseInstantiateMsg,
     /// custom instantiate msg attributes
     pub custom: I,
@@ -65,7 +65,12 @@ pub enum BaseQueryMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct AddOnMigrateMsg {}
+pub struct MigrateMsg<I = Empty> {
+    /// base migrate information
+    pub base: BaseInstantiateMsg,
+    /// custom migrate msg attributes
+    pub custom: I,
+}
 
 #[cosmwasm_schema::cw_serde]
 pub struct AddOnConfigResponse {
