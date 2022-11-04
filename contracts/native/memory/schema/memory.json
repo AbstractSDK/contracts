@@ -147,6 +147,50 @@
         "additionalProperties": false
       },
       {
+        "description": "Updates the dex pairs",
+        "type": "object",
+        "required": [
+          "update_dex_pools"
+        ],
+        "properties": {
+          "update_dex_pools": {
+            "type": "object",
+            "required": [
+              "to_add",
+              "to_remove"
+            ],
+            "properties": {
+              "to_add": {
+                "description": "Pairs to update or add",
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": [
+                    {
+                      "$ref": "#/definitions/UncheckedDexPoolEntry"
+                    },
+                    {
+                      "$ref": "#/definitions/PoolIdBase_for_String"
+                    }
+                  ],
+                  "maxItems": 2,
+                  "minItems": 2
+                }
+              },
+              "to_remove": {
+                "description": "Pairs to remove",
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/UncheckedDexPoolEntry"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
         "description": "Sets a new Admin",
         "type": "object",
         "required": [
@@ -221,6 +265,36 @@
           }
         ]
       },
+      "PoolIdBase_for_String": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "contract"
+            ],
+            "properties": {
+              "contract": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
       "UncheckedChannelEntry": {
         "description": "Key to get the Address of a connected_chain",
         "type": "object",
@@ -249,6 +323,22 @@
             "type": "string"
           },
           "protocol": {
+            "type": "string"
+          }
+        }
+      },
+      "UncheckedDexPoolEntry": {
+        "description": "Key to get the Address of a dex",
+        "type": "object",
+        "required": [
+          "asset_pair",
+          "dex"
+        ],
+        "properties": {
+          "asset_pair": {
+            "type": "string"
+          },
+          "dex": {
             "type": "string"
           }
         }
@@ -377,7 +467,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Queries contracts based on name returns [`ChannelsResponse`]",
+        "description": "Queries channels based on name returns [`ChannelsResponse`]",
         "type": "object",
         "required": [
           "channels"
@@ -390,7 +480,7 @@
             ],
             "properties": {
               "names": {
-                "description": "Project and contract names of contracts to query",
+                "description": "Project and channel names of channels to query",
                 "type": "array",
                 "items": {
                   "$ref": "#/definitions/ChannelEntry"
@@ -435,6 +525,70 @@
           }
         },
         "additionalProperties": false
+      },
+      {
+        "description": "Queries dex_pools based on dex and asset_pair returns [`ChannelsResponse`]",
+        "type": "object",
+        "required": [
+          "dex_pools"
+        ],
+        "properties": {
+          "dex_pools": {
+            "type": "object",
+            "properties": {
+              "asset_pair": {
+                "description": "name of the asset_pair to query",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "dex": {
+                "description": "name of the dex to query",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Page over dex pairs returns [`DexPoolListResponse`]",
+        "type": "object",
+        "required": [
+          "dex_pool_list"
+        ],
+        "properties": {
+          "dex_pool_list": {
+            "type": "object",
+            "properties": {
+              "page_size": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "format": "uint8",
+                "minimum": 0.0
+              },
+              "page_token": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/DexPoolEntry"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
       }
     ],
     "definitions": {
@@ -466,6 +620,22 @@
             "type": "string"
           },
           "protocol": {
+            "type": "string"
+          }
+        }
+      },
+      "DexPoolEntry": {
+        "description": "Key to get the Address of a dex Use [`UncheckedDexPoolEntry`] to construct this type.",
+        "type": "object",
+        "required": [
+          "asset_pair",
+          "dex"
+        ],
+        "properties": {
+          "asset_pair": {
+            "type": "string"
+          },
+          "dex": {
             "type": "string"
           }
         }
@@ -839,6 +1009,149 @@
               "type": "string"
             }
           }
+        }
+      }
+    },
+    "dex_pool_list": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "DexPoolListResponse",
+      "type": "object",
+      "required": [
+        "pairs"
+      ],
+      "properties": {
+        "pairs": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": [
+              {
+                "$ref": "#/definitions/DexPoolEntry"
+              },
+              {
+                "$ref": "#/definitions/PoolIdBase_for_Addr"
+              }
+            ],
+            "maxItems": 2,
+            "minItems": 2
+          }
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "DexPoolEntry": {
+          "description": "Key to get the Address of a dex Use [`UncheckedDexPoolEntry`] to construct this type.",
+          "type": "object",
+          "required": [
+            "asset_pair",
+            "dex"
+          ],
+          "properties": {
+            "asset_pair": {
+              "type": "string"
+            },
+            "dex": {
+              "type": "string"
+            }
+          }
+        },
+        "PoolIdBase_for_Addr": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "contract"
+              ],
+              "properties": {
+                "contract": {
+                  "$ref": "#/definitions/Addr"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "id"
+              ],
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "format": "uint64",
+                  "minimum": 0.0
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        }
+      }
+    },
+    "dex_pools": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "DexPoolsResponse",
+      "type": "object",
+      "required": [
+        "pools"
+      ],
+      "properties": {
+        "pools": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PoolBase_for_String"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "PoolBase_for_String": {
+          "type": "object",
+          "required": [
+            "assets",
+            "id"
+          ],
+          "properties": {
+            "assets": {
+              "type": "string"
+            },
+            "id": {
+              "$ref": "#/definitions/PoolIdBase_for_String"
+            }
+          }
+        },
+        "PoolIdBase_for_String": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "contract"
+              ],
+              "properties": {
+                "contract": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "id"
+              ],
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "format": "uint64",
+                  "minimum": 0.0
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
         }
       }
     }
