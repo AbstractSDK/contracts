@@ -8,6 +8,7 @@
 pub type OsAction<T = Empty> = CosmosMsg<T>;
 
 pub mod api;
+mod base;
 pub mod cw20;
 mod exchange;
 mod ibc_client;
@@ -28,6 +29,7 @@ pub use abstract_os::{
 };
 pub use api::{api_request, configure_api};
 use cosmwasm_std::{CosmosMsg, Empty};
+pub use base::{handler::Handler,contract_base::{AbstractContract,ExecuteHandlerFn,IbcCallbackHandlerFn,InstantiateHandlerFn,MigrateHandlerFn,QueryHandlerFn, ReceiveHandlerFn,ReplyHandlerFn}};
 pub use exchange::Exchange;
 pub use ibc_client::{host_ibc_action, ics20_transfer};
 pub use manager::{query_module_address, query_module_version};
@@ -35,10 +37,13 @@ pub use memory_traits::Resolve;
 pub use module_traits::{Dependency, MemoryOperation, OsExecute};
 pub use proxy::{os_module_action, query_total_value};
 pub use traits::{
-    execute::AbstractExecute,
-    ibc_callback::{IbcCallbackEndpoint, IbcCallbackHandlerFn},
-    receive::{ReceiveEndpoint, ReceiveHandlerFn},
-    reply::{ReplyEndpoint, ReplyHandlerFn},
+    execute::ExecuteEndpoint,
+    ibc_callback::{IbcCallbackEndpoint},
+    instantiate::{InstantiateEndpoint},
+    query::{QueryEndpoint},
+    receive::{ReceiveEndpoint},
+    reply::{ReplyEndpoint},
+    migrate::MigrateEndpoint
 };
 pub use version_control::{get_module, get_os_core, verify_os_manager, verify_os_proxy};
 pub extern crate abstract_os;
