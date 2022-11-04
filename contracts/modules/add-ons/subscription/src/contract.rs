@@ -1,7 +1,7 @@
 use abstract_add_on::AddOnContract;
 
 use abstract_os::SUBSCRIPTION;
-use abstract_sdk::{get_os_core, AbstractExecute};
+use abstract_sdk::{get_os_core, ExecuteEndpoint};
 use cosmwasm_std::{
     entry_point, to_binary, Binary, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdError,
     StdResult, Uint128,

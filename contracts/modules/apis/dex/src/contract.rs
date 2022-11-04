@@ -7,7 +7,7 @@ use abstract_os::{
     EXCHANGE,
 };
 use abstract_sdk::{
-    host_ibc_action, ics20_transfer, memory::Memory, AbstractExecute, MemoryOperation, Resolve,
+    host_ibc_action, ics20_transfer, memory::Memory, ExecuteEndpoint, MemoryOperation, Resolve,
 };
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;

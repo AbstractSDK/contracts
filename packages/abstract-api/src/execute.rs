@@ -5,13 +5,13 @@ use abstract_os::{
 };
 use abstract_sdk::{
     proxy::query_os_manager_address, query_module_address, verify_os_manager, verify_os_proxy,
-    AbstractExecute, IbcCallbackEndpoint, OsExecute, ReceiveEndpoint,
+    ExecuteEndpoint, IbcCallbackEndpoint, OsExecute, ReceiveEndpoint,
 };
 use cosmwasm_std::{
     to_binary, Addr, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdError, WasmMsg,
 };
 
-impl<'a, T, E: From<cosmwasm_std::StdError> + From<ApiError>, C> AbstractExecute
+impl<'a, T, E: From<cosmwasm_std::StdError> + From<ApiError>, C> ExecuteEndpoint
     for ApiContract<'a, T, E, C>
 {
     type RequestMsg = T;
