@@ -28,7 +28,6 @@ pub struct BaseInstantiateMsg {
 
 /// Interface to the AddOn.
 #[cosmwasm_schema::cw_serde]
-#[serde(tag = "type")]
 pub enum ExecuteMsg<T, R = Empty> {
     /// An Add-On request.
     Request(T),
@@ -47,7 +46,6 @@ pub enum BaseExecuteMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-#[serde(tag = "type")]
 pub enum QueryMsg<Q = Empty> {
     /// An AddOn query message. Forwards the msg to the associated proxy.
     AddOn(Q),
