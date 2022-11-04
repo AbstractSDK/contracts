@@ -9,9 +9,8 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use abstract_sdk::{
-    memory::Memory, AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
-    QueryHandlerFn, ReceiveHandlerFn, ADMIN, BASE_STATE,
-    Handler, ReplyHandlerFn
+    memory::Memory, AbstractContract, ExecuteHandlerFn, Handler, IbcCallbackHandlerFn,
+    InstantiateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn, ADMIN, BASE_STATE,
 };
 
 use crate::AddOnError;
@@ -34,8 +33,15 @@ pub struct AddOnContract<
     Receive: 'static = Empty,
 > {
     // Scaffolding contract that handles type safety and provides helper methods
-    pub(crate) contract:
-        AbstractContract<Self, Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, Receive>,
+    pub(crate) contract: AbstractContract<
+        Self,
+        Error,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        Receive,
+    >,
     // Custom state for every AddOn
     pub admin: Admin<'static>,
     pub(crate) base_state: Item<'static, AddOnState>,
@@ -43,14 +49,14 @@ pub struct AddOnContract<
 
 /// Constructor
 impl<
-Error: From<cosmwasm_std::StdError> + From<AddOnError>,
-CustomExecMsg,
-CustomInitMsg,
-CustomQueryMsg,
-CustomMigrateMsg,
-ReceiveMsg,
->
-AddOnContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg,CustomMigrateMsg, ReceiveMsg>
+        Error: From<cosmwasm_std::StdError> + From<AddOnError>,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+    >
+    AddOnContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     pub const fn new(name: &'static str, version: &'static str) -> Self {
         Self {
@@ -70,12 +76,11 @@ AddOnContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg,CustomMigrateM
         self
     }
 
-    
     pub const fn with_replies(
         mut self,
         reply_handlers: &'static [(u64, ReplyHandlerFn<Self, Error>)],
     ) -> Self {
-        self.contract = self.contract.with_replies([&[],reply_handlers]);
+        self.contract = self.contract.with_replies([&[], reply_handlers]);
         self
     }
 
@@ -84,27 +89,35 @@ AddOnContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg,CustomMigrateM
         mut self,
         callbacks: &'static [(&'static str, IbcCallbackHandlerFn<Self, Error>)],
     ) -> Self {
-        self.contract = self.contract.with_ibc_callbacks( callbacks);
+        self.contract = self.contract.with_ibc_callbacks(callbacks);
         self
     }
-    pub const fn with_instantiate(mut self, instantiate_handler: InstantiateHandlerFn<Self, CustomInitMsg, Error>) -> Self {
-        self.contract = self.contract.with_instantiate( instantiate_handler);
+    pub const fn with_instantiate(
+        mut self,
+        instantiate_handler: InstantiateHandlerFn<Self, CustomInitMsg, Error>,
+    ) -> Self {
+        self.contract = self.contract.with_instantiate(instantiate_handler);
         self
     }
 
-    pub const fn with_receive(mut self, receive_handler: ReceiveHandlerFn<Self, ReceiveMsg, Error>) -> Self {
-        self.contract = self.contract.with_receive( receive_handler);
+    pub const fn with_receive(
+        mut self,
+        receive_handler: ReceiveHandlerFn<Self, ReceiveMsg, Error>,
+    ) -> Self {
+        self.contract = self.contract.with_receive(receive_handler);
         self
     }
 
-    pub const fn with_execute(mut self, execute_handler: ExecuteHandlerFn<Self, CustomExecMsg, Error>) -> Self {
-        self.contract = self.contract.with_execute( execute_handler);
+    pub const fn with_execute(
+        mut self,
+        execute_handler: ExecuteHandlerFn<Self, CustomExecMsg, Error>,
+    ) -> Self {
+        self.contract = self.contract.with_execute(execute_handler);
         self
     }
 
     pub const fn with_query(mut self, query_handler: QueryHandlerFn<Self, CustomQueryMsg>) -> Self {
-        self.contract = self.contract.with_query( query_handler);
+        self.contract = self.contract.with_query(query_handler);
         self
     }
-
 }

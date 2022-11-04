@@ -1,4 +1,4 @@
-use abstract_sdk::{IbcCallbackEndpoint, IbcCallbackHandlerFn, Handler};
+use abstract_sdk::{Handler, IbcCallbackEndpoint, IbcCallbackHandlerFn};
 
 use crate::{AddOnContract, AddOnError};
 
@@ -9,8 +9,14 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
+    > IbcCallbackEndpoint
+    for AddOnContract<
+        Error,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
     >
-    
-    IbcCallbackEndpoint for AddOnContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg,CustomMigrateMsg, ReceiveMsg>
 {
 }

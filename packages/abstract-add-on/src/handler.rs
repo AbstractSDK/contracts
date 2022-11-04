@@ -10,20 +10,11 @@ impl<
         QueryMsg,
         MigrateMsg,
         Receive,
-    > Handler
-    for AddOnContract<Error, ExecMsg, InitMsg, QueryMsg,MigrateMsg, Receive>
+    > Handler for AddOnContract<Error, ExecMsg, InitMsg, QueryMsg, MigrateMsg, Receive>
 {
     fn contract(
         &self,
-    ) -> &AbstractContract<
-        Self,
-        Error,
-        ExecMsg,
-        InitMsg,
-        QueryMsg,
-        MigrateMsg,
-        Receive,
-    > {
+    ) -> &AbstractContract<Self, Error, ExecMsg, InitMsg, QueryMsg, MigrateMsg, Receive> {
         &self.contract
     }
 

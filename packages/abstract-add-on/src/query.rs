@@ -1,6 +1,6 @@
 use abstract_os::add_on::{AddOnConfigResponse, BaseQueryMsg, QueryMsg};
-use abstract_sdk::{QueryEndpoint, Handler};
-use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult, StdError};
+use abstract_sdk::{Handler, QueryEndpoint};
+use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError, StdResult};
 use cw_controllers::AdminResponse;
 
 use crate::{state::AddOnContract, AddOnError};
@@ -12,23 +12,29 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
+    > QueryEndpoint
+    for AddOnContract<
+        Error,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
     >
-    QueryEndpoint for  AddOnContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg,CustomMigrateMsg, ReceiveMsg>
 {
     type QueryMsg<Msg> = QueryMsg<CustomQueryMsg>;
 
     fn query(
-            &self,
-            deps: Deps,
-            env: Env,
-            msg: Self::QueryMsg<Self::CustomQueryMsg>,
-        ) -> Result<Binary,StdError> {
-            match msg {
-                QueryMsg::AddOn(msg) => self.query_handler()?(deps,env,self,msg),
-                QueryMsg::Base(msg) => self.base_query(deps, env, msg),
-            }
-            
+        &self,
+        deps: Deps,
+        env: Env,
+        msg: Self::QueryMsg<Self::CustomQueryMsg>,
+    ) -> Result<Binary, StdError> {
+        match msg {
+            QueryMsg::AddOn(msg) => self.query_handler()?(deps, env, self, msg),
+            QueryMsg::Base(msg) => self.base_query(deps, env, msg),
         }
+    }
 }
 /// Where we dispatch the queries for the AddOnContract
 /// These BaseQueryMsg declarations can be found in `abstract_os::common_module::add_on_msg`
@@ -40,7 +46,7 @@ impl<
         CustomMigrateMsg,
         ReceiveMsg,
     >
-    AddOnContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg,CustomMigrateMsg, ReceiveMsg>
+    AddOnContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     pub fn base_query(&self, deps: Deps, _env: Env, query: BaseQueryMsg) -> StdResult<Binary> {
         match query {

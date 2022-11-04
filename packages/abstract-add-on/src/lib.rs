@@ -11,13 +11,13 @@ mod execute;
 pub(crate) mod handler;
 mod ibc_callback;
 pub mod instantiate;
+mod migrate;
 mod query;
 mod receive;
+mod reply;
 pub mod state;
 /// Abstract SDK trait implementations
 pub mod traits;
-mod migrate;
-mod reply;
 // #[cfg(test)]
 // mod testing;
 

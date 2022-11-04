@@ -1,10 +1,17 @@
 use cosmwasm_std::{StdError, StdResult, Storage};
 use cw2::ContractVersion;
 
-use crate::{traits::migrate::{Name, VersionString}, ReplyHandlerFn};
+use crate::{
+    traits::migrate::{Name, VersionString},
+    ReplyHandlerFn,
+};
 
-use super::contract_base::{AbstractContract, ExecuteHandlerFn, InstantiateHandlerFn, IbcCallbackHandlerFn, MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn};
-pub trait Handler where
+use super::contract_base::{
+    AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
+    MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn,
+};
+pub trait Handler
+where
     Self: Sized + 'static,
 {
     type Error: From<cosmwasm_std::StdError>;
@@ -34,24 +41,32 @@ pub trait Handler where
         let contract = self.contract();
         contract.info
     }
-    // Execute 
-    fn maybe_execute_handler(&self) -> Option<ExecuteHandlerFn<Self, Self::CustomExecMsg, Self::Error>> {
+    // Execute
+    fn maybe_execute_handler(
+        &self,
+    ) -> Option<ExecuteHandlerFn<Self, Self::CustomExecMsg, Self::Error>> {
         let contract = self.contract();
         contract.execute_handler
     }
-    fn execute_handler(&self) -> StdResult<ExecuteHandlerFn<Self, Self::CustomExecMsg, Self::Error>> {
+    fn execute_handler(
+        &self,
+    ) -> StdResult<ExecuteHandlerFn<Self, Self::CustomExecMsg, Self::Error>> {
         let Some(handler) = self.maybe_execute_handler() else {
             return Err(StdError::generic_err("expected execution handler"))
         };
         Ok(handler)
     }
 
-    // Instantiate 
-    fn maybe_instantiate_handler(&self) -> Option<InstantiateHandlerFn<Self, Self::CustomInitMsg, Self::Error>> {
+    // Instantiate
+    fn maybe_instantiate_handler(
+        &self,
+    ) -> Option<InstantiateHandlerFn<Self, Self::CustomInitMsg, Self::Error>> {
         let contract = self.contract();
         contract.instantiate_handler
     }
-    fn instantiate_handler(&self) -> StdResult<InstantiateHandlerFn<Self, Self::CustomInitMsg, Self::Error>> {
+    fn instantiate_handler(
+        &self,
+    ) -> StdResult<InstantiateHandlerFn<Self, Self::CustomInitMsg, Self::Error>> {
         let Some(handler) = self.maybe_instantiate_handler() else {
             return Err(StdError::generic_err("expected instantiation handler"))
         };
@@ -71,11 +86,15 @@ pub trait Handler where
     }
 
     // Migrate
-    fn maybe_migrate_handler(&self) -> Option<MigrateHandlerFn<Self, Self::CustomMigrateMsg, Self::Error>> {
+    fn maybe_migrate_handler(
+        &self,
+    ) -> Option<MigrateHandlerFn<Self, Self::CustomMigrateMsg, Self::Error>> {
         let contract = self.contract();
         contract.migrate_handler
     }
-    fn migrate_handler(&self) -> StdResult<MigrateHandlerFn<Self, Self::CustomMigrateMsg, Self::Error>> {
+    fn migrate_handler(
+        &self,
+    ) -> StdResult<MigrateHandlerFn<Self, Self::CustomMigrateMsg, Self::Error>> {
         let Some(handler) = self.maybe_migrate_handler() else {
             return Err(StdError::generic_err("expected migrate handler"))
         };
@@ -83,7 +102,9 @@ pub trait Handler where
     }
 
     // Receive
-    fn maybe_receive_handler(&self) -> Option<ReceiveHandlerFn<Self, Self::ReceiveMsg, Self::Error>> {
+    fn maybe_receive_handler(
+        &self,
+    ) -> Option<ReceiveHandlerFn<Self, Self::ReceiveMsg, Self::Error>> {
         let contract = self.contract();
         contract.receive_handler
     }
@@ -107,10 +128,7 @@ pub trait Handler where
         None
     }
 
-    fn maybe_reply_handler(
-        &self,
-        id: u64,
-    ) -> Option<ReplyHandlerFn<Self, Self::Error>> {
+    fn maybe_reply_handler(&self, id: u64) -> Option<ReplyHandlerFn<Self, Self::Error>> {
         let contract = self.contract();
         for reply_handlers in contract.reply_handlers {
             for handler in reply_handlers {
@@ -122,10 +140,7 @@ pub trait Handler where
         None
     }
 
-    fn reply_handler(
-        &self,
-        id: u64,
-    ) -> StdResult<ReplyHandlerFn<Self, Self::Error>> {
+    fn reply_handler(&self, id: u64) -> StdResult<ReplyHandlerFn<Self, Self::Error>> {
         let Some(handler) = self.maybe_reply_handler(id) else {
             return Err(StdError::generic_err(format!{"expected reply handler for id: {id}"}))
         };

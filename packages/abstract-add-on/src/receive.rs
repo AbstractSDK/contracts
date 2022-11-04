@@ -9,6 +9,14 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
+    > ReceiveEndpoint
+    for AddOnContract<
+        Error,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
     >
-    ReceiveEndpoint for  AddOnContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg,CustomMigrateMsg, ReceiveMsg>
-{}
+{
+}

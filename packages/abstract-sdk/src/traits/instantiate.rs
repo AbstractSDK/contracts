@@ -2,7 +2,7 @@ use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 use crate::Handler;
 
-pub trait InstantiateEndpoint: Handler{
+pub trait InstantiateEndpoint: Handler {
     type InstantiateMsg<Msg>;
 
     /// Instantiate the base contract

@@ -1,5 +1,8 @@
 use abstract_os::abstract_ica::StdAck;
-use cosmwasm_std::{Addr, Deps, DepsMut, Empty, Env, MessageInfo, Response, StdResult, Storage, Reply, StdError, Binary};
+use cosmwasm_std::{
+    Addr, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Reply, Response, StdError, StdResult,
+    Storage,
+};
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Item;
 use schemars::JsonSchema;
@@ -33,7 +36,6 @@ pub type ReceiveHandlerFn<App, Msg, Error> =
 
 pub type ReplyHandlerFn<Module, Error> = fn(DepsMut, Env, Module, Reply) -> Result<Response, Error>;
 
-
 /// State variables for a generic contract
 pub struct AbstractContract<
     Module: Handler + 'static,
@@ -51,9 +53,10 @@ pub struct AbstractContract<
     /// ID's that this contract depends on
     pub(crate) dependencies: &'static [&'static str],
     /// Expected callbacks following an IBC action
-    pub(crate) ibc_callback_handlers: &'static [(&'static str, IbcCallbackHandlerFn<Module, Error>)],
+    pub(crate) ibc_callback_handlers:
+        &'static [(&'static str, IbcCallbackHandlerFn<Module, Error>)],
     /// Expected replies
-    pub(crate) reply_handlers:  [&'static [(u64, ReplyHandlerFn<Module, Error>)]; 2],
+    pub(crate) reply_handlers: [&'static [(u64, ReplyHandlerFn<Module, Error>)]; 2],
     /// Handler of execute messages
     pub(crate) execute_handler: Option<ExecuteHandlerFn<Module, CustomExecMsg, Error>>,
     /// Handler of instantiate messages
@@ -92,7 +95,7 @@ where
             info: (name, version),
             version: CONTRACT,
             ibc_callback_handlers: &[],
-            reply_handlers: [&[],&[]],
+            reply_handlers: [&[], &[]],
             dependencies: &[],
             execute_handler: None,
             receive_handler: None,
@@ -101,7 +104,7 @@ where
             query_handler: None,
         }
     }
-    
+
     /// add dependencies to the contract
     pub const fn with_dependencies(mut self, dependencies: &'static [&'static str]) -> Self {
         self.dependencies = dependencies;
@@ -125,24 +128,35 @@ where
         self
     }
 
-    pub const fn with_instantiate(mut self, instantiate_handler: InstantiateHandlerFn<Module, CustomInitMsg, Error>) -> Self {
+    pub const fn with_instantiate(
+        mut self,
+        instantiate_handler: InstantiateHandlerFn<Module, CustomInitMsg, Error>,
+    ) -> Self {
         self.instantiate_handler = Some(instantiate_handler);
         self
     }
 
-    pub const fn with_receive(mut self, receive_handler: ReceiveHandlerFn<Module, ReceiveMsg, Error>) -> Self {
+    pub const fn with_receive(
+        mut self,
+        receive_handler: ReceiveHandlerFn<Module, ReceiveMsg, Error>,
+    ) -> Self {
         self.receive_handler = Some(receive_handler);
         self
     }
 
-    pub const fn with_execute(mut self, execute_handler: ExecuteHandlerFn<Module, CustomExecMsg, Error>) -> Self {
+    pub const fn with_execute(
+        mut self,
+        execute_handler: ExecuteHandlerFn<Module, CustomExecMsg, Error>,
+    ) -> Self {
         self.execute_handler = Some(execute_handler);
         self
     }
 
-    pub const fn with_query(mut self, query_handler: QueryHandlerFn<Module, CustomQueryMsg>) -> Self {
+    pub const fn with_query(
+        mut self,
+        query_handler: QueryHandlerFn<Module, CustomQueryMsg>,
+    ) -> Self {
         self.query_handler = Some(query_handler);
         self
     }
-
 }

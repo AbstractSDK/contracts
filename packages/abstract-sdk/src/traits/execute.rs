@@ -2,8 +2,8 @@ use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 use crate::base::handler::Handler;
 
-pub trait ExecuteEndpoint: Handler{
-    type ExecuteMsg<Msg> ;
+pub trait ExecuteEndpoint: Handler {
+    type ExecuteMsg<Msg>;
 
     /// Entry point for contract execution
     fn execute(

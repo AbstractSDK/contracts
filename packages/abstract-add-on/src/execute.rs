@@ -15,8 +15,15 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
+    > ExecuteEndpoint
+    for AddOnContract<
+        Error,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
     >
-    ExecuteEndpoint for AddOnContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     type ExecuteMsg<Msg> = ExecuteMsg<CustomExecMsg, ReceiveMsg>;
 
@@ -29,15 +36,11 @@ impl<
         // request_handler: impl FnOnce(DepsMut, Env, MessageInfo, Self, T) -> Result<Response, E>,
     ) -> Result<Response, Error> {
         match msg {
-            ExecuteMsg::Request(request) => {
-                self.execute_handler()?(deps, env, info, self, request)
-            }
+            ExecuteMsg::Request(request) => self.execute_handler()?(deps, env, info, self, request),
             ExecuteMsg::Configure(exec_msg) => self
                 .base_execute(deps, env, info, exec_msg)
                 .map_err(From::from),
-            ExecuteMsg::IbcCallback(msg) => {
-                self.handle_ibc_callback(deps, env, info, msg)
-            }
+            ExecuteMsg::IbcCallback(msg) => self.handle_ibc_callback(deps, env, info, msg),
             #[allow(unreachable_patterns)]
             _ => Err(StdError::generic_err("Unsupported AddOn execute message variant").into()),
         }
@@ -52,7 +55,7 @@ impl<
         CustomMigrateMsg,
         ReceiveMsg,
     >
-    AddOnContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg,CustomMigrateMsg, ReceiveMsg>
+    AddOnContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     fn base_execute(
         &self,

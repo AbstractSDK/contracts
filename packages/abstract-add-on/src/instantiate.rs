@@ -3,10 +3,10 @@ use abstract_os::{
     module_factory::{ContextResponse, QueryMsg as FactoryQuery},
 };
 use cosmwasm_std::{
-    to_binary, DepsMut, Env, MessageInfo, QueryRequest, StdError, StdResult, WasmQuery, Response,
+    to_binary, DepsMut, Env, MessageInfo, QueryRequest, Response, StdError, StdResult, WasmQuery,
 };
 
-use abstract_sdk::{memory::Memory, InstantiateEndpoint, Handler};
+use abstract_sdk::{memory::Memory, Handler, InstantiateEndpoint};
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
@@ -22,8 +22,15 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
+    > InstantiateEndpoint
+    for AddOnContract<
+        Error,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
     >
-    InstantiateEndpoint for AddOnContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg,CustomMigrateMsg, ReceiveMsg>
 {
     type InstantiateMsg<Msg> = InstantiateMsg<Self::CustomInitMsg>;
     fn instantiate(
@@ -32,7 +39,7 @@ impl<
         env: Env,
         info: MessageInfo,
         msg: Self::InstantiateMsg<Self::CustomInitMsg>,
-    ) -> Result<Response,Error> {
+    ) -> Result<Response, Error> {
         let BaseInstantiateMsg { memory_address } = msg.base;
         let memory = Memory {
             address: deps.api.addr_validate(&memory_address)?,
@@ -47,9 +54,9 @@ impl<
         let core = match resp.core {
             Some(core) => core,
             None => {
-                return Err(StdError::generic_err(
-                    "context of module factory not properly set.",
-                ).into())
+                return Err(
+                    StdError::generic_err("context of module factory not properly set.").into(),
+                )
             }
         };
 
@@ -65,6 +72,6 @@ impl<
         let Some(handler) = self.maybe_instantiate_handler() else {
             return Ok(Response::new())
         };
-        handler(deps,env,info,self,msg.custom)
+        handler(deps, env, info, self, msg.custom)
     }
 }

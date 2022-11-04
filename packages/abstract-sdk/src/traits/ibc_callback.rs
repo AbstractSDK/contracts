@@ -5,7 +5,7 @@ use abstract_os::{
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
 
-use crate::{MemoryOperation, base::contract_base::IbcCallbackHandlerFn, Handler};
+use crate::{base::contract_base::IbcCallbackHandlerFn, Handler, MemoryOperation};
 
 pub trait IbcCallbackEndpoint: Handler + MemoryOperation {
     /// Takes request, sets destination and executes request handler
