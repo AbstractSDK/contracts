@@ -8,6 +8,7 @@ pub use crate::state::AddOnContract;
 
 pub mod error;
 mod execute;
+pub(crate) mod handler;
 mod ibc_callback;
 pub mod instantiate;
 mod query;
@@ -15,6 +16,8 @@ mod receive;
 pub mod state;
 /// Abstract SDK trait implementations
 pub mod traits;
+mod migrate;
+mod reply;
 // #[cfg(test)]
 // mod testing;
 

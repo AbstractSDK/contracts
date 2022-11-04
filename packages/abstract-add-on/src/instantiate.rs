@@ -1,32 +1,41 @@
 use abstract_os::{
-    add_on::BaseInstantiateMsg,
+    add_on::{BaseInstantiateMsg, InstantiateMsg},
     module_factory::{ContextResponse, QueryMsg as FactoryQuery},
 };
 use cosmwasm_std::{
-    to_binary, DepsMut, Env, MessageInfo, QueryRequest, StdError, StdResult, WasmQuery,
+    to_binary, DepsMut, Env, MessageInfo, QueryRequest, StdError, StdResult, WasmQuery, Response,
 };
 
-use abstract_sdk::memory::Memory;
+use abstract_sdk::{memory::Memory, InstantiateEndpoint, Handler};
+use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
     state::{AddOnContract, AddOnState},
     AddOnError,
 };
-
 use cw2::set_contract_version;
 
-impl<'a, T, C, E: From<cosmwasm_std::StdError> + From<AddOnError>> AddOnContract<'a, T, E, C> {
-    pub fn instantiate(
-        deps: DepsMut,
-        _env: Env,
+impl<
+        Error: From<cosmwasm_std::StdError> + From<AddOnError>,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+    >
+    InstantiateEndpoint for AddOnContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg,CustomMigrateMsg, ReceiveMsg>
+{
+    type InstantiateMsg<Msg> = InstantiateMsg<Self::CustomInitMsg>;
+    fn instantiate(
+        self,
+        mut deps: DepsMut,
+        env: Env,
         info: MessageInfo,
-        msg: BaseInstantiateMsg,
-        module_name: &str,
-        module_version: &str,
-    ) -> StdResult<Self> {
-        let add_on = Self::new();
+        msg: Self::InstantiateMsg<Self::CustomInitMsg>,
+    ) -> Result<Response,Error> {
+        let BaseInstantiateMsg { memory_address } = msg.base;
         let memory = Memory {
-            address: deps.api.addr_validate(&msg.memory_address)?,
+            address: deps.api.addr_validate(&memory_address)?,
         };
 
         // Caller is factory so get proxy and manager (admin) from there
@@ -40,7 +49,7 @@ impl<'a, T, C, E: From<cosmwasm_std::StdError> + From<AddOnError>> AddOnContract
             None => {
                 return Err(StdError::generic_err(
                     "context of module factory not properly set.",
-                ))
+                ).into())
             }
         };
 
@@ -49,11 +58,13 @@ impl<'a, T, C, E: From<cosmwasm_std::StdError> + From<AddOnError>> AddOnContract
             proxy_address: core.proxy.clone(),
             memory,
         };
-
-        set_contract_version(deps.storage, module_name, module_version)?;
-        add_on.base_state.save(deps.storage, &state)?;
-        add_on.admin.set(deps, Some(core.manager))?;
-
-        Ok(add_on)
+        let (name, version) = self.info();
+        set_contract_version(deps.storage, name, version)?;
+        self.base_state.save(deps.storage, &state)?;
+        self.admin.set(deps.branch(), Some(core.manager))?;
+        let Some(handler) = self.maybe_instantiate_handler() else {
+            return Ok(Response::new())
+        };
+        handler(deps,env,info,self,msg.custom)
     }
 }
