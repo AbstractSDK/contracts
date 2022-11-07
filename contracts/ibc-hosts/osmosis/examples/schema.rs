@@ -13,7 +13,7 @@ fn main() {
     create_dir_all(&out_dir).unwrap();
     remove_schemas(&out_dir).unwrap();
 
-    export_schema_with_title(&schema_for!(DexQueryMsg), &out_dir, "QueryMsg");
+    export_schema_with_title(&schema_for!(QueryMsg<DexQueryMsg>), &out_dir, "QueryMsg");
 
     export_schema_with_title(&schema_for!(SimulateSwapResponse), &out_dir, "ApiResponse");
 
