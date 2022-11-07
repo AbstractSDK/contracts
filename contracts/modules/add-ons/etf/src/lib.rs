@@ -2,6 +2,7 @@ mod commands;
 pub mod contract;
 pub mod error;
 pub mod response;
+pub mod replies;
 pub(crate) use abstract_os::etf::state;
 
 // TODO; FIX

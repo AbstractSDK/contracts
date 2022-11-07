@@ -7,8 +7,8 @@ use abstract_sdk::{
     ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint, ReplyEndpoint,
 };
 use cosmwasm_std::{
-    entry_point, to_binary, Addr, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Reply, ReplyOn,
-    Response, StdError, StdResult, SubMsg, WasmMsg,
+    Addr, Binary, Deps, DepsMut, Empty, entry_point, Env, MessageInfo, Reply, ReplyOn, Response,
+    StdError, StdResult, SubMsg, to_binary, WasmMsg,
 };
 
 use cw20::{Cw20ReceiveMsg, MinterResponse};
@@ -22,8 +22,9 @@ use cw20_base::msg::InstantiateMsg as TokenInstantiateMsg;
 
 use crate::commands::{self, receive_cw20};
 use crate::error::VaultError;
+use crate::replies;
 use crate::response::MsgInstantiateContractResponse;
-use crate::state::{State, FEE, STATE};
+use crate::state::{FEE, State, STATE};
 
 const INSTANTIATE_REPLY_ID: u64 = 1u64;
 
@@ -41,7 +42,7 @@ const ETF_ADDON: EtfAddOn = EtfAddOn::new(ETF, CONTRACT_VERSION)
     .with_execute(execute_handler)
     .with_query(query_handler)
     .with_receive(receive_cw20)
-    .with_replies(&[(INSTANTIATE_REPLY_ID, instantiate_reply_handler)]);
+    .with_replies(&[(INSTANTIATE_REPLY_ID, replies::instantiate_reply)]);
 
 // Instantiate
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -126,23 +127,6 @@ fn instantiate_handler(
         id: INSTANTIATE_REPLY_ID,
         reply_on: ReplyOn::Success,
     }))
-}
-
-pub fn instantiate_reply_handler(deps: DepsMut, _env: Env, _etf: EtfAddOn, reply: Reply) -> EtfResult {
-    let data = reply.result.unwrap().data.unwrap();
-    let res: MsgInstantiateContractResponse =
-        Message::parse_from_bytes(data.as_slice()).map_err(|_| {
-            StdError::parse_err("MsgInstantiateContractResponse", "failed to parse data")
-        })?;
-    let liquidity_token = res.get_contract_address();
-
-    let api = deps.api;
-    STATE.update(deps.storage, |mut meta| -> StdResult<_> {
-        meta.liquidity_token_addr = api.addr_validate(liquidity_token)?;
-        Ok(meta)
-    })?;
-
-    Ok(Response::new().add_attribute("liquidity_token_addr", liquidity_token))
 }
 
 fn execute_handler(

@@ -1,0 +1,22 @@
+use cosmwasm_std::{Api, DepsMut, Env, Reply, Response, StdError, StdResult};
+use protobuf::Message;
+use abstract_os::etf::state::STATE;
+use crate::contract::{EtfAddOn, EtfResult};
+use crate::response::MsgInstantiateContractResponse;
+
+pub fn instantiate_reply(deps: DepsMut, _env: Env, _etf: EtfAddOn, reply: Reply) -> EtfResult {
+    let data = reply.result.unwrap().data.unwrap();
+    let res: MsgInstantiateContractResponse =
+        Message::parse_from_bytes(data.as_slice()).map_err(|_| {
+            StdError::parse_err("MsgInstantiateContractResponse", "failed to parse data")
+        })?;
+    let liquidity_token = res.get_contract_address();
+
+    let api = deps.api;
+    STATE.update(deps.storage, |mut meta| -> StdResult<_> {
+        meta.liquidity_token_addr = api.addr_validate(liquidity_token)?;
+        Ok(meta)
+    })?;
+
+    Ok(Response::new().add_attribute("liquidity_token_addr", liquidity_token))
+}
