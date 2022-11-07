@@ -104,7 +104,7 @@ where
             query_handler: None,
         }
     }
-    pub fn version(&self,store: &dyn Storage) -> StdResult<ContractVersion> {
+    pub fn version(&self, store: &dyn Storage) -> StdResult<ContractVersion> {
         self.version.load(store)
     }
     pub fn info(&self) -> (&str, &str) {

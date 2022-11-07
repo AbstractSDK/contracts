@@ -1,9 +1,9 @@
 use std::marker::PhantomData;
 
 use abstract_os::ibc_host::PacketMsg;
-use abstract_sdk::{memory::Memory, ReplyHandlerFn, BASE_STATE, AbstractContract, Handler};
+use abstract_sdk::{memory::Memory, AbstractContract, Handler, ReplyHandlerFn, BASE_STATE};
 
-use cosmwasm_std::{Addr, Binary, StdResult, Storage, Empty};
+use cosmwasm_std::{Addr, Binary, Empty, StdResult, Storage};
 use cw2::{ContractVersion, CONTRACT};
 use cw_controllers::Admin;
 use cw_storage_plus::{Item, Map};
@@ -52,8 +52,8 @@ pub struct Host<
     >,
     // pub admin: Admin<'static>,
     // Custom state for every Host
+    pub proxy_address: Option<Addr>,
     pub(crate) base_state: Item<'static, HostState>,
-    pub(crate) proxy_address: Option<Addr>,
     pub(crate) chain: &'static str,
 }
 
@@ -65,15 +65,17 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-    >
-    Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+    > Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
-    pub const fn new(name: &'static str, version:&'static str,chain: &'static str, reply_handlers: &'static [(u64, ReplyHandlerFn<Self, Error>)]) -> Self {
-        let contract= AbstractContract::new(name, version).with_replies([&[
-                    // add reply handlers we want to support by default
-                    (RECEIVE_DISPATCH_ID, reply_dispatch_callback),
-                    (INIT_CALLBACK_ID, reply_init_callback),
-                ],&[]]);
+    pub const fn new(name: &'static str, version: &'static str, chain: &'static str) -> Self {
+        let contract = AbstractContract::new(name, version).with_replies([
+            &[
+                // add reply handlers we want to support by default
+                (RECEIVE_DISPATCH_ID, reply_dispatch_callback),
+                (INIT_CALLBACK_ID, reply_init_callback),
+            ],
+            &[],
+        ]);
         Self {
             contract,
             chain,

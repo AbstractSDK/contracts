@@ -10,6 +10,7 @@ pub use error::ApiError;
 
 pub mod error;
 mod execute;
+mod handler;
 mod ibc_callback;
 pub mod instantiate;
 mod query;

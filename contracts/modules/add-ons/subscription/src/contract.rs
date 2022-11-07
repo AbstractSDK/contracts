@@ -1,7 +1,7 @@
 use abstract_add_on::AddOnContract;
 
 use abstract_os::SUBSCRIPTION;
-use abstract_sdk::{get_os_core, ExecuteEndpoint, QueryEndpoint, InstantiateEndpoint};
+use abstract_sdk::{get_os_core, ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint};
 use cosmwasm_std::{
     entry_point, to_binary, Binary, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdError,
     StdResult, Uint128,
@@ -25,9 +25,20 @@ use abstract_os::subscription::{
 };
 
 pub type SubscriptionResult = Result<Response, SubscriptionError>;
-pub type SubscriptionAddOn = AddOnContract< SubscriptionError, ExecuteMsg,InstantiateMsg,QueryMsg,MigrateMsg,Cw20ReceiveMsg>;
-const SUBSCRIPTION_MODULE: SubscriptionAddOn=
-    SubscriptionAddOn::new(SUBSCRIPTION, CONTRACT_VERSION).with_execute(request_handler).with_instantiate(instantiate_handler).with_query(query_handler).with_receive(receive_cw20);
+pub type SubscriptionAddOn = AddOnContract<
+    SubscriptionError,
+    ExecuteMsg,
+    InstantiateMsg,
+    QueryMsg,
+    MigrateMsg,
+    Cw20ReceiveMsg,
+>;
+const SUBSCRIPTION_MODULE: SubscriptionAddOn =
+    SubscriptionAddOn::new(SUBSCRIPTION, CONTRACT_VERSION)
+        .with_execute(request_handler)
+        .with_instantiate(instantiate_handler)
+        .with_query(query_handler)
+        .with_receive(receive_cw20);
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -50,25 +61,30 @@ pub fn instantiate(
     msg: AddOnInstantiateMsg<InstantiateMsg>,
 ) -> SubscriptionResult {
     SUBSCRIPTION_MODULE.instantiate(deps, env, info, msg)
-    
 }
 
-pub fn instantiate_handler(deps: DepsMut, env: Env, info: MessageInfo, app: SubscriptionAddOn, msg:InstantiateMsg) -> SubscriptionResult{
+pub fn instantiate_handler(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    app: SubscriptionAddOn,
+    msg: InstantiateMsg,
+) -> SubscriptionResult {
     let subscription_config: SubscriptionConfig = SubscriptionConfig {
         payment_asset: msg.subscription.payment_asset.check(deps.api, None)?,
         subscription_cost_per_block: msg.subscription.subscription_cost_per_block,
         version_control_address: deps
-        .api
-        .addr_validate(&msg.subscription.version_control_addr)?,
+            .api
+            .addr_validate(&msg.subscription.version_control_addr)?,
         factory_address: deps.api.addr_validate(&msg.subscription.factory_addr)?,
         subscription_per_block_emissions: msg
-        .subscription
-        .subscription_per_block_emissions
-        .check(deps.api)?,
+            .subscription
+            .subscription_per_block_emissions
+            .check(deps.api)?,
     };
-    
+
     let subscription_state: SubscriptionState = SubscriptionState { active_subs: 0 };
-    
+
     // Optional contribution setup
     if let Some(msg) = msg.contribution {
         let contributor_config: ContributionConfig = ContributionConfig {
@@ -80,7 +96,7 @@ pub fn instantiate_handler(deps: DepsMut, env: Env, info: MessageInfo, app: Subs
             token_info: msg.token_info.check(deps.api, None)?,
         }
         .verify()?;
-        
+
         let contributor_state: ContributionState = ContributionState {
             income_target: Decimal::zero(),
             expense: Decimal::zero(),
@@ -91,12 +107,11 @@ pub fn instantiate_handler(deps: DepsMut, env: Env, info: MessageInfo, app: Subs
         CONTRIBUTION_STATE.save(deps.storage, &contributor_state)?;
         INCOME_TWA.instantiate(deps.storage, &env, None, msg.income_averaging_period.u64())?;
     }
-    
+
     SUBSCRIPTION_CONFIG.save(deps.storage, &subscription_config)?;
     SUBSCRIPTION_STATE.save(deps.storage, &subscription_state)?;
-    
+
     Ok(Response::new())
-        
 }
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(
@@ -185,72 +200,75 @@ fn request_handler(
 pub fn query(deps: Deps, env: Env, msg: AddOnQueryMsg<QueryMsg>) -> StdResult<Binary> {
     SUBSCRIPTION_MODULE.query(deps, env, msg)
 }
-pub fn query_handler(deps: Deps, env: Env,add_on: &SubscriptionAddOn, msg: QueryMsg) -> StdResult<Binary> {
-            match msg {
-                // handle dapp-specific queries here
-                QueryMsg::State {} => {
-                    let subscription_state = SUBSCRIPTION_STATE.load(deps.storage)?;
-                    let contributor_state = CONTRIBUTION_STATE.load(deps.storage)?;
-                    to_binary(&StateResponse {
-                        contribution: contributor_state,
-                        subscription: subscription_state,
-                    })
-                }
-                QueryMsg::Fee {} => {
-                    let config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
-                    let minimal_cost =
-                        Uint128::from(BLOCKS_PER_MONTH) * config.subscription_cost_per_block;
-                    to_binary(&SubscriptionFeeResponse {
-                        fee: Asset {
-                            info: config.payment_asset,
-                            amount: minimal_cost,
-                        },
-                    })
-                }
-                QueryMsg::Config {} => {
-                    let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
-                    let contributor_config = CONTRIBUTION_CONFIG.load(deps.storage)?;
-                    to_binary(&ConfigResponse {
-                        contribution: contributor_config,
-                        subscription: subscription_config,
-                    })
-                }
-                QueryMsg::SubscriberState { os_id } => {
-                    let maybe_sub = SUBSCRIBERS.may_load(deps.storage, os_id)?;
-                    let maybe_dormant_sub = DORMANT_SUBSCRIBERS.may_load(deps.storage, os_id)?;
-                    let subscription_state = if let Some(sub) = maybe_sub {
-                        to_binary(&SubscriberStateResponse {
-                            currently_subscribed: true,
-                            subscriber_details: sub,
-                        })?
-                    } else if let Some(sub) = maybe_dormant_sub {
-                        to_binary(&SubscriberStateResponse {
-                            currently_subscribed: true,
-                            subscriber_details: sub,
-                        })?
-                    } else {
-                        return Err(StdError::generic_err("os has os_id 0 or does not exist"));
-                    };
-                    Ok(subscription_state)
-                }
-                QueryMsg::ContributorState { os_id } => {
-                    let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
-                    let contributor_addr = get_os_core(
-                        &deps.querier,
-                        os_id,
-                        &subscription_config.version_control_address,
-                    )?
-                    .manager;
-                    let maybe_contributor =
-                        CONTRIBUTORS.may_load(deps.storage, &contributor_addr)?;
-                    let subscription_state = if let Some(compensation) = maybe_contributor {
-                        to_binary(&ContributorStateResponse { compensation })?
-                    } else {
-                        return Err(StdError::generic_err(
-                            "provided address is not a contributor",
-                        ));
-                    };
-                    Ok(subscription_state)
-                }
-            }
+pub fn query_handler(
+    deps: Deps,
+    env: Env,
+    add_on: &SubscriptionAddOn,
+    msg: QueryMsg,
+) -> StdResult<Binary> {
+    match msg {
+        // handle dapp-specific queries here
+        QueryMsg::State {} => {
+            let subscription_state = SUBSCRIPTION_STATE.load(deps.storage)?;
+            let contributor_state = CONTRIBUTION_STATE.load(deps.storage)?;
+            to_binary(&StateResponse {
+                contribution: contributor_state,
+                subscription: subscription_state,
+            })
         }
+        QueryMsg::Fee {} => {
+            let config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
+            let minimal_cost = Uint128::from(BLOCKS_PER_MONTH) * config.subscription_cost_per_block;
+            to_binary(&SubscriptionFeeResponse {
+                fee: Asset {
+                    info: config.payment_asset,
+                    amount: minimal_cost,
+                },
+            })
+        }
+        QueryMsg::Config {} => {
+            let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
+            let contributor_config = CONTRIBUTION_CONFIG.load(deps.storage)?;
+            to_binary(&ConfigResponse {
+                contribution: contributor_config,
+                subscription: subscription_config,
+            })
+        }
+        QueryMsg::SubscriberState { os_id } => {
+            let maybe_sub = SUBSCRIBERS.may_load(deps.storage, os_id)?;
+            let maybe_dormant_sub = DORMANT_SUBSCRIBERS.may_load(deps.storage, os_id)?;
+            let subscription_state = if let Some(sub) = maybe_sub {
+                to_binary(&SubscriberStateResponse {
+                    currently_subscribed: true,
+                    subscriber_details: sub,
+                })?
+            } else if let Some(sub) = maybe_dormant_sub {
+                to_binary(&SubscriberStateResponse {
+                    currently_subscribed: true,
+                    subscriber_details: sub,
+                })?
+            } else {
+                return Err(StdError::generic_err("os has os_id 0 or does not exist"));
+            };
+            Ok(subscription_state)
+        }
+        QueryMsg::ContributorState { os_id } => {
+            let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
+            let contributor_addr = get_os_core(
+                &deps.querier,
+                os_id,
+                &subscription_config.version_control_address,
+            )?
+            .manager;
+            let maybe_contributor = CONTRIBUTORS.may_load(deps.storage, &contributor_addr)?;
+            let subscription_state = if let Some(compensation) = maybe_contributor {
+                to_binary(&ContributorStateResponse { compensation })?
+            } else {
+                return Err(StdError::generic_err(
+                    "provided address is not a contributor",
+                ));
+            };
+            Ok(subscription_state)
+        }
+    }
+}

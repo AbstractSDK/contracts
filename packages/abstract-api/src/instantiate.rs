@@ -1,7 +1,8 @@
-use abstract_os::api::BaseInstantiateMsg;
-use cosmwasm_std::{DepsMut, Env, MessageInfo, StdResult};
+use abstract_os::api::InstantiateMsg;
+use cosmwasm_std::{Api, DepsMut, Env, MessageInfo, Response, StdResult};
 
-use abstract_sdk::memory::Memory;
+use abstract_sdk::{memory::Memory, Handler, InstantiateEndpoint};
+use serde::Serialize;
 
 use crate::{
     state::{ApiContract, ApiState},
@@ -10,31 +11,39 @@ use crate::{
 
 use cw2::set_contract_version;
 
-impl<'a, T, E: From<cosmwasm_std::StdError> + From<ApiError>> ApiContract<'a, T, E> {
+impl<
+        Error: From<cosmwasm_std::StdError> + From<ApiError>,
+        CustomExecMsg,
+        CustomInitMsg: Serialize,
+        CustomQueryMsg,
+        ReceiveMsg,
+    > InstantiateEndpoint
+    for ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
+{
+    type InstantiateMsg<Msg> = InstantiateMsg<CustomInitMsg>;
     /// Instantiate the API
-    pub fn instantiate(
+    fn instantiate(
+        self,
         deps: DepsMut,
-        _env: Env,
-        _info: MessageInfo,
-        msg: BaseInstantiateMsg,
-        module_name: &str,
-        module_version: &str,
-        _api_dependencies: Vec<String>,
-    ) -> StdResult<Self> {
-        let api = Self::new();
+        env: Env,
+        info: MessageInfo,
+        msg: Self::InstantiateMsg<Self::CustomInitMsg>,
+    ) -> Result<Response, Error> {
         let memory = Memory {
-            address: deps.api.addr_validate(&msg.memory_address)?,
+            address: deps.api.addr_validate(&msg.base.memory_address)?,
         };
 
         // Base state
         let state = ApiState {
-            version_control: deps.api.addr_validate(&msg.version_control_address)?,
+            version_control: deps.api.addr_validate(&msg.base.version_control_address)?,
             memory,
         };
-
-        set_contract_version(deps.storage, module_name, module_version)?;
-        api.base_state.save(deps.storage, &state)?;
-
-        Ok(api)
+        let (name, version) = self.info();
+        set_contract_version(deps.storage, name, version)?;
+        self.base_state.save(deps.storage, &state)?;
+        let Some(handler) = self.maybe_instantiate_handler() else {
+            return Ok(Response::new())
+        };
+        handler(deps, env, info, self, msg.custom)
     }
 }

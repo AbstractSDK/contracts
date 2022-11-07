@@ -1,16 +1,14 @@
 use crate::{error::ApiError, state::ApiContract};
 
-use abstract_sdk::{ReceiveEndpoint, ReceiveHandlerFn};
+use abstract_sdk::ReceiveEndpoint;
 
-impl<'a, T, E: From<cosmwasm_std::StdError> + From<ApiError>, R> ReceiveEndpoint
-    for ApiContract<'a, T, E, R>
+impl<
+        Error: From<cosmwasm_std::StdError> + From<ApiError>,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        ReceiveMsg,
+    > ReceiveEndpoint
+    for ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
 {
-    type ContractError = E;
-    type ReceiveMsg = R;
-
-    fn receive_handler(
-        &self,
-    ) -> Option<ReceiveHandlerFn<Self, Self::ReceiveMsg, Self::ContractError>> {
-        self.receive_handler
-    }
 }

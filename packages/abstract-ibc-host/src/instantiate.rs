@@ -1,9 +1,12 @@
 use abstract_os::ibc_host::{BaseInstantiateMsg, InstantiateMsg};
-use cosmwasm_std::{DepsMut, Env, MessageInfo, StdResult, Response};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdResult};
 
 use abstract_sdk::{memory::Memory, Handler, InstantiateEndpoint};
 
-use crate::{state::{Host, HostState, CLOSED_CHANNELS}, HostError};
+use crate::{
+    state::{Host, HostState, CLOSED_CHANNELS},
+    HostError,
+};
 
 use cw2::set_contract_version;
 
@@ -14,10 +17,9 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-    >
-    InstantiateEndpoint for  
-    Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
-{ 
+    > InstantiateEndpoint
+    for Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+{
     /// Instantiate the API
     type InstantiateMsg<Msg> = InstantiateMsg<Self::CustomInitMsg>;
     fn instantiate(

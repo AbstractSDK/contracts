@@ -5,29 +5,30 @@ use abstract_os::{
 };
 use abstract_sdk::{
     proxy::query_os_manager_address, query_module_address, verify_os_manager, verify_os_proxy,
-    ExecuteEndpoint, IbcCallbackEndpoint, OsExecute, ReceiveEndpoint,
+    ExecuteEndpoint, Handler, IbcCallbackEndpoint, OsExecute, ReceiveEndpoint,
 };
 use cosmwasm_std::{
     to_binary, Addr, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdError, WasmMsg,
 };
 
-impl<'a, T, E: From<cosmwasm_std::StdError> + From<ApiError>, C> ExecuteEndpoint
-    for ApiContract<'a, T, E, C>
+impl<
+        Error: From<cosmwasm_std::StdError> + From<ApiError>,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        ReceiveMsg,
+    > ExecuteEndpoint
+    for ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
 {
-    type RequestMsg = T;
-
-    type ExecuteMsg<P> = ExecuteMsg<T, C>;
-
-    type ContractError = E;
+    type ExecuteMsg<Msg> = ExecuteMsg<CustomExecMsg, ReceiveMsg>;
 
     fn execute(
         mut self,
         deps: DepsMut,
         env: Env,
         info: MessageInfo,
-        msg: Self::ExecuteMsg<Self::RequestMsg>,
-        request_handler: impl FnOnce(DepsMut, Env, MessageInfo, Self, T) -> Result<Response, E>,
-    ) -> Result<Response, Self::ContractError> {
+        msg: Self::ExecuteMsg<Self::CustomExecMsg>,
+    ) -> Result<Response, Error> {
         let sender = &info.sender;
         match msg {
             ExecuteMsg::Request(request) => {
@@ -50,7 +51,7 @@ impl<'a, T, E: From<cosmwasm_std::StdError> + From<ApiError>, C> ExecuteEndpoint
                         .map_err(|_| ApiError::UnauthorizedApiRequest {})?,
                 };
                 self.target_os = Some(core);
-                request_handler(deps, env, info, self, request.request)
+                self.execute_handler()?(deps, env, info, self, request.request)
             }
             ExecuteMsg::Configure(exec_msg) => self
                 .base_execute(deps, env, info.clone(), exec_msg)
@@ -64,7 +65,14 @@ impl<'a, T, E: From<cosmwasm_std::StdError> + From<ApiError>, C> ExecuteEndpoint
 }
 
 /// The api-contract base implementation.
-impl<'a, T, C, E: From<cosmwasm_std::StdError> + From<ApiError>> ApiContract<'a, T, E, C> {
+impl<
+        Error: From<cosmwasm_std::StdError> + From<ApiError>,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        ReceiveMsg,
+    > ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
+{
     fn base_execute(
         &mut self,
         deps: DepsMut,
@@ -90,7 +98,7 @@ impl<'a, T, C, E: From<cosmwasm_std::StdError> + From<ApiError>> ApiContract<'a,
         let core = self.verify_sender_is_manager(deps, &info.sender)?;
         // Dangerous to forget!! add to verify fn?
         self.target_os = Some(core);
-        let dependencies = self.dependencies;
+        let dependencies = self.dependencies();
         let mut msgs: Vec<CosmosMsg> = vec![];
         for dep in dependencies {
             let api_addr =

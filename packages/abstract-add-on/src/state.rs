@@ -9,8 +9,8 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use abstract_sdk::{
-    memory::Memory, AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn,
-    InstantiateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn, ADMIN, BASE_STATE,
+    memory::Memory, AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
+    QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn, ADMIN, BASE_STATE,
 };
 
 use crate::AddOnError;

@@ -1,5 +1,5 @@
-use abstract_sdk::{QueryEndpoint, Handler};
-use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult, StdError};
+use abstract_sdk::{Handler, QueryEndpoint};
+use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdError, StdResult};
 
 use abstract_os::{
     ibc_host::{AccountInfo, AccountResponse, HostConfigResponse, ListAccountsResponse},
@@ -20,8 +20,8 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-    > QueryEndpoint for
-    Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+    > QueryEndpoint
+    for Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     type QueryMsg<Msg> = QueryMsg<Self::CustomQueryMsg>;
     fn query(
@@ -31,20 +31,21 @@ impl<
         msg: Self::QueryMsg<Self::CustomQueryMsg>,
     ) -> Result<Binary, StdError> {
         match msg {
-            QueryMsg::App(api_query) => self.query_handler()?(deps, env,self, api_query),
-            QueryMsg::Base(base_query) => self.base_query(deps, env, base_query).map_err(From::from),
+            QueryMsg::App(api_query) => self.query_handler()?(deps, env, self, api_query),
+            QueryMsg::Base(base_query) => {
+                self.base_query(deps, env, base_query).map_err(From::from)
+            }
         }
     }
 }
 impl<
-Error: From<cosmwasm_std::StdError> + From<HostError>,
-CustomExecMsg,
-CustomInitMsg,
-CustomQueryMsg,
-CustomMigrateMsg,
-ReceiveMsg,
-> 
-Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+        Error: From<cosmwasm_std::StdError> + From<HostError>,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+    > Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     fn base_query(&self, deps: Deps, _env: Env, query: BaseQueryMsg) -> StdResult<Binary> {
         match query {
@@ -61,8 +62,8 @@ Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, Rece
         Ok(HostConfigResponse {
             memory_address: state.memory.address,
         })
-    
-}}
+    }
+}
 pub fn query_account(deps: Deps, channel_id: String, os_id: u32) -> StdResult<AccountResponse> {
     let account = ACCOUNTS.may_load(deps.storage, (&channel_id, os_id))?;
     Ok(AccountResponse {

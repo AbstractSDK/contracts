@@ -2,7 +2,7 @@ use abstract_os::{
     abstract_ica::{DispatchResponse, RegisterResponse, StdAck},
     ibc_host::PacketMsg,
 };
-use abstract_sdk::{ReplyEndpoint, Handler};
+use abstract_sdk::{Handler, ReplyEndpoint};
 use cosmwasm_std::{DepsMut, Empty, Env, Reply, Response};
 use cw_utils::parse_reply_instantiate_data;
 
@@ -21,9 +21,9 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-    >  ReplyEndpoint for Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+    > ReplyEndpoint
+    for Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
-
     fn handle_reply(
         mut self,
         deps: DepsMut,
@@ -57,13 +57,13 @@ impl<
 }
 
 pub fn reply_dispatch_callback<
-        Error: From<cosmwasm_std::StdError> + From<HostError>,
-        CustomExecMsg,
-        CustomInitMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        ReceiveMsg,
-    >(
+    Error: From<cosmwasm_std::StdError> + From<HostError>,
+    CustomExecMsg,
+    CustomInitMsg,
+    CustomQueryMsg,
+    CustomMigrateMsg,
+    ReceiveMsg,
+>(
     deps: DepsMut,
     _env: Env,
     host: Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>,
@@ -80,13 +80,13 @@ pub fn reply_dispatch_callback<
 }
 
 pub fn reply_init_callback<
-        Error: From<cosmwasm_std::StdError> + From<HostError>,
-        CustomExecMsg,
-        CustomInitMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        ReceiveMsg,
-    >(
+    Error: From<cosmwasm_std::StdError> + From<HostError>,
+    CustomExecMsg,
+    CustomInitMsg,
+    CustomQueryMsg,
+    CustomMigrateMsg,
+    ReceiveMsg,
+>(
     deps: DepsMut,
     _env: Env,
     host: Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>,
@@ -98,7 +98,9 @@ pub fn reply_init_callback<
     PENDING.remove(deps.storage);
 
     // parse contract info from data
-    let raw_addr = parse_reply_instantiate_data(reply).map_err(HostError::from)?.contract_address;
+    let raw_addr = parse_reply_instantiate_data(reply)
+        .map_err(HostError::from)?
+        .contract_address;
     let contract_addr = deps.api.addr_validate(&raw_addr)?;
 
     if ACCOUNTS

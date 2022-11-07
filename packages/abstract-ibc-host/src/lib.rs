@@ -9,6 +9,7 @@ pub use crate::state::Host;
 pub mod chains;
 pub mod error;
 mod execute;
+mod handler;
 pub(crate) mod host_commands;
 pub mod instantiate;
 pub mod os_commands;
@@ -17,7 +18,6 @@ mod reply;
 pub mod state;
 /// Abstract SDK trait implementations
 pub mod traits;
-mod handler;
 
 // Default to Empty
 pub type ApiResult<C = Empty> = Result<Response<C>, HostError>;

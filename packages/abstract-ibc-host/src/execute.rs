@@ -20,8 +20,7 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-    > 
-    Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+    > Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     /// Takes ibc request, matches and executes
     /// This fn is the only way to get an Host instance.
@@ -36,8 +35,7 @@ impl<
             Self,
             CustomExecMsg,
         ) -> Result<IbcReceiveResponse, RequestError>,
-    ) -> Result<IbcReceiveResponse, RequestError>
-    {
+    ) -> Result<IbcReceiveResponse, RequestError> {
         let packet = packet.packet;
         // which local channel did this packet come on
         let channel = packet.dest.channel_id;
