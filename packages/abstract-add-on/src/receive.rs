@@ -1,6 +1,6 @@
 use crate::{error::AddOnError, state::AddOnContract};
 
-use abstract_sdk::{ReceiveEndpoint, ReceiveHandlerFn};
+use abstract_sdk::ReceiveEndpoint;
 
 impl<
         Error: From<cosmwasm_std::StdError> + From<AddOnError>,

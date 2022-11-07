@@ -1,6 +1,6 @@
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
-use crate::{base::contract_base::ReceiveHandlerFn, Handler};
+use crate::Handler;
 
 pub trait ReceiveEndpoint: Handler {
     fn handle_receive(

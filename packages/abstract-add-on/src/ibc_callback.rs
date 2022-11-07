@@ -1,4 +1,4 @@
-use abstract_sdk::{Handler, IbcCallbackEndpoint, IbcCallbackHandlerFn};
+use abstract_sdk::IbcCallbackEndpoint;
 
 use crate::{AddOnContract, AddOnError};
 

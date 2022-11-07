@@ -1,7 +1,6 @@
-use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError};
-use serde::Serialize;
+use cosmwasm_std::{Binary, Deps, Env, StdError};
 
-use crate::{base::contract_base::QueryHandlerFn, Handler};
+use crate::Handler;
 
 pub trait QueryEndpoint: Handler {
     type QueryMsg<Msg>;

@@ -1,5 +1,5 @@
-use abstract_api::{ApiContract, ApiResult};
-use abstract_os::api::{BaseInstantiateMsg, ExecuteMsg, InstantiateMsg, QueryMsg};
+use abstract_api::ApiContract;
+use abstract_os::api::{ExecuteMsg, InstantiateMsg, QueryMsg};
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response};
 use cosmwasm_std::{Empty, StdResult};
 

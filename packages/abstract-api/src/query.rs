@@ -1,5 +1,5 @@
 use abstract_sdk::{Handler, QueryEndpoint};
-use cosmwasm_std::{to_binary, Binary, Deps, Empty, Env, StdError, StdResult};
+use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError, StdResult};
 
 use abstract_os::api::{ApiConfigResponse, BaseQueryMsg, QueryMsg, TradersResponse};
 

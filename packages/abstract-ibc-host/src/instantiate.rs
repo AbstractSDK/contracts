@@ -1,5 +1,5 @@
-use abstract_os::ibc_host::{BaseInstantiateMsg, InstantiateMsg};
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdResult};
+use abstract_os::ibc_host::InstantiateMsg;
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 use abstract_sdk::{memory::Memory, Handler, InstantiateEndpoint};
 

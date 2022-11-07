@@ -1,4 +1,4 @@
-use abstract_sdk::{Handler, ReplyEndpoint};
+use abstract_sdk::ReplyEndpoint;
 
 use crate::{AddOnContract, AddOnError};
 

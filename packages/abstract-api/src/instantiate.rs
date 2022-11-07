@@ -1,5 +1,5 @@
 use abstract_os::api::InstantiateMsg;
-use cosmwasm_std::{Api, DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 use abstract_sdk::{memory::Memory, Handler, InstantiateEndpoint};
 use serde::Serialize;

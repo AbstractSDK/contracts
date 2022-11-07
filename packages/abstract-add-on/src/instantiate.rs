@@ -3,11 +3,10 @@ use abstract_os::{
     module_factory::{ContextResponse, QueryMsg as FactoryQuery},
 };
 use cosmwasm_std::{
-    to_binary, DepsMut, Env, MessageInfo, QueryRequest, Response, StdError, StdResult, WasmQuery,
+    to_binary, DepsMut, Env, MessageInfo, QueryRequest, Response, StdError, WasmQuery,
 };
 
 use abstract_sdk::{memory::Memory, Handler, InstantiateEndpoint};
-use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
     state::{AddOnContract, AddOnState},

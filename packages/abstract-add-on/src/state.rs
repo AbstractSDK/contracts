@@ -1,8 +1,5 @@
-use std::marker::PhantomData;
+use cosmwasm_std::{Addr, Empty, StdResult, Storage};
 
-use abstract_os::objects::module::Module;
-use cosmwasm_std::{Addr, DepsMut, Empty, Env, MessageInfo, Response, StdResult, Storage};
-use cw2::{ContractVersion, CONTRACT};
 use cw_controllers::Admin;
 use cw_storage_plus::Item;
 use schemars::JsonSchema;

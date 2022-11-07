@@ -1,5 +1,4 @@
 use abstract_sdk::{AbstractContract, Handler};
-use cosmwasm_std::Empty;
 
 use crate::{AddOnContract, AddOnError};
 

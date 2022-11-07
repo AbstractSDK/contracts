@@ -1,8 +1,6 @@
-use cosmwasm_std::{DepsMut, Env, Response, StdError};
-use cw2::{get_contract_version, set_contract_version};
-use semver::Version;
+use cosmwasm_std::{DepsMut, Env, Response};
 
-use crate::{base::contract_base::MigrateHandlerFn, Handler};
+use crate::Handler;
 
 pub type Name = &'static str;
 pub type VersionString = &'static str;

@@ -1,4 +1,4 @@
-use std::{collections::HashSet, marker::PhantomData};
+use std::collections::HashSet;
 
 use abstract_os::version_control::Core;
 use abstract_sdk::{
@@ -7,7 +7,7 @@ use abstract_sdk::{
 };
 
 use cosmwasm_std::{Addr, Empty, StdError, StdResult, Storage};
-use cw2::{ContractVersion, CONTRACT};
+
 use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};

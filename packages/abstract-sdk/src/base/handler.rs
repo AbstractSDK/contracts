@@ -20,6 +20,7 @@ where
     type CustomQueryMsg;
     type CustomMigrateMsg;
     type ReceiveMsg;
+    #[allow(clippy::type_complexity)]
     fn contract(
         &self,
     ) -> &AbstractContract<

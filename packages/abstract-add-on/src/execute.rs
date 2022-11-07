@@ -1,7 +1,4 @@
-use abstract_os::{
-    abstract_ica::IbcResponseMsg,
-    add_on::{BaseExecuteMsg, ExecuteMsg},
-};
+use abstract_os::add_on::{BaseExecuteMsg, ExecuteMsg};
 
 use abstract_sdk::{ExecuteEndpoint, Handler, IbcCallbackEndpoint};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};

@@ -66,7 +66,7 @@ pub fn reply_dispatch_callback<
 >(
     deps: DepsMut,
     _env: Env,
-    host: Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>,
+    _host: Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>,
     reply: Reply,
 ) -> Result<Response, Error> {
     // add the new result to the current tracker
@@ -89,7 +89,7 @@ pub fn reply_init_callback<
 >(
     deps: DepsMut,
     _env: Env,
-    host: Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>,
+    _host: Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>,
 
     reply: Reply,
 ) -> Result<Response, Error> {

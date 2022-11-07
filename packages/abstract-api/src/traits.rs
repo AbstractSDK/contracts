@@ -99,7 +99,7 @@ impl<
         let dep_addr = self.dependency_address(deps, dependency_name)?;
         let api_request_msg = ApiRequestMsg {
             proxy_address: Some(proxy.to_string()),
-            request: request_msg.clone(),
+            request: request_msg,
         };
         api_request(dep_addr, api_request_msg, funds)
     }

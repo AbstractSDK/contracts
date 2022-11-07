@@ -1,18 +1,11 @@
 use abstract_os::abstract_ica::StdAck;
 use cosmwasm_std::{
-    Addr, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Reply, Response, StdError, StdResult,
-    Storage,
+    Binary, Deps, DepsMut, Empty, Env, MessageInfo, Reply, Response, StdError, StdResult, Storage,
 };
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Item;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
-use crate::{
-    memory::Memory,
-    traits::migrate::{Name, VersionString},
-    ADMIN, BASE_STATE,
-};
+use crate::traits::migrate::{Name, VersionString};
 
 use super::handler::Handler;
 

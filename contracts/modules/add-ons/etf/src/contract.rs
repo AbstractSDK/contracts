@@ -46,12 +46,12 @@ const ETF_ADDON: EtfAddOn = EtfAddOn::new(ETF, CONTRACT_VERSION)
 // Instantiate
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
-    mut deps: DepsMut,
+    deps: DepsMut,
     env: Env,
     info: MessageInfo,
     msg: InstantiateMsg<EtfInstantiateMsg>,
 ) -> EtfResult {
-    ETF_ADDON.instantiate(deps.branch(), env.clone(), info, msg)
+    ETF_ADDON.instantiate(deps, env, info, msg)
 }
 
 // Reply
@@ -123,7 +123,7 @@ fn handle_init(
         }
         .into(),
         gas_limit: None,
-        id: u64::from(INSTANTIATE_REPLY_ID),
+        id: INSTANTIATE_REPLY_ID,
         reply_on: ReplyOn::Success,
     }))
 }
@@ -142,7 +142,7 @@ pub fn handle_init_reply(deps: DepsMut, _env: Env, _etf: EtfAddOn, reply: Reply)
         Ok(meta)
     })?;
 
-    return Ok(Response::new().add_attribute("liquidity_token_addr", liquidity_token));
+    Ok(Response::new().add_attribute("liquidity_token_addr", liquidity_token))
 }
 
 fn request_handler(

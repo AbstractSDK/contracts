@@ -66,8 +66,8 @@ pub fn instantiate(
 pub fn instantiate_handler(
     deps: DepsMut,
     env: Env,
-    info: MessageInfo,
-    app: SubscriptionAddOn,
+    _info: MessageInfo,
+    _app: SubscriptionAddOn,
     msg: InstantiateMsg,
 ) -> SubscriptionResult {
     let subscription_config: SubscriptionConfig = SubscriptionConfig {
@@ -202,8 +202,8 @@ pub fn query(deps: Deps, env: Env, msg: AddOnQueryMsg<QueryMsg>) -> StdResult<Bi
 }
 pub fn query_handler(
     deps: Deps,
-    env: Env,
-    add_on: &SubscriptionAddOn,
+    _env: Env,
+    _add_on: &SubscriptionAddOn,
     msg: QueryMsg,
 ) -> StdResult<Binary> {
     match msg {

@@ -1,6 +1,6 @@
-use abstract_api::{ApiContract, ApiResult};
+use abstract_api::ApiContract;
 use abstract_os::{
-    api::{BaseInstantiateMsg, ExecuteMsg, InstantiateMsg, QueryMsg},
+    api::{ExecuteMsg, InstantiateMsg, QueryMsg},
     dex::{DexAction, DexName, DexQueryMsg, DexRequestMsg, IBC_DEX_ID},
     ibc_client::CallbackInfo,
     objects::AssetEntry,

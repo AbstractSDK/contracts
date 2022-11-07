@@ -1,11 +1,7 @@
-use abstract_os::{
-    abstract_ica::{IbcResponseMsg, StdAck},
-    objects::UncheckedContractEntry,
-    IBC_CLIENT,
-};
+use abstract_os::{abstract_ica::IbcResponseMsg, objects::UncheckedContractEntry, IBC_CLIENT};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
 
-use crate::{base::contract_base::IbcCallbackHandlerFn, Handler, MemoryOperation};
+use crate::{Handler, MemoryOperation};
 
 pub trait IbcCallbackEndpoint: Handler + MemoryOperation {
     /// Takes request, sets destination and executes request handler
