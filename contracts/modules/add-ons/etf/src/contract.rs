@@ -37,11 +37,11 @@ pub type EtfAddOn =
 pub type EtfResult = Result<Response, VaultError>;
 
 const ETF_ADDON: EtfAddOn = EtfAddOn::new(ETF, CONTRACT_VERSION)
-    .with_instantiate(handle_init)
-    .with_execute(request_handler)
+    .with_instantiate(instantiate_handler)
+    .with_execute(execute_handler)
     .with_query(query_handler)
     .with_receive(receive_cw20)
-    .with_replies(&[(INSTANTIATE_REPLY_ID, handle_init_reply)]);
+    .with_replies(&[(INSTANTIATE_REPLY_ID, instantiate_reply_handler)]);
 
 // Instantiate
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -79,7 +79,7 @@ pub fn execute(
 
 // #### Handlers ####
 
-fn handle_init(
+fn instantiate_handler(
     deps: DepsMut,
     env: Env,
     _info: MessageInfo,
@@ -128,7 +128,7 @@ fn handle_init(
     }))
 }
 
-pub fn handle_init_reply(deps: DepsMut, _env: Env, _etf: EtfAddOn, reply: Reply) -> EtfResult {
+pub fn instantiate_reply_handler(deps: DepsMut, _env: Env, _etf: EtfAddOn, reply: Reply) -> EtfResult {
     let data = reply.result.unwrap().data.unwrap();
     let res: MsgInstantiateContractResponse =
         Message::parse_from_bytes(data.as_slice()).map_err(|_| {
@@ -145,7 +145,7 @@ pub fn handle_init_reply(deps: DepsMut, _env: Env, _etf: EtfAddOn, reply: Reply)
     Ok(Response::new().add_attribute("liquidity_token_addr", liquidity_token))
 }
 
-fn request_handler(
+fn execute_handler(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
