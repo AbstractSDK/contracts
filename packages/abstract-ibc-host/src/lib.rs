@@ -17,6 +17,7 @@ mod reply;
 pub mod state;
 /// Abstract SDK trait implementations
 pub mod traits;
+mod handler;
 
 // Default to Empty
 pub type ApiResult<C = Empty> = Result<Response<C>, HostError>;

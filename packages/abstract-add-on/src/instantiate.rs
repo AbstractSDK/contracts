@@ -18,7 +18,7 @@ use cw2::set_contract_version;
 impl<
         Error: From<cosmwasm_std::StdError> + From<AddOnError>,
         CustomExecMsg,
-        CustomInitMsg,
+        CustomInitMsg: Serialize,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,

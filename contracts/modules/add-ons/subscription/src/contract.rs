@@ -1,7 +1,7 @@
 use abstract_add_on::AddOnContract;
 
 use abstract_os::SUBSCRIPTION;
-use abstract_sdk::{get_os_core, ExecuteEndpoint};
+use abstract_sdk::{get_os_core, ExecuteEndpoint, QueryEndpoint, InstantiateEndpoint};
 use cosmwasm_std::{
     entry_point, to_binary, Binary, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdError,
     StdResult, Uint128,
@@ -25,9 +25,9 @@ use abstract_os::subscription::{
 };
 
 pub type SubscriptionResult = Result<Response, SubscriptionError>;
-pub type SubscriptionAddOn<'a> = AddOnContract<'a, ExecuteMsg, SubscriptionError, Cw20ReceiveMsg>;
-const SUBSCRIPTION_MODULE: SubscriptionAddOn<'static> =
-    SubscriptionAddOn::new().with_receive(receive_cw20);
+pub type SubscriptionAddOn = AddOnContract< SubscriptionError, ExecuteMsg,InstantiateMsg,QueryMsg,MigrateMsg,Cw20ReceiveMsg>;
+const SUBSCRIPTION_MODULE: SubscriptionAddOn=
+    SubscriptionAddOn::new(SUBSCRIPTION, CONTRACT_VERSION).with_execute(request_handler).with_instantiate(instantiate_handler).with_query(query_handler).with_receive(receive_cw20);
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -44,35 +44,31 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> SubscriptionResult
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
-    mut deps: DepsMut,
+    deps: DepsMut,
     env: Env,
     info: MessageInfo,
     msg: AddOnInstantiateMsg<InstantiateMsg>,
 ) -> SubscriptionResult {
-    SubscriptionAddOn::instantiate(
-        deps.branch(),
-        env.clone(),
-        info,
-        msg.base,
-        SUBSCRIPTION,
-        CONTRACT_VERSION,
-    )?;
-    let msg = msg.custom;
+    SUBSCRIPTION_MODULE.instantiate(deps, env, info, msg)
+    
+}
+
+pub fn instantiate_handler(deps: DepsMut, env: Env, info: MessageInfo, app: SubscriptionAddOn, msg:InstantiateMsg) -> SubscriptionResult{
     let subscription_config: SubscriptionConfig = SubscriptionConfig {
         payment_asset: msg.subscription.payment_asset.check(deps.api, None)?,
         subscription_cost_per_block: msg.subscription.subscription_cost_per_block,
         version_control_address: deps
-            .api
-            .addr_validate(&msg.subscription.version_control_addr)?,
+        .api
+        .addr_validate(&msg.subscription.version_control_addr)?,
         factory_address: deps.api.addr_validate(&msg.subscription.factory_addr)?,
         subscription_per_block_emissions: msg
-            .subscription
-            .subscription_per_block_emissions
-            .check(deps.api)?,
+        .subscription
+        .subscription_per_block_emissions
+        .check(deps.api)?,
     };
-
+    
     let subscription_state: SubscriptionState = SubscriptionState { active_subs: 0 };
-
+    
     // Optional contribution setup
     if let Some(msg) = msg.contribution {
         let contributor_config: ContributionConfig = ContributionConfig {
@@ -84,7 +80,7 @@ pub fn instantiate(
             token_info: msg.token_info.check(deps.api, None)?,
         }
         .verify()?;
-
+        
         let contributor_state: ContributionState = ContributionState {
             income_target: Decimal::zero(),
             expense: Decimal::zero(),
@@ -95,13 +91,13 @@ pub fn instantiate(
         CONTRIBUTION_STATE.save(deps.storage, &contributor_state)?;
         INCOME_TWA.instantiate(deps.storage, &env, None, msg.income_averaging_period.u64())?;
     }
-
+    
     SUBSCRIPTION_CONFIG.save(deps.storage, &subscription_config)?;
     SUBSCRIPTION_STATE.save(deps.storage, &subscription_state)?;
-
+    
     Ok(Response::new())
+        
 }
-
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(
     deps: DepsMut,
@@ -109,7 +105,7 @@ pub fn execute(
     info: MessageInfo,
     msg: AddOnExecuteMsg<ExecuteMsg, Cw20ReceiveMsg>,
 ) -> SubscriptionResult {
-    SUBSCRIPTION_MODULE.execute(deps, env, info, msg, request_handler)
+    SUBSCRIPTION_MODULE.execute(deps, env, info, msg)
 }
 
 fn request_handler(
@@ -185,12 +181,11 @@ fn request_handler(
         ),
     }
 }
-
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: AddOnQueryMsg<QueryMsg>) -> StdResult<Binary> {
-    match msg {
-        AddOnQueryMsg::Base(message) => SUBSCRIPTION_MODULE.query(deps, env, message),
-        AddOnQueryMsg::AddOn(msg) => {
+    SUBSCRIPTION_MODULE.query(deps, env, msg)
+}
+pub fn query_handler(deps: Deps, env: Env,add_on: &SubscriptionAddOn, msg: QueryMsg) -> StdResult<Binary> {
             match msg {
                 // handle dapp-specific queries here
                 QueryMsg::State {} => {
@@ -259,5 +254,3 @@ pub fn query(deps: Deps, env: Env, msg: AddOnQueryMsg<QueryMsg>) -> StdResult<Bi
                 }
             }
         }
-    }
-}

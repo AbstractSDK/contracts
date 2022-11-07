@@ -21,7 +21,13 @@ pub struct BaseInstantiateMsg {
     /// Code-id for cw1 proxy contract
     pub cw1_code_id: u64,
 }
-
+#[cosmwasm_schema::cw_serde]
+pub struct InstantiateMsg<I = Empty> {
+    /// base api instantiate information
+    pub base: BaseInstantiateMsg,
+    /// custom instantiate msg attributes
+    pub custom: I,
+}
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
 

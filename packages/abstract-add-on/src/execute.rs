@@ -5,16 +5,17 @@ use abstract_os::{
 
 use abstract_sdk::{ExecuteEndpoint, Handler, IbcCallbackEndpoint};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
+use serde::Serialize;
 
 use crate::{state::AddOnContract, AddOnError, AddOnResult};
 
 impl<
         Error: From<cosmwasm_std::StdError> + From<AddOnError> + 'static,
-        CustomExecMsg,
+        CustomExecMsg: Serialize,
         CustomInitMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg,
+        ReceiveMsg: Serialize,
     > ExecuteEndpoint
     for AddOnContract<
         Error,

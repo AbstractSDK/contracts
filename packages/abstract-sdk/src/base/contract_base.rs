@@ -56,7 +56,7 @@ pub struct AbstractContract<
     pub(crate) ibc_callback_handlers:
         &'static [(&'static str, IbcCallbackHandlerFn<Module, Error>)],
     /// Expected replies
-    pub(crate) reply_handlers: [&'static [(u64, ReplyHandlerFn<Module, Error>)]; 2],
+    pub reply_handlers: [&'static [(u64, ReplyHandlerFn<Module, Error>)]; 2],
     /// Handler of execute messages
     pub(crate) execute_handler: Option<ExecuteHandlerFn<Module, CustomExecMsg, Error>>,
     /// Handler of instantiate messages
@@ -104,7 +104,12 @@ where
             query_handler: None,
         }
     }
-
+    pub fn version(&self,store: &dyn Storage) -> StdResult<ContractVersion> {
+        self.version.load(store)
+    }
+    pub fn info(&self) -> (&str, &str) {
+        self.info
+    }
     /// add dependencies to the contract
     pub const fn with_dependencies(mut self, dependencies: &'static [&'static str]) -> Self {
         self.dependencies = dependencies;

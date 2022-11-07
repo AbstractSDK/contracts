@@ -3,14 +3,32 @@ use cosmwasm_std::{wasm_execute, Deps, StdError, StdResult, Storage, SubMsg};
 
 use crate::{Host, HostError};
 
-impl<T> MemoryOperation for Host<'_, T> {
+impl<
+        Error: From<cosmwasm_std::StdError> + From<HostError>,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+    > MemoryOperation for 
+    Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+{
     fn load_memory(&self, store: &dyn Storage) -> StdResult<abstract_sdk::memory::Memory> {
         Ok(self.base_state.load(store)?.memory)
     }
 }
 
 /// Execute a set of CosmosMsgs on the proxy contract of an OS.
-impl<T> OsExecute for Host<'_, T> {
+impl<
+        Error: From<cosmwasm_std::StdError> + From<HostError>,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+    >  OsExecute for
+    Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+{
     fn os_execute(
         &self,
         _deps: Deps,

@@ -11,7 +11,16 @@ use crate::reply::RECEIVE_DISPATCH_ID;
 use crate::state::RESULTS;
 use crate::{Host, HostError};
 
-impl<'a, T> Host<'a, T> {
+impl<
+        Error: From<cosmwasm_std::StdError> + From<HostError>,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+    > 
+    Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+{
     // processes PacketMsg::Balances variant
     pub fn receive_balances(&self, deps: DepsMut) -> Result<IbcReceiveResponse, HostError> {
         let account = self.proxy_address.as_ref().unwrap();

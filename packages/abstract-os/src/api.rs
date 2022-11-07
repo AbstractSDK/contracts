@@ -15,7 +15,7 @@ use serde::Serialize;
 /// Used by Abstract to instantiate the contract
 /// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::AddApi`].
 #[cosmwasm_schema::cw_serde]
-pub struct InstantiateMsg<I: Serialize = Empty> {
+pub struct InstantiateMsg<I = Empty> {
     /// base api instantiate information
     pub base: BaseInstantiateMsg,
     /// custom instantiate msg attributes

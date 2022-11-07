@@ -1,4 +1,5 @@
 use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError};
+use serde::Serialize;
 
 use crate::{base::contract_base::QueryHandlerFn, Handler};
 

@@ -136,10 +136,17 @@ pub fn receive_query(
 
 // processes PacketMsg::Register variant
 /// Creates and registers proxy for remote OS
-pub fn receive_register<T>(
+pub fn receive_register<
+        Error: From<cosmwasm_std::StdError> + From<HostError>,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+    >(
     deps: DepsMut,
     env: Env,
-    host: Host<T>,
+    host: Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>,
     channel: String,
     os_id: u32,
     os_proxy_address: String,

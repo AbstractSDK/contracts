@@ -1,4 +1,5 @@
-use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult};
+use abstract_sdk::{QueryEndpoint, Handler};
+use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult, StdError};
 
 use abstract_os::{
     ibc_host::{AccountInfo, AccountResponse, HostConfigResponse, ListAccountsResponse},
@@ -10,28 +11,42 @@ use crate::{
     HostError,
 };
 
-pub type HostQueryHandlerFn<Q, QueryError> = Option<fn(Deps, Env, Q) -> Result<Binary, QueryError>>;
-
 /// Where we dispatch the queries for the Host
 /// These ApiQueryMsg declarations can be found in `abstract_os::common_module::add_on_msg`
-impl<'a, T> Host<'a, T> {
-    pub fn handle_query<Q, QueryError: From<cosmwasm_std::StdError> + From<HostError>>(
+impl<
+        Error: From<cosmwasm_std::StdError> + From<HostError>,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+    > QueryEndpoint for
+    Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+{
+    type QueryMsg<Msg> = QueryMsg<Self::CustomQueryMsg>;
+    fn query(
         &self,
         deps: Deps,
         env: Env,
-        msg: QueryMsg<Q>,
-        custom_query_handler: HostQueryHandlerFn<Q, QueryError>,
-    ) -> Result<Binary, QueryError> {
+        msg: Self::QueryMsg<Self::CustomQueryMsg>,
+    ) -> Result<Binary, StdError> {
         match msg {
-            QueryMsg::App(api_query) => custom_query_handler
-                .map(|func| func(deps, env, api_query))
-                .transpose()?
-                .ok_or_else(|| HostError::NoCustomQueries {}.into()),
-            QueryMsg::Base(base_query) => self.query(deps, env, base_query).map_err(From::from),
+            QueryMsg::App(api_query) => self.query_handler()?(deps, env,self, api_query),
+            QueryMsg::Base(base_query) => self.base_query(deps, env, base_query).map_err(From::from),
         }
     }
-
-    fn query(&self, deps: Deps, _env: Env, query: BaseQueryMsg) -> StdResult<Binary> {
+}
+impl<
+Error: From<cosmwasm_std::StdError> + From<HostError>,
+CustomExecMsg,
+CustomInitMsg,
+CustomQueryMsg,
+CustomMigrateMsg,
+ReceiveMsg,
+> 
+Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+{
+    fn base_query(&self, deps: Deps, _env: Env, query: BaseQueryMsg) -> StdResult<Binary> {
         match query {
             BaseQueryMsg::Config {} => to_binary(&self.dapp_config(deps)?),
             BaseQueryMsg::Account {
@@ -41,14 +56,13 @@ impl<'a, T> Host<'a, T> {
             BaseQueryMsg::ListAccounts {} => to_binary(&query_list_accounts(deps)?),
         }
     }
-
     fn dapp_config(&self, deps: Deps) -> StdResult<HostConfigResponse> {
         let state = self.base_state.load(deps.storage)?;
         Ok(HostConfigResponse {
             memory_address: state.memory.address,
         })
-    }
-}
+    
+}}
 pub fn query_account(deps: Deps, channel_id: String, os_id: u32) -> StdResult<AccountResponse> {
     let account = ACCOUNTS.may_load(deps.storage, (&channel_id, os_id))?;
     Ok(AccountResponse {

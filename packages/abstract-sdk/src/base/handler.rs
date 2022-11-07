@@ -114,7 +114,6 @@ where
         };
         Ok(handler)
     }
-
     fn maybe_ibc_callback_handler(
         &self,
         id: &str,
@@ -127,7 +126,7 @@ where
         }
         None
     }
-
+    
     fn maybe_reply_handler(&self, id: u64) -> Option<ReplyHandlerFn<Self, Self::Error>> {
         let contract = self.contract();
         for reply_handlers in contract.reply_handlers {
@@ -139,7 +138,7 @@ where
         }
         None
     }
-
+    
     fn reply_handler(&self, id: u64) -> StdResult<ReplyHandlerFn<Self, Self::Error>> {
         let Some(handler) = self.maybe_reply_handler(id) else {
             return Err(StdError::generic_err(format!{"expected reply handler for id: {id}"}))
