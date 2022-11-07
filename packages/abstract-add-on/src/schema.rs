@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path};
 
 use crate::{AddOnContract, AddOnError};
 use abstract_os::add_on::AddOnConfigResponse;
@@ -18,31 +18,31 @@ impl<
     >
     AddOnContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
-    pub fn export_schema(out_dir: &PathBuf) {
+    pub fn export_schema(out_dir: &Path) {
         export_schema_with_title(
             &schema_for!(<Self as ExecuteEndpoint>::ExecuteMsg),
-            &out_dir,
+            out_dir,
             "ExecuteMsg",
         );
         export_schema_with_title(
             &schema_for!(<Self as InstantiateEndpoint>::InstantiateMsg),
-            &out_dir,
+            out_dir,
             "InstantiateMsg",
         );
         export_schema_with_title(
             &schema_for!(<Self as QueryEndpoint>::QueryMsg),
-            &out_dir,
+            out_dir,
             "QueryMsg",
         );
         export_schema_with_title(
             &schema_for!(<Self as MigrateEndpoint>::MigrateMsg),
-            &out_dir,
+            out_dir,
             "MigrateMsg",
         );
-        export_schema_with_title(&schema_for!(AdminResponse), &out_dir, "AdminResponse");
+        export_schema_with_title(&schema_for!(AdminResponse), out_dir, "AdminResponse");
         export_schema_with_title(
             &schema_for!(AddOnConfigResponse),
-            &out_dir,
+            out_dir,
             "ConfigResponse",
         );
     }

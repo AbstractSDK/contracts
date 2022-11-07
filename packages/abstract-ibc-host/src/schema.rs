@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path};
 
 use abstract_sdk::{InstantiateEndpoint, MigrateEndpoint, QueryEndpoint};
 use cosmwasm_schema::{export_schema_with_title, schema_for};
@@ -16,20 +16,20 @@ impl<
         ReceiveMsg: Serialize + JsonSchema,
     > Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
-    pub fn export_schema(out_dir: &PathBuf) {
+    pub fn export_schema(out_dir: &Path) {
         export_schema_with_title(
             &schema_for!(<Self as InstantiateEndpoint>::InstantiateMsg),
-            &out_dir,
+            out_dir,
             "InstantiateMsg",
         );
         export_schema_with_title(
             &schema_for!(<Self as QueryEndpoint>::QueryMsg),
-            &out_dir,
+            out_dir,
             "QueryMsg",
         );
         export_schema_with_title(
             &schema_for!(<Self as MigrateEndpoint>::MigrateMsg),
-            &out_dir,
+            out_dir,
             "MigrateMsg",
         );
     }
