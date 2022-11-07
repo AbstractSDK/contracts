@@ -20,3 +20,5 @@ pub fn instantiate_reply(deps: DepsMut, _env: Env, _etf: EtfAddOn, reply: Reply)
 
     Ok(Response::new().add_attribute("liquidity_token_addr", liquidity_token))
 }
+
+pub const INSTANTIATE_REPLY_ID: u64 = 1u64;

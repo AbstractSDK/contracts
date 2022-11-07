@@ -23,10 +23,9 @@ use cw20_base::msg::InstantiateMsg as TokenInstantiateMsg;
 use crate::commands::{self, receive_cw20};
 use crate::error::VaultError;
 use crate::replies;
+use crate::replies::INSTANTIATE_REPLY_ID;
 use crate::response::MsgInstantiateContractResponse;
 use crate::state::{FEE, State, STATE};
-
-const INSTANTIATE_REPLY_ID: u64 = 1u64;
 
 const DEFAULT_LP_TOKEN_NAME: &str = "ETF LP token";
 const DEFAULT_LP_TOKEN_SYMBOL: &str = "etfLP";
@@ -55,10 +54,15 @@ pub fn instantiate(
     ETF_ADDON.instantiate(deps, env, info, msg)
 }
 
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn query(deps: Deps, env: Env, msg: QueryMsg<EtfQueryMsg>) -> StdResult<Binary> {
+    ETF_ADDON.query(deps, env, msg)
+}
+
 // Reply
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn reply(deps: DepsMut, env: Env, msg: Reply) -> EtfResult {
-    ETF_ADDON.handle_reply(deps, env, msg)
+    ETF_ADDON.reply(deps, env, msg)
 }
 
 // Migrate
@@ -158,7 +162,3 @@ fn query_handler(deps: Deps, _env: Env, _etf: &EtfAddOn, msg: EtfQueryMsg) -> St
     }
 }
 
-#[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, env: Env, msg: QueryMsg<EtfQueryMsg>) -> StdResult<Binary> {
-    ETF_ADDON.query(deps, env, msg)
-}

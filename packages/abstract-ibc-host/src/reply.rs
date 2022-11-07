@@ -24,7 +24,7 @@ impl<
     > ReplyEndpoint
     for Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
-    fn handle_reply(
+    fn reply(
         mut self,
         deps: DepsMut,
         env: Env,
