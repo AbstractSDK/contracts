@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "packages/abstract-os",
+    "packages/*",
     "contracts/native/*",
     "contracts/core/*",
     "contracts/testing",
