@@ -1,0 +1,84 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QueryMsg",
+  "oneOf": [
+    {
+      "description": "An AddOn query message. Forwards the msg to the associated proxy.",
+      "type": "object",
+      "required": [
+        "add_on"
+      ],
+      "properties": {
+        "add_on": {
+          "$ref": "#/definitions/EtfQueryMsg"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "A configuration message to whitelist traders.",
+      "type": "object",
+      "required": [
+        "base"
+      ],
+      "properties": {
+        "base": {
+          "$ref": "#/definitions/BaseQueryMsg"
+        }
+      },
+      "additionalProperties": false
+    }
+  ],
+  "definitions": {
+    "BaseQueryMsg": {
+      "oneOf": [
+        {
+          "description": "Returns [`AddOnConfigResponse`]",
+          "type": "object",
+          "required": [
+            "config"
+          ],
+          "properties": {
+            "config": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Returns the admin.",
+          "type": "object",
+          "required": [
+            "admin"
+          ],
+          "properties": {
+            "admin": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "EtfQueryMsg": {
+      "oneOf": [
+        {
+          "description": "Returns [`StateResponse`]",
+          "type": "object",
+          "required": [
+            "state"
+          ],
+          "properties": {
+            "state": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+}
