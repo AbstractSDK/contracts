@@ -1,4 +1,4 @@
-use std::path::{Path};
+use std::path::Path;
 
 use crate::{ApiContract, ApiError};
 use abstract_os::api::{ApiConfigResponse, TradersResponse};

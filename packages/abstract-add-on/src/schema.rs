@@ -1,4 +1,4 @@
-use std::path::{Path};
+use std::path::Path;
 
 use crate::{AddOnContract, AddOnError};
 use abstract_os::add_on::AddOnConfigResponse;
@@ -40,10 +40,6 @@ impl<
             "MigrateMsg",
         );
         export_schema_with_title(&schema_for!(AdminResponse), out_dir, "AdminResponse");
-        export_schema_with_title(
-            &schema_for!(AddOnConfigResponse),
-            out_dir,
-            "ConfigResponse",
-        );
+        export_schema_with_title(&schema_for!(AddOnConfigResponse), out_dir, "ConfigResponse");
     }
 }
