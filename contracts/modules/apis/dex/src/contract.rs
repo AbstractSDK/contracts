@@ -72,7 +72,7 @@ pub(crate) fn resolve_exchange(value: &str) -> Result<&'static dyn DEX, DexError
         LOOP => Ok(&Loop {}),
         #[cfg(feature = "terra")]
         TERRASWAP => Ok(&Terraswap {}),
-        _ => Err(DexError::UnknownDex(value.to_owned())),
+        _ => Err(DexError::ForeignDex(value.to_owned())),
     }
 }
 
