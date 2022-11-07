@@ -2,6 +2,8 @@ use abstract_os::ibc_host::InstantiateMsg;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 use abstract_sdk::{memory::Memory, Handler, InstantiateEndpoint};
+use schemars::JsonSchema;
+use serde::Serialize;
 
 use crate::{
     state::{Host, HostState, CLOSED_CHANNELS},
@@ -13,7 +15,7 @@ use cw2::set_contract_version;
 impl<
         Error: From<cosmwasm_std::StdError> + From<HostError>,
         CustomExecMsg,
-        CustomInitMsg,
+        CustomInitMsg: Serialize + JsonSchema,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
@@ -21,13 +23,13 @@ impl<
     for Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     /// Instantiate the API
-    type InstantiateMsg<Msg> = InstantiateMsg<Self::CustomInitMsg>;
+    type InstantiateMsg = InstantiateMsg<Self::CustomInitMsg>;
     fn instantiate(
         self,
         deps: DepsMut,
         env: Env,
         info: MessageInfo,
-        msg: Self::InstantiateMsg<Self::CustomInitMsg>,
+        msg: Self::InstantiateMsg,
     ) -> Result<Response, Error> {
         let memory = Memory {
             address: deps.api.addr_validate(&msg.base.memory_address)?,

@@ -10,24 +10,26 @@ use abstract_sdk::{
 use cosmwasm_std::{
     to_binary, Addr, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdError, WasmMsg,
 };
+use schemars::JsonSchema;
+use serde::Serialize;
 
 impl<
         Error: From<cosmwasm_std::StdError> + From<ApiError>,
-        CustomExecMsg,
+        CustomExecMsg: Serialize + JsonSchema,
         CustomInitMsg,
         CustomQueryMsg,
-        ReceiveMsg,
+        ReceiveMsg: Serialize + JsonSchema,
     > ExecuteEndpoint
     for ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
 {
-    type ExecuteMsg<Msg> = ExecuteMsg<CustomExecMsg, ReceiveMsg>;
+    type ExecuteMsg = ExecuteMsg<CustomExecMsg, ReceiveMsg>;
 
     fn execute(
         mut self,
         deps: DepsMut,
         env: Env,
         info: MessageInfo,
-        msg: Self::ExecuteMsg<Self::CustomExecMsg>,
+        msg: Self::ExecuteMsg,
     ) -> Result<Response, Error> {
         let sender = &info.sender;
         match msg {

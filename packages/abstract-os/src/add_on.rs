@@ -67,7 +67,7 @@ pub enum BaseQueryMsg {
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg<I = Empty> {
     /// base migrate information
-    pub base: BaseInstantiateMsg,
+    pub base: Empty,
     /// custom migrate msg attributes
     pub custom: I,
 }

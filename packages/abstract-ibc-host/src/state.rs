@@ -1,5 +1,5 @@
 use abstract_os::ibc_host::PacketMsg;
-use abstract_sdk::{memory::Memory, AbstractContract, ReplyHandlerFn, BASE_STATE};
+use abstract_sdk::{memory::Memory, AbstractContract, ReplyHandlerFn, BASE_STATE, InstantiateHandlerFn, ReceiveHandlerFn, ExecuteHandlerFn, QueryHandlerFn};
 
 use cosmwasm_std::{Addr, Binary, Empty, StdResult, Storage};
 
@@ -82,7 +82,7 @@ impl<
     }
 
     /// add reply handler to contract
-    pub const fn with_reply_handlers(
+    pub const fn with_replies(
         mut self,
         reply_handlers: &'static [(u64, ReplyHandlerFn<Self, Error>)],
     ) -> Self {
@@ -99,6 +99,35 @@ impl<
 
     pub fn target(&self) -> Result<&Addr, HostError> {
         self.proxy_address.as_ref().ok_or(HostError::NoTarget)
+    }
+
+    pub const fn with_instantiate(
+        mut self,
+        instantiate_handler: InstantiateHandlerFn<Self, CustomInitMsg, Error>,
+    ) -> Self {
+        self.contract = self.contract.with_instantiate(instantiate_handler);
+        self
+    }
+
+    pub const fn with_receive(
+        mut self,
+        receive_handler: ReceiveHandlerFn<Self, ReceiveMsg, Error>,
+    ) -> Self {
+        self.contract = self.contract.with_receive(receive_handler);
+        self
+    }
+
+    pub const fn with_execute(
+        mut self,
+        execute_handler: ExecuteHandlerFn<Self, CustomExecMsg, Error>,
+    ) -> Self {
+        self.contract = self.contract.with_execute(execute_handler);
+        self
+    }
+
+    pub const fn with_query(mut self, query_handler: QueryHandlerFn<Self, CustomQueryMsg>) -> Self {
+        self.contract = self.contract.with_query(query_handler);
+        self
     }
 }
 

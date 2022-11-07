@@ -1,9 +1,11 @@
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
+use schemars::JsonSchema;
+use serde::Serialize;
 
 use crate::Handler;
 
 pub trait InstantiateEndpoint: Handler {
-    type InstantiateMsg<Msg>;
+    type InstantiateMsg: Serialize + JsonSchema;
 
     /// Instantiate the base contract
     fn instantiate(
@@ -11,6 +13,6 @@ pub trait InstantiateEndpoint: Handler {
         deps: DepsMut,
         env: Env,
         info: MessageInfo,
-        msg: Self::InstantiateMsg<Self::CustomInitMsg>,
+        msg: Self::InstantiateMsg,
     ) -> Result<Response, Self::Error>;
 }

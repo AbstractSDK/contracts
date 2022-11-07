@@ -3,12 +3,7 @@ use cosmwasm_std::{Binary, Deps, Env, StdError};
 use crate::Handler;
 
 pub trait QueryEndpoint: Handler {
-    type QueryMsg<Msg>;
+    type QueryMsg;
 
-    fn query(
-        &self,
-        deps: Deps,
-        env: Env,
-        msg: Self::QueryMsg<Self::CustomQueryMsg>,
-    ) -> Result<Binary, StdError>;
+    fn query(&self, deps: Deps, env: Env, msg: Self::QueryMsg) -> Result<Binary, StdError>;
 }

@@ -1,4 +1,4 @@
-use abstract_os::add_on::MigrateMsg;
+use abstract_os::ibc_host::MigrateMsg;
 use abstract_sdk::{Handler, MigrateEndpoint};
 use cosmwasm_std::{Response, StdError};
 use cw2::{get_contract_version, set_contract_version};
@@ -6,24 +6,17 @@ use schemars::JsonSchema;
 use semver::Version;
 use serde::Serialize;
 
-use crate::{AddOnContract, AddOnError};
+use crate::{Host, HostError};
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<AddOnError>,
+        Error: From<cosmwasm_std::StdError> + From<HostError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,
         CustomMigrateMsg: Serialize + JsonSchema,
         ReceiveMsg,
     > MigrateEndpoint
-    for AddOnContract<
-        Error,
-        CustomExecMsg,
-        CustomInitMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        ReceiveMsg,
-    >
+    for Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     type MigrateMsg = MigrateMsg<CustomMigrateMsg>;
 

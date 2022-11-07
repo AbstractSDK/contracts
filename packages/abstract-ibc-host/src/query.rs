@@ -23,13 +23,8 @@ impl<
     > QueryEndpoint
     for Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
-    type QueryMsg<Msg> = QueryMsg<Self::CustomQueryMsg>;
-    fn query(
-        &self,
-        deps: Deps,
-        env: Env,
-        msg: Self::QueryMsg<Self::CustomQueryMsg>,
-    ) -> Result<Binary, StdError> {
+    type QueryMsg = QueryMsg<Self::CustomQueryMsg>;
+    fn query(&self, deps: Deps, env: Env, msg: Self::QueryMsg) -> Result<Binary, StdError> {
         match msg {
             QueryMsg::App(api_query) => self.query_handler()?(deps, env, self, api_query),
             QueryMsg::Base(base_query) => {

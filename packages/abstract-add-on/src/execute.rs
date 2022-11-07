@@ -2,17 +2,18 @@ use abstract_os::add_on::{BaseExecuteMsg, ExecuteMsg};
 
 use abstract_sdk::{ExecuteEndpoint, Handler, IbcCallbackEndpoint};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
+use schemars::JsonSchema;
 use serde::Serialize;
 
 use crate::{state::AddOnContract, AddOnError, AddOnResult};
 
 impl<
         Error: From<cosmwasm_std::StdError> + From<AddOnError> + 'static,
-        CustomExecMsg: Serialize,
+        CustomExecMsg: Serialize + JsonSchema,
         CustomInitMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        ReceiveMsg: Serialize,
+        ReceiveMsg: Serialize + JsonSchema,
     > ExecuteEndpoint
     for AddOnContract<
         Error,
@@ -23,14 +24,14 @@ impl<
         ReceiveMsg,
     >
 {
-    type ExecuteMsg<Msg> = ExecuteMsg<CustomExecMsg, ReceiveMsg>;
+    type ExecuteMsg = ExecuteMsg<CustomExecMsg, ReceiveMsg>;
 
     fn execute(
         self,
         deps: DepsMut,
         env: Env,
         info: MessageInfo,
-        msg: Self::ExecuteMsg<CustomExecMsg>,
+        msg: Self::ExecuteMsg,
         // request_handler: impl FnOnce(DepsMut, Env, MessageInfo, Self, T) -> Result<Response, E>,
     ) -> Result<Response, Error> {
         match msg {

@@ -16,13 +16,8 @@ impl<
     > QueryEndpoint
     for ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
 {
-    type QueryMsg<Msg> = QueryMsg<Msg>;
-    fn query(
-        &self,
-        deps: Deps,
-        env: Env,
-        msg: Self::QueryMsg<CustomQueryMsg>,
-    ) -> Result<Binary, StdError> {
+    type QueryMsg = QueryMsg<CustomQueryMsg>;
+    fn query(&self, deps: Deps, env: Env, msg: Self::QueryMsg) -> Result<Binary, StdError> {
         match msg {
             QueryMsg::Api(msg) => self.query_handler()?(deps, env, self, msg),
             QueryMsg::Base(msg) => self.base_query(deps, env, msg),

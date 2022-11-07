@@ -22,14 +22,9 @@ impl<
         ReceiveMsg,
     >
 {
-    type QueryMsg<Msg> = QueryMsg<CustomQueryMsg>;
+    type QueryMsg = QueryMsg<CustomQueryMsg>;
 
-    fn query(
-        &self,
-        deps: Deps,
-        env: Env,
-        msg: Self::QueryMsg<Self::CustomQueryMsg>,
-    ) -> Result<Binary, StdError> {
+    fn query(&self, deps: Deps, env: Env, msg: Self::QueryMsg) -> Result<Binary, StdError> {
         match msg {
             QueryMsg::AddOn(msg) => self.query_handler()?(deps, env, self, msg),
             QueryMsg::Base(msg) => self.base_query(deps, env, msg),

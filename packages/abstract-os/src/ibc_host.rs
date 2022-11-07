@@ -29,8 +29,12 @@ pub struct InstantiateMsg<I = Empty> {
     pub custom: I,
 }
 #[cosmwasm_schema::cw_serde]
-pub struct MigrateMsg {}
-
+pub struct MigrateMsg<I = Empty> {
+    /// base migrate information
+    pub base: Empty,
+    /// custom migrate msg attributes
+    pub custom: I,
+}
 #[cosmwasm_schema::cw_serde]
 pub enum InternalAction {
     Register { os_proxy_address: String },

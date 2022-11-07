@@ -12,9 +12,11 @@ mod execute;
 mod handler;
 pub(crate) mod host_commands;
 pub mod instantiate;
+mod migrate;
 pub mod os_commands;
 mod query;
 mod reply;
+mod schema;
 pub mod state;
 /// Abstract SDK trait implementations
 pub mod traits;

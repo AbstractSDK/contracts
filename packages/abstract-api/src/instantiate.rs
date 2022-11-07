@@ -2,6 +2,7 @@ use abstract_os::api::InstantiateMsg;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 use abstract_sdk::{memory::Memory, Handler, InstantiateEndpoint};
+use schemars::JsonSchema;
 use serde::Serialize;
 
 use crate::{
@@ -14,20 +15,20 @@ use cw2::set_contract_version;
 impl<
         Error: From<cosmwasm_std::StdError> + From<ApiError>,
         CustomExecMsg,
-        CustomInitMsg: Serialize,
+        CustomInitMsg: Serialize + JsonSchema,
         CustomQueryMsg,
         ReceiveMsg,
     > InstantiateEndpoint
     for ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
 {
-    type InstantiateMsg<Msg> = InstantiateMsg<CustomInitMsg>;
+    type InstantiateMsg = InstantiateMsg<CustomInitMsg>;
     /// Instantiate the API
     fn instantiate(
         self,
         deps: DepsMut,
         env: Env,
         info: MessageInfo,
-        msg: Self::InstantiateMsg<Self::CustomInitMsg>,
+        msg: Self::InstantiateMsg,
     ) -> Result<Response, Error> {
         let memory = Memory {
             address: deps.api.addr_validate(&msg.base.memory_address)?,

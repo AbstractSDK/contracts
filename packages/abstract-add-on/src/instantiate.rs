@@ -7,6 +7,8 @@ use cosmwasm_std::{
 };
 
 use abstract_sdk::{memory::Memory, Handler, InstantiateEndpoint};
+use schemars::JsonSchema;
+use serde::Serialize;
 
 use crate::{
     state::{AddOnContract, AddOnState},
@@ -17,7 +19,7 @@ use cw2::set_contract_version;
 impl<
         Error: From<cosmwasm_std::StdError> + From<AddOnError>,
         CustomExecMsg,
-        CustomInitMsg,
+        CustomInitMsg: Serialize + JsonSchema,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
@@ -31,13 +33,13 @@ impl<
         ReceiveMsg,
     >
 {
-    type InstantiateMsg<Msg> = InstantiateMsg<Self::CustomInitMsg>;
+    type InstantiateMsg = InstantiateMsg<Self::CustomInitMsg>;
     fn instantiate(
         self,
         mut deps: DepsMut,
         env: Env,
         info: MessageInfo,
-        msg: Self::InstantiateMsg<Self::CustomInitMsg>,
+        msg: Self::InstantiateMsg,
     ) -> Result<Response, Error> {
         let BaseInstantiateMsg { memory_address } = msg.base;
         let memory = Memory {

@@ -15,6 +15,7 @@ mod migrate;
 mod query;
 mod receive;
 mod reply;
+mod schema;
 pub mod state;
 /// Abstract SDK trait implementations
 pub mod traits;
