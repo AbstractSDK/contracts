@@ -1,7 +1,7 @@
 use crate::contract::{EtfAddOn, EtfResult};
 use crate::response::MsgInstantiateContractResponse;
 use abstract_os::etf::state::STATE;
-use cosmwasm_std::{Api, DepsMut, Env, Reply, Response, StdError, StdResult};
+use cosmwasm_std::{DepsMut, Env, Reply, Response, StdError, StdResult};
 use protobuf::Message;
 
 pub fn instantiate_reply(deps: DepsMut, _env: Env, _etf: EtfAddOn, reply: Reply) -> EtfResult {

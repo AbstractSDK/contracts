@@ -2,12 +2,9 @@ use std::vec;
 
 use abstract_add_on::{export_endpoints, AddOnContract};
 
-use abstract_os::add_on::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use cosmwasm_std::{to_binary, Addr, Binary, Empty, ReplyOn, SubMsg, WasmMsg};
 
 use cw20::{Cw20ReceiveMsg, MinterResponse};
-
-use protobuf::Message;
 
 use abstract_os::etf::{EtfExecuteMsg, EtfInstantiateMsg, EtfQueryMsg, StateResponse};
 use abstract_os::objects::fee::Fee;
@@ -18,7 +15,7 @@ use crate::commands::{self, receive_cw20};
 use crate::error::VaultError;
 use crate::replies;
 use crate::replies::INSTANTIATE_REPLY_ID;
-use crate::response::MsgInstantiateContractResponse;
+
 use crate::state::{State, FEE, STATE};
 
 const DEFAULT_LP_TOKEN_NAME: &str = "ETF LP token";

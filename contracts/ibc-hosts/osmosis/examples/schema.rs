@@ -3,8 +3,7 @@ use std::fs::create_dir_all;
 
 use abstract_os::{
     api::{ApiConfigResponse, ExecuteMsg, TradersResponse},
-    dex::{DexQueryMsg, DexRequestMsg, SimulateSwapResponse},
-    ibc_host::{InstantiateMsg, QueryMsg},
+    dex::{DexRequestMsg, SimulateSwapResponse},
 };
 use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, schema_for};
 use osmosis_host::contract::OsmoHost;
