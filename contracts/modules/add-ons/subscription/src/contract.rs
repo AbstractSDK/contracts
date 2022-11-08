@@ -1,4 +1,4 @@
-use abstract_add_on::{AddOnContract, export_endpoints};
+use abstract_add_on::{export_endpoints, AddOnContract};
 
 use abstract_os::SUBSCRIPTION;
 use abstract_sdk::{get_os_core, ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint};

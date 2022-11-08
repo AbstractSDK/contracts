@@ -1,6 +1,6 @@
 use std::vec;
 
-use abstract_add_on::{AddOnContract, export_endpoints};
+use abstract_add_on::{export_endpoints, AddOnContract};
 
 use abstract_os::add_on::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use abstract_sdk::{
