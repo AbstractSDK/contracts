@@ -33,7 +33,7 @@ impl<
     ) -> Result<Response, Error> {
         let sender = &info.sender;
         match msg {
-            ExecuteMsg::Request(request) => {
+            ExecuteMsg::App(request) => {
                 let core = match request.proxy_address {
                     Some(addr) => {
                         let traders = self
@@ -55,7 +55,7 @@ impl<
                 self.target_os = Some(core);
                 self.execute_handler()?(deps, env, info, self, request.request)
             }
-            ExecuteMsg::Configure(exec_msg) => self
+            ExecuteMsg::Base(exec_msg) => self
                 .base_execute(deps, env, info.clone(), exec_msg)
                 .map_err(From::from),
             ExecuteMsg::IbcCallback(msg) => self.handle_ibc_callback(deps, env, info, msg),
