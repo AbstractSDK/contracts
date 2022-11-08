@@ -3,12 +3,9 @@ use std::vec;
 use abstract_add_on::{export_endpoints, AddOnContract};
 
 use abstract_os::add_on::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
-use abstract_sdk::{
-    ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint, ReplyEndpoint,
-};
 use cosmwasm_std::{
-    entry_point, to_binary, Addr, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Reply, ReplyOn,
-    Response, StdError, StdResult, SubMsg, WasmMsg,
+    to_binary, Addr, Binary, Empty, ReplyOn,
+    SubMsg, WasmMsg
 };
 
 use cw20::{Cw20ReceiveMsg, MinterResponse};

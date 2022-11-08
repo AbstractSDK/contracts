@@ -1,10 +1,10 @@
 use abstract_add_on::{export_endpoints, AddOnContract};
 
 use abstract_os::SUBSCRIPTION;
-use abstract_sdk::{get_os_core, ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint};
+use abstract_sdk::{get_os_core};
 use cosmwasm_std::{
-    entry_point, to_binary, Binary, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdError,
-    StdResult, Uint128,
+    to_binary, Binary, Decimal, StdError,
+    Uint128
 };
 use cw2::{get_contract_version, set_contract_version};
 use cw20::Cw20ReceiveMsg;
@@ -15,9 +15,7 @@ use semver::Version;
 use crate::commands::BLOCKS_PER_MONTH;
 use crate::commands::{self, receive_cw20};
 use crate::error::SubscriptionError;
-use abstract_os::add_on::{
-    ExecuteMsg as AddOnExecuteMsg, InstantiateMsg as AddOnInstantiateMsg, QueryMsg as AddOnQueryMsg,
-};
+
 use abstract_os::subscription::state::*;
 use abstract_os::subscription::{
     ConfigResponse, ContributorStateResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
