@@ -5,20 +5,19 @@
 //! ## Description
 //! An add-on is a contract that is allowed to perform actions on a [proxy](crate::proxy) contract while also being migratable.
 
-use abstract_ica::IbcResponseMsg;
+use crate::middleware::{
+    ExecuteMsg as MiddlewareExecMsg, InstantiateMsg as MiddlewareInstantiateMsg,
+    MigrateMsg as MiddlewareMigrateMsg, QueryMsg as MiddlewareQueryMsg,
+};
+
+pub type ExecuteMsg<T, R = Empty> = MiddlewareExecMsg<BaseExecuteMsg, T, R>;
+pub type QueryMsg<T = Empty> = MiddlewareQueryMsg<BaseQueryMsg, T>;
+pub type InstantiateMsg<T = Empty> = MiddlewareInstantiateMsg<BaseInstantiateMsg, T>;
+pub type MigrateMsg<T = Empty> = MiddlewareMigrateMsg<BaseMigrateMsg, T>;
+
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Empty};
 use cw_controllers::AdminResponse;
-
-/// Used by Abstract to instantiate the contract
-/// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::AddApi`].
-#[cosmwasm_schema::cw_serde]
-pub struct InstantiateMsg<I = Empty> {
-    /// base instantiate information
-    pub base: BaseInstantiateMsg,
-    /// custom instantiate msg attributes
-    pub custom: I,
-}
 
 /// Used by Module Factory to instantiate AddOn
 #[cosmwasm_schema::cw_serde]
@@ -26,31 +25,10 @@ pub struct BaseInstantiateMsg {
     pub memory_address: String,
 }
 
-/// Interface to the AddOn.
-#[cosmwasm_schema::cw_serde]
-pub enum ExecuteMsg<T, R = Empty> {
-    /// An Add-On request.
-    Request(T),
-    /// A configuration message.
-    Configure(BaseExecuteMsg),
-    /// IbcReceive to process callbacks
-    IbcCallback(IbcResponseMsg),
-    /// Receive endpoint for CW20 / external service integrations
-    Receive(R),
-}
-
 #[cosmwasm_schema::cw_serde]
 pub enum BaseExecuteMsg {
     /// Updates the base config
     UpdateConfig { memory_address: Option<String> },
-}
-
-#[cosmwasm_schema::cw_serde]
-pub enum QueryMsg<Q = Empty> {
-    /// An AddOn query message. Forwards the msg to the associated proxy.
-    AddOn(Q),
-    /// A configuration message to whitelist traders.
-    Base(BaseQueryMsg),
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -65,16 +43,11 @@ pub enum BaseQueryMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct MigrateMsg<I = Empty> {
-    /// base migrate information
-    pub base: Empty,
-    /// custom migrate msg attributes
-    pub custom: I,
-}
-
-#[cosmwasm_schema::cw_serde]
 pub struct AddOnConfigResponse {
     pub proxy_address: Addr,
     pub memory_address: Addr,
     pub manager_address: Addr,
 }
+
+#[cosmwasm_schema::cw_serde]
+pub struct BaseMigrateMsg {}

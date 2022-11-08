@@ -7,20 +7,18 @@
 //! It is not migratable and its functionality is shared between users, meaning that all users call the same contract address to perform operations on the OS.
 //! The API structure is well-suited for implementing standard interfaces to external services like dexes, lending platforms, etc.
 
-use abstract_ica::IbcResponseMsg;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Empty};
 use serde::Serialize;
 
-/// Used by Abstract to instantiate the contract
-/// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::AddApi`].
-#[cosmwasm_schema::cw_serde]
-pub struct InstantiateMsg<I = Empty> {
-    /// base api instantiate information
-    pub base: BaseInstantiateMsg,
-    /// custom instantiate msg attributes
-    pub custom: I,
-}
+use crate::middleware::{
+    ExecuteMsg as MiddlewareExecMsg, InstantiateMsg as MiddlewareInstantiateMsg,
+    QueryMsg as MiddlewareQueryMsg,
+};
+
+pub type ExecuteMsg<T, R = Empty> = MiddlewareExecMsg<BaseExecuteMsg, ApiRequestMsg<T>, R>;
+pub type QueryMsg<T = Empty> = MiddlewareQueryMsg<BaseQueryMsg, T>;
+pub type InstantiateMsg<T = Empty> = MiddlewareInstantiateMsg<BaseInstantiateMsg, T>;
 
 /// Used by Abstract to instantiate the contract
 /// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::AddApi`].
@@ -32,30 +30,18 @@ pub struct BaseInstantiateMsg {
     pub version_control_address: String,
 }
 
-/// Interface to the API.
-#[cosmwasm_schema::cw_serde]
-pub enum ExecuteMsg<T, R = Empty> {
-    /// An API request.
-    Request(ApiRequestMsg<T>),
-    /// A configuration message to whitelist traders.
-    Configure(BaseExecuteMsg),
-    /// IbcReceive to process callbacks
-    IbcCallback(IbcResponseMsg),
-    /// Receive endpoint for CW20 / external service integrations
-    Receive(R),
-}
-
-impl<T: Serialize> From<BaseExecuteMsg> for ExecuteMsg<T> {
+impl<T, R> From<BaseExecuteMsg> for MiddlewareExecMsg<BaseExecuteMsg, T, R> {
     fn from(api_msg: BaseExecuteMsg) -> Self {
-        Self::Configure(api_msg)
+        Self::Base(api_msg)
     }
 }
 
-impl<T: Serialize> From<ApiRequestMsg<T>> for ExecuteMsg<T> {
+impl<T, R, Q> From<ApiRequestMsg<T>> for MiddlewareExecMsg<Q, ApiRequestMsg<T>, R> {
     fn from(request_msg: ApiRequestMsg<T>) -> Self {
-        Self::Request(request_msg)
+        Self::App(request_msg)
     }
 }
+
 /// An API request.
 /// If proxy is None, then the sender must be an OS manager and the proxy address is extrapolated from the OS id.
 #[cosmwasm_schema::cw_serde]
@@ -85,14 +71,6 @@ pub enum BaseExecuteMsg {
     },
     /// Remove the API
     Remove {},
-}
-
-#[cosmwasm_schema::cw_serde]
-pub enum QueryMsg<Q> {
-    /// An API query message. Forwards the msg to the associated proxy.
-    Api(Q),
-    /// A configuration message to whitelist traders.
-    Base(BaseQueryMsg),
 }
 
 /// Query API message
