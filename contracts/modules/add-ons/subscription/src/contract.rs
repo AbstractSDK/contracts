@@ -1,11 +1,8 @@
 use abstract_add_on::{export_endpoints, AddOnContract};
 
 use abstract_os::SUBSCRIPTION;
-use abstract_sdk::{get_os_core};
-use cosmwasm_std::{
-    to_binary, Binary, Decimal, StdError,
-    Uint128
-};
+use abstract_sdk::get_os_core;
+use cosmwasm_std::{to_binary, Binary, Decimal, StdError, Uint128};
 use cw2::{get_contract_version, set_contract_version};
 use cw20::Cw20ReceiveMsg;
 use cw_asset::Asset;
