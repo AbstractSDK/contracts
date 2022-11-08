@@ -157,4 +157,12 @@ where
         self.query_handler = Some(query_handler);
         self
     }
+
+    pub const fn with_migrate(
+        mut self,
+        migrate_handler: MigrateHandlerFn<Module, CustomMigrateMsg, Error>,
+    ) -> Self {
+        self.migrate_handler = Some(migrate_handler);
+        self
+    }
 }

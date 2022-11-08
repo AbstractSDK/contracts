@@ -5,10 +5,7 @@ use cw_storage_plus::Item;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use abstract_sdk::{
-    memory::Memory, AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
-    QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn, ADMIN, BASE_STATE,
-};
+use abstract_sdk::{memory::Memory, AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn, ADMIN, BASE_STATE, MigrateHandlerFn};
 
 use crate::AddOnError;
 
@@ -89,6 +86,7 @@ impl<
         self.contract = self.contract.with_ibc_callbacks(callbacks);
         self
     }
+
     pub const fn with_instantiate(
         mut self,
         instantiate_handler: InstantiateHandlerFn<Self, CustomInitMsg, Error>,
@@ -110,6 +108,14 @@ impl<
         execute_handler: ExecuteHandlerFn<Self, CustomExecMsg, Error>,
     ) -> Self {
         self.contract = self.contract.with_execute(execute_handler);
+        self
+    }
+
+    pub const fn with_migrate(
+        mut self,
+        migrate_handler: MigrateHandlerFn<Self, CustomMigrateMsg, Error>,
+    ) -> Self {
+        self.contract = self.contract.with_migrate(migrate_handler);
         self
     }
 
