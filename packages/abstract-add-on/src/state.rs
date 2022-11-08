@@ -63,7 +63,7 @@ impl<
         }
     }
 
-    pub fn state(&self, store: &dyn Storage) -> StdResult<AddOnState> {
+    pub fn load_state(&self, store: &dyn Storage) -> StdResult<AddOnState> {
         self.base_state.load(store)
     }
 

@@ -58,7 +58,7 @@ fn handle_app_action(deps: DepsMut, _env: Env, host: OsmoHost, packet: DexAction
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn reply(deps: DepsMut, env: Env, reply: Reply) -> OsmoResult {
-    OSMO_HOST.handle_reply(deps, env, reply)
+    OSMO_HOST.reply(deps, env, reply)
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
