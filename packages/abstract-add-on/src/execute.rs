@@ -35,8 +35,8 @@ impl<
         // request_handler: impl FnOnce(DepsMut, Env, MessageInfo, Self, T) -> Result<Response, E>,
     ) -> Result<Response, Error> {
         match msg {
-            ExecuteMsg::Request(request) => self.execute_handler()?(deps, env, info, self, request),
-            ExecuteMsg::Configure(exec_msg) => self
+            ExecuteMsg::App(request) => self.execute_handler()?(deps, env, info, self, request),
+            ExecuteMsg::Base(exec_msg) => self
                 .base_execute(deps, env, info, exec_msg)
                 .map_err(From::from),
             ExecuteMsg::IbcCallback(msg) => self.handle_ibc_callback(deps, env, info, msg),
