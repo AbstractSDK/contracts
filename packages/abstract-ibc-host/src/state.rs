@@ -1,5 +1,8 @@
 use abstract_os::ibc_host::PacketMsg;
-use abstract_sdk::{memory::Memory, AbstractContract, ExecuteHandlerFn, InstantiateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn, BASE_STATE};
+use abstract_sdk::{
+    memory::Memory, AbstractContract, ExecuteHandlerFn, InstantiateHandlerFn, QueryHandlerFn,
+    ReceiveHandlerFn, ReplyHandlerFn, BASE_STATE,
+};
 
 use cosmwasm_std::{Addr, Binary, Empty, StdResult, Storage};
 

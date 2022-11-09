@@ -24,12 +24,7 @@ impl<
     > ReplyEndpoint
     for Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
-    fn reply(
-        mut self,
-        deps: DepsMut,
-        env: Env,
-        msg: Reply,
-    ) -> Result<Response, Self::Error> {
+    fn reply(mut self, deps: DepsMut, env: Env, msg: Reply) -> Result<Response, Self::Error> {
         let id = msg.id;
         let maybe_handler = self.maybe_reply_handler(id);
         if let Some(reply_fn) = maybe_handler {

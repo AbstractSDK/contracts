@@ -1,19 +1,10 @@
 use std::vec;
 
-use abstract_add_on::AddOnContract;
+use abstract_add_on::{export_endpoints, AddOnContract};
 
-use abstract_os::add_on::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
-use abstract_sdk::{
-    ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint, ReplyEndpoint,
-};
-use cosmwasm_std::{
-    Addr, Binary, Deps, DepsMut, Empty, entry_point, Env, MessageInfo, Reply, ReplyOn, Response,
-    StdError, StdResult, SubMsg, to_binary, WasmMsg,
-};
+use cosmwasm_std::{to_binary, Addr, Binary, Empty, ReplyOn, SubMsg, WasmMsg};
 
 use cw20::{Cw20ReceiveMsg, MinterResponse};
-
-use protobuf::Message;
 
 use abstract_os::etf::{EtfExecuteMsg, EtfInstantiateMsg, EtfQueryMsg, StateResponse};
 use abstract_os::objects::fee::Fee;
@@ -24,8 +15,8 @@ use crate::commands::{self, receive_cw20};
 use crate::error::VaultError;
 use crate::replies;
 use crate::replies::INSTANTIATE_REPLY_ID;
-use crate::response::MsgInstantiateContractResponse;
-use crate::state::{FEE, State, STATE};
+
+use crate::state::{State, FEE, STATE};
 
 const DEFAULT_LP_TOKEN_NAME: &str = "ETF LP token";
 const DEFAULT_LP_TOKEN_SYMBOL: &str = "etfLP";
@@ -43,44 +34,9 @@ const ETF_ADDON: EtfAddOn = EtfAddOn::new(ETF, CONTRACT_VERSION)
     .with_receive(receive_cw20)
     .with_replies(&[(INSTANTIATE_REPLY_ID, replies::instantiate_reply)]);
 
-// Instantiate
-#[cfg_attr(not(feature = "library"), entry_point)]
-pub fn instantiate(
-    deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    msg: InstantiateMsg<EtfInstantiateMsg>,
-) -> EtfResult {
-    ETF_ADDON.instantiate(deps, env, info, msg)
-}
-
-#[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, env: Env, msg: QueryMsg<EtfQueryMsg>) -> StdResult<Binary> {
-    ETF_ADDON.query(deps, env, msg)
-}
-
-// Reply
-#[cfg_attr(not(feature = "library"), entry_point)]
-pub fn reply(deps: DepsMut, env: Env, msg: Reply) -> EtfResult {
-    ETF_ADDON.reply(deps, env, msg)
-}
-
-// Migrate
-#[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(deps: DepsMut, env: Env, msg: MigrateMsg) -> EtfResult {
-    ETF_ADDON.migrate(deps, env, msg)
-}
-
-// Execute
-#[cfg_attr(not(feature = "library"), entry_point)]
-pub fn execute(
-    deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    msg: ExecuteMsg<EtfExecuteMsg, Cw20ReceiveMsg>,
-) -> EtfResult {
-    ETF_ADDON.execute(deps, env, info, msg)
-}
+// Export handlers
+#[cfg(not(feature = "library"))]
+export_endpoints!(ETF_ADDON, EtfAddOn);
 
 // #### Handlers ####
 
@@ -161,4 +117,3 @@ fn query_handler(deps: Deps, _env: Env, _etf: &EtfAddOn, msg: EtfQueryMsg) -> St
         }
     }
 }
-

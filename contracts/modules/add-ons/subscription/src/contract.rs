@@ -1,23 +1,16 @@
-use abstract_add_on::AddOnContract;
+use abstract_add_on::{export_endpoints, AddOnContract};
 
 use abstract_os::SUBSCRIPTION;
-use abstract_sdk::{get_os_core, ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint};
-use cosmwasm_std::{
-    entry_point, to_binary, Binary, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdError,
-    StdResult, Uint128,
-};
-use cw2::{get_contract_version, set_contract_version};
+use abstract_sdk::get_os_core;
+use cosmwasm_std::{to_binary, Binary, Decimal, StdError, Uint128};
+
 use cw20::Cw20ReceiveMsg;
 use cw_asset::Asset;
-
-use semver::Version;
 
 use crate::commands::BLOCKS_PER_MONTH;
 use crate::commands::{self, receive_cw20};
 use crate::error::SubscriptionError;
-use abstract_os::add_on::{
-    ExecuteMsg as AddOnExecuteMsg, InstantiateMsg as AddOnInstantiateMsg, QueryMsg as AddOnQueryMsg,
-};
+
 use abstract_os::subscription::state::*;
 use abstract_os::subscription::{
     ConfigResponse, ContributorStateResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
@@ -41,27 +34,8 @@ const SUBSCRIPTION_MODULE: SubscriptionAddOn =
         .with_receive(receive_cw20);
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-#[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> SubscriptionResult {
-    let _version = CONTRACT_VERSION.parse::<Version>().unwrap();
-    let _storage_version = get_contract_version(deps.storage)?
-        .version
-        .parse::<Version>()
-        .unwrap();
-    set_contract_version(deps.storage, SUBSCRIPTION, CONTRACT_VERSION)?;
-
-    Ok(Response::default())
-}
-
-#[cfg_attr(not(feature = "library"), entry_point)]
-pub fn instantiate(
-    deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    msg: AddOnInstantiateMsg<InstantiateMsg>,
-) -> SubscriptionResult {
-    SUBSCRIPTION_MODULE.instantiate(deps, env, info, msg)
-}
+#[cfg(not(feature = "library"))]
+export_endpoints!(SUBSCRIPTION_MODULE, SubscriptionAddOn);
 
 pub fn instantiate_handler(
     deps: DepsMut,
@@ -112,15 +86,6 @@ pub fn instantiate_handler(
     SUBSCRIPTION_STATE.save(deps.storage, &subscription_state)?;
 
     Ok(Response::new())
-}
-#[cfg_attr(not(feature = "library"), entry_point)]
-pub fn execute(
-    deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    msg: AddOnExecuteMsg<ExecuteMsg, Cw20ReceiveMsg>,
-) -> SubscriptionResult {
-    SUBSCRIPTION_MODULE.execute(deps, env, info, msg)
 }
 
 fn request_handler(
@@ -196,10 +161,7 @@ fn request_handler(
         ),
     }
 }
-#[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, env: Env, msg: AddOnQueryMsg<QueryMsg>) -> StdResult<Binary> {
-    SUBSCRIPTION_MODULE.query(deps, env, msg)
-}
+
 pub fn query_handler(
     deps: Deps,
     _env: Env,
