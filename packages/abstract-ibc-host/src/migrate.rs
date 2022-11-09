@@ -34,7 +34,7 @@ impl<
             set_contract_version(deps.storage, name, version_string)?;
         }
         if let Some(migrate_fn) = self.maybe_migrate_handler() {
-            return migrate_fn(deps, env, self, msg.custom);
+            return migrate_fn(deps, env, self, msg.app);
         }
         Ok(Response::default())
     }

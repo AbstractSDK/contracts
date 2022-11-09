@@ -73,6 +73,6 @@ impl<
         let Some(handler) = self.maybe_instantiate_handler() else {
             return Ok(Response::new())
         };
-        handler(deps, env, info, self, msg.custom)
+        handler(deps, env, info, self, msg.app)
     }
 }

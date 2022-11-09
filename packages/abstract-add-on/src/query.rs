@@ -26,7 +26,7 @@ impl<
 
     fn query(&self, deps: Deps, env: Env, msg: Self::QueryMsg) -> Result<Binary, StdError> {
         match msg {
-            QueryMsg::AddOn(msg) => self.query_handler()?(deps, env, self, msg),
+            QueryMsg::App(msg) => self.query_handler()?(deps, env, self, msg),
             QueryMsg::Base(msg) => self.base_query(deps, env, msg),
         }
     }
