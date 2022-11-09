@@ -1,4 +1,6 @@
-use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult, StdError};
+use cosmwasm_std::{
+    entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
+};
 use cw2::{get_contract_version, set_contract_version};
 use semver::Version;
 
@@ -56,7 +58,9 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             } else if let Some(dex) = dex {
                 queries::query_dex_pools(deps, env, dex)
             } else {
-                return Err(StdError::generic_err("Must provide either dex or asset_pair"))
+                return Err(StdError::generic_err(
+                    "Must provide either dex or asset_pair",
+                ));
             }
         }
         QueryMsg::DexPoolList {

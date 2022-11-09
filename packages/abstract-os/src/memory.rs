@@ -11,12 +11,12 @@ use cw_asset::{AssetInfo, AssetInfoUnchecked};
 
 use crate::objects::dex_pool_entry::UncheckedDexPoolEntry;
 use crate::objects::pool_id::{PoolId, UncheckedPoolId};
+use crate::objects::pool_info::UncheckedPool;
 use crate::objects::{
     asset_entry::AssetEntry,
     contract_entry::{ContractEntry, UncheckedContractEntry},
     ChannelEntry, DexPoolEntry, UncheckedChannelEntry,
 };
-use crate::objects::pool_info::UncheckedPool;
 
 /// Memory state details
 pub mod state {
@@ -47,8 +47,8 @@ pub mod state {
     #[derive(Serialize, Deserialize, PartialEq, Debug, Clone, JsonSchema)]
     pub struct DexPoolData {
         pub dex: String,
-        // TODO: checked (Pool)
-        pub info: UncheckedPool,
+        // TODO: checked (Pool) we use unchecked so that we can ignore the Addr key implementation for now
+        pub pool: UncheckedPool,
     }
 
     pub struct DexPoolDataIndexes<'a> {
@@ -67,16 +67,22 @@ pub mod state {
         }
     }
 
-    // TODO: when cw_storage_plus supports const indexed maps, switch to that
+    // I want to find the pools by asset and also the pools by dex
+    // ideal:
+    // Junoswap -> (juno, lunc) -> 5
+    // -> keys are dexes, then keys are the pairs
+    // One map per dex
+
+    // ELse
+    // (juno, lunc) -> (junoswap,5)
+    // (pair) -> (dex,id)
+
+    // TODO: switch to const indexed maps when when cw_storage_plus supports it
     pub fn dex_pools<'a>() -> IndexedMap<'a, DexPoolEntry, DexPoolData, DexPoolDataIndexes<'a>> {
         let indexes = DexPoolDataIndexes {
-            assets: MultiIndex::new(|_pk, pool| pool.info.assets.clone(), "data", "data__assets"),
+            assets: MultiIndex::new(|_pk, pool| pool.pool.assets.clone(), "data", "data__assets"),
             dex: MultiIndex::new(|_pk, pool| pool.dex.clone(), "data", "data__dex"),
-            pool_id: MultiIndex::new(|_pk, pool| pool.info.id.clone(), "data", "data__pool_id"),
-            // dex_assets:  UniqueIndex::new(
-            // |d| (d.dex.as_bytes().to_vec(), d.assets.as_bytes().to_vec()),
-            // "data__dex_assets",
-            // ),
+            pool_id: MultiIndex::new(|_pk, pool| pool.pool.id.clone(), "data", "data__pool_id"),
         };
         IndexedMap::new("dex_pools", indexes)
     }
@@ -113,7 +119,7 @@ pub enum ExecuteMsg {
     /// Updates the dex pairs
     UpdateDexPools {
         /// Pairs to update or add
-        to_add: Vec<(UncheckedDexPoolEntry, UncheckedPoolId)>,
+        to_add: Vec<(UncheckedDexPoolEntry, UncheckedPool)>,
         /// Pairs to remove
         to_remove: Vec<UncheckedDexPoolEntry>,
     },

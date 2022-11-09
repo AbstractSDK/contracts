@@ -1,4 +1,6 @@
-use abstract_os::objects::{UncheckedChannelEntry, UncheckedContractEntry, UncheckedDexPoolEntry};
+use abstract_os::objects::{
+    DexPoolEntry, UncheckedChannelEntry, UncheckedContractEntry, UncheckedDexPoolEntry,
+};
 use cosmwasm_std::Env;
 use cosmwasm_std::{Addr, DepsMut, Empty, MessageInfo, Response, StdResult};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
@@ -7,6 +9,7 @@ use crate::contract::MemoryResult;
 use abstract_os::memory::state::*;
 use abstract_os::memory::ExecuteMsg;
 use abstract_os::objects::pool_id::{PoolId, UncheckedPoolId};
+use abstract_os::objects::pool_info::UncheckedPool;
 
 /// Handles the common base execute messages
 pub fn handle_execute(
@@ -27,8 +30,7 @@ pub fn handle_execute(
             update_channels(deps, info, to_add, to_remove)
         }
         ExecuteMsg::UpdateDexPools { to_add, to_remove } => {
-            todo!()
-            // update_dex_pools(deps, info, to_add, to_remove)
+            update_dex_pools(deps, info, to_add, to_remove)
         }
     }
 }
@@ -116,30 +118,37 @@ pub fn update_channels(
     Ok(Response::new().add_attribute("action", "updated contract addresses"))
 }
 
-/// Adds, updates, or removes the pairings for a dex.
-// pub fn update_dex_pools(
-//     deps: DepsMut,
-//     msg_info: MessageInfo,
-//     to_add: Vec<(UncheckedDexPoolEntry, UncheckedPoolId)>,
-//     to_remove: Vec<UncheckedDexPoolEntry>,
-// ) -> MemoryResult {
-//     // Only Admin can call this method
-//     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
-//
-//     for (dex_pool_key, pair_id) in to_add.into_iter() {
-//         let key = dex_pool_key.check();
-//         // Update function for new or existing keys
-//         let insert = |_| -> StdResult<PoolId> { pair_id.check(deps.api) };
-//         dex_pools().update(deps.storage, key, insert)?;
-//     }
-//
-//     for dex_pool_key in to_remove {
-//         let key = dex_pool_key.check();
-//         dex_pools().remove(deps.storage, key);
-//     }
-//
-//     Ok(Response::new().add_attribute("action", "updated dex pairs"))
-// }
+// Adds, updates, or removes the pairings for a dex.
+pub fn update_dex_pools(
+    deps: DepsMut,
+    msg_info: MessageInfo,
+    to_add: Vec<(UncheckedDexPoolEntry, UncheckedPool)>,
+    to_remove: Vec<UncheckedDexPoolEntry>,
+) -> MemoryResult {
+    // Only Admin can call this method
+    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
+
+    for (dex_pool_key, pool) in to_add.into_iter() {
+        let dex_pool_key = dex_pool_key.check();
+
+        // Update function for new or existing keys
+        let insert = |_| -> StdResult<DexPoolData> {
+            Ok(DexPoolData {
+                dex: dex_pool_key.dex.to_string(),
+                pool: pool.check(deps.api)?.into(),
+            })
+        };
+        // TODO: how do we avoid the clone?
+        dex_pools().update(deps.storage, dex_pool_key.clone(), insert)?;
+    }
+
+    for dex_pool_key in to_remove {
+        let key = dex_pool_key.check();
+        dex_pools().remove(deps.storage, key)?;
+    }
+
+    Ok(Response::new().add_attribute("action", "updated dex pairs"))
+}
 
 pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> MemoryResult {
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;

@@ -3,6 +3,7 @@ use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, Record, StdResult}
 use abstract_os::memory::state::{dex_pools, DexPoolData};
 use abstract_os::memory::{DexPoolListResponse, DexPoolsResponse};
 use abstract_os::objects::pool_id::PoolId;
+use abstract_os::objects::pool_info::UncheckedPool;
 use abstract_os::objects::DexPoolEntry;
 use abstract_os::{
     memory::{
@@ -14,7 +15,6 @@ use abstract_os::{
 };
 use cw_asset::AssetInfo;
 use cw_storage_plus::Bound;
-use abstract_os::objects::pool_info::UncheckedPool;
 
 const DEFAULT_LIMIT: u8 = 15;
 const MAX_LIMIT: u8 = 25;
@@ -60,7 +60,7 @@ pub fn query_dex_pools(deps: Deps, _env: Env, dex: String) -> StdResult<Binary> 
         .range_raw(deps.storage, None, None, Order::Ascending)
         .collect();
 
-    let pools: Vec<UncheckedPool> = res?.into_iter().map(|(_, data)| data.info).collect();
+    let pools: Vec<UncheckedPool> = res?.into_iter().map(|(_, data)| data.pool).collect();
 
     to_binary(&DexPoolsResponse { pools })
 }
@@ -73,7 +73,7 @@ pub fn query_asset_pair_pools(deps: Deps, _env: Env, asset_pair: String) -> StdR
         .range_raw(deps.storage, None, None, Order::Ascending)
         .collect();
 
-    let pools: Vec<UncheckedPool> = res?.into_iter().map(|(_, data)| data.info).collect();
+    let pools: Vec<UncheckedPool> = res?.into_iter().map(|(_, data)| data.pool).collect();
 
     to_binary(&DexPoolsResponse { pools })
 }
