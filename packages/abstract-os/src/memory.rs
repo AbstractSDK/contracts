@@ -5,13 +5,12 @@
 //! ## Description
 //! Contract and asset addresses are stored on the memory contract and are retrievable trough smart or raw queries.
 
-use crate::memory::state::DexPoolData;
 use cosmwasm_schema::QueryResponses;
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 
 use crate::objects::dex_pool_entry::UncheckedDexPoolEntry;
-use crate::objects::pool_id::{PoolId, UncheckedPoolId};
-use crate::objects::pool_info::{Pool, UncheckedPool};
+
+use crate::objects::pool_info::UncheckedPool;
 use crate::objects::{
     asset_entry::AssetEntry,
     contract_entry::{ContractEntry, UncheckedContractEntry},
@@ -23,13 +22,13 @@ pub mod state {
     use cosmwasm_std::Addr;
     use cw_asset::AssetInfo;
     use cw_controllers::Admin;
-    use cw_storage_plus::{Index, IndexList, IndexedMap, Map, MultiIndex, UniqueIndex};
+    use cw_storage_plus::{Index, IndexList, IndexedMap, Map, MultiIndex};
     use schemars::JsonSchema;
     use serde::{Deserialize, Serialize};
 
     use crate::objects::dex_pool_entry::DexPoolEntry;
-    use crate::objects::pool_id::{PoolId, UncheckedPoolId};
-    use crate::objects::pool_info::{Pool, UncheckedPool};
+    use crate::objects::pool_id::UncheckedPoolId;
+    use crate::objects::pool_info::UncheckedPool;
     use crate::objects::{asset_entry::AssetEntry, contract_entry::ContractEntry, ChannelEntry};
 
     /// Admin address store

@@ -1,6 +1,6 @@
-use crate::objects::pool_id::{PoolId, PoolIdBase, UncheckedPoolId};
-use cosmwasm_std::{Addr, Api, StdError, StdResult, Uint128};
-use cw_asset::Asset;
+use crate::objects::pool_id::{PoolIdBase, UncheckedPoolId};
+use cosmwasm_std::{Addr, Api, StdError, StdResult};
+
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::fmt;

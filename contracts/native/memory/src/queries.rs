@@ -2,9 +2,9 @@ use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, Record, StdResult}
 
 use abstract_os::memory::state::{dex_pools, DexPoolData};
 use abstract_os::memory::{DexPoolListResponse, DexPoolsResponse};
-use abstract_os::objects::pool_id::PoolId;
-use abstract_os::objects::pool_info::{Pool, UncheckedPool};
-use abstract_os::objects::{pool_info, DexPoolEntry};
+
+use abstract_os::objects::pool_info::UncheckedPool;
+use abstract_os::objects::DexPoolEntry;
 use abstract_os::{
     memory::{
         state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES},
@@ -15,7 +15,6 @@ use abstract_os::{
 };
 use cw_asset::AssetInfo;
 use cw_storage_plus::Bound;
-use std::str::FromStr;
 
 const DEFAULT_LIMIT: u8 = 15;
 const MAX_LIMIT: u8 = 25;

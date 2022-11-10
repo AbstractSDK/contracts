@@ -1,6 +1,4 @@
-use abstract_os::objects::{
-    DexPoolEntry, UncheckedChannelEntry, UncheckedContractEntry, UncheckedDexPoolEntry,
-};
+use abstract_os::objects::{UncheckedChannelEntry, UncheckedContractEntry, UncheckedDexPoolEntry};
 use cosmwasm_std::Env;
 use cosmwasm_std::{Addr, DepsMut, Empty, MessageInfo, Response, StdResult};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
@@ -8,7 +6,7 @@ use cw_asset::{AssetInfo, AssetInfoUnchecked};
 use crate::contract::MemoryResult;
 use abstract_os::memory::state::*;
 use abstract_os::memory::ExecuteMsg;
-use abstract_os::objects::pool_id::{PoolId, UncheckedPoolId};
+
 use abstract_os::objects::pool_info::UncheckedPool;
 
 /// Handles the common base execute messages
