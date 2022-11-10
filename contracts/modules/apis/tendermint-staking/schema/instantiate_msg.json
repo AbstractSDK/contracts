@@ -1,26 +1,25 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "InstantiateMsg",
-  "description": "Used by Abstract to instantiate the contract The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::AddApi`].",
   "type": "object",
   "required": [
-    "base",
-    "custom"
+    "app",
+    "base"
   ],
   "properties": {
-    "base": {
-      "description": "base api instantiate information",
-      "allOf": [
-        {
-          "$ref": "#/definitions/BaseInstantiateMsg"
-        }
-      ]
-    },
-    "custom": {
+    "app": {
       "description": "custom instantiate msg attributes",
       "allOf": [
         {
           "$ref": "#/definitions/Empty"
+        }
+      ]
+    },
+    "base": {
+      "description": "base instantiate information",
+      "allOf": [
+        {
+          "$ref": "#/definitions/BaseInstantiateMsg"
         }
       ]
     }

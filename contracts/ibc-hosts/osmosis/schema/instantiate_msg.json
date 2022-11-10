@@ -3,23 +3,23 @@
   "title": "InstantiateMsg",
   "type": "object",
   "required": [
-    "base",
-    "custom"
+    "app",
+    "base"
   ],
   "properties": {
-    "base": {
-      "description": "base api instantiate information",
-      "allOf": [
-        {
-          "$ref": "#/definitions/BaseInstantiateMsg"
-        }
-      ]
-    },
-    "custom": {
+    "app": {
       "description": "custom instantiate msg attributes",
       "allOf": [
         {
           "$ref": "#/definitions/Empty"
+        }
+      ]
+    },
+    "base": {
+      "description": "base instantiate information",
+      "allOf": [
+        {
+          "$ref": "#/definitions/BaseInstantiateMsg"
         }
       ]
     }

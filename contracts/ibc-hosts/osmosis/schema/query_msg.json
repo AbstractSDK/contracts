@@ -3,19 +3,7 @@
   "title": "QueryMsg",
   "oneOf": [
     {
-      "type": "object",
-      "required": [
-        "app"
-      ],
-      "properties": {
-        "app": {
-          "$ref": "#/definitions/Empty"
-        }
-      },
-      "additionalProperties": false
-    },
-    {
-      "description": "A configuration message to whitelist traders.",
+      "description": "A configuration message to the middleware.",
       "type": "object",
       "required": [
         "base"
@@ -23,6 +11,19 @@
       "properties": {
         "base": {
           "$ref": "#/definitions/BaseQueryMsg"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Custom query",
+      "type": "object",
+      "required": [
+        "app"
+      ],
+      "properties": {
+        "app": {
+          "$ref": "#/definitions/Empty"
         }
       },
       "additionalProperties": false
