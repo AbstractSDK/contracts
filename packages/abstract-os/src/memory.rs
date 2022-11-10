@@ -11,7 +11,7 @@ use cw_asset::{AssetInfo, AssetInfoUnchecked};
 
 use crate::objects::dex_pool_entry::UncheckedDexPoolEntry;
 use crate::objects::pool_id::{PoolId, UncheckedPoolId};
-use crate::objects::pool_info::UncheckedPool;
+use crate::objects::pool_info::{Pool, UncheckedPool};
 use crate::objects::{
     asset_entry::AssetEntry,
     contract_entry::{ContractEntry, UncheckedContractEntry},
@@ -236,5 +236,6 @@ pub struct DexPoolsResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct DexPoolListResponse {
-    pub pairs: Vec<(DexPoolEntry, PoolId)>,
+    // TODO: Pool instead of UncheckedPool
+    pub pairs: Vec<(DexPoolEntry, UncheckedPool)>,
 }

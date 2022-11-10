@@ -66,7 +66,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::DexPoolList {
             page_token,
             page_size,
-        } => todo!(), // } => queries::query_dex_pool_list(deps, page_token, page_size),
+        } => queries::query_dex_pool_list(deps, page_token, page_size),
     }
 }
 
