@@ -58,9 +58,9 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             } else if let Some(dex) = dex {
                 queries::query_dex_pools(deps, env, dex)
             } else {
-                return Err(StdError::generic_err(
+                Err(StdError::generic_err(
                     "Must provide either dex or asset_pair",
-                ));
+                ))
             }
         }
         QueryMsg::DexPoolList {

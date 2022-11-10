@@ -1,14 +1,12 @@
 use cosmwasm_std::{Addr, Api, StdError, StdResult};
 use cw_storage_plus::{KeyDeserialize, PrimaryKey};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
+
 use std::fmt;
-use std::fmt::Debug;
+
 use std::str::FromStr;
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 #[non_exhaustive]
-#[serde(rename_all = "snake_case")]
 pub enum PoolIdBase<T> {
     Contract(T),
     Id(u64),
@@ -80,7 +78,7 @@ impl From<&PoolId> for UncheckedPoolId {
     fn from(pool_id: &PoolId) -> Self {
         match pool_id {
             PoolId::Contract(contract_addr) => UncheckedPoolId::Contract(contract_addr.into()),
-            PoolId::Id(denom) => UncheckedPoolId::Id(denom.clone()),
+            PoolId::Id(denom) => UncheckedPoolId::Id(*denom),
         }
     }
 }
@@ -107,7 +105,7 @@ impl UncheckedPoolId {
             UncheckedPoolId::Contract(contract_addr) => {
                 PoolId::Contract(api.addr_validate(contract_addr)?)
             }
-            UncheckedPoolId::Id(pool_id) => PoolId::Id(pool_id.clone()),
+            UncheckedPoolId::Id(pool_id) => PoolId::Id(*pool_id),
         })
     }
 }
@@ -143,6 +141,6 @@ impl KeyDeserialize for UncheckedPoolId {
 
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
-        Ok(UncheckedPoolId::from_str(&String::from_vec(value)?)?)
+        UncheckedPoolId::from_str(&String::from_vec(value)?)
     }
 }
