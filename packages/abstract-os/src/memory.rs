@@ -67,16 +67,6 @@ pub mod state {
         }
     }
 
-    // I want to find the pools by asset and also the pools by dex
-    // ideal:
-    // Junoswap -> (juno, lunc) -> 5
-    // -> keys are dexes, then keys are the pairs
-    // One map per dex
-
-    // ELse
-    // (juno, lunc) -> (junoswap,5)
-    // (pair) -> (dex,id)
-
     // TODO: switch to const indexed maps when when cw_storage_plus supports it
     pub fn dex_pools<'a>() -> IndexedMap<'a, DexPoolEntry, DexPoolData, DexPoolDataIndexes<'a>> {
         let indexes = DexPoolDataIndexes {
