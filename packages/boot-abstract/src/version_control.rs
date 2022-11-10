@@ -11,7 +11,6 @@ use abstract_os::{
     },
     registry,
     version_control::*,
-    NATIVE_CONTRACTS,
 };
 
 use crate::AbstractOS;
@@ -89,13 +88,13 @@ where
 
     pub fn add_code_ids(&self, version: Version) -> anyhow::Result<()> {
         let code_ids = self.chain().state().get_all_code_ids()?;
-        let addresses = self.chain().state().get_all_addresses()?;
+        let _addresses = self.chain().state().get_all_addresses()?;
         let mut modules = vec![];
         for app in registry::CORE {
             let code_id = code_ids.get(app.clone()).unwrap();
             modules.push((
                 ModuleInfo::from_id(app, ModuleVersion::Version(version.to_string()))?,
-                ModuleReference::App(code_id.clone()),
+                ModuleReference::App(*code_id),
             ))
         }
         // for app in registry::APPS {

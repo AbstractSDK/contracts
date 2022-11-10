@@ -38,7 +38,7 @@ impl Memory<Daemon> {
 
     pub fn update_assets(&self) -> Result<(), BootError> {
         let path = env::var("MEMORY_ASSETS")?;
-        let file = File::open(&path).expect(&format!("file should be present at {}", &path));
+        let file = File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
         let chain_id = self.0.chain().state.chain.chain_id;
         let network_id = self.0.chain().state.id.clone();
@@ -68,15 +68,15 @@ impl Memory<Daemon> {
                     )?;
                 }
 
-                return Ok(());
+                Ok(())
             }
-            None => return Err(BootError::StdErr("network not found".into())),
+            None => Err(BootError::StdErr("network not found".into())),
         }
     }
 
     pub fn update_channels(&self) -> Result<(), BootError> {
         let path = env::var("MEMORY_CHANNELS")?;
-        let file = File::open(&path).expect(&format!("file should be present at {}", &path));
+        let file = File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
         let chain_id = self.0.chain().state.chain.chain_id;
         let network_id = self.0.chain().state.id.clone();
@@ -106,16 +106,16 @@ impl Memory<Daemon> {
                     )?;
                 }
 
-                return Ok(());
+                Ok(())
             }
-            None => return Err(BootError::StdErr("network not found".into())),
+            None => Err(BootError::StdErr("network not found".into())),
         }
     }
 
     pub fn update_contracts(&self) -> Result<(), BootError> {
         let path = env::var("MEMORY_CONTRACTS")?;
 
-        let file = File::open(&path).expect(&format!("file should be present at {}", &path));
+        let file = File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
         let chain_id = self.0.chain().state.chain.chain_id;
         let network_id = self.0.chain().state.id.clone();
@@ -145,9 +145,9 @@ impl Memory<Daemon> {
                     )?;
                 }
 
-                return Ok(());
+                Ok(())
             }
-            None => return Err(BootError::StdErr("network not found".into())),
+            None => Err(BootError::StdErr("network not found".into())),
         }
     }
 }

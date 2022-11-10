@@ -1,5 +1,5 @@
 use boot_core::{Contract, IndexResponse, TxHandler, TxResponse};
-use cosmwasm_std::Empty;
+
 use crate::AbstractOS;
 use abstract_os::ibc_client::*;
 

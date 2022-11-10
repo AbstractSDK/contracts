@@ -40,11 +40,11 @@ where
         let manager_address = &result.event_attr_value("wasm", "manager_address")?;
         self.chain()
             .state()
-            .set_address(MANAGER.into(), &Addr::unchecked(manager_address));
+            .set_address(MANAGER, &Addr::unchecked(manager_address));
         let treasury_address = &result.event_attr_value("wasm", "proxy_address")?;
         self.chain()
             .state()
-            .set_address(PROXY.into(), &Addr::unchecked(treasury_address));
+            .set_address(PROXY, &Addr::unchecked(treasury_address));
 
         Ok(())
     }
