@@ -2,7 +2,10 @@ use std::vec;
 
 use abstract_add_on::{export_endpoints, AddOnContract};
 
-use cosmwasm_std::{to_binary, Addr, Binary, Empty, ReplyOn, SubMsg, WasmMsg};
+use cosmwasm_std::{
+    to_binary, Addr, Binary, Deps, DepsMut, Empty, Env, MessageInfo, ReplyOn, Response, StdResult,
+    SubMsg, WasmMsg,
+};
 
 use cw20::{Cw20ReceiveMsg, MinterResponse};
 
