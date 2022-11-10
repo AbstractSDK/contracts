@@ -173,8 +173,8 @@ pub enum QueryMsg {
         page_token: Option<ChannelEntry>,
         page_size: Option<u8>,
     },
-    /// Queries dex_pools based on dex and asset_pair
-    /// returns [`ChannelsResponse`]
+    /// Queries dex_pools based on dex or asset_pair
+    /// returns [`DexPoolsResponse`]
     #[returns(DexPoolsResponse)]
     DexPools {
         /// name of the dex to query
