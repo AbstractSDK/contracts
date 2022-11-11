@@ -20,6 +20,7 @@ mod tendermint_staking;
 mod traits;
 mod version_control;
 mod os_address;
+mod apis;
 pub mod memory {
     pub use abstract_os::objects::memory::Memory;
 }
