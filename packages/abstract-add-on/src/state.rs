@@ -1,3 +1,4 @@
+use abstract_os::objects::common_namespace::ADMIN_NAMESPACE;
 use cosmwasm_std::{Addr, Empty, StdResult, Storage};
 
 use cw_controllers::Admin;
@@ -59,7 +60,7 @@ impl<
     pub const fn new(name: &'static str, version: &'static str) -> Self {
         Self {
             base_state: Item::new(BASE_STATE),
-            admin: Admin::new(ADMIN),
+            admin: Admin::new(ADMIN_NAMESPACE),
             contract: AbstractContract::new(name, version),
         }
     }

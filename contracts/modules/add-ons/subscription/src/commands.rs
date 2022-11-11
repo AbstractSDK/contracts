@@ -1,10 +1,10 @@
 use abstract_os::manager::state::OS_ID;
 use abstract_os::manager::ExecuteMsg as ManagerMsg;
+use abstract_os::objects::common_namespace::ADMIN_NAMESPACE;
 use abstract_os::version_control::Core;
 
 use abstract_sdk::get_os_core;
 use abstract_sdk::OsExecute;
-use abstract_sdk::ADMIN as ADMIN_KEY;
 use cosmwasm_std::{
     from_binary, to_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo, Response,
     StdError, StdResult, Storage, SubMsg, Uint128, Uint64, WasmMsg,
@@ -24,7 +24,7 @@ use abstract_os::subscription::state::{
 };
 use abstract_os::subscription::DepositHookMsg;
 pub const BLOCKS_PER_MONTH: u64 = 10 * 60 * 24 * 30;
-const ADMIN: Admin = Admin::new(ADMIN_KEY);
+const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
 pub fn receive_cw20(
     deps: DepsMut,
     env: Env,

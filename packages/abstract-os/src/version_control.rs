@@ -12,11 +12,11 @@ pub mod state {
     use cw_controllers::Admin;
     use cw_storage_plus::Map;
 
-    use crate::objects::{module::ModuleInfo, module_reference::ModuleReference};
+    use crate::objects::{module::ModuleInfo, module_reference::ModuleReference, common_namespace::ADMIN_NAMESPACE};
 
     use super::Core;
 
-    pub const ADMIN: Admin = Admin::new("admin");
+    pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
     pub const FACTORY: Admin = Admin::new("factory");
 
     // We can iterate over the map giving just the prefix to get all the versions

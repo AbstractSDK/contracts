@@ -5,7 +5,7 @@
 //! ## Description
 //! An add-on is a contract that is allowed to perform actions on a [proxy](crate::proxy) contract while also being migratable.
 
-use crate::middleware::{
+use crate::base::{
     ExecuteMsg as MiddlewareExecMsg, InstantiateMsg as MiddlewareInstantiateMsg,
     MigrateMsg as MiddlewareMigrateMsg, QueryMsg as MiddlewareQueryMsg,
 };

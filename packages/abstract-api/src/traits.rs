@@ -1,4 +1,4 @@
-use abstract_os::api::ApiRequestMsg;
+use abstract_os::{api::ApiRequestMsg};
 use abstract_sdk::{
     api_request,
     manager::query_module_address,
@@ -68,7 +68,7 @@ impl<
         CustomInitMsg,
         CustomQueryMsg,
         ReceiveMsg,
-    > Dependency for ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
+    > ModuleDependency for ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
 {
     fn dependency_address(
         &self,
@@ -76,8 +76,9 @@ impl<
         dependency_name: &str,
     ) -> cosmwasm_std::StdResult<Addr> {
         if !self.dependencies().contains(&dependency_name) {
-            return Err(StdError::generic_err("dependency not enabled on OS"));
+            return Err(StdError::generic_err(format!("module {} not specified as dependency.",dependency_name)));
         }
+        
         let manager_addr = &self
             .target_os
             .as_ref()
@@ -91,7 +92,6 @@ impl<
         deps: Deps,
         dependency_name: &str,
         request_msg: &R,
-        funds: Vec<cosmwasm_std::Coin>,
     ) -> cosmwasm_std::StdResult<CosmosMsg> {
         let proxy = self
             .target()
@@ -101,6 +101,6 @@ impl<
             proxy_address: Some(proxy.to_string()),
             request: request_msg,
         };
-        api_request(dep_addr, api_request_msg, funds)
+        api_request(dep_addr, api_request_msg, vec![])
     }
 }

@@ -11,7 +11,7 @@ use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Empty};
 use serde::Serialize;
 
-use crate::middleware::{
+use crate::base::{
     ExecuteMsg as MiddlewareExecMsg, InstantiateMsg as MiddlewareInstantiateMsg,
     QueryMsg as MiddlewareQueryMsg,
 };

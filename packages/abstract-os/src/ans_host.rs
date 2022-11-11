@@ -21,10 +21,10 @@ pub mod state {
     use cw_controllers::Admin;
     use cw_storage_plus::Map;
 
-    use crate::objects::{asset_entry::AssetEntry, contract_entry::ContractEntry, ChannelEntry};
+    use crate::objects::{asset_entry::AssetEntry, contract_entry::ContractEntry, ChannelEntry, common_namespace::ADMIN_NAMESPACE};
 
     /// Admin address store
-    pub const ADMIN: Admin = Admin::new("admin");
+    pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
     /// Stores name and address of tokens and pairs
     /// LP token pairs are stored alphabetically
     pub const ASSET_ADDRESSES: Map<AssetEntry, AssetInfo> = Map::new("assets");

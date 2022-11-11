@@ -4,7 +4,7 @@ use serde::Serialize;
 
 use crate::Resolve;
 
-/// Construct the call on the proxy contract of the OS
+/// Execute an action on the OS or over IBC on a remote chain.
 pub trait OsExecute {
     fn os_execute(&self, deps: Deps, msgs: Vec<CosmosMsg>) -> Result<SubMsg, StdError>;
     fn os_ibc_execute(
@@ -39,13 +39,21 @@ pub trait AnsHostOperation {
 }
 
 /// Call functions on dependencies
-pub trait Dependency {
+pub trait ModuleDependency {
     fn dependency_address(&self, deps: Deps, dependency_name: &str) -> StdResult<Addr>;
     fn call_api_dependency<E: Serialize>(
         &self,
         deps: Deps,
         dependency_name: &str,
         request_msg: &E,
-        funds: Vec<Coin>,
     ) -> StdResult<CosmosMsg>;
+    fn call_add_on_dependency<E: Serialize>(
+        &self,
+        deps: Deps,
+        dependency_name: &str,
+        app_msg: &E,
+    ) -> StdResult<CosmosMsg> {
+        let dep_addr = self.dependency_address(deps, dependency_name)?;
+        wasm_execute(dep_addr, &ExecuteMsg::<_,Empty>::App(&app_msg), vec![]).map(Into::into)
+    }
 }

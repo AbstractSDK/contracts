@@ -73,7 +73,7 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-    > Dependency
+    > ModuleDependency
     for AddOnContract<
         Error,
         CustomExecMsg,
@@ -95,7 +95,6 @@ impl<
         deps: Deps,
         dependency_name: &str,
         request_msg: &R,
-        funds: Vec<cosmwasm_std::Coin>,
     ) -> StdResult<cosmwasm_std::CosmosMsg> {
         let dep_addr = self.dependency_address(deps, dependency_name)?;
         let proxy_addr = self.base_state.load(deps.storage)?.proxy_address;
@@ -103,6 +102,6 @@ impl<
             proxy_address: Some(proxy_addr.to_string()),
             request: request_msg,
         };
-        api_request(dep_addr, api_request_msg, funds)
+        api_request(dep_addr, api_request_msg, vec![])
     }
 }

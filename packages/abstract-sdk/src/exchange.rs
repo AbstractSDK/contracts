@@ -5,12 +5,12 @@ use abstract_os::{
 };
 use cosmwasm_std::{CosmosMsg, Deps, StdResult};
 
-use crate::Dependency;
+use crate::ModuleDependency;
 use abstract_os::dex::{AskAsset, DexRequestMsg};
 
 /// Perform actions on an exchange API.
 /// WIP
-pub trait Exchange: Dependency {
+pub trait Exchange: ModuleDependency {
     fn swap(
         &self,
         deps: Deps,
@@ -30,7 +30,6 @@ pub trait Exchange: Dependency {
                     belief_price: None,
                 },
             },
-            vec![],
         )
     }
     fn custom_swap(
@@ -53,10 +52,9 @@ pub trait Exchange: Dependency {
                     router,
                 },
             },
-            vec![],
         )
     }
 }
 
 //
-impl<T> Exchange for T where T: Dependency {}
+impl<T> Exchange for T where T: ModuleDependency {}
