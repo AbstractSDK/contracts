@@ -69,8 +69,8 @@ where
         V: Serialize + Debug,
     >(
         &self,
-        api: &mut Contract<Chain, R, middleware::InstantiateMsg<BaseInstantiateMsg>, T, V>,
-        api_init_msg: &middleware::InstantiateMsg<BaseInstantiateMsg>,
+        api: &mut Contract<Chain, R, base::InstantiateMsg<BaseInstantiateMsg>, T, V>,
+        api_init_msg: &base::InstantiateMsg<BaseInstantiateMsg>,
         new_version: &Version,
     ) -> Result<(), BootError> {
         api.upload()?;

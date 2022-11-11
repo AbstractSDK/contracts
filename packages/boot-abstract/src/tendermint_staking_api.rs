@@ -1,6 +1,6 @@
 use abstract_os::api::*;
 
-use abstract_os::middleware;
+use abstract_os::base;
 use abstract_os::tendermint_staking::*;
 use cosmwasm_std::Empty;
 
@@ -10,7 +10,7 @@ use boot_core::{Contract, IndexResponse, TxHandler, TxResponse};
 pub type TMintStakingApi<Chain> = AbstractOS<
     Chain,
     ExecuteMsg<RequestMsg>,
-    middleware::InstantiateMsg<BaseInstantiateMsg>,
+    base::InstantiateMsg<BaseInstantiateMsg>,
     abstract_os::api::QueryMsg<abstract_os::tendermint_staking::QueryMsg>,
     Empty,
 >;

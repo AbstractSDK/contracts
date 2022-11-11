@@ -1,6 +1,6 @@
 use abstract_os::api::*;
 use abstract_os::dex::*;
-use abstract_os::middleware;
+use abstract_os::base;
 use abstract_os::objects::AssetEntry;
 use abstract_os::EXCHANGE;
 use abstract_os::MANAGER;
@@ -15,7 +15,7 @@ use crate::AbstractOS;
 pub type DexApi<Chain> = AbstractOS<
     Chain,
     ExecuteMsg<DexRequestMsg>,
-    middleware::InstantiateMsg<BaseInstantiateMsg>,
+    base::InstantiateMsg<BaseInstantiateMsg>,
     abstract_os::api::QueryMsg<abstract_os::dex::DexQueryMsg>,
     Empty,
 >;
