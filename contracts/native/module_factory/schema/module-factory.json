@@ -7,12 +7,12 @@
     "title": "InstantiateMsg",
     "type": "object",
     "required": [
-      "memory_address",
+      "ans_host_address",
       "version_control_address"
     ],
     "properties": {
-      "memory_address": {
-        "description": "Memory address",
+      "ans_host_address": {
+        "description": "AnsHost address",
         "type": "string"
       },
       "version_control_address": {
@@ -42,7 +42,7 @@
                   "null"
                 ]
               },
-              "memory_address": {
+              "ans_host_address": {
                 "type": [
                   "string",
                   "null"
@@ -145,6 +145,7 @@
         "type": "string"
       },
       "ModuleInfo": {
+        "description": "Stores the provider, name, and version of an Abstract module.",
         "type": "object",
         "required": [
           "name",
@@ -248,12 +249,12 @@
       "title": "ConfigResponse",
       "type": "object",
       "required": [
-        "memory_address",
+        "ans_host_address",
         "owner",
         "version_control_address"
       ],
       "properties": {
-        "memory_address": {
+        "ans_host_address": {
           "type": "string"
         },
         "owner": {
@@ -331,6 +332,7 @@
           "additionalProperties": false
         },
         "ModuleInfo": {
+          "description": "Stores the provider, name, and version of an Abstract module.",
           "type": "object",
           "required": [
             "name",

@@ -165,6 +165,7 @@
         "additionalProperties": false
       },
       "ModuleInfo": {
+        "description": "Stores the provider, name, and version of an Abstract module.",
         "type": "object",
         "required": [
           "name",
@@ -398,6 +399,7 @@
     ],
     "definitions": {
       "ModuleInfo": {
+        "description": "Stores the provider, name, and version of an Abstract module.",
         "type": "object",
         "required": [
           "name",
@@ -516,6 +518,7 @@
           "additionalProperties": false
         },
         "ModuleInfo": {
+          "description": "Stores the provider, name, and version of an Abstract module.",
           "type": "object",
           "required": [
             "name",
@@ -680,6 +683,7 @@
           "type": "string"
         },
         "ModuleInfo": {
+          "description": "Stores the provider, name, and version of an Abstract module.",
           "type": "object",
           "required": [
             "name",
