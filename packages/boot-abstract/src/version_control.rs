@@ -5,12 +5,13 @@ use serde::Serialize;
 
 use abstract_os::{
     api::BaseInstantiateMsg,
+    middleware,
     objects::{
         module::{ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
     },
     registry,
-    version_control::*, middleware,
+    version_control::*,
 };
 
 use crate::AbstractOS;

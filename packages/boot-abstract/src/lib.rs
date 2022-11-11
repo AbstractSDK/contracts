@@ -48,8 +48,8 @@ where
     }
 }
 
+pub mod ans_host;
 pub mod manager;
-pub mod memory;
 pub mod module_factory;
 pub mod os_factory;
 pub mod proxy;
@@ -59,8 +59,8 @@ pub mod subscription;
 pub mod dex_api;
 pub mod etf;
 pub mod ibc_client;
-pub mod osmosis_host;
 pub mod idea_token;
+pub mod osmosis_host;
 pub mod tendermint_staking_api;
 pub mod version_control;
 pub mod vesting;
