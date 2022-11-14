@@ -3,11 +3,10 @@ use abstract_os::manager::ExecuteMsg as ManagerMsg;
 use abstract_os::objects::common_namespace::ADMIN_NAMESPACE;
 use abstract_os::version_control::Core;
 
-use abstract_sdk::get_os_core;
 use abstract_sdk::OsExecute;
 use cosmwasm_std::{
     from_binary, to_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo, Response,
-    StdError, StdResult, Storage, SubMsg, Uint128, Uint64, WasmMsg,
+    StdError, StdResult, Storage, SubMsg, Uint128, Uint64, WasmMsg, QuerierWrapper,
 };
 use cw20::Cw20ReceiveMsg;
 use cw_asset::{Asset, AssetInfo, AssetInfoUnchecked};
@@ -640,5 +639,22 @@ fn load_contribution_config(store: &dyn Storage) -> Result<ContributionConfig, S
     match maybe_config {
         Some(config) => Ok(config),
         None => Err(SubscriptionError::ContributionNotEnabled),
+    }
+}
+
+
+/// Get the [`abstract_os::version_control::Core`] object for an os-id.
+pub(crate) fn get_os_core(
+    querier: &QuerierWrapper,
+    os_id: u32,
+    version_control_addr: &Addr,
+) -> StdResult<Core> {
+    let maybe_os = OS_ADDRESSES.query(querier, version_control_addr.clone(), os_id)?;
+    match maybe_os {
+        None => Err(StdError::generic_err(format!(
+            "OS with id {} is not active.",
+            os_id
+        ))),
+        Some(core) => Ok(core),
     }
 }

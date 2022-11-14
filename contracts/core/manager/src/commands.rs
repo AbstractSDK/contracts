@@ -1,5 +1,8 @@
 use abstract_os::{
-    api::{BaseExecuteMsg, BaseQueryMsg, QueryMsg as ApiQuery, TradersResponse},
+    api::{
+        BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as ApiExecMsg, QueryMsg as ApiQuery,
+        TradersResponse,
+    },
     manager::state::{OsInfo, Subscribed, CONFIG, INFO, OS_MODULES, ROOT, STATUS},
     module_factory::ExecuteMsg as ModuleFactoryMsg,
     objects::{
@@ -11,15 +14,17 @@ use abstract_os::{
     IBC_CLIENT,
 };
 use cosmwasm_std::{
-    to_binary, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo, QueryRequest,
-    Response, StdError, StdResult, WasmMsg, WasmQuery,
+    to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo,
+    QueryRequest, Response, StdError, StdResult, WasmMsg, WasmQuery,
 };
 use cw2::{get_contract_version, ContractVersion};
 use semver::Version;
 
-use crate::{contract::ManagerResult, error::ManagerError, validators::validate_name_or_gov_type};
+use crate::{
+    contract::ManagerResult, error::ManagerError, queries::query_module_version,
+    validators::validate_name_or_gov_type,
+};
 use abstract_os::{MANAGER, PROXY};
-use abstract_sdk::{configure_api, manager::query_module_version};
 
 /// Adds, updates or removes provided addresses.
 /// Should only be called by contract that adds/removes modules.
@@ -257,20 +262,17 @@ pub fn replace_api(deps: DepsMut, new_api_addr: Addr, old_api_addr: Addr) -> Man
         .collect();
     // Remove traders from old
     msgs.push(configure_api(
-        old_api_addr.to_string(),
+        &old_api_addr,
         BaseExecuteMsg::UpdateTraders {
             to_add: None,
             to_remove: Some(traders_to_migrate.clone()),
         },
     )?);
     // Remove api as trader on dependencies
-    msgs.push(configure_api(
-        old_api_addr.to_string(),
-        BaseExecuteMsg::Remove {},
-    )?);
+    msgs.push(configure_api(&old_api_addr, BaseExecuteMsg::Remove {})?);
     // Add traders to new
     msgs.push(configure_api(
-        new_api_addr.clone(),
+        &new_api_addr,
         BaseExecuteMsg::UpdateTraders {
             to_add: Some(traders_to_migrate),
             to_remove: None,
@@ -286,7 +288,7 @@ pub fn replace_api(deps: DepsMut, new_api_addr: Addr, old_api_addr: Addr) -> Man
     msgs.push(whitelist_dapp_on_proxy(
         deps.as_ref(),
         proxy_addr.into_string(),
-        new_api_addr.to_string(),
+        new_api_addr.into_string(),
     )?);
 
     Ok(Response::new().add_messages(msgs))
@@ -451,4 +453,9 @@ fn remove_dapp_from_proxy(
         })?,
         funds: vec![],
     }))
+}
+#[inline(always)]
+fn configure_api(api_address: impl Into<String>, message: BaseExecuteMsg) -> StdResult<CosmosMsg> {
+    let api_msg: ApiExecMsg<Empty> = message.into();
+    Ok(wasm_execute(api_address, &api_msg, vec![])?.into())
 }

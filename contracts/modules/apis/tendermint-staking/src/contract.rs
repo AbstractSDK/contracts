@@ -4,10 +4,11 @@ use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Respons
 use cosmwasm_std::{Empty, StdResult};
 
 use abstract_os::tendermint_staking::RequestMsg;
-use abstract_sdk::{tendermint_staking::*, ExecuteEndpoint};
+use abstract_sdk::ExecuteEndpoint;
 use abstract_sdk::{InstantiateEndpoint, OsExecute, QueryEndpoint};
 
 use crate::error::TendermintStakeError;
+use crate::staking::*;
 
 use abstract_os::TENDERMINT_STAKING;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");

@@ -1,5 +1,6 @@
 pub mod contract;
 pub mod error;
+mod staking;
 
 // TODO: FIX
 // #[cfg(test)]
