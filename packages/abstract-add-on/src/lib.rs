@@ -18,7 +18,7 @@ mod reply;
 mod schema;
 pub mod state;
 /// Abstract SDK trait implementations
-pub mod traits;
+pub mod features;
 // #[cfg(test)]
 // mod testing;
 // Default to Empty

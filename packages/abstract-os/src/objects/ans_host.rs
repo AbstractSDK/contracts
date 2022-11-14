@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use cosmwasm_std::{Addr, Deps, StdError, StdResult};
+use cosmwasm_std::{Addr, Deps, StdError, StdResult, QuerierWrapper};
 
 use cw_asset::AssetInfo;
 
@@ -19,7 +19,7 @@ impl AnsHost {
     /// Raw Query to AnsHost contract
     pub fn query_contracts(
         &self,
-        deps: Deps,
+        querier: &QuerierWrapper,
         contracts: Vec<ContractEntry>,
     ) -> StdResult<BTreeMap<ContractEntry, Addr>> {
         let mut resolved_contracts: BTreeMap<ContractEntry, Addr> = BTreeMap::new();
@@ -27,7 +27,7 @@ impl AnsHost {
         // Query over keys
         for key in contracts.into_iter() {
             let result: Addr = CONTRACT_ADDRESSES
-                .query(&deps.querier, self.address.clone(), key.clone())?
+                .query(querier, self.address.clone(), key.clone())?
                 .ok_or_else(|| {
                     StdError::generic_err(format!("contract {} not found in ans_host", key))
                 })?;
@@ -37,9 +37,9 @@ impl AnsHost {
     }
 
     /// Raw query of a single contract Addr
-    pub fn query_contract(&self, deps: Deps, contract: &ContractEntry) -> StdResult<Addr> {
+    pub fn query_contract(&self, querier: &QuerierWrapper, contract: &ContractEntry) -> StdResult<Addr> {
         let result: Addr = CONTRACT_ADDRESSES
-            .query(&deps.querier, self.address.clone(), contract.clone())?
+            .query(querier, self.address.clone(), contract.clone())?
             .ok_or_else(|| {
                 StdError::generic_err(format!("contract {} not found in ans_host", contract))
             })?;
@@ -50,14 +50,14 @@ impl AnsHost {
     /// Raw Query to AnsHost contract
     pub fn query_assets(
         &self,
-        deps: Deps,
+        querier: &QuerierWrapper,
         assets: Vec<AssetEntry>,
     ) -> StdResult<BTreeMap<AssetEntry, AssetInfo>> {
         let mut resolved_assets: BTreeMap<AssetEntry, AssetInfo> = BTreeMap::new();
 
         for asset in assets.into_iter() {
             let result = ASSET_ADDRESSES
-                .query(&deps.querier, self.address.clone(), asset.clone())?
+                .query(querier, self.address.clone(), asset.clone())?
                 .ok_or_else(|| {
                     StdError::generic_err(format!("asset {} not found in ans_host", &asset))
                 })?;
@@ -67,9 +67,9 @@ impl AnsHost {
     }
 
     /// Raw query of a single AssetInfo
-    pub fn query_asset(&self, deps: Deps, asset: &AssetEntry) -> StdResult<AssetInfo> {
+    pub fn query_asset(&self, querier: &QuerierWrapper, asset: &AssetEntry) -> StdResult<AssetInfo> {
         let result = ASSET_ADDRESSES
-            .query(&deps.querier, self.address.clone(), asset.clone())?
+            .query(querier, self.address.clone(), asset.clone())?
             .ok_or_else(|| {
                 StdError::generic_err(format!("asset {} not found in ans_host", &asset))
             })?;
@@ -77,9 +77,9 @@ impl AnsHost {
     }
 
     /// Raw query of a single channel Addr
-    pub fn query_channel(&self, deps: Deps, channel: &ChannelEntry) -> StdResult<String> {
+    pub fn query_channel(&self, querier: &QuerierWrapper, channel: &ChannelEntry) -> StdResult<String> {
         let result: String = CHANNELS
-            .query(&deps.querier, self.address.clone(), channel.clone())?
+            .query(querier, self.address.clone(), channel.clone())?
             .ok_or_else(|| {
                 StdError::generic_err(format!("channel {} not found in ans_host", channel))
             })?;

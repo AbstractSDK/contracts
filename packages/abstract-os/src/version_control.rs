@@ -12,7 +12,9 @@ pub mod state {
     use cw_controllers::Admin;
     use cw_storage_plus::Map;
 
-    use crate::objects::{module::ModuleInfo, module_reference::ModuleReference, common_namespace::ADMIN_NAMESPACE};
+    use crate::objects::{
+        common_namespace::ADMIN_NAMESPACE, module::ModuleInfo, module_reference::ModuleReference,
+    };
 
     use super::Core;
 

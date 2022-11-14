@@ -3,10 +3,9 @@ use abstract_os::{
     api::{BaseExecuteMsg, ExecuteMsg},
     version_control::Core,
 };
-use abstract_sdk::{
-    proxy::query_os_manager_address, query_module_address, verify_os_manager, verify_os_proxy,
-    ExecuteEndpoint, Handler, IbcCallbackEndpoint, OsExecute, ReceiveEndpoint,
-};
+use abstract_sdk::{base::{
+    Handler,endpoints::{ExecuteEndpoint, IbcCallbackEndpoint, ReceiveEndpoint,}
+}, Verification, features::ContractDeps, ApplicationInterface, Execution};
 use cosmwasm_std::{
     to_binary, Addr, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdError, WasmMsg,
 };
@@ -31,26 +30,24 @@ impl<
         info: MessageInfo,
         msg: Self::ExecuteMsg,
     ) -> Result<Response, Error> {
+        self.contract.set_deps(deps.as_ref().clone());
         let sender = &info.sender;
         match msg {
             ExecuteMsg::App(request) => {
                 let core = match request.proxy_address {
                     Some(addr) => {
+                        let proxy_addr = deps.api.addr_validate(&addr)?;
                         let traders = self
                             .traders
-                            .load(deps.storage, Addr::unchecked(addr.clone()))?;
+                            .load(deps.storage, proxy_addr)?;
                         if traders.contains(sender) {
-                            let proxy = Addr::unchecked(addr);
-                            let manager = query_os_manager_address(&deps.querier, &proxy)?;
-                            Core { manager, proxy }
+                            self.verify().assert_proxy(&self.api().addr_validate(&addr)?)?
                         } else {
-                            self.verify_sender_is_manager(deps.as_ref(), sender)
-                                .map_err(|_| ApiError::UnauthorizedTraderApiRequest {})?
+                            self.verify().assert_manager(sender).map_err(|_| ApiError::UnauthorizedTraderApiRequest {})?
                         }
                     }
-                    None => self
-                        .verify_sender_is_manager(deps.as_ref(), sender)
-                        .map_err(|_| ApiError::UnauthorizedApiRequest {})?,
+                    None => 
+                        self.verify().assert_manager(&sender).map_err(|_| ApiError::UnauthorizedTraderApiRequest {})?
                 };
                 self.target_os = Some(core);
                 self.execute_handler()?(deps, env, info, self, request.request)
@@ -97,14 +94,15 @@ impl<
         env: Env,
         info: MessageInfo,
     ) -> Result<Response, ApiError> {
-        let core = self.verify_sender_is_manager(deps, &info.sender)?;
-        // Dangerous to forget!! add to verify fn?
+        let verification = self.verify();
+        let core = verification.assert_manager(&info.sender).map_err(|_| ApiError::UnauthorizedApiRequest {})?;
         self.target_os = Some(core);
         let dependencies = self.dependencies();
         let mut msgs: Vec<CosmosMsg> = vec![];
+        let applications = self.applications();
         for dep in dependencies {
             let api_addr =
-                query_module_address(deps, &self.target_os.as_ref().unwrap().manager, dep);
+                applications.app_address(dep);
             // just skip if dep is already removed. This means all the traders are already removed.
             if api_addr.is_err() {
                 continue;
@@ -118,29 +116,28 @@ impl<
                 funds: vec![],
             }));
         }
-        let msg = self.os_execute(deps, msgs)?;
-        Ok(Response::new().add_submessage(msg))
+        self.executor().execute_response(msgs,"remove api from dependencies").map_err(Into::into)
     }
 
-    pub(crate) fn verify_sender_is_manager(
-        &self,
-        deps: Deps,
-        maybe_manager: &Addr,
-    ) -> Result<Core, ApiError> {
-        let version_control_addr = self.base_state.load(deps.storage)?.version_control;
-        let core = verify_os_manager(&deps.querier, maybe_manager, &version_control_addr)?;
-        Ok(core)
-    }
+    // pub(crate) fn verify_sender_is_manager(
+    //     &self,
+    //     deps: Deps,
+    //     maybe_manager: &Addr,
+    // ) -> Result<Core, ApiError> {
+    //     let version_control_addr = self.base_state.load(deps.storage)?.version_control;
+    //     let core = verify_os_manager(&deps.querier, maybe_manager, &version_control_addr)?;
+    //     Ok(core)
+    // }
 
-    pub(crate) fn verify_sender_is_proxy(
-        &self,
-        deps: Deps,
-        maybe_proxy: &Addr,
-    ) -> Result<Core, ApiError> {
-        let version_control_addr = self.base_state.load(deps.storage)?.version_control;
-        let core = verify_os_proxy(&deps.querier, maybe_proxy, &version_control_addr)?;
-        Ok(core)
-    }
+    // pub(crate) fn verify_sender_is_proxy(
+    //     &self,
+    //     deps: Deps,
+    //     maybe_proxy: &Addr,
+    // ) -> Result<Core, ApiError> {
+    //     let version_control_addr = self.base_state.load(deps.storage)?.version_control;
+    //     let core = verify_os_proxy(&deps.querier, maybe_proxy, &version_control_addr)?;
+    //     Ok(core)
+    // }
 
     fn update_traders(
         &self,
@@ -151,10 +148,8 @@ impl<
     ) -> Result<Response, ApiError> {
         // Either manager or proxy can add/remove traders.
         // This allows other apis to automatically add themselves, allowing for api-cross-calling.
-        let core = {
-            self.verify_sender_is_manager(deps.as_ref(), &info.sender)
-                .or_else(|_| self.verify_sender_is_proxy(deps.as_ref(), &info.sender))
-        }?;
+        let core = 
+            self.verify().assert_manager(&info.sender)?;
 
         // Manager can only change traders for associated proxy
         let proxy = core.proxy;

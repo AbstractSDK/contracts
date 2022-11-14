@@ -1,4 +1,4 @@
-use abstract_sdk::{AbstractContract, Handler};
+use abstract_sdk::base::{AbstractContract, Handler};
 use cosmwasm_std::Empty;
 
 use crate::{ApiContract, ApiError};

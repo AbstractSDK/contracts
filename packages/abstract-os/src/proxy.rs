@@ -28,7 +28,10 @@ pub mod state {
     use cosmwasm_std::Addr;
     use cw_storage_plus::{Item, Map};
 
-    use crate::objects::{ans_host::AnsHost, asset_entry::AssetEntry, proxy_asset::ProxyAsset, common_namespace::ADMIN_NAMESPACE};
+    use crate::objects::{
+        ans_host::AnsHost, asset_entry::AssetEntry, common_namespace::ADMIN_NAMESPACE,
+        proxy_asset::ProxyAsset,
+    };
     #[cosmwasm_schema::cw_serde]
     pub struct State {
         pub modules: Vec<Addr>,

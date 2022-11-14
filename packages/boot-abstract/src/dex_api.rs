@@ -1,13 +1,13 @@
 use abstract_os::api::*;
-use abstract_os::dex::*;
 use abstract_os::base;
+use abstract_os::dex::*;
+use abstract_os::objects::AnsAsset;
 use abstract_os::objects::AssetEntry;
 use abstract_os::EXCHANGE;
 use abstract_os::MANAGER;
 use boot_core::BootError;
 use boot_core::{Contract, IndexResponse, TxHandler, TxResponse};
 use cosmwasm_std::Empty;
-use cosmwasm_std::Uint128;
 
 use crate::manager::Manager;
 use crate::AbstractOS;
@@ -53,7 +53,7 @@ where
                 request: DexRequestMsg {
                     dex,
                     action: DexAction::Swap {
-                        offer_asset: (asset, Uint128::new(offer_asset.1)),
+                        offer_asset: AnsAsset::new(asset, offer_asset.1),
                         ask_asset,
                         max_spread: None,
                         belief_price: None,

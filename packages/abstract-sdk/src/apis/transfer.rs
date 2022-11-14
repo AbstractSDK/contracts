@@ -1,42 +1,46 @@
+//! # Transfer
+//! The Transfer object handles asset transfers to and from the OS.
 
+use abstract_os::objects::AnsAsset;
+use cosmwasm_std::{Addr, CosmosMsg, StdResult};
 
-pub trait TransferInterface<'a>: AbstractNameService + Sized {
-    fn applications(&self)-> Applications<'a> {
-        Applications { base: self }
+use crate::{
+    ans_host_traits::Resolve,
+    features::{AbstractNameSystem, Identification},
+};
+
+use super::execution::Execution;
+
+pub trait TransferInterface: AbstractNameSystem + Execution {
+    fn transfer(&self) -> Transfer<Self> {
+        Transfer { base: &self }
     }
 }
 
-impl<'a, T> TransferInterface<'a> for T
-    where T: OsAddress + Sized
-{}
+impl<T> TransferInterface for T where T: AbstractNameSystem + Execution {}
 
-pub struct Applications <'a> {
-    base: &'a dyn OsAddress
+pub struct Transfer<'a, T: TransferInterface> {
+    base: &'a T,
 }
 
-impl<'a> Applications<'a> {
-    /// Construct an API request message.
-    pub fn api_request<T: Serialize>(
-        api_address: impl Into<String>,
-        message: impl Into<ExecuteMsg<T, Empty>>,
-        funds: Vec<Coin>,
-    ) -> StdResult<CosmosMsg> {
-        let api_msg: ExecuteMsg<T, Empty> = message.into();
-        Ok(wasm_execute(api_address, &api_msg, funds)?.into())
+impl<'a, T: TransferInterface> Transfer<'a, T> {
+    /// Transfer funds from the OS
+    pub fn transfer(&self, funds: Vec<AnsAsset>, to: &Addr) -> StdResult<CosmosMsg> {
+        let resolved_funds = funds.resolve(self.base.querier(), &self.base.ans_host()?)?;
+        let transfer_msgs = resolved_funds
+            .iter()
+            .map(|asset| asset.transfer_msg(to.clone()))
+            .collect::<StdResult<Vec<CosmosMsg>>>();
+        self.base.executor().execute(transfer_msgs?)
     }
-    
-    /// Construct an API configure message
-    pub fn configure_api(
-        api_address: impl Into<String>,
-        message: BaseExecuteMsg,
-    ) -> StdResult<CosmosMsg> {
-        let api_msg: ExecuteMsg<Empty, Empty> = message.into();
-        Ok(wasm_execute(api_address, &api_msg, vec![])?.into())
+
+    /// Deposit into the OS
+    pub fn deposit(&self, funds: Vec<AnsAsset>) -> StdResult<Vec<CosmosMsg>> {
+        let to = self.base.proxy_address()?;
+        let resolved_funds = funds.resolve(self.base.querier(), &self.base.ans_host()?)?;
+        resolved_funds
+            .iter()
+            .map(|asset| asset.transfer_msg(to.clone()))
+            .collect::<StdResult<Vec<CosmosMsg>>>()
     }
-    
-    pub fn api_init_msg(ans_host_address: &Addr, version_control_address: &Addr) -> StdResult<Binary> {
-        to_binary(&BaseInstantiateMsg {
-            ans_host_address: ans_host_address.to_string(),
-            version_control_address: version_control_address.to_string(),
-        })
-    }    
+}

@@ -1,65 +1,65 @@
-use abstract_os::api::{BaseExecuteMsg, BaseInstantiateMsg, ExecuteMsg};
-use cosmwasm_std::{to_binary, wasm_execute, Addr, Binary, Coin, CosmosMsg, Empty, StdResult};
+//! # Application
+//! The Application interface provides helper functions to execute functions on other applications installed on the OS.
+
+use abstract_os::{
+    api::{BaseExecuteMsg, ExecuteMsg},
+    manager::state::{ModuleId, OS_MODULES},
+};
+use cosmwasm_std::{
+    wasm_execute, Addr, CosmosMsg, Empty, QueryRequest, StdError, StdResult, WasmQuery,
+};
+use cw2::{ContractVersion, CONTRACT};
 use serde::Serialize;
 
-use crate::os_address::OsAddress;
+use crate::features::Identification;
 
-pub trait ApplicationInterface<'a>: OsAddress + Sized {
-    fn applications(&self)-> Applications<'a> {
+pub trait ApplicationInterface: Identification {
+    fn applications(&self) -> Applications<Self> {
         Applications { base: self }
     }
 }
 
-impl<'a, T> ApplicationInterface<'a> for T
-    where T: OsAddress + Sized
-{}
+impl<T> ApplicationInterface for T where T: Identification {}
 
-pub struct Applications <'a> {
-    base: &'a dyn OsAddress
+pub struct Applications<'a, T: ApplicationInterface> {
+    base: &'a T,
 }
 
-impl<'a> Applications<'a> {
-    /// Construct an API request message.
-    pub fn api_request<T: Serialize>(
-        api_address: impl Into<String>,
-        message: impl Into<ExecuteMsg<T, Empty>>,
-        funds: Vec<Coin>,
-    ) -> StdResult<CosmosMsg> {
-        let api_msg: ExecuteMsg<T, Empty> = message.into();
-        Ok(wasm_execute(api_address, &api_msg, funds)?.into())
+impl<'a, T: ApplicationInterface> Applications<'a, T> {
+    pub fn app_address(&self, module_id: ModuleId) -> StdResult<Addr> {
+        let manager_addr = self.base.manager_address()?;
+        let maybe_module_addr = OS_MODULES.query(&self.base.querier(), manager_addr, module_id)?;
+        let Some(module_addr) = maybe_module_addr else {
+            return Err(StdError::generic_err(format!("Module {} not enabled on OS.",module_id)));
+        };
+        Ok(module_addr)
     }
-    
-    /// Construct an API configure message
-    pub fn configure_api(
-        api_address: impl Into<String>,
-        message: BaseExecuteMsg,
+
+    /// Construct an API request message.
+    pub fn api_request<M: Serialize>(
+        &self,
+        api_id: ModuleId,
+        message: impl Into<ExecuteMsg<M, Empty>>,
     ) -> StdResult<CosmosMsg> {
-        let api_msg: ExecuteMsg<Empty, Empty> = message.into();
+        let api_msg: ExecuteMsg<M, Empty> = message.into();
+        let api_address = self.app_address(api_id)?;
         Ok(wasm_execute(api_address, &api_msg, vec![])?.into())
     }
-    
-    pub fn api_init_msg(memory_address: &Addr, version_control_address: &Addr) -> StdResult<Binary> {
-        to_binary(&BaseInstantiateMsg {
-            memory_address: memory_address.to_string(),
-            version_control_address: version_control_address.to_string(),
-        })
-    }    
 
-    
-/// Query module information
-pub fn get_module(
-    querier: &QuerierWrapper,
-    module_info: ModuleInfo,
-    version_control_addr: &Addr,
-) -> StdResult<Module> {
-    let resp: ModuleResponse = querier.query_wasm_smart(
-        version_control_addr,
-        &QueryMsg::Module {
-            module: module_info,
-        },
-    )?;
-    Ok(resp.module)
+    /// Construct an API configure message
+    pub fn configure_api(&self, api_id: ModuleId, message: BaseExecuteMsg) -> StdResult<CosmosMsg> {
+        let api_msg: ExecuteMsg<Empty, Empty> = message.into();
+        let api_address = self.app_address(api_id)?;
+        Ok(wasm_execute(api_address, &api_msg, vec![])?.into())
+    }
+
+    /// RawQuery the version of an enabled module
+    pub fn app_version(&self, app_id: ModuleId) -> StdResult<ContractVersion> {
+        let app_address = self.app_address(app_id)?;
+        let req = QueryRequest::Wasm(WasmQuery::Raw {
+            contract_addr: app_address.into(),
+            key: CONTRACT.as_slice().into(),
+        });
+        self.base.querier().query::<ContractVersion>(&req)
+    }
 }
-
-}
-

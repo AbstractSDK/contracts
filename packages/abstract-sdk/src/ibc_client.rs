@@ -4,9 +4,9 @@ use abstract_os::{
 };
 use cosmwasm_std::{Addr, Coin, StdError};
 
-use crate::{proxy::os_ibc_action, OsAction};
+use crate::OsAction;
 
-pub struct IbcClient{}
+pub struct IbcClient {}
 
 impl IbcClient {
     /// Call a [`HostAction`] on the host of the provided `host_chain`.

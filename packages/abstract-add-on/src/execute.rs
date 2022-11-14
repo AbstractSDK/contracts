@@ -27,13 +27,14 @@ impl<
     type ExecuteMsg = ExecuteMsg<CustomExecMsg, ReceiveMsg>;
 
     fn execute(
-        self,
+        mut self,
         deps: DepsMut,
         env: Env,
         info: MessageInfo,
         msg: Self::ExecuteMsg,
         // request_handler: impl FnOnce(DepsMut, Env, MessageInfo, Self, T) -> Result<Response, E>,
     ) -> Result<Response, Error> {
+        self.contract.set_deps(deps.as_ref());
         match msg {
             ExecuteMsg::App(request) => self.execute_handler()?(deps, env, info, self, request),
             ExecuteMsg::Base(exec_msg) => self

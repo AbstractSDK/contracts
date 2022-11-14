@@ -18,4 +18,4 @@ mod receive;
 mod schema;
 pub mod state;
 /// Abstract SDK trait implementations
-pub mod traits;
+pub mod features;

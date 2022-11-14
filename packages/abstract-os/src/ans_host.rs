@@ -21,7 +21,10 @@ pub mod state {
     use cw_controllers::Admin;
     use cw_storage_plus::Map;
 
-    use crate::objects::{asset_entry::AssetEntry, contract_entry::ContractEntry, ChannelEntry, common_namespace::ADMIN_NAMESPACE};
+    use crate::objects::{
+        asset_entry::AssetEntry, common_namespace::ADMIN_NAMESPACE, contract_entry::ContractEntry,
+        ChannelEntry,
+    };
 
     /// Admin address store
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);

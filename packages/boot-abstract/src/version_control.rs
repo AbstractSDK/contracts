@@ -5,7 +5,7 @@ use serde::Serialize;
 
 use abstract_os::{
     api::BaseInstantiateMsg,
-    middleware,
+    base,
     objects::{
         module::{ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,

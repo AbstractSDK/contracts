@@ -50,7 +50,7 @@ impl UncheckedProxyAsset {
     /// Perform checks on the proxy asset to ensure it can be resolved by the AnsHost
     pub fn check(self, deps: Deps, ans_host: &AnsHost) -> StdResult<ProxyAsset> {
         let entry: AssetEntry = self.asset.into();
-        ans_host.query_asset(deps, &entry)?;
+        ans_host.query_asset(&deps.querier, &entry)?;
         let value_reference = self
             .value_reference
             .map(|val| val.check(deps, ans_host, &entry));
@@ -101,7 +101,7 @@ impl UncheckedValueRef {
                 // verify pair is available
                 let pair_contract: ContractEntry =
                     UncheckedContractEntry::new(&exchange, &pair_name).check();
-                ans_host.query_contract(deps, &pair_contract)?;
+                ans_host.query_contract(&deps.querier, &pair_contract)?;
                 Ok(ValueRef::Pool {
                     pair: pair_contract,
                 })
@@ -109,12 +109,12 @@ impl UncheckedValueRef {
             UncheckedValueRef::LiquidityToken {} => {
                 let maybe_pair: UncheckedContractEntry = entry.to_string().try_into()?;
                 // Ensure lp pair is registered
-                ans_host.query_contract(deps, &maybe_pair.check())?;
+                ans_host.query_contract(&deps.querier, &maybe_pair.check())?;
                 Ok(ValueRef::LiquidityToken {})
             }
             UncheckedValueRef::ValueAs { asset, multiplier } => {
                 let replacement_asset: AssetEntry = asset.into();
-                ans_host.query_asset(deps, &replacement_asset)?;
+                ans_host.query_asset(&deps.querier, &replacement_asset)?;
                 Ok(ValueRef::ValueAs {
                     asset: replacement_asset,
                     multiplier,
@@ -167,7 +167,7 @@ impl ProxyAsset {
         set_holding: Option<Uint128>,
     ) -> StdResult<Uint128> {
         // Query how many of these tokens are held in the contract if not set.
-        let asset_info = ans_host.query_asset(deps, &self.asset)?;
+        let asset_info = ans_host.query_asset(&deps.querier, &self.asset)?;
         let holding: Uint128 = match set_holding {
             Some(setter) => setter,
             None => asset_info.query_balance(&deps.querier, env.contract.address.clone())?,
@@ -233,8 +233,8 @@ impl ProxyAsset {
         let other_pool_asset: AssetEntry =
             other_asset_name(self.asset.as_str(), &pair.contract)?.into();
 
-        let pair_address = ans_host.query_contract(deps, &pair)?;
-        let other_asset_info = ans_host.query_asset(deps, &other_pool_asset)?;
+        let pair_address = ans_host.query_contract(&deps.querier, &pair)?;
+        let other_asset_info = ans_host.query_asset(&deps.querier, &other_pool_asset)?;
 
         // query assets held in pool, gives price
         let pool_info = (
@@ -285,10 +285,10 @@ impl ProxyAsset {
             )));
         }
 
-        let pair_address = ans_host.query_contract(deps, &pair)?;
+        let pair_address = ans_host.query_contract(&deps.querier, &pair)?;
 
-        let asset_1 = ans_host.query_asset(deps, &other_pool_asset_names[0].into())?;
-        let asset_2 = ans_host.query_asset(deps, &other_pool_asset_names[1].into())?;
+        let asset_1 = ans_host.query_asset(&deps.querier, &other_pool_asset_names[0].into())?;
+        let asset_2 = ans_host.query_asset(&deps.querier, &other_pool_asset_names[1].into())?;
         // query assets held in pool, gives price
         let (amount1, amount2) = (
             asset_1.query_balance(&deps.querier, &pair_address)?,

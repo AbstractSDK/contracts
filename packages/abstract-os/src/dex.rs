@@ -5,11 +5,11 @@
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Decimal, Uint128};
 
-use crate::objects::{AssetEntry, ContractEntry};
+use crate::objects::{AnsAsset, AssetEntry, ContractEntry};
 
 pub type DexName = String;
-pub type OfferAsset = (AssetEntry, Uint128);
-pub type AskAsset = OfferAsset;
+pub type OfferAsset = AnsAsset;
+pub type AskAsset = AnsAsset;
 
 pub const IBC_DEX_ID: u32 = 11335;
 

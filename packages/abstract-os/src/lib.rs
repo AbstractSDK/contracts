@@ -37,9 +37,9 @@
 //! use abstract_os::PROXY;
 //! ```
 pub extern crate abstract_ica;
+pub mod base;
 pub mod ibc_client;
 pub mod ibc_host;
-pub mod base;
 
 pub use registry::*;
 pub mod abstract_token;
