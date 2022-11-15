@@ -1,6 +1,5 @@
 use abstract_add_on::state::AddOnState;
 
-use abstract_sdk::AnsHostOperation;
 use cosmwasm_std::{
     from_binary, to_binary, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response, Uint128,
     WasmMsg,
@@ -12,12 +11,12 @@ use abstract_os::etf::DepositHookMsg;
 use abstract_os::objects::deposit_info::DepositInfo;
 use abstract_os::objects::fee::Fee;
 
-use cosmwasm_std::{to_binary, Addr, QuerierWrapper, QueryRequest, StdResult, Uint128, WasmQuery};
-use cw20::{Cw20QueryMsg, TokenInfoResponse};
-
 use crate::contract::{EtfAddOn, EtfResult};
 use crate::error::VaultError;
 use crate::state::{State, FEE, STATE};
+use abstract_sdk::*;
+use cosmwasm_std::{QuerierWrapper, QueryRequest, StdResult, WasmQuery};
+use cw20::{Cw20QueryMsg, TokenInfoResponse};
 
 /// handler function invoked when the vault dapp contract receives
 /// a transaction. In this case it is triggered when either a LP tokens received
@@ -87,10 +86,10 @@ pub fn try_provide_liquidity(
             }
         }
     };
-
+    let vault = dapp.vault(deps.as_ref());
     // Get all the required asset information from the ans_host contract
-    let (_, base_asset) = query_enabled_asset_names(deps.as_ref(), &base_state.proxy_address)?;
-    let deposit_asset = dapp.resolve(deps.as_ref(), &base_asset)?;
+    let (_, base_asset) = vault.enabled_assets_list()?;
+    let deposit_asset = dapp.ans(deps.as_ref()).query(&base_asset)?;
     // Construct deposit info
     let deposit_info = DepositInfo {
         asset_info: deposit_asset,
@@ -109,7 +108,7 @@ pub fn try_provide_liquidity(
     let deposit: Uint128 = asset.amount;
 
     // Get total value in Vault
-    let value = query_total_value(deps.as_ref(), &base_state.proxy_address)?;
+    let value = vault.query_total_value()?;
     // Get total supply of LP tokens and calculate share
     let total_share = query_supply(&deps.querier, state.liquidity_token_addr.clone())?;
 
@@ -159,11 +158,10 @@ pub fn try_withdraw_liquidity(
 ) -> EtfResult {
     let state: State = STATE.load(deps.storage)?;
     let base_state: AddOnState = dapp.load_state(deps.storage)?;
-    let ans_host = base_state.ans_host;
     let fee: Fee = FEE.load(deps.storage)?;
     // Get assets
-    let (assets, _) = query_enabled_asset_names(deps.as_ref(), &base_state.proxy_address)?;
-    let assets = ans_host.query_assets(deps.as_ref(), assets)?;
+    let (assets, _) = dapp.vault(deps.as_ref()).enabled_assets_list()?;
+    let assets = dapp.ans(deps.as_ref()).query(&assets)?;
 
     // Logging var
     let mut attrs = vec![
@@ -201,7 +199,7 @@ pub fn try_withdraw_liquidity(
     // Get asset holdings of vault and calculate amount to return
     let mut pay_back_assets: Vec<Asset> = vec![];
     // Get asset holdings of vault and calculate amount to return
-    for (_, info) in assets.into_iter() {
+    for info in assets.into_iter() {
         pay_back_assets.push(Asset {
             info: info.clone(),
             amount: share_ratio
@@ -228,7 +226,7 @@ pub fn try_withdraw_liquidity(
     }
 
     // Msg that gets called on the vault address
-    let vault_refund_msg = os_module_action(refund_msgs, &base_state.proxy_address)?;
+    let vault_refund_msg = dapp.executor(deps.as_ref()).execute(refund_msgs)?;
 
     // LP burn msg
     let burn_msg = CosmosMsg::Wasm(WasmMsg::Execute {
