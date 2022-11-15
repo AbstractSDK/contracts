@@ -24,7 +24,7 @@ pub fn simulate_swap(
     let swap_offer_asset = ans.query(&offer_asset)?;
     let ask_asset_info = ans.query(&ask_asset)?;
     let pair_address =
-        exchange.pair_address(deps,ans.host(), &mut vec![&offer_asset.info, &ask_asset])?;
+        exchange.pair_address(deps, ans.host(), &mut vec![&offer_asset.info, &ask_asset])?;
     let pool_info = exchange.pair_contract(&mut vec![&offer_asset.info, &ask_asset]);
 
     let (return_amount, spread_amount, commission_amount, fee_on_input) = exchange

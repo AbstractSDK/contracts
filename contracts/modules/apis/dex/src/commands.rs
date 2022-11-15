@@ -100,9 +100,7 @@ pub trait LocalDex: AbstractNameSystem + Execution {
             self.executor(deps.as_ref())
                 .execute_with_reply(msgs, ReplyOn::Success, reply_id)
         } else {
-            self.executor(deps.as_ref())
-                .execute(msgs)
-                .map(SubMsg::new)
+            self.executor(deps.as_ref()).execute(msgs).map(SubMsg::new)
         }
         .map_err(Into::into)
     }
