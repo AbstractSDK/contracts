@@ -1,9 +1,7 @@
-use cosmwasm_std::{Addr, StdResult};
+use cosmwasm_std::{Addr, Deps, StdResult};
 
-use super::contract_deps::ContractDeps;
-
-pub trait Versioning: ContractDeps {
-    fn version_registry(&self) -> StdResult<Addr>;
+pub trait RegisterAccess: Sized {
+    fn registry(&self, deps: Deps) -> StdResult<Addr>;
 }
 
 // / Query module information
