@@ -2,7 +2,7 @@ use abstract_os::{
     abstract_ica::{DispatchResponse, RegisterResponse, StdAck},
     ibc_host::PacketMsg,
 };
-use abstract_sdk::{Handler, ReplyEndpoint};
+use abstract_sdk::base::{Handler, ReplyEndpoint};
 use cosmwasm_std::{DepsMut, Empty, Env, Reply, Response};
 use cw_utils::parse_reply_instantiate_data;
 

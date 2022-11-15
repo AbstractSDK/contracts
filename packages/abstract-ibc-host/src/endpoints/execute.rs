@@ -1,6 +1,6 @@
 use abstract_os::ibc_host::{BaseExecuteMsg, ExecuteMsg, HostAction, InternalAction, PacketMsg};
 
-use abstract_sdk::{ExecuteEndpoint, Handler};
+use abstract_sdk::base::{ExecuteEndpoint, Handler};
 use cosmwasm_std::{
     from_binary, from_slice, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo,
     Response, StdError,

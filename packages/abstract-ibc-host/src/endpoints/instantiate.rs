@@ -1,7 +1,10 @@
 use abstract_os::ibc_host::InstantiateMsg;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
-use abstract_sdk::{ans_host::AnsHost, Handler, InstantiateEndpoint};
+use abstract_sdk::{
+    base::{Handler, InstantiateEndpoint},
+    feature_objects::AnsHost,
+};
 use schemars::JsonSchema;
 use serde::Serialize;
 

@@ -1,5 +1,5 @@
 use abstract_os::ibc_host::MigrateMsg;
-use abstract_sdk::{Handler, MigrateEndpoint};
+use abstract_sdk::base::{Handler, MigrateEndpoint};
 use cosmwasm_std::{Response, StdError};
 use cw2::{get_contract_version, set_contract_version};
 use schemars::JsonSchema;

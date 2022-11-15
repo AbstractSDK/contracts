@@ -1,4 +1,4 @@
-use abstract_sdk::{Handler, QueryEndpoint};
+use abstract_sdk::base::{Handler, QueryEndpoint};
 use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdError, StdResult};
 
 use abstract_os::{
