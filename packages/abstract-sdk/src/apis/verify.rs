@@ -4,31 +4,33 @@ use abstract_os::{
     manager::state::OS_ID,
     version_control::{state::OS_ADDRESSES, Core},
 };
-use cosmwasm_std::{Addr, QuerierWrapper, StdError};
+use cosmwasm_std::{Addr, Deps, StdError};
 
 use cosmwasm_std::StdResult;
 
-use crate::features::{Identification, Versioning};
+use super::RegisterAccess;
 
-pub trait Verification: Identification + Versioning {
-    fn verify(&self) -> Verify<Self> {
-        Verify { base: self }
+pub trait Verification: RegisterAccess {
+    fn os_register<'a>(&'a self, deps: Deps<'a>) -> OsRegister<Self> {
+        OsRegister { base: self, deps }
     }
 }
 
-impl<T> Verification for T where T: Identification + Versioning {}
+impl<T> Verification for T where T: RegisterAccess {}
 
 /// Endpoint for OS address verification
-pub struct Verify<'a, T: Verification> {
+#[derive(Clone)]
+pub struct OsRegister<'a, T: Verification> {
     base: &'a T,
+    deps: Deps<'a>,
 }
 
-impl<'a, T: Verification> Verify<'a, T> {
+impl<'a, T: Verification> OsRegister<'a, T> {
     /// Verify if the provided manager address is indeed a user.
     pub fn assert_manager(&self, maybe_manager: &Addr) -> StdResult<Core> {
-        let os_id = OS_ID.query(&self.base.querier(), maybe_manager.clone())?;
+        let os_id = OS_ID.query(&self.deps.querier, maybe_manager.clone())?;
         let maybe_os =
-            OS_ADDRESSES.query(&self.base.querier(), self.base.version_registry()?, os_id)?;
+            OS_ADDRESSES.query(&self.deps.querier, self.base.registry(self.deps)?, os_id)?;
         match maybe_os {
             None => Err(StdError::generic_err(format!(
                 "OS with id {} is not active.",
@@ -37,7 +39,7 @@ impl<'a, T: Verification> Verify<'a, T> {
             Some(core) => {
                 if &core.manager != maybe_manager {
                     Err(StdError::generic_err(
-                    "Proposed manager is not the manager of this OS.",
+                        "Proposed manager is not the manager of this OS.",
                     ))
                 } else {
                     Ok(core)
@@ -48,9 +50,9 @@ impl<'a, T: Verification> Verify<'a, T> {
 
     /// Verify if the provided proxy address is indeed a user.
     pub fn assert_proxy(&self, maybe_proxy: &Addr) -> StdResult<Core> {
-        let os_id = OS_ID.query(&self.base.querier(), maybe_proxy.clone())?;
+        let os_id = OS_ID.query(&self.deps.querier, maybe_proxy.clone())?;
         let maybe_os =
-            OS_ADDRESSES.query(&self.base.querier(), self.base.version_registry()?, os_id)?;
+            OS_ADDRESSES.query(&self.deps.querier, self.base.registry(self.deps)?, os_id)?;
         match maybe_os {
             None => Err(StdError::generic_err(format!(
                 "OS with id {} is not active.",
@@ -68,4 +70,3 @@ impl<'a, T: Verification> Verify<'a, T> {
         }
     }
 }
-

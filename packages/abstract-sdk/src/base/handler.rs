@@ -1,4 +1,4 @@
-use cosmwasm_std::{Deps, StdError, StdResult, Storage};
+use cosmwasm_std::{StdError, StdResult, Storage};
 use cw2::ContractVersion;
 
 use crate::{

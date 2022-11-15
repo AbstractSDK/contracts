@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use cosmwasm_std::{Addr, Deps, StdError, StdResult, QuerierWrapper};
+use cosmwasm_std::{Addr, QuerierWrapper, StdError, StdResult};
 
 use cw_asset::AssetInfo;
 
@@ -37,7 +37,11 @@ impl AnsHost {
     }
 
     /// Raw query of a single contract Addr
-    pub fn query_contract(&self, querier: &QuerierWrapper, contract: &ContractEntry) -> StdResult<Addr> {
+    pub fn query_contract(
+        &self,
+        querier: &QuerierWrapper,
+        contract: &ContractEntry,
+    ) -> StdResult<Addr> {
         let result: Addr = CONTRACT_ADDRESSES
             .query(querier, self.address.clone(), contract.clone())?
             .ok_or_else(|| {
@@ -67,7 +71,11 @@ impl AnsHost {
     }
 
     /// Raw query of a single AssetInfo
-    pub fn query_asset(&self, querier: &QuerierWrapper, asset: &AssetEntry) -> StdResult<AssetInfo> {
+    pub fn query_asset(
+        &self,
+        querier: &QuerierWrapper,
+        asset: &AssetEntry,
+    ) -> StdResult<AssetInfo> {
         let result = ASSET_ADDRESSES
             .query(querier, self.address.clone(), asset.clone())?
             .ok_or_else(|| {
@@ -77,7 +85,11 @@ impl AnsHost {
     }
 
     /// Raw query of a single channel Addr
-    pub fn query_channel(&self, querier: &QuerierWrapper, channel: &ChannelEntry) -> StdResult<String> {
+    pub fn query_channel(
+        &self,
+        querier: &QuerierWrapper,
+        channel: &ChannelEntry,
+    ) -> StdResult<String> {
         let result: String = CHANNELS
             .query(querier, self.address.clone(), channel.clone())?
             .ok_or_else(|| {

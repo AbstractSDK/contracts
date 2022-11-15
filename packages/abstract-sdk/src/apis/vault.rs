@@ -7,27 +7,29 @@ use abstract_os::{
         state::VAULT_ASSETS, AssetsResponse, HoldingValueResponse, QueryMsg, TotalValueResponse,
     },
 };
-use cosmwasm_std::{to_binary, QueryRequest, StdError, StdResult, Uint128, WasmQuery};
+use cosmwasm_std::{to_binary, Deps, QueryRequest, StdError, StdResult, Uint128, WasmQuery};
 
-use crate::features::{AbstractNameSystem, Identification};
+use super::{AbstractNameSystem, Identification};
 pub trait VaultInterface: AbstractNameSystem + Identification {
-    fn vault(&self) -> Vault<Self> {
-        Vault { base: self }
+    fn vault<'a>(&'a self, deps: Deps<'a>) -> Vault<Self> {
+        Vault { base: self, deps }
     }
 }
 
 impl<T> VaultInterface for T where T: AbstractNameSystem + Identification {}
 
+#[derive(Clone)]
 pub struct Vault<'a, T: VaultInterface> {
     base: &'a T,
+    deps: Deps<'a>,
 }
 
 impl<'a, T: VaultInterface> Vault<'a, T> {
     /// Query the total value denominated in the base asset
     /// The provided address must implement the TotalValue Query
     pub fn query_total_value(&self) -> StdResult<Uint128> {
-        let querier = self.base.querier();
-        let proxy_address = self.base.proxy_address()?;
+        let querier = self.deps.querier;
+        let proxy_address = self.base.proxy_address(self.deps)?;
         let response: TotalValueResponse =
             querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
                 contract_addr: proxy_address.to_string(),
@@ -39,9 +41,9 @@ impl<'a, T: VaultInterface> Vault<'a, T> {
 
     /// RawQuery the proxy for a ProxyAsset
     pub fn asset(&self, asset: &AssetEntry) -> StdResult<ProxyAsset> {
-        let querier = self.base.querier();
-        let proxy_address = self.base.proxy_address()?;
-        let response = VAULT_ASSETS.query(&querier, proxy_address.clone(), asset.clone())?;
+        let querier = self.deps.querier;
+        let proxy_address = self.base.proxy_address(self.deps)?;
+        let response = VAULT_ASSETS.query(&querier, proxy_address, asset.clone())?;
         response.ok_or_else(|| {
             StdError::generic_err(format!(
                 "Asset {} is not registered as an asset on your proxy contract.",
@@ -53,8 +55,8 @@ impl<'a, T: VaultInterface> Vault<'a, T> {
     /// Query the holding value denominated in the base asset
     /// The provided address must implement the HoldingValue Query
     pub fn balance_value(&self, asset_entry: &AssetEntry) -> StdResult<Uint128> {
-        let querier = self.base.querier();
-        let proxy_address = self.base.proxy_address()?;
+        let querier = self.deps.querier;
+        let proxy_address = self.base.proxy_address(self.deps)?;
         let response: HoldingValueResponse =
             querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
                 contract_addr: proxy_address.to_string(),
@@ -73,8 +75,8 @@ impl<'a, T: VaultInterface> Vault<'a, T> {
         asset_entry: &AssetEntry,
         amount: Option<Uint128>,
     ) -> StdResult<Uint128> {
-        let querier = self.base.querier();
-        let proxy_address = self.base.proxy_address()?;
+        let querier = self.deps.querier;
+        let proxy_address = self.base.proxy_address(self.deps)?;
 
         let response: TotalValueResponse =
             querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
@@ -90,8 +92,8 @@ impl<'a, T: VaultInterface> Vault<'a, T> {
 
     /// List ProxyAssets raw
     pub fn enabled_assets_list(&self) -> StdResult<(Vec<AssetEntry>, AssetEntry)> {
-        let querier = self.base.querier();
-        let proxy_address = self.base.proxy_address()?;
+        let querier = self.deps.querier;
+        let proxy_address = self.base.proxy_address(self.deps)?;
 
         let mut asset_keys = vec![];
         let mut base_asset: Option<AssetEntry> = None;
@@ -121,8 +123,8 @@ impl<'a, T: VaultInterface> Vault<'a, T> {
 
     /// List ProxyAssets raw
     pub fn proxy_assets_list(&self) -> StdResult<Vec<(AssetEntry, ProxyAsset)>> {
-        let querier = self.base.querier();
-        let proxy_address = self.base.proxy_address()?;
+        let querier = self.deps.querier;
+        let proxy_address = self.base.proxy_address(self.deps)?;
 
         let mut assets = vec![];
         let mut resp: AssetsResponse = querier.query_wasm_smart(

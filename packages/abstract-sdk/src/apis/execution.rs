@@ -3,29 +3,30 @@
 //!
 use abstract_os::proxy::ExecuteMsg;
 use cosmwasm_std::{
-    to_binary, Attribute, CosmosMsg, Deps, ReplyOn, Response, StdError, StdResult, SubMsg, WasmMsg,
+    to_binary, CosmosMsg, Deps, ReplyOn, Response, StdError, StdResult, SubMsg, WasmMsg,
 };
 
-use crate::features::Identification;
+use super::Identification;
 
 /// Execute an action on the OS or over IBC on a remote chain.
 pub trait Execution: Identification {
-    fn executor(&self) -> Executor<Self> {
-        Executor { base: self }
+    fn executor<'a>(&'a self, deps: Deps<'a>) -> Executor<Self> {
+        Executor { base: self, deps }
     }
 }
 
-
 impl<T> Execution for T where T: Identification {}
 
+#[derive(Clone)]
 pub struct Executor<'a, T: Execution> {
-    pub base: &'a T,
+    base: &'a T,
+    deps: Deps<'a>,
 }
 
 impl<'a, T: Execution> Executor<'a, T> {
     pub fn execute(&self, msgs: Vec<CosmosMsg>) -> Result<CosmosMsg, StdError> {
         Ok(CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: self.base.proxy_address()?.to_string(),
+            contract_addr: self.base.proxy_address(self.deps)?.to_string(),
             msg: to_binary(&ExecuteMsg::ModuleAction { msgs })?,
             funds: vec![],
         }))
@@ -46,13 +47,10 @@ impl<'a, T: Execution> Executor<'a, T> {
         };
         Ok(sub_msg)
     }
-    pub fn execute_response(
-        &self,
-        msgs: Vec<CosmosMsg>,
-        action: &str,
-    ) -> StdResult<Response>
-    {
+    pub fn execute_response(&self, msgs: Vec<CosmosMsg>, action: &str) -> StdResult<Response> {
         let msg = self.execute(msgs)?;
-        Ok(Response::new().add_message(msg).add_attribute("action", action))
+        Ok(Response::new()
+            .add_message(msg)
+            .add_attribute("action", action))
     }
 }

@@ -1,5 +1,6 @@
-pub mod endpoints;
 mod contract_base;
+pub mod endpoints;
+pub mod features;
 mod handler;
 
 pub use {
@@ -8,4 +9,6 @@ pub use {
         MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
     },
     handler::Handler,
+    endpoints::migrate::{Name,VersionString,MigrateEndpoint},
+    endpoints::{ExecuteEndpoint,IbcCallbackEndpoint,InstantiateEndpoint,QueryEndpoint,ReceiveEndpoint,ReplyEndpoint}
 };

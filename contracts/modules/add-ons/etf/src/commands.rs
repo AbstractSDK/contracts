@@ -11,8 +11,9 @@ use cw_asset::{Asset, AssetInfo};
 use abstract_os::etf::DepositHookMsg;
 use abstract_os::objects::deposit_info::DepositInfo;
 use abstract_os::objects::fee::Fee;
-use abstract_sdk::cw20::query_supply;
-use abstract_sdk::proxy::{os_module_action, query_enabled_asset_names, query_total_value};
+
+use cosmwasm_std::{to_binary, Addr, QuerierWrapper, QueryRequest, StdResult, Uint128, WasmQuery};
+use cw20::{Cw20QueryMsg, TokenInfoResponse};
 
 use crate::contract::{EtfAddOn, EtfResult};
 use crate::error::VaultError;
@@ -261,4 +262,14 @@ pub fn set_fee(
 
     FEE.save(deps.storage, &fee)?;
     Ok(Response::new().add_attribute("Update:", "Successful"))
+}
+
+
+pub fn query_supply(querier: &QuerierWrapper, contract_addr: Addr) -> StdResult<Uint128> {
+    let res: TokenInfoResponse = querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+        contract_addr: String::from(contract_addr),
+        msg: to_binary(&Cw20QueryMsg::TokenInfo {})?,
+    }))?;
+
+    Ok(res.total_supply)
 }

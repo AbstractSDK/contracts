@@ -7,7 +7,7 @@ use abstract_os::{
     manager::ExecuteMsg as ManagerMsg,
     objects::{module::ModuleInfo, module_reference::ModuleReference},
 };
-use abstract_sdk::{get_module, verify_os_manager};
+use abstract_sdk::{*, feature_objects::VersionControlContract};
 
 use protobuf::Message;
 
@@ -29,8 +29,12 @@ pub fn execute_create_module(
 ) -> ModuleFactoryResult {
     let config = CONFIG.load(deps.storage)?;
     // Verify sender is active OS manager
-    let core = verify_os_manager(&deps.querier, &info.sender, &config.version_control_address)?;
-    let new_module = get_module(&deps.querier, module_info, &config.version_control_address)?;
+    // Construct feature object to access registry functions
+    let binding = VersionControlContract{contract_address: config.version_control_address};
+    let version_registry = binding.version_register(deps.as_ref());
+    let os_registry = binding.os_register(deps.as_ref());
+    let new_module = version_registry.get_module(module_info)?;
+    let core = os_registry.assert_manager(&info.sender)?;
 
     // Todo: check if this can be generalized for some contracts
     // aka have default values for each kind of module that only get overwritten if a specific init_msg is saved.

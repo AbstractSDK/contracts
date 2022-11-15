@@ -1,7 +1,8 @@
 use abstract_os::objects::core::OS_ID;
 use abstract_os::objects::AssetEntry;
-use abstract_sdk::ans_host::AnsHost;
+
 use abstract_sdk::Resolve;
+use abstract_sdk::feature_objects::AnsHost;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
@@ -94,7 +95,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::HoldingAmount { identifier } => {
             let vault_asset: AssetEntry = identifier.into();
             let ans_host = ANS_HOST.load(deps.storage)?;
-            let asset_info = vault_asset.resolve(deps, &ans_host)?;
+            let asset_info = vault_asset.resolve(&deps.querier, &ans_host)?;
             to_binary(&HoldingAmountResponse {
                 amount: asset_info.query_balance(&deps.querier, env.contract.address)?,
             })

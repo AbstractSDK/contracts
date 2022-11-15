@@ -8,29 +8,22 @@
 
 pub extern crate abstract_os;
 
+mod ans_resolve;
+mod apis;
 pub mod base;
-pub mod features;
-mod ans_host_traits;
-mod cw20;
+
+pub mod feature_objects;
 mod manager;
 mod module_traits;
-mod apis;
 
-pub use apis::{
+pub use ans_resolve::Resolve;
+
+pub use crate::apis::{
     applications::ApplicationInterface, execution::Execution, transfer::TransferInterface,
-    vault::VaultInterface, verify::Verification,
+    vault::VaultInterface, verify::Verification, version_register::VersionRegisterInterface,ans::AnsInterface,
 };
-
-pub mod ans_host {
-    pub use abstract_os::objects::ans_host::AnsHost;
-}
-
-
 
 pub use abstract_os::{
     objects::common_namespace::{ADMIN_NAMESPACE, BASE_STATE, CONTRACT_VERSION},
     registry::*,
 };
-
-pub use ans_host_traits::Resolve;
-
