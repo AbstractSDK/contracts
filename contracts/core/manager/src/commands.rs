@@ -13,8 +13,8 @@ use abstract_os::{
     version_control::{state::MODULE_LIBRARY, ModuleResponse, QueryMsg as VersionQuery},
     IBC_CLIENT,
 };
-use abstract_sdk::*;
 use abstract_sdk::feature_objects::VersionControlContract;
+use abstract_sdk::*;
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo,
     QueryRequest, Response, StdError, StdResult, WasmMsg, WasmQuery,
@@ -380,7 +380,9 @@ fn get_module(
 ) -> Result<ModuleReference, ManagerError> {
     let config = CONFIG.load(deps.storage)?;
     // Construct feature object to access registry functions
-    let binding = VersionControlContract{contract_address: config.version_control_address};
+    let binding = VersionControlContract {
+        contract_address: config.version_control_address,
+    };
     let version_registry = binding.version_register(deps);
     match &module_info.version {
         ModuleVersion::Version(new_version) => {
@@ -388,7 +390,6 @@ fn get_module(
             if new_version.parse::<Version>().unwrap()
                 >= old_contract.version.parse::<Version>().unwrap()
             {
-
                 Ok(version_registry.get_module_reference_raw(module_info)?)
             } else {
                 Err(ManagerError::OlderVersion(

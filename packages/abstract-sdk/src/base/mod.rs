@@ -8,7 +8,10 @@ pub use {
         AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
         MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
     },
+    endpoints::migrate::{MigrateEndpoint, Name, VersionString},
+    endpoints::{
+        ExecuteEndpoint, IbcCallbackEndpoint, InstantiateEndpoint, QueryEndpoint, ReceiveEndpoint,
+        ReplyEndpoint,
+    },
     handler::Handler,
-    endpoints::migrate::{Name,VersionString,MigrateEndpoint},
-    endpoints::{ExecuteEndpoint,IbcCallbackEndpoint,InstantiateEndpoint,QueryEndpoint,ReceiveEndpoint,ReplyEndpoint}
 };

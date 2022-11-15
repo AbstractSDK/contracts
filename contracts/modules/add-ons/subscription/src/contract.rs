@@ -1,7 +1,7 @@
 use abstract_add_on::{export_endpoints, AddOnContract};
 
-use abstract_os::SUBSCRIPTION;
 use crate::commands::get_os_core;
+use abstract_os::SUBSCRIPTION;
 use cosmwasm_std::{to_binary, Binary, Decimal, StdError, Uint128};
 
 use cw20::Cw20ReceiveMsg;

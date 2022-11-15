@@ -5,8 +5,8 @@ use abstract_os::version_control::Core;
 
 use abstract_sdk::OsExecute;
 use cosmwasm_std::{
-    from_binary, to_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo, Response,
-    StdError, StdResult, Storage, SubMsg, Uint128, Uint64, WasmMsg, QuerierWrapper,
+    from_binary, to_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo,
+    QuerierWrapper, Response, StdError, StdResult, Storage, SubMsg, Uint128, Uint64, WasmMsg,
 };
 use cw20::Cw20ReceiveMsg;
 use cw_asset::{Asset, AssetInfo, AssetInfoUnchecked};
@@ -641,7 +641,6 @@ fn load_contribution_config(store: &dyn Storage) -> Result<ContributionConfig, S
         None => Err(SubscriptionError::ContributionNotEnabled),
     }
 }
-
 
 /// Get the [`abstract_os::version_control::Core`] object for an os-id.
 pub(crate) fn get_os_core(

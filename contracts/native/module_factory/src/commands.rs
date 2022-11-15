@@ -7,7 +7,7 @@ use abstract_os::{
     manager::ExecuteMsg as ManagerMsg,
     objects::{module::ModuleInfo, module_reference::ModuleReference},
 };
-use abstract_sdk::{*, feature_objects::VersionControlContract};
+use abstract_sdk::{feature_objects::VersionControlContract, *};
 
 use protobuf::Message;
 
@@ -30,7 +30,9 @@ pub fn execute_create_module(
     let config = CONFIG.load(deps.storage)?;
     // Verify sender is active OS manager
     // Construct feature object to access registry functions
-    let binding = VersionControlContract{contract_address: config.version_control_address};
+    let binding = VersionControlContract {
+        contract_address: config.version_control_address,
+    };
     let version_registry = binding.version_register(deps.as_ref());
     let os_registry = binding.os_register(deps.as_ref());
     let new_module = version_registry.get_module(module_info)?;

@@ -264,7 +264,6 @@ pub fn set_fee(
     Ok(Response::new().add_attribute("Update:", "Successful"))
 }
 
-
 pub fn query_supply(querier: &QuerierWrapper, contract_addr: Addr) -> StdResult<Uint128> {
     let res: TokenInfoResponse = querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
         contract_addr: String::from(contract_addr),

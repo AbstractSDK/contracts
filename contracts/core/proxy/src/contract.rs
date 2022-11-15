@@ -1,8 +1,8 @@
 use abstract_os::objects::core::OS_ID;
 use abstract_os::objects::AssetEntry;
 
-use abstract_sdk::Resolve;
 use abstract_sdk::feature_objects::AnsHost;
+use abstract_sdk::Resolve;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{

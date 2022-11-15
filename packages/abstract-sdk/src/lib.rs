@@ -19,8 +19,9 @@ mod module_traits;
 pub use ans_resolve::Resolve;
 
 pub use crate::apis::{
-    applications::ApplicationInterface, execution::Execution, transfer::TransferInterface,
-    vault::VaultInterface, verify::Verification, version_register::VersionRegisterInterface,ans::AnsInterface,
+    ans::AnsInterface, applications::ApplicationInterface, execution::Execution,
+    transfer::TransferInterface, vault::VaultInterface, verify::Verification,
+    version_register::VersionRegisterInterface,
 };
 
 pub use abstract_os::{

@@ -9,7 +9,11 @@ use super::AbstractNameSystem;
 
 pub trait AnsInterface: AbstractNameSystem {
     fn ans<'a>(&'a self, deps: Deps<'a>) -> Ans<Self> {
-        Ans { base: self, deps, host: self.ans_host(deps).unwrap() }
+        Ans {
+            base: self,
+            deps,
+            host: self.ans_host(deps).unwrap(),
+        }
     }
 }
 

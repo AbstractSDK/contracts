@@ -2,7 +2,6 @@ use cosmwasm_std::{Addr, Deps};
 
 pub use abstract_os::objects::ans_host::AnsHost;
 
-
 #[derive(Clone)]
 pub struct VersionControlContract {
     pub contract_address: Addr,
