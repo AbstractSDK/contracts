@@ -3,7 +3,7 @@ use abstract_os::manager::ExecuteMsg as ManagerMsg;
 use abstract_os::objects::common_namespace::ADMIN_NAMESPACE;
 use abstract_os::version_control::Core;
 
-use abstract_sdk::OsExecute;
+use abstract_sdk::Execution;
 use cosmwasm_std::{
     from_binary, to_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo,
     QuerierWrapper, Response, StdError, StdResult, Storage, SubMsg, Uint128, Uint64, WasmMsg,
@@ -237,8 +237,10 @@ pub fn claim_subscriber_emissions(
     };
 
     if !asset.amount.is_zero() {
-        Ok(Response::new().add_submessage(
-            add_on.os_execute(deps, vec![asset.transfer_msg(subscriber_proxy_address)?])?,
+        Ok(Response::new().add_message(
+            add_on
+                .executor(deps)
+                .execute(vec![asset.transfer_msg(subscriber_proxy_address)?])?,
         ))
     } else {
         Ok(Response::new())
@@ -468,7 +470,7 @@ pub fn try_claim_compensation(
         Err(SubscriptionError::NoAssetsToSend)
     } else {
         Ok(Response::new()
-            .add_submessage(add_on.os_execute(deps.as_ref(), msgs)?)
+            .add_message(add_on.executor(deps.as_ref()).execute(msgs)?)
             .add_attribute("action", "claim_contribution"))
     }
 }
