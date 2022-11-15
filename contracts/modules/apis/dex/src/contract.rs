@@ -3,20 +3,19 @@ use abstract_os::{
     api::{ExecuteMsg, InstantiateMsg, QueryMsg},
     dex::{DexAction, DexName, DexQueryMsg, DexRequestMsg, IBC_DEX_ID},
     ibc_client::CallbackInfo,
-    objects::AssetEntry,
+    objects::AnsAsset,
     EXCHANGE,
 };
 use abstract_sdk::{
-    ans_host::AnsHost, host_ibc_action, ics20_transfer, AnsHostOperation, ExecuteEndpoint,
-    InstantiateEndpoint, QueryEndpoint, Resolve,
+    base::endpoints::{ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint},
+    feature_objects::AnsHost,
+    AnsInterface, IbcInterface, Resolve,
 };
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
     to_binary, Binary, Coin, Deps, DepsMut, Empty, Env, MessageInfo, Response, StdError, StdResult,
-    Uint128,
 };
-use cw_asset::Asset;
 
 use crate::{
     commands::LocalDex, dex_trait::Identify, error::DexError, queries::simulate_swap, DEX,
@@ -136,11 +135,12 @@ fn handle_ibc_api_request(
     action: &DexAction,
 ) -> DexResult {
     let host_chain = dex_name;
-    let ans_host = api.load_ans_host(deps.storage)?;
+    let ans = api.ans(deps.as_ref());
+    let ibc_client = api.ibc_client(deps.as_ref());
     // get the to-be-sent assets from the action
-    let coins = resolve_assets_to_transfer(deps.as_ref(), action, &ans_host)?;
+    let coins = resolve_assets_to_transfer(deps.as_ref(), action, &ans.host())?;
     // construct the ics20 call(s)
-    let ics20_transfer_msg = ics20_transfer(api.target()?, host_chain.clone(), coins)?;
+    let ics20_transfer_msg = ibc_client.ics20_transfer(host_chain.clone(), coins)?;
     // construct the action to be called on the host
     let action = abstract_os::ibc_host::HostAction::App {
         msg: to_binary(&action)?,
@@ -154,8 +154,7 @@ fn handle_ibc_api_request(
             receiver: info.sender.into_string(),
         })
     };
-    let ibc_action_msg =
-        host_ibc_action(api.target()?, host_chain, action, callback, ACTION_RETRIES)?;
+    let ibc_action_msg = ibc_client.host_action(host_chain, action, callback, ACTION_RETRIES)?;
 
     // call both messages on the proxy
     Ok(Response::new().add_messages(vec![ics20_transfer_msg, ibc_action_msg]))
@@ -182,13 +181,7 @@ fn resolve_assets_to_transfer(
     ans_host: &AnsHost,
 ) -> StdResult<Vec<Coin>> {
     // resolve asset to native asset
-    let offer_to_coin = |offer: &(AssetEntry, Uint128)| {
-        Asset {
-            info: offer.0.resolve(deps, ans_host)?,
-            amount: offer.1,
-        }
-        .try_into()
-    };
+    let offer_to_coin = |offer: &AnsAsset| offer.resolve(&deps.querier, ans_host)?.try_into();
 
     match dex_action {
         DexAction::ProvideLiquidity { assets, .. } => {
@@ -198,10 +191,10 @@ fn resolve_assets_to_transfer(
         DexAction::ProvideLiquiditySymmetric { .. } => Err(StdError::generic_err(
             "Cross-chain symmetric provide liquidity not supported.",
         )),
-        DexAction::WithdrawLiquidity { lp_token, amount } => Ok(vec![offer_to_coin(&(
-            lp_token.to_owned(),
-            amount.to_owned(),
-        ))?]),
+        DexAction::WithdrawLiquidity { lp_token, amount } => Ok(vec![offer_to_coin(&AnsAsset {
+            info: lp_token.to_owned(),
+            amount: amount.to_owned(),
+        })?]),
         DexAction::Swap { offer_asset, .. } => Ok(vec![offer_to_coin(offer_asset)?]),
         DexAction::CustomSwap { offer_assets, .. } => {
             let coins: Result<Vec<Coin>, _> = offer_assets.iter().map(offer_to_coin).collect();

@@ -1,6 +1,8 @@
-use abstract_sdk::{AnsHostOperation, OsExecute, Resolve};
+use abstract_os::objects::AnsAsset;
+use abstract_sdk::base::features::AbstractNameSystem;
+use abstract_sdk::{AnsInterface, Execution};
 use cosmwasm_std::{CosmosMsg, Decimal, Deps, DepsMut, ReplyOn, SubMsg};
-use cw_asset::{Asset, AssetInfo};
+use cw_asset::Asset;
 
 use crate::{error::DexError, DEX};
 use abstract_os::dex::AskAsset;
@@ -15,9 +17,9 @@ pub const WITHDRAW_LIQUIDITY: u64 = 7546;
 pub const SWAP: u64 = 7544;
 pub const CUSTOM_SWAP: u64 = 7545;
 
-impl<T> LocalDex for T where T: AnsHostOperation + OsExecute {}
+impl<T> LocalDex for T where T: AbstractNameSystem + Execution {}
 
-pub trait LocalDex: AnsHostOperation + OsExecute {
+pub trait LocalDex: AbstractNameSystem + Execution {
     /// resolve the provided dex action on a local dex
     fn resolve_dex_action(
         &self,
@@ -54,7 +56,11 @@ pub trait LocalDex: AnsHostOperation + OsExecute {
                 )
             }
             DexAction::WithdrawLiquidity { lp_token, amount } => (
-                self.resolve_withdraw_liquidity(deps.as_ref(), (lp_token, amount), exchange)?,
+                self.resolve_withdraw_liquidity(
+                    deps.as_ref(),
+                    AnsAsset::new(lp_token, amount),
+                    exchange,
+                )?,
                 WITHDRAW_LIQUIDITY,
             ),
             DexAction::Swap {
@@ -91,9 +97,12 @@ pub trait LocalDex: AnsHostOperation + OsExecute {
             ),
         };
         if with_reply {
-            self.os_execute_with_reply(deps.as_ref(), msgs, ReplyOn::Success, reply_id)
+            self.executor(deps.as_ref())
+                .execute_with_reply(msgs, ReplyOn::Success, reply_id)
         } else {
-            self.os_execute(deps.as_ref(), msgs)
+            self.executor(deps.as_ref())
+                .execute(msgs)
+                .map(|msg| SubMsg::new(msg))
         }
         .map_err(Into::into)
     }
@@ -107,16 +116,19 @@ pub trait LocalDex: AnsHostOperation + OsExecute {
         max_spread: Option<Decimal>,
         belief_price: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
-        let (mut offer_asset, offer_amount) = offer_asset;
+        let AnsAsset {
+            info: mut offer_asset,
+            amount: offer_amount,
+        } = offer_asset;
         offer_asset.format();
         ask_asset.format();
 
-        let ans_host = self.load_ans_host(deps.storage)?;
-        let offer_asset_info = offer_asset.resolve(deps, &ans_host)?;
-        let ask_asset_info = ask_asset.resolve(deps, &ans_host)?;
+        let ans = self.ans(deps);
+        let offer_asset_info = ans.query(&offer_asset)?;
+        let ask_asset_info = ans.query(&ask_asset)?;
 
         let pair_address =
-            exchange.pair_address(deps, &ans_host, &mut vec![&offer_asset, &ask_asset])?;
+            exchange.pair_address(deps, ans.host(), &mut vec![&offer_asset, &ask_asset])?;
         let offer_asset: Asset = Asset::new(offer_asset_info, offer_amount);
 
         exchange.swap(
@@ -141,7 +153,7 @@ pub trait LocalDex: AnsHostOperation + OsExecute {
     ) -> Result<Vec<CosmosMsg>, DexError> {
         todo!()
 
-        // let ans_host = api.load_ans_host(deps.storage)?;
+        // let ans_host = api.ans(deps);
         //
         // // Resolve the asset information
         // let mut offer_asset_infos: Vec<AssetInfo> =
@@ -170,19 +182,14 @@ pub trait LocalDex: AnsHostOperation + OsExecute {
         exchange: &dyn DEX,
         max_spread: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
-        let mut assets = vec![];
-        let mem = self.load_ans_host(deps.storage)?;
-        for offer in &offer_assets {
-            let info = offer.0.resolve(deps, &mem)?;
-            let asset = Asset::new(info, offer.1);
-            assets.push(asset);
-        }
+        let ans = self.ans(deps);
+        let assets = ans.query(&offer_assets)?;
         let pair_address = exchange.pair_address(
             deps,
-            &mem,
+            &ans.host(),
             offer_assets
                 .iter()
-                .map(|(a, _)| a)
+                .map(|a| &a.info)
                 .collect::<Vec<&AssetEntry>>()
                 .as_mut(),
         )?;
@@ -193,19 +200,15 @@ pub trait LocalDex: AnsHostOperation + OsExecute {
         &self,
         deps: Deps,
         offer_asset: OfferAsset,
-        mut paired_assets: Vec<AssetEntry>,
+        paired_assets: Vec<AssetEntry>,
         exchange: &dyn DEX,
     ) -> Result<Vec<CosmosMsg>, DexError> {
-        let mem = self.load_ans_host(deps.storage)?;
-        let paired_asset_infos: Result<Vec<AssetInfo>, _> = paired_assets
-            .iter()
-            .map(|entry| entry.resolve(deps, &mem))
-            .collect();
-        paired_assets.push(offer_asset.0.clone());
+        let ans = self.ans(deps);
+        let paired_asset_infos = ans.query(&paired_assets)?;
         let pair_address =
-            exchange.pair_address(deps, &mem, &mut paired_assets.iter().collect())?;
-        let offer_asset = Asset::new(offer_asset.0.resolve(deps, &mem)?, offer_asset.1);
-        exchange.provide_liquidity_symmetric(deps, pair_address, offer_asset, paired_asset_infos?)
+            exchange.pair_address(deps, &ans.host(), &mut paired_assets.iter().collect())?;
+        let offer_asset = ans.query(&offer_asset)?;
+        exchange.provide_liquidity_symmetric(deps, pair_address, offer_asset, paired_asset_infos)
     }
 
     fn resolve_withdraw_liquidity(
@@ -214,12 +217,11 @@ pub trait LocalDex: AnsHostOperation + OsExecute {
         lp_token: OfferAsset,
         exchange: &dyn DEX,
     ) -> Result<Vec<CosmosMsg>, DexError> {
-        let mem = self.load_ans_host(deps.storage)?;
-        let info = lp_token.0.resolve(deps, &mem)?;
-        let lp_asset = Asset::new(info, lp_token.1);
-        let pair_entry = UncheckedContractEntry::new(exchange.name(), lp_token.0.as_str()).check();
-
-        let pair_address = pair_entry.resolve(deps, &mem)?;
+        let ans = self.ans(deps);
+        let lp_asset = ans.query(&lp_token)?;
+        let pair_entry =
+            UncheckedContractEntry::new(exchange.name(), lp_token.info.as_str()).check();
+        let pair_address = ans.query(&pair_entry)?;
         exchange.withdraw_liquidity(deps, pair_address, lp_asset)
     }
 }

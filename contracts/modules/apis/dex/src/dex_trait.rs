@@ -1,5 +1,5 @@
 use abstract_os::objects::{AssetEntry, ContractEntry};
-use abstract_sdk::ans_host::AnsHost;
+use abstract_sdk::feature_objects::AnsHost;
 use cosmwasm_std::{Addr, CosmosMsg, Decimal, Deps, StdResult, Uint128};
 use cw_asset::{Asset, AssetInfo};
 
@@ -25,7 +25,7 @@ pub trait DEX: Identify {
         assets: &mut Vec<&AssetEntry>,
     ) -> StdResult<Addr> {
         let dex_pair = self.pair_contract(assets);
-        ans_host.query_contract(deps, &dex_pair)
+        ans_host.query_contract(&deps.querier, &dex_pair)
     }
     fn pair_contract(&self, assets: &mut Vec<&AssetEntry>) -> ContractEntry {
         ContractEntry::construct_dex_entry(self.name(), assets)
