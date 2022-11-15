@@ -1,4 +1,6 @@
-use abstract_os::{objects::common_namespace::ADMIN_NAMESPACE, version_control::Core};
+use abstract_os::{
+    objects::common_namespace::ADMIN_NAMESPACE, proxy::state::OS_ID, version_control::Core,
+};
 use cosmwasm_std::{Addr, Deps, StdError, StdResult};
 use cw_storage_plus::Item;
 
@@ -15,5 +17,8 @@ pub trait Identification: Sized {
             manager: self.manager_address(deps)?,
             proxy: self.proxy_address(deps)?,
         })
+    }
+    fn os_id(&self, deps: Deps) -> StdResult<u32> {
+        OS_ID.query(&deps.querier, self.proxy_address(deps)?)
     }
 }

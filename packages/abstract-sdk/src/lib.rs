@@ -9,17 +9,14 @@
 pub extern crate abstract_os;
 
 mod ans_resolve;
-mod apis;
+pub mod apis;
 pub mod base;
-
 pub mod feature_objects;
-mod manager;
-mod module_traits;
+
 
 pub use ans_resolve::Resolve;
-
 pub use crate::apis::{
-    ans::AnsInterface, applications::ApplicationInterface, execution::Execution,
+    ans::AnsInterface, applications::ApplicationInterface, execution::Execution, ibc::IbcInterface,
     transfer::TransferInterface, vault::VaultInterface, verify::Verification,
     version_register::VersionRegisterInterface,
 };

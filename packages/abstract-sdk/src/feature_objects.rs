@@ -1,3 +1,4 @@
+use abstract_os::version_control::Core;
 use cosmwasm_std::{Addr, Deps};
 
 pub use abstract_os::objects::ans_host::AnsHost;
@@ -21,6 +22,20 @@ pub struct ProxyContract {
 impl crate::base::features::Identification for ProxyContract {
     fn proxy_address(&self, _deps: Deps) -> cosmwasm_std::StdResult<Addr> {
         Ok(self.contract_address.clone())
+    }
+}
+
+impl crate::base::features::Identification for Core {
+    fn proxy_address(&self, _deps: Deps) -> cosmwasm_std::StdResult<Addr> {
+        Ok(self.proxy.clone())
+    }
+
+    fn manager_address(&self, _deps: Deps) -> cosmwasm_std::StdResult<Addr> {
+        Ok(self.manager.clone())
+    }
+
+    fn os_core(&self, _deps: Deps) -> cosmwasm_std::StdResult<Core> {
+        Ok(self.clone())
     }
 }
 

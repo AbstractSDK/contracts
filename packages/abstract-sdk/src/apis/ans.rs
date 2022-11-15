@@ -27,7 +27,10 @@ pub struct Ans<'a, T: AnsInterface> {
 }
 
 impl<'a, T: AnsInterface> Ans<'a, T> {
-    fn query<R: Resolve>(&self, entry: R) -> StdResult<R::Output> {
+    pub fn query<R: Resolve>(&self, entry: &R) -> StdResult<R::Output> {
         entry.resolve(&self.deps.querier, &self.host)
+    }
+    pub fn host(&self) -> &AnsHost {
+        &self.host
     }
 }

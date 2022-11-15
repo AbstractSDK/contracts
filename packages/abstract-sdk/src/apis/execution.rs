@@ -33,7 +33,6 @@ impl<'a, T: Execution> Executor<'a, T> {
     }
     pub fn execute_with_reply(
         &self,
-        _deps: Deps,
         msgs: Vec<CosmosMsg>,
         reply_on: ReplyOn,
         id: u64,
