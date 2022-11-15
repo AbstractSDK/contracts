@@ -13,13 +13,12 @@ pub mod apis;
 pub mod base;
 pub mod feature_objects;
 
-
-pub use ans_resolve::Resolve;
 pub use crate::apis::{
     ans::AnsInterface, applications::ApplicationInterface, execution::Execution, ibc::IbcInterface,
     transfer::TransferInterface, vault::VaultInterface, verify::Verification,
     version_register::VersionRegisterInterface,
 };
+pub use ans_resolve::Resolve;
 
 pub use abstract_os::{
     objects::common_namespace::{ADMIN_NAMESPACE, BASE_STATE, CONTRACT_VERSION},

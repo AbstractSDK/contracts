@@ -3,7 +3,7 @@
   "title": "QueryMsg",
   "oneOf": [
     {
-      "description": "A configuration message to the middleware.",
+      "description": "A configuration message to the base.",
       "type": "object",
       "required": [
         "base"
@@ -30,6 +30,21 @@
     }
   ],
   "definitions": {
+    "AnsAsset": {
+      "type": "object",
+      "required": [
+        "amount",
+        "info"
+      ],
+      "properties": {
+        "amount": {
+          "$ref": "#/definitions/Uint128"
+        },
+        "info": {
+          "$ref": "#/definitions/AssetEntry"
+        }
+      }
+    },
     "AssetEntry": {
       "description": "May key to retrieve information on an asset",
       "type": "string"
@@ -100,17 +115,7 @@
                   ]
                 },
                 "offer_asset": {
-                  "type": "array",
-                  "items": [
-                    {
-                      "$ref": "#/definitions/AssetEntry"
-                    },
-                    {
-                      "$ref": "#/definitions/Uint128"
-                    }
-                  ],
-                  "maxItems": 2,
-                  "minItems": 2
+                  "$ref": "#/definitions/AnsAsset"
                 }
               },
               "additionalProperties": false

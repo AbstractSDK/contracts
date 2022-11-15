@@ -57,6 +57,21 @@
     }
   ],
   "definitions": {
+    "AnsAsset": {
+      "type": "object",
+      "required": [
+        "amount",
+        "info"
+      ],
+      "properties": {
+        "amount": {
+          "$ref": "#/definitions/Uint128"
+        },
+        "info": {
+          "$ref": "#/definitions/AssetEntry"
+        }
+      }
+    },
     "ApiRequestMsg_for_DexRequestMsg": {
       "description": "An API request. If proxy is None, then the sender must be an OS manager and the proxy address is extrapolated from the OS id.",
       "type": "object",
@@ -166,17 +181,7 @@
                   "description": "Assets to add",
                   "type": "array",
                   "items": {
-                    "type": "array",
-                    "items": [
-                      {
-                        "$ref": "#/definitions/AssetEntry"
-                      },
-                      {
-                        "$ref": "#/definitions/Uint128"
-                      }
-                    ],
-                    "maxItems": 2,
-                    "minItems": 2
+                    "$ref": "#/definitions/AnsAsset"
                   }
                 },
                 "max_spread": {
@@ -210,17 +215,7 @@
               ],
               "properties": {
                 "offer_asset": {
-                  "type": "array",
-                  "items": [
-                    {
-                      "$ref": "#/definitions/AssetEntry"
-                    },
-                    {
-                      "$ref": "#/definitions/Uint128"
-                    }
-                  ],
-                  "maxItems": 2,
-                  "minItems": 2
+                  "$ref": "#/definitions/AnsAsset"
                 },
                 "paired_assets": {
                   "description": "Assets that are paired with the offered asset",
@@ -299,17 +294,7 @@
                   ]
                 },
                 "offer_asset": {
-                  "type": "array",
-                  "items": [
-                    {
-                      "$ref": "#/definitions/AssetEntry"
-                    },
-                    {
-                      "$ref": "#/definitions/Uint128"
-                    }
-                  ],
-                  "maxItems": 2,
-                  "minItems": 2
+                  "$ref": "#/definitions/AnsAsset"
                 }
               },
               "additionalProperties": false
@@ -334,17 +319,7 @@
                 "ask_assets": {
                   "type": "array",
                   "items": {
-                    "type": "array",
-                    "items": [
-                      {
-                        "$ref": "#/definitions/AssetEntry"
-                      },
-                      {
-                        "$ref": "#/definitions/Uint128"
-                      }
-                    ],
-                    "maxItems": 2,
-                    "minItems": 2
+                    "$ref": "#/definitions/AnsAsset"
                   }
                 },
                 "max_spread": {
@@ -360,17 +335,7 @@
                 "offer_assets": {
                   "type": "array",
                   "items": {
-                    "type": "array",
-                    "items": [
-                      {
-                        "$ref": "#/definitions/AssetEntry"
-                      },
-                      {
-                        "$ref": "#/definitions/Uint128"
-                      }
-                    ],
-                    "maxItems": 2,
-                    "minItems": 2
+                    "$ref": "#/definitions/AnsAsset"
                   }
                 },
                 "router": {
