@@ -10,7 +10,6 @@ use abstract_os::{
         module_reference::ModuleReference,
     },
     proxy::ExecuteMsg as TreasuryMsg,
-    version_control::{state::MODULE_LIBRARY, ModuleResponse, QueryMsg as VersionQuery},
     IBC_CLIENT,
 };
 use abstract_sdk::feature_objects::VersionControlContract;
