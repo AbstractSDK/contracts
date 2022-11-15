@@ -2,11 +2,11 @@ use std::{collections::HashSet, fmt::Debug};
 
 use abstract_os::version_control::Core;
 use abstract_sdk::{
-    ans_host::AnsHost,
     base::{
         AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
         QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
     },
+    feature_objects::AnsHost,
     BASE_STATE,
 };
 

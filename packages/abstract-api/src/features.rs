@@ -1,4 +1,7 @@
-use abstract_sdk::base::features::{AbstractNameSystem, Identification, RegisterAccess};
+use abstract_sdk::{
+    base::features::{AbstractNameSystem, Identification, RegisterAccess},
+    feature_objects::AnsHost,
+};
 use cosmwasm_std::{Addr, Deps, StdError, StdResult};
 
 use crate::{ApiContract, ApiError};
@@ -12,7 +15,7 @@ impl<
     > AbstractNameSystem
     for ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
 {
-    fn ans_host(&self, deps: Deps) -> StdResult<abstract_sdk::ans_host::AnsHost> {
+    fn ans_host(&self, deps: Deps) -> StdResult<AnsHost> {
         Ok(self.base_state.load(deps.storage)?.ans_host)
     }
 }

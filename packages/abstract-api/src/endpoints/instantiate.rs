@@ -2,8 +2,8 @@ use abstract_os::api::InstantiateMsg;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 use abstract_sdk::{
-    ans_host::AnsHost,
     base::{endpoints::InstantiateEndpoint, Handler},
+    feature_objects::AnsHost,
 };
 use schemars::JsonSchema;
 use serde::Serialize;
