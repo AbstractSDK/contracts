@@ -1,5 +1,6 @@
 use std::convert::TryInto;
 
+use abstract_sdk::feature_objects::VersionControlContract;
 use cosmwasm_std::{
     entry_point, to_binary, Addr, Api, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Response,
     StdError, StdResult,
@@ -17,6 +18,7 @@ use crate::state::{Config, ADMIN, CONFIG};
 use abstract_os::abstract_token::{
     ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
 };
+use abstract_sdk::*;
 
 /// Contract name that is used for migration.
 const CONTRACT_NAME: &str = "pandora:token";
@@ -180,12 +182,13 @@ fn assert_recipient_allowed(deps: Deps, recipient: &str) -> Result<(), ContractE
     {
         return Ok(());
     }
-    abstract_sdk::verify_os_proxy(
-        &deps.querier,
-        &Addr::unchecked(recipient),
-        &config.version_control_address,
-    )
-    .map_err(|_| StdError::generic_err("receiver must be a valid Abstract proxy contract"))?;
+    let verify_feature = VersionControlContract {
+        contract_address: config.version_control_address,
+    };
+    verify_feature
+        .os_register(deps)
+        .assert_proxy(&deps.api.addr_validate(recipient)?)
+        .map_err(|_| StdError::generic_err("receiver must be a valid Abstract proxy contract"))?;
     Ok(())
 }
 fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> Result<Response, ContractError> {
