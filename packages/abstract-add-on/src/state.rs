@@ -1,4 +1,5 @@
-use abstract_os::objects::common_namespace::ADMIN_NAMESPACE;
+use abstract_sdk::feature_objects::AnsHost;
+use abstract_sdk::{ADMIN_NAMESPACE, BASE_STATE};
 use cosmwasm_std::{Addr, Empty, StdResult, Storage};
 
 use cw_controllers::Admin;
@@ -6,10 +7,9 @@ use cw_storage_plus::Item;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use abstract_sdk::{
-    ans_host::AnsHost, AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn,
-    InstantiateHandlerFn, MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
-    ADMIN, BASE_STATE,
+use crate::{
+    AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
+    MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
 };
 
 use crate::AddOnError;

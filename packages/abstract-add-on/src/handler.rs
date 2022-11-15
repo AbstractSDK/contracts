@@ -1,4 +1,4 @@
-use abstract_sdk::{AbstractContract, Handler};
+use crate::{AbstractContract, Handler};
 
 use crate::{AddOnContract, AddOnError};
 
