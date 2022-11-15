@@ -1,18 +1,23 @@
+mod execute;
+mod ibc_callback;
+pub mod instantiate;
+mod migrate;
+mod query;
+mod receive;
+mod reply;
+
 #[macro_export]
 macro_rules! export_endpoints {
     ($add_on_const:expr, $add_on_type:ty) => {
-        use abstract_sdk::{
-            ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint, ReplyEndpoint,
-        };
-
         /// Instantiate entrypoint
         #[cosmwasm_std::entry_point]
         pub fn instantiate(
             deps: cosmwasm_std::DepsMut,
             env: cosmwasm_std::Env,
             info: cosmwasm_std::MessageInfo,
-            msg: <$add_on_type as abstract_sdk::InstantiateEndpoint>::InstantiateMsg,
-        ) -> Result<cosmwasm_std::Response, <$add_on_type as abstract_sdk::Handler>::Error> {
+            msg: <$add_on_type as abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg,
+        ) -> Result<cosmwasm_std::Response, <$add_on_type as abstract_sdk::base::Handler>::Error> {
+            use abstract_sdk::base::InstantiateEndpoint;
             $add_on_const.instantiate(deps, env, info, msg)
         }
 
@@ -22,8 +27,9 @@ macro_rules! export_endpoints {
             deps: cosmwasm_std::DepsMut,
             env: cosmwasm_std::Env,
             info: cosmwasm_std::MessageInfo,
-            msg: <$add_on_type as abstract_sdk::ExecuteEndpoint>::ExecuteMsg,
-        ) -> Result<cosmwasm_std::Response, <$add_on_type as abstract_sdk::Handler>::Error> {
+            msg: <$add_on_type as abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg,
+        ) -> Result<cosmwasm_std::Response, <$add_on_type as abstract_sdk::base::Handler>::Error> {
+            use abstract_sdk::base::ExecuteEndpoint;
             $add_on_const.execute(deps, env, info, msg)
         }
 
@@ -32,8 +38,9 @@ macro_rules! export_endpoints {
         pub fn query(
             deps: cosmwasm_std::Deps,
             env: cosmwasm_std::Env,
-            msg: <$add_on_type as abstract_sdk::QueryEndpoint>::QueryMsg,
+            msg: <$add_on_type as abstract_sdk::base::QueryEndpoint>::QueryMsg,
         ) -> cosmwasm_std::StdResult<cosmwasm_std::Binary> {
+            use abstract_sdk::base::QueryEndpoint;
             $add_on_const.query(deps, env, msg)
         }
 
@@ -42,8 +49,9 @@ macro_rules! export_endpoints {
         pub fn migrate(
             deps: cosmwasm_std::DepsMut,
             env: cosmwasm_std::Env,
-            msg: <$add_on_type as abstract_sdk::MigrateEndpoint>::MigrateMsg,
-        ) -> Result<cosmwasm_std::Response, <$add_on_type as abstract_sdk::Handler>::Error> {
+            msg: <$add_on_type as abstract_sdk::base::MigrateEndpoint>::MigrateMsg,
+        ) -> Result<cosmwasm_std::Response, <$add_on_type as abstract_sdk::base::Handler>::Error> {
+            use abstract_sdk::base::MigrateEndpoint;
             $add_on_const.migrate(deps, env, msg)
         }
 
@@ -53,7 +61,8 @@ macro_rules! export_endpoints {
             deps: cosmwasm_std::DepsMut,
             env: cosmwasm_std::Env,
             msg: cosmwasm_std::Reply,
-        ) -> Result<cosmwasm_std::Response, <$add_on_type as abstract_sdk::Handler>::Error> {
+        ) -> Result<cosmwasm_std::Response, <$add_on_type as abstract_sdk::base::Handler>::Error> {
+            use abstract_sdk::base::ReplyEndpoint;
             $add_on_const.reply(deps, env, msg)
         }
     };
