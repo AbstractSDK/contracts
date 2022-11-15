@@ -138,7 +138,7 @@ fn handle_ibc_api_request(
     let ans = api.ans(deps.as_ref());
     let ibc_client = api.ibc_client(deps.as_ref());
     // get the to-be-sent assets from the action
-    let coins = resolve_assets_to_transfer(deps.as_ref(), action, &ans.host())?;
+    let coins = resolve_assets_to_transfer(deps.as_ref(), action, ans.host())?;
     // construct the ics20 call(s)
     let ics20_transfer_msg = ibc_client.ics20_transfer(host_chain.clone(), coins)?;
     // construct the action to be called on the host

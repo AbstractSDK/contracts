@@ -102,7 +102,7 @@ pub trait LocalDex: AbstractNameSystem + Execution {
         } else {
             self.executor(deps.as_ref())
                 .execute(msgs)
-                .map(|msg| SubMsg::new(msg))
+                .map(SubMsg::new)
         }
         .map_err(Into::into)
     }
@@ -186,7 +186,7 @@ pub trait LocalDex: AbstractNameSystem + Execution {
         let assets = ans.query(&offer_assets)?;
         let pair_address = exchange.pair_address(
             deps,
-            &ans.host(),
+            ans.host(),
             offer_assets
                 .iter()
                 .map(|a| &a.info)
@@ -206,7 +206,7 @@ pub trait LocalDex: AbstractNameSystem + Execution {
         let ans = self.ans(deps);
         let paired_asset_infos = ans.query(&paired_assets)?;
         let pair_address =
-            exchange.pair_address(deps, &ans.host(), &mut paired_assets.iter().collect())?;
+            exchange.pair_address(deps, ans.host(), &mut paired_assets.iter().collect())?;
         let offer_asset = ans.query(&offer_asset)?;
         exchange.provide_liquidity_symmetric(deps, pair_address, offer_asset, paired_asset_infos)
     }
