@@ -4,19 +4,6 @@
 //! *Add raw map paging when support is added*
 //!
 
-use cosmwasm_std::{QuerierWrapper, StdResult};
-
-use abstract_os::manager::state::OS_ID;
-
-use std::collections::BTreeMap;
-
-use cosmwasm_std::{Addr, Binary};
-
-use cosmwasm_storage::to_length_prefixed;
-
-use cosmwasm_std::{Deps, QueryRequest, WasmQuery};
-use cw2::{ContractVersion, CONTRACT};
-
 // /// Get the os-id of the core contract
 // pub fn query_os_id(querier: &QuerierWrapper, core_contract_addr: &Addr) -> StdResult<u32> {
 //     OS_ID.query(querier, core_contract_addr.clone())

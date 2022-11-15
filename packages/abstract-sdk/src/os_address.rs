@@ -9,30 +9,30 @@ pub trait AnsClient {
 }
 
 /// Retrieve addresses related to the OS from the module
-pub trait OsAddress {
-    fn proxy_address(&self, deps: Deps) -> StdResult<Addr>;
-    fn manager_address(&self, deps: Deps) -> StdResult<Addr> {
-        let maybe_proxy_manager = MANAGER.query(&deps.querier, self.proxy_address(deps)?)?;
-        maybe_proxy_manager.ok_or_else(|| StdError::generic_err("proxy admin must be manager."))
-    }
-    fn os_core(&self, deps: Deps) -> StdResult<Core> {
-        Ok(Core{
-                    manager: self.manager_address(deps)?,
-                    proxy: self.proxy_address(deps)?,
-                })
-    }
-}
+// pub trait OsAddress {
+//     fn proxy_address(&self, deps: Deps) -> StdResult<Addr>;
+//     fn manager_address(&self, deps: Deps) -> StdResult<Addr> {
+//         let maybe_proxy_manager = MANAGER.query(&deps.querier, self.proxy_address(deps)?)?;
+//         maybe_proxy_manager.ok_or_else(|| StdError::generic_err("proxy admin must be manager."))
+//     }
+//     fn os_core(&self, deps: Deps) -> StdResult<Core> {
+//         Ok(Core{
+//                     manager: self.manager_address(deps)?,
+//                     proxy: self.proxy_address(deps)?,
+//                 })
+//     }
+// }
 
-pub trait Versioning {
-    fn version_control_address(&self, deps: Deps) -> StdResult<Addr>;
-    fn manager_address(&self, deps: Deps) -> StdResult<Addr> {
-        let maybe_proxy_manager = MANAGER.query(&deps.querier, self.proxy_address(deps)?)?;
-        maybe_proxy_manager.ok_or_else(|| StdError::generic_err("proxy admin must be manager."))
-    }
-    fn os_core(&self, deps: Deps) -> StdResult<Core> {
-        Ok(Core{
-                    manager: self.manager_address(deps)?,
-                    proxy: self.proxy_address(deps)?,
-                })
-    }
-}
+// pub trait RegisterAccess {
+//     fn version_control_address(&self, deps: Deps) -> StdResult<Addr>;
+//     fn manager_address(&self, deps: Deps) -> StdResult<Addr> {
+//         let maybe_proxy_manager = MANAGER.query(&deps.querier, self.proxy_address(deps)?)?;
+//         maybe_proxy_manager.ok_or_else(|| StdError::generic_err("proxy admin must be manager."))
+//     }
+//     fn os_core(&self, deps: Deps) -> StdResult<Core> {
+//         Ok(Core{
+//                     manager: self.manager_address(deps)?,
+//                     proxy: self.proxy_address(deps)?,
+//                 })
+//     }
+// }
