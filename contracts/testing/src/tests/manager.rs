@@ -1,11 +1,12 @@
+use abstract_os::api;
 use abstract_os::{api::BaseInstantiateMsg, manager as ManagerMsgs};
 
 use abstract_os::{objects::module::ModuleInfo, EXCHANGE};
 
 use abstract_sdk::abstract_os::objects::module::ModuleVersion;
-use abstract_sdk::api::api_init_msg;
+
 use anyhow::Result as AnyResult;
-use cosmwasm_std::Addr;
+use cosmwasm_std::{to_binary, Addr, Empty};
 use cw_multi_test::{App, ContractWrapper, Executor};
 
 use super::common::DEFAULT_VERSION;
@@ -71,10 +72,13 @@ fn proper_initialization() {
         &ManagerMsgs::ExecuteMsg::CreateModule {
             module: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest {}).unwrap(),
             init_msg: Some(
-                api_init_msg(
-                    &env.native_contracts.ans_host,
-                    &env.native_contracts.version_control,
-                )
+                to_binary(&api::InstantiateMsg {
+                    base: BaseInstantiateMsg {
+                        ans_host_address: env.native_contracts.ans_host.to_string(),
+                        version_control_address: env.native_contracts.version_control.to_string(),
+                    },
+                    app: Empty {},
+                })
                 .unwrap(),
             ),
         },
