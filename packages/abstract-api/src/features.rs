@@ -1,26 +1,7 @@
-use abstract_os::api::ApiRequestMsg;
-use abstract_sdk::{
-    base::Handler,
-    features::{AbstractNameSystem, ContractDeps, Identification, Versioning}, Execution,
-};
-use cosmwasm_std::{Addr, CosmosMsg, Deps, StdError, StdResult, SubMsg};
-use serde::Serialize;
-use crate::{ApiContract, ApiError};
+use abstract_sdk::base::features::{AbstractNameSystem, Identification, RegisterAccess};
+use cosmwasm_std::{Addr, Deps, StdError, StdResult};
 
-// implement the SDK features
-impl<
-        Error: From<cosmwasm_std::StdError> + From<ApiError>,
-        CustomExecMsg,
-        CustomInitMsg,
-        CustomQueryMsg,
-        ReceiveMsg,
-    > ContractDeps
-    for ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
-{
-    fn deps(&self) -> &Deps {
-        self.contract_deps().unwrap()
-    }
-}
+use crate::{ApiContract, ApiError};
 
 impl<
         Error: From<cosmwasm_std::StdError> + From<ApiError>,
@@ -31,8 +12,8 @@ impl<
     > AbstractNameSystem
     for ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
 {
-    fn ans_host(&self) -> StdResult<abstract_sdk::ans_host::AnsHost> {
-        Ok(self.base_state.load(self.deps().storage)?.ans_host)
+    fn ans_host(&self, deps: Deps) -> StdResult<abstract_sdk::ans_host::AnsHost> {
+        Ok(self.base_state.load(deps.storage)?.ans_host)
     }
 }
 
@@ -43,9 +24,10 @@ impl<
         CustomInitMsg,
         CustomQueryMsg,
         ReceiveMsg,
-    > Identification for ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
+    > Identification
+    for ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
 {
-    fn proxy_address(&self) -> StdResult<Addr> {
+    fn proxy_address(&self, _deps: Deps) -> StdResult<Addr> {
         if let Some(target) = &self.target_os {
             Ok(target.proxy.clone())
         } else {
@@ -55,26 +37,21 @@ impl<
         }
     }
 
-    fn manager_address(&self) -> StdResult<Addr> {
+    fn manager_address(&self, _deps: Deps) -> StdResult<Addr> {
         if let Some(target) = &self.target_os {
             Ok(target.manager.clone())
         } else {
-            Err(StdError::generic_err(
-                "No OS manager specified.",
-            ))
+            Err(StdError::generic_err("No OS manager specified."))
         }
     }
 
-    fn os_core(&self) -> StdResult<abstract_os::version_control::Core> {
+    fn os_core(&self, _deps: Deps) -> StdResult<abstract_os::version_control::Core> {
         if let Some(target) = &self.target_os {
             Ok(target.clone())
         } else {
-            Err(StdError::generic_err(
-                "No OS core specified.",
-            ))
+            Err(StdError::generic_err("No OS core specified."))
         }
     }
-    
 }
 
 /// Get the version control contract
@@ -84,10 +61,10 @@ impl<
         CustomInitMsg,
         CustomQueryMsg,
         ReceiveMsg,
-    > Versioning
+    > RegisterAccess
     for ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
 {
-    fn version_registry(&self) -> StdResult<Addr> {
-        Ok(self.state(self.deps().storage)?.version_control)
+    fn registry(&self, deps: Deps) -> StdResult<Addr> {
+        Ok(self.state(deps.storage)?.version_control)
     }
 }

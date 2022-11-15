@@ -1,14 +1,16 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, fmt::Debug};
 
 use abstract_os::version_control::Core;
 use abstract_sdk::{
-    ans_host::AnsHost, 
-    base::{AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn,
-    InstantiateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
-    }, BASE_STATE
+    ans_host::AnsHost,
+    base::{
+        AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
+        QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
+    },
+    BASE_STATE,
 };
 
-use cosmwasm_std::{Addr, Empty, StdError, StdResult, Storage, Deps};
+use cosmwasm_std::{Addr, Empty, StdError, StdResult, Storage};
 
 use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
@@ -36,7 +38,6 @@ pub struct ApiContract<
 > {
     pub(crate) contract:
         AbstractContract<Self, Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, Empty, Receive>,
-    pub(crate) deps: Deps<'a>,
     pub(crate) base_state: Item<'static, ApiState>,
     // Map ProxyAddr -> WhitelistedTraders
     pub traders: Map<'static, Addr, HashSet<Addr>>,

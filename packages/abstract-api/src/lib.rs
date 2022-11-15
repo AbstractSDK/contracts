@@ -9,13 +9,9 @@ pub use crate::state::ApiContract;
 pub use error::ApiError;
 
 pub mod error;
-mod execute;
-mod handler;
-mod ibc_callback;
-pub mod instantiate;
-mod query;
-mod receive;
-mod schema;
-pub mod state;
 /// Abstract SDK trait implementations
 pub mod features;
+mod handler;
+pub mod endpoints;
+mod schema;
+pub mod state;
