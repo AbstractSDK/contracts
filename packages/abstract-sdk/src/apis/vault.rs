@@ -10,6 +10,9 @@ use abstract_os::{
 use cosmwasm_std::{to_binary, Deps, QueryRequest, StdError, StdResult, Uint128, WasmQuery};
 
 use super::{AbstractNameSystem, Identification};
+
+/// Retrieve asset-registration information from the OS. 
+/// Query asset values and balances.
 pub trait VaultInterface: AbstractNameSystem + Identification {
     fn vault<'a>(&'a self, deps: Deps<'a>) -> Vault<Self> {
         Vault { base: self, deps }

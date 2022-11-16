@@ -8,7 +8,7 @@ use cosmwasm_std::{
 
 use super::Identification;
 
-/// Execute an action on the OS or over IBC on a remote chain.
+/// Execute an arbitrary `CosmosMsg` action on the OS.
 pub trait Execution: Identification {
     fn executor<'a>(&'a self, deps: Deps<'a>) -> Executor<Self> {
         Executor { base: self, deps }

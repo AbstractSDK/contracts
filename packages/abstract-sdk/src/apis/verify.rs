@@ -10,6 +10,7 @@ use cosmwasm_std::StdResult;
 
 use super::RegisterAccess;
 
+/// Verify if a sender's address is associated with an OS. 
 pub trait Verification: RegisterAccess {
     fn os_register<'a>(&'a self, deps: Deps<'a>) -> OsRegister<Self> {
         OsRegister { base: self, deps }

@@ -11,7 +11,7 @@ use cosmwasm_std::{to_binary, Coin, CosmosMsg, Deps, StdError, WasmMsg};
 
 use super::Identification;
 
-/// Ibc needs to be able to address other applications (the IBC client) and call it through the
+/// Interact with other chains over IBC.
 pub trait IbcInterface: Identification {
     fn ibc_client<'a>(&'a self, deps: Deps<'a>) -> IbcClient<Self> {
         IbcClient { base: self, deps }

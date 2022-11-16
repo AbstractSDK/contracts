@@ -13,6 +13,7 @@ use serde::Serialize;
 
 use super::Identification;
 
+/// Interact with other applications on the OS.
 pub trait ApplicationInterface: Identification {
     fn applications<'a>(&'a self, deps: Deps<'a>) -> Applications<Self> {
         Applications { base: self, deps }
@@ -36,6 +37,16 @@ impl<'a, T: ApplicationInterface> Applications<'a, T> {
         };
         Ok(module_addr)
     }
+    
+    /// RawQuery the version of an enabled module
+    pub fn app_version(&self, app_id: ModuleId) -> StdResult<ContractVersion> {
+        let app_address = self.app_address(app_id)?;
+        let req = QueryRequest::Wasm(WasmQuery::Raw {
+            contract_addr: app_address.into(),
+            key: CONTRACT.as_slice().into(),
+        });
+        self.deps.querier.query::<ContractVersion>(&req)
+    }
 
     /// Construct an API request message.
     pub fn api_request<M: Serialize>(
@@ -53,15 +64,5 @@ impl<'a, T: ApplicationInterface> Applications<'a, T> {
         let api_msg: ExecuteMsg<Empty, Empty> = message.into();
         let api_address = self.app_address(api_id)?;
         Ok(wasm_execute(api_address, &api_msg, vec![])?.into())
-    }
-
-    /// RawQuery the version of an enabled module
-    pub fn app_version(&self, app_id: ModuleId) -> StdResult<ContractVersion> {
-        let app_address = self.app_address(app_id)?;
-        let req = QueryRequest::Wasm(WasmQuery::Raw {
-            contract_addr: app_address.into(),
-            key: CONTRACT.as_slice().into(),
-        });
-        self.deps.querier.query::<ContractVersion>(&req)
     }
 }

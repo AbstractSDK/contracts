@@ -8,7 +8,8 @@ use crate::ans_host::state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES};
 
 use super::{asset_entry::AssetEntry, contract_entry::ContractEntry, ChannelEntry};
 
-/// Struct that provides easy in-contract ans_host querying.
+/// Struct that stores the ans-host contract address.
+/// Implements `AbstractNameSystem` feature
 #[cosmwasm_schema::cw_serde]
 pub struct AnsHost {
     /// Address of the ans_host contract
