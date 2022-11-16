@@ -11,7 +11,7 @@ use cosmwasm_std::StdResult;
 
 use super::RegisterAccess;
 
-/// Access the Abstract Version Register to query module information. 
+/// Access the Abstract Version Register to query module information.
 pub trait VersionRegisterInterface: RegisterAccess {
     fn version_register<'a>(&'a self, deps: Deps<'a>) -> VersionRegister<Self> {
         VersionRegister { base: self, deps }

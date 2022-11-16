@@ -1,5 +1,5 @@
 //! # Feature Objects
-//! Feature objects are objects that store sufficient data to unlock a set of APIs. 
+//! Feature objects are objects that store sufficient data to unlock a set of APIs.
 //! These objects are mostly used internally to easy re-use application code without
 //! requiring the usage of a base contract.  
 

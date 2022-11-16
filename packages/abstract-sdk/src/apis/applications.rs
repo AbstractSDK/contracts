@@ -37,7 +37,7 @@ impl<'a, T: ApplicationInterface> Applications<'a, T> {
         };
         Ok(module_addr)
     }
-    
+
     /// RawQuery the version of an enabled module
     pub fn app_version(&self, app_id: ModuleId) -> StdResult<ContractVersion> {
         let app_address = self.app_address(app_id)?;

@@ -4,8 +4,8 @@ use abstract_sdk::{
         AbstractContract, ExecuteHandlerFn, InstantiateHandlerFn, QueryHandlerFn, ReceiveHandlerFn,
         ReplyHandlerFn,
     },
-    feature_objects::AnsHost, namespaces::BASE_STATE,
-    
+    feature_objects::AnsHost,
+    namespaces::BASE_STATE,
 };
 
 use cosmwasm_std::{Addr, Binary, Empty, StdResult, Storage};

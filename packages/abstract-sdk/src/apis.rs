@@ -1,8 +1,8 @@
 pub mod ans;
 pub mod applications;
+pub mod bank;
 pub mod execution;
 pub mod ibc;
-pub mod bank;
 pub mod vault;
 pub mod verify;
 pub mod version_register;

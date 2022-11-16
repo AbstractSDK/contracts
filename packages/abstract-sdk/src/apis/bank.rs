@@ -2,7 +2,7 @@
 //! The Bank object handles asset transfers to and from the OS.
 
 use abstract_os::objects::AnsAsset;
-use cosmwasm_std::{Addr, CosmosMsg, Deps, StdResult, Coin, BankMsg};
+use cosmwasm_std::{Addr, BankMsg, Coin, CosmosMsg, Deps, StdResult};
 
 use super::execution::Execution;
 use super::AbstractNameSystem;
@@ -45,14 +45,20 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     }
 
     /// Deposit coins into the OS
-    pub fn deposit_coins(&self,coins: Vec<Coin>) -> StdResult<CosmosMsg> {
+    pub fn deposit_coins(&self, coins: Vec<Coin>) -> StdResult<CosmosMsg> {
         let to_address = self.base.proxy_address(self.deps)?.into_string();
-        Ok(CosmosMsg::Bank(BankMsg::Send { to_address, amount: coins }))
+        Ok(CosmosMsg::Bank(BankMsg::Send {
+            to_address,
+            amount: coins,
+        }))
     }
 
     /// Transfer coins from the OS
-    pub fn transfer_coins(&self,coins: Vec<Coin>, to_address: &Addr) -> StdResult<CosmosMsg> {
-        let send_msg = CosmosMsg::Bank(BankMsg::Send { to_address: to_address.to_string(), amount: coins });
+    pub fn transfer_coins(&self, coins: Vec<Coin>, to_address: &Addr) -> StdResult<CosmosMsg> {
+        let send_msg = CosmosMsg::Bank(BankMsg::Send {
+            to_address: to_address.to_string(),
+            amount: coins,
+        });
         self.base.executor(self.deps).execute(vec![send_msg])
     }
 }
