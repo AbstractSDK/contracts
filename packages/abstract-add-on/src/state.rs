@@ -1,5 +1,5 @@
 use abstract_sdk::feature_objects::AnsHost;
-use abstract_sdk::{ADMIN_NAMESPACE, BASE_STATE};
+use abstract_sdk::namespaces::{ADMIN_NAMESPACE, BASE_STATE};
 use cosmwasm_std::{Addr, Empty, StdResult, Storage};
 
 use cw_controllers::Admin;
