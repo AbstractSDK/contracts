@@ -6,32 +6,31 @@
 //! <br>  
 //! </br>
 //! This crate provides a set of modular APIs for developers to use in their [CosmWasm](https://cosmwasm.com/) smart-contracts.
-//! 
+//!
 //! # Details
 //! To use an API either construct a [`feature object`](crate::feature_objects) or use an Abstract base contract as the starting-point of your application.  
-//! The available base contracts are: 
+//! The available base contracts are:
 //! > - [Add-on](https://crates.io/crates/abstract-add-on) ([Template](https://github.com/Abstract-OS/addon-module-template))
 //! > - [API](https://crates.io/crates/abstract-api) ([Template (WIP)]())
 //! > - [IBC-host](https://crates.io/crates/abstract-ibc-host) ([Template (WIP)]())
-//! 
+//!
 //! ```
 //!   # use crate::feature_objects::VersionControlContract;
 //!   #
 //!   # pub struct MyContract {
 //!   #     
 //!   # }
-//!   # 
+//!   #
 //!   # impl Identification for MyContract {
 //!   #     fn proxy_address(&self, _deps: Deps) -> cosmwasm_std::StdResult<Addr> {
 //!   #         Ok(Addr::unchecked("just_an_example".into()))
 //!   #     }
 //!   # }
-//! 
-//!   use anyhow::Result;
+//!   use abstract_sdk::TransferInterface;
 //!
-//!   fn forward_deposit(my_contract: MyContract,deps: Deps, deposit: AnsAsset) -> StdResult<CosmosMsg> {
-//!       let transfers = my_contract.transfer()
-//!       Ok(map)
+//!   fn forward_deposit(deps: Deps, my_contract: MyContract, message_info: MessageInfo) -> StdResult<CosmosMsg> {
+//!       let send_deposit_to_vault_msg = my_contract.bank(deps).deposit_coins(message_info.funds);
+//!       Ok(send_deposit_to_vault_msg)
 //!   }
 //!   #
 //!   # fn main() {}
@@ -45,16 +44,16 @@ pub mod base;
 pub mod feature_objects;
 
 pub use crate::apis::{
-    ans::AnsInterface, applications::ApplicationInterface, execution::Execution, ibc::IbcInterface,
-    bank::TransferInterface, vault::VaultInterface, verify::Verification,
+    ans::AnsInterface, applications::ApplicationInterface, bank::TransferInterface,
+    execution::Execution, ibc::IbcInterface, vault::VaultInterface, verify::Verification,
     version_register::VersionRegisterInterface,
 };
 pub use ans_resolve::Resolve;
 
-pub mod namespaces{
+pub mod namespaces {
     pub use abstract_os::objects::common_namespace::*;
 }
 
-pub mod register{
+pub mod register {
     pub use abstract_os::registry::*;
 }
