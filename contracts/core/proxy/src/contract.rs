@@ -1,5 +1,5 @@
-use abstract_os::objects::core::OS_ID;
-use abstract_os::objects::AssetEntry;
+use abstract_sdk::os::objects::core::OS_ID;
+use abstract_sdk::os::objects::AssetEntry;
 
 use abstract_sdk::feature_objects::AnsHost;
 use abstract_sdk::Resolve;
@@ -13,14 +13,14 @@ use cosmwasm_std::{
 use crate::commands::*;
 use crate::error::ProxyError;
 use crate::queries::*;
-use abstract_os::objects::proxy_asset::ProxyAsset;
-use abstract_os::proxy::state::{State, ADMIN, ANS_HOST, STATE, VAULT_ASSETS};
-use abstract_os::proxy::{
+use abstract_sdk::os::objects::proxy_asset::ProxyAsset;
+use abstract_sdk::os::proxy::state::{State, ADMIN, ANS_HOST, STATE, VAULT_ASSETS};
+use abstract_sdk::os::proxy::{
     AssetConfigResponse, BaseAssetResponse, ExecuteMsg, HoldingAmountResponse,
     HoldingValueResponse, InstantiateMsg, MigrateMsg, QueryMsg, TokenValueResponse,
     TotalValueResponse,
 };
-use abstract_os::PROXY;
+use abstract_sdk::os::PROXY;
 use cw2::{get_contract_version, set_contract_version};
 use semver::Version;
 pub type ProxyResult = Result<Response, ProxyError>;

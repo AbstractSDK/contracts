@@ -1,4 +1,4 @@
-use abstract_os::ibc_host::InstantiateMsg;
+use abstract_sdk::os::ibc_host::InstantiateMsg;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 use abstract_sdk::{

@@ -1,4 +1,6 @@
-use abstract_os::ibc_host::{BaseExecuteMsg, ExecuteMsg, HostAction, InternalAction, PacketMsg};
+use abstract_sdk::os::ibc_host::{
+    BaseExecuteMsg, ExecuteMsg, HostAction, InternalAction, PacketMsg,
+};
 
 use abstract_sdk::base::{ExecuteEndpoint, Handler};
 use cosmwasm_std::{

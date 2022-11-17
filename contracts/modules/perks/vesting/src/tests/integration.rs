@@ -1,4 +1,4 @@
-use abstract_os::vesting::{
+use abstract_sdk::os::vesting::{
     AllocationInfo, AllocationResponse, ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg,
     ReceiveMsg, Schedule, SimulateWithdrawResponse, StateResponse,
 };
@@ -617,7 +617,7 @@ fn test_withdraw() {
         .unwrap_err();
     assert_eq!(
         err.root_cause().to_string(),
-        "abstract_os::vesting::AllocationInfo not found"
+        "abstract_sdk::os::vesting::AllocationInfo not found"
     );
 
     // ######    ERROR :: Withdrawals not allowed yet   ######

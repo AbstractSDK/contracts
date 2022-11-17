@@ -3,7 +3,7 @@ use std::fs::create_dir_all;
 
 use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, schema_for};
 
-use abstract_os::subscription::{
+use abstract_sdk::os::subscription::{
     ConfigResponse, ContributorStateResponse, StateResponse, SubscriberStateResponse,
     SubscriptionFeeResponse,
 };

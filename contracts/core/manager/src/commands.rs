@@ -1,4 +1,5 @@
-use abstract_os::{
+use abstract_sdk::feature_objects::VersionControlContract;
+use abstract_sdk::os::{
     api::{
         BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as ApiExecMsg, QueryMsg as ApiQuery,
         TradersResponse,
@@ -12,7 +13,6 @@ use abstract_os::{
     proxy::ExecuteMsg as TreasuryMsg,
     IBC_CLIENT,
 };
-use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_sdk::*;
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo,
@@ -25,7 +25,7 @@ use crate::{
     contract::ManagerResult, error::ManagerError, queries::query_module_version,
     validators::validate_name_or_gov_type,
 };
-use abstract_os::{MANAGER, PROXY};
+use abstract_sdk::os::{MANAGER, PROXY};
 
 /// Adds, updates or removes provided addresses.
 /// Should only be called by contract that adds/removes modules.

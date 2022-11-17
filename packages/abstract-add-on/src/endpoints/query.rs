@@ -1,5 +1,5 @@
 use crate::{Handler, QueryEndpoint};
-use abstract_os::add_on::{AddOnConfigResponse, BaseQueryMsg, QueryMsg};
+use abstract_sdk::os::add_on::{AddOnConfigResponse, BaseQueryMsg, QueryMsg};
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError, StdResult};
 use cw_controllers::AdminResponse;
 
@@ -32,7 +32,7 @@ impl<
     }
 }
 /// Where we dispatch the queries for the AddOnContract
-/// These BaseQueryMsg declarations can be found in `abstract_os::common_module::add_on_msg`
+/// These BaseQueryMsg declarations can be found in `abstract_sdk::os::common_module::add_on_msg`
 impl<
         Error: From<cosmwasm_std::StdError> + From<AddOnError>,
         CustomExecMsg,

@@ -1,7 +1,7 @@
-use abstract_os::api::*;
+use abstract_sdk::os::api::*;
 
-use abstract_os::base;
-use abstract_os::tendermint_staking::*;
+use abstract_sdk::os::base;
+use abstract_sdk::os::tendermint_staking::*;
 use cosmwasm_std::Empty;
 
 use crate::AbstractOS;
@@ -11,7 +11,7 @@ pub type TMintStakingApi<Chain> = AbstractOS<
     Chain,
     ExecuteMsg<RequestMsg>,
     base::InstantiateMsg<BaseInstantiateMsg>,
-    abstract_os::api::QueryMsg<abstract_os::tendermint_staking::QueryMsg>,
+    abstract_sdk::os::api::QueryMsg<abstract_sdk::os::tendermint_staking::QueryMsg>,
     Empty,
 >;
 

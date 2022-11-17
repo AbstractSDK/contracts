@@ -1,9 +1,9 @@
-use abstract_os::api;
-use abstract_os::{api::BaseInstantiateMsg, manager as ManagerMsgs};
+use abstract_sdk::os::api;
+use abstract_sdk::os::{api::BaseInstantiateMsg, manager as ManagerMsgs};
 
-use abstract_os::{objects::module::ModuleInfo, EXCHANGE};
+use abstract_sdk::os::{objects::module::ModuleInfo, EXCHANGE};
 
-use abstract_sdk::abstract_os::objects::module::ModuleVersion;
+use abstract_sdk::os::objects::module::ModuleVersion;
 
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{to_binary, Addr, Empty};
@@ -25,7 +25,7 @@ pub fn register_and_create_dex_api(
 ) -> AnyResult<()> {
     let module = ModuleInfo::from_id(
         EXCHANGE,
-        abstract_os::objects::module::ModuleVersion::Version(
+        abstract_sdk::os::objects::module::ModuleVersion::Version(
             version.unwrap_or(DEFAULT_VERSION.to_string()),
         ),
     )?;
@@ -97,11 +97,11 @@ fn proper_initialization() {
 
     let _os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
 
-    let _resp: abstract_os::version_control::ModuleResponse = app
+    let _resp: abstract_sdk::os::version_control::ModuleResponse = app
         .wrap()
         .query_wasm_smart(
             env.native_contracts.version_control.clone(),
-            &abstract_os::version_control::QueryMsg::Module {
+            &abstract_sdk::os::version_control::QueryMsg::Module {
                 module: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest {}).unwrap(),
             },
         )
@@ -128,11 +128,11 @@ fn proper_initialization() {
         Some("0.0.1".into()),
     )
     .unwrap();
-    let _resp: abstract_os::version_control::ModuleResponse = app
+    let _resp: abstract_sdk::os::version_control::ModuleResponse = app
         .wrap()
         .query_wasm_smart(
             env.native_contracts.version_control.clone(),
-            &abstract_os::version_control::QueryMsg::Module {
+            &abstract_sdk::os::version_control::QueryMsg::Module {
                 module: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest {}).unwrap(),
             },
         )

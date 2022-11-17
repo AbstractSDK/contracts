@@ -4,11 +4,11 @@ use cosmwasm_std::{
 use semver::Version;
 
 use crate::error::ModuleFactoryError;
-use abstract_os::OS_FACTORY;
+use abstract_sdk::os::OS_FACTORY;
 use cw2::{get_contract_version, set_contract_version};
 
 use crate::{commands, state::*};
-use abstract_os::module_factory::*;
+use abstract_sdk::os::module_factory::*;
 
 pub type ModuleFactoryResult = Result<Response, ModuleFactoryError>;
 

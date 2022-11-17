@@ -1,7 +1,7 @@
 use std::env::current_dir;
 use std::fs::create_dir_all;
 
-use abstract_os::{
+use abstract_sdk::os::{
     api::{ApiConfigResponse, ExecuteMsg, TradersResponse},
     dex::{DexRequestMsg, SimulateSwapResponse},
 };

@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use semver::Version;
 use serde::Serialize;
 
-use abstract_os::{
+use abstract_sdk::os::{
     api::BaseInstantiateMsg,
     base,
     objects::{

@@ -1,7 +1,7 @@
 use abstract_add_on::{export_endpoints, AddOnContract};
 
 use crate::commands::get_os_core;
-use abstract_os::SUBSCRIPTION;
+use abstract_sdk::os::SUBSCRIPTION;
 use cosmwasm_std::{to_binary, Binary, Decimal, StdError, Uint128};
 
 use cw20::Cw20ReceiveMsg;
@@ -12,8 +12,8 @@ use crate::commands::{self, receive_cw20};
 use crate::error::SubscriptionError;
 use cosmwasm_std::{Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 
-use abstract_os::subscription::state::*;
-use abstract_os::subscription::{
+use abstract_sdk::os::subscription::state::*;
+use abstract_sdk::os::subscription::{
     ConfigResponse, ContributorStateResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     StateResponse, SubscriberStateResponse, SubscriptionFeeResponse,
 };

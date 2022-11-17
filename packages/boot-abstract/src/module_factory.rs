@@ -1,4 +1,4 @@
-use abstract_os::module_factory::*;
+use abstract_sdk::os::module_factory::*;
 
 // use crate::api::get_api_init_msgs;
 use crate::AbstractOS;

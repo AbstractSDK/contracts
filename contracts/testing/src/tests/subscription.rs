@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use abstract_os::{
+use abstract_sdk::os::{
     objects::module::{ModuleInfo, ModuleVersion},
     subscription as msgs,
     subscription::{

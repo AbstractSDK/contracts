@@ -1,6 +1,6 @@
-use abstract_os::objects::proxy_asset::UncheckedProxyAsset;
-use abstract_os::proxy::*;
-use abstract_os::{MANAGER, PROXY};
+use abstract_sdk::os::objects::proxy_asset::UncheckedProxyAsset;
+use abstract_sdk::os::proxy::*;
+use abstract_sdk::os::{MANAGER, PROXY};
 
 use crate::{manager::Manager, AbstractOS};
 use boot_core::{BootError, Contract, IndexResponse, TxHandler, TxResponse};

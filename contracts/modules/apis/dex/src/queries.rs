@@ -1,4 +1,4 @@
-use abstract_os::{
+use abstract_sdk::os::{
     dex::{OfferAsset, SimulateSwapResponse},
     objects::AssetEntry,
 };

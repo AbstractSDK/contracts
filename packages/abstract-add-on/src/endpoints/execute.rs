@@ -1,4 +1,4 @@
-use abstract_os::add_on::{BaseExecuteMsg, ExecuteMsg};
+use abstract_sdk::os::add_on::{BaseExecuteMsg, ExecuteMsg};
 
 use crate::{ExecuteEndpoint, Handler, IbcCallbackEndpoint};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};

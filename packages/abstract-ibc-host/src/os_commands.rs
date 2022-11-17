@@ -1,6 +1,8 @@
-use abstract_os::abstract_ica::{BalancesResponse, DispatchResponse, SendAllBackResponse, StdAck};
-use abstract_os::objects::ChannelEntry;
-use abstract_os::ICS20;
+use abstract_sdk::os::abstract_ica::{
+    BalancesResponse, DispatchResponse, SendAllBackResponse, StdAck,
+};
+use abstract_sdk::os::objects::ChannelEntry;
+use abstract_sdk::os::ICS20;
 use abstract_sdk::AnsInterface;
 use cosmwasm_std::{
     wasm_execute, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg, IbcReceiveResponse, SubMsg,

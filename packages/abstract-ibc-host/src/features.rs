@@ -38,7 +38,7 @@ impl<
         ))
     }
 
-    fn os_core(&self, _deps: Deps) -> StdResult<abstract_os::version_control::Core> {
+    fn os_core(&self, _deps: Deps) -> StdResult<abstract_sdk::os::version_control::Core> {
         Err(StdError::generic_err(
             "OS core not available on stateless ibc deployment",
         ))

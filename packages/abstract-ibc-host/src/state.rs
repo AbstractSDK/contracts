@@ -1,4 +1,4 @@
-use abstract_os::ibc_host::PacketMsg;
+use abstract_sdk::os::ibc_host::PacketMsg;
 use abstract_sdk::{
     base::{
         AbstractContract, ExecuteHandlerFn, InstantiateHandlerFn, QueryHandlerFn, ReceiveHandlerFn,

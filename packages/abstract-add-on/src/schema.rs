@@ -2,7 +2,7 @@ use std::path::Path;
 
 use crate::{AddOnContract, AddOnError};
 use crate::{ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint};
-use abstract_os::add_on::AddOnConfigResponse;
+use abstract_sdk::os::add_on::AddOnConfigResponse;
 use cosmwasm_schema::{export_schema_with_title, schema_for};
 use cw_controllers::AdminResponse;
 use schemars::JsonSchema;

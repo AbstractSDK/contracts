@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use crate::AbstractOS;
-use abstract_os::{add_on::BaseInstantiateMsg, subscription::*};
+use abstract_sdk::os::{add_on::BaseInstantiateMsg, subscription::*};
 use boot_core::{Contract, IndexResponse, TxHandler, TxResponse};
 use cosmwasm_std::{Decimal, Uint128};
 use cw_asset::AssetInfoUnchecked;
@@ -32,7 +32,7 @@ where
     ) -> InstantiateMsg {
         InstantiateMsg {
             base: BaseInstantiateMsg { ans_host_address },
-            subscription: abstract_os::subscription::SubscriptionInstantiateMsg {
+            subscription: abstract_sdk::os::subscription::SubscriptionInstantiateMsg {
                 factory_addr,
                 payment_asset: AssetInfoUnchecked::native(payment_denom),
                 subscription_cost_per_block: Decimal::from_str("0.000001").unwrap(),
@@ -41,7 +41,7 @@ where
                     AssetInfoUnchecked::cw20(token_addr.clone()),
                 ),
             },
-            contribution: Some(abstract_os::subscription::ContributionInstantiateMsg {
+            contribution: Some(abstract_sdk::os::subscription::ContributionInstantiateMsg {
                 protocol_income_share: Decimal::percent(10),
                 emission_user_share: Decimal::percent(50),
                 max_emissions_multiple: Decimal::from_ratio(2u128, 1u128),

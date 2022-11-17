@@ -48,7 +48,7 @@ impl<
         }
     }
 
-    fn os_core(&self, _deps: Deps) -> StdResult<abstract_os::version_control::Core> {
+    fn os_core(&self, _deps: Deps) -> StdResult<abstract_sdk::os::version_control::Core> {
         if let Some(target) = &self.target_os {
             Ok(target.clone())
         } else {

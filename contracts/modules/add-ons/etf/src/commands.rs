@@ -7,9 +7,9 @@ use cosmwasm_std::{
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg};
 use cw_asset::{Asset, AssetInfo};
 
-use abstract_os::etf::DepositHookMsg;
-use abstract_os::objects::deposit_info::DepositInfo;
-use abstract_os::objects::fee::Fee;
+use abstract_sdk::os::etf::DepositHookMsg;
+use abstract_sdk::os::objects::deposit_info::DepositInfo;
+use abstract_sdk::os::objects::fee::Fee;
 
 use crate::contract::{EtfAddOn, EtfResult};
 use crate::error::VaultError;

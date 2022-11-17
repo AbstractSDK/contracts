@@ -1,4 +1,4 @@
-use abstract_os::abstract_ica::{
+use abstract_sdk::os::abstract_ica::{
     check_order, check_version, IbcQueryResponse, StdAck, WhoAmIResponse, IBC_APP_VERSION,
 };
 use cosmwasm_std::{

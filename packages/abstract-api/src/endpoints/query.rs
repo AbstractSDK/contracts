@@ -1,12 +1,12 @@
 use abstract_sdk::{base::endpoints::QueryEndpoint, base::Handler};
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError, StdResult};
 
-use abstract_os::api::{ApiConfigResponse, BaseQueryMsg, QueryMsg, TradersResponse};
+use abstract_sdk::os::api::{ApiConfigResponse, BaseQueryMsg, QueryMsg, TradersResponse};
 
 use crate::{state::ApiContract, ApiError};
 
 /// Where we dispatch the queries for the ApiContract
-/// These ApiQueryMsg declarations can be found in `abstract_os::common_module::add_on_msg`
+/// These ApiQueryMsg declarations can be found in `abstract_sdk::os::common_module::add_on_msg`
 impl<
         Error: From<cosmwasm_std::StdError> + From<ApiError>,
         CustomExecMsg,

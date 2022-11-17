@@ -1,6 +1,6 @@
 use crate::contract::{EtfAddOn, EtfResult};
 use crate::response::MsgInstantiateContractResponse;
-use abstract_os::etf::state::STATE;
+use abstract_sdk::os::etf::state::STATE;
 use cosmwasm_std::{DepsMut, Env, Reply, Response, StdError, StdResult};
 use protobuf::Message;
 

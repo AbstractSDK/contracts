@@ -1,7 +1,7 @@
-use abstract_os::manager::state::OS_ID;
-use abstract_os::manager::ExecuteMsg as ManagerMsg;
-use abstract_os::objects::common_namespace::ADMIN_NAMESPACE;
-use abstract_os::version_control::Core;
+use abstract_sdk::os::manager::state::OS_ID;
+use abstract_sdk::os::manager::ExecuteMsg as ManagerMsg;
+use abstract_sdk::os::objects::common_namespace::ADMIN_NAMESPACE;
+use abstract_sdk::os::version_control::Core;
 
 use abstract_sdk::Execution;
 use cosmwasm_std::{
@@ -11,17 +11,17 @@ use cosmwasm_std::{
 use cw20::Cw20ReceiveMsg;
 use cw_asset::{Asset, AssetInfo, AssetInfoUnchecked};
 
-use abstract_os::version_control::state::OS_ADDRESSES;
+use abstract_sdk::os::version_control::state::OS_ADDRESSES;
 use cw_controllers::Admin;
 
 use crate::contract::{SubscriptionAddOn, SubscriptionResult};
 use crate::error::SubscriptionError;
-use abstract_os::subscription::state::{
+use abstract_sdk::os::subscription::state::{
     Compensation, ContributionConfig, ContributionState, Subscriber, SubscriptionConfig,
     CACHED_CONTRIBUTION_STATE, CONTRIBUTION_CONFIG, CONTRIBUTION_STATE, CONTRIBUTORS,
     DORMANT_SUBSCRIBERS, INCOME_TWA, SUBSCRIBERS, SUBSCRIPTION_CONFIG, SUBSCRIPTION_STATE,
 };
-use abstract_os::subscription::DepositHookMsg;
+use abstract_sdk::os::subscription::DepositHookMsg;
 pub const BLOCKS_PER_MONTH: u64 = 10 * 60 * 24 * 30;
 const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
 pub fn receive_cw20(
@@ -213,20 +213,26 @@ pub fn claim_subscriber_emissions(
     subscriber.last_emission_claim_block = env.block.height;
 
     let asset = match subscription_config.subscription_per_block_emissions {
-        abstract_os::subscription::state::EmissionType::None => {
+        abstract_sdk::os::subscription::state::EmissionType::None => {
             return Err(SubscriptionError::SubscriberEmissionsNotEnabled)
         }
-        abstract_os::subscription::state::EmissionType::BlockShared(shared_emissions, token) => {
+        abstract_sdk::os::subscription::state::EmissionType::BlockShared(
+            shared_emissions,
+            token,
+        ) => {
             // active_sub can't be 0 as we already loaded from storage
             let amount = (shared_emissions * Uint128::from(duration))
                 / (Uint128::from(subscription_state.active_subs));
             Asset::new(token, amount)
         }
-        abstract_os::subscription::state::EmissionType::BlockPerUser(per_user_emissions, token) => {
+        abstract_sdk::os::subscription::state::EmissionType::BlockPerUser(
+            per_user_emissions,
+            token,
+        ) => {
             let amount = per_user_emissions * Uint128::from(duration);
             Asset::new(token, amount)
         }
-        abstract_os::subscription::state::EmissionType::IncomeBased(token) => {
+        abstract_sdk::os::subscription::state::EmissionType::IncomeBased(token) => {
             let contributor_config = load_contribution_config(deps.storage)?;
             let contributor_state = CONTRIBUTION_STATE.load(deps.storage)?;
 
@@ -405,7 +411,7 @@ pub fn try_claim_compensation(
         .load(deps.storage)?
         .subscription_per_block_emissions
     {
-        abstract_os::subscription::state::EmissionType::IncomeBased(_) => {
+        abstract_sdk::os::subscription::state::EmissionType::IncomeBased(_) => {
             cached_state.emissions * (Decimal::one() - config.emission_user_share)
         }
         _ => cached_state.emissions,
@@ -644,7 +650,7 @@ fn load_contribution_config(store: &dyn Storage) -> Result<ContributionConfig, S
     }
 }
 
-/// Get the [`abstract_os::version_control::Core`] object for an os-id.
+/// Get the [`abstract_sdk::os::version_control::Core`] object for an os-id.
 pub(crate) fn get_os_core(
     querier: &QuerierWrapper,
     os_id: u32,

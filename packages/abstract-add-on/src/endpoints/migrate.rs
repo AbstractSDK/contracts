@@ -1,5 +1,5 @@
 use crate::{Handler, MigrateEndpoint};
-use abstract_os::add_on::MigrateMsg;
+use abstract_sdk::os::add_on::MigrateMsg;
 use cosmwasm_std::{Response, StdError};
 use cw2::{get_contract_version, set_contract_version};
 use schemars::JsonSchema;

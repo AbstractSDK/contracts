@@ -1,4 +1,4 @@
-use abstract_os::api::InstantiateMsg;
+use abstract_sdk::os::api::InstantiateMsg;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 use abstract_sdk::{

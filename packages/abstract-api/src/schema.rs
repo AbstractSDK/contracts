@@ -1,8 +1,8 @@
 use std::path::Path;
 
 use crate::{ApiContract, ApiError};
-use abstract_os::api::{ApiConfigResponse, TradersResponse};
 use abstract_sdk::base::endpoints::{ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint};
+use abstract_sdk::os::api::{ApiConfigResponse, TradersResponse};
 use cosmwasm_schema::{export_schema_with_title, schema_for};
 use schemars::JsonSchema;
 use serde::Serialize;

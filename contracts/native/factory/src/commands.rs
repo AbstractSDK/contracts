@@ -1,4 +1,4 @@
-use abstract_os::{
+use abstract_sdk::os::{
     objects::{
         gov_type::GovernanceDetails,
         module::{ModuleInfo, ModuleVersion},
@@ -24,17 +24,17 @@ use crate::contract::OsFactoryResult;
 use crate::{error::OsFactoryError, response::MsgInstantiateContractResponse};
 
 use crate::state::*;
-use abstract_os::{
+use abstract_sdk::os::{
     manager::{ExecuteMsg::UpdateModuleAddresses, InstantiateMsg as ManagerInstantiateMsg},
     proxy::{ExecuteMsg as ProxyExecMsg, InstantiateMsg as ProxyInstantiateMsg},
 };
 
-use abstract_os::version_control::{ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery};
+use abstract_sdk::os::version_control::{ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery};
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};
 
 pub const CREATE_OS_MANAGER_MSG_ID: u64 = 1u64;
 pub const CREATE_OS_PROXY_MSG_ID: u64 = 2u64;
-use abstract_os::{MANAGER, PROXY};
+use abstract_sdk::os::{MANAGER, PROXY};
 
 pub fn receive_cw20(
     deps: DepsMut,

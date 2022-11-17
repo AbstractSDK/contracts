@@ -1,10 +1,10 @@
-use abstract_os::api::*;
-use abstract_os::base;
-use abstract_os::dex::*;
-use abstract_os::objects::AnsAsset;
-use abstract_os::objects::AssetEntry;
-use abstract_os::EXCHANGE;
-use abstract_os::MANAGER;
+use abstract_sdk::os::api::*;
+use abstract_sdk::os::base;
+use abstract_sdk::os::dex::*;
+use abstract_sdk::os::objects::AnsAsset;
+use abstract_sdk::os::objects::AssetEntry;
+use abstract_sdk::os::EXCHANGE;
+use abstract_sdk::os::MANAGER;
 use boot_core::BootError;
 use boot_core::{Contract, IndexResponse, TxHandler, TxResponse};
 use cosmwasm_std::Empty;
@@ -16,7 +16,7 @@ pub type DexApi<Chain> = AbstractOS<
     Chain,
     ExecuteMsg<DexRequestMsg>,
     base::InstantiateMsg<BaseInstantiateMsg>,
-    abstract_os::api::QueryMsg<abstract_os::dex::DexQueryMsg>,
+    abstract_sdk::os::api::QueryMsg<abstract_sdk::os::dex::DexQueryMsg>,
     Empty,
 >;
 

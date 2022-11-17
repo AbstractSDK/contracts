@@ -1,5 +1,5 @@
-use abstract_os::objects::{AssetEntry, ContractEntry};
 use abstract_sdk::feature_objects::AnsHost;
+use abstract_sdk::os::objects::{AssetEntry, ContractEntry};
 use cosmwasm_std::{Addr, CosmosMsg, Decimal, Deps, StdResult, Uint128};
 use cw_asset::{Asset, AssetInfo};
 

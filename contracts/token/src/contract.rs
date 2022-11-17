@@ -15,7 +15,7 @@ use cw20_base::{
 };
 
 use crate::state::{Config, ADMIN, CONFIG};
-use abstract_os::abstract_token::{
+use abstract_sdk::os::abstract_token::{
     ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
 };
 use abstract_sdk::*;

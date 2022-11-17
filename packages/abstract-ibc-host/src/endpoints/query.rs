@@ -1,7 +1,7 @@
 use abstract_sdk::base::{Handler, QueryEndpoint};
 use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdError, StdResult};
 
-use abstract_os::{
+use abstract_sdk::os::{
     ibc_host::{AccountInfo, AccountResponse, HostConfigResponse, ListAccountsResponse},
     ibc_host::{BaseQueryMsg, QueryMsg},
 };
@@ -12,7 +12,7 @@ use crate::{
 };
 
 /// Where we dispatch the queries for the Host
-/// These ApiQueryMsg declarations can be found in `abstract_os::common_module::add_on_msg`
+/// These ApiQueryMsg declarations can be found in `abstract_sdk::os::common_module::add_on_msg`
 impl<
         Error: From<cosmwasm_std::StdError> + From<HostError>,
         CustomExecMsg,

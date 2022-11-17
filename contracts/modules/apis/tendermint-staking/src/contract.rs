@@ -2,13 +2,13 @@ use abstract_api::{export_endpoints, ApiContract};
 
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
-use abstract_os::tendermint_staking::RequestMsg;
+use abstract_sdk::os::tendermint_staking::RequestMsg;
 use abstract_sdk::Execution;
 
 use crate::error::TendermintStakeError;
 use crate::staking::*;
 
-use abstract_os::TENDERMINT_STAKING;
+use abstract_sdk::os::TENDERMINT_STAKING;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub type TendermintStakeApi = ApiContract<TendermintStakeError, RequestMsg>;

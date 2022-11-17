@@ -1,12 +1,12 @@
-use abstract_os::objects::AnsAsset;
 use abstract_sdk::base::features::AbstractNameSystem;
+use abstract_sdk::os::objects::AnsAsset;
 use abstract_sdk::{AnsInterface, Execution};
 use cosmwasm_std::{CosmosMsg, Decimal, Deps, DepsMut, ReplyOn, SubMsg};
 use cw_asset::Asset;
 
 use crate::{error::DexError, DEX};
-use abstract_os::dex::AskAsset;
-use abstract_os::{
+use abstract_sdk::os::dex::AskAsset;
+use abstract_sdk::os::{
     dex::{DexAction, OfferAsset, SwapRouter},
     objects::{AssetEntry, UncheckedContractEntry},
 };

@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
-use abstract_os::manager::state::{OsInfo, CONFIG, INFO, OS_ID, OS_MODULES, ROOT};
-use abstract_os::manager::{
+use abstract_sdk::os::manager::state::{OsInfo, CONFIG, INFO, OS_ID, OS_MODULES, ROOT};
+use abstract_sdk::os::manager::{
     ConfigResponse, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse, ModuleInfosResponse,
     ModuleVersionsResponse,
 };

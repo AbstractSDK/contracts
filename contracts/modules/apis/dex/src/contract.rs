@@ -1,5 +1,5 @@
 use abstract_api::ApiContract;
-use abstract_os::{
+use abstract_sdk::os::{
     api::{ExecuteMsg, InstantiateMsg, QueryMsg},
     dex::{DexAction, DexName, DexQueryMsg, DexRequestMsg, IBC_DEX_ID},
     ibc_client::CallbackInfo,
@@ -142,7 +142,7 @@ fn handle_ibc_api_request(
     // construct the ics20 call(s)
     let ics20_transfer_msg = ibc_client.ics20_transfer(host_chain.clone(), coins)?;
     // construct the action to be called on the host
-    let action = abstract_os::ibc_host::HostAction::App {
+    let action = abstract_sdk::os::ibc_host::HostAction::App {
         msg: to_binary(&action)?,
     };
     let maybe_contract_info = deps.querier.query_wasm_contract_info(info.sender.clone());

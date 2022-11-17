@@ -1,6 +1,6 @@
 use std::{collections::HashSet, fmt::Debug};
 
-use abstract_os::version_control::Core;
+use abstract_sdk::os::version_control::Core;
 use abstract_sdk::{
     base::{
         AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,

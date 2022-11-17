@@ -9,9 +9,9 @@ use cosmwasm_std::{
 
 use cw20::{Cw20ReceiveMsg, MinterResponse};
 
-use abstract_os::etf::{EtfExecuteMsg, EtfInstantiateMsg, EtfQueryMsg, StateResponse};
-use abstract_os::objects::fee::Fee;
-use abstract_os::ETF;
+use abstract_sdk::os::etf::{EtfExecuteMsg, EtfInstantiateMsg, EtfQueryMsg, StateResponse};
+use abstract_sdk::os::objects::fee::Fee;
+use abstract_sdk::os::ETF;
 use cw20_base::msg::InstantiateMsg as TokenInstantiateMsg;
 
 use crate::commands::{self, receive_cw20};

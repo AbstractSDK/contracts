@@ -1,8 +1,8 @@
-use abstract_os::{
+use abstract_sdk::feature_objects::AnsHost;
+use abstract_sdk::os::{
     add_on::{BaseInstantiateMsg, InstantiateMsg},
     module_factory::{ContextResponse, QueryMsg as FactoryQuery},
 };
-use abstract_sdk::feature_objects::AnsHost;
 use cosmwasm_std::{
     to_binary, DepsMut, Env, MessageInfo, QueryRequest, Response, StdError, WasmQuery,
 };
