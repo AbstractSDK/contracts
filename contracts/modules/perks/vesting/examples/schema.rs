@@ -1,9 +1,9 @@
-use cosmwasm_schema::write_extension;
+use cosmwasm_schema::write_api;
 
 use abstract_sdk::os::vesting::{ExecuteMsg, InstantiateMsg, QueryMsg};
 
 fn main() {
-    write_extension! {
+    write_api! {
         instantiate: InstantiateMsg,
         query: QueryMsg,
         execute: ExecuteMsg,

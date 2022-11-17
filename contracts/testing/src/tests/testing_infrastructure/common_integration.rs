@@ -1,5 +1,5 @@
 use cosmwasm_std::{
-    testing::{mock_env, MockExtension, MockStorage},
+    testing::{mock_env, MockApi, MockStorage},
     Addr, Coin,
 };
 
@@ -17,7 +17,7 @@ pub struct NativeContracts {
 
 pub fn mock_app() -> App {
     let env = mock_env();
-    let extension = MockExtension::default();
+    let extension = MockApi::default();
     let bank = BankKeeper::new();
     let storage = MockStorage::new();
 
@@ -27,7 +27,7 @@ pub fn mock_app() -> App {
     let funds = vec![Coin::new(1_000_000_000, "uusd")];
 
     AppBuilder::new()
-        .with_extension(extension)
+        .with_api(extension)
         .with_block(env.block)
         .with_bank(bank)
         .with_storage(storage)

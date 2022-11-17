@@ -219,7 +219,7 @@ pub fn ibc_packet_timeout(
 //     use cosmwasm_std::testing::{
 //         mock_dependencies, mock_env, mock_ibc_channel_close_init, mock_ibc_channel_connect_ack,
 //         mock_ibc_channel_open_init, mock_ibc_channel_open_try, mock_ibc_packet_recv, mock_info,
-//         mock_wasmd_attr, MockExtension, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR,
+//         mock_wasmd_attr, MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR,
 //     };
 //     use cosmwasm_std::{
 //         attr, coin, coins, from_slice, BankMsg, Binary, OwnedDeps, SubMsgResponse, SubMsgResult,
@@ -233,7 +233,7 @@ pub fn ibc_packet_timeout(
 //     // address of first reflect contract instance that we created
 //     const REFLECT_ADDR: &str = "reflect-acct-1";
 
-//     fn setup() -> OwnedDeps<MockStorage, MockExtension, MockQuerier> {
+//     fn setup() -> OwnedDeps<MockStorage, MockApi, MockQuerier> {
 //         let mut deps = mock_dependencies();
 //         let msg = InstantiateMsg {
 //             cw1_code_id: REFLECT_ID,

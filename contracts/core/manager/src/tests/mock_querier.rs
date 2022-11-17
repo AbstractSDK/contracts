@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 use crate::dapp_base::common::{WHALE_TOKEN, WHALE_UST_LP_TOKEN, WHALE_UST_PAIR};
-use cosmwasm_std::testing::{MockExtension, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR};
+use cosmwasm_std::testing::{MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR};
 use cosmwasm_std::{
     from_binary, from_slice, to_binary, Coin, ContractResult, Decimal, OwnedDeps, Querier,
     QuerierResult, QueryRequest, SystemError, SystemResult, Uint128, WasmQuery,
@@ -17,12 +17,12 @@ use terraswap::pair::{PoolResponse, QueryMsg as TerraswapQueryMsg};
 /// this uses our CustomQuerier.
 pub fn mock_dependencies(
     contract_balance: &[Coin],
-) -> OwnedDeps<MockStorage, MockExtension, WasmMockQuerier> {
+) -> OwnedDeps<MockStorage, MockApi, WasmMockQuerier> {
     let custom_querier: WasmMockQuerier =
         WasmMockQuerier::new(MockQuerier::new(&[(&MOCK_CONTRACT_ADDR, contract_balance)]));
 
     OwnedDeps {
-        extension: MockExtension::default(),
+        api: MockApi::default(),
         storage: MockStorage::default(),
         querier: custom_querier,
     }
