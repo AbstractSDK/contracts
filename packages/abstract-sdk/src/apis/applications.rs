@@ -2,7 +2,7 @@
 //! The Application interface provides helper functions to execute functions on other applications installed on the OS.
 
 use abstract_os::{
-    api::{BaseExecuteMsg, ExecuteMsg},
+    extension::{BaseExecuteMsg, ExecuteMsg},
     manager::state::{ModuleId, OS_MODULES},
 };
 use cosmwasm_std::{

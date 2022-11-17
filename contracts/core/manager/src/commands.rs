@@ -1,7 +1,7 @@
 use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_sdk::os::{
-    api::{
-        BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as ApiExecMsg, QueryMsg as ApiQuery,
+    extension::{
+        BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as ExtensionExecMsg, QueryMsg as ExtensionQuery,
         TradersResponse,
     },
     manager::state::{OsInfo, Subscribed, CONFIG, INFO, OS_MODULES, ROOT, STATUS},
@@ -210,14 +210,14 @@ pub fn upgrade_module(
     let module_ref = get_module(deps.as_ref(), module_info.clone(), Some(contract))?;
     match module_ref {
         ModuleReference::Extension(addr) => {
-            // Update the address of the API internally
+            // Update the address of the extension internally
             update_module_addresses(
                 deps.branch(),
                 Some(vec![(module_info.id(), addr.to_string())]),
                 None,
             )?;
             // replace it
-            replace_api(deps, addr, old_module_addr)
+            replace_extension(deps, addr, old_module_addr)
         }
         ModuleReference::App(code_id) => {
             migrate_module(deps, env, old_module_addr, code_id, migrate_msg.unwrap())
@@ -244,15 +244,19 @@ fn migrate_module(
     Ok(Response::new().add_message(migration_msg))
 }
 
-/// Replaces the current API with a different version
+/// Replaces the current extension with a different version
 /// Also moves all the trader permissions to the new contract and removes them from the old
-pub fn replace_api(deps: DepsMut, new_api_addr: Addr, old_api_addr: Addr) -> ManagerResult {
+pub fn replace_extension(
+    deps: DepsMut,
+    new_extension_addr: Addr,
+    old_extension_addr: Addr,
+) -> ManagerResult {
     let mut msgs = vec![];
-    // Makes sure we already have the API installed
+    // Makes sure we already have the extension installed
     let proxy_addr = OS_MODULES.load(deps.storage, PROXY)?;
     let traders: TradersResponse = deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-        contract_addr: old_api_addr.to_string(),
-        msg: to_binary(&<ApiQuery<Empty>>::Base(BaseQueryMsg::Traders {
+        contract_addr: old_extension_addr.to_string(),
+        msg: to_binary(&<ExtensionQuery<Empty>>::Base(BaseQueryMsg::Traders {
             proxy_address: proxy_addr.to_string(),
         }))?,
     }))?;
@@ -262,34 +266,37 @@ pub fn replace_api(deps: DepsMut, new_api_addr: Addr, old_api_addr: Addr) -> Man
         .map(|addr| addr.into_string())
         .collect();
     // Remove traders from old
-    msgs.push(configure_api(
-        &old_api_addr,
+    msgs.push(configure_extension(
+        &old_extension_addr,
         BaseExecuteMsg::UpdateTraders {
             to_add: None,
             to_remove: Some(traders_to_migrate.clone()),
         },
     )?);
-    // Remove api as trader on dependencies
-    msgs.push(configure_api(&old_api_addr, BaseExecuteMsg::Remove {})?);
+    // Remove extension as trader on dependencies
+    msgs.push(configure_extension(
+        &old_extension_addr,
+        BaseExecuteMsg::Remove {},
+    )?);
     // Add traders to new
-    msgs.push(configure_api(
-        &new_api_addr,
+    msgs.push(configure_extension(
+        &new_extension_addr,
         BaseExecuteMsg::UpdateTraders {
             to_add: Some(traders_to_migrate),
             to_remove: None,
         },
     )?);
-    // Remove API permissions from proxy
+    // Remove extension permissions from proxy
     msgs.push(remove_dapp_from_proxy(
         deps.as_ref(),
         proxy_addr.to_string(),
-        old_api_addr.into_string(),
+        old_extension_addr.into_string(),
     )?);
-    // Add new API to proxy
+    // Add new extension to proxy
     msgs.push(whitelist_dapp_on_proxy(
         deps.as_ref(),
         proxy_addr.into_string(),
-        new_api_addr.into_string(),
+        new_extension_addr.into_string(),
     )?);
 
     Ok(Response::new().add_messages(msgs))
@@ -452,7 +459,10 @@ fn remove_dapp_from_proxy(
     }))
 }
 #[inline(always)]
-fn configure_api(api_address: impl Into<String>, message: BaseExecuteMsg) -> StdResult<CosmosMsg> {
-    let api_msg: ApiExecMsg<Empty> = message.into();
-    Ok(wasm_execute(api_address, &api_msg, vec![])?.into())
+fn configure_extension(
+    extension_address: impl Into<String>,
+    message: BaseExecuteMsg,
+) -> StdResult<CosmosMsg> {
+    let extension_msg: ExtensionExecMsg<Empty> = message.into();
+    Ok(wasm_execute(extension_address, &extension_msg, vec![])?.into())
 }

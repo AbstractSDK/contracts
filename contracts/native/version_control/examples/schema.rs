@@ -1,9 +1,9 @@
-use cosmwasm_schema::write_api;
+use cosmwasm_schema::write_extension;
 
 use abstract_sdk::os::version_control::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 
 fn main() {
-    write_api! {
+    write_extension! {
         instantiate: InstantiateMsg,
         query: QueryMsg,
         execute: ExecuteMsg,
@@ -22,14 +22,14 @@ fn main() {
     // export_schema_with_title(&schema_for!(CodeIdResponse), &out_dir, "CodeIdResponse");
     // export_schema_with_title(&schema_for!(ConfigResponse), &out_dir, "ConfigResponse");
     // export_schema_with_title(
-    //     &schema_for!(ApiAddressesResponse),
+    //     &schema_for!(ExtensionAddressesResponse),
     //     &out_dir,
-    //     "ApiAddressesResponse",
+    //     "ExtensionAddressesResponse",
     // );
     // export_schema_with_title(
-    //     &schema_for!(ApiAddressResponse),
+    //     &schema_for!(ExtensionAddressResponse),
     //     &out_dir,
-    //     "ApiAddressResponse",
+    //     "ExtensionAddressResponse",
     // );
     // export_schema_with_title(&schema_for!(CodeIdResponse), &out_dir, "CodeIdResponse");
     // export_schema_with_title(&schema_for!(CodeIdsResponse), &out_dir, "CodeIdsResponse");

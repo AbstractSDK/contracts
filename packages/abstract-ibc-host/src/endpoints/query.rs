@@ -12,7 +12,7 @@ use crate::{
 };
 
 /// Where we dispatch the queries for the Host
-/// These ApiQueryMsg declarations can be found in `abstract_sdk::os::common_module::app_msg`
+/// These ExtensionQueryMsg declarations can be found in `abstract_sdk::os::common_module::app_msg`
 impl<
         Error: From<cosmwasm_std::StdError> + From<HostError>,
         CustomExecMsg,
@@ -26,7 +26,9 @@ impl<
     type QueryMsg = QueryMsg<Self::CustomQueryMsg>;
     fn query(&self, deps: Deps, env: Env, msg: Self::QueryMsg) -> Result<Binary, StdError> {
         match msg {
-            QueryMsg::App(api_query) => self.query_handler()?(deps, env, self, api_query),
+            QueryMsg::App(extension_query) => {
+                self.query_handler()?(deps, env, self, extension_query)
+            }
             QueryMsg::Base(base_query) => {
                 self.base_query(deps, env, base_query).map_err(From::from)
             }

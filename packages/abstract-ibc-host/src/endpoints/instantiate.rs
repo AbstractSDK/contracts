@@ -25,7 +25,7 @@ impl<
     > InstantiateEndpoint
     for Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
-    /// Instantiate the API
+    /// Instantiate the extension
     type InstantiateMsg = InstantiateMsg<Self::CustomInitMsg>;
     fn instantiate(
         self,

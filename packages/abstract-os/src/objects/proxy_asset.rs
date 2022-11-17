@@ -81,7 +81,7 @@ pub enum UncheckedValueRef {
     },
     // Query an external contract to get the value
     External {
-        api_name: String,
+        extension_name: String,
     },
 }
 
@@ -120,7 +120,9 @@ impl UncheckedValueRef {
                     multiplier,
                 })
             }
-            UncheckedValueRef::External { api_name } => Ok(ValueRef::External { api_name }),
+            UncheckedValueRef::External { extension_name } => {
+                Ok(ValueRef::External { extension_name })
+            }
         }
     }
 }
@@ -151,7 +153,7 @@ pub enum ValueRef {
         multiplier: Decimal,
     },
     /// Query an external contract to get the value
-    External { api_name: String },
+    External { extension_name: String },
 }
 
 impl ProxyAsset {
@@ -195,13 +197,14 @@ impl ProxyAsset {
                 ValueRef::ValueAs { asset, multiplier } => {
                     return value_as_value(deps, env, ans_host, asset, multiplier, holding)
                 }
-                ValueRef::External { api_name } => {
+                ValueRef::External { extension_name } => {
                     let manager = ADMIN.get(deps)?.unwrap();
-                    let maybe_api_addr = OS_MODULES.query(&deps.querier, manager, &api_name)?;
-                    if let Some(api_addr) = maybe_api_addr {
+                    let maybe_extension_addr =
+                        OS_MODULES.query(&deps.querier, manager, &extension_name)?;
+                    if let Some(extension_addr) = maybe_extension_addr {
                         let response: ExternalValueResponse =
                             deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-                                contract_addr: api_addr.to_string(),
+                                contract_addr: extension_addr.to_string(),
                                 msg: to_binary(&ValueQueryMsg {
                                     asset: self.asset.clone(),
                                     amount: valued_asset.amount,
@@ -210,8 +213,8 @@ impl ProxyAsset {
                         return Ok(response.value);
                     } else {
                         return Err(StdError::generic_err(format!(
-                            "external contract api {} must be enabled on OS",
-                            api_name
+                            "external contract extension {} must be enabled on OS",
+                            extension_name
                         )));
                     }
                 }

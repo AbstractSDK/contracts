@@ -327,14 +327,14 @@ pub fn ibc_packet_timeout(
 //     use abstract_sdk::os::abstract_ica::{APP_ORDER, BAD_APP_ORDER, IBC_APP_VERSION};
 //     use cosmwasm_std::testing::{
 //         mock_dependencies, mock_env, mock_ibc_channel_connect_ack, mock_ibc_channel_open_init,
-//         mock_ibc_channel_open_try, mock_ibc_packet_ack, mock_info, MockApi, MockQuerier,
+//         mock_ibc_channel_open_try, mock_ibc_packet_ack, mock_info, MockExtension, MockQuerier,
 //         MockStorage,
 //     };
 //     use cosmwasm_std::{coin, coins, BankMsg, CosmosMsg, IbcAcknowledgement, OwnedDeps};
 
 //     const CREATOR: &str = "creator";
 
-//     fn setup() -> OwnedDeps<MockStorage, MockApi, MockQuerier> {
+//     fn setup() -> OwnedDeps<MockStorage, MockExtension, MockQuerier> {
 //         let mut deps = mock_dependencies();
 //         let msg = InstantiateMsg {};
 //         let info = mock_info(CREATOR, &[]);

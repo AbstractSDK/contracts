@@ -1,5 +1,5 @@
-use abstract_sdk::os::api;
-use abstract_sdk::os::{api::BaseInstantiateMsg, manager as ManagerMsgs};
+use abstract_sdk::os::extension;
+use abstract_sdk::os::{extension::BaseInstantiateMsg, manager as ManagerMsgs};
 
 use abstract_sdk::os::{objects::module::ModuleInfo, EXCHANGE};
 
@@ -16,7 +16,7 @@ use super::{
     testing_infrastructure::env::{get_os_state, mock_app, AbstractEnv},
 };
 
-pub fn register_and_create_dex_api(
+pub fn register_and_create_dex_extension(
     app: &mut App,
     sender: &Addr,
     version_control: &Addr,
@@ -39,10 +39,17 @@ pub fn register_and_create_dex_api(
         ans_host_address: ans_host.to_string(),
         version_control_address: version_control.to_string(),
     };
-    let api_addr = app
-        .instantiate_contract(code_id, sender.clone(), &msg, &[], "api".to_owned(), None)
+    let extension_addr = app
+        .instantiate_contract(
+            code_id,
+            sender.clone(),
+            &msg,
+            &[],
+            "extension".to_owned(),
+            None,
+        )
         .unwrap();
-    register_extension(app, sender, version_control, module, api_addr).unwrap();
+    register_extension(app, sender, version_control, module, extension_addr).unwrap();
     Ok(())
 }
 
@@ -58,7 +65,7 @@ fn proper_initialization() {
     assert_eq!(os_state.len(), 2);
     let manager = env.os_store.get(&0u32).unwrap().manager.clone();
 
-    register_and_create_dex_api(
+    register_and_create_dex_extension(
         &mut app,
         &sender,
         &env.native_contracts.version_control,
@@ -72,7 +79,7 @@ fn proper_initialization() {
         &ManagerMsgs::ExecuteMsg::CreateModule {
             module: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest {}).unwrap(),
             init_msg: Some(
-                to_binary(&api::InstantiateMsg {
+                to_binary(&extension::InstantiateMsg {
                     base: BaseInstantiateMsg {
                         ans_host_address: env.native_contracts.ans_host.to_string(),
                         version_control_address: env.native_contracts.version_control.to_string(),
@@ -86,7 +93,7 @@ fn proper_initialization() {
     )
     .unwrap();
 
-    register_and_create_dex_api(
+    register_and_create_dex_extension(
         &mut app,
         &sender,
         &env.native_contracts.version_control,
@@ -120,7 +127,7 @@ fn proper_initialization() {
 
     let _os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
 
-    register_and_create_dex_api(
+    register_and_create_dex_extension(
         &mut app,
         &sender,
         &env.native_contracts.version_control,

@@ -1,6 +1,6 @@
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cosmwasm_std::Addr;
-use cosmwasm_std::{Api, Uint128};
+use cosmwasm_std::{Extension, Uint128};
 
 use crate::contract::{execute, instantiate};
 

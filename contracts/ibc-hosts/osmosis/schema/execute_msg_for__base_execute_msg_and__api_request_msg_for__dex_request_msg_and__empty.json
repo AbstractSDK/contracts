@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "ExecuteMsg_for_BaseExecuteMsg_and_ApiRequestMsg_for_DexRequestMsg_and_Empty",
+  "title": "ExecuteMsg_for_BaseExecuteMsg_and_ExtensionRequestMsg_for_DexRequestMsg_and_Empty",
   "description": "EndpointMsg to the Middleware.",
   "oneOf": [
     {
@@ -24,7 +24,7 @@
       ],
       "properties": {
         "app": {
-          "$ref": "#/definitions/ApiRequestMsg_for_DexRequestMsg"
+          "$ref": "#/definitions/ExtensionRequestMsg_for_DexRequestMsg"
         }
       },
       "additionalProperties": false
@@ -72,7 +72,7 @@
         }
       }
     },
-    "ApiRequestMsg_for_DexRequestMsg": {
+    "ExtensionRequestMsg_for_DexRequestMsg": {
       "description": "An API request. If proxy is None, then the sender must be an OS manager and the proxy address is extrapolated from the OS id.",
       "type": "object",
       "required": [

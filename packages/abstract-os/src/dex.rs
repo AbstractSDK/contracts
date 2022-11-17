@@ -1,4 +1,4 @@
-//! # Decentralized Exchange API
+//! # Decentralized Exchange Extension
 //!
 //! `abstract_os::dex` is a generic dex-interfacing contract that handles address retrievals and dex-interactions.
 

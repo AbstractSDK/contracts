@@ -5,7 +5,7 @@ Add-ons are feature-adding modules. They allow users to add some extra functiona
 Every app is migratable. Custom apps are allowed. 
 
 Add-ons are allowed to perform actions on the proxy contract. 
-The might also want to integrate with other enabled modules/apis, and have access to the ans_host contract for address storage.
+The might also want to integrate with other enabled modules/extensions, and have access to the ans_host contract for address storage.
 
 Therefore the the base state includes
 

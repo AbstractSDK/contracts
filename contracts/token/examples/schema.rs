@@ -1,9 +1,9 @@
-use cosmwasm_schema::write_api;
+use cosmwasm_schema::write_extension;
 
 use abstract_sdk::os::abstract_token::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 
 fn main() {
-    write_api! {
+    write_extension! {
         instantiate: InstantiateMsg,
         query: QueryMsg,
         execute: ExecuteMsg,
