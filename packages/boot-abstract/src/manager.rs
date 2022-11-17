@@ -71,7 +71,7 @@ where
         init_msg: Option<&M>,
     ) -> Result<(), BootError> {
         self.execute(
-            &ExecuteMsg::CreateModule {
+            &ExecuteMsg::InstallModule {
                 module: ModuleInfo::from_id(module_id, ModuleVersion::Latest {})?,
                 init_msg: init_msg.map(to_binary).transpose()?,
             },
@@ -108,7 +108,7 @@ where
             msg = init_msg.map(|msg| to_binary(msg).unwrap());
         }
         let result = self.execute(
-            &ExecuteMsg::CreateModule {
+            &ExecuteMsg::InstallModule {
                 module: ModuleInfo::from_id(contract_id, ModuleVersion::Version(version))?,
                 init_msg: msg,
             },
