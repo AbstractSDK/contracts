@@ -32,9 +32,12 @@ pub fn register_and_create_dex_extension(
         dex::contract::query,
     ));
     let code_id = app.store_code(contract);
-    let msg = BaseInstantiateMsg {
-        ans_host_address: ans_host.to_string(),
-        version_control_address: version_control.to_string(),
+    let msg = extension::InstantiateMsg {
+        base: BaseInstantiateMsg {
+            ans_host_address: ans_host.to_string(),
+            version_control_address: version_control.to_string(),
+        },
+        app: Empty {},
     };
     let extension_addr = app
         .instantiate_contract(

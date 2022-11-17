@@ -1,3 +1,4 @@
+use abstract_os::app;
 use abstract_sdk::os::{
     objects::{
         gov_type::GovernanceDetails,
@@ -321,7 +322,7 @@ fn query_subscription_fee(
     let subscription_fee_response: SubscriptionFeeResponse =
         querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: subscription_address.to_string(),
-            msg: to_binary(&SubscriptionQuery::Fee {})?,
+            msg: to_binary(&app::QueryMsg::App(SubscriptionQuery::Fee {}))?,
         }))?;
     Ok(subscription_fee_response)
 }
@@ -345,9 +346,11 @@ fn forward_payment(
             )?,
             AssetInfoBase::Native(denom) => CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: sub_addr.into(),
-                msg: to_binary(&SubscriptionExecMsg::Pay {
-                    os_id: config.next_os_id,
-                })?,
+                msg: to_binary::<app::ExecuteMsg<SubscriptionExecMsg>>(&app::ExecuteMsg::App(
+                    SubscriptionExecMsg::Pay {
+                        os_id: config.next_os_id,
+                    },
+                ))?,
                 funds: vec![Coin::new(received_payment.amount.u128(), denom)],
             }),
             AssetInfoBase::Cw1155(_, _) => {
