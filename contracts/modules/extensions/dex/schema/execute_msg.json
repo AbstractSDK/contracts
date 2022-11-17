@@ -428,7 +428,6 @@
     "SwapRouter": {
       "oneOf": [
         {
-          "description": "Matrix router",
           "type": "string",
           "enum": [
             "matrix"
