@@ -22,7 +22,7 @@ fn main() {
         "ExtensionResponse",
     );
 
-    export_schema(&schema_for!(ExecuteMsg<DexRequestMsg>), &out_dir);
+    // export_schema_with_title(&schema_for!(ExecuteMsg<DexRequestMsg>), &out_dir, "ExecuteMsg");
     export_schema_with_title(&schema_for!(TradersResponse), &out_dir, "TradersResponse");
     export_schema_with_title(
         &schema_for!(ExtensionConfigResponse),

@@ -57,32 +57,8 @@
     }
   ],
   "definitions": {
-    "ExtensionRequestMsg_for_RequestMsg": {
-      "description": "An API request. If proxy is None, then the sender must be an OS manager and the proxy address is extrapolated from the OS id.",
-      "type": "object",
-      "required": [
-        "request"
-      ],
-      "properties": {
-        "proxy_address": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "request": {
-          "description": "The actual request",
-          "allOf": [
-            {
-              "$ref": "#/definitions/RequestMsg"
-            }
-          ]
-        }
-      },
-      "additionalProperties": false
-    },
     "BaseExecuteMsg": {
-      "description": "Configuration message for the API",
+      "description": "Configuration message for the extension",
       "oneOf": [
         {
           "description": "Add or remove traders If a trader is both in to_add and to_remove, it will be removed.",
@@ -119,7 +95,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Remove the API",
+          "description": "Remove the extension",
           "type": "object",
           "required": [
             "remove"
@@ -141,6 +117,30 @@
     "Empty": {
       "description": "An empty struct that serves as a placeholder in different places, such as contracts that don't set a custom message.\n\nIt is designed to be expressable in correct JSON and JSON Schema but contains no meaningful data. Previously we used enums without cases, but those cannot represented as valid JSON Schema (https://github.com/CosmWasm/cosmwasm/issues/451)",
       "type": "object"
+    },
+    "ExtensionRequestMsg_for_RequestMsg": {
+      "description": "An extension request. If proxy is None, then the sender must be an OS manager and the proxy address is extrapolated from the OS id.",
+      "type": "object",
+      "required": [
+        "request"
+      ],
+      "properties": {
+        "proxy_address": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "request": {
+          "description": "The actual request",
+          "allOf": [
+            {
+              "$ref": "#/definitions/RequestMsg"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
     },
     "IbcResponseMsg": {
       "description": "IbcResponseMsg should be de/serialized under `Receive()` variant in a ExecuteMsg",

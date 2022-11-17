@@ -31,7 +31,7 @@
   ],
   "definitions": {
     "BaseQueryMsg": {
-      "description": "Query API message",
+      "description": "Query extension message",
       "oneOf": [
         {
           "description": "Returns [`ExtensionConfigResponse`].",
