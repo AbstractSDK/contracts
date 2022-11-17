@@ -18,6 +18,24 @@ use crate::contract::{EtfApp, EtfResult};
 use crate::error::EtfError;
 use crate::state::{FEE, State, STATE};
 
+pub fn execute_handler(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    vault: EtfApp,
+    msg: EtfExecuteMsg,
+) -> EtfResult {
+    match msg {
+        EtfExecuteMsg::ProvideLiquidity { asset } => {
+            // Check asset
+            let asset = asset.check(deps.api, None)?;
+            try_provide_liquidity(deps, info, vault, asset, None)
+        }
+        EtfExecuteMsg::SetFee { fee } => set_fee(deps, info, vault, fee),
+    }
+}
+
+
 /// Called when either providing liquidity with a native token or when providing liquidity
 /// with a CW20.
 pub fn try_provide_liquidity(
@@ -216,7 +234,7 @@ pub fn try_withdraw_liquidity(
         .add_attributes(attrs))
 }
 
-pub fn set_fee(deps: DepsMut, msg_info: MessageInfo, dapp: EtfApp, new_fee: Decimal) -> EtfResult {
+fn set_fee(deps: DepsMut, msg_info: MessageInfo, dapp: EtfApp, new_fee: Decimal) -> EtfResult {
     // Only the admin should be able to call this
     dapp.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
@@ -226,28 +244,11 @@ pub fn set_fee(deps: DepsMut, msg_info: MessageInfo, dapp: EtfApp, new_fee: Deci
     Ok(Response::new().add_attribute("Update:", "Successful"))
 }
 
-pub fn query_supply(querier: &QuerierWrapper, contract_addr: Addr) -> StdResult<Uint128> {
+fn query_supply(querier: &QuerierWrapper, contract_addr: Addr) -> StdResult<Uint128> {
     let res: TokenInfoResponse = querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
         contract_addr: String::from(contract_addr),
         msg: to_binary(&Cw20QueryMsg::TokenInfo {})?,
     }))?;
 
     Ok(res.total_supply)
-}
-
-pub fn execute_handler(
-    deps: DepsMut,
-    _env: Env,
-    info: MessageInfo,
-    vault: EtfApp,
-    msg: EtfExecuteMsg,
-) -> EtfResult {
-    match msg {
-        EtfExecuteMsg::ProvideLiquidity { asset } => {
-            // Check asset
-            let asset = asset.check(deps.api, None)?;
-            try_provide_liquidity(deps, info, vault, asset, None)
-        }
-        EtfExecuteMsg::SetFee { fee } => set_fee(deps, info, vault, fee),
-    }
 }
