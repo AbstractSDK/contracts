@@ -63,7 +63,7 @@ fn proper_initialization() {
                 kind: abstract_sdk::os::modules::ModuleKind::App,
             },
             Some(vault_msg::InstantiateMsg {
-                base: abstract_sdk::os::add_on::BaseInstantiateMsg {
+                base: abstract_sdk::os::app::BaseInstantiateMsg {
                     ans_host_address: env.native_contracts.ans_host.to_string(),
                 },
                 deposit_asset: "test".into(),

@@ -5,8 +5,8 @@ members = [
     "contracts/core/*",
     "contracts/testing",
     "contracts/token",
-    "contracts/modules/add-ons/etf",
-    "contracts/modules/add-ons/subscription",
+    "contracts/modules/apps/etf",
+    "contracts/modules/apps/subscription",
     "contracts/modules/apis/tendermint-staking",
     "contracts/modules/apis/dex",
     "contracts/modules/perks/vesting",
@@ -42,7 +42,7 @@ semver = "1.0"
 
 abstract-sdk = { version = "0.2.0-beta.2", path = "packages/abstract-sdk" }
 abstract-os = { version = "0.2.0-beta.2", path = "packages/abstract-os" }
-abstract-add-on = { version = "0.2.0-beta.2", path = "packages/abstract-add-on", features = ["library"] }
+abstract-app = { version = "0.2.0-beta.2", path = "packages/abstract-app", features = ["library"] }
 abstract-api = { version = "0.2.0-beta.2", path = "packages/abstract-api", features = ["library"] }
 abstract-ibc-host = { version = "0.2.0-beta.2", path = "packages/abstract-ibc-host" }
 abstract-ica = { version = "0.2.0-beta.2", path = "packages/abstract-ica" }

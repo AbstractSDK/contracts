@@ -6,7 +6,7 @@ use abstract_sdk::os::api::{ApiConfigResponse, BaseQueryMsg, QueryMsg, TradersRe
 use crate::{state::ApiContract, ApiError};
 
 /// Where we dispatch the queries for the ApiContract
-/// These ApiQueryMsg declarations can be found in `abstract_sdk::os::common_module::add_on_msg`
+/// These ApiQueryMsg declarations can be found in `abstract_sdk::os::common_module::app_msg`
 impl<
         Error: From<cosmwasm_std::StdError> + From<ApiError>,
         CustomExecMsg,

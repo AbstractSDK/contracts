@@ -226,7 +226,7 @@ pub mod state {
 
 use cosmwasm_std::{Decimal, Uint128, Uint64};
 
-use crate::add_on::BaseInstantiateMsg;
+use crate::app::BaseInstantiateMsg;
 use cw_asset::{Asset, AssetInfoUnchecked};
 
 use state::{

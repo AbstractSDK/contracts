@@ -43,9 +43,9 @@ pub mod ibc_host;
 
 pub use registry::*;
 pub mod abstract_token;
-pub mod add_on;
 pub mod ans_host;
 pub mod api;
+pub mod app;
 pub mod dex;
 pub mod etf;
 pub mod manager;

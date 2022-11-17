@@ -128,7 +128,7 @@ where
 //     if [TERRASWAP].contains(&name) {
 //         return Ok(ModuleKind::API);
 //     } else if [LIQUIDITY_INTERFACE, SUBSCRIPTION].contains(&name) {
-//         Ok(ModuleKind::AddOn)
+//         Ok(ModuleKind::App)
 //     } else {
 //         return Err(anyhow::Error::msg(
 //             "The requested module to be added is not a module",

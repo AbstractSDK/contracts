@@ -15,7 +15,7 @@ use crate::{contract::ModuleFactoryResult, error::ModuleFactoryError};
 
 use crate::{response::MsgInstantiateContractResponse, state::*};
 
-pub const CREATE_ADD_ON_RESPONSE_ID: u64 = 1u64;
+pub const CREATE_APP_RESPONSE_ID: u64 = 1u64;
 pub const CREATE_SERVICE_RESPONSE_ID: u64 = 3u64;
 pub const CREATE_PERK_RESPONSE_ID: u64 = 4u64;
 
@@ -62,7 +62,7 @@ pub fn execute_create_module(
             *code_id,
             root_init_msg.unwrap(),
             Some(core.manager),
-            CREATE_ADD_ON_RESPONSE_ID,
+            CREATE_APP_RESPONSE_ID,
             new_module.info,
         ),
         ModuleReference::Perk(code_id) => instantiate_contract(
@@ -122,7 +122,7 @@ fn instantiate_contract(
 
 pub fn register_contract(deps: DepsMut, result: SubMsgResult) -> ModuleFactoryResult {
     let context: Context = CONTEXT.load(deps.storage)?;
-    // Get address of add_on contract
+    // Get address of app contract
     let res: MsgInstantiateContractResponse =
         Message::parse_from_bytes(result.unwrap().data.unwrap().as_slice()).map_err(|_| {
             StdError::parse_err("MsgInstantiateContractResponse", "failed to parse data")

@@ -71,7 +71,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
 pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> ModuleFactoryResult {
     match msg {
         Reply {
-            id: commands::CREATE_ADD_ON_RESPONSE_ID,
+            id: commands::CREATE_APP_RESPONSE_ID,
             result,
         } => commands::register_contract(deps, result),
         Reply {

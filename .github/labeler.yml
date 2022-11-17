@@ -3,9 +3,9 @@
 "core":
   # Match all of core folders
   - contracts/core/**/*
-"add-on":
-  # Match all of add-on folders
-  - contracts/modules/add-ons/**/*
+"app":
+  # Match all of app folders
+  - contracts/modules/apps/**/*
 "api":
   # Match all of api folders
   - contracts/modules/apis/**/*
@@ -27,9 +27,9 @@
 "api_base":
   # Match all of native folders
   - packages/abstract-api/**/*
-"add-on_base":
+"app_base":
   # Match all of native folders
-  - packages/abstract-add-on/**/*
+  - packages/abstract-app/**/*
 "build":
   - build_release.sh
 "CI":

@@ -4,7 +4,7 @@ use abstract_sdk::os::{objects::module::ModuleVersion, version_control::OsCoreRe
 use cosmwasm_std::Addr;
 
 use abstract_sdk::os::{
-    add_on::BaseInstantiateMsg, objects::module::ModuleInfo,
+    app::BaseInstantiateMsg, objects::module::ModuleInfo,
     subscription::InstantiateMsg as SubInitMsg, version_control::Core,
 };
 use cosmwasm_std::{to_binary, Coin, Decimal, Uint128, Uint64};

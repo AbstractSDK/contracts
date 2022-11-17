@@ -1,5 +1,5 @@
 use crate::AbstractOS;
-use abstract_sdk::os::add_on::MigrateMsg;
+use abstract_sdk::os::app::MigrateMsg;
 use abstract_sdk::os::etf::*;
 use boot_core::{Contract, IndexResponse, TxHandler, TxResponse};
 

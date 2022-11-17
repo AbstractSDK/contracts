@@ -10,7 +10,7 @@
 //! # Details
 //! To use an API either construct a [`feature object`](crate::feature_objects) or use an Abstract base contract as the starting-point of your application.  
 //! The available base contracts are:
-//! > - [Add-on](https://crates.io/crates/abstract-add-on) ([Template](https://github.com/Abstract-OS/addon-module-template))
+//! > - [Add-on](https://crates.io/crates/abstract-app) ([Template](https://github.com/Abstract-OS/addon-module-template))
 //! > - [API](https://crates.io/crates/abstract-api) ([Template (WIP)]())
 //! > - [IBC-host](https://crates.io/crates/abstract-ibc-host) ([Template (WIP)]())
 //!

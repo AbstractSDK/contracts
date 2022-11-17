@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use crate::AbstractOS;
-use abstract_sdk::os::{add_on::BaseInstantiateMsg, subscription::*};
+use abstract_sdk::os::{app::BaseInstantiateMsg, subscription::*};
 use boot_core::{Contract, IndexResponse, TxHandler, TxResponse};
 use cosmwasm_std::{Decimal, Uint128};
 use cw_asset::AssetInfoUnchecked;
