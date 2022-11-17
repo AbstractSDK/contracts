@@ -19,7 +19,6 @@ pub struct AbstractOS<
 where
     <Chain as TxHandler>::Response: IndexResponse;
 
-
 impl<
         Chain: TxHandler,
         E: Serialize + Debug,
