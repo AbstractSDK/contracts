@@ -1,5 +1,3 @@
-
-
 use cosmwasm_std::{
     Empty, Response,
 };
@@ -18,10 +16,12 @@ use crate::handlers::{self};
 pub(crate) const DEFAULT_LP_TOKEN_NAME: &str = "ETF LP token";
 pub(crate) const DEFAULT_LP_TOKEN_SYMBOL: &str = "etfLP";
 
+pub const INSTANTIATE_REPLY_ID: u64 = 1u64;
+
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub type EtfApp =
-    AppContract<EtfError, EtfExecuteMsg, EtfInstantiateMsg, EtfQueryMsg, Empty, Cw20ReceiveMsg>;
+AppContract<EtfError, EtfExecuteMsg, EtfInstantiateMsg, EtfQueryMsg, Empty, Cw20ReceiveMsg>;
 pub type EtfResult = Result<Response, EtfError>;
 
 const ETF_ADDON: EtfApp = EtfApp::new(ETF, CONTRACT_VERSION)
@@ -35,4 +35,3 @@ const ETF_ADDON: EtfApp = EtfApp::new(ETF, CONTRACT_VERSION)
 #[cfg(not(feature = "library"))]
 export_endpoints!(ETF_ADDON, EtfApp);
 
-pub const INSTANTIATE_REPLY_ID: u64 = 1u64;
