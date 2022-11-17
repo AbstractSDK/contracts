@@ -5,12 +5,12 @@ use semver::Version;
 use crate::commands::*;
 use crate::error::AnsHostError;
 use crate::queries;
-use abstract_sdk::os::ans_host::state::ADMIN;
-use abstract_sdk::os::ans_host::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
+use abstract_os::ans_host::state::ADMIN;
+use abstract_os::ans_host::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 
 pub type AnsHostResult = Result<Response, AnsHostError>;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-use abstract_sdk::os::ANS_HOST;
+use abstract_os::ANS_HOST;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(

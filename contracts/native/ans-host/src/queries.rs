@@ -1,6 +1,6 @@
 use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, StdResult};
 
-use abstract_sdk::os::{
+use abstract_os::{
     ans_host::{
         state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES},
         AssetListResponse, AssetsResponse, ChannelListResponse, ChannelsResponse,

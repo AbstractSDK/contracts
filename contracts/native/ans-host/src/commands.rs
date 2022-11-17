@@ -1,11 +1,11 @@
-use abstract_sdk::os::objects::{UncheckedChannelEntry, UncheckedContractEntry};
+use abstract_os::objects::{UncheckedChannelEntry, UncheckedContractEntry};
 use cosmwasm_std::Env;
 use cosmwasm_std::{Addr, DepsMut, Empty, MessageInfo, Response, StdResult};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 
 use crate::contract::AnsHostResult;
-use abstract_sdk::os::ans_host::state::*;
-use abstract_sdk::os::ans_host::ExecuteMsg;
+use abstract_os::ans_host::state::*;
+use abstract_os::ans_host::ExecuteMsg;
 
 /// Handles the common base execute messages
 pub fn handle_message(
