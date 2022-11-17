@@ -1,10 +1,10 @@
 use crate::{error::ExtensionError, state::ExtensionContract, ExtensionResult};
-use abstract_sdk::os::extension::{BaseExecuteMsg, ExecuteMsg};
 use abstract_sdk::{
     base::{
         endpoints::{ExecuteEndpoint, IbcCallbackEndpoint, ReceiveEndpoint},
         Handler,
     },
+    os::extension::{BaseExecuteMsg, ExecuteMsg},
     ApplicationInterface, Execution, Verification,
 };
 use cosmwasm_std::{

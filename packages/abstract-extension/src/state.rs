@@ -1,6 +1,5 @@
 use std::{collections::HashSet, fmt::Debug};
 
-use abstract_sdk::os::version_control::Core;
 use abstract_sdk::{
     base::{
         AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
@@ -8,6 +7,7 @@ use abstract_sdk::{
     },
     feature_objects::AnsHost,
     namespaces::BASE_STATE,
+    os::version_control::Core,
 };
 
 use cosmwasm_std::{Addr, Empty, StdError, StdResult, Storage};

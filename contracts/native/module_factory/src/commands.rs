@@ -3,11 +3,14 @@ use cosmwasm_std::{
     StdError, StdResult, SubMsg, SubMsgResult, WasmMsg,
 };
 
-use abstract_sdk::os::{
-    manager::ExecuteMsg as ManagerMsg,
-    objects::{module::ModuleInfo, module_reference::ModuleReference},
+use abstract_sdk::{
+    feature_objects::VersionControlContract,
+    os::{
+        manager::ExecuteMsg as ManagerMsg,
+        objects::{module::ModuleInfo, module_reference::ModuleReference},
+    },
+    *,
 };
-use abstract_sdk::{feature_objects::VersionControlContract, *};
 
 use protobuf::Message;
 

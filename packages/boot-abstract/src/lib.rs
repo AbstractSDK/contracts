@@ -1,8 +1,10 @@
 use boot_core::{Contract, IndexResponse, TxHandler};
 
 use serde::Serialize;
-use std::fmt::Debug;
-use std::ops::{Deref, DerefMut};
+use std::{
+    fmt::Debug,
+    ops::{Deref, DerefMut},
+};
 
 // Update `MyProjectName` to your project name and export contract implementations here.
 // No need to touch anything else

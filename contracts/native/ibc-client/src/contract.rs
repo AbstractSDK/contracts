@@ -1,10 +1,13 @@
-use abstract_sdk::base::features::Identification;
-use abstract_sdk::feature_objects::VersionControlContract;
-use abstract_sdk::os::ibc_host::{HostAction, InternalAction, PacketMsg};
-use abstract_sdk::os::objects::ans_host::AnsHost;
-use abstract_sdk::os::objects::ChannelEntry;
-use abstract_sdk::os::{IBC_CLIENT, ICS20};
-use abstract_sdk::{Execution, Resolve, Verification};
+use abstract_sdk::{
+    base::features::Identification,
+    feature_objects::VersionControlContract,
+    os::{
+        ibc_host::{HostAction, InternalAction, PacketMsg},
+        objects::{ans_host::AnsHost, ChannelEntry},
+        IBC_CLIENT, ICS20,
+    },
+    Execution, Resolve, Verification,
+};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
@@ -13,12 +16,9 @@ use cosmwasm_std::{
 };
 use cw2::set_contract_version;
 
-use crate::error::ClientError;
-use crate::ibc::PACKET_LIFETIME;
-use abstract_sdk::os::ibc_client::state::{
-    AccountData, Config, ACCOUNTS, ANS_HOST, CHANNELS, CONFIG, LATEST_QUERIES,
-};
+use crate::{error::ClientError, ibc::PACKET_LIFETIME};
 use abstract_sdk::os::ibc_client::{
+    state::{AccountData, Config, ACCOUNTS, ANS_HOST, CHANNELS, CONFIG, LATEST_QUERIES},
     AccountInfo, AccountResponse, CallbackInfo, ConfigResponse, ExecuteMsg, InstantiateMsg,
     LatestQueryResponse, ListAccountsResponse, ListChannelsResponse, MigrateMsg, QueryMsg,
 };

@@ -1,5 +1,4 @@
-use abstract_sdk::os::objects::gov_type::GovernanceDetails;
-use abstract_sdk::os::os_factory::*;
+use abstract_sdk::os::{objects::gov_type::GovernanceDetails, os_factory::*};
 use cosmwasm_std::Addr;
 
 use crate::AbstractOS;

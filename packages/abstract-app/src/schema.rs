@@ -1,7 +1,8 @@
 use std::path::Path;
 
-use crate::{AppContract, AppError};
-use crate::{ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint};
+use crate::{
+    AppContract, AppError, ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint,
+};
 use abstract_sdk::os::app::AppConfigResponse;
 use cosmwasm_schema::{export_schema_with_title, schema_for};
 use cw_controllers::AdminResponse;

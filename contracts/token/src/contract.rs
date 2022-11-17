@@ -15,10 +15,10 @@ use cw20_base::{
 };
 
 use crate::state::{Config, ADMIN, CONFIG};
-use abstract_sdk::os::abstract_token::{
-    ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
+use abstract_sdk::{
+    os::abstract_token::{ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
+    *,
 };
-use abstract_sdk::*;
 
 /// Contract name that is used for migration.
 const CONTRACT_NAME: &str = "pandora:token";

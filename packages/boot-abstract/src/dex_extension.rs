@@ -1,16 +1,14 @@
-use abstract_sdk::os::base;
-use abstract_sdk::os::dex::*;
-use abstract_sdk::os::extension::*;
-use abstract_sdk::os::objects::AnsAsset;
-use abstract_sdk::os::objects::AssetEntry;
-use abstract_sdk::os::EXCHANGE;
-use abstract_sdk::os::MANAGER;
-use boot_core::BootError;
-use boot_core::{Contract, IndexResponse, TxHandler, TxResponse};
+use abstract_sdk::os::{
+    base,
+    dex::*,
+    extension::*,
+    objects::{AnsAsset, AssetEntry},
+    EXCHANGE, MANAGER,
+};
+use boot_core::{BootError, Contract, IndexResponse, TxHandler, TxResponse};
 use cosmwasm_std::Empty;
 
-use crate::manager::Manager;
-use crate::AbstractOS;
+use crate::{manager::Manager, AbstractOS};
 
 pub type DexExtension<Chain> = AbstractOS<
     Chain,

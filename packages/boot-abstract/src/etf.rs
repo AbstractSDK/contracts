@@ -1,6 +1,5 @@
 use crate::AbstractOS;
-use abstract_sdk::os::app::MigrateMsg;
-use abstract_sdk::os::etf::*;
+use abstract_sdk::os::{app::MigrateMsg, etf::*};
 use boot_core::{Contract, IndexResponse, TxHandler, TxResponse};
 
 pub type ETF<Chain> = AbstractOS<Chain, EtfExecuteMsg, EtfInstantiateMsg, EtfQueryMsg, MigrateMsg>;

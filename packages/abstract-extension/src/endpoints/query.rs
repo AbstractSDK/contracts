@@ -1,4 +1,4 @@
-use abstract_sdk::{base::endpoints::QueryEndpoint, base::Handler};
+use abstract_sdk::base::{endpoints::QueryEndpoint, Handler};
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError, StdResult};
 
 use abstract_sdk::os::extension::{

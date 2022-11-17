@@ -4,8 +4,7 @@
 use abstract_os::objects::AnsAsset;
 use cosmwasm_std::{Addr, BankMsg, Coin, CosmosMsg, Deps, StdResult};
 
-use super::execution::Execution;
-use super::AbstractNameSystem;
+use super::{execution::Execution, AbstractNameSystem};
 use crate::ans_resolve::Resolve;
 
 /// Bank assets from and to the Abstract OS.

@@ -12,10 +12,10 @@ use abstract_sdk::os::abstract_ica::{
 };
 
 use crate::error::ClientError;
-use abstract_sdk::os::ibc_client::state::{
-    AccountData, ACCOUNTS, CHANNELS, CONFIG, LATEST_QUERIES,
+use abstract_sdk::os::ibc_client::{
+    state::{AccountData, ACCOUNTS, CHANNELS, CONFIG, LATEST_QUERIES},
+    CallbackInfo, LatestQueryResponse,
 };
-use abstract_sdk::os::ibc_client::{CallbackInfo, LatestQueryResponse};
 
 // TODO: make configurable?
 /// packets live one hour

@@ -9,9 +9,11 @@ use cosmwasm_std::{
     WasmMsg,
 };
 
-use crate::endpoints::reply::INIT_CALLBACK_ID;
-use crate::state::{CLIENT_PROXY, CLOSED_CHANNELS, PENDING};
-use crate::{Host, HostError};
+use crate::{
+    endpoints::reply::INIT_CALLBACK_ID,
+    state::{CLIENT_PROXY, CLOSED_CHANNELS, PENDING},
+    Host, HostError,
+};
 
 // one hour
 pub const PACKET_LIFETIME: u64 = 60 * 60;

@@ -1,7 +1,9 @@
-use abstract_sdk::feature_objects::AnsHost;
-use abstract_sdk::os::{
-    app::{BaseInstantiateMsg, InstantiateMsg},
-    module_factory::{ContextResponse, QueryMsg as FactoryQuery},
+use abstract_sdk::{
+    feature_objects::AnsHost,
+    os::{
+        app::{BaseInstantiateMsg, InstantiateMsg},
+        module_factory::{ContextResponse, QueryMsg as FactoryQuery},
+    },
 };
 use cosmwasm_std::{
     to_binary, DepsMut, Env, MessageInfo, QueryRequest, Response, StdError, WasmQuery,

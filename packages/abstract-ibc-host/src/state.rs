@@ -1,4 +1,3 @@
-use abstract_sdk::os::ibc_host::PacketMsg;
 use abstract_sdk::{
     base::{
         AbstractContract, ExecuteHandlerFn, InstantiateHandlerFn, QueryHandlerFn, ReceiveHandlerFn,
@@ -6,6 +5,7 @@ use abstract_sdk::{
     },
     feature_objects::AnsHost,
     namespaces::BASE_STATE,
+    os::ibc_host::PacketMsg,
 };
 
 use cosmwasm_std::{Addr, Binary, Empty, StdResult, Storage};

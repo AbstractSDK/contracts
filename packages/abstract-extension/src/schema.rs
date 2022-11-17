@@ -1,8 +1,10 @@
 use std::path::Path;
 
 use crate::{ExtensionContract, ExtensionError};
-use abstract_sdk::base::endpoints::{ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint};
-use abstract_sdk::os::extension::{ExtensionConfigResponse, TradersResponse};
+use abstract_sdk::{
+    base::endpoints::{ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint},
+    os::extension::{ExtensionConfigResponse, TradersResponse},
+};
 use cosmwasm_schema::{export_schema_with_title, schema_for};
 use schemars::JsonSchema;
 use serde::Serialize;

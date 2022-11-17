@@ -1,5 +1,4 @@
-use abstract_sdk::os::extension;
-use abstract_sdk::os::{extension::BaseInstantiateMsg, manager as ManagerMsgs};
+use abstract_sdk::os::{extension, extension::BaseInstantiateMsg, manager as ManagerMsgs};
 
 use abstract_sdk::os::{objects::module::ModuleInfo, EXCHANGE};
 
@@ -9,11 +8,9 @@ use anyhow::Result as AnyResult;
 use cosmwasm_std::{to_binary, Addr, Empty};
 use cw_multi_test::{App, ContractWrapper, Executor};
 
-use super::common::DEFAULT_VERSION;
-use super::testing_infrastructure::env::register_extension;
 use super::{
-    common::TEST_CREATOR,
-    testing_infrastructure::env::{get_os_state, mock_app, AbstractEnv},
+    common::{DEFAULT_VERSION, TEST_CREATOR},
+    testing_infrastructure::env::{get_os_state, mock_app, register_extension, AbstractEnv},
 };
 
 pub fn register_and_create_dex_extension(

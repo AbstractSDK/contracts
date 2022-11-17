@@ -7,7 +7,10 @@ mod receive;
 mod reply;
 
 // Provide endpoints under ::base::traits::
-pub use {
-    execute::ExecuteEndpoint, ibc_callback::IbcCallbackEndpoint, instantiate::InstantiateEndpoint,
-    migrate::MigrateEndpoint, query::QueryEndpoint, receive::ReceiveEndpoint, reply::ReplyEndpoint,
-};
+pub use execute::ExecuteEndpoint;
+pub use ibc_callback::IbcCallbackEndpoint;
+pub use instantiate::InstantiateEndpoint;
+pub use migrate::MigrateEndpoint;
+pub use query::QueryEndpoint;
+pub use receive::ReceiveEndpoint;
+pub use reply::ReplyEndpoint;
