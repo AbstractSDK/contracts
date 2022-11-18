@@ -1,7 +1,7 @@
-use cosmwasm_std::{Binary, Deps, Env, StdResult, to_binary};
+use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
 
-use abstract_os::etf::{EtfQueryMsg, StateResponse};
 use abstract_os::etf::state::{FEE, STATE};
+use abstract_os::etf::{EtfQueryMsg, StateResponse};
 
 use crate::contract::EtfApp;
 

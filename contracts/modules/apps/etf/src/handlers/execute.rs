@@ -1,9 +1,8 @@
 use cosmwasm_std::{
-    Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response, to_binary, Uint128,
-    WasmMsg,
+    to_binary, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response, Uint128, WasmMsg,
 };
 use cosmwasm_std::{QuerierWrapper, QueryRequest, StdResult, WasmQuery};
-use cw20::{Cw20ExecuteMsg};
+use cw20::Cw20ExecuteMsg;
 use cw20::{Cw20QueryMsg, TokenInfoResponse};
 use cw_asset::{Asset, AssetInfo};
 
@@ -16,7 +15,7 @@ use abstract_sdk::os::objects::fee::Fee;
 
 use crate::contract::{EtfApp, EtfResult};
 use crate::error::EtfError;
-use crate::state::{FEE, State, STATE};
+use crate::state::{State, FEE, STATE};
 
 pub fn execute_handler(
     deps: DepsMut,
@@ -34,7 +33,6 @@ pub fn execute_handler(
         EtfExecuteMsg::SetFee { fee } => set_fee(deps, info, vault, fee),
     }
 }
-
 
 /// Called when either providing liquidity with a native token or when providing liquidity
 /// with a CW20.

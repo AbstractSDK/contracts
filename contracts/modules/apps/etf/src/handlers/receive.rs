@@ -1,12 +1,12 @@
-use cosmwasm_std::{Env, MessageInfo};
-use cosmwasm_std::DepsMut;
 use cosmwasm_std::from_binary;
+use cosmwasm_std::DepsMut;
+use cosmwasm_std::{Env, MessageInfo};
 use cw20::Cw20ReceiveMsg;
 use cw_asset::Asset;
 use cw_asset::AssetInfo;
 
-use abstract_os::etf::DepositHookMsg;
 use abstract_os::etf::state::{State, STATE};
+use abstract_os::etf::DepositHookMsg;
 
 use crate::contract::{EtfApp, EtfResult};
 use crate::error::EtfError;

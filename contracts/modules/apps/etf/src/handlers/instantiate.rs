@@ -1,13 +1,15 @@
-use cosmwasm_std::{Addr, Api, DepsMut, Env, MessageInfo, ReplyOn, Response, SubMsg, to_binary, WasmMsg};
+use cosmwasm_std::{
+    to_binary, Addr, DepsMut, Env, MessageInfo, ReplyOn, Response, SubMsg, WasmMsg,
+};
 use cw20::MinterResponse;
 use cw20_base::msg::InstantiateMsg as TokenInstantiateMsg;
 
+use abstract_os::etf::state::{State, FEE, STATE};
 use abstract_os::etf::EtfInstantiateMsg;
-use abstract_os::etf::state::{FEE, State, STATE};
 use abstract_os::objects::fee::Fee;
 
-use crate::contract::{DEFAULT_LP_TOKEN_NAME, DEFAULT_LP_TOKEN_SYMBOL, EtfApp, EtfResult};
 use crate::contract::INSTANTIATE_REPLY_ID;
+use crate::contract::{EtfApp, EtfResult, DEFAULT_LP_TOKEN_NAME, DEFAULT_LP_TOKEN_SYMBOL};
 
 pub fn instantiate_handler(
     deps: DepsMut,
