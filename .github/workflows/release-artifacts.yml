@@ -15,8 +15,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           rust-version: stable
-          override: true
-          components: rustfmt, clippy
+          # components: rustfmt, clippy
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v1
       - name: Generate Cargo.lock
