@@ -5,7 +5,6 @@ use semver::Version;
 use serde::Serialize;
 
 use abstract_sdk::os::{
-    base,
     extension,
     objects::{
         module::{ModuleInfo, ModuleVersion},
@@ -20,7 +19,7 @@ use boot_core::{
     state::StateInterface, BootError, Contract, Daemon, IndexResponse, TxHandler, TxResponse,
 };
 
-use cosmwasm_std::{Addr, Empty};
+use cosmwasm_std::{Addr};
 
 pub type VersionControl<Chain> =
     AbstractOS<Chain, ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg>;

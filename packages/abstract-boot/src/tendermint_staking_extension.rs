@@ -1,6 +1,6 @@
 use abstract_sdk::os::extension::*;
 
-use abstract_sdk::os::{base, tendermint_staking::*};
+use abstract_sdk::os::{tendermint_staking::*};
 use cosmwasm_std::Empty;
 
 use crate::AbstractOS;

@@ -1,7 +1,5 @@
 use abstract_sdk::os::{
-    base,
     dex::*,
-    extension,
     extension::*,
     objects::{AnsAsset, AssetEntry},
     EXCHANGE, MANAGER,
