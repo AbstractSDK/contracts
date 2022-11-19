@@ -1,6 +1,7 @@
 use abstract_sdk::os::{
     base,
     dex::*,
+    extension,
     extension::*,
     objects::{AnsAsset, AssetEntry},
     EXCHANGE, MANAGER,
@@ -13,7 +14,7 @@ use crate::{manager::Manager, AbstractOS};
 pub type DexExtension<Chain> = AbstractOS<
     Chain,
     ExecuteMsg<DexRequestMsg>,
-    base::InstantiateMsg<BaseInstantiateMsg>,
+    abstract_sdk::os::extension::InstantiateMsg,
     abstract_sdk::os::extension::QueryMsg<abstract_sdk::os::dex::DexQueryMsg>,
     Empty,
 >;
