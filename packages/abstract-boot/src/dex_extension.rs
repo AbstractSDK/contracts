@@ -1,26 +1,27 @@
+use boot_core::prelude::boot_contract;
+use boot_core::{BootEnvironment, BootError, Contract};
+use cosmwasm_std::Empty;
+
 use abstract_sdk::os::{
     dex::*,
     extension::*,
     objects::{AnsAsset, AssetEntry},
     EXCHANGE, MANAGER,
 };
-use boot_core::{BootError, Contract, IndexResponse, TxHandler, TxResponse};
-use cosmwasm_std::Empty;
 
-use crate::{manager::Manager, AbstractOS};
+use crate::manager::Manager;
+use boot_core::interface::ContractInstance;
 
-pub type DexExtension<Chain> = AbstractOS<
-    Chain,
-    ExecuteMsg<DexRequestMsg>,
+#[boot_contract(
     abstract_sdk::os::extension::InstantiateMsg,
-    abstract_sdk::os::extension::QueryMsg<abstract_sdk::os::dex::DexQueryMsg>,
-    Empty,
->;
+    DexRequestMsg,
+    abstract_sdk::os::dex::DexQueryMsg,
+    Empty
+)]
+// #[boot_contract(abstract_sdk::os::extension::InstantiateMsg, ExecuteMsg<DexRequestMsg>, abstract_sdk::os::extension::QueryMsg<abstract_sdk::os::dex::DexQueryMsg>, Empty)]
+pub struct DexExtension<Chain>;
 
-impl<Chain: TxHandler + Clone> DexExtension<Chain>
-where
-    TxResponse<Chain>: IndexResponse,
-{
+impl<Chain: BootEnvironment> DexExtension<Chain> {
     pub fn new(name: &str, chain: &Chain) -> Self {
         Self(
             Contract::new(name, chain).with_wasm_path("dex"),
@@ -40,7 +41,7 @@ where
         ask_asset: &str,
         dex: String,
     ) -> Result<(), BootError> {
-        let manager = Manager::new(MANAGER, &self.chain());
+        let manager = Manager::new(MANAGER, &self.get_chain());
         let asset = AssetEntry::new(offer_asset.0);
         let ask_asset = AssetEntry::new(ask_asset);
         manager.execute_on_module(
