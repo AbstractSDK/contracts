@@ -67,9 +67,7 @@ where
         Ok(())
     }
 
-    pub fn upload_and_register_extension<
-        AppMsg: Serialize + Debug,
-    >(
+    pub fn upload_and_register_extension<AppMsg: Serialize + Debug>(
         &self,
         extension: &mut Contract<Chain>,
         extension_init_msg: &extension::InstantiateMsg<AppMsg>,
