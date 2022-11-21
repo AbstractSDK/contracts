@@ -13,15 +13,15 @@ use abstract_sdk::os::{
     registry,
     version_control::*,
 };
-
-
+use boot_core::prelude::*;
 use boot_core::{
-    state::StateInterface, BootError, Contract, Daemon, IndexResponse, TxHandler, TxResponse, BootEnvironment, prelude::boot_contract,
+    prelude::boot_contract, state::StateInterface, BootEnvironment, BootError, Contract, Daemon,
+    IndexResponse, TxHandler, TxResponse,
 };
 
-use cosmwasm_std::{Addr};
+use cosmwasm_std::Addr;
 
-#[boot_contract( ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg)]
+#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct VersionControl;
 
 impl<Chain: BootEnvironment> VersionControl<Chain>
@@ -52,7 +52,7 @@ where
         M: Serialize + Debug,
     >(
         &self,
-        module: &mut Contract<Chain, E, I, Q, M>,
+        module: &mut Contract<Chain>,
         new_version: &Version,
     ) -> Result<(), BootError> {
         module.upload()?;
@@ -79,7 +79,7 @@ where
         AppMsg: Serialize + Debug,
     >(
         &self,
-        extension: &mut Contract<Chain, E, extension::InstantiateMsg<AppMsg>, Q, M>,
+        extension: &mut Contract<Chain>,
         extension_init_msg: &extension::InstantiateMsg<AppMsg>,
         new_version: &Version,
     ) -> Result<(), BootError> {
@@ -101,8 +101,8 @@ where
     }
 
     pub fn add_code_ids(&self, version: Version) -> anyhow::Result<()> {
-        let code_ids = self.chain().state().get_all_code_ids()?;
-        let _addresses = self.chain().state().get_all_addresses()?;
+        let code_ids = self.get_chain().state().get_all_code_ids()?;
+        let _addresses = self.get_chain().state().get_all_addresses()?;
         let mut modules = vec![];
         for app in registry::CORE {
             let code_id = code_ids.get(*app).unwrap();
@@ -131,7 +131,7 @@ where
 
 impl VersionControl<Daemon> {
     // pub fn update_code_ids(&self, new_version: Version) -> anyhow::Result<()> {
-    //     let code_ids = self.chain().state().get_all_code_ids()?;
+    //     let code_ids = self.get_chain().state().get_all_code_ids()?;
     //     for (contract_id, code_id) in code_ids {
     //         if NATIVE_CONTRACTS.contains(&contract_id.as_str()) {
     //             continue;

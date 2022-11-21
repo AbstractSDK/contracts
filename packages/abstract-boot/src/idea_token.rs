@@ -1,10 +1,11 @@
 use cosmwasm_std::{Addr, Binary, Uint128};
 
-
 use abstract_sdk::os::abstract_token::*;
-use boot_core::{BootError, Contract, IndexResponse, TxHandler, TxResponse, prelude::boot_contract, BootEnvironment};
+use boot_core::{
+    prelude::*, BootEnvironment, BootError, Contract, IndexResponse, TxHandler, TxResponse,
+};
 
-#[boot_contract( ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg)]
+#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Idea;
 
 impl<Chain: BootEnvironment> Idea<Chain>
@@ -52,7 +53,7 @@ where
                 minter: minter.clone().into(),
             }),
             symbol: symbol.to_string(),
-            name: self.id.to_string(),
+            name: self.0.id.clone(),
             initial_balances: vec![Cw20Coin {
                 address: minter.clone().into(),
                 amount: balance.into(),

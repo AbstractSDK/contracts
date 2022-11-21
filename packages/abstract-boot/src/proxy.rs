@@ -1,9 +1,11 @@
 use abstract_sdk::os::{objects::proxy_asset::UncheckedProxyAsset, proxy::*, MANAGER, PROXY};
 
-use crate::{manager::Manager};
-use boot_core::{BootError, Contract, IndexResponse, TxHandler, TxResponse, BootEnvironment, prelude::boot_contract};
+use crate::manager::Manager;
+use boot_core::{
+    prelude::*, BootEnvironment, BootError, Contract, IndexResponse, TxResponse,
+};
 
-#[boot_contract( ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg)]
+#[boot_contract(ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg)]
 pub struct Proxy;
 
 impl<Chain: BootEnvironment> Proxy<Chain>
@@ -22,7 +24,7 @@ where
         )
     }
     pub fn set_proxy_asset(&self, to_add: Vec<UncheckedProxyAsset>) -> Result<(), BootError> {
-        let manager = Manager::new(MANAGER, &self.chain());
+        let manager = Manager::new(MANAGER, &self.get_chain());
         manager.execute_on_module(
             PROXY,
             ExecuteMsg::UpdateAssets {

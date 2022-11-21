@@ -1,14 +1,13 @@
 use std::str::FromStr;
 
-
 use abstract_sdk::os::{
     app::BaseInstantiateMsg, app::InstantiateMsg as AppInitMsg, subscription::*,
 };
-use boot_core::{Contract, IndexResponse, TxHandler, TxResponse};
+use boot_core::{prelude::*, BootEnvironment, Contract, IndexResponse, TxHandler, TxResponse};
 use cosmwasm_std::{Decimal, Uint128};
 use cw_asset::AssetInfoUnchecked;
 
-#[boot_contract( ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg)]
+#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Subscription;
 
 impl<Chain: BootEnvironment> Subscription<Chain>

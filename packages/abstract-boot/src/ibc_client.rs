@@ -1,9 +1,10 @@
-use boot_core::{Contract, IndexResponse, TxHandler, TxResponse, prelude::boot_contract, BootEnvironment};
-
+use boot_core::{
+    prelude::boot_contract, BootEnvironment, Contract, IndexResponse, TxResponse,
+};
 
 use abstract_sdk::os::ibc_client::*;
 
-#[boot_contract( ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg)]
+#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct IbcClient;
 
 impl<Chain: BootEnvironment> IbcClient<Chain>

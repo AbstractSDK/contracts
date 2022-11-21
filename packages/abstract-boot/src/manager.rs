@@ -1,17 +1,16 @@
 use std::fmt::Debug;
 
 use abstract_sdk::os::objects::module::{ModuleInfo, ModuleVersion};
-use boot_core::{state::StateInterface, prelude::boot_contract, BootEnvironment};
+use boot_core::{prelude::*, state::StateInterface, BootEnvironment};
 use cosmwasm_std::{to_binary, Addr, Binary};
 
 use serde::Serialize;
 
 use abstract_sdk::os::manager::*;
 
-
 use boot_core::{BootError, Contract, IndexResponse, TxHandler, TxResponse};
 
-#[boot_contract( ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg)]
+#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Manager;
 
 impl<Chain: BootEnvironment> Manager<Chain>
@@ -116,7 +115,7 @@ where
         )?;
 
         let module_address = result.event_attr_value("wasm", "new module:")?;
-        self.chain()
+        self.get_chain()
             .state()
             .set_address(&module.id, &Addr::unchecked(module_address));
 

@@ -1,11 +1,13 @@
 use abstract_sdk::os::{objects::gov_type::GovernanceDetails, os_factory::*};
+use abstract_sdk::os::{MANAGER, PROXY};
+use boot_core::prelude::*;
+use boot_core::{
+    prelude::boot_contract, state::StateInterface, BootEnvironment, BootError, Contract,
+    IndexResponse, TxHandler, TxResponse,
+};
 use cosmwasm_std::Addr;
 
-
-use abstract_sdk::os::{MANAGER, PROXY};
-use boot_core::{state::StateInterface, BootError, Contract, IndexResponse, TxHandler, TxResponse, prelude::boot_contract, BootEnvironment};
-
-#[boot_contract( ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg)]
+#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct OSFactory;
 
 impl<Chain: BootEnvironment> OSFactory<Chain>
@@ -38,11 +40,13 @@ where
         )?;
 
         let manager_address = &result.event_attr_value("wasm", "manager_address")?;
-        self.chain()
+        self.0
+            .get_chain()
             .state()
             .set_address(MANAGER, &Addr::unchecked(manager_address));
         let treasury_address = &result.event_attr_value("wasm", "proxy_address")?;
-        self.chain()
+        self.0
+            .get_chain()
             .state()
             .set_address(PROXY, &Addr::unchecked(treasury_address));
 

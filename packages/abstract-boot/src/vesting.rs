@@ -1,9 +1,9 @@
-use boot_core::prelude::*;
 use abstract_sdk::os::vesting::*;
-use boot_core::{Contract, IndexResponse, TxHandler, TxResponse};
+use boot_core::prelude::*;
+use boot_core::{Contract, IndexResponse, TxResponse};
 use cosmwasm_std::Empty;
 
-#[boot_contract( ExecuteMsg, InstantiateMsg, QueryMsg, Empty)]
+#[boot_contract(ExecuteMsg, InstantiateMsg, QueryMsg, Empty)]
 pub struct Vesting;
 
 impl<Chain: BootEnvironment> Vesting<Chain>

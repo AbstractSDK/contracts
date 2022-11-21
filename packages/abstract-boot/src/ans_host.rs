@@ -7,12 +7,14 @@ use abstract_sdk::os::{
 
 use cw_asset::AssetInfoUnchecked;
 
+use boot_core::prelude::*;
+use boot_core::{
+    prelude::boot_contract, BootEnvironment, BootError, Contract, Daemon, IndexResponse, TxHandler,
+    TxResponse,
+};
 use serde_json::from_reader;
 
-
-use boot_core::{BootError, Contract, Daemon, IndexResponse, TxHandler, TxResponse, prelude::boot_contract, BootEnvironment};
-
-#[boot_contract( ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg)]
+#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct AnsHost;
 
 impl<Chain: BootEnvironment> AnsHost<Chain>
@@ -44,8 +46,8 @@ impl AnsHost<Daemon> {
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
-        let chain_id = self.0.chain().state.chain.chain_id;
-        let network_id = self.0.chain().state.id.clone();
+        let chain_id = self.0.get_chain().state.chain.chain_id;
+        let network_id = self.0.get_chain().state.id.clone();
         let maybe_assets = json.get(chain_id).unwrap().get(network_id);
 
         match maybe_assets {
@@ -83,8 +85,8 @@ impl AnsHost<Daemon> {
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
-        let chain_id = self.0.chain().state.chain.chain_id;
-        let network_id = self.0.chain().state.id.clone();
+        let chain_id = self.0.get_chain().state.chain.chain_id;
+        let network_id = self.0.get_chain().state.id.clone();
         let maybe_channels = json.get(chain_id).unwrap().get(network_id);
 
         match maybe_channels {
@@ -123,8 +125,8 @@ impl AnsHost<Daemon> {
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
-        let chain_id = self.0.chain().state.chain.chain_id;
-        let network_id = self.0.chain().state.id.clone();
+        let chain_id = self.0.get_chain().state.chain.chain_id;
+        let network_id = self.0.get_chain().state.id.clone();
         let maybe_contracts = json.get(chain_id).unwrap().get(network_id);
 
         match maybe_contracts {

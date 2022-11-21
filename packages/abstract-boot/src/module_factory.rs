@@ -2,9 +2,11 @@ use abstract_sdk::os::module_factory::*;
 
 // use crate::extension::get_extension_init_msgs;
 
-use boot_core::{BootError, Contract, IndexResponse, TxHandler, TxResponse, prelude::boot_contract, BootEnvironment};
+use boot_core::{
+    prelude::*, BootEnvironment, BootError, Contract, IndexResponse, TxHandler, TxResponse,
+};
 
-#[boot_contract( ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg)]
+#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct ModuleFactory;
 
 impl<Chain: BootEnvironment> ModuleFactory<Chain>

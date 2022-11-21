@@ -1,9 +1,10 @@
-
 use abstract_sdk::os::ibc_host::*;
-use boot_core::{Contract, IndexResponse, TxHandler, TxResponse, prelude::boot_contract, BootEnvironment};
+use boot_core::{
+    prelude::boot_contract, BootEnvironment, Contract, IndexResponse, TxResponse,
+};
 use cosmwasm_std::Empty;
 
-#[boot_contract( Empty, BaseInstantiateMsg, QueryMsg, MigrateMsg)]
+#[boot_contract(Empty, BaseInstantiateMsg, QueryMsg, MigrateMsg)]
 pub struct OsmosisHost;
 
 impl<Chain: BootEnvironment> OsmosisHost<Chain>

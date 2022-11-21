@@ -4,7 +4,7 @@ use cosmwasm_std::Empty;
 
 
 
-#[boot_contract( ExecuteMsg, InstantiateMsg, QueryMsg, Empty)]
+#[boot_contract( InstantiateMsg,ExecuteMsg, QueryMsg, Empty)]
 pub struct Balancer;
 
 impl<Chain: BootEnvironment> Balancer<Chain>
