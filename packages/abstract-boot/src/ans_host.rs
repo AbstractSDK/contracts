@@ -5,7 +5,9 @@ use boot_core::{BootEnvironment, BootError, Contract, Daemon, IndexResponse, TxR
 use cw_asset::AssetInfoUnchecked;
 use serde_json::from_reader;
 use std::fs::File;
+use cosmwasm_std::Addr;
 use std::{cmp::min, env};
+use abstract_os::ANS_HOST;
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct AnsHost<Chain>;
@@ -25,6 +27,10 @@ where
             //     ),
             // ))
         )
+    }
+
+    pub fn load(chain: &Chain, address: &Addr) -> Self {
+        Self(Contract::new(ANS_HOST, chain).with_address(Some(address)))
     }
 }
 
