@@ -1,12 +1,13 @@
 use cosmwasm_std::{Addr, Binary, Uint128};
 
-use crate::AbstractOS;
+
 use abstract_sdk::os::abstract_token::*;
-use boot_core::{BootError, Contract, IndexResponse, TxHandler, TxResponse};
+use boot_core::{BootError, Contract, IndexResponse, TxHandler, TxResponse, prelude::boot_contract, BootEnvironment};
 
-pub type Idea<Chain> = AbstractOS<Chain, ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg>;
+#[boot_contract( ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg)]
+pub struct Idea;
 
-impl<Chain: TxHandler + Clone> Idea<Chain>
+impl<Chain: BootEnvironment> Idea<Chain>
 where
     TxResponse<Chain>: IndexResponse,
 {

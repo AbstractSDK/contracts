@@ -4,10 +4,10 @@ use abstract_sdk::os::{
     objects::{AnsAsset, AssetEntry},
     EXCHANGE, MANAGER,
 };
-use boot_core::{BootError, Contract, IndexResponse, TxHandler, TxResponse};
+use boot_core::{BootError, Contract, IndexResponse, TxHandler, TxResponse, BootEnvironment};
 use cosmwasm_std::Empty;
 
-use crate::{manager::Manager, AbstractOS};
+use crate::{manager::Manager};
 
 pub type DexExtension<Chain> = AbstractOS<
     Chain,
@@ -17,7 +17,7 @@ pub type DexExtension<Chain> = AbstractOS<
     Empty,
 >;
 
-impl<Chain: TxHandler + Clone> DexExtension<Chain>
+impl<Chain: BootEnvironment> DexExtension<Chain>
 where
     TxResponse<Chain>: IndexResponse,
 {

@@ -1,19 +1,20 @@
 use std::fmt::Debug;
 
 use abstract_sdk::os::objects::module::{ModuleInfo, ModuleVersion};
-use boot_core::state::StateInterface;
+use boot_core::{state::StateInterface, prelude::boot_contract, BootEnvironment};
 use cosmwasm_std::{to_binary, Addr, Binary};
 
 use serde::Serialize;
 
 use abstract_sdk::os::manager::*;
 
-use crate::AbstractOS;
+
 use boot_core::{BootError, Contract, IndexResponse, TxHandler, TxResponse};
 
-pub type Manager<Chain> = AbstractOS<Chain, ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg>;
+#[boot_contract( ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg)]
+pub struct Manager;
 
-impl<Chain: TxHandler + Clone> Manager<Chain>
+impl<Chain: BootEnvironment> Manager<Chain>
 where
     TxResponse<Chain>: IndexResponse,
 {
@@ -97,7 +98,7 @@ where
         S: Serialize + Debug,
     >(
         &self,
-        module: &Contract<Chain, H, I, N, S>,
+        module: &Contract<Chain>,
         init_msg: Option<&I>,
         contract_id: &str,
         version: String,

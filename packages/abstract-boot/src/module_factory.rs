@@ -1,12 +1,13 @@
 use abstract_sdk::os::module_factory::*;
 
 // use crate::extension::get_extension_init_msgs;
-use crate::AbstractOS;
-use boot_core::{BootError, Contract, IndexResponse, TxHandler, TxResponse};
 
-pub type ModuleFactory<Chain> = AbstractOS<Chain, ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg>;
+use boot_core::{BootError, Contract, IndexResponse, TxHandler, TxResponse, prelude::boot_contract, BootEnvironment};
 
-impl<Chain: TxHandler + Clone> ModuleFactory<Chain>
+#[boot_contract( ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg)]
+pub struct ModuleFactory;
+
+impl<Chain: BootEnvironment> ModuleFactory<Chain>
 where
     TxResponse<Chain>: IndexResponse,
 {

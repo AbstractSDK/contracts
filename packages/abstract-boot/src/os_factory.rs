@@ -1,13 +1,14 @@
 use abstract_sdk::os::{objects::gov_type::GovernanceDetails, os_factory::*};
 use cosmwasm_std::Addr;
 
-use crate::AbstractOS;
+
 use abstract_sdk::os::{MANAGER, PROXY};
-use boot_core::{state::StateInterface, BootError, Contract, IndexResponse, TxHandler, TxResponse};
+use boot_core::{state::StateInterface, BootError, Contract, IndexResponse, TxHandler, TxResponse, prelude::boot_contract, BootEnvironment};
 
-pub type OSFactory<Chain> = AbstractOS<Chain, ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg>;
+#[boot_contract( ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg)]
+pub struct OSFactory;
 
-impl<Chain: TxHandler + Clone> OSFactory<Chain>
+impl<Chain: BootEnvironment> OSFactory<Chain>
 where
     TxResponse<Chain>: IndexResponse,
 {

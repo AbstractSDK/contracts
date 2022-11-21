@@ -2,11 +2,12 @@ pub use abstract_sdk::os::balancer::*;
 use boot_core::{Contract, IndexResponse, TxHandler, TxResponse};
 use cosmwasm_std::Empty;
 
-use crate::AbstractOS;
 
-pub type Balancer<Chain> = AbstractOS<Chain, ExecuteMsg, InstantiateMsg, QueryMsg, Empty>;
 
-impl<Chain: TxHandler + Clone> Balancer<Chain>
+#[boot_contract( ExecuteMsg, InstantiateMsg, QueryMsg, Empty)]
+pub struct Balancer;
+
+impl<Chain: BootEnvironment> Balancer<Chain>
 where
     TxResponse<Chain>: IndexResponse,
 {

@@ -1,11 +1,12 @@
-use crate::AbstractOS;
+
 use abstract_sdk::os::ibc_host::*;
-use boot_core::{Contract, IndexResponse, TxHandler, TxResponse};
+use boot_core::{Contract, IndexResponse, TxHandler, TxResponse, prelude::boot_contract, BootEnvironment};
 use cosmwasm_std::Empty;
 
-pub type OsmosisHost<Chain> = AbstractOS<Chain, Empty, BaseInstantiateMsg, QueryMsg, MigrateMsg>;
+#[boot_contract( Empty, BaseInstantiateMsg, QueryMsg, MigrateMsg)]
+pub struct OsmosisHost;
 
-impl<Chain: TxHandler + Clone> OsmosisHost<Chain>
+impl<Chain: BootEnvironment> OsmosisHost<Chain>
 where
     TxResponse<Chain>: IndexResponse,
 {

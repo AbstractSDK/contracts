@@ -14,17 +14,17 @@ use abstract_sdk::os::{
     version_control::*,
 };
 
-use crate::AbstractOS;
+
 use boot_core::{
-    state::StateInterface, BootError, Contract, Daemon, IndexResponse, TxHandler, TxResponse,
+    state::StateInterface, BootError, Contract, Daemon, IndexResponse, TxHandler, TxResponse, BootEnvironment, prelude::boot_contract,
 };
 
 use cosmwasm_std::{Addr};
 
-pub type VersionControl<Chain> =
-    AbstractOS<Chain, ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg>;
+#[boot_contract( ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg)]
+pub struct VersionControl;
 
-impl<Chain: TxHandler + Clone> VersionControl<Chain>
+impl<Chain: BootEnvironment> VersionControl<Chain>
 where
     TxResponse<Chain>: IndexResponse,
 {

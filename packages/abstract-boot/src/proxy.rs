@@ -1,11 +1,12 @@
 use abstract_sdk::os::{objects::proxy_asset::UncheckedProxyAsset, proxy::*, MANAGER, PROXY};
 
-use crate::{manager::Manager, AbstractOS};
-use boot_core::{BootError, Contract, IndexResponse, TxHandler, TxResponse};
+use crate::{manager::Manager};
+use boot_core::{BootError, Contract, IndexResponse, TxHandler, TxResponse, BootEnvironment, prelude::boot_contract};
 
-pub type Proxy<Chain> = AbstractOS<Chain, ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg>;
+#[boot_contract( ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg)]
+pub struct Proxy;
 
-impl<Chain: TxHandler + Clone> Proxy<Chain>
+impl<Chain: BootEnvironment> Proxy<Chain>
 where
     TxResponse<Chain>: IndexResponse,
 {

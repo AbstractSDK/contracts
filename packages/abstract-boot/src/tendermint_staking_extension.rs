@@ -3,7 +3,7 @@ use abstract_sdk::os::extension::*;
 use abstract_sdk::os::{tendermint_staking::*};
 use cosmwasm_std::Empty;
 
-use crate::AbstractOS;
+
 use boot_core::{Contract, IndexResponse, TxHandler, TxResponse};
 
 pub type TMintStakingExtension<Chain> = AbstractOS<
@@ -14,7 +14,7 @@ pub type TMintStakingExtension<Chain> = AbstractOS<
     Empty,
 >;
 
-impl<Chain: TxHandler + Clone> TMintStakingExtension<Chain>
+impl<Chain: BootEnvironment> TMintStakingExtension<Chain>
 where
     TxResponse<Chain>: IndexResponse,
 {

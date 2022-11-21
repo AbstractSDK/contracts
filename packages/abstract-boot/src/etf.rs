@@ -1,10 +1,11 @@
-use crate::AbstractOS;
+use boot_core::prelude::*;
 use abstract_sdk::os::{app::MigrateMsg, etf::*};
 use boot_core::{Contract, IndexResponse, TxHandler, TxResponse};
 
-pub type ETF<Chain> = AbstractOS<Chain, EtfExecuteMsg, EtfInstantiateMsg, EtfQueryMsg, MigrateMsg>;
+#[boot_contract( EtfExecuteMsg, EtfInstantiateMsg, EtfQueryMsg, MigrateMsg)]
+pub struct ETF;
 
-impl<Chain: TxHandler + Clone> ETF<Chain>
+impl<Chain: BootEnvironment> ETF<Chain>
 where
     TxResponse<Chain>: IndexResponse,
 {

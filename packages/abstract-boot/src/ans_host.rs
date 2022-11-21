@@ -9,12 +9,13 @@ use cw_asset::AssetInfoUnchecked;
 
 use serde_json::from_reader;
 
-use crate::AbstractOS;
-use boot_core::{BootError, Contract, Daemon, IndexResponse, TxHandler, TxResponse};
 
-pub type AnsHost<Chain> = AbstractOS<Chain, ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg>;
+use boot_core::{BootError, Contract, Daemon, IndexResponse, TxHandler, TxResponse, prelude::boot_contract, BootEnvironment};
 
-impl<Chain: TxHandler + Clone> AnsHost<Chain>
+#[boot_contract( ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg)]
+pub struct AnsHost;
+
+impl<Chain: BootEnvironment> AnsHost<Chain>
 where
     TxResponse<Chain>: IndexResponse,
 {

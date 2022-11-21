@@ -1,11 +1,12 @@
-use boot_core::{Contract, IndexResponse, TxHandler, TxResponse};
+use boot_core::{Contract, IndexResponse, TxHandler, TxResponse, prelude::boot_contract, BootEnvironment};
 
-use crate::AbstractOS;
+
 use abstract_sdk::os::ibc_client::*;
 
-pub type IbcClient<Chain> = AbstractOS<Chain, ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg>;
+#[boot_contract( ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg)]
+pub struct IbcClient;
 
-impl<Chain: TxHandler + Clone> IbcClient<Chain>
+impl<Chain: BootEnvironment> IbcClient<Chain>
 where
     TxResponse<Chain>: IndexResponse,
 {

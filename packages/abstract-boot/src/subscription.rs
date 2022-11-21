@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use crate::AbstractOS;
+
 use abstract_sdk::os::{
     app::BaseInstantiateMsg, app::InstantiateMsg as AppInitMsg, subscription::*,
 };
@@ -8,9 +8,10 @@ use boot_core::{Contract, IndexResponse, TxHandler, TxResponse};
 use cosmwasm_std::{Decimal, Uint128};
 use cw_asset::AssetInfoUnchecked;
 
-pub type Subscription<Chain> = AbstractOS<Chain, ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg>;
+#[boot_contract( ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg)]
+pub struct Subscription;
 
-impl<Chain: TxHandler + Clone> Subscription<Chain>
+impl<Chain: BootEnvironment> Subscription<Chain>
 where
     TxResponse<Chain>: IndexResponse,
 {
