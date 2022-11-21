@@ -16,7 +16,7 @@ use abstract_sdk::os::{
 use boot_core::prelude::*;
 use boot_core::{
     prelude::boot_contract, state::StateInterface, BootEnvironment, BootError, Contract, Daemon,
-    IndexResponse, TxHandler, TxResponse,
+    IndexResponse, TxResponse,
 };
 
 use cosmwasm_std::Addr;

@@ -1,9 +1,7 @@
 use cosmwasm_std::{Addr, Binary, Uint128};
 
 use abstract_sdk::os::abstract_token::*;
-use boot_core::{
-    prelude::*, BootEnvironment, BootError, Contract, IndexResponse, TxHandler, TxResponse,
-};
+use boot_core::{prelude::*, BootEnvironment, BootError, Contract, IndexResponse, TxResponse};
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Idea;

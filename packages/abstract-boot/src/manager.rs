@@ -8,7 +8,7 @@ use serde::Serialize;
 
 use abstract_sdk::os::manager::*;
 
-use boot_core::{BootError, Contract, IndexResponse, TxHandler, TxResponse};
+use boot_core::{BootError, Contract, IndexResponse, TxResponse};
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Manager;

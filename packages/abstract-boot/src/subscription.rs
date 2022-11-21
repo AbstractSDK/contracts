@@ -3,7 +3,7 @@ use std::str::FromStr;
 use abstract_sdk::os::{
     app::BaseInstantiateMsg, app::InstantiateMsg as AppInitMsg, subscription::*,
 };
-use boot_core::{prelude::*, BootEnvironment, Contract, IndexResponse, TxHandler, TxResponse};
+use boot_core::{prelude::*, BootEnvironment, Contract, IndexResponse, TxResponse};
 use cosmwasm_std::{Decimal, Uint128};
 use cw_asset::AssetInfoUnchecked;
 

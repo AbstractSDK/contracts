@@ -9,8 +9,7 @@ use cw_asset::AssetInfoUnchecked;
 
 use boot_core::prelude::*;
 use boot_core::{
-    prelude::boot_contract, BootEnvironment, BootError, Contract, Daemon, IndexResponse, TxHandler,
-    TxResponse,
+    prelude::boot_contract, BootEnvironment, BootError, Contract, Daemon, IndexResponse, TxResponse,
 };
 use serde_json::from_reader;
 
