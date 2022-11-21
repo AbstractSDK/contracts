@@ -1,9 +1,7 @@
 use abstract_sdk::os::{objects::proxy_asset::UncheckedProxyAsset, proxy::*, MANAGER, PROXY};
 
 use crate::manager::Manager;
-use boot_core::{
-    prelude::*, BootEnvironment, BootError, Contract, IndexResponse, TxResponse,
-};
+use boot_core::{prelude::*, BootEnvironment, BootError, Contract, IndexResponse, TxResponse};
 
 #[boot_contract(ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg)]
 pub struct Proxy;

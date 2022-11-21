@@ -1,6 +1,4 @@
-use boot_core::{
-    prelude::boot_contract, BootEnvironment, Contract, IndexResponse, TxResponse,
-};
+use boot_core::{prelude::boot_contract, BootEnvironment, Contract, IndexResponse, TxResponse};
 
 use abstract_sdk::os::ibc_client::*;
 

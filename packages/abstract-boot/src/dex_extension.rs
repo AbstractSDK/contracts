@@ -5,9 +5,7 @@ use abstract_sdk::os::{
     objects::{AnsAsset, AssetEntry},
     EXCHANGE, MANAGER,
 };
-use boot_core::{
-    prelude::*, BootEnvironment, BootError, Contract, IndexResponse, TxResponse,
-};
+use boot_core::{prelude::*, BootEnvironment, BootError, Contract, IndexResponse, TxResponse};
 use cosmwasm_std::Empty;
 
 type DexExec = extension::ExecuteMsg<DexRequestMsg>;
