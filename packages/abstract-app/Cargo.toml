@@ -16,6 +16,8 @@ crate-type = ["cdylib", "rlib"]
 backtraces = ["cosmwasm-std/backtraces"]
 # use library feature to disable all instantiate/execute/query exports
 library = []
+default = ["boot"]
+boot = ["boot-core"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -32,3 +34,5 @@ cw2 = {workspace = true}
 cw-asset= {workspace = true}
 abstract-sdk = {workspace = true}
 abstract-os = {workspace = true}
+
+boot-core = {  path = "../../../BOOT/boot-core", version = "0.1.2", optional = true }

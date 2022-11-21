@@ -16,3 +16,7 @@ pub mod state;
 // mod testing;
 // Default to Empty
 pub type AppResult<C = Empty> = Result<Response<C>, AppError>;
+
+
+#[cfg(feature = "boot")]
+pub mod boot;

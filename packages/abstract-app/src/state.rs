@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use abstract_sdk::{
     feature_objects::AnsHost,
     namespaces::{ADMIN_NAMESPACE, BASE_STATE},
@@ -13,6 +15,9 @@ use crate::{
     AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
     MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
 };
+
+use abstract_sdk::base::{ExecuteEndpoint,InstantiateEndpoint,QueryEndpoint,MigrateEndpoint};
+
 
 use crate::AppError;
 
@@ -130,4 +135,26 @@ impl<
         self.contract = self.contract.with_query(query_handler);
         self
     }
+}
+
+
+impl<
+        Error: From<cosmwasm_std::StdError> + From<AppError>,
+        CustomExecMsg: Serialize + JsonSchema + Debug,
+        CustomInitMsg: Serialize + JsonSchema + Debug,
+        CustomQueryMsg: Serialize + JsonSchema + Debug,
+        CustomMigrateMsg: Serialize + JsonSchema + Debug,
+        ReceiveMsg: Serialize + JsonSchema + Debug,
+    >
+    AppContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+{
+
+#[cfg(feature = "boot")]
+fn boot<Chain: boot_core::BootEnvironment>(id: &str, chain: &Chain) -> crate::boot::App<Chain, <Self as ExecuteEndpoint>::ExecuteMsg,<Self as InstantiateEndpoint>::InstantiateMsg, <Self as QueryEndpoint>::QueryMsg, <Self as MigrateEndpoint>::MigrateMsg > {
+    use boot_core::Contract;
+    crate::boot::App{
+        contract: Contract::new(id, chain),
+        _phantom_data: std::marker::PhantomData,
+    }
+}
 }
