@@ -12,13 +12,17 @@ use abstract_sdk::os::{
 use crate::manager::Manager;
 use boot_core::interface::ContractInstance;
 
+type DexExtensionInstantiateMsg = abstract_sdk::os::extension::InstantiateMsg;
+type DexExtensionExecuteMsg = ExecuteMsg<DexRequestMsg>;
+type DexExtensionQueryMsg =
+    abstract_sdk::os::extension::QueryMsg<abstract_sdk::os::dex::DexQueryMsg>;
+
 #[boot_contract(
-    abstract_sdk::os::extension::InstantiateMsg,
-    DexRequestMsg,
-    abstract_sdk::os::dex::DexQueryMsg,
+    DexExtensionInstantiateMsg,
+    DexExtensionExecuteMsg,
+    DexExtensionQueryMsg,
     Empty
 )]
-// #[boot_contract(abstract_sdk::os::extension::InstantiateMsg, ExecuteMsg<DexRequestMsg>, abstract_sdk::os::extension::QueryMsg<abstract_sdk::os::dex::DexQueryMsg>, Empty)]
 pub struct DexExtension<Chain>;
 
 impl<Chain: BootEnvironment> DexExtension<Chain> {

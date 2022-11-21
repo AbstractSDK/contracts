@@ -1,17 +1,20 @@
-use abstract_sdk::os::tendermint_staking::*;
+use boot_core::prelude::boot_contract;
+use boot_core::{BootEnvironment, Contract};
 use cosmwasm_std::Empty;
 
-use boot_core::{BootEnvironment, Contract};
+use abstract_sdk::os::tendermint_staking::*;
+use abstract_sdk::os::{extension, tendermint_staking};
 
-use boot_core::prelude::boot_contract;
+type TMintStakingInstantiateMsg = extension::InstantiateMsg;
+type TMintStakingExecuteMsg = extension::ExecuteMsg<RequestMsg>;
+type TMintStakingQueryMsg = extension::QueryMsg<tendermint_staking::QueryMsg>;
 
 #[boot_contract(
-    abstract_sdk::os::extension::InstantiateMsg,
-    RequestMsg,
-    abstract_sdk::os::tendermint_staking::QueryMsg,
+    TMintStakingInstantiateMsg,
+    TMintStakingExecuteMsg,
+    TMintStakingQueryMsg,
     Empty
 )]
-// #[boot_contract(abstract_sdk::os::extension::InstantiateMsg, ExecuteMsg<RequestMsg>, abstract_sdk::os::extension::QueryMsg<abstract_sdk::os::tendermint_staking::QueryMsg>, Empty)]
 pub struct TMintStakingExtension<Chain>;
 
 impl<Chain: BootEnvironment> TMintStakingExtension<Chain> {
