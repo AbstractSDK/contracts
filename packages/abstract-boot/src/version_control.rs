@@ -45,12 +45,7 @@ where
         Self(Contract::new(VERSION_CONTROL, chain).with_address(Some(address)))
     }
 
-    pub fn upload_and_register_module<
-        E: Serialize + Debug,
-        I: Serialize + Debug,
-        Q: Serialize + Debug,
-        M: Serialize + Debug,
-    >(
+    pub fn upload_and_register_module(
         &self,
         module: &mut Contract<Chain>,
         new_version: &Version,
@@ -73,9 +68,6 @@ where
     }
 
     pub fn upload_and_register_extension<
-        E: Serialize + Debug,
-        Q: Serialize + Debug,
-        M: Serialize + Debug,
         AppMsg: Serialize + Debug,
     >(
         &self,
