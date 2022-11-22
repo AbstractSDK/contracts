@@ -3,17 +3,16 @@ use std::str::FromStr;
 use abstract_sdk::os::{
     app::BaseInstantiateMsg, app::InstantiateMsg as AppInitMsg, subscription::*,
 };
-use boot_core::{prelude::*, BootEnvironment, Contract, IndexResponse, TxResponse};
+use boot_core::interface::BootExecute;
+use boot_core::prelude::boot_contract;
+use boot_core::{BootEnvironment, Contract};
 use cosmwasm_std::{Decimal, Uint128};
 use cw_asset::AssetInfoUnchecked;
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
-pub struct Subscription;
+pub struct Subscription<Chain>;
 
-impl<Chain: BootEnvironment> Subscription<Chain>
-where
-    TxResponse<Chain>: IndexResponse,
-{
+impl<Chain: BootEnvironment> Subscription<Chain> {
     pub fn new(name: &str, chain: &Chain) -> Self {
         Self(
             Contract::new(name, chain).with_wasm_path("subscription"), // .with_mock(Box::new(

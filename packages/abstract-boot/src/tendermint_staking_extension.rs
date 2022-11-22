@@ -1,20 +1,23 @@
-use abstract_sdk::os::extension;
-use abstract_sdk::os::tendermint_staking::{QueryMsg, RequestMsg};
 use boot_core::prelude::boot_contract;
-use boot_core::BootEnvironment;
+use boot_core::{BootEnvironment, Contract};
 use cosmwasm_std::Empty;
 
-use boot_core::{Contract, IndexResponse, TxResponse};
+use abstract_sdk::os::tendermint_staking::*;
+use abstract_sdk::os::{extension, tendermint_staking};
 
-type TMintExec = extension::ExecuteMsg<RequestMsg>;
-type TMintQuery = extension::QueryMsg<QueryMsg>;
-#[boot_contract(TMintExec, extension::InstantiateMsg, TMintQuery, Empty)]
-pub struct TMintStakingExtension;
+type TMintStakingInstantiateMsg = extension::InstantiateMsg;
+type TMintStakingExecuteMsg = extension::ExecuteMsg<RequestMsg>;
+type TMintStakingQueryMsg = extension::QueryMsg<tendermint_staking::QueryMsg>;
 
-impl<Chain: BootEnvironment> TMintStakingExtension<Chain>
-where
-    TxResponse<Chain>: IndexResponse,
-{
+#[boot_contract(
+    TMintStakingInstantiateMsg,
+    TMintStakingExecuteMsg,
+    TMintStakingQueryMsg,
+    Empty
+)]
+pub struct TMintStakingExtension<Chain>;
+
+impl<Chain: BootEnvironment> TMintStakingExtension<Chain> {
     pub fn new(name: &str, chain: &Chain) -> Self {
         Self(
             Contract::new(name, chain).with_wasm_path("tendermint_staking"),

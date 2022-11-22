@@ -8,24 +8,26 @@ use serde::Serialize;
 
 use abstract_sdk::os::manager::*;
 
-use boot_core::{BootError, Contract, IndexResponse, TxResponse};
+use boot_core::{BootEnvironment, BootError, Contract, IndexResponse, TxResponse};
+
+use boot_core::interface::BootExecute;
+use boot_core::interface::ContractInstance;
+use boot_core::prelude::boot_contract;
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
-pub struct Manager;
+pub struct Manager<Chain>;
 
-impl<Chain: BootEnvironment> Manager<Chain>
-where
-    TxResponse<Chain>: IndexResponse,
-{
+impl<Chain: BootEnvironment> Manager<Chain> {
     pub fn new(name: &str, chain: &Chain) -> Self {
         Self(
-            Contract::new(name, chain).with_wasm_path("manager"), // .with_mock(Box::new(
-                                                                  //     ContractWrapper::new_with_empty(
-                                                                  //         ::contract::execute,
-                                                                  //         ::contract::instantiate,
-                                                                  //         ::contract::query,
-                                                                  //     ),
-                                                                  // ))
+            Contract::new(name, chain).with_wasm_path("manager"),
+            // .with_mock(Box::new(
+            //     ContractWrapper::new_with_empty(
+            //         ::contract::execute,
+            //         ::contract::instantiate,
+            //         ::contract::query,
+            //     ),
+            // ))
         )
     }
 

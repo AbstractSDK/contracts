@@ -1,6 +1,9 @@
 use std::fmt::Debug;
 
-use abstract_os::VERSION_CONTROL;
+use boot_core::interface::{BootExecute, BootQuery, ContractInstance};
+use boot_core::prelude::boot_contract;
+use boot_core::{state::StateInterface, BootEnvironment, BootError, Contract, Daemon, TxResponse, IndexResponse};
+use cosmwasm_std::Addr;
 use semver::Version;
 use serde::Serialize;
 
@@ -12,22 +15,13 @@ use abstract_sdk::os::{
     },
     registry,
     version_control::*,
+    VERSION_CONTROL,
 };
-use boot_core::prelude::*;
-use boot_core::{
-    prelude::boot_contract, state::StateInterface, BootEnvironment, BootError, Contract, Daemon,
-    IndexResponse, TxResponse,
-};
-
-use cosmwasm_std::Addr;
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
-pub struct VersionControl;
+pub struct VersionControl<Chain>;
 
-impl<Chain: BootEnvironment> VersionControl<Chain>
-where
-    TxResponse<Chain>: IndexResponse,
-{
+impl<Chain: BootEnvironment> VersionControl<Chain> where TxResponse<Chain>: IndexResponse {
     pub fn new(name: &str, chain: &Chain) -> Self {
         Self(
             Contract::new(name, chain).with_wasm_path("version_control"),

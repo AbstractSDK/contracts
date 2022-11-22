@@ -1,10 +1,7 @@
-use std::{cmp::min, env, fs::File};
-
-use abstract_sdk::os::{
-    ans_host::*,
-    objects::{UncheckedChannelEntry, UncheckedContractEntry},
-};
-
+use abstract_os::objects::{UncheckedChannelEntry, UncheckedContractEntry};
+use abstract_sdk::os::ans_host::*;
+use boot_core::prelude::{boot_contract, BootExecute, ContractInstance};
+use boot_core::{BootEnvironment, BootError, Contract, Daemon, IndexResponse, TxResponse};
 use cw_asset::AssetInfoUnchecked;
 
 use boot_core::prelude::*;
@@ -12,6 +9,10 @@ use boot_core::{
     prelude::boot_contract, BootEnvironment, BootError, Contract, Daemon, IndexResponse, TxResponse,
 };
 use serde_json::from_reader;
+use std::fs::File;
+use cosmwasm_std::Addr;
+use std::{cmp::min, env};
+use abstract_os::ANS_HOST;
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct AnsHost;
@@ -22,17 +23,23 @@ where
 {
     pub fn new(name: &str, chain: &Chain) -> Self {
         Self(
-            Contract::new(name, chain).with_wasm_path("ans_host"), // .with_mock(Box::new(
-                                                                   //     ContractWrapper::new_with_empty(
-                                                                   //         ::contract::execute,
-                                                                   //         ::contract::instantiate,
-                                                                   //         ::contract::query,
-                                                                   //     ),
-                                                                   // ))
+            Contract::new(name, chain).with_wasm_path("ans_host"),
+            // .with_mock(Box::new(
+            //     ContractWrapper::new_with_empty(
+            //         ::contract::execute,
+            //         ::contract::instantiate,
+            //         ::contract::query,
+            //     ),
+            // ))
         )
+    }
+
+    pub fn load(chain: &Chain, address: &Addr) -> Self {
+        Self(Contract::new(ANS_HOST, chain).with_address(Some(address)))
     }
 }
 
+/// Implementation for the daemon, which maintains actual state
 impl AnsHost<Daemon> {
     pub fn update_all(&self) -> Result<(), BootError> {
         self.update_assets()?;
@@ -45,8 +52,8 @@ impl AnsHost<Daemon> {
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
-        let chain_id = self.0.get_chain().state.chain.chain_id;
-        let network_id = self.0.get_chain().state.id.clone();
+        let chain_id = self.get_chain().state.chain.chain_id;
+        let network_id = self.get_chain().state.id.clone();
         let maybe_assets = json.get(chain_id).unwrap().get(network_id);
 
         match maybe_assets {

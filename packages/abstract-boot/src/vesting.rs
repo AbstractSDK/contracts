@@ -1,15 +1,13 @@
 use abstract_sdk::os::vesting::*;
-use boot_core::prelude::*;
-use boot_core::{Contract, IndexResponse, TxResponse};
+use boot_core::{BootEnvironment, Contract};
 use cosmwasm_std::Empty;
 
-#[boot_contract(ExecuteMsg, InstantiateMsg, QueryMsg, Empty)]
-pub struct Vesting;
+use boot_core::prelude::boot_contract;
 
-impl<Chain: BootEnvironment> Vesting<Chain>
-where
-    TxResponse<Chain>: IndexResponse,
-{
+#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
+pub struct Vesting<Chain>;
+
+impl<Chain: BootEnvironment> Vesting<Chain> {
     pub fn new(name: &str, chain: &Chain) -> Self {
         Self(
             Contract::new(name, chain).with_wasm_path("cw20_vesting"), // .with_mock(Box::new(
