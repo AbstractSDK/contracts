@@ -92,9 +92,6 @@ where
 
     pub fn add_module<
         I: Serialize + Debug,
-        H: Serialize + Debug,
-        N: Serialize + Debug,
-        S: Serialize + Debug,
     >(
         &self,
         module: &Contract<Chain>,
