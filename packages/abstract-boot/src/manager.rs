@@ -90,9 +90,7 @@ where
         Ok(())
     }
 
-    pub fn add_module<
-        I: Serialize + Debug,
-    >(
+    pub fn add_module<I: Serialize + Debug>(
         &self,
         module: &Contract<Chain>,
         init_msg: Option<&I>,
