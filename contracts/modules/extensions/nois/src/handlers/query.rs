@@ -1,4 +1,4 @@
-use cosmwasm_std::{to_binary, Binary, Deps, Env, HexBinary, Order, StdResult, Uint128, StdError};
+use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdError, StdResult};
 
 use abstract_os::nois::state::RANDOMNESS_OUTCOME;
 use abstract_os::nois::state::{State, STATE};
@@ -31,7 +31,7 @@ fn query_job_outcome(deps: Deps, job_id: String) -> StdResult<JobOutcomeResponse
     let outcome = RANDOMNESS_OUTCOME.may_load(deps.storage, &job_id)?;
     match outcome {
         Some(outcome) => Ok(JobOutcomeResponse {
-            outcome: outcome.to_string()
+            outcome: outcome.to_string(),
         }),
         None => Err(StdError::generic_err("Job outcome not found")),
     }
@@ -44,7 +44,5 @@ fn query_job_history(deps: Deps) -> StdResult<JobHistoryResponse> {
         .map(|item| item.map(|(id, value)| format!("{id}:{value}")))
         .collect::<StdResult<_>>()?;
 
-    Ok(JobHistoryResponse {
-        jobs: history
-    })
+    Ok(JobHistoryResponse { jobs: history })
 }

@@ -41,7 +41,6 @@ pub mod state {
     use schemars::JsonSchema;
     use serde::{Deserialize, Serialize};
 
-    use crate::objects::fee::Fee;
     use cosmwasm_std::{Addr, HexBinary};
     use cw_storage_plus::{Item, Map};
 
@@ -56,11 +55,7 @@ pub mod state {
     pub const RANDOMNESS_OUTCOME: Map<&str, HexBinary> = Map::new("randomness_outcome");
 }
 
-use cosmwasm_std::Decimal;
-use cw20::Cw20ReceiveMsg;
-use cw_asset::AssetUnchecked;
 use cosmwasm_schema::QueryResponses;
-
 
 /// Migrate msg
 #[cosmwasm_schema::cw_serde]
@@ -88,9 +83,7 @@ pub enum NoisQueryMsg {
     /// GetCount returns the current count as a json-encoded number
     /// Returns [`JobOutcomeResponse`]
     #[returns(JobOutcomeResponse)]
-    JobOutcome {
-        job_id: String,
-    },
+    JobOutcome { job_id: String },
     /// Returns [`JobHistoryResponse`]
     #[returns(JobHistoryResponse)]
     JobHistory {},

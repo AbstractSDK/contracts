@@ -4,14 +4,14 @@ use crate::error::NoisError;
 use abstract_os::nois::state::{RANDOMNESS_OUTCOME, STATE};
 use abstract_os::nois::NoisRequestMsg;
 use abstract_sdk::Execution;
-use cosmwasm_std::{to_binary, Addr, Api, Coin, CosmosMsg, Deps, DepsMut, DistributionMsg, Env, MessageInfo, QuerierWrapper, Response, StakingMsg, StdError, StdResult, WasmMsg, wasm_execute};
-use cosmos_nois::{ints_in_range, NoisCallback, ProxyExecuteMsg};
+use cosmos_nois::ProxyExecuteMsg;
+use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response};
 
 type NoisProxyExecuteMsg = ProxyExecuteMsg;
 
 pub fn execute_handler(
     deps: DepsMut,
-    env: Env,
+    _env: Env,
     info: MessageInfo,
     extension: NoisExtension,
     msg: NoisRequestMsg,
@@ -28,7 +28,11 @@ pub fn execute_handler(
 
 /// Function that triggers the process of requesting randomness
 /// The request from randomness happens by calling the nois-proxy contract
-pub fn get_next_randomness(deps: Deps, info: MessageInfo, job_id: String) -> Result<CosmosMsg, NoisError> {
+pub fn get_next_randomness(
+    deps: Deps,
+    info: MessageInfo,
+    job_id: String,
+) -> Result<CosmosMsg, NoisError> {
     let nois_proxy = STATE.load(deps.storage)?.nois_proxy_addr;
     // Prevent a user from paying for an already existing randomness.
     // The actual immutability of the history comes in the execute_receive function
@@ -46,6 +50,7 @@ pub fn get_next_randomness(deps: Deps, info: MessageInfo, job_id: String) -> Res
         // In this example, the job_id represents one round of dice rolling.
         &NoisProxyExecuteMsg::GetNextRandomness { job_id },
         // For now the randomness is for free. You don't need to send any funds to request randomness
-        info.funds
-    )?.into())
+        info.funds,
+    )?
+    .into())
 }

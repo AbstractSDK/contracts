@@ -8,9 +8,9 @@ use cosmwasm_std::{ensure_eq, DepsMut, Env, HexBinary, MessageInfo, Response};
 /// The callback contains the randomness from drand (HexBinary) and the job_id
 pub fn nois_callback_handler(
     deps: DepsMut,
-    env: Env,
+    _env: Env,
     info: MessageInfo,
-    extension: NoisExtension,
+    _extension: NoisExtension,
     nois_receive: NoisReceiveMsg,
 ) -> NoisResult {
     //load proxy address from store

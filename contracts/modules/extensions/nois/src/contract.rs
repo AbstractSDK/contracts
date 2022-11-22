@@ -1,19 +1,12 @@
-use abstract_os::{NOIS, TENDERMINT_STAKING};
-use cosmwasm_std::{
-    entry_point, to_binary, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Response, StdResult,
-};
-use cw2::{get_contract_version, set_contract_version};
-use cosmos_nois::{NoisCallback, ReceiverExecuteMsg};
+use abstract_os::NOIS;
+use cosmwasm_std::Response;
 
 use abstract_extension::{export_endpoints, ExtensionContract};
-use semver::Version;
 
 use crate::error::NoisError;
 use crate::{handlers, NoisReceiveMsg};
-use abstract_os::nois::state::*;
-use abstract_os::nois::{
-    MigrateMsg, NoisInstantiateMsg, NoisQueryMsg, NoisRequestMsg, StateResponse,
-};
+
+use abstract_os::nois::{NoisInstantiateMsg, NoisQueryMsg, NoisRequestMsg};
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 

@@ -1,5 +1,5 @@
-use cosmwasm_schema::cw_serde;
 use cosmos_nois::NoisCallback;
+use cosmwasm_schema::cw_serde;
 
 pub mod contract;
 pub mod error;
