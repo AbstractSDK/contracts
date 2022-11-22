@@ -13,7 +13,7 @@ use std::fs::File;
 use std::{cmp::min, env};
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
-pub struct AnsHost;
+pub struct AnsHost<Chain>;
 
 impl<Chain: BootEnvironment> AnsHost<Chain>
 where
