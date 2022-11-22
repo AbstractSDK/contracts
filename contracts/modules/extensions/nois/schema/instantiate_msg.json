@@ -1,0 +1,63 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "InstantiateMsg",
+  "type": "object",
+  "required": [
+    "app",
+    "base"
+  ],
+  "properties": {
+    "app": {
+      "description": "custom instantiate msg attributes",
+      "allOf": [
+        {
+          "$ref": "#/definitions/NoisInstantiateMsg"
+        }
+      ]
+    },
+    "base": {
+      "description": "base instantiate information",
+      "allOf": [
+        {
+          "$ref": "#/definitions/BaseInstantiateMsg"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "BaseInstantiateMsg": {
+      "description": "Used by Abstract to instantiate the contract The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::AddExtension`].",
+      "type": "object",
+      "required": [
+        "ans_host_address",
+        "version_control_address"
+      ],
+      "properties": {
+        "ans_host_address": {
+          "description": "Used to easily perform address translation",
+          "type": "string"
+        },
+        "version_control_address": {
+          "description": "Used to verify senders",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "NoisInstantiateMsg": {
+      "description": "Init msg",
+      "type": "object",
+      "required": [
+        "nois_proxy_addr"
+      ],
+      "properties": {
+        "nois_proxy_addr": {
+          "description": "Address of the service provider which receives the fee.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

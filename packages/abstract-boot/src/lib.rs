@@ -17,4 +17,5 @@ pub mod osmosis_host;
 pub mod tendermint_staking_extension;
 pub mod version_control;
 pub mod vesting;
+pub mod nois;
 // pub mod callback_capturer;

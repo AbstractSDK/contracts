@@ -1,0 +1,248 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ExecuteMsg",
+  "description": "EndpointMsg to the Middleware.",
+  "oneOf": [
+    {
+      "description": "A configuration message.",
+      "type": "object",
+      "required": [
+        "base"
+      ],
+      "properties": {
+        "base": {
+          "$ref": "#/definitions/BaseExecuteMsg"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "An app request.",
+      "type": "object",
+      "required": [
+        "app"
+      ],
+      "properties": {
+        "app": {
+          "$ref": "#/definitions/ExtensionRequestMsg_for_NoisRequestMsg"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "IbcReceive to process callbacks",
+      "type": "object",
+      "required": [
+        "ibc_callback"
+      ],
+      "properties": {
+        "ibc_callback": {
+          "$ref": "#/definitions/IbcResponseMsg"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Receive endpoint for CW20 / external service integrations",
+      "type": "object",
+      "required": [
+        "receive"
+      ],
+      "properties": {
+        "receive": {
+          "$ref": "#/definitions/NoisReceiveMsg"
+        }
+      },
+      "additionalProperties": false
+    }
+  ],
+  "definitions": {
+    "BaseExecuteMsg": {
+      "description": "Configuration message for the extension",
+      "oneOf": [
+        {
+          "description": "Add or remove traders If a trader is both in to_add and to_remove, it will be removed.",
+          "type": "object",
+          "required": [
+            "update_traders"
+          ],
+          "properties": {
+            "update_traders": {
+              "type": "object",
+              "properties": {
+                "to_add": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "to_remove": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Remove the extension",
+          "type": "object",
+          "required": [
+            "remove"
+          ],
+          "properties": {
+            "remove": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "Binary": {
+      "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
+      "type": "string"
+    },
+    "ExtensionRequestMsg_for_NoisRequestMsg": {
+      "description": "An extension request. If proxy is None, then the sender must be an OS manager and the proxy address is extrapolated from the OS id.",
+      "type": "object",
+      "required": [
+        "request"
+      ],
+      "properties": {
+        "proxy_address": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "request": {
+          "description": "The actual request",
+          "allOf": [
+            {
+              "$ref": "#/definitions/NoisRequestMsg"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "HexBinary": {
+      "description": "This is a wrapper around Vec<u8> to add hex de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is similar to `cosmwasm_std::Binary` but uses hex. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
+      "type": "string"
+    },
+    "IbcResponseMsg": {
+      "description": "IbcResponseMsg should be de/serialized under `Receive()` variant in a ExecuteMsg",
+      "type": "object",
+      "required": [
+        "id",
+        "msg"
+      ],
+      "properties": {
+        "id": {
+          "description": "The ID chosen by the caller in the `callback_id`",
+          "type": "string"
+        },
+        "msg": {
+          "$ref": "#/definitions/StdAck"
+        }
+      },
+      "additionalProperties": false
+    },
+    "NoisCallback": {
+      "description": "This must be accepted in an `Receive { callback: NoisCallback }` enum case in the ExecuteMsg of the app.",
+      "type": "object",
+      "required": [
+        "job_id",
+        "randomness"
+      ],
+      "properties": {
+        "job_id": {
+          "description": "The ID chosen by the caller for this job. Use this field to map responses to requests.",
+          "type": "string"
+        },
+        "randomness": {
+          "$ref": "#/definitions/HexBinary"
+        }
+      },
+      "additionalProperties": false
+    },
+    "NoisReceiveMsg": {
+      "type": "object",
+      "required": [
+        "callback"
+      ],
+      "properties": {
+        "callback": {
+          "$ref": "#/definitions/NoisCallback"
+        }
+      },
+      "additionalProperties": false
+    },
+    "NoisRequestMsg": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "randomness"
+          ],
+          "properties": {
+            "randomness": {
+              "type": "object",
+              "required": [
+                "job_id"
+              ],
+              "properties": {
+                "job_id": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "StdAck": {
+      "description": "This is a generic ICS acknowledgement format. Proto defined here: https://github.com/cosmos/cosmos-sdk/blob/v0.42.0/proto/ibc/core/channel/v1/channel.proto#L141-L147 If ibc_receive_packet returns Err(), then x/wasm runtime will rollback the state and return an error message in this format",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "result"
+          ],
+          "properties": {
+            "result": {
+              "$ref": "#/definitions/Binary"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "error"
+          ],
+          "properties": {
+            "error": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+}

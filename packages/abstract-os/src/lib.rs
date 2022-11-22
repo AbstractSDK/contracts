@@ -50,6 +50,7 @@ pub mod etf;
 pub mod extension;
 pub mod manager;
 pub mod module_factory;
+pub mod nois;
 pub mod objects;
 pub mod os_factory;
 pub mod proxy;

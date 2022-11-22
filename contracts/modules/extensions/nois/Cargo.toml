@@ -1,0 +1,39 @@
+[package]
+name = "nois"
+authors = {workspace = true}
+version = {workspace = true}
+edition = {workspace = true}
+
+exclude = [
+  # Those files are rust-optimizer artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
+  "contract.wasm",
+  "hash.txt",
+]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+# for more explicit tests, cargo test --features=backtraces
+backtraces = ["cosmwasm-std/backtraces"]
+
+[dependencies]
+cosmwasm-schema = { workspace = true }
+cosmwasm-std = {workspace = true}
+schemars = {workspace = true}
+serde = {workspace = true}
+thiserror = {workspace = true}
+abstract-os = {workspace = true}
+abstract-sdk = {workspace = true}
+abstract-extension = {workspace = true}
+cw-controllers = { workspace = true }
+cw-storage-plus = { workspace = true }
+cw2 = { workspace = true }
+semver = { workspace = true }
+protobuf = { workspace = true }
+cosmos-nois = { package = "nois", version = "0.5.1" }
+# https://docs.rs/getrandom/latest/getrandom/#webassembly-support
+getrandom = { version = "0.2", features = ["custom"] }
+
