@@ -75,7 +75,7 @@ pub enum ExecuteMsg {
     UpdateConfig {
         admin: Option<String>,
         ans_host: Option<String>,
-        version_control: Option<String>
+        version_control: Option<String>,
     },
     /// Only callable by OS proxy
     /// Will attempt to forward the specified funds to the corresponding

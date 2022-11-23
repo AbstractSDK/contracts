@@ -57,7 +57,11 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ClientError> {
     match msg {
-        ExecuteMsg::UpdateConfig { admin, ans_host, version_control } => {
+        ExecuteMsg::UpdateConfig {
+            admin,
+            ans_host,
+            version_control,
+        } => {
             execute_update_config(deps, info, admin, ans_host, version_control).map_err(Into::into)
         }
         ExecuteMsg::SendPacket {
