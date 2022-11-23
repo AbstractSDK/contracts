@@ -71,9 +71,11 @@ impl CallbackInfo {
 
 #[cosmwasm_schema::cw_serde]
 pub enum ExecuteMsg {
-    /// Changes the admin
-    UpdateAdmin {
-        admin: String,
+    /// Changes the config
+    UpdateConfig {
+        admin: Option<String>,
+        ans_host: Option<String>,
+        version_control: Option<String>
     },
     /// Only callable by OS proxy
     /// Will attempt to forward the specified funds to the corresponding

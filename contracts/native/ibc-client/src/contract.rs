@@ -12,7 +12,7 @@ use abstract_sdk::{
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
     to_binary, Coin, CosmosMsg, Deps, DepsMut, Env, IbcMsg, MessageInfo, Order, QueryResponse,
-    Response, StdError, StdResult,
+    Response, StdError, StdResult, Storage,
 };
 use cw2::set_contract_version;
 
@@ -57,8 +57,8 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ClientError> {
     match msg {
-        ExecuteMsg::UpdateAdmin { admin } => {
-            execute_update_admin(deps, info, admin).map_err(Into::into)
+        ExecuteMsg::UpdateConfig { admin, ans_host, version_control } => {
+            execute_update_config(deps, info, admin, ans_host, version_control).map_err(Into::into)
         }
         ExecuteMsg::SendPacket {
             host_chain,
@@ -76,17 +76,35 @@ pub fn execute(
     }
 }
 
-pub fn execute_update_admin(
+pub fn execute_update_config(
     deps: DepsMut,
     info: MessageInfo,
-    new_admin: String,
+    new_admin: Option<String>,
+    new_ans_host: Option<String>,
+    new_version_control: Option<String>,
 ) -> StdResult<Response> {
     // auth check
     let mut cfg = CONFIG.load(deps.storage)?;
     if info.sender != cfg.admin {
         return Err(StdError::generic_err("Only admin may set new admin"));
     }
-    cfg.admin = deps.api.addr_validate(&new_admin)?;
+    if let Some(admin) = new_admin {
+        cfg.admin = deps.api.addr_validate(&admin)?;
+    }
+    if let Some(ans_host) = new_ans_host {
+        ANS_HOST.save(
+            deps.storage,
+            &AnsHost {
+                address: deps.api.addr_validate(&ans_host)?,
+            },
+        )?;
+    }
+    if let Some(version_control) = new_version_control {
+        cfg.version_control_address = deps.api.addr_validate(&version_control)?;
+        // New version control address implies new accounts.
+        clear_accounts(deps.storage);
+    }
+
     CONFIG.save(deps.storage, &cfg)?;
 
     Ok(Response::new()
@@ -263,6 +281,11 @@ pub fn execute_send_funds(
         .add_message(proxy_msg)
         .add_attribute("action", "handle_send_funds");
     Ok(res)
+}
+
+fn clear_accounts(store: &mut dyn Storage) {
+    ACCOUNTS.clear(store);
+    LATEST_QUERIES.clear(store);
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
