@@ -3,7 +3,7 @@
 //!
 use abstract_os::proxy::ExecuteMsg;
 use cosmwasm_std::{
-    to_binary, CosmosMsg, Deps, ReplyOn, Response, StdError, StdResult, SubMsg, WasmMsg,
+    to_binary, CosmosMsg, Deps, ReplyOn, Response, StdError, StdResult, SubMsg, WasmMsg, Coin,
 };
 
 use super::Identification;
@@ -29,6 +29,13 @@ impl<'a, T: Execution> Executor<'a, T> {
             contract_addr: self.base.proxy_address(self.deps)?.to_string(),
             msg: to_binary(&ExecuteMsg::ModuleAction { msgs })?,
             funds: vec![],
+        }))
+    }
+    pub fn execute_with_funds(&self, msgs: Vec<CosmosMsg>, funds: Vec<Coin>) -> Result<CosmosMsg, StdError> {
+        Ok(CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: self.base.proxy_address(self.deps)?.to_string(),
+            msg: to_binary(&ExecuteMsg::ModuleAction { msgs })?,
+            funds
         }))
     }
     pub fn execute_with_reply(

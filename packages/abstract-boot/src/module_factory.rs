@@ -1,7 +1,7 @@
 use abstract_sdk::os::module_factory::*;
 
 // use crate::extension::get_extension_init_msgs;
-use boot_core::{BootEnvironment, BootError, Contract, TxResponse};
+use boot_core::{BootEnvironment, BootError, Contract, TxResponse, IndexResponse};
 
 use boot_core::interface::BootExecute;
 use boot_core::prelude::boot_contract;
@@ -9,7 +9,7 @@ use boot_core::prelude::boot_contract;
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct ModuleFactory<Chain>;
 
-impl<Chain: BootEnvironment> ModuleFactory<Chain> {
+impl<Chain: BootEnvironment> ModuleFactory<Chain> where TxResponse<Chain>: IndexResponse {
     pub fn new(name: &str, chain: &Chain) -> Self {
         Self(
             Contract::new(name, chain).with_wasm_path("module_factory"),

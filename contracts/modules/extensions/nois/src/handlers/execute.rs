@@ -20,7 +20,7 @@ pub fn execute_handler(
     let executor = extension.executor(deps.as_ref());
     let msg = match msg {
         NoisRequestMsg::Randomness { job_id } => {
-            executor.execute(vec![get_next_randomness(deps.as_ref(), info, job_id)?])
+            executor.execute_with_funds(vec![get_next_randomness(deps.as_ref(), info.clone(), job_id)?], info.funds)
         }
     }?;
     Ok(Response::new().add_message(msg))
@@ -43,14 +43,17 @@ pub fn get_next_randomness(
         return Err(NoisError::JobIdAlreadyPresent);
     }
 
+
+
     Ok(wasm_execute(
         nois_proxy,
         // GetNextRandomness requests the randomness from the proxy
         // The job id is needed to know what randomness we are referring to upon reception in the callback
         // In this example, the job_id represents one round of dice rolling.
         &NoisProxyExecuteMsg::GetNextRandomness { job_id },
-        // For now the randomness is for free. You don't need to send any funds to request randomness
-        info.funds,
+        // Funds needed are 100ujunox
+        // vec![]
+        info.funds
     )?
     .into())
 }

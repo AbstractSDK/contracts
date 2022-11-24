@@ -81,6 +81,16 @@ impl<Chain: BootEnvironment> Manager<Chain> {
         Ok(())
     }
 
+    pub fn uninstall_module(&self, module_id: &str) -> Result<(), BootError> {
+        self.execute(
+            &ExecuteMsg::RemoveModule {
+                module_id: module_id.into(),
+            },
+            None,
+        )?;
+        Ok(())
+    }
+
     pub fn execute_on_module(&self, module: &str, msg: impl Serialize) -> Result<(), BootError> {
         self.execute(
             &ExecuteMsg::ExecOnModule {
@@ -94,9 +104,6 @@ impl<Chain: BootEnvironment> Manager<Chain> {
 
     pub fn add_module<
         I: Serialize + Debug,
-        H: Serialize + Debug,
-        N: Serialize + Debug,
-        S: Serialize + Debug,
     >(
         &self,
         module: &Contract<Chain>,
