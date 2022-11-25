@@ -1,5 +1,4 @@
-use boot_core::prelude::boot_contract;
-use boot_core::{BootEnvironment, BootError, Contract};
+use boot_core::{prelude::boot_contract, BootEnvironment, BootError, Contract};
 use cosmwasm_std::Empty;
 
 use abstract_sdk::os::{
