@@ -1,9 +1,10 @@
 use std::fmt::Debug;
 
-use boot_core::interface::{BootExecute, BootQuery, ContractInstance};
-use boot_core::prelude::boot_contract;
 use boot_core::{
-    state::StateInterface, BootEnvironment, BootError, Contract, Daemon, IndexResponse, TxResponse,
+    interface::{BootExecute, BootQuery, ContractInstance},
+    prelude::boot_contract,
+    state::StateInterface,
+    BootEnvironment, BootError, Contract, Daemon, IndexResponse, TxResponse,
 };
 use cosmwasm_std::Addr;
 use semver::Version;
