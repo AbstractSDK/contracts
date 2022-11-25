@@ -1,6 +1,6 @@
 use abstract_sdk::os::{objects::proxy_asset::UncheckedProxyAsset, proxy::*, MANAGER, PROXY};
 
-use crate::manager::Manager;
+use crate::Manager;
 use boot_core::{
     interface::ContractInstance, prelude::boot_contract, BootEnvironment, BootError, Contract,
 };

@@ -8,7 +8,7 @@ use abstract_sdk::os::{
     EXCHANGE, MANAGER,
 };
 
-use crate::manager::Manager;
+use crate::Manager;
 use boot_core::interface::ContractInstance;
 
 type DexExtensionInstantiateMsg = abstract_sdk::os::extension::InstantiateMsg;
