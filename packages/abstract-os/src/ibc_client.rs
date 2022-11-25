@@ -9,13 +9,16 @@ use self::state::AccountData;
 pub mod state {
 
     use super::LatestQueryResponse;
-    use crate::{objects::ans_host::AnsHost, ANS_HOST as ANS_HOST_KEY};
+    use crate::{
+        objects::{ans_host::AnsHost, common_namespace::ADMIN_NAMESPACE},
+        ANS_HOST as ANS_HOST_KEY,
+    };
     use cosmwasm_std::{Addr, Coin, Timestamp};
+    use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
 
     #[cosmwasm_schema::cw_serde]
     pub struct Config {
-        pub admin: Addr,
         pub version_control_address: Addr,
         pub chain: String,
     }
@@ -34,9 +37,9 @@ pub mod state {
         pub remote_balance: Vec<Coin>,
     }
 
+    pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
     /// host_chain -> channel-id
     pub const CHANNELS: Map<&str, String> = Map::new("channels");
-
     pub const CONFIG: Item<Config> = Item::new("config");
     /// (channel-id,os_id) -> remote_addr
     pub const ACCOUNTS: Map<(&str, u32), AccountData> = Map::new("accounts");
@@ -71,9 +74,12 @@ impl CallbackInfo {
 
 #[cosmwasm_schema::cw_serde]
 pub enum ExecuteMsg {
+    /// Update the Admin
+    UpdateAdmin {
+        admin: String,
+    },
     /// Changes the config
     UpdateConfig {
-        admin: Option<String>,
         ans_host: Option<String>,
         version_control: Option<String>,
     },
