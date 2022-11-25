@@ -90,7 +90,7 @@ impl<'a, Chain: BootEnvironment> Deployment<'a, Chain> {
         self.version_control
             .register_core(&os_core, &self.version.to_string())?;
 
-        self.version_control.register_native(&self)?;
+        self.version_control.register_native(self)?;
 
         Ok(())
     }
