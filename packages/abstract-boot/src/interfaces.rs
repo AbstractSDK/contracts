@@ -29,7 +29,6 @@ pub use version_control::VersionControl;
 pub use vesting::Vesting;
 
 use abstract_os::IBC_CLIENT;
-use boot_core::prelude::*;
 
 use abstract_os::{
     ANS_HOST, ETF, EXCHANGE, MANAGER, MODULE_FACTORY, OS_FACTORY, PROXY, SUBSCRIPTION,
@@ -38,7 +37,7 @@ use abstract_os::{
 use boot_core::{state::StateInterface, BootEnvironment, IndexResponse, TxHandler};
 
 
-
+#[allow(clippy::type_complexity)]
 pub fn get_native_contracts<Chain: BootEnvironment>(
     chain: &Chain,
 ) -> (
