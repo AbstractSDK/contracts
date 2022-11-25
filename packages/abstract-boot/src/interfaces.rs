@@ -36,7 +36,6 @@ use abstract_os::{
 };
 use boot_core::{state::StateInterface, BootEnvironment, IndexResponse, TxHandler};
 
-
 #[allow(clippy::type_complexity)]
 pub fn get_native_contracts<Chain: BootEnvironment>(
     chain: &Chain,
