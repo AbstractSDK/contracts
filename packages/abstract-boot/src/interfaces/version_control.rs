@@ -94,7 +94,7 @@ where
         Ok(())
     }
 
-    pub fn register_extensions<AppMsg: Serialize + Debug>(
+    pub fn register_extensions(
         &self,
         extensions: Vec<&Contract<Chain>>,
         version: &Version,
