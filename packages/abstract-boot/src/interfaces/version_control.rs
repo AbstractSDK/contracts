@@ -1,4 +1,3 @@
-
 use boot_core::{
     interface::{BootExecute, BootQuery, ContractInstance},
     prelude::boot_contract,
