@@ -1,9 +1,10 @@
 use boot_core::{prelude::*, BootEnvironment, BootError, TxHandler};
+use cosmwasm_std::Empty;
 use semver::Version;
 
 use crate::{
     get_native_contracts, get_os_core_contracts, AnsHost, IbcClient, Manager, ModuleFactory,
-    OSFactory, Proxy, VersionControl,
+    OSFactory, Proxy, VersionControl, get_extensions, get_apps,
 };
 
 pub struct Deployment<'a, Chain: BootEnvironment> {
@@ -95,6 +96,13 @@ impl<'a, Chain: BootEnvironment> Deployment<'a, Chain> {
         Ok(())
     }
 
+    pub fn deploy_modules(&self) -> Result<(), BootError> {
+        self.upload_modules()?;
+        self.instantiate_extensions()?;
+        self.register_modules()?;
+        Ok(())
+    }
+
     pub fn contracts(&self) -> Vec<&Contract<Chain>> {
         vec![
             self.ans_host.as_instance(),
@@ -104,6 +112,38 @@ impl<'a, Chain: BootEnvironment> Deployment<'a, Chain> {
             self.ibc_client.as_instance(),
         ]
     }
+
+    fn instantiate_extensions(&self) -> Result<(), BootError> {
+        let (dex, staking) = get_extensions(self.chain);
+        let init_msg = abstract_os::extension::InstantiateMsg{
+            app: Empty {},
+            base: abstract_os::extension::BaseInstantiateMsg{
+                ans_host_address: self.ans_host.address()?.into(),
+                version_control_address: self.version_control.address()?.into(),
+            }
+        };
+        dex.instantiate(&init_msg, None, None)?;
+        staking.instantiate(&init_msg, None, None)?;
+        Ok(())
+    }
+
+    fn upload_modules(&self) -> Result<(), BootError> {
+        let (mut dex, mut staking) = get_extensions(self.chain);
+        let (mut etf, mut subs) = get_apps(self.chain);
+        let modules: Vec<&mut dyn BootUpload<Chain>> = vec![&mut dex, &mut staking, &mut etf, &mut subs];
+        modules.into_iter().map(BootUpload::upload).collect::<Result<Vec<_>,BootError>>()?;
+        Ok(())
+    }
+
+    fn register_modules(&self) ->Result<(), BootError> {
+        let (dex, staking) = get_extensions(self.chain);
+        let (etf, subs) = get_apps(self.chain);
+
+        self.version_control.register_apps(vec![etf.as_instance(), subs.as_instance()], &self.version)?;
+        self.version_control.register_extensions(vec![dex.as_instance(), staking.as_instance()], &self.version)?;
+        Ok(())
+    }
+
 }
 
 impl<'a> Deployment<'a, Daemon> {
