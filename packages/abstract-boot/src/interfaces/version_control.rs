@@ -1,4 +1,3 @@
-use std::fmt::Debug;
 
 use boot_core::{
     interface::{BootExecute, BootQuery, ContractInstance},
@@ -7,7 +6,6 @@ use boot_core::{
 };
 use cosmwasm_std::Addr;
 use semver::Version;
-use serde::Serialize;
 
 use abstract_sdk::os::{
     objects::{
