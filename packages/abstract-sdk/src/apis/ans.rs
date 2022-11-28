@@ -8,7 +8,7 @@ use crate::ans_resolve::Resolve;
 use super::AbstractNameSystem;
 /// Perform queries on the Abstract Name System.
 pub trait AnsInterface: AbstractNameSystem {
-    fn ans<'a>(&'a self, deps: Deps<'a>) -> Ans<Self> {
+    fn ANS<'a>(&'a self, deps: Deps<'a>) -> Ans<Self> {
         Ans {
             base: self,
             deps,

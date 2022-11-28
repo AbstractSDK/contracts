@@ -121,7 +121,7 @@ pub trait LocalDex: AbstractNameSystem + Execution {
         offer_asset.format();
         ask_asset.format();
 
-        let ans = self.ans(deps);
+        let ans = self.ANS(deps);
         let offer_asset_info = ans.query(&offer_asset)?;
         let ask_asset_info = ans.query(&ask_asset)?;
 
@@ -180,7 +180,7 @@ pub trait LocalDex: AbstractNameSystem + Execution {
         exchange: &dyn DEX,
         max_spread: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
-        let ans = self.ans(deps);
+        let ans = self.ANS(deps);
         let assets = ans.query(&offer_assets)?;
         let pair_address = exchange.pair_address(
             deps,
@@ -201,7 +201,7 @@ pub trait LocalDex: AbstractNameSystem + Execution {
         paired_assets: Vec<AssetEntry>,
         exchange: &dyn DEX,
     ) -> Result<Vec<CosmosMsg>, DexError> {
-        let ans = self.ans(deps);
+        let ans = self.ANS(deps);
         let paired_asset_infos = ans.query(&paired_assets)?;
         let pair_address =
             exchange.pair_address(deps, ans.host(), &mut paired_assets.iter().collect())?;
@@ -215,7 +215,7 @@ pub trait LocalDex: AbstractNameSystem + Execution {
         lp_token: OfferAsset,
         exchange: &dyn DEX,
     ) -> Result<Vec<CosmosMsg>, DexError> {
-        let ans = self.ans(deps);
+        let ans = self.ANS(deps);
         let lp_asset = ans.query(&lp_token)?;
         let pair_entry =
             UncheckedContractEntry::new(exchange.name(), lp_token.info.as_str()).check();
