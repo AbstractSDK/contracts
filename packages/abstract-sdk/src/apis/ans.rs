@@ -8,6 +8,7 @@ use crate::ans_resolve::Resolve;
 use super::AbstractNameSystem;
 /// Perform queries on the Abstract Name System.
 pub trait AnsInterface: AbstractNameSystem {
+    #[allow(non_snake_case)]
     fn ANS<'a>(&'a self, deps: Deps<'a>) -> Ans<Self> {
         Ans {
             base: self,
