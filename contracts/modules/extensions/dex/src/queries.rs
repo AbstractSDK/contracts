@@ -16,7 +16,7 @@ pub fn simulate_swap(
 ) -> StdResult<Binary> {
     let exchange = resolve_exchange(&dex).map_err(|e| StdError::generic_err(e.to_string()))?;
     let extension = DEX_EXTENSION;
-    let ans = extension.ANS(deps);
+    let ans = extension.name_service(deps);
     // format input
     offer_asset.info.format();
     ask_asset.format();

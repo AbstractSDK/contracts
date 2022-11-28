@@ -6,11 +6,11 @@ use cosmwasm_std::{Deps, StdResult};
 use crate::ans_resolve::Resolve;
 
 use super::AbstractNameSystem;
+
 /// Perform queries on the Abstract Name System.
 pub trait AnsInterface: AbstractNameSystem {
-    #[allow(non_snake_case)]
-    fn ANS<'a>(&'a self, deps: Deps<'a>) -> Ans<Self> {
-        Ans {
+    fn name_service<'a>(&'a self, deps: Deps<'a>) -> AbstractNameService<Self> {
+        AbstractNameService {
             base: self,
             deps,
             host: self.ans_host(deps).unwrap(),
@@ -20,14 +20,15 @@ pub trait AnsInterface: AbstractNameSystem {
 
 impl<T> AnsInterface for T where T: AbstractNameSystem {}
 
+/// The service interface that can perform queries on the Abstract Name System.
 #[derive(Clone)]
-pub struct Ans<'a, T: AnsInterface> {
+pub struct AbstractNameService<'a, T: AnsInterface> {
     base: &'a T,
     deps: Deps<'a>,
     host: AnsHost,
 }
 
-impl<'a, T: AnsInterface> Ans<'a, T> {
+impl<'a, T: AnsInterface> AbstractNameService<'a, T> {
     pub fn query<R: Resolve>(&self, entry: &R) -> StdResult<R::Output> {
         entry.resolve(&self.deps.querier, &self.host)
     }

@@ -138,7 +138,7 @@ fn handle_ibc_extension_request(
     action: &DexAction,
 ) -> DexResult {
     let host_chain = dex_name;
-    let ans = extension.ANS(deps.as_ref());
+    let ans = extension.name_service(deps.as_ref());
     let ibc_client = extension.ibc_client(deps.as_ref());
     // get the to-be-sent assets from the action
     let coins = resolve_assets_to_transfer(deps.as_ref(), action, ans.host())?;

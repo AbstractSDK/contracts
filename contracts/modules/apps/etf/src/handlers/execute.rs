@@ -74,7 +74,7 @@ pub fn try_provide_liquidity(
     let vault = dapp.vault(deps.as_ref());
     // Get all the required asset information from the ans_host contract
     let (_, base_asset) = vault.enabled_assets_list()?;
-    let deposit_asset = dapp.ANS(deps.as_ref()).query(&base_asset)?;
+    let deposit_asset = dapp.name_service(deps.as_ref()).query(&base_asset)?;
     // Construct deposit info
     let deposit_info = DepositInfo {
         asset_info: deposit_asset,
@@ -146,7 +146,7 @@ pub fn try_withdraw_liquidity(
     let fee: Fee = FEE.load(deps.storage)?;
     // Get assets
     let (assets, _) = dapp.vault(deps.as_ref()).enabled_assets_list()?;
-    let assets = dapp.ANS(deps.as_ref()).query(&assets)?;
+    let assets = dapp.name_service(deps.as_ref()).query(&assets)?;
 
     // Logging var
     let mut attrs = vec![
