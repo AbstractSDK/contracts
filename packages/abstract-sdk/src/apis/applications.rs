@@ -60,7 +60,11 @@ impl<'a, T: ApplicationInterface> Applications<'a, T> {
     }
 
     /// Construct an API configure message
-    pub fn configure_extension(&self, extension_id: ModuleId, message: BaseExecuteMsg) -> StdResult<CosmosMsg> {
+    pub fn configure_extension(
+        &self,
+        extension_id: ModuleId,
+        message: BaseExecuteMsg,
+    ) -> StdResult<CosmosMsg> {
         let extension_msg: ExecuteMsg<Empty, Empty> = message.into();
         let extension_address = self.app_address(extension_id)?;
         Ok(wasm_execute(extension_address, &extension_msg, vec![])?.into())
