@@ -15,7 +15,7 @@
 //! > - [IBC-host](https://crates.io/crates/abstract-ibc-host) ([Template (WIP)]())
 //!
 //! ```
-//!   # use abstract_sdk::{feature_objects::VersionControlContract, base::features::{Identification, AbstractNameSystem}};
+//!   # use abstract_sdk::{feature_objects::VersionControlContract, base::features::{Identification, AbstractNameService}};
 //!   # use cosmwasm_std::{StdResult, Deps, MessageInfo, CosmosMsg, Addr};
 //!   # use abstract_sdk::feature_objects::AnsHost;
 //!
@@ -28,7 +28,7 @@
 //!   #         Ok(Addr::unchecked("just_an_example"))
 //!   #     }
 //!   # }
-//!   # impl AbstractNameSystem for MyContract {
+//!   # impl AbstractNameService for MyContract {
 //!   #     fn ans_host(&self, _deps: Deps) -> cosmwasm_std::StdResult<AnsHost> {
 //!   #         Ok(AnsHost{address: Addr::unchecked("just_an_example")})
 //!   #     }

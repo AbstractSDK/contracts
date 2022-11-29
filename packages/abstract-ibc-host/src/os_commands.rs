@@ -4,7 +4,6 @@ use abstract_sdk::{
         objects::ChannelEntry,
         ICS20,
     },
-    AnsInterface,
 };
 use cosmwasm_std::{
     wasm_execute, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg, IbcReceiveResponse, SubMsg,
