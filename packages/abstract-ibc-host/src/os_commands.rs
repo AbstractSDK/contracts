@@ -1,10 +1,10 @@
 use abstract_sdk::{
+    base::features::AbstractNameServiceProvider,
     os::{
         abstract_ica::{BalancesResponse, DispatchResponse, SendAllBackResponse, StdAck},
         objects::ChannelEntry,
         ICS20,
     },
-    base::features::AbstractNameServiceProvider,
 };
 use cosmwasm_std::{
     wasm_execute, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg, IbcReceiveResponse, SubMsg,

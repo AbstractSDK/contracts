@@ -8,8 +8,8 @@ use cw_asset::{Asset, AssetInfo};
 
 use abstract_app::state::AppState;
 use abstract_os::etf::EtfExecuteMsg;
-use abstract_sdk::*;
 use abstract_sdk::base::features::AbstractNameServiceProvider;
+use abstract_sdk::*;
 
 use abstract_sdk::os::objects::deposit_info::DepositInfo;
 use abstract_sdk::os::objects::fee::Fee;

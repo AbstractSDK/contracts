@@ -51,8 +51,8 @@ pub mod base;
 pub mod feature_objects;
 
 pub use crate::apis::{
-    applications::ApplicationInterface, bank::TransferInterface,
-    execution::Execution, ibc::IbcInterface, vault::VaultInterface, verify::Verification,
+    applications::ApplicationInterface, bank::TransferInterface, execution::Execution,
+    ibc::IbcInterface, vault::VaultInterface, verify::Verification,
     version_register::VersionRegisterInterface,
 };
 pub use ans_resolve::Resolve;

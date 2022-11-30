@@ -1,13 +1,12 @@
 use std::collections::BTreeMap;
 
-use cosmwasm_std::{Addr, Deps, QuerierWrapper, StdError, StdResult};
+use cosmwasm_std::{Addr, QuerierWrapper, StdError, StdResult};
 
 use cw_asset::AssetInfo;
 
 use crate::ans_host::state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES};
 
 use super::{asset_entry::AssetEntry, contract_entry::ContractEntry, ChannelEntry};
-
 
 /// Struct that stores the ans-host contract address.
 /// Implements `AbstractNameService` feature

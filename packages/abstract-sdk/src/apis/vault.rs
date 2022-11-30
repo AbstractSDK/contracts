@@ -13,13 +13,13 @@ use super::{AbstractNameServiceProvider, Identification};
 
 /// Retrieve asset-registration information from the OS.
 /// Query asset values and balances.
-pub trait VaultInterface: AbstractNameServiceProvider +  Identification {
+pub trait VaultInterface: AbstractNameServiceProvider + Identification {
     fn vault<'a>(&'a self, deps: Deps<'a>) -> Vault<Self> {
         Vault { base: self, deps }
     }
 }
 
-impl<T> VaultInterface for T where T: AbstractNameServiceProvider +  Identification {}
+impl<T> VaultInterface for T where T: AbstractNameServiceProvider + Identification {}
 
 #[derive(Clone)]
 pub struct Vault<'a, T: VaultInterface> {
