@@ -2,8 +2,8 @@ use abstract_sdk::os::{
     dex::{OfferAsset, SimulateSwapResponse},
     objects::AssetEntry,
 };
-use abstract_sdk::AnsInterface;
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError, StdResult};
+use abstract_sdk::base::features::AbstractNameServiceProvider;
 
 use crate::{contract::resolve_exchange, contract::DEX_EXTENSION};
 

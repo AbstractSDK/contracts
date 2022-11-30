@@ -2,7 +2,7 @@ use cosmwasm_std::{Addr, Deps, StdResult};
 
 use crate::{AppContract, AppError};
 use abstract_sdk::{
-    base::features::{AbstractNameService, Identification},
+    base::features::{AbstractNameServiceProvider, Identification},
     feature_objects::AnsHost,
 };
 impl<
@@ -12,7 +12,7 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-    > AbstractNameService
+    > AbstractNameServiceProvider
     for AppContract<
         Error,
         CustomExecMsg,

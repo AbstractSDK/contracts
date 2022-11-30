@@ -51,7 +51,7 @@ pub mod base;
 pub mod feature_objects;
 
 pub use crate::apis::{
-    ans::AnsInterface, applications::ApplicationInterface, bank::TransferInterface,
+    applications::ApplicationInterface, bank::TransferInterface,
     execution::Execution, ibc::IbcInterface, vault::VaultInterface, verify::Verification,
     version_register::VersionRegisterInterface,
 };

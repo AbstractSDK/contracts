@@ -9,13 +9,14 @@ use abstract_sdk::os::{
 use abstract_sdk::{
     base::endpoints::{ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint},
     feature_objects::AnsHost,
-    AnsInterface, IbcInterface, Resolve,
+     IbcInterface, Resolve,
 };
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
     to_binary, Binary, Coin, Deps, DepsMut, Empty, Env, MessageInfo, Response, StdError, StdResult,
 };
+use abstract_sdk::base::features::AbstractNameServiceProvider;
 
 use crate::{
     commands::LocalDex, dex_trait::Identify, error::DexError, queries::simulate_swap, DEX,
