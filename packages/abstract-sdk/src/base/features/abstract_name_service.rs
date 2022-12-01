@@ -9,7 +9,7 @@ pub trait AbstractNameService: Sized {
 
     fn name_service<'a>(&'a self, deps: Deps<'a>) -> AbstractNameServiceClient<Self> {
         AbstractNameServiceClient {
-            base: self,
+            _base: self,
             deps,
             host: self.ans_host(deps).unwrap(),
         }
@@ -18,7 +18,7 @@ pub trait AbstractNameService: Sized {
 
 #[derive(Clone)]
 pub struct AbstractNameServiceClient<'a, T: AbstractNameService> {
-    base: &'a T,
+    _base: &'a T,
     deps: Deps<'a>,
     pub host: AnsHost,
 }
