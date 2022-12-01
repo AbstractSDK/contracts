@@ -4,17 +4,17 @@
 use abstract_os::objects::AnsAsset;
 use cosmwasm_std::{Addr, BankMsg, Coin, CosmosMsg, Deps, StdResult};
 
-use super::{execution::Execution, AbstractNameServiceClient};
+use super::{execution::Execution, AbstractNameService};
 use crate::ans_resolve::Resolve;
 
 /// Bank assets from and to the Abstract OS.
-pub trait TransferInterface: AbstractNameServiceClient + Execution {
+pub trait TransferInterface: AbstractNameService + Execution {
     fn bank<'a>(&'a self, deps: Deps<'a>) -> Bank<Self> {
         Bank { base: self, deps }
     }
 }
 
-impl<T> TransferInterface for T where T: AbstractNameServiceClient + Execution {}
+impl<T> TransferInterface for T where T: AbstractNameService + Execution {}
 
 #[derive(Clone)]
 pub struct Bank<'a, T: TransferInterface> {

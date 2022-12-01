@@ -1,5 +1,5 @@
 use abstract_sdk::{
-    base::features::AbstractNameServiceClient,
+    base::features::AbstractNameService,
     os::{
         abstract_ica::{BalancesResponse, DispatchResponse, SendAllBackResponse, StdAck},
         objects::ChannelEntry,

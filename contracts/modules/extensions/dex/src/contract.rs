@@ -1,5 +1,5 @@
 use abstract_extension::ExtensionContract;
-use abstract_sdk::base::features::AbstractNameServiceClient;
+use abstract_sdk::base::features::AbstractNameService;
 use abstract_sdk::os::{
     dex::{DexAction, DexName, DexQueryMsg, DexRequestMsg, IBC_DEX_ID},
     extension::{ExecuteMsg, InstantiateMsg, QueryMsg},
