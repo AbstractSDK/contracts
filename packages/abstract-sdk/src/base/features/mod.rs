@@ -6,6 +6,6 @@ mod abstract_name_service;
 mod identification;
 mod register_access;
 
-pub use abstract_name_service::AbstractNameServiceProvider;
+pub use abstract_name_service::AbstractNameServiceClient;
 pub use identification::Identification;
 pub use register_access::RegisterAccess;

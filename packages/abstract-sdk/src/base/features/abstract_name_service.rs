@@ -4,7 +4,7 @@ use cosmwasm_std::{Deps, StdResult};
 use crate::ans_resolve::Resolve;
 
 /// Trait that enables APIs that depend on the Abstract Name Service.
-pub trait AbstractNameServiceProvider: Sized {
+pub trait AbstractNameServiceClient: Sized {
     fn ans_host(&self, deps: Deps) -> StdResult<AnsHost>;
 
     fn name_service<'a>(&'a self, deps: Deps<'a>) -> AbstractNameService<Self> {
@@ -17,13 +17,13 @@ pub trait AbstractNameServiceProvider: Sized {
 }
 
 #[derive(Clone)]
-pub struct AbstractNameService<'a, T: AbstractNameServiceProvider> {
+pub struct AbstractNameService<'a, T: AbstractNameServiceClient> {
     base: &'a T,
     deps: Deps<'a>,
     pub host: AnsHost,
 }
 
-impl<'a, T: AbstractNameServiceProvider> AbstractNameService<'a, T> {
+impl<'a, T: AbstractNameServiceClient> AbstractNameService<'a, T> {
     pub fn query<R: Resolve>(&self, entry: &R) -> StdResult<R::Output> {
         entry.resolve(&self.deps.querier, &self.host)
     }

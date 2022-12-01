@@ -1,4 +1,4 @@
-use abstract_sdk::base::features::AbstractNameServiceProvider;
+use abstract_sdk::base::features::AbstractNameServiceClient;
 use abstract_sdk::os::objects::AnsAsset;
 use abstract_sdk::Execution;
 use cosmwasm_std::{CosmosMsg, Decimal, Deps, DepsMut, ReplyOn, SubMsg};
@@ -17,9 +17,9 @@ pub const WITHDRAW_LIQUIDITY: u64 = 7546;
 pub const SWAP: u64 = 7544;
 pub const CUSTOM_SWAP: u64 = 7545;
 
-impl<T> LocalDex for T where T: AbstractNameServiceProvider + Execution {}
+impl<T> LocalDex for T where T: AbstractNameServiceClient + Execution {}
 
-pub trait LocalDex: AbstractNameServiceProvider + Execution {
+pub trait LocalDex: AbstractNameServiceClient + Execution {
     /// resolve the provided dex action on a local dex
     fn resolve_dex_action(
         &self,

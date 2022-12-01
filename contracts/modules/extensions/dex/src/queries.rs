@@ -1,4 +1,4 @@
-use abstract_sdk::base::features::AbstractNameServiceProvider;
+use abstract_sdk::base::features::AbstractNameServiceClient;
 use abstract_sdk::os::{
     dex::{OfferAsset, SimulateSwapResponse},
     objects::AssetEntry,
