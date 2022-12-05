@@ -20,6 +20,8 @@ use super::{common_integration::NativeContracts, instantiate::init_native_contra
 /// - Module Factory
 /// - Version Control
 /// - Os Factory
+///
+/// Returns: (Map<module_id, code_id>,  NativeContracts)
 pub fn upload_base_contracts(app: &mut App) -> (HashMap<String, u64>, NativeContracts) {
     let mut code_ids: HashMap<String, u64> = HashMap::new();
     let mut modules: HashMap<String, ModuleReference> = HashMap::new();

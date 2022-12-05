@@ -10,7 +10,7 @@ use cw_multi_test::{App, ContractWrapper, Executor};
 
 use super::{
     common::{DEFAULT_VERSION, TEST_CREATOR},
-    testing_infrastructure::env::{get_os_state, mock_app, register_extension, AbstractEnv},
+    testing_infrastructure::env::{get_os_modules, mock_app, register_extension, AbstractEnv},
 };
 
 pub fn register_and_create_dex_extension(
@@ -59,7 +59,7 @@ fn proper_initialization() {
     let sender = Addr::unchecked(TEST_CREATOR);
     let env = AbstractEnv::new(&mut app, &sender);
 
-    let os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
+    let os_state = get_os_modules(&app, &env.os_store, &0u32).unwrap();
 
     // OS 0 has proxy and subscriber module
     assert_eq!(os_state.len(), 2);
@@ -102,7 +102,7 @@ fn proper_initialization() {
     )
     .unwrap();
 
-    let _os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
+    let _os_state = get_os_modules(&app, &env.os_store, &0u32).unwrap();
 
     let _resp: abstract_sdk::os::version_control::ModuleResponse = app
         .wrap()
@@ -125,7 +125,7 @@ fn proper_initialization() {
     )
     .unwrap();
 
-    let _os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
+    let _os_state = get_os_modules(&app, &env.os_store, &0u32).unwrap();
 
     register_and_create_dex_extension(
         &mut app,

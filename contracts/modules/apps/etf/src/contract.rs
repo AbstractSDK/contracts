@@ -1,7 +1,7 @@
-use cosmwasm_std::{Empty, Response};
+use cosmwasm_std::{DepsMut, Empty, Env, Reply, Response};
 use cw20::Cw20ReceiveMsg;
 
-use abstract_app::{export_endpoints, AppContract};
+use abstract_app::{AppContract, export_endpoints};
 use abstract_sdk::os::etf::{EtfExecuteMsg, EtfInstantiateMsg, EtfQueryMsg};
 use abstract_sdk::os::ETF;
 
@@ -19,7 +19,7 @@ pub type EtfApp =
     AppContract<EtfError, EtfExecuteMsg, EtfInstantiateMsg, EtfQueryMsg, Empty, Cw20ReceiveMsg>;
 pub type EtfResult = Result<Response, EtfError>;
 
-const ETF_ADDON: EtfApp = EtfApp::new(ETF, CONTRACT_VERSION)
+pub const ETF_ADDON: EtfApp = EtfApp::new(ETF, CONTRACT_VERSION)
     .with_instantiate(handlers::instantiate_handler)
     .with_execute(handlers::execute_handler)
     .with_query(handlers::query_handler)

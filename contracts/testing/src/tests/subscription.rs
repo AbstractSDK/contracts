@@ -23,7 +23,7 @@ use crate::tests::{
 
 use super::{
     common::{DEFAULT_VERSION, TEST_CREATOR},
-    testing_infrastructure::env::{get_os_state, init_os, mock_app, register_app, AbstractEnv},
+    testing_infrastructure::env::{get_os_modules, init_os, mock_app, register_app, AbstractEnv},
 };
 
 pub fn register_subscription(
@@ -55,7 +55,7 @@ fn proper_initialization() {
     let sender = Addr::unchecked(TEST_CREATOR);
     let env = AbstractEnv::new(&mut app, &sender);
 
-    let os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
+    let os_state = get_os_modules(&app, &env.os_store, &0u32).unwrap();
 
     // OS 0 has proxy and subscriber module
     assert_eq!(os_state.len(), 2);
@@ -127,7 +127,7 @@ fn add_and_remove_contributors() {
 
     let mut env = AbstractEnv::new(&mut app, &sender);
 
-    let os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
+    let os_state = get_os_modules(&app, &env.os_store, &0u32).unwrap();
 
     // OS 0 has proxy and subscriber module
     assert_eq!(os_state.len(), 2);

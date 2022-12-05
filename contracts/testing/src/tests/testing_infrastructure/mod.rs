@@ -4,6 +4,7 @@ mod module_uploader;
 mod os_creation;
 mod upload;
 mod verify;
+pub(crate) mod module_installer;
 
 pub mod env {
     use std::collections::HashMap;
@@ -16,7 +17,7 @@ pub mod env {
     };
     use anyhow::Result as AnyResult;
     use cosmwasm_std::{attr, to_binary, Addr, Uint128};
-    use cw_multi_test::{App, AppResponse, Executor};
+    use cw_multi_test::{App, AppResponse, Executor, next_block};
     use serde::Serialize;
     pub struct AbstractEnv {
         pub native_contracts: NativeContracts,
@@ -33,10 +34,7 @@ pub mod env {
 
             init_primary_os(app, sender, &native_contracts, &mut os_store).unwrap();
 
-            app.update_block(|b| {
-                b.time = b.time.plus_seconds(6);
-                b.height += 1;
-            });
+            app.update_block(next_block);
 
             AbstractEnv {
                 native_contracts,
@@ -46,7 +44,8 @@ pub mod env {
         }
     }
 
-    pub fn get_os_state(
+    /// Returns a map of the module_ids to their address in the OS
+    pub fn get_os_modules(
         app: &App,
         os_store: &HashMap<u32, Core>,
         os_id: &u32,

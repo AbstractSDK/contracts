@@ -28,12 +28,14 @@ use super::common_integration::NativeContracts;
 
 use super::{upload::upload_base_contracts, verify::os_store_as_expected};
 
+/// Creates a new OS and returns the ID
 pub fn init_os(
     app: &mut App,
     sender: &Addr,
     native_contracts: &NativeContracts,
     os_store: &mut HashMap<u32, Core>,
-) -> AnyResult<()> {
+) -> AnyResult<u32> {
+    // Funds to create an OS. The first OS is free
     let funds = if os_store.is_empty() {
         vec![]
     } else {
@@ -68,7 +70,8 @@ pub fn init_os(
 
     os_store.insert(os_id, core.os_core);
     assert!(os_store_as_expected(app, native_contracts, os_store));
-    Ok(())
+
+    Ok(os_id)
 }
 
 /// Instantiate the first OS which has the subscriber module.
