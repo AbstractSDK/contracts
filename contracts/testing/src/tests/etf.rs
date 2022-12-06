@@ -15,6 +15,7 @@ use cw_multi_test::{App, Contract, ContractWrapper, Executor};
 use abstract_os::app::{BaseInstantiateMsg, InstantiateMsg};
 use abstract_os::version_control::Core;
 use etf::contract::{ETF_ADDON, EtfResult};
+use etf::contract as etf_contract_mod;
 
 use crate::tests::{
     common::{DEFAULT_PAY, RANDOM_USER, SUBSCRIPTION_COST},
@@ -27,19 +28,9 @@ use super::{
     common::{DEFAULT_VERSION, TEST_CREATOR},
     testing_infrastructure::env::{AbstractEnv, get_os_modules, init_os, mock_app, register_app},
 };
+use abstract_app::{AppContract, export_test_contract};
 
-pub fn etf_contract() -> Box<dyn Contract<Empty>> {
-    Box::new(
-        ContractWrapper::new_with_empty(
-            etf::contract::execute,
-            etf::contract::instantiate,
-            etf::contract::query,
-        )
-            .with_migrate_empty(etf::contract::migrate)
-            .with_reply(etf::contract::reply),
-    )
-}
-
+export_test_contract!(etf::contract, etf_contract);
 
 pub fn register_etf(
     app: &mut App,

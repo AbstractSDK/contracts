@@ -12,6 +12,8 @@ pub mod features;
 pub(crate) mod handler;
 mod schema;
 pub mod state;
+mod multi_test_contract;
+
 // #[cfg(test)]
 // mod testing;
 // Default to Empty

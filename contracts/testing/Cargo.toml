@@ -38,6 +38,7 @@ cw-asset= {workspace = true}
 cosmwasm-std = { workspace = true }
 abstract-os = {workspace = true}
 abstract-sdk = {workspace = true}
+abstract-app = {workspace = true}
 cw-multi-test = {workspace = true}
 anyhow = "1.0.57"
 proxy = { path = "../core/proxy" }
