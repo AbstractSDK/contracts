@@ -51,7 +51,7 @@ pub fn instantiate_handler(
                 marketing: None,
             })?,
             funds: vec![],
-            label: "White Whale Vault LP".to_string(),
+            label: "Abstract ETF LP Token".to_string(),
         }
         .into(),
         gas_limit: None,

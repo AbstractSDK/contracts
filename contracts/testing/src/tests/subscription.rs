@@ -14,7 +14,7 @@ use anyhow::Result as AnyResult;
 use cosmwasm_std::{Addr, Decimal, Uint128};
 use cw_asset::AssetInfoBase;
 use cw_controllers::AdminError;
-use cw_multi_test::{App, ContractWrapper, Executor};
+use cw_multi_test::{App, Executor};
 use abstract_app::export_test_contract;
 
 use crate::tests::{

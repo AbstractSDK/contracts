@@ -233,6 +233,8 @@ pub fn try_withdraw_liquidity(
         .add_attributes(attrs))
 }
 
+/// Set the fee for the ETF
+/// @todo: InvalidFee error
 fn set_fee(deps: DepsMut, msg_info: MessageInfo, dapp: EtfApp, new_fee: Decimal) -> EtfResult {
     // Only the admin should be able to call this
     dapp.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;

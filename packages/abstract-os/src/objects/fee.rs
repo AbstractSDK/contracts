@@ -12,6 +12,7 @@ pub struct Fee {
 }
 
 impl Fee {
+    // TODO: More precise Error
     pub fn new(share: Decimal) -> StdResult<Self> {
         if share >= Decimal::percent(100) {
             return Err(StdError::generic_err("fee share must be lesser than 100%"));

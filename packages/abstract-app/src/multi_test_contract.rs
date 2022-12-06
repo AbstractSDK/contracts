@@ -1,22 +1,22 @@
 /// Macro for generating the mock contract implementation.
 /// Example:
 /// ```
-/// export_test_contract!(etf::contract, etf_contract);
+///// abstract_app::export_test_contract!(abstract_os::etf::contract, etf_contract);
 ///```
 /// translates to:
-/// ```
-/// /// Mock Contract Return
-/// pub fn etf_contract() -> Box<dyn cw_multi_test::Contract<cosmwasm_std::Empty>> {
-///     Box::new(
-///         cw_multi_test::ContractWrapper::new_with_empty(
-///             etf::contract::execute,
-///             etf::contract::instantiate,
-///             etf::contract::query,
-///         )
-///         .with_migrate_empty(etf::contract::migrate)
-///         .with_reply(etf::contract::reply),
-///     )
-/// }
+///```
+// /// // /// Mock Contract Return
+// /// pub fn etf_contract() -> Box<dyn cw_multi_test::Contract<cosmwasm_std::Empty>> {
+// ///     Box::new(
+// ///         cw_multi_test::ContractWrapper::new_with_empty(
+// ///             etf::contract::execute,
+// ///             etf::contract::instantiate,
+// ///             etf::contract::query,
+// ///         )
+// ///         .with_migrate_empty(etf::contract::migrate)
+// ///         .with_reply(etf::contract::reply),
+// ///     )
+// /// }
 /// ```
 #[macro_export]
 macro_rules! export_test_contract {
