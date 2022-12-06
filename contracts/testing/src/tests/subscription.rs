@@ -15,6 +15,7 @@ use cosmwasm_std::{Addr, Decimal, Uint128};
 use cw_asset::AssetInfoBase;
 use cw_controllers::AdminError;
 use cw_multi_test::{App, ContractWrapper, Executor};
+use abstract_app::export_test_contract;
 
 use crate::tests::{
     common::{DEFAULT_PAY, RANDOM_USER, SUBSCRIPTION_COST},
@@ -25,6 +26,8 @@ use super::{
     common::{DEFAULT_VERSION, TEST_CREATOR},
     testing_infrastructure::env::{get_os_modules, init_os, mock_app, register_app, AbstractEnv},
 };
+
+export_test_contract!(subscription::contract, subscription_contract);
 
 pub fn register_subscription(
     app: &mut App,
@@ -37,14 +40,7 @@ pub fn register_subscription(
     )
     .unwrap();
 
-    let contract = Box::new(
-        ContractWrapper::new_with_empty(
-            subscription::contract::execute,
-            subscription::contract::instantiate,
-            subscription::contract::query,
-        )
-        .with_migrate_empty(subscription::contract::migrate),
-    );
+    let contract = subscription_contract();
     register_app(app, sender, version_control, module, contract).unwrap();
     Ok(())
 }
