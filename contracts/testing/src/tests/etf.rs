@@ -3,54 +3,41 @@ use std::str::FromStr;
 use abstract_os::{app, ETF};
 use abstract_sdk::os::{
     etf as msgs,
-    etf::state,
     objects::module::{ModuleInfo, ModuleVersion},
-    SUBSCRIPTION,
 };
 use anyhow::Result as AnyResult;
-use cosmwasm_std::{Addr, Decimal, DepsMut, Empty, Env, Reply, Uint128};
-use cw_asset::{AssetInfo, AssetInfoBase};
-use cw_controllers::AdminError;
-use cw_multi_test::{App, Contract, ContractWrapper, Executor};
-use abstract_os::app::{BaseInstantiateMsg, InstantiateMsg};
-use abstract_os::version_control::Core;
-use etf::contract::{ETF_ADDON, EtfResult};
-use etf::contract as etf_contract_mod;
+use cosmwasm_std::{Addr, Decimal};
 
-use crate::tests::{
-    common::{DEFAULT_PAY, RANDOM_USER, SUBSCRIPTION_COST},
-    testing_infrastructure::env::{exec_msg_on_manager, mint_tokens},
-};
+use abstract_os::app::{BaseInstantiateMsg, InstantiateMsg};
+use cw_multi_test::App;
+
 use crate::tests::testing_infrastructure::env::NativeContracts;
 use crate::tests::testing_infrastructure::module_installer::install_module;
 
 use super::{
     common::{DEFAULT_VERSION, TEST_CREATOR},
-    testing_infrastructure::env::{AbstractEnv, get_os_modules, init_os, mock_app, register_app},
+    testing_infrastructure::env::{get_os_modules, init_os, mock_app, register_app, AbstractEnv},
 };
-use abstract_app::{AppContract, export_test_contract};
+use abstract_app::export_test_contract;
 
 export_test_contract!(etf::contract, etf_contract);
 
-pub fn register_etf(
-    app: &mut App,
-    sender: &Addr,
-    version_control: &Addr,
-) -> AnyResult<()> {
-    let module_info = ModuleInfo::from_id(
-        ETF,
-        ModuleVersion::Version(DEFAULT_VERSION.to_string()),
-    )
-    .unwrap();
+pub fn register_etf(app: &mut App, sender: &Addr, version_control: &Addr) -> AnyResult<()> {
+    let module_info =
+        ModuleInfo::from_id(ETF, ModuleVersion::Version(DEFAULT_VERSION.to_string())).unwrap();
 
     register_app(app, sender, version_control, module_info, etf_contract()).unwrap();
     Ok(())
 }
 
-const TEST_TOKEN_NAME: &'static str = "Test";
-const TEST_TOKEN_SYMBOL: &'static str = "TEST";
+const TEST_TOKEN_NAME: &str = "Test";
+const TEST_TOKEN_SYMBOL: &str = "TEST";
 
-pub fn etf_init_msg(token_code_id: u64, provider_addr: String, fee: Decimal) -> msgs::EtfInstantiateMsg {
+pub fn etf_init_msg(
+    token_code_id: u64,
+    provider_addr: String,
+    fee: Decimal,
+) -> msgs::EtfInstantiateMsg {
     msgs::EtfInstantiateMsg {
         token_code_id,
         fee,
@@ -60,7 +47,10 @@ pub fn etf_init_msg(token_code_id: u64, provider_addr: String, fee: Decimal) -> 
     }
 }
 
-pub fn app_init_msg(native_contracts: &NativeContracts, etf_init_msg: msgs::EtfInstantiateMsg) -> InstantiateMsg<msgs::EtfInstantiateMsg> {
+pub fn app_init_msg(
+    native_contracts: &NativeContracts,
+    etf_init_msg: msgs::EtfInstantiateMsg,
+) -> InstantiateMsg<msgs::EtfInstantiateMsg> {
     InstantiateMsg {
         base: BaseInstantiateMsg {
             ans_host_address: native_contracts.ans_host.to_string(),
@@ -78,10 +68,7 @@ pub fn install_etf(
 ) -> AnyResult<()> {
     let app_init_msg = app_init_msg(&env.native_contracts, etf_init_msg);
 
-    let etf_module = ModuleInfo::from_id(
-        ETF,
-        ModuleVersion::Latest {},
-    )?;
+    let etf_module = ModuleInfo::from_id(ETF, ModuleVersion::Latest {})?;
 
     let os_core = env.os_store.get(os_id).unwrap();
 
@@ -108,7 +95,11 @@ fn proper_initialization() {
     assert_eq!(installed_modules.len(), 1);
 
     let expected_fee = Decimal::from_str("0.01").unwrap();
-    let etf_init_msg = etf_init_msg(*env.code_ids.get("cw_plus:cw20").unwrap(), TEST_CREATOR.to_string(), expected_fee);
+    let etf_init_msg = etf_init_msg(
+        *env.code_ids.get("cw_plus:cw20").unwrap(),
+        TEST_CREATOR.to_string(),
+        expected_fee,
+    );
 
     // Install the ETF module
     install_etf(&mut app, &sender, &env, &test_os_id, etf_init_msg).unwrap();
@@ -122,10 +113,7 @@ fn proper_initialization() {
 
     let state: msgs::StateResponse = app
         .wrap()
-        .query_wasm_smart(
-            etf_addr,
-            &app::QueryMsg::App(msgs::EtfQueryMsg::State {}),
-        )
+        .query_wasm_smart(etf_addr, &app::QueryMsg::App(msgs::EtfQueryMsg::State {}))
         .unwrap();
 
     // Ensure that the liquidity token contract is a cw20 and has the proper name

@@ -10,9 +10,9 @@ pub mod error;
 /// Abstract SDK trait implementations
 pub mod features;
 pub(crate) mod handler;
+mod multi_test_contract;
 mod schema;
 pub mod state;
-mod multi_test_contract;
 
 // #[cfg(test)]
 // mod testing;

@@ -1,10 +1,10 @@
 mod common_integration;
 mod instantiate;
+pub(crate) mod module_installer;
 mod module_uploader;
 mod os_creation;
 mod upload;
 mod verify;
-pub(crate) mod module_installer;
 
 pub mod env {
     use std::collections::HashMap;
@@ -17,7 +17,7 @@ pub mod env {
     };
     use anyhow::Result as AnyResult;
     use cosmwasm_std::{attr, to_binary, Addr, Uint128};
-    use cw_multi_test::{App, AppResponse, Executor, next_block};
+    use cw_multi_test::{next_block, App, AppResponse, Executor};
     use serde::Serialize;
     pub struct AbstractEnv {
         pub native_contracts: NativeContracts,
