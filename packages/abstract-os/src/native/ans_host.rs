@@ -8,13 +8,13 @@
 use cosmwasm_schema::QueryResponses;
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 
+use crate::objects::pool_id::{PoolId, UncheckedPoolId};
 use crate::objects::{
     asset_entry::AssetEntry,
     contract_entry::{ContractEntry, UncheckedContractEntry},
-    ChannelEntry, UncheckedChannelEntry,
     pool_info::PoolMetadata,
+    ChannelEntry, UncheckedChannelEntry,
 };
-use crate::objects::pool_id::{PoolId, UncheckedPoolId};
 
 pub type UniqueId = u64;
 pub type AssetPair = (String, String);
@@ -22,18 +22,17 @@ type DexName = String;
 pub type DexAssetPairing = (String, String, DexName);
 pub type CompoundPoolId = (UniqueId, PoolId);
 
-
 /// AnsHost state details
 pub mod state {
+    use crate::ans_host::{CompoundPoolId, DexAssetPairing, UniqueId};
     use cosmwasm_std::Addr;
     use cw_asset::AssetInfo;
     use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
-    use crate::ans_host::{AssetPair, DexAssetPairing, CompoundPoolId, UniqueId};
 
     use crate::objects::{
         asset_entry::AssetEntry, common_namespace::ADMIN_NAMESPACE, contract_entry::ContractEntry,
-        ChannelEntry, pool_info::PoolMetadata,
+        pool_info::PoolMetadata, ChannelEntry,
     };
 
     /// Ans host configuration
@@ -65,7 +64,6 @@ pub mod state {
     /// Stores the metadata for the pools
     pub const POOL_METADATA: Map<UniqueId, PoolMetadata> = Map::new("pools");
 }
-
 
 /// AnsHost Instantiate msg
 #[cosmwasm_schema::cw_serde]

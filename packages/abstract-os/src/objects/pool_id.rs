@@ -1,5 +1,4 @@
 use cosmwasm_std::{Addr, Api, StdError, StdResult};
-use cw_storage_plus::{KeyDeserialize, PrimaryKey};
 
 use std::fmt;
 

@@ -1,6 +1,5 @@
-use crate::objects::pool_id::{PoolIdBase, UncheckedPoolId};
 use crate::objects::pool_type::PoolType;
-use cosmwasm_std::{Addr, Api, StdError, StdResult};
+use cosmwasm_std::StdError;
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -9,7 +8,7 @@ use std::str::FromStr;
 
 type DexName = String;
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct PoolMetadata {
     pub dex: DexName,
     pub pool_type: PoolType,
@@ -35,9 +34,16 @@ impl FromStr for PoolMetadata {
 
         let dex = String::from(attributes[0]);
         let pool_type = PoolType::from_str(attributes[1])?;
-        let assets = String::from(attributes[2]).split(ASSET_SEPARATOR).map(String::from).collect();
+        let assets = String::from(attributes[2])
+            .split(ASSET_SEPARATOR)
+            .map(String::from)
+            .collect();
 
-        Ok(PoolMetadata { dex, pool_type, assets })
+        Ok(PoolMetadata {
+            dex,
+            pool_type,
+            assets,
+        })
     }
 }
 
@@ -48,6 +54,10 @@ impl fmt::Display for PoolMetadata {
         let assets_str = self.assets.join(ASSET_SEPARATOR);
         let pool_type_str = self.pool_type.to_string();
 
-        write!(f, "{}", vec![self.dex.clone(), pool_type_str, assets_str].join(ATTTRIBUTE_SEPARATOR))
+        write!(
+            f,
+            "{}",
+            vec![self.dex.clone(), pool_type_str, assets_str].join(ATTTRIBUTE_SEPARATOR)
+        )
     }
 }

@@ -1,13 +1,13 @@
-use cosmwasm_std::{Env, StdError, Storage};
 use cosmwasm_std::{Addr, DepsMut, Empty, MessageInfo, Response, StdResult};
+use cosmwasm_std::{Env, StdError, Storage};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 
-use abstract_os::ans_host::{AssetPair, CompoundPoolId, DexAssetPairing, ExecuteMsg, UniqueId};
 use abstract_os::ans_host::state::*;
+use abstract_os::ans_host::{AssetPair, CompoundPoolId, DexAssetPairing, ExecuteMsg, UniqueId};
 use abstract_os::dex::DexName;
-use abstract_os::objects::{UncheckedChannelEntry, UncheckedContractEntry};
 use abstract_os::objects::pool_id::{PoolId, UncheckedPoolId};
 use abstract_os::objects::pool_info::PoolMetadata;
+use abstract_os::objects::{UncheckedChannelEntry, UncheckedContractEntry};
 
 use crate::contract::AnsHostResult;
 use crate::error::AnsHostError;
@@ -15,7 +15,7 @@ use crate::error::AnsHostError::InvalidAssetCount;
 
 /// Handles the common base execute messages
 pub fn handle_message(
-    mut deps: DepsMut,
+    deps: DepsMut,
     info: MessageInfo,
     _env: Env,
     message: ExecuteMsg,
@@ -37,7 +37,6 @@ pub fn handle_message(
         }
     }
 }
-
 
 //----------------------------------------------------------------------------------------
 //  GOVERNANCE CONTROLLED SETTERS
@@ -145,10 +144,14 @@ fn register_dex(deps: DepsMut, info: MessageInfo, name: String) -> AnsHostResult
     Ok(Response::new().add_attribute("action", "registered dex"))
 }
 
-
 const MAX_POOL_ASSETS: u8 = 5;
 
-fn update_pools(deps: DepsMut, info: MessageInfo, to_add: Vec<(UncheckedPoolId, PoolMetadata)>, to_remove: Vec<UniqueId>) -> AnsHostResult {
+fn update_pools(
+    deps: DepsMut,
+    info: MessageInfo,
+    to_add: Vec<(UncheckedPoolId, PoolMetadata)>,
+    to_remove: Vec<UniqueId>,
+) -> AnsHostResult {
     // Only Admin can call this method
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
 
@@ -193,9 +196,12 @@ fn update_pools(deps: DepsMut, info: MessageInfo, to_add: Vec<(UncheckedPoolId, 
     Ok(Response::new().add_attribute("action", "updated pools"))
 }
 
-
 // Execute an action on every asset pairing in the list of assets
-fn exec_on_asset_pairings<T, A, E>(assets: &[String], mut action: A) -> StdResult<()> where A: FnMut(AssetPair) -> Result<T, E>, StdError: From<E> {
+fn exec_on_asset_pairings<T, A, E>(assets: &[String], mut action: A) -> StdResult<()>
+where
+    A: FnMut(AssetPair) -> Result<T, E>,
+    StdError: From<E>,
+{
     for (i, asset_x) in assets.iter().enumerate() {
         for (j, asset_y) in assets.iter().enumerate() {
             // Skip self-pairings
@@ -209,7 +215,13 @@ fn exec_on_asset_pairings<T, A, E>(assets: &[String], mut action: A) -> StdResul
     Ok(())
 }
 
-fn register_pool_pairings(storage: &mut dyn Storage, next_pool_id: UniqueId, pool_id: PoolId, assets: &[String], dex: &DexName) -> StdResult<()> {
+fn register_pool_pairings(
+    storage: &mut dyn Storage,
+    next_pool_id: UniqueId,
+    pool_id: PoolId,
+    assets: &[String],
+    dex: &DexName,
+) -> StdResult<()> {
     let register_pairing = |(asset_x, asset_y)| {
         let key: DexAssetPairing = (asset_x, asset_y, dex.clone());
         let compound_pool_id: CompoundPoolId = (next_pool_id, pool_id.clone());
@@ -222,8 +234,12 @@ fn register_pool_pairings(storage: &mut dyn Storage, next_pool_id: UniqueId, poo
 
 /// Register an asset pairing to its pool id
 /// We ignore any duplicates, which is why we don't check for them
-fn register_asset_pairing(storage: &mut dyn Storage, pair: DexAssetPairing, compound_pool_id: CompoundPoolId) -> Result<Vec<CompoundPoolId>, StdError> {
-    let insert = |ids: Option<Vec<CompoundPoolId>>| -> StdResult<Vec<CompoundPoolId>> {
+fn register_asset_pairing(
+    storage: &mut dyn Storage,
+    pair: DexAssetPairing,
+    compound_pool_id: CompoundPoolId,
+) -> Result<Vec<CompoundPoolId>, StdError> {
+    let insert = |ids: Option<Vec<CompoundPoolId>>| -> StdResult<_> {
         let mut ids = ids.unwrap_or_default();
 
         ids.push(compound_pool_id);
@@ -233,8 +249,11 @@ fn register_asset_pairing(storage: &mut dyn Storage, pair: DexAssetPairing, comp
     PAIR_TO_POOL_ID.update(storage, pair, insert)
 }
 
-
-fn remove_pool_pairings(storage: &mut dyn Storage, unique_pool_id: UniqueId, pool: &PoolMetadata) -> StdResult<()> {
+fn remove_pool_pairings(
+    storage: &mut dyn Storage,
+    unique_pool_id: UniqueId,
+    pool: &PoolMetadata,
+) -> StdResult<()> {
     let remove_pairing = |(asset_x, asset_y)| -> Result<(), StdError> {
         let key: DexAssetPairing = (asset_x, asset_y, pool.dex.clone());
 
@@ -255,7 +274,6 @@ fn remove_pool_pairings(storage: &mut dyn Storage, unique_pool_id: UniqueId, poo
 
     exec_on_asset_pairings(&pool.assets, remove_pairing)
 }
-
 
 fn validate_pool_assets(assets: &[String]) -> Result<(), AnsHostError> {
     if assets.is_empty() || assets.len() > MAX_POOL_ASSETS as usize {
