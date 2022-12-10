@@ -41,7 +41,7 @@ pub mod state {
     pub const CHANNELS: Map<ChannelEntry, String> = Map::new("channels");
 
     /// Stores the registered dex names
-    pub const REGSISTERED_DEXES: Item<Vec<String>> = Item::new("registered_dexes");
+    pub const REGISTERED_DEXES: Item<Vec<String>> = Item::new("registered_dexes");
 
     /// Stores asset pairs to their pools
     pub const PAIR_TO_POOL_IDS: Map<(AssetEntry, AssetEntry), Vec<UniqueId>> = Map::new("pairs");
@@ -77,6 +77,11 @@ pub enum ExecuteMsg {
         to_add: Vec<(UncheckedChannelEntry, String)>,
         /// Assets to remove
         to_remove: Vec<UncheckedChannelEntry>,
+    },
+    /// Registers a dex
+    RegisterDex {
+        /// Name of the dex
+        name: String,
     },
     /// Sets a new Admin
     SetAdmin { admin: String },
@@ -128,6 +133,10 @@ pub enum QueryMsg {
         page_token: Option<ChannelEntry>,
         page_size: Option<u8>,
     },
+    /// Retrieve the registered dexes
+    /// returns [`RegisteredDexesResponse`]
+    #[returns(RegisteredDexesResponse)]
+    RegisteredDexes {},
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -166,4 +175,9 @@ pub struct ChannelsResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct ChannelListResponse {
     pub channels: Vec<(ChannelEntry, String)>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct RegisteredDexesResponse {
+    pub dexes: Vec<String>,
 }

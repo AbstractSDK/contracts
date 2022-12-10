@@ -50,6 +50,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             page_token,
             page_size,
         } => queries::query_channel_list(deps, page_token, page_size),
+        QueryMsg::RegisteredDexes {} => queries::query_registered_dexes(deps, env),
     }
 }
 

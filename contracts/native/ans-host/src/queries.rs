@@ -2,7 +2,7 @@ use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, StdResult};
 
 use abstract_os::{
     ans_host::{
-        state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES},
+        state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES, REGISTERED_DEXES},
         AssetListResponse, AssetsResponse, ChannelListResponse, ChannelsResponse,
         ContractListResponse, ContractsResponse,
     },
@@ -10,6 +10,7 @@ use abstract_os::{
 };
 use cw_asset::AssetInfo;
 use cw_storage_plus::Bound;
+use abstract_os::ans_host::RegisteredDexesResponse;
 
 const DEFAULT_LIMIT: u8 = 15;
 const MAX_LIMIT: u8 = 25;
@@ -92,4 +93,12 @@ pub fn query_channel_list(
         .take(limit)
         .collect();
     to_binary(&ChannelListResponse { channels: res? })
+}
+
+pub fn query_registered_dexes(deps: Deps, _env: Env) -> StdResult<Binary> {
+    let dexes = REGISTERED_DEXES.load(deps.storage)?;
+
+    to_binary(&RegisteredDexesResponse {
+        dexes
+    })
 }

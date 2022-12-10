@@ -1,5 +1,5 @@
 use abstract_os::objects::{UncheckedChannelEntry, UncheckedContractEntry};
-use cosmwasm_std::Env;
+use cosmwasm_std::{Env, StdError};
 use cosmwasm_std::{Addr, DepsMut, Empty, MessageInfo, Response, StdResult};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 
@@ -25,6 +25,7 @@ pub fn handle_message(
         ExecuteMsg::UpdateChannels { to_add, to_remove } => {
             update_channels(deps, info, to_add, to_remove)
         }
+        ExecuteMsg::RegisterDex { name } => register_dex(deps, info, name),
     }
 }
 
@@ -109,6 +110,29 @@ pub fn update_channels(
     }
 
     Ok(Response::new().add_attribute("action", "updated contract addresses"))
+}
+
+/// Registers a new dex to the list of known dexes
+fn register_dex(deps: DepsMut, info: MessageInfo, name: String) -> AnsHostResult {
+    // Only Admin can call this method
+    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
+
+    let register = |dexes: Vec<String>| -> StdResult<Vec<String>> {
+        if dexes.contains(&name) {
+            return Err(StdError::generic_err(format!(
+                "Dex {} is already registered",
+                name
+            )));
+        }
+
+        let mut dexes = dexes;
+        dexes.push(name);
+        Ok(dexes)
+    };
+
+    REGISTERED_DEXES.update(deps.storage, register)?;
+
+    Ok(Response::new().add_attribute("action", "registered dex"))
 }
 
 pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> AnsHostResult {
