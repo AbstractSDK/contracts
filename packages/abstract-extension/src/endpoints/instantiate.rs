@@ -1,4 +1,4 @@
-use abstract_sdk::os::extension::InstantiateMsg;
+use abstract_sdk::{os::extension::InstantiateMsg, ApplicationInterface};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 use abstract_sdk::{
@@ -48,6 +48,10 @@ impl<
         let Some(handler) = self.maybe_instantiate_handler() else {
             return Ok(Response::new())
         };
+
+        // Ensure dependencies are installed
+        self.applications(deps.as_ref()).assert_dependencies()?;
+
         handler(deps, env, info, self, msg.app)
     }
 }
