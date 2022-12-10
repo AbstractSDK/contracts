@@ -8,6 +8,9 @@ pub(crate) mod channel_entry;
 pub mod common_namespace;
 pub(crate) mod contract_entry;
 
+pub mod pool_id;
+pub mod pool_info;
+
 pub mod core;
 pub mod deposit_info;
 pub mod deposit_manager;

@@ -19,12 +19,14 @@ pub mod state {
     use cosmwasm_std::Addr;
     use cw_asset::AssetInfo;
     use cw_controllers::Admin;
-    use cw_storage_plus::Map;
+    use cw_storage_plus::{Item, Map};
 
     use crate::objects::{
         asset_entry::AssetEntry, common_namespace::ADMIN_NAMESPACE, contract_entry::ContractEntry,
-        ChannelEntry,
+        ChannelEntry, pool_info::Pool,
     };
+
+    type UniqueId = u64;
 
     /// Admin address store
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
@@ -33,12 +35,19 @@ pub mod state {
     pub const ASSET_ADDRESSES: Map<AssetEntry, AssetInfo> = Map::new("assets");
 
     /// Stores contract addresses
-    /// Pairs are stored here as (dex_name, pair_id)
-    /// pair_id is "asset1_asset2" where the asset names are sorted alphabetically.
     pub const CONTRACT_ADDRESSES: Map<ContractEntry, Addr> = Map::new("contracts");
 
     /// stores channel-ids
     pub const CHANNELS: Map<ChannelEntry, String> = Map::new("channels");
+
+    /// Stores the registered dex names
+    pub const REGSISTERED_DEXES: Item<Vec<String>> = Item::new("registered_dexes");
+
+    /// Stores asset pairs to their pools
+    pub const PAIR_TO_POOL_IDS: Map<(AssetEntry, AssetEntry), Vec<UniqueId>> = Map::new("pairs");
+
+    /// Stores the pool information
+    pub const POOL_INFO: Map<UniqueId, Pool> = Map::new("pool_info");
 }
 
 /// AnsHost Instantiate msg
