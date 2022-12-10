@@ -8,7 +8,7 @@ use crate::base::{
 
 use super::contract_base::{
     AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
-    MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn,
+    MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, Dependency,
 };
 pub trait Handler
 where
@@ -43,7 +43,7 @@ where
         contract.info
     }
 
-    fn dependencies(&self) -> &'static [&'static str] {
+    fn dependencies(&self) -> &'static [Dependency<'static>] {
         let contract = self.contract();
         contract.dependencies
     }

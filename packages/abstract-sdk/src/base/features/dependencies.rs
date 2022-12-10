@@ -1,13 +1,11 @@
-use os::manager::state::ModuleId;
-
-use crate::base::Handler;
+use crate::base::{Handler, contract_base::Dependency};
 
 pub trait Dependencies: Sized {
-    fn dependencies(&self) -> &[ModuleId];
+    fn dependencies<'a>(&self) -> &[Dependency<'a>];
 }
 
 impl<T: Handler> Dependencies for T {
-    fn dependencies(&self) -> &[ModuleId] {
+    fn dependencies<'a>(&self) -> &[Dependency<'a>] {
         Handler::dependencies(self)
     }
 }

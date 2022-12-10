@@ -4,10 +4,23 @@ use cosmwasm_std::{
 };
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Item;
+use os::manager::state::ModuleId;
+use semver::Comparator;
 
 use super::endpoints::migrate::{Name, VersionString};
 
 use super::handler::Handler;
+
+pub struct Dependency<'a>{
+    pub module_id: ModuleId<'a>, 
+    pub version_req: &'a [Comparator],
+}
+
+impl<'a> Dependency<'a> {
+    pub const fn new(module_id: ModuleId, version_requirement: &'a [Comparator]) -> Self {
+        Self { module_id, version_req: version_requirement }
+    }
+}
 
 pub type IbcCallbackHandlerFn<Module, Error> =
     fn(DepsMut, Env, MessageInfo, Module, String, StdAck) -> Result<Response, Error>;
@@ -44,7 +57,7 @@ pub struct AbstractContract<
     /// On-chain storage of the same info
     pub(crate) version: Item<'static, ContractVersion>,
     /// ID's that this contract depends on
-    pub(crate) dependencies: &'static [&'static str],
+    pub(crate) dependencies: &'static [Dependency<'static>],
     /// Expected callbacks following an IBC action
     pub(crate) ibc_callback_handlers:
         &'static [(&'static str, IbcCallbackHandlerFn<Module, Error>)],
@@ -105,7 +118,7 @@ where
         self.info
     }
     /// add dependencies to the contract
-    pub const fn with_dependencies(mut self, dependencies: &'static [&'static str]) -> Self {
+    pub const fn with_dependencies(mut self, dependencies: &'static [Dependency<'static>]) -> Self {
         self.dependencies = dependencies;
         self
     }
