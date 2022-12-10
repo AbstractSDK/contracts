@@ -83,7 +83,7 @@ pub fn execute_create_module(
             block_height,
             *code_id,
             root_init_msg.unwrap(),
-            None,
+            Some(core.manager),
             CREATE_PERK_RESPONSE_ID,
             new_module.info,
         ),
