@@ -78,7 +78,7 @@ pub fn execute_create_module(
                 })?,
             });
             Ok(Response::new().add_message(register_msg))
-        },
+        }
         ModuleReference::Standalone(code_id) => instantiate_contract(
             block_height,
             *code_id,
