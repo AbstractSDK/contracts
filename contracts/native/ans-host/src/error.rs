@@ -18,4 +18,7 @@ pub enum AnsHostError {
 
     #[error("{} assets is not within range [1-{}]", provided, max)]
     InvalidAssetCount { provided: usize, max: u8 },
+
+    #[error("Dex {} is not registered", dex)]
+    UnregisteredDex { dex: String },
 }

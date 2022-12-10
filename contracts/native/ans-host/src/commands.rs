@@ -157,6 +157,13 @@ fn update_pools(
 
     let mut unique_pool_id = CONFIG.load(deps.storage)?.next_unique_pool_id;
 
+    // only load dexes if necessary
+    let registered_dexes = if to_add.is_empty() {
+        vec![]
+    } else {
+        REGISTERED_DEXES.load(deps.storage)?
+    };
+
     for (pool_id, pool_metadata) in to_add.into_iter() {
         let pool_id = pool_id.check(deps.api)?;
 
@@ -168,6 +175,9 @@ fn update_pools(
         }
 
         let dex = pool_metadata.dex.clone();
+        if !registered_dexes.contains(&dex) {
+            return Err(AnsHostError::UnregisteredDex { dex });
+        }
 
         // Register each pair of assets as a pairing and link it to the pool id
         register_pool_pairings(deps.storage, unique_pool_id, pool_id, &assets, &dex)?;
