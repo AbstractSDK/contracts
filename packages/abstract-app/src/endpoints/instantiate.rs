@@ -3,7 +3,8 @@ use abstract_sdk::{
     os::{
         app::{BaseInstantiateMsg, InstantiateMsg},
         module_factory::{ContextResponse, QueryMsg as FactoryQuery},
-    }, ApplicationInterface,
+    },
+    ApplicationInterface,
 };
 use cosmwasm_std::{
     to_binary, DepsMut, Env, MessageInfo, QueryRequest, Response, StdError, WasmQuery,
