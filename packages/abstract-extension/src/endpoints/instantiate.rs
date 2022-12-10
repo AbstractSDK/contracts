@@ -45,13 +45,12 @@ impl<
         let (name, version) = self.info();
         set_contract_version(deps.storage, name, version)?;
         self.base_state.save(deps.storage, &state)?;
+        // Ensure dependencies are installed
+        self.applications(deps.as_ref()).assert_dependencies()?;
+        
         let Some(handler) = self.maybe_instantiate_handler() else {
             return Ok(Response::new())
         };
-
-        // Ensure dependencies are installed
-        self.applications(deps.as_ref()).assert_dependencies()?;
-
         handler(deps, env, info, self, msg.app)
     }
 }

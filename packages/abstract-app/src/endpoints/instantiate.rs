@@ -3,7 +3,7 @@ use abstract_sdk::{
     os::{
         app::{BaseInstantiateMsg, InstantiateMsg},
         module_factory::{ContextResponse, QueryMsg as FactoryQuery},
-    },
+    }, ApplicationInterface,
 };
 use cosmwasm_std::{
     to_binary, DepsMut, Env, MessageInfo, QueryRequest, Response, StdError, WasmQuery,
@@ -74,6 +74,9 @@ impl<
         set_contract_version(deps.storage, name, version)?;
         self.base_state.save(deps.storage, &state)?;
         self.admin.set(deps.branch(), Some(core.manager))?;
+        // Ensure dependencies are installed.
+        self.applications(deps.as_ref()).assert_dependencies()?;
+
         let Some(handler) = self.maybe_instantiate_handler() else {
             return Ok(Response::new())
         };
