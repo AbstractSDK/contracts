@@ -1,4 +1,5 @@
 use crate::objects::pool_id::{PoolIdBase, UncheckedPoolId};
+use crate::objects::pool_type::PoolType;
 use cosmwasm_std::{Addr, Api, StdError, StdResult};
 
 use schemars::JsonSchema;
@@ -9,108 +10,44 @@ use std::str::FromStr;
 type DexName = String;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct PoolBase<T> {
-    pub id: PoolIdBase<T>,
-    // TODO: use use something better than string
-    pub assets: String,
+pub struct PoolMetadata {
     pub dex: DexName,
+    pub pool_type: PoolType,
+    pub assets: Vec<String>,
 }
 
-impl<T> PoolBase<T> {
-    pub fn new<P: Into<PoolBase<T>>>(pool: P) -> Self {
-        pool.into()
-    }
-    pub fn contract<A: Into<T>, B: Into<String>>(contract: A, assets: String, dex: DexName) -> Self {
-        Self {
-            id: PoolIdBase::Contract(contract.into()),
-            assets,
-            dex,
-        }
-    }
-    pub fn id<N: Into<u64>>(id: N, assets: String, dex: DexName) -> Self {
-        Self {
-            id: PoolIdBase::Id(id.into()),
-            assets,
-            dex,
-        }
-    }
-}
+const ATTRIBUTE_COUNT: usize = 3;
+const ATTTRIBUTE_SEPARATOR: &str = ":";
+const ASSET_SEPARATOR: &str = "_";
 
-/// Actual instance of a Pool with verified data
-pub type Pool = PoolBase<Addr>;
-/// Instance of a Pool passed around messages
-pub type UncheckedPool = PoolBase<String>;
-
-impl FromStr for UncheckedPool {
+impl FromStr for PoolMetadata {
     type Err = StdError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let words: Vec<&str> = s.split(':').collect();
+        let attributes: Vec<&str> = s.split(ATTTRIBUTE_SEPARATOR).collect();
 
-        let id = match words[0] {
-            "contract" | "id" => {
-                if words.len() != 3 {
-                    return Err(StdError::generic_err(
-                        format!("invalid pool id format `{}`; must be in format `contract:{{contract_addr/id}}:{{assets}}`", s)
-                    ));
-                }
-                UncheckedPoolId::from_str(words[1])?
-            }
-            unknown => {
-                return Err(StdError::generic_err(format!(
-                    "invalid pool id type `{}`; must be `contract` or `id`",
-                    unknown
-                )))
-            }
-        };
-
-        let assets = String::from(words[1]);
-
-        let dex = String::from(words[words.len() - 1]);
-
-
-        Ok(UncheckedPool { id, assets, dex })
-    }
-}
-
-impl From<Pool> for UncheckedPool {
-    fn from(pool: Pool) -> Self {
-        UncheckedPool {
-            id: pool.id.into(),
-            assets: pool.assets,
-            dex: pool.dex,
+        if attributes.len() != ATTRIBUTE_COUNT {
+            return Err(StdError::generic_err(format!(
+                "invalid pool metadata format `{}`; must be in format `{{dex}}:{{pool_type}}:{{asset1}}_{{asset2}}_...`",
+                s
+            )));
         }
+
+        let dex = String::from(attributes[0]);
+        let pool_type = PoolType::from_str(attributes[1])?;
+        let assets = String::from(attributes[2]).split(ASSET_SEPARATOR).map(String::from).collect();
+
+        Ok(PoolMetadata { dex, pool_type, assets })
     }
 }
 
-impl UncheckedPool {
-    /// Validate data contained in an _unchecked_ **pool id** instance; return a new _checked_
-    /// **pool id** instance:
-    /// * For Contract addresses, assert its address is valid
-    ///
-    ///
-    /// ```rust
-    /// use cosmwasm_std::{Addr, Api, StdResult};
-    /// use abstract_os::objects::pool_info::UncheckedPool;
-    ///
-    /// fn validate_pool(api: &dyn Api, pool_unchecked: &UncheckedPool) {
-    ///     match pool_unchecked.check(api) {
-    ///         Ok(info) => println!("pool id is valid: {}", info.to_string()),
-    ///         Err(err) => println!("pool id is invalid! reason: {}", err),
-    ///     }
-    /// }
-    /// ```
-    pub fn check(&self, api: &dyn Api) -> StdResult<Pool> {
-        Ok(Pool {
-            id: self.id.check(api)?,
-            assets: self.assets.clone(),
-            dex: self.dex.clone(),
-        })
-    }
-}
-
-impl fmt::Display for Pool {
+/// To string
+/// Ex: "junoswap:stable:uusd,uust"
+impl fmt::Display for PoolMetadata {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}:{}", self.id, self.assets)
+        let assets_str = self.assets.join(ASSET_SEPARATOR);
+        let pool_type_str = self.pool_type.to_string();
+
+        write!(f, "{}", vec![self.dex.clone(), pool_type_str, assets_str].join(ATTTRIBUTE_SEPARATOR))
     }
 }

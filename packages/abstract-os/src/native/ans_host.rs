@@ -12,7 +12,16 @@ use crate::objects::{
     asset_entry::AssetEntry,
     contract_entry::{ContractEntry, UncheckedContractEntry},
     ChannelEntry, UncheckedChannelEntry,
+    pool_info::PoolMetadata,
 };
+use crate::objects::pool_id::{PoolId, UncheckedPoolId};
+
+pub type UniqueId = u64;
+pub type AssetPair = (String, String);
+type DexName = String;
+pub type DexAssetPairing = (String, String, DexName);
+pub type CompoundPoolId = (UniqueId, PoolId);
+
 
 /// AnsHost state details
 pub mod state {
@@ -20,13 +29,20 @@ pub mod state {
     use cw_asset::AssetInfo;
     use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
+    use crate::ans_host::{AssetPair, DexAssetPairing, CompoundPoolId, UniqueId};
 
     use crate::objects::{
         asset_entry::AssetEntry, common_namespace::ADMIN_NAMESPACE, contract_entry::ContractEntry,
-        ChannelEntry, pool_info::Pool,
+        ChannelEntry, pool_info::PoolMetadata,
     };
 
-    type UniqueId = u64;
+    /// Ans host configuration
+    #[cosmwasm_schema::cw_serde]
+    pub struct Config {
+        pub next_unique_pool_id: UniqueId,
+    }
+
+    pub const CONFIG: Item<Config> = Item::new("config");
 
     /// Admin address store
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
@@ -43,12 +59,13 @@ pub mod state {
     /// Stores the registered dex names
     pub const REGISTERED_DEXES: Item<Vec<String>> = Item::new("registered_dexes");
 
-    /// Stores asset pairs to their pools
-    pub const PAIR_TO_POOL_IDS: Map<(AssetEntry, AssetEntry), Vec<UniqueId>> = Map::new("pairs");
+    /// Stores (asset1, asset2, dex_name) -> (uniqueId, poolId)
+    pub const PAIR_TO_POOL_ID: Map<DexAssetPairing, Vec<CompoundPoolId>> = Map::new("pool_ids");
 
-    /// Stores the pool information
-    pub const POOL_INFO: Map<UniqueId, Pool> = Map::new("pool_info");
+    /// Stores the metadata for the pools
+    pub const POOL_METADATA: Map<UniqueId, PoolMetadata> = Map::new("pools");
 }
+
 
 /// AnsHost Instantiate msg
 #[cosmwasm_schema::cw_serde]
@@ -82,6 +99,13 @@ pub enum ExecuteMsg {
     RegisterDex {
         /// Name of the dex
         name: String,
+    },
+    /// Update the pools
+    UpdatePools {
+        /// Pools to update or add
+        to_add: Vec<(UncheckedPoolId, PoolMetadata)>,
+        /// Pools to remove
+        to_remove: Vec<UniqueId>,
     },
     /// Sets a new Admin
     SetAdmin { admin: String },

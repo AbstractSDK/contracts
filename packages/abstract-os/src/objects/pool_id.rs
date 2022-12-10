@@ -118,29 +118,3 @@ impl fmt::Display for PoolId {
         }
     }
 }
-
-impl<'a> PrimaryKey<'a> for UncheckedPoolId {
-    type Prefix = String;
-
-    type SubPrefix = ();
-
-    type Suffix = String;
-
-    type SuperSuffix = Self;
-
-    fn key(&self) -> Vec<cw_storage_plus::Key> {
-        match self {
-            UncheckedPoolId::Contract(contract_addr) => contract_addr.key(),
-            UncheckedPoolId::Id(id) => id.key(),
-        }
-    }
-}
-
-impl KeyDeserialize for UncheckedPoolId {
-    type Output = Self;
-
-    #[inline(always)]
-    fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
-        UncheckedPoolId::from_str(&String::from_vec(value)?)
-    }
-}

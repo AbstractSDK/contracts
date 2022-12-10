@@ -10,6 +10,7 @@ pub(crate) mod contract_entry;
 
 pub mod pool_id;
 pub mod pool_info;
+pub mod pool_type;
 
 pub mod core;
 pub mod deposit_info;

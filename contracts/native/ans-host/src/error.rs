@@ -15,4 +15,10 @@ pub enum AnsHostError {
 
     #[error("{} is not part of the provided pool", id)]
     NotInPool { id: String },
+
+    #[error("{} assets is not within range [1-{}]", provided, max)]
+    InvalidAssetCount {
+        provided: usize,
+        max: u8,
+    },
 }
