@@ -76,7 +76,8 @@ impl<'a, T: ApplicationInterface> Applications<'a, T> {
     fn assert_app_is_dependency(&self, app: ModuleId) -> StdResult<()> {
         let is_app_dependencies = Dependencies::dependencies(self.base)
             .iter()
-            .map(|d| d.id).any(|x| x==app);
+            .map(|d| d.id)
+            .any(|x| x == app);
         if !is_app_dependencies {
             return Err(StdError::generic_err(format!(
                 "Module {} not defined as dependency on this module.",

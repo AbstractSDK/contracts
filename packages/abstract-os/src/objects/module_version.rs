@@ -84,7 +84,7 @@ pub fn query_module_data<Q: Querier, T: Into<String>>(
 mod tests {
     use super::*;
     use cosmwasm_std::testing::MockStorage;
-    use semver::{Prerelease, Comparator};
+    use semver::{Comparator, Prerelease};
 
     #[test]
     fn get_and_set_work() {
@@ -117,7 +117,7 @@ mod tests {
             metadata,
         )
         .unwrap();
-        
+
         let loaded = get_module_data(&store).unwrap();
         let expected = ModuleData {
             module: contract_name.to_string(),

@@ -27,6 +27,7 @@ Version requirements are stored in the module itself and can be queried by the m
 1. Retrieve new version number of module.
 2. Load dependents of the to-be-migrated module and assert new version passes dependent requirements.
 3. Update dependency version.
+4. Check dependencies
 
 ### Uninstall
 

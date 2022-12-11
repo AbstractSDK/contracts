@@ -21,6 +21,7 @@ use cosmwasm_std::{
 use cw2::{get_contract_version, ContractVersion};
 use semver::Version;
 
+use crate::versioning;
 use crate::{
     contract::ManagerResult, error::ManagerError, queries::query_module_version,
     validators::validate_name_or_gov_type,
@@ -108,20 +109,28 @@ pub fn register_module(
     )?;
 
     match module {
-        _dapp @ Module {
+        Module {
             reference: ModuleReference::App(_),
-            ..
+            info,
         } => {
+            let id = info.id();
+            // assert version requirements
+            let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
+            versioning::set_dependencies(deps.storage, id, dependencies)?;
             response = response.add_message(whitelist_dapp_on_proxy(
                 deps.as_ref(),
                 proxy_addr.into_string(),
                 module_address,
             )?)
         }
-        _dapp @ Module {
+        Module {
             reference: ModuleReference::Extension(_),
-            ..
+            info,
         } => {
+            let id = info.id();
+            // assert version requirements
+            let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
+            versioning::set_dependencies(deps.storage, id, dependencies)?;
             response = response.add_message(whitelist_dapp_on_proxy(
                 deps.as_ref(),
                 proxy_addr.into_string(),
