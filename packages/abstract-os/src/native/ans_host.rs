@@ -13,18 +13,24 @@ use crate::objects::{
     asset_entry::AssetEntry,
     contract_entry::{ContractEntry, UncheckedContractEntry},
     pool_info::PoolMetadata,
+    pool_type::PoolType,
     ChannelEntry, UncheckedChannelEntry,
 };
 
 pub type UniqueId = u64;
 pub type AssetPair = (String, String);
 type DexName = String;
-pub type DexAssetPairing = (String, String, DexName);
-pub type CompoundPoolId = (UniqueId, PoolId);
+pub type AssetPairingKey = (String, String, DexName);
+
+#[cosmwasm_schema::cw_serde]
+pub struct CompoundPoolId {
+    pub id: UniqueId,
+    pub pool_id: PoolId,
+}
 
 /// AnsHost state details
 pub mod state {
-    use crate::ans_host::{CompoundPoolId, DexAssetPairing, UniqueId};
+    use crate::ans_host::{CompoundPoolId, AssetPairingKey, UniqueId};
     use cosmwasm_std::Addr;
     use cw_asset::AssetInfo;
     use cw_controllers::Admin;
@@ -58,10 +64,10 @@ pub mod state {
     /// Stores the registered dex names
     pub const REGISTERED_DEXES: Item<Vec<String>> = Item::new("registered_dexes");
 
-    /// Stores (asset1, asset2, dex_name) -> (uniqueId, poolId)
-    pub const PAIR_TO_POOL_ID: Map<DexAssetPairing, Vec<CompoundPoolId>> = Map::new("pool_ids");
+    /// Stores (asset1, asset2, dex_name) -> {id: uniqueId, pool_id: poolId}
+    pub const ASSET_PAIRS: Map<AssetPairingKey, Vec<CompoundPoolId>> = Map::new("pool_ids");
 
-    /// Stores the metadata for the pools
+    /// Stores the metadata for the pools using the unique pool id as the key
     pub const POOL_METADATA: Map<UniqueId, PoolMetadata> = Map::new("pools");
 }
 
@@ -108,6 +114,26 @@ pub enum ExecuteMsg {
     /// Sets a new Admin
     SetAdmin { admin: String },
 }
+
+#[cosmwasm_schema::cw_serde]
+pub struct AssetPairingFilter {
+    /// Filter by asset pair
+    pub asset_pair: Option<AssetPair>,
+    /// Filter by dex
+    pub dex: Option<String>,
+}
+
+// #[cosmwasm_schema::cw_serde]
+// pub struct PoolFilter {
+//     /// Filter by asset pair
+//     pub asset_pair: Option<AssetPair>,
+//     /// Filter by dex
+//     pub dex: Option<String>,
+//     /// Filter by pool type
+//     pub pool_type: Option<PoolType>,
+//     // /// Filter by pool status
+//     // pub pool_status: Option<PoolStatus>,
+// }
 
 /// AnsHost smart-query
 #[cosmwasm_schema::cw_serde]
@@ -159,6 +185,27 @@ pub enum QueryMsg {
     /// returns [`RegisteredDexesResponse`]
     #[returns(RegisteredDexesResponse)]
     RegisteredDexes {},
+    /// Retrieve the list of pools
+    /// returns [`PoolIdListResponse`]
+    #[returns(PoolIdListResponse)]
+    PoolList {
+        filter: Option<AssetPairingFilter>,
+        page_token: Option<AssetPairingKey>,
+        page_size: Option<u8>,
+    },
+    /// Get the pools for a given asset pair
+    /// returns [`PoolsResponse`]
+    /// TODO: this may need to take a page_token and page_size for the return
+    #[returns(PoolsResponse)]
+    Pools {
+        keys: Vec<AssetPairingKey>,
+    },
+    //// Get the pool metadatas for given pool ids
+    // // returns [`PoolMetadatasResponse`]
+    // #[returns(PoolMetadatasResponse)]
+    // PoolMetadatas {
+    //     ids: Vec<UniqueId>,
+    // },
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -202,4 +249,17 @@ pub struct ChannelListResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct RegisteredDexesResponse {
     pub dexes: Vec<String>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct PoolIdListResponse {
+    pub pools: Vec<AssetPairingEntry>,
+}
+
+/// An entry of ((asset_x, asset_y, dex) -> compound_pool_id)
+pub type AssetPairingEntry = (AssetPairingKey, Vec<CompoundPoolId>);
+
+#[cosmwasm_schema::cw_serde]
+pub struct PoolsResponse {
+    pub pools: Vec<AssetPairingEntry>,
 }

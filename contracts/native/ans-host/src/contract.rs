@@ -51,6 +51,15 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             page_size,
         } => queries::query_channel_list(deps, page_token, page_size),
         QueryMsg::RegisteredDexes {} => queries::query_registered_dexes(deps, env),
+        QueryMsg::PoolList {
+            filter,
+            page_token,
+            page_size,
+        } => queries::query_pool_id_list(deps, filter, page_token, page_size),
+
+        QueryMsg::Pools { keys } => {
+            queries::query_asset_pairs_ids(deps, keys)
+        }
     }
 }
 

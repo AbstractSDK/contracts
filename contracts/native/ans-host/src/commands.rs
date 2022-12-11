@@ -3,7 +3,7 @@ use cosmwasm_std::{Env, StdError, Storage};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 
 use abstract_os::ans_host::state::*;
-use abstract_os::ans_host::{AssetPair, CompoundPoolId, DexAssetPairing, ExecuteMsg, UniqueId};
+use abstract_os::ans_host::{AssetPair, CompoundPoolId, AssetPairingKey, ExecuteMsg, UniqueId};
 use abstract_os::dex::DexName;
 use abstract_os::objects::pool_id::{PoolId, UncheckedPoolId};
 use abstract_os::objects::pool_info::PoolMetadata;
@@ -233,8 +233,12 @@ fn register_pool_pairings(
     dex: &DexName,
 ) -> StdResult<()> {
     let register_pairing = |(asset_x, asset_y)| {
-        let key: DexAssetPairing = (asset_x, asset_y, dex.clone());
-        let compound_pool_id: CompoundPoolId = (next_pool_id, pool_id.clone());
+        let key: AssetPairingKey = (asset_x, asset_y, dex.clone());
+
+        let compound_pool_id = CompoundPoolId {
+            id: next_pool_id,
+            pool_id: pool_id.clone(),
+        };
 
         register_asset_pairing(storage, key, compound_pool_id)
     };
@@ -246,7 +250,7 @@ fn register_pool_pairings(
 /// We ignore any duplicates, which is why we don't check for them
 fn register_asset_pairing(
     storage: &mut dyn Storage,
-    pair: DexAssetPairing,
+    pair: AssetPairingKey,
     compound_pool_id: CompoundPoolId,
 ) -> Result<Vec<CompoundPoolId>, StdError> {
     let insert = |ids: Option<Vec<CompoundPoolId>>| -> StdResult<_> {
@@ -256,7 +260,7 @@ fn register_asset_pairing(
         Ok(ids)
     };
 
-    PAIR_TO_POOL_ID.update(storage, pair, insert)
+    ASSET_PAIRS.update(storage, pair, insert)
 }
 
 fn remove_pool_pairings(
@@ -265,19 +269,19 @@ fn remove_pool_pairings(
     pool: &PoolMetadata,
 ) -> StdResult<()> {
     let remove_pairing = |(asset_x, asset_y)| -> Result<(), StdError> {
-        let key: DexAssetPairing = (asset_x, asset_y, pool.dex.clone());
+        let key: AssetPairingKey = (asset_x, asset_y, pool.dex.clone());
 
         let remove = |ids: Option<Vec<CompoundPoolId>>| -> StdResult<_> {
             let mut ids = ids.unwrap_or_default();
-            ids.retain(|(id, _)| id != &unique_pool_id);
+            ids.retain(|id| id.id != unique_pool_id);
             Ok(ids)
         };
 
-        let remaining_ids = PAIR_TO_POOL_ID.update(storage, key.clone(), remove)?;
+        let remaining_ids = ASSET_PAIRS.update(storage, key.clone(), remove)?;
 
         // If there are no remaining pools, remove the key
         if remaining_ids.is_empty() {
-            PAIR_TO_POOL_ID.remove(storage, key);
+            ASSET_PAIRS.remove(storage, key);
         }
         Ok(())
     };
