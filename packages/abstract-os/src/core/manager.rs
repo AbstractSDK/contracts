@@ -52,6 +52,9 @@ pub mod state {
     pub const ROOT: Admin = Admin::new("root");
     /// Enabled Abstract modules
     pub const OS_MODULES: Map<ModuleId, Addr> = Map::new("os_modules");
+    /// Stores the dependency relationship between modules
+    /// map module -> modules that depend on module.
+    pub const DEPENDENTS: Map<ModuleId, ModuleId> = Map::new("dependents");
 }
 
 use cosmwasm_schema::QueryResponses;

@@ -29,23 +29,6 @@ pub struct Applications<'a, T: ApplicationInterface> {
 }
 
 impl<'a, T: ApplicationInterface> Applications<'a, T> {
-    /// Assert the dependencies that this app relies on are installed.
-    pub fn assert_dependencies(&self) -> StdResult<()> {
-        let app_dependencies = Dependencies::dependencies(self.base);
-        let manager_addr = self.base.manager_address(self.deps)?;
-        for dep in app_dependencies {
-            let maybe_module_addr =
-                OS_MODULES.query(&self.deps.querier, manager_addr.clone(), dep)?;
-            if maybe_module_addr.is_none() {
-                return Err(StdError::generic_err(format!(
-                    "Module {} not enabled on OS.",
-                    dep
-                )));
-            };
-        }
-        Ok(())
-    }
-
     /// Retrieve the address of an application in this OS.
     /// This should **not** be used to execute messages on an `Extension`.
     /// Use `Applications::extension_request(..)` instead.
@@ -91,8 +74,10 @@ impl<'a, T: ApplicationInterface> Applications<'a, T> {
     }
 
     fn assert_app_is_dependency(&self, app: ModuleId) -> StdResult<()> {
-        let app_dependencies = Dependencies::dependencies(self.base);
-        if !app_dependencies.contains(&app) {
+        let is_app_dependencies = Dependencies::dependencies(self.base)
+            .iter()
+            .map(|d| d.id).any(|x| x==app);
+        if !is_app_dependencies {
             return Err(StdError::generic_err(format!(
                 "Module {} not defined as dependency on this module.",
                 app

@@ -4,23 +4,12 @@ use cosmwasm_std::{
 };
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Item;
-use os::manager::state::ModuleId;
-use semver::Comparator;
 
-use super::endpoints::migrate::{Name, VersionString};
+use os::objects::dependency::StaticDependency;
+
+use super::endpoints::migrate::{Metadata, Name, VersionString};
 
 use super::handler::Handler;
-
-pub struct Dependency<'a>{
-    pub module_id: ModuleId<'a>, 
-    pub version_req: &'a [Comparator],
-}
-
-impl<'a> Dependency<'a> {
-    pub const fn new(module_id: ModuleId, version_requirement: &'a [Comparator]) -> Self {
-        Self { module_id, version_req: version_requirement }
-    }
-}
 
 pub type IbcCallbackHandlerFn<Module, Error> =
     fn(DepsMut, Env, MessageInfo, Module, String, StdAck) -> Result<Response, Error>;
@@ -53,11 +42,11 @@ pub struct AbstractContract<
     ReceiveMsg = Empty,
 > {
     /// static info about the contract, used for migration
-    pub(crate) info: (Name, VersionString),
+    pub(crate) info: (Name, VersionString, Metadata),
     /// On-chain storage of the same info
     pub(crate) version: Item<'static, ContractVersion>,
     /// ID's that this contract depends on
-    pub(crate) dependencies: &'static [Dependency<'static>],
+    pub(crate) dependencies: &'static [StaticDependency],
     /// Expected callbacks following an IBC action
     pub(crate) ibc_callback_handlers:
         &'static [(&'static str, IbcCallbackHandlerFn<Module, Error>)],
@@ -96,9 +85,9 @@ impl<
 where
     Module: Handler,
 {
-    pub const fn new(name: Name, version: VersionString) -> Self {
+    pub const fn new(name: Name, version: VersionString, metadata: Metadata) -> Self {
         Self {
-            info: (name, version),
+            info: (name, version, metadata),
             version: CONTRACT,
             ibc_callback_handlers: &[],
             reply_handlers: [&[], &[]],
@@ -114,11 +103,11 @@ where
     pub fn version(&self, store: &dyn Storage) -> StdResult<ContractVersion> {
         self.version.load(store)
     }
-    pub fn info(&self) -> (&str, &str) {
+    pub fn info(&self) -> (Name, VersionString, Metadata) {
         self.info
     }
     /// add dependencies to the contract
-    pub const fn with_dependencies(mut self, dependencies: &'static [Dependency<'static>]) -> Self {
+    pub const fn with_dependencies(mut self, dependencies: &'static [StaticDependency]) -> Self {
         self.dependencies = dependencies;
         self
     }

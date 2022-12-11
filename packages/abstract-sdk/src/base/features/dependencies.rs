@@ -1,11 +1,13 @@
-use crate::base::{Handler, contract_base::Dependency};
+use os::objects::dependency::StaticDependency;
+
+use crate::base::Handler;
 
 pub trait Dependencies: Sized {
-    fn dependencies<'a>(&self) -> &[Dependency<'a>];
+    fn dependencies(&self) -> &[StaticDependency];
 }
 
 impl<T: Handler> Dependencies for T {
-    fn dependencies<'a>(&self) -> &[Dependency<'a>] {
+    fn dependencies(&self) -> &[StaticDependency] {
         Handler::dependencies(self)
     }
 }
