@@ -5,6 +5,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::str::FromStr;
+use crate::objects::AssetEntry;
 
 type DexName = String;
 
@@ -13,9 +14,10 @@ pub struct PoolMetadata {
     pub dex: DexName,
     pub pool_type: PoolType,
     pub assets: Vec<String>,
+    pub lp_token: AssetEntry,
 }
 
-const ATTRIBUTE_COUNT: usize = 3;
+const ATTRIBUTE_COUNT: usize = 4;
 const ATTTRIBUTE_SEPARATOR: &str = ":";
 const ASSET_SEPARATOR: &str = "_";
 
@@ -39,10 +41,13 @@ impl FromStr for PoolMetadata {
             .map(String::from)
             .collect();
 
+        let lp_token = AssetEntry::new(attributes[3]);
+
         Ok(PoolMetadata {
             dex,
             pool_type,
             assets,
+            lp_token,
         })
     }
 }

@@ -17,24 +17,29 @@ use crate::objects::{
     ChannelEntry, UncheckedChannelEntry,
 };
 
-pub type UniqueId = u64;
+pub type UniquePoolId = u64;
+
 pub type AssetPair = (String, String);
 type DexName = String;
-pub type AssetPairingKey = (String, String, DexName);
+/// The key for an asset pairing
+pub type AssetPairingEntry = (String, String, DexName);
 
-/// An entry of ((asset_x, asset_y, dex) -> compound_pool_id)
-pub type AssetPairingEntry = (AssetPairingKey, Vec<CompoundPoolId>);
-pub type PoolMetadataEntry = (UniqueId, PoolMetadata);
+/// A map entry of ((asset_x, asset_y, dex) -> compound_pool_id)
+pub type AssetPairingMapEntry = (AssetPairingEntry, Vec<PoolReference>);
+/// A map entry of (unique_pool_id -> pool_metadata)
+pub type PoolMetadataMapEntry = (UniquePoolId, PoolMetadata);
+
 
 #[cosmwasm_schema::cw_serde]
-pub struct CompoundPoolId {
-    pub id: UniqueId,
+pub struct PoolReference {
+    pub id: UniquePoolId,
     pub pool_id: PoolId,
 }
 
+
 /// AnsHost state details
 pub mod state {
-    use crate::ans_host::{CompoundPoolId, AssetPairingKey, UniqueId};
+    use crate::ans_host::{PoolReference, UniquePoolId, AssetPairingEntry};
     use cosmwasm_std::Addr;
     use cw_asset::AssetInfo;
     use cw_controllers::Admin;
@@ -48,13 +53,14 @@ pub mod state {
     /// Ans host configuration
     #[cosmwasm_schema::cw_serde]
     pub struct Config {
-        pub next_unique_pool_id: UniqueId,
+        pub next_unique_pool_id: UniquePoolId,
     }
 
     pub const CONFIG: Item<Config> = Item::new("config");
 
     /// Admin address store
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
+
     /// Stores name and address of tokens and pairs
     /// LP token pairs are stored alphabetically
     pub const ASSET_ADDRESSES: Map<AssetEntry, AssetInfo> = Map::new("assets");
@@ -68,11 +74,12 @@ pub mod state {
     /// Stores the registered dex names
     pub const REGISTERED_DEXES: Item<Vec<String>> = Item::new("registered_dexes");
 
-    /// Stores (asset1, asset2, dex_name) -> {id: uniqueId, pool_id: poolId}
-    pub const ASSET_PAIRS: Map<AssetPairingKey, Vec<CompoundPoolId>> = Map::new("pool_ids");
+    /// Stores the asset pairing entries to their pool ids
+    /// (asset1, asset2, dex_name) -> {id: uniqueId, pool_id: poolId}
+    pub const ASSET_PAIRINGS: Map<AssetPairingEntry, Vec<PoolReference>> = Map::new("pool_ids");
 
     /// Stores the metadata for the pools using the unique pool id as the key
-    pub const POOL_METADATA: Map<UniqueId, PoolMetadata> = Map::new("pools");
+    pub const POOL_METADATA: Map<UniquePoolId, PoolMetadata> = Map::new("pools");
 }
 
 /// AnsHost Instantiate msg
@@ -113,7 +120,7 @@ pub enum ExecuteMsg {
         /// Pools to update or add
         to_add: Vec<(UncheckedPoolId, PoolMetadata)>,
         /// Pools to remove
-        to_remove: Vec<UniqueId>,
+        to_remove: Vec<UniquePoolId>,
     },
     /// Sets a new Admin
     SetAdmin { admin: String },
@@ -127,6 +134,7 @@ pub struct AssetPairingFilter {
     pub dex: Option<String>,
 }
 
+/// Filter on the pool metadatas
 #[cosmwasm_schema::cw_serde]
 pub struct PoolMetadataFilter {
     /// Filter by pool type
@@ -185,33 +193,33 @@ pub enum QueryMsg {
     /// returns [`RegisteredDexesResponse`]
     #[returns(RegisteredDexesResponse)]
     RegisteredDexes {},
-    /// Get the pools for a given asset pair
+    /// Retrieve the pools with the specified keys
     /// returns [`PoolsResponse`]
     /// TODO: this may need to take a page_token and page_size for the return
     #[returns(PoolsResponse)]
     Pools {
-        keys: Vec<AssetPairingKey>,
+        keys: Vec<AssetPairingEntry>,
     },
-    /// Retrieve the list of pools
+    /// Retrieve the (optionally-filtered) list of pools.
     /// returns [`PoolIdListResponse`]
     #[returns(PoolIdListResponse)]
     PoolList {
         filter: Option<AssetPairingFilter>,
-        page_token: Option<AssetPairingKey>,
+        page_token: Option<AssetPairingEntry>,
         page_size: Option<u8>,
     },
     /// Get the pool metadatas for given pool ids
     /// returns [`PoolMetadatasResponse`]
     #[returns(PoolMetadatasResponse)]
     PoolMetadatas {
-        keys: Vec<UniqueId>,
+        keys: Vec<UniquePoolId>,
     },
-    /// Retrieve the list of pool metadatas
+    /// Retrieve the (optionally-filtered) list of pool metadatas
     /// returns [`PoolMetadataListResponse`]
     #[returns(PoolMetadataListResponse)]
     PoolMetadataList {
         filter: Option<PoolMetadataFilter>,
-        page_token: Option<UniqueId>,
+        page_token: Option<UniquePoolId>,
         page_size: Option<u8>,
     },
 }
@@ -261,20 +269,20 @@ pub struct RegisteredDexesResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct PoolIdListResponse {
-    pub pools: Vec<AssetPairingEntry>,
+    pub pools: Vec<AssetPairingMapEntry>,
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct PoolsResponse {
-    pub pools: Vec<AssetPairingEntry>,
+    pub pools: Vec<AssetPairingMapEntry>,
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct PoolMetadatasResponse {
-    pub metadatas: Vec<PoolMetadataEntry>,
+    pub metadatas: Vec<PoolMetadataMapEntry>,
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct PoolMetadataListResponse {
-    pub metadatas: Vec<PoolMetadataEntry>,
+    pub metadatas: Vec<PoolMetadataMapEntry>,
 }
