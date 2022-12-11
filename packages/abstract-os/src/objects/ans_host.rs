@@ -4,7 +4,9 @@ use cosmwasm_std::{Addr, QuerierWrapper, StdError, StdResult};
 
 use cw_asset::AssetInfo;
 
-use crate::ans_host::state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES};
+use crate::ans_host::state::{ASSET_ADDRESSES, ASSET_PAIRINGS, CHANNELS, CONTRACT_ADDRESSES};
+use crate::objects::AssetPairingEntry;
+use crate::objects::pool_reference::PoolReference;
 
 use super::{asset_entry::AssetEntry, contract_entry::ContractEntry, ChannelEntry};
 
@@ -97,6 +99,23 @@ impl AnsHost {
                 StdError::generic_err(format!("channel {} not found in ans_host", channel))
             })?;
         // Addresses are checked when stored.
+        Ok(result)
+    }
+
+    /// Raw query of a single asset pairing
+    pub fn query_asset_pairing(
+        &self,
+        querier: &QuerierWrapper,
+        dex_asset_pairing: &AssetPairingEntry,
+    ) -> StdResult<Vec<PoolReference>> {
+        let result: Vec<PoolReference> = ASSET_PAIRINGS
+            .query(querier, self.address.clone(), dex_asset_pairing.clone())?
+            .ok_or_else(|| {
+                StdError::generic_err(format!(
+                    "asset pairing {} not found in ans_host",
+                    format!("{}:{}-{}", dex_asset_pairing.2, dex_asset_pairing.0, dex_asset_pairing.1)
+                ))
+            })?;
         Ok(result)
     }
 

@@ -1,11 +1,11 @@
-use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, StdResult, StdError, Storage};
+use cosmwasm_std::{Addr, Binary, Deps, Env, Order, StdError, StdResult, Storage, to_binary};
 
-use abstract_os::ans_host::{AssetPair, AssetPairingMapEntry, PoolReference, AssetPairingEntry, AssetPairingFilter, PoolIdListResponse, PoolsResponse, RegisteredDexesResponse, UniquePoolId, PoolMetadataMapEntry, PoolMetadatasResponse, PoolMetadataFilter, PoolMetadataListResponse};
+use abstract_os::ans_host::{AssetPair, AssetPairingFilter, AssetPairingMapEntry, PoolIdListResponse, PoolMetadataFilter, PoolMetadataListResponse, PoolMetadataMapEntry, PoolMetadatasResponse, PoolsResponse, RegisteredDexesResponse, UniquePoolId};
 use abstract_os::{
     ans_host::{
-        state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES, REGISTERED_DEXES},
-        AssetListResponse, AssetsResponse, ChannelListResponse, ChannelsResponse,
-        ContractListResponse, ContractsResponse,
+        AssetListResponse,
+        AssetsResponse, ChannelListResponse, ChannelsResponse, ContractListResponse,
+        ContractsResponse, state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES, REGISTERED_DEXES},
     },
     objects::{AssetEntry, ChannelEntry, ContractEntry},
 };
@@ -13,7 +13,9 @@ use cw_asset::AssetInfo;
 use cw_storage_plus::Bound;
 use abstract_os::ans_host::state::{ASSET_PAIRINGS, POOL_METADATA};
 use abstract_os::dex::DexName;
+use abstract_os::objects::AssetPairingEntry;
 use abstract_os::objects::pool_info::PoolMetadata;
+use abstract_os::objects::pool_reference::PoolReference;
 use crate::error::AnsHostError;
 
 pub(crate) const DEFAULT_LIMIT: u8 = 15;

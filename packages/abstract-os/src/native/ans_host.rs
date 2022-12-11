@@ -11,44 +11,37 @@ use cw_asset::{AssetInfo, AssetInfoUnchecked};
 use crate::objects::pool_id::{PoolId, UncheckedPoolId};
 use crate::objects::{
     asset_entry::AssetEntry,
+    asset_pairing_entry::AssetPairingEntry,
+    ChannelEntry,
     contract_entry::{ContractEntry, UncheckedContractEntry},
     pool_info::PoolMetadata,
-    pool_type::PoolType,
-    ChannelEntry, UncheckedChannelEntry,
+    pool_type::PoolType, UncheckedChannelEntry,
 };
+use crate::objects::pool_reference::PoolReference;
 
 pub type UniquePoolId = u64;
 
 pub type AssetPair = (String, String);
 type DexName = String;
-/// The key for an asset pairing
-pub type AssetPairingEntry = (String, String, DexName);
 
 /// A map entry of ((asset_x, asset_y, dex) -> compound_pool_id)
 pub type AssetPairingMapEntry = (AssetPairingEntry, Vec<PoolReference>);
 /// A map entry of (unique_pool_id -> pool_metadata)
 pub type PoolMetadataMapEntry = (UniquePoolId, PoolMetadata);
 
-
-#[cosmwasm_schema::cw_serde]
-pub struct PoolReference {
-    pub id: UniquePoolId,
-    pub pool_id: PoolId,
-}
-
-
 /// AnsHost state details
 pub mod state {
-    use crate::ans_host::{PoolReference, UniquePoolId, AssetPairingEntry};
+    use crate::ans_host::{AssetPairingEntry, UniquePoolId};
     use cosmwasm_std::Addr;
     use cw_asset::AssetInfo;
     use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
 
     use crate::objects::{
-        asset_entry::AssetEntry, common_namespace::ADMIN_NAMESPACE, contract_entry::ContractEntry,
-        pool_info::PoolMetadata, ChannelEntry,
+        asset_entry::AssetEntry, ChannelEntry, common_namespace::ADMIN_NAMESPACE,
+        contract_entry::ContractEntry, pool_info::PoolMetadata,
     };
+    use crate::objects::pool_reference::PoolReference;
 
     /// Ans host configuration
     #[cosmwasm_schema::cw_serde]

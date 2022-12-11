@@ -3,11 +3,12 @@ use cosmwasm_std::{Env, StdError, Storage};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 
 use abstract_os::ans_host::state::*;
-use abstract_os::ans_host::{AssetPair, PoolReference, AssetPairingEntry, ExecuteMsg, UniquePoolId};
+use abstract_os::ans_host::{AssetPair, ExecuteMsg, UniquePoolId};
 use abstract_os::dex::DexName;
 use abstract_os::objects::pool_id::{PoolId, UncheckedPoolId};
 use abstract_os::objects::pool_info::PoolMetadata;
-use abstract_os::objects::{UncheckedChannelEntry, UncheckedContractEntry};
+use abstract_os::objects::{AssetPairingEntry, UncheckedChannelEntry, UncheckedContractEntry};
+use abstract_os::objects::pool_reference::PoolReference;
 
 use crate::contract::AnsHostResult;
 use crate::error::AnsHostError;
