@@ -29,4 +29,4 @@ pub use ans_asset::AnsAsset;
 pub use asset_entry::AssetEntry;
 pub use channel_entry::{ChannelEntry, UncheckedChannelEntry};
 pub use contract_entry::{ContractEntry, UncheckedContractEntry};
-pub use asset_pairing_entry::AssetPairingEntry;
+pub use asset_pairing_entry::DexAssetPairing;

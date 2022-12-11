@@ -13,7 +13,7 @@ use cw_asset::AssetInfo;
 use cw_storage_plus::Bound;
 use abstract_os::ans_host::state::{ASSET_PAIRINGS, POOL_METADATA};
 use abstract_os::dex::DexName;
-use abstract_os::objects::AssetPairingEntry;
+use abstract_os::objects::DexAssetPairing;
 use abstract_os::objects::pool_info::PoolMetadata;
 use abstract_os::objects::pool_reference::PoolReference;
 use crate::error::AnsHostError;
@@ -125,7 +125,7 @@ pub fn query_registered_dexes(deps: Deps, _env: Env) -> StdResult<Binary> {
 // }
 
 
-pub fn list_pool_entries(deps: Deps, filter: Option<AssetPairingFilter>, page_token: Option<AssetPairingEntry>, page_size: Option<u8>) -> StdResult<Binary> {
+pub fn list_pool_entries(deps: Deps, filter: Option<AssetPairingFilter>, page_token: Option<DexAssetPairing>, page_size: Option<u8>) -> StdResult<Binary> {
     let page_size = page_size.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
 
     let (asset_pair_filter, dex_filter) = match filter {
@@ -179,7 +179,7 @@ pub fn list_pool_entries(deps: Deps, filter: Option<AssetPairingFilter>, page_to
 }
 
 /// Query the pool ids based on the actual keys
-pub fn query_pool_entries(deps: Deps, keys: Vec<AssetPairingEntry>) -> StdResult<Binary> {
+pub fn query_pool_entries(deps: Deps, keys: Vec<DexAssetPairing>) -> StdResult<Binary> {
     let mut entries: Vec<AssetPairingMapEntry> = vec![];
     for key in keys.into_iter() {
         let entry = load_asset_pairing_entry(deps.storage, key)?;
@@ -191,7 +191,7 @@ pub fn query_pool_entries(deps: Deps, keys: Vec<AssetPairingEntry>) -> StdResult
 }
 
 /// Loads a given key from the asset pairings store and returns the ENTRY
-fn load_asset_pairing_entry(storage: &dyn Storage, key: AssetPairingEntry) -> StdResult<AssetPairingMapEntry> {
+fn load_asset_pairing_entry(storage: &dyn Storage, key: DexAssetPairing) -> StdResult<AssetPairingMapEntry> {
     let value = ASSET_PAIRINGS.load(storage, key.clone())?;
     Ok((key, value))
 }

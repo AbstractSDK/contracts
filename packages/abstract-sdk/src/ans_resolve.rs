@@ -4,7 +4,7 @@
 use cosmwasm_std::{Addr, QuerierWrapper, StdResult};
 use cw_asset::{Asset, AssetInfo};
 
-use abstract_os::objects::{ans_host::AnsHost, pool_reference::PoolReference, AnsAsset, AssetEntry, ChannelEntry, ContractEntry, AssetPairingEntry};
+use abstract_os::objects::{ans_host::AnsHost, pool_reference::PoolReference, AnsAsset, AssetEntry, ChannelEntry, ContractEntry, DexAssetPairing};
 
 /// Resolve an [`AbstractNameService`](crate::base::features::AbstractNameService) entry into its value.
 pub trait Resolve {
@@ -33,7 +33,7 @@ impl Resolve for ChannelEntry {
     }
 }
 
-impl Resolve for AssetPairingEntry {
+impl Resolve for DexAssetPairing {
     type Output = Vec<PoolReference>;
     fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> StdResult<Self::Output> {
         ans_host.query_asset_pairing(querier, self)

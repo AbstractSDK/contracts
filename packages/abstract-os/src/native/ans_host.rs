@@ -11,7 +11,7 @@ use cw_asset::{AssetInfo, AssetInfoUnchecked};
 use crate::objects::pool_id::{PoolId, UncheckedPoolId};
 use crate::objects::{
     asset_entry::AssetEntry,
-    asset_pairing_entry::AssetPairingEntry,
+    asset_pairing_entry::DexAssetPairing,
     ChannelEntry,
     contract_entry::{ContractEntry, UncheckedContractEntry},
     pool_info::PoolMetadata,
@@ -25,13 +25,13 @@ pub type AssetPair = (String, String);
 type DexName = String;
 
 /// A map entry of ((asset_x, asset_y, dex) -> compound_pool_id)
-pub type AssetPairingMapEntry = (AssetPairingEntry, Vec<PoolReference>);
+pub type AssetPairingMapEntry = (DexAssetPairing, Vec<PoolReference>);
 /// A map entry of (unique_pool_id -> pool_metadata)
 pub type PoolMetadataMapEntry = (UniquePoolId, PoolMetadata);
 
 /// AnsHost state details
 pub mod state {
-    use crate::ans_host::{AssetPairingEntry, UniquePoolId};
+    use crate::ans_host::{DexAssetPairing, UniquePoolId};
     use cosmwasm_std::Addr;
     use cw_asset::AssetInfo;
     use cw_controllers::Admin;
@@ -69,7 +69,7 @@ pub mod state {
 
     /// Stores the asset pairing entries to their pool ids
     /// (asset1, asset2, dex_name) -> {id: uniqueId, pool_id: poolId}
-    pub const ASSET_PAIRINGS: Map<AssetPairingEntry, Vec<PoolReference>> = Map::new("pool_ids");
+    pub const ASSET_PAIRINGS: Map<DexAssetPairing, Vec<PoolReference>> = Map::new("pool_ids");
 
     /// Stores the metadata for the pools using the unique pool id as the key
     pub const POOL_METADATA: Map<UniquePoolId, PoolMetadata> = Map::new("pools");
@@ -191,14 +191,14 @@ pub enum QueryMsg {
     /// TODO: this may need to take a page_token and page_size for the return
     #[returns(PoolsResponse)]
     Pools {
-        keys: Vec<AssetPairingEntry>,
+        keys: Vec<DexAssetPairing>,
     },
     /// Retrieve the (optionally-filtered) list of pools.
     /// returns [`PoolIdListResponse`]
     #[returns(PoolIdListResponse)]
     PoolList {
         filter: Option<AssetPairingFilter>,
-        page_token: Option<AssetPairingEntry>,
+        page_token: Option<DexAssetPairing>,
         page_size: Option<u8>,
     },
     /// Get the pool metadatas for given pool ids

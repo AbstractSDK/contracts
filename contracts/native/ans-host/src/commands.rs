@@ -7,7 +7,7 @@ use abstract_os::ans_host::{AssetPair, ExecuteMsg, UniquePoolId};
 use abstract_os::dex::DexName;
 use abstract_os::objects::pool_id::{PoolId, UncheckedPoolId};
 use abstract_os::objects::pool_info::PoolMetadata;
-use abstract_os::objects::{AssetPairingEntry, UncheckedChannelEntry, UncheckedContractEntry};
+use abstract_os::objects::{DexAssetPairing, UncheckedChannelEntry, UncheckedContractEntry};
 use abstract_os::objects::pool_reference::PoolReference;
 
 use crate::contract::AnsHostResult;
@@ -233,7 +233,7 @@ fn register_pool_pairings(
     dex: &DexName,
 ) -> StdResult<()> {
     let register_pairing = |(asset_x, asset_y)| {
-        let key: AssetPairingEntry = (asset_x, asset_y, dex.clone());
+        let key: DexAssetPairing = (asset_x, asset_y, dex.clone());
 
         let compound_pool_id = PoolReference {
             id: next_pool_id,
@@ -250,7 +250,7 @@ fn register_pool_pairings(
 /// We ignore any duplicates, which is why we don't check for them
 fn register_asset_pairing(
     storage: &mut dyn Storage,
-    pair: AssetPairingEntry,
+    pair: DexAssetPairing,
     compound_pool_id: PoolReference,
 ) -> Result<Vec<PoolReference>, StdError> {
     let insert = |ids: Option<Vec<PoolReference>>| -> StdResult<_> {
@@ -271,7 +271,7 @@ fn remove_pool_pairings(
     assets: &[String],
 ) -> StdResult<()> {
     let remove_pairing_action = |(asset_x, asset_y)| -> Result<(), StdError> {
-        let key: AssetPairingEntry = (asset_x, asset_y, dex.clone());
+        let key: DexAssetPairing = (asset_x, asset_y, dex.clone());
 
         // Action to remove the pool id from the list of pool ids for the asset pairing
         let remove_pool_id_action = |ids: Option<Vec<PoolReference>>| -> StdResult<_> {

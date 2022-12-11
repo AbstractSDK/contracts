@@ -5,7 +5,7 @@ use cosmwasm_std::{Addr, QuerierWrapper, StdError, StdResult};
 use cw_asset::AssetInfo;
 
 use crate::ans_host::state::{ASSET_ADDRESSES, ASSET_PAIRINGS, CHANNELS, CONTRACT_ADDRESSES};
-use crate::objects::AssetPairingEntry;
+use crate::objects::DexAssetPairing;
 use crate::objects::pool_reference::PoolReference;
 
 use super::{asset_entry::AssetEntry, contract_entry::ContractEntry, ChannelEntry};
@@ -106,7 +106,7 @@ impl AnsHost {
     pub fn query_asset_pairing(
         &self,
         querier: &QuerierWrapper,
-        dex_asset_pairing: &AssetPairingEntry,
+        dex_asset_pairing: &DexAssetPairing,
     ) -> StdResult<Vec<PoolReference>> {
         let result: Vec<PoolReference> = ASSET_PAIRINGS
             .query(querier, self.address.clone(), dex_asset_pairing.clone())?
