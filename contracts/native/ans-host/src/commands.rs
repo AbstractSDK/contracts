@@ -3,12 +3,14 @@ use cosmwasm_std::{Env, StdError, Storage};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 
 use abstract_os::ans_host::state::*;
-use abstract_os::ans_host::{AssetPair, ExecuteMsg, UniquePoolId};
+use abstract_os::ans_host::{AssetPair, ExecuteMsg};
 use abstract_os::dex::DexName;
 use abstract_os::objects::pool_id::{PoolId, UncheckedPoolId};
 use abstract_os::objects::pool_info::PoolMetadata;
 use abstract_os::objects::pool_reference::PoolReference;
-use abstract_os::objects::{DexAssetPairing, UncheckedChannelEntry, UncheckedContractEntry};
+use abstract_os::objects::{
+    DexAssetPairing, UncheckedChannelEntry, UncheckedContractEntry, UniquePoolId,
+};
 
 use crate::contract::AnsHostResult;
 use crate::error::AnsHostError;
@@ -180,15 +182,15 @@ fn update_pools(
         // Register each pair of assets as a pairing and link it to the pool id
         register_pool_pairings(deps.storage, next_unique_pool_id, pool_id, &assets, &dex)?;
 
-        POOL_METADATA.save(deps.storage, next_unique_pool_id, &pool_metadata)?;
+        POOL_METADATA.save(deps.storage, next_unique_pool_id.into(), &pool_metadata)?;
 
         // Increment the unique pool id for the next pool
-        next_unique_pool_id += 1;
+        next_unique_pool_id.increment();
     }
 
     for pool_id_to_remove in to_remove {
         // load the pool metadata
-        let pool_metadata = POOL_METADATA.load(deps.storage, pool_id_to_remove)?;
+        let pool_metadata = POOL_METADATA.load(deps.storage, pool_id_to_remove.into())?;
 
         remove_pool_pairings(
             deps.storage,
@@ -198,7 +200,7 @@ fn update_pools(
         )?;
 
         // remove the pool metadata
-        POOL_METADATA.remove(deps.storage, pool_id_to_remove);
+        POOL_METADATA.remove(deps.storage, pool_id_to_remove.into());
     }
 
     // Save the next unique pool id
@@ -237,8 +239,8 @@ fn register_pool_pairings(
     assets: &[String],
     dex: &DexName,
 ) -> StdResult<()> {
-    let register_pairing = |(asset_x, asset_y)| {
-        let key: DexAssetPairing = (asset_x, asset_y, dex.clone());
+    let register_pairing = |(asset_x, asset_y): AssetPair| {
+        let key = DexAssetPairing::new(&asset_x, &asset_y, dex);
 
         let compound_pool_id = PoolReference {
             id: next_pool_id,
@@ -275,8 +277,8 @@ fn remove_pool_pairings(
     dex: &DexName,
     assets: &[String],
 ) -> StdResult<()> {
-    let remove_pairing_action = |(asset_x, asset_y)| -> Result<(), StdError> {
-        let key: DexAssetPairing = (asset_x, asset_y, dex.clone());
+    let remove_pairing_action = |(asset_x, asset_y): AssetPair| -> Result<(), StdError> {
+        let key = DexAssetPairing::new(&asset_x, &asset_y, dex);
 
         // Action to remove the pool id from the list of pool ids for the asset pairing
         let remove_pool_id_action = |ids: Option<Vec<PoolReference>>| -> StdResult<_> {

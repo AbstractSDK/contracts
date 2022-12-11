@@ -4,12 +4,12 @@ use abstract_os::ans_host::state::{ASSET_PAIRINGS, POOL_METADATA};
 use abstract_os::ans_host::{
     AssetPairingFilter, AssetPairingMapEntry, PoolIdListResponse, PoolMetadataFilter,
     PoolMetadataListResponse, PoolMetadataMapEntry, PoolMetadatasResponse, PoolsResponse,
-    RegisteredDexesResponse, UniquePoolId,
+    RegisteredDexesResponse,
 };
 use abstract_os::dex::DexName;
 use abstract_os::objects::pool_info::PoolMetadata;
 use abstract_os::objects::pool_reference::PoolReference;
-use abstract_os::objects::DexAssetPairing;
+use abstract_os::objects::{DexAssetPairing, UniquePoolId};
 use abstract_os::{
     ans_host::{
         state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES, REGISTERED_DEXES},
@@ -145,12 +145,12 @@ pub fn list_pool_entries(
     let entry_list: Vec<AssetPairingMapEntry> = if full_key_provided {
         // We have the full key, so load the entry
         let (asset_x, asset_y) = asset_pair_filter.unwrap();
-        let key = (asset_x, asset_y, dex_filter.unwrap());
+        let key = DexAssetPairing::new(&asset_x, &asset_y, &dex_filter.unwrap());
         let entry = load_asset_pairing_entry(deps.storage, key)?;
         // Add the result to a vec
         vec![entry]
     } else if let Some((asset_x, asset_y)) = asset_pair_filter {
-        let start_bound = page_token.map(|(_, _, dex)| Bound::exclusive(dex));
+        let start_bound = page_token.map(|pairing| Bound::exclusive(pairing.dex()));
 
         // We can use the prefix to load all the entries for the asset pair
         let res: Result<Vec<(DexName, Vec<PoolReference>)>, _> = ASSET_PAIRINGS
@@ -162,20 +162,22 @@ pub fn list_pool_entries(
         // Re add the key prefix, since only the dex is returned as a key
         let matched: Vec<AssetPairingMapEntry> = res?
             .into_iter()
-            .map(|(dex, ids)| ((asset_x.clone(), asset_y.clone(), dex), ids))
+            .map(|(dex, ids)| (DexAssetPairing::new(&asset_x, &asset_y, &dex), ids))
             .collect();
 
         matched
     } else {
-        let start_bound = page_token.map(Bound::exclusive);
+        let start_bound: Option<Bound<DexAssetPairing>> = page_token.map(Bound::exclusive);
 
         // We have no filter, so load all the entries
         let res: Result<Vec<AssetPairingMapEntry>, _> = ASSET_PAIRINGS
             .range(deps.storage, start_bound, None, Order::Ascending)
             .filter(|e| {
-                let (_, _, dex) = &e.as_ref().unwrap().0;
-                dex_filter.as_ref().map_or(true, |f| f == dex)
+                let pairing = &e.as_ref().unwrap().0;
+                dex_filter.as_ref().map_or(true, |f| f == pairing.dex())
             })
+            // TODO: is this necessary?
+            .map(|e| e.map(|(k, v)| (k, v)))
             .collect();
         res?
     };
@@ -237,6 +239,7 @@ pub fn list_pool_metadata_entries(
             pool_type_filter.as_ref().map_or(true, |f| f == pool_type)
         })
         .take(page_size)
+        .map(|e| e.map(|(k, v)| (k.into(), v)))
         .collect();
 
     to_binary(&PoolMetadataListResponse { metadatas: res? })
@@ -247,6 +250,6 @@ fn load_pool_metadata_entry(
     storage: &dyn Storage,
     key: UniquePoolId,
 ) -> StdResult<PoolMetadataMapEntry> {
-    let value = POOL_METADATA.load(storage, key)?;
+    let value = POOL_METADATA.load(storage, key.into())?;
     Ok((key, value))
 }

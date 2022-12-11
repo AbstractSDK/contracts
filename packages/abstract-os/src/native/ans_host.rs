@@ -12,14 +12,10 @@ use crate::objects::pool_id::UncheckedPoolId;
 use crate::objects::pool_reference::PoolReference;
 use crate::objects::{
     asset_entry::AssetEntry,
-    asset_pairing_entry::DexAssetPairing,
     contract_entry::{ContractEntry, UncheckedContractEntry},
-    pool_info::PoolMetadata,
-    pool_type::PoolType,
-    ChannelEntry, UncheckedChannelEntry,
+    dex_asset_pairing::DexAssetPairing,
+    ChannelEntry, PoolMetadata, PoolType, UncheckedChannelEntry, UniquePoolId,
 };
-
-pub type UniquePoolId = u64;
 
 pub type AssetPair = (String, String);
 type DexName = String;
@@ -72,7 +68,7 @@ pub mod state {
     pub const ASSET_PAIRINGS: Map<DexAssetPairing, Vec<PoolReference>> = Map::new("pool_ids");
 
     /// Stores the metadata for the pools using the unique pool id as the key
-    pub const POOL_METADATA: Map<UniquePoolId, PoolMetadata> = Map::new("pools");
+    pub const POOL_METADATA: Map<u64, PoolMetadata> = Map::new("pools");
 }
 
 /// AnsHost Instantiate msg
