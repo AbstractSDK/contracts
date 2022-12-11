@@ -7,8 +7,8 @@ use abstract_os::ans_host::{AssetPair, ExecuteMsg, UniquePoolId};
 use abstract_os::dex::DexName;
 use abstract_os::objects::pool_id::{PoolId, UncheckedPoolId};
 use abstract_os::objects::pool_info::PoolMetadata;
-use abstract_os::objects::{DexAssetPairing, UncheckedChannelEntry, UncheckedContractEntry};
 use abstract_os::objects::pool_reference::PoolReference;
+use abstract_os::objects::{DexAssetPairing, UncheckedChannelEntry, UncheckedContractEntry};
 
 use crate::contract::AnsHostResult;
 use crate::error::AnsHostError;
@@ -190,7 +190,12 @@ fn update_pools(
         // load the pool metadata
         let pool_metadata = POOL_METADATA.load(deps.storage, pool_id_to_remove)?;
 
-        remove_pool_pairings(deps.storage, pool_id_to_remove, &pool_metadata.dex, &pool_metadata.assets)?;
+        remove_pool_pairings(
+            deps.storage,
+            pool_id_to_remove,
+            &pool_metadata.dex,
+            &pool_metadata.assets,
+        )?;
 
         // remove the pool metadata
         POOL_METADATA.remove(deps.storage, pool_id_to_remove);

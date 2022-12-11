@@ -5,8 +5,8 @@ use cosmwasm_std::{Addr, QuerierWrapper, StdError, StdResult};
 use cw_asset::AssetInfo;
 
 use crate::ans_host::state::{ASSET_ADDRESSES, ASSET_PAIRINGS, CHANNELS, CONTRACT_ADDRESSES};
-use crate::objects::DexAssetPairing;
 use crate::objects::pool_reference::PoolReference;
+use crate::objects::DexAssetPairing;
 
 use super::{asset_entry::AssetEntry, contract_entry::ContractEntry, ChannelEntry};
 
@@ -113,7 +113,10 @@ impl AnsHost {
             .ok_or_else(|| {
                 StdError::generic_err(format!(
                     "asset pairing {} not found in ans_host",
-                    format!("{}:{}-{}", dex_asset_pairing.2, dex_asset_pairing.0, dex_asset_pairing.1)
+                    format!(
+                        "{}:{}-{}",
+                        dex_asset_pairing.2, dex_asset_pairing.0, dex_asset_pairing.1
+                    )
                 ))
             })?;
         Ok(result)

@@ -17,7 +17,11 @@ pub enum AnsHostError {
     NotInPool { id: String },
 
     #[error("{} assets is not within range [{}-{}]", provided, min, max)]
-    InvalidAssetCount { min: usize, max: usize, provided: usize },
+    InvalidAssetCount {
+        min: usize,
+        max: usize,
+        provided: usize,
+    },
 
     #[error("Dex {} is not registered", dex)]
     UnregisteredDex { dex: String },

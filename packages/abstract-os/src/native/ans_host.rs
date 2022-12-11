@@ -8,16 +8,16 @@
 use cosmwasm_schema::QueryResponses;
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 
-use crate::objects::pool_id::{PoolId, UncheckedPoolId};
+use crate::objects::pool_id::UncheckedPoolId;
+use crate::objects::pool_reference::PoolReference;
 use crate::objects::{
     asset_entry::AssetEntry,
     asset_pairing_entry::DexAssetPairing,
-    ChannelEntry,
     contract_entry::{ContractEntry, UncheckedContractEntry},
     pool_info::PoolMetadata,
-    pool_type::PoolType, UncheckedChannelEntry,
+    pool_type::PoolType,
+    ChannelEntry, UncheckedChannelEntry,
 };
-use crate::objects::pool_reference::PoolReference;
 
 pub type UniquePoolId = u64;
 
@@ -31,17 +31,17 @@ pub type PoolMetadataMapEntry = (UniquePoolId, PoolMetadata);
 
 /// AnsHost state details
 pub mod state {
-    use crate::ans_host::{DexAssetPairing, UniquePoolId};
+    use crate::ans_host::{DexAssetPairing, DexName, UniquePoolId};
     use cosmwasm_std::Addr;
     use cw_asset::AssetInfo;
     use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
 
-    use crate::objects::{
-        asset_entry::AssetEntry, ChannelEntry, common_namespace::ADMIN_NAMESPACE,
-        contract_entry::ContractEntry, pool_info::PoolMetadata,
-    };
     use crate::objects::pool_reference::PoolReference;
+    use crate::objects::{
+        asset_entry::AssetEntry, common_namespace::ADMIN_NAMESPACE, contract_entry::ContractEntry,
+        pool_info::PoolMetadata, ChannelEntry,
+    };
 
     /// Ans host configuration
     #[cosmwasm_schema::cw_serde]
@@ -65,7 +65,7 @@ pub mod state {
     pub const CHANNELS: Map<ChannelEntry, String> = Map::new("channels");
 
     /// Stores the registered dex names
-    pub const REGISTERED_DEXES: Item<Vec<String>> = Item::new("registered_dexes");
+    pub const REGISTERED_DEXES: Item<Vec<DexName>> = Item::new("registered_dexes");
 
     /// Stores the asset pairing entries to their pool ids
     /// (asset1, asset2, dex_name) -> {id: uniqueId, pool_id: poolId}
@@ -190,9 +190,7 @@ pub enum QueryMsg {
     /// returns [`PoolsResponse`]
     /// TODO: this may need to take a page_token and page_size for the return
     #[returns(PoolsResponse)]
-    Pools {
-        keys: Vec<DexAssetPairing>,
-    },
+    Pools { keys: Vec<DexAssetPairing> },
     /// Retrieve the (optionally-filtered) list of pools.
     /// returns [`PoolIdListResponse`]
     #[returns(PoolIdListResponse)]
@@ -204,9 +202,7 @@ pub enum QueryMsg {
     /// Get the pool metadatas for given pool ids
     /// returns [`PoolMetadatasResponse`]
     #[returns(PoolMetadatasResponse)]
-    PoolMetadatas {
-        keys: Vec<UniquePoolId>,
-    },
+    PoolMetadatas { keys: Vec<UniquePoolId> },
     /// Retrieve the (optionally-filtered) list of pool metadatas
     /// returns [`PoolMetadataListResponse`]
     #[returns(PoolMetadataListResponse)]

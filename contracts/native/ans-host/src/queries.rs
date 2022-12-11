@@ -1,22 +1,25 @@
-use cosmwasm_std::{Addr, Binary, Deps, Env, Order, StdError, StdResult, Storage, to_binary};
+use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, StdResult, Storage};
 
-use abstract_os::ans_host::{AssetPair, AssetPairingFilter, AssetPairingMapEntry, PoolIdListResponse, PoolMetadataFilter, PoolMetadataListResponse, PoolMetadataMapEntry, PoolMetadatasResponse, PoolsResponse, RegisteredDexesResponse, UniquePoolId};
+use abstract_os::ans_host::state::{ASSET_PAIRINGS, POOL_METADATA};
+use abstract_os::ans_host::{
+    AssetPairingFilter, AssetPairingMapEntry, PoolIdListResponse, PoolMetadataFilter,
+    PoolMetadataListResponse, PoolMetadataMapEntry, PoolMetadatasResponse, PoolsResponse,
+    RegisteredDexesResponse, UniquePoolId,
+};
+use abstract_os::dex::DexName;
+use abstract_os::objects::pool_info::PoolMetadata;
+use abstract_os::objects::pool_reference::PoolReference;
+use abstract_os::objects::DexAssetPairing;
 use abstract_os::{
     ans_host::{
-        AssetListResponse,
-        AssetsResponse, ChannelListResponse, ChannelsResponse, ContractListResponse,
-        ContractsResponse, state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES, REGISTERED_DEXES},
+        state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES, REGISTERED_DEXES},
+        AssetListResponse, AssetsResponse, ChannelListResponse, ChannelsResponse,
+        ContractListResponse, ContractsResponse,
     },
     objects::{AssetEntry, ChannelEntry, ContractEntry},
 };
 use cw_asset::AssetInfo;
 use cw_storage_plus::Bound;
-use abstract_os::ans_host::state::{ASSET_PAIRINGS, POOL_METADATA};
-use abstract_os::dex::DexName;
-use abstract_os::objects::DexAssetPairing;
-use abstract_os::objects::pool_info::PoolMetadata;
-use abstract_os::objects::pool_reference::PoolReference;
-use crate::error::AnsHostError;
 
 pub(crate) const DEFAULT_LIMIT: u8 = 15;
 pub(crate) const MAX_LIMIT: u8 = 25;
@@ -124,13 +127,17 @@ pub fn query_registered_dexes(deps: Deps, _env: Env) -> StdResult<Binary> {
 //     Ok(matched)
 // }
 
-
-pub fn list_pool_entries(deps: Deps, filter: Option<AssetPairingFilter>, page_token: Option<DexAssetPairing>, page_size: Option<u8>) -> StdResult<Binary> {
+pub fn list_pool_entries(
+    deps: Deps,
+    filter: Option<AssetPairingFilter>,
+    page_token: Option<DexAssetPairing>,
+    page_size: Option<u8>,
+) -> StdResult<Binary> {
     let page_size = page_size.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
 
     let (asset_pair_filter, dex_filter) = match filter {
         Some(AssetPairingFilter { asset_pair, dex }) => (asset_pair, dex),
-        None => (None, None)
+        None => (None, None),
     };
 
     let full_key_provided = asset_pair_filter.is_some() && dex_filter.is_some();
@@ -153,7 +160,8 @@ pub fn list_pool_entries(deps: Deps, filter: Option<AssetPairingFilter>, page_to
             .collect();
 
         // Re add the key prefix, since only the dex is returned as a key
-        let matched: Vec<AssetPairingMapEntry> = res?.into_iter()
+        let matched: Vec<AssetPairingMapEntry> = res?
+            .into_iter()
             .map(|(dex, ids)| ((asset_x.clone(), asset_y.clone(), dex), ids))
             .collect();
 
@@ -172,10 +180,7 @@ pub fn list_pool_entries(deps: Deps, filter: Option<AssetPairingFilter>, page_to
         res?
     };
 
-
-    to_binary(&PoolIdListResponse {
-        pools: entry_list,
-    })
+    to_binary(&PoolIdListResponse { pools: entry_list })
 }
 
 /// Query the pool ids based on the actual keys
@@ -191,11 +196,13 @@ pub fn query_pool_entries(deps: Deps, keys: Vec<DexAssetPairing>) -> StdResult<B
 }
 
 /// Loads a given key from the asset pairings store and returns the ENTRY
-fn load_asset_pairing_entry(storage: &dyn Storage, key: DexAssetPairing) -> StdResult<AssetPairingMapEntry> {
+fn load_asset_pairing_entry(
+    storage: &dyn Storage,
+    key: DexAssetPairing,
+) -> StdResult<AssetPairingMapEntry> {
     let value = ASSET_PAIRINGS.load(storage, key.clone())?;
     Ok((key, value))
 }
-
 
 pub fn query_pool_metadatas(deps: Deps, keys: Vec<UniquePoolId>) -> StdResult<Binary> {
     let mut entries: Vec<PoolMetadataMapEntry> = vec![];
@@ -208,14 +215,18 @@ pub fn query_pool_metadatas(deps: Deps, keys: Vec<UniquePoolId>) -> StdResult<Bi
     to_binary(&PoolMetadatasResponse { metadatas: entries })
 }
 
-
-pub fn list_pool_metadata_entries(deps: Deps, filter: Option<PoolMetadataFilter>, page_token: Option<UniquePoolId>, page_size: Option<u8>) -> StdResult<Binary> {
+pub fn list_pool_metadata_entries(
+    deps: Deps,
+    filter: Option<PoolMetadataFilter>,
+    page_token: Option<UniquePoolId>,
+    page_size: Option<u8>,
+) -> StdResult<Binary> {
     let page_size = page_size.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
     let start_bound = page_token.map(Bound::exclusive);
 
     let pool_type_filter = match filter {
         Some(PoolMetadataFilter { pool_type }) => pool_type,
-        None => None
+        None => None,
     };
 
     let res: Result<Vec<(UniquePoolId, PoolMetadata)>, _> = POOL_METADATA
@@ -228,13 +239,14 @@ pub fn list_pool_metadata_entries(deps: Deps, filter: Option<PoolMetadataFilter>
         .take(page_size)
         .collect();
 
-    return to_binary(&PoolMetadataListResponse {
-        metadatas: res?,
-    });
+    to_binary(&PoolMetadataListResponse { metadatas: res? })
 }
 
 /// Loads a given key from the asset pairings store and returns the ENTRY
-fn load_pool_metadata_entry(storage: &dyn Storage, key: UniquePoolId) -> StdResult<PoolMetadataMapEntry> {
-    let value = POOL_METADATA.load(storage, key.clone())?;
+fn load_pool_metadata_entry(
+    storage: &dyn Storage,
+    key: UniquePoolId,
+) -> StdResult<PoolMetadataMapEntry> {
+    let value = POOL_METADATA.load(storage, key)?;
     Ok((key, value))
 }

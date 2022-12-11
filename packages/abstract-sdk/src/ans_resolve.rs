@@ -4,7 +4,10 @@
 use cosmwasm_std::{Addr, QuerierWrapper, StdResult};
 use cw_asset::{Asset, AssetInfo};
 
-use abstract_os::objects::{ans_host::AnsHost, pool_reference::PoolReference, AnsAsset, AssetEntry, ChannelEntry, ContractEntry, DexAssetPairing};
+use abstract_os::objects::{
+    ans_host::AnsHost, pool_reference::PoolReference, AnsAsset, AssetEntry, ChannelEntry,
+    ContractEntry, DexAssetPairing,
+};
 
 /// Resolve an [`AbstractNameService`](crate::base::features::AbstractNameService) entry into its value.
 pub trait Resolve {

@@ -11,7 +11,6 @@ use abstract_os::ans_host::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 pub type AnsHostResult = Result<Response, AnsHostError>;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 use abstract_os::ANS_HOST;
-use crate::queries::MAX_LIMIT;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -58,17 +57,13 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             page_size,
         } => queries::list_pool_entries(deps, filter, page_token, page_size),
 
-        QueryMsg::Pools { keys } => {
-            queries::query_pool_entries(deps, keys)
-        }
+        QueryMsg::Pools { keys } => queries::query_pool_entries(deps, keys),
         QueryMsg::PoolMetadatas { keys } => queries::query_pool_metadatas(deps, keys),
         QueryMsg::PoolMetadataList {
             filter,
             page_token,
             page_size,
-        } => {
-            queries::list_pool_metadata_entries(deps, filter, page_token, page_size)
-        },
+        } => queries::list_pool_metadata_entries(deps, filter, page_token, page_size),
     }
 }
 
