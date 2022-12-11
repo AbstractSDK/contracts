@@ -110,22 +110,6 @@ pub fn query_registered_dexes(deps: Deps, _env: Env) -> StdResult<Binary> {
     to_binary(&RegisteredDexesResponse { dexes })
 }
 
-//
-// fn query_asset_pair_ids(deps: Deps, asset_x: &String, asset_y: &String, dex: &DexName) -> Result<Vec<AssetPairingEntry>, StdError> {
-//     let dex_bound = Some(Bound::inclusive(dex));
-//
-//     let matched_res: Result<Vec<(DexName, Vec<CompoundPoolId>)>, _> = ASSET_PAIRS
-//         .prefix((asset_x.clone(), asset_y.clone()))
-//         .range(deps.storage, None, dex_bound, Order::Ascending)
-//         .collect();
-//
-//     // Re add the key prefix
-//     let matched: Vec<AssetPairingEntry> = matched_res?.into_iter()
-//         .map(|(dex, ids)| ((asset_x.clone(), asset_y.clone(), dex), ids))
-//         .collect();
-//
-//     Ok(matched)
-// }
 
 pub fn list_pool_entries(
     deps: Deps,
