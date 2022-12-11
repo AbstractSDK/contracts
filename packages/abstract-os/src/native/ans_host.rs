@@ -22,6 +22,10 @@ pub type AssetPair = (String, String);
 type DexName = String;
 pub type AssetPairingKey = (String, String, DexName);
 
+/// An entry of ((asset_x, asset_y, dex) -> compound_pool_id)
+pub type AssetPairingEntry = (AssetPairingKey, Vec<CompoundPoolId>);
+pub type PoolMetadataEntry = (UniqueId, PoolMetadata);
+
 #[cosmwasm_schema::cw_serde]
 pub struct CompoundPoolId {
     pub id: UniqueId,
@@ -123,17 +127,13 @@ pub struct AssetPairingFilter {
     pub dex: Option<String>,
 }
 
-// #[cosmwasm_schema::cw_serde]
-// pub struct PoolFilter {
-//     /// Filter by asset pair
-//     pub asset_pair: Option<AssetPair>,
-//     /// Filter by dex
-//     pub dex: Option<String>,
-//     /// Filter by pool type
-//     pub pool_type: Option<PoolType>,
-//     // /// Filter by pool status
-//     // pub pool_status: Option<PoolStatus>,
-// }
+#[cosmwasm_schema::cw_serde]
+pub struct PoolMetadataFilter {
+    /// Filter by pool type
+    pub pool_type: Option<PoolType>,
+    // /// Filter by pool status
+    // pub pool_status: Option<PoolStatus>,
+}
 
 /// AnsHost smart-query
 #[cosmwasm_schema::cw_serde]
@@ -185,6 +185,13 @@ pub enum QueryMsg {
     /// returns [`RegisteredDexesResponse`]
     #[returns(RegisteredDexesResponse)]
     RegisteredDexes {},
+    /// Get the pools for a given asset pair
+    /// returns [`PoolsResponse`]
+    /// TODO: this may need to take a page_token and page_size for the return
+    #[returns(PoolsResponse)]
+    Pools {
+        keys: Vec<AssetPairingKey>,
+    },
     /// Retrieve the list of pools
     /// returns [`PoolIdListResponse`]
     #[returns(PoolIdListResponse)]
@@ -193,19 +200,20 @@ pub enum QueryMsg {
         page_token: Option<AssetPairingKey>,
         page_size: Option<u8>,
     },
-    /// Get the pools for a given asset pair
-    /// returns [`PoolsResponse`]
-    /// TODO: this may need to take a page_token and page_size for the return
-    #[returns(PoolsResponse)]
-    Pools {
-        keys: Vec<AssetPairingKey>,
+    /// Get the pool metadatas for given pool ids
+    /// returns [`PoolMetadatasResponse`]
+    #[returns(PoolMetadatasResponse)]
+    PoolMetadatas {
+        keys: Vec<UniqueId>,
     },
-    //// Get the pool metadatas for given pool ids
-    // // returns [`PoolMetadatasResponse`]
-    // #[returns(PoolMetadatasResponse)]
-    // PoolMetadatas {
-    //     ids: Vec<UniqueId>,
-    // },
+    /// Retrieve the list of pool metadatas
+    /// returns [`PoolMetadataListResponse`]
+    #[returns(PoolMetadataListResponse)]
+    PoolMetadataList {
+        filter: Option<PoolMetadataFilter>,
+        page_token: Option<UniqueId>,
+        page_size: Option<u8>,
+    },
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -256,10 +264,17 @@ pub struct PoolIdListResponse {
     pub pools: Vec<AssetPairingEntry>,
 }
 
-/// An entry of ((asset_x, asset_y, dex) -> compound_pool_id)
-pub type AssetPairingEntry = (AssetPairingKey, Vec<CompoundPoolId>);
-
 #[cosmwasm_schema::cw_serde]
 pub struct PoolsResponse {
     pub pools: Vec<AssetPairingEntry>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct PoolMetadatasResponse {
+    pub metadatas: Vec<PoolMetadataEntry>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct PoolMetadataListResponse {
+    pub metadatas: Vec<PoolMetadataEntry>,
 }

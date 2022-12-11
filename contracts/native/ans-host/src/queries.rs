@@ -1,6 +1,6 @@
 use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, StdResult, StdError, Storage};
 
-use abstract_os::ans_host::{AssetPair, AssetPairingEntry, CompoundPoolId, AssetPairingKey, AssetPairingFilter, PoolIdListResponse, PoolsResponse, RegisteredDexesResponse, UniqueId};
+use abstract_os::ans_host::{AssetPair, AssetPairingEntry, CompoundPoolId, AssetPairingKey, AssetPairingFilter, PoolIdListResponse, PoolsResponse, RegisteredDexesResponse, UniqueId, PoolMetadataEntry, PoolMetadatasResponse, PoolMetadataFilter, PoolMetadataListResponse};
 use abstract_os::{
     ans_host::{
         state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES, REGISTERED_DEXES},
@@ -16,8 +16,8 @@ use abstract_os::dex::DexName;
 use abstract_os::objects::pool_info::PoolMetadata;
 use crate::error::AnsHostError;
 
-const DEFAULT_LIMIT: u8 = 15;
-const MAX_LIMIT: u8 = 25;
+pub(crate) const DEFAULT_LIMIT: u8 = 15;
+pub(crate) const MAX_LIMIT: u8 = 25;
 
 pub fn query_assets(deps: Deps, _env: Env, asset_names: Vec<String>) -> StdResult<Binary> {
     let assets: Vec<AssetEntry> = asset_names
@@ -123,7 +123,7 @@ pub fn query_registered_dexes(deps: Deps, _env: Env) -> StdResult<Binary> {
 // }
 
 
-pub fn query_pool_id_list(deps: Deps, filter: Option<AssetPairingFilter>, page_token: Option<AssetPairingKey>, page_size: Option<u8>) -> StdResult<Binary> {
+pub fn list_pool_entries(deps: Deps, filter: Option<AssetPairingFilter>, page_token: Option<AssetPairingKey>, page_size: Option<u8>) -> StdResult<Binary> {
     let page_size = page_size.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
 
     let (asset_pair_filter, dex_filter) = match filter {
@@ -137,7 +137,7 @@ pub fn query_pool_id_list(deps: Deps, filter: Option<AssetPairingFilter>, page_t
         // We have the full key, so load the entry
         let (asset_x, asset_y) = asset_pair_filter.unwrap();
         let key = (asset_x, asset_y, dex_filter.unwrap());
-        let entry = load_asset_pairing_entry_by_key(deps.storage, key)?;
+        let entry = load_asset_pairing_entry(deps.storage, key)?;
         // Add the result to a vec
         vec![entry]
     } else if let Some((asset_x, asset_y)) = asset_pair_filter {
@@ -176,22 +176,11 @@ pub fn query_pool_id_list(deps: Deps, filter: Option<AssetPairingFilter>, page_t
     })
 }
 
-
-// let res: Result<Vec<(UniqueId, PoolMetadata)>, _> = POOL_METADATA
-//     // If the asset_pair_filter is provided, we must use that prefix...
-//     .range(deps.storage, start_bound, None, Order::Ascending)
-//     .filter(|e| {
-//         let pool_type = &e.as_ref().unwrap().1.pool_type;
-//         pool_type_filter.as_ref().map_or(true, |f| f == pool_type)
-//     })
-//     .take(page_size)
-//     .collect();
-
 /// Query the pool ids based on the actual keys
-pub fn query_asset_pairs_ids(deps: Deps, keys: Vec<AssetPairingKey>) -> StdResult<Binary> {
+pub fn query_pool_entries(deps: Deps, keys: Vec<AssetPairingKey>) -> StdResult<Binary> {
     let mut entries: Vec<AssetPairingEntry> = vec![];
     for key in keys.into_iter() {
-        let entry = load_asset_pairing_entry_by_key(deps.storage, key)?;
+        let entry = load_asset_pairing_entry(deps.storage, key)?;
 
         entries.push(entry);
     }
@@ -199,7 +188,51 @@ pub fn query_asset_pairs_ids(deps: Deps, keys: Vec<AssetPairingKey>) -> StdResul
     to_binary(&PoolsResponse { pools: entries })
 }
 
-fn load_asset_pairing_entry_by_key(storage: &dyn Storage, key: AssetPairingKey) -> StdResult<AssetPairingEntry> {
-    let matched = ASSET_PAIRS.load(storage, key.clone())?;
-    Ok((key, matched))
+/// Loads a given key from the asset pairings store and returns the ENTRY
+fn load_asset_pairing_entry(storage: &dyn Storage, key: AssetPairingKey) -> StdResult<AssetPairingEntry> {
+    let value = ASSET_PAIRS.load(storage, key.clone())?;
+    Ok((key, value))
+}
+
+
+pub fn query_pool_metadatas(deps: Deps, keys: Vec<UniqueId>) -> StdResult<Binary> {
+    let mut entries: Vec<PoolMetadataEntry> = vec![];
+    for key in keys.into_iter() {
+        let entry = load_pool_metadata_entry(deps.storage, key)?;
+
+        entries.push(entry);
+    }
+
+    to_binary(&PoolMetadatasResponse { metadatas: entries })
+}
+
+
+pub fn list_pool_metadata_entries(deps: Deps, filter: Option<PoolMetadataFilter>, page_token: Option<UniqueId>, page_size: Option<u8>) -> StdResult<Binary> {
+    let page_size = page_size.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
+    let start_bound = page_token.map(Bound::exclusive);
+
+    let pool_type_filter = match filter {
+        Some(PoolMetadataFilter { pool_type }) => pool_type,
+        None => None
+    };
+
+    let res: Result<Vec<(UniqueId, PoolMetadata)>, _> = POOL_METADATA
+        // If the asset_pair_filter is provided, we must use that prefix...
+        .range(deps.storage, start_bound, None, Order::Ascending)
+        .filter(|e| {
+            let pool_type = &e.as_ref().unwrap().1.pool_type;
+            pool_type_filter.as_ref().map_or(true, |f| f == pool_type)
+        })
+        .take(page_size)
+        .collect();
+
+    return to_binary(&PoolMetadataListResponse {
+        metadatas: res?,
+    });
+}
+
+/// Loads a given key from the asset pairings store and returns the ENTRY
+fn load_pool_metadata_entry(storage: &dyn Storage, key: UniqueId) -> StdResult<PoolMetadataEntry> {
+    let value = POOL_METADATA.load(storage, key.clone())?;
+    Ok((key, value))
 }
