@@ -112,11 +112,8 @@ impl AnsHost {
             .query(querier, self.address.clone(), dex_asset_pairing.clone())?
             .ok_or_else(|| {
                 StdError::generic_err(format!(
-                    "asset pairing {} not found in ans_host",
-                    format!(
-                        "{}:{}-{}",
-                        dex_asset_pairing.2, dex_asset_pairing.0, dex_asset_pairing.1
-                    )
+                    "asset pairing {}:{}-{} not found in ans_host",
+                    dex_asset_pairing.2, dex_asset_pairing.0, dex_asset_pairing.1
                 ))
             })?;
         Ok(result)
