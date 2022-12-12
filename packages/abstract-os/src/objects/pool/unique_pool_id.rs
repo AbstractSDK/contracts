@@ -1,18 +1,14 @@
-use std::{
-    convert::{TryFrom, TryInto},
-    fmt::Display,
-};
+use std::{convert::TryInto, fmt::Display};
 
 use cosmwasm_std::{StdError, StdResult};
 
-use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey, IntKey};
+use cw_storage_plus::{IntKey, KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::array::TryFromSliceError;
 
-
 #[derive(
-Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord, Copy,
+    Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord, Copy,
 )]
 pub struct UniquePoolId(u64);
 
@@ -67,8 +63,9 @@ impl KeyDeserialize for UniquePoolId {
     type Output = Self;
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
-        Ok(Self::from_cw_bytes(value.as_slice().try_into()
-            .map_err(|err: TryFromSliceError| StdError::generic_err(err.to_string()))?))
+        Ok(Self::from_cw_bytes(value.as_slice().try_into().map_err(
+            |err: TryFromSliceError| StdError::generic_err(err.to_string()),
+        )?))
     }
 }
 
@@ -110,10 +107,9 @@ mod test {
         let key = mock_key();
         let map: Map<UniquePoolId, u64> = Map::new("map");
 
-        map.save(deps.as_mut().storage, key.clone(), &42069)
-            .unwrap();
+        map.save(deps.as_mut().storage, key, &42069).unwrap();
 
-        assert_eq!(map.load(deps.as_ref().storage, key.clone()).unwrap(), 42069);
+        assert_eq!(map.load(deps.as_ref().storage, key).unwrap(), 42069);
 
         let items = map
             .range(deps.as_ref().storage, None, None, Order::Ascending)
@@ -132,17 +128,17 @@ mod test {
 
         map.save(
             deps.as_mut().storage,
-            (key.clone(), Addr::unchecked("larry")),
+            (key, Addr::unchecked("larry")),
             &42069,
         )
-            .unwrap();
+        .unwrap();
 
         map.save(
             deps.as_mut().storage,
-            (key.clone(), Addr::unchecked("jake")),
+            (key, Addr::unchecked("jake")),
             &69420,
         )
-            .unwrap();
+        .unwrap();
 
         let items = map
             .prefix(key)

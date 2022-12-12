@@ -16,23 +16,23 @@ pub struct DexAssetPairing((String, String, DexName));
 
 impl DexAssetPairing {
     pub fn new(asset_x: &str, asset_y: &str, dex_name: &str) -> Self {
-        Self(
-            (str::to_ascii_lowercase(asset_x),
-             str::to_ascii_lowercase(asset_y),
-             str::to_ascii_lowercase(dex_name), )
-        )
+        Self((
+            str::to_ascii_lowercase(asset_x),
+            str::to_ascii_lowercase(asset_y),
+            str::to_ascii_lowercase(dex_name),
+        ))
     }
 
     pub fn asset_x(&self) -> &str {
-        &self.0.0
+        &self.0 .0
     }
 
     pub fn asset_y(&self) -> &str {
-        &self.0.1
+        &self.0 .1
     }
 
     pub fn dex(&self) -> &str {
-        &self.0.2
+        &self.0 .2
     }
 }
 
@@ -103,13 +103,12 @@ impl KeyDeserialize for DexAssetPairing {
     }
 }
 
-
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::objects::{PoolReference, UniquePoolId};
     use cosmwasm_std::{testing::mock_dependencies, Addr, Order};
     use cw_storage_plus::Map;
-    use crate::objects::{PoolReference, UniquePoolId};
 
     fn mock_key() -> DexAssetPairing {
         DexAssetPairing::new("juno", "osmo", "junoswap")
@@ -119,7 +118,7 @@ mod test {
         (
             DexAssetPairing::new("juno", "osmo", "junoswap"),
             DexAssetPairing::new("juno", "osmo", "osmosis"),
-            DexAssetPairing::new("osmo", "usdt", "osmosis")
+            DexAssetPairing::new("osmo", "usdt", "osmosis"),
         )
     }
 
@@ -164,14 +163,14 @@ mod test {
             (key.clone(), Addr::unchecked("astroport")),
             &vec![ref_1.clone()],
         )
-            .unwrap();
+        .unwrap();
 
         map.save(
             deps.as_mut().storage,
             (key.clone(), Addr::unchecked("terraswap")),
             &vec![ref_2.clone()],
         )
-            .unwrap();
+        .unwrap();
 
         let items = map
             .prefix(key)
@@ -207,4 +206,3 @@ mod test {
         assert_eq!(items[1], ("osmosis".to_string(), 69420));
     }
 }
-

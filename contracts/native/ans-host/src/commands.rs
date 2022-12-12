@@ -182,7 +182,7 @@ fn update_pools(
         // Register each pair of assets as a pairing and link it to the pool id
         register_pool_pairings(deps.storage, next_unique_pool_id, pool_id, &assets, &dex)?;
 
-        POOL_METADATA.save(deps.storage, next_unique_pool_id.into(), &pool_metadata)?;
+        POOL_METADATA.save(deps.storage, next_unique_pool_id, &pool_metadata)?;
 
         // Increment the unique pool id for the next pool
         next_unique_pool_id.increment();
@@ -190,7 +190,7 @@ fn update_pools(
 
     for pool_id_to_remove in to_remove {
         // load the pool metadata
-        let pool_metadata = POOL_METADATA.load(deps.storage, pool_id_to_remove.into())?;
+        let pool_metadata = POOL_METADATA.load(deps.storage, pool_id_to_remove)?;
 
         remove_pool_pairings(
             deps.storage,
@@ -200,7 +200,7 @@ fn update_pools(
         )?;
 
         // remove the pool metadata
-        POOL_METADATA.remove(deps.storage, pool_id_to_remove.into());
+        POOL_METADATA.remove(deps.storage, pool_id_to_remove);
     }
 
     // Save the next unique pool id

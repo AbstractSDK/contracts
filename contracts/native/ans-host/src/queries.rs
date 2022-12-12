@@ -110,7 +110,6 @@ pub fn query_registered_dexes(deps: Deps, _env: Env) -> StdResult<Binary> {
     to_binary(&RegisteredDexesResponse { dexes })
 }
 
-
 pub fn list_pool_entries(
     deps: Deps,
     filter: Option<AssetPairingFilter>,
@@ -223,7 +222,7 @@ pub fn list_pool_metadata_entries(
             pool_type_filter.as_ref().map_or(true, |f| f == pool_type)
         })
         .take(page_size)
-        .map(|e| e.map(|(k, v)| (k.into(), v)))
+        .map(|e| e.map(|(k, v)| (k, v)))
         .collect();
 
     to_binary(&PoolMetadataListResponse { metadatas: res? })
@@ -234,6 +233,6 @@ fn load_pool_metadata_entry(
     storage: &dyn Storage,
     key: UniquePoolId,
 ) -> StdResult<PoolMetadataMapEntry> {
-    let value = POOL_METADATA.load(storage, key.into())?;
+    let value = POOL_METADATA.load(storage, key)?;
     Ok((key, value))
 }

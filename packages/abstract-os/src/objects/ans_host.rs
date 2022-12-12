@@ -126,7 +126,7 @@ impl AnsHost {
         pool_id: &UniquePoolId,
     ) -> StdResult<PoolMetadata> {
         let result: PoolMetadata = POOL_METADATA
-            .query(querier, self.address.clone(), (*pool_id).into())?
+            .query(querier, self.address.clone(), *pool_id)?
             .ok_or_else(|| {
                 StdError::generic_err(format!(
                     "pool metadata for pool {} not found in ans_host",

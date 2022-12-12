@@ -68,7 +68,7 @@ pub mod state {
     pub const ASSET_PAIRINGS: Map<DexAssetPairing, Vec<PoolReference>> = Map::new("pool_ids");
 
     /// Stores the metadata for the pools using the unique pool id as the key
-    pub const POOL_METADATA: Map<u64, PoolMetadata> = Map::new("pools");
+    pub const POOL_METADATA: Map<UniquePoolId, PoolMetadata> = Map::new("pools");
 }
 
 /// AnsHost Instantiate msg
