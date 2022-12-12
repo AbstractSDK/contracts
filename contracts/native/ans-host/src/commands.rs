@@ -37,7 +37,7 @@ pub fn handle_message(
         ExecuteMsg::UpdateChannels { to_add, to_remove } => {
             update_channels(deps, info, to_add, to_remove)
         }
-        ExecuteMsg::RegisterDex { name } => register_dex(deps, info, name),
+        ExecuteMsg::UpdateDexes { to_add, to_remove } => update_dex_registry(deps, info, to_add, to_remove),
         ExecuteMsg::UpdatePools { to_add, to_remove } => {
             update_pools(deps, info, to_add, to_remove)
         }
@@ -127,26 +127,39 @@ pub fn update_channels(
     Ok(Response::new().add_attribute("action", "updated contract addresses"))
 }
 
-/// Registers a new dex to the list of known dexes
-fn register_dex(deps: DepsMut, info: MessageInfo, name: String) -> AnsHostResult {
+/// Updates the dex registry with additions and removals
+fn update_dex_registry(deps: DepsMut, info: MessageInfo, to_add: Vec<String>, to_remove: Vec<String>) -> AnsHostResult {
     // Only Admin can call this method
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
 
-    let register = |mut dexes: Vec<String>| -> StdResult<Vec<String>> {
-        if dexes.contains(&name) {
-            return Err(StdError::generic_err(format!(
-                "Dex {} is already registered",
-                name
-            )));
-        }
+    if !to_add.is_empty() {
+        let register_dex = |mut dexes: Vec<String>| -> StdResult<Vec<String>> {
+            for dex in to_add {
+                if dexes.contains(&dex) {
+                    return Err(StdError::generic_err(format!(
+                        "Dex {} is already registered",
+                        dex
+                    )));
+                }
+                dexes.push(dex);
+            }
+            Ok(dexes)
+        };
 
-        dexes.push(name);
-        Ok(dexes)
-    };
+        REGISTERED_DEXES.update(deps.storage, register_dex)?;
+    }
 
-    REGISTERED_DEXES.update(deps.storage, register)?;
+    if !to_remove.is_empty() {
+        let deregister_dex = |mut dexes: Vec<String>| -> StdResult<Vec<String>> {
+            for dex in to_remove {
+                dexes.retain(|x| x != &dex);
+            }
+            Ok(dexes)
+        };
+        REGISTERED_DEXES.update(deps.storage, deregister_dex)?;
+    }
 
-    Ok(Response::new().add_attribute("action", "registered dex"))
+    Ok(Response::new().add_attribute("action", "update dex registry"))
 }
 
 fn update_pools(
@@ -322,7 +335,67 @@ pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> AnsHostResu
 
 #[cfg(test)]
 mod test {
+    use std::str::FromStr;
+
+    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
+    use cosmwasm_std::{Addr, Decimal, Deps, DepsMut, Response};
+    use cw_controllers::AdminError;
+    use abstract_os::ans_host::InstantiateMsg;
+
+    use abstract_os::etf::state::FEE;
+    use abstract_os::etf::EtfExecuteMsg;
+    use crate::contract;
+
+    use crate::contract::{AnsHostResult, instantiate};
+    use crate::error::AnsHostError;
+
     use super::*;
+
+    type AnsHostTestResult = Result<(), AnsHostError>;
+
+    const TEST_CREATOR: &str = "creator";
+
+    fn mock_init(mut deps: DepsMut) -> AnsHostResult {
+        let init_fee = Decimal::from_str("0.01").unwrap();
+
+        let info = mock_info(TEST_CREATOR, &[]);
+
+        instantiate(
+            deps.branch(),
+            mock_env(),
+            info,
+            InstantiateMsg {},
+        )
+    }
+
+    mod register_dex {
+        use super::*;
+
+        #[test]
+        fn register_dex() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            let info = mock_info(TEST_CREATOR, &[]);
+            let new_dex = "test_dex".to_string();
+
+            let msg = ExecuteMsg::UpdateDexes {
+                to_add: vec![new_dex.clone()],
+                to_remove: vec![],
+            };
+
+            let res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
+
+            let expected_dexes = vec![new_dex];
+            let actual_dexes = REGISTERED_DEXES.load(&deps.storage)?;
+            println!("{:?}", actual_dexes);
+            println!("{:?}", expected_dexes);
+
+            assert_eq!(actual_dexes, expected_dexes);
+
+            Ok(())
+        }
+    }
 
     mod validate_pool_assets {
         use super::*;

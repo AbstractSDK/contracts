@@ -100,9 +100,11 @@ pub enum ExecuteMsg {
         to_remove: Vec<UncheckedChannelEntry>,
     },
     /// Registers a dex
-    RegisterDex {
-        /// Name of the dex
-        name: String,
+    UpdateDexes {
+        /// Dexes to add
+        to_add: Vec<String>,
+        /// Dexes to remove
+        to_remove: Vec<String>,
     },
     /// Update the pools
     UpdatePools {
