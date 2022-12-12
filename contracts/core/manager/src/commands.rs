@@ -16,9 +16,12 @@ use abstract_sdk::os::{
 use abstract_sdk::*;
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo,
-    QueryRequest, Response, StdError, StdResult, WasmMsg, WasmQuery,
+    QueryRequest, Response, StdError, StdResult, SubMsg, WasmMsg, WasmQuery,
 };
 use cw2::{get_contract_version, ContractVersion};
+use cw_storage_plus::Item;
+use os::manager::state::DEPENDENTS;
+use os::objects::dependency::Dependency;
 use semver::Version;
 
 use crate::versioning;
@@ -27,6 +30,10 @@ use crate::{
     validators::validate_name_or_gov_type,
 };
 use abstract_sdk::os::{MANAGER, PROXY};
+
+pub const POST_APP_MIGRATION_ID: u64 = 1;
+
+pub(crate) const MIGRATE_CONTEXT: Item<(String, Vec<Dependency>)> = Item::new("context");
 
 /// Adds, updates or removes provided addresses.
 /// Should only be called by contract that adds/removes modules.
@@ -116,7 +123,7 @@ pub fn register_module(
             let id = info.id();
             // assert version requirements
             let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
-            versioning::set_dependencies(deps.storage, id, dependencies)?;
+            versioning::set_as_dependent(deps.storage, id, dependencies)?;
             response = response.add_message(whitelist_dapp_on_proxy(
                 deps.as_ref(),
                 proxy_addr.into_string(),
@@ -130,7 +137,7 @@ pub fn register_module(
             let id = info.id();
             // assert version requirements
             let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
-            versioning::set_dependencies(deps.storage, id, dependencies)?;
+            versioning::set_as_dependent(deps.storage, id, dependencies)?;
             response = response.add_message(whitelist_dapp_on_proxy(
                 deps.as_ref(),
                 proxy_addr.into_string(),
@@ -165,6 +172,19 @@ pub fn exec_on_module(
 pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module_id: String) -> ManagerResult {
     // Only root can remove modules
     ROOT.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    // module can only be removed if there are no dependencies on it
+    let dependents: Vec<String> = DEPENDENTS
+        .load(deps.storage, &module_id)?
+        .into_iter()
+        .collect();
+    if !dependents.is_empty() {
+        return Err(ManagerError::ModuleHasDependents(dependents));
+    }
+
+    // Remove module as dependant from its dependencies.
+    let module_dependencies = versioning::module_dependencies(deps.as_ref(), &module_id)?;
+    versioning::remove_as_dependent(deps.storage, &module_id, module_dependencies)?;
+
     let proxy = OS_MODULES.load(deps.storage, PROXY)?;
     let module_addr = OS_MODULES.load(deps.storage, &module_id)?;
     let remove_from_proxy_msg = remove_dapp_from_proxy(
@@ -216,41 +236,59 @@ pub fn upgrade_module(
     }
     let old_module_addr = OS_MODULES.load(deps.storage, &module_info.id())?;
     let contract = query_module_version(&deps.as_ref(), old_module_addr.clone())?;
-    let module_ref = get_module(deps.as_ref(), module_info.clone(), Some(contract))?;
-    match module_ref {
+    let module = get_module(deps.as_ref(), module_info.clone(), Some(contract))?;
+    let id = module_info.id();
+    match module.reference {
         ModuleReference::Extension(addr) => {
+            versioning::assert_migrate_requirements(
+                deps.as_ref(),
+                &id,
+                module.info.version.to_string().parse().unwrap(),
+            )?;
+            let old_deps = versioning::module_dependencies(deps.as_ref(), &id)?;
             // Update the address of the extension internally
             update_module_addresses(
                 deps.branch(),
-                Some(vec![(module_info.id(), addr.to_string())]),
+                Some(vec![(id.clone(), addr.to_string())]),
                 None,
             )?;
+            // Remove any deps that are no longer required.
+            versioning::maybe_remove_old_deps(deps.branch(), &id, &old_deps)?;
             // replace it
             replace_extension(deps, addr, old_module_addr)
         }
         ModuleReference::App(code_id) => {
-            migrate_module(deps, env, old_module_addr, code_id, migrate_msg.unwrap())
+            versioning::assert_migrate_requirements(
+                deps.as_ref(),
+                &module.info.id(),
+                module.info.version.to_string().parse().unwrap(),
+            )?;
+            let old_deps = versioning::module_dependencies(deps.as_ref(), &id)?;
+            MIGRATE_CONTEXT.save(deps.storage, &(id, old_deps))?;
+            let migration_with_reply_msg = SubMsg {
+                gas_limit: None,
+                id: POST_APP_MIGRATION_ID,
+                msg: get_migrate_msg(old_module_addr, code_id, migrate_msg.unwrap()),
+                reply_on: cosmwasm_std::ReplyOn::Success,
+            };
+            Ok(Response::new().add_submessage(migration_with_reply_msg))
         }
-        ModuleReference::Standalone(code_id) => {
-            migrate_module(deps, env, old_module_addr, code_id, migrate_msg.unwrap())
-        }
+        ModuleReference::Standalone(code_id) => Ok(Response::new().add_message(get_migrate_msg(
+            old_module_addr,
+            code_id,
+            migrate_msg.unwrap(),
+        ))),
         _ => Err(ManagerError::NotUpgradeable(module_info)),
     }
 }
 // migrates the module to a new version
-fn migrate_module(
-    _deps: DepsMut,
-    _env: Env,
-    module_addr: Addr,
-    new_code_id: u64,
-    migrate_msg: Binary,
-) -> ManagerResult {
+fn get_migrate_msg(module_addr: Addr, new_code_id: u64, migrate_msg: Binary) -> CosmosMsg {
     let migration_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Migrate {
         contract_addr: module_addr.into_string(),
         new_code_id,
         msg: migrate_msg,
     });
-    Ok(Response::new().add_message(migration_msg))
+    migration_msg
 }
 
 /// Replaces the current extension with a different version
@@ -368,7 +406,7 @@ pub fn enable_ibc(deps: DepsMut, msg_info: MessageInfo, new_status: bool) -> Man
             ModuleInfo::from_id(IBC_CLIENT, ModuleVersion::Latest {})?,
             None,
         )?;
-        let ibc_client_addr = match ibc_client {
+        let ibc_client_addr = match ibc_client.reference {
             ModuleReference::Native(addr) => addr,
             _ => return Err(StdError::generic_err("ibc_client must be native contract").into()),
         };
@@ -392,7 +430,7 @@ fn get_module(
     deps: Deps,
     module_info: ModuleInfo,
     old_contract: Option<ContractVersion>,
-) -> Result<ModuleReference, ManagerError> {
+) -> Result<Module, ManagerError> {
     let config = CONFIG.load(deps.storage)?;
     // Construct feature object to access registry functions
     let binding = VersionControlContract {
@@ -405,7 +443,10 @@ fn get_module(
             if new_version.parse::<Version>().unwrap()
                 >= old_contract.version.parse::<Version>().unwrap()
             {
-                Ok(version_registry.get_module_reference_raw(module_info)?)
+                Ok(Module {
+                    info: module_info.clone(),
+                    reference: version_registry.get_module_reference_raw(module_info)?,
+                })
             } else {
                 Err(ManagerError::OlderVersion(
                     new_version.to_owned(),
@@ -415,7 +456,7 @@ fn get_module(
         }
         ModuleVersion::Latest {} => {
             // Query latest version of contract
-            Ok(version_registry.get_module(module_info)?.reference)
+            version_registry.get_module(module_info).map_err(Into::into)
         }
     }
 }
@@ -427,8 +468,8 @@ fn upgrade_self(
     migrate_msg: Binary,
 ) -> ManagerResult {
     let contract = get_contract_version(deps.storage)?;
-    let mod_ref = get_module(deps.as_ref(), module_info.clone(), Some(contract))?;
-    if let ModuleReference::App(manager_code_id) = mod_ref {
+    let module = get_module(deps.as_ref(), module_info.clone(), Some(contract))?;
+    if let ModuleReference::App(manager_code_id) = module.reference {
         let migration_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Migrate {
             contract_addr: env.contract.address.into_string(),
             new_code_id: manager_code_id,

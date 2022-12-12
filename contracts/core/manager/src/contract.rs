@@ -1,8 +1,11 @@
-use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{
+    entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdError, StdResult,
+};
 use semver::Version;
 
 use crate::queries::{handle_config_query, handle_module_info_query, handle_os_info_query};
 use crate::validators::{validate_description, validate_link, validate_name_or_gov_type};
+use crate::{commands, versioning};
 use crate::{commands::*, error::ManagerError, queries};
 use abstract_sdk::os::manager::state::{Config, OsInfo, CONFIG, INFO, OS_FACTORY, ROOT, STATUS};
 use abstract_sdk::os::MANAGER;
@@ -141,5 +144,25 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         } => handle_module_info_query(deps, page_token, page_size),
         QueryMsg::Info {} => handle_os_info_query(deps),
         QueryMsg::Config {} => handle_config_query(deps),
+    }
+}
+
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn reply(mut deps: DepsMut, _env: Env, msg: Reply) -> StdResult<Response> {
+    match msg {
+        Reply {
+            id: commands::POST_APP_MIGRATION_ID,
+            ..
+        } => {
+            let (migrated_app_id, old_deps) = MIGRATE_CONTEXT.load(deps.storage)?;
+            versioning::maybe_remove_old_deps(deps.branch(), &migrated_app_id, &old_deps)?;
+            let new_deps =
+                versioning::maybe_add_new_deps(deps.branch(), &migrated_app_id, &old_deps)?;
+            // assert that the new dependencies are installed and that their version is compatible.
+            versioning::assert_dependency_requirements(deps.as_ref(), &new_deps)?;
+            MIGRATE_CONTEXT.remove(deps.storage);
+            Ok(Response::new())
+        }
+        _ => Err(StdError::generic_err("Unknown reply ID")),
     }
 }

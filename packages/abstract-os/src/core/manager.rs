@@ -15,6 +15,8 @@
 //! ## Migration
 //! Migrating this contract is done by calling `ExecuteMsg::Upgrade` with `abstract::manager` as module.
 pub mod state {
+    use std::collections::HashSet;
+
     pub use crate::objects::core::OS_ID;
     use cosmwasm_std::Addr;
     use cw_controllers::Admin;
@@ -54,7 +56,7 @@ pub mod state {
     pub const OS_MODULES: Map<ModuleId, Addr> = Map::new("os_modules");
     /// Stores the dependency relationship between modules
     /// map module -> modules that depend on module.
-    pub const DEPENDENTS: Map<ModuleId, Vec<String>> = Map::new("dependents");
+    pub const DEPENDENTS: Map<ModuleId, HashSet<String>> = Map::new("dependents");
 }
 
 use cosmwasm_schema::QueryResponses;
