@@ -36,12 +36,6 @@ impl DexAssetPairing {
     }
 }
 
-impl Into<(String, String, String)> for DexAssetPairing {
-    fn into(self) -> (String, String, String) {
-        self.0
-    }
-}
-
 impl From<(String, String, String)> for DexAssetPairing {
     fn from((asset_x, asset_y, dex_name): (String, String, String)) -> Self {
         Self::new(&asset_x, &asset_y, &dex_name)

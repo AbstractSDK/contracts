@@ -324,17 +324,17 @@ pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> AnsHostResu
 #[cfg(test)]
 mod test {
     use super::*;
-    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-    use cosmwasm_std::{coins, from_binary, Addr, CosmosMsg, SubMsg, WasmMsg};
+    
+    
 
-    use rstest::rstest;
+    
 
     mod validate_pool_assets {
         use super::*;
         
         #[test]
         fn too_few() {
-            let result = validate_pool_assets(&vec![]).unwrap_err();
+            let result = validate_pool_assets(&[]).unwrap_err();
             assert_eq!(
                 result,
                 InvalidAssetCount {
@@ -344,7 +344,7 @@ mod test {
                 }
             );
 
-            let result = validate_pool_assets(&vec![]).unwrap_err();
+            let result = validate_pool_assets(&[]).unwrap_err();
             assert_eq!(
                 result,
                 InvalidAssetCount {

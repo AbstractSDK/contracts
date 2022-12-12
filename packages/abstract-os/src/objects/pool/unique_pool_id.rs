@@ -24,12 +24,6 @@ impl UniquePoolId {
     }
 }
 
-impl Into<u64> for UniquePoolId {
-    fn into(self) -> u64 {
-        self.0
-    }
-}
-
 impl From<u64> for UniquePoolId {
     fn from(id: u64) -> Self {
         Self::new(id)
