@@ -2,15 +2,15 @@ use cosmwasm_std::{Addr, DepsMut, Empty, MessageInfo, Response, StdResult};
 use cosmwasm_std::{Env, StdError, Storage};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 
-use abstract_os::ans_host::state::*;
 use abstract_os::ans_host::{AssetPair, ExecuteMsg};
+use abstract_os::ans_host::state::*;
 use abstract_os::dex::DexName;
-use abstract_os::objects::pool_id::{PoolId, UncheckedPoolId};
-use abstract_os::objects::pool_info::PoolMetadata;
-use abstract_os::objects::pool_reference::PoolReference;
 use abstract_os::objects::{
     DexAssetPairing, UncheckedChannelEntry, UncheckedContractEntry, UniquePoolId,
 };
+use abstract_os::objects::pool_id::{PoolId, UncheckedPoolId};
+use abstract_os::objects::pool_info::PoolMetadata;
+use abstract_os::objects::pool_reference::PoolReference;
 
 use crate::contract::AnsHostResult;
 use crate::error::AnsHostError;
@@ -223,9 +223,9 @@ fn update_pools(
 /// Execute an action on every asset pairing in the list of assets
 /// Example: assets: [A, B, C] -> [A, B], [A, C], [B, C]
 fn exec_on_asset_pairings<T, A, E>(assets: &[String], mut action: A) -> StdResult<()>
-where
-    A: FnMut(AssetPair) -> Result<T, E>,
-    StdError: From<E>,
+    where
+        A: FnMut(AssetPair) -> Result<T, E>,
+        StdError: From<E>,
 {
     for (i, asset_x) in assets.iter().enumerate() {
         for (j, asset_y) in assets.iter().enumerate() {
@@ -331,15 +331,20 @@ pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> AnsHostResu
 
 #[cfg(test)]
 mod test {
+    use std::fmt::Debug;
     use std::str::FromStr;
 
-    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-    use cosmwasm_std::{Addr, Decimal, Deps, DepsMut, Response};
+    use cosmwasm_std::{Addr, Decimal, Deps, DepsMut, Order, OwnedDeps, Response};
+    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info, MockApi, MockQuerier, MockStorage};
     use cw_controllers::AdminError;
+    use cw_storage_plus::{KeyDeserialize, Map, PrimaryKey};
+    use serde::de::DeserializeOwned;
+    use serde::Serialize;
+
     use abstract_os::ans_host::InstantiateMsg;
+    use abstract_os::objects::ans_host::AnsHost;
 
     use crate::contract;
-
     use crate::contract::{AnsHostResult, instantiate};
     use crate::error::AnsHostError;
 
@@ -360,7 +365,10 @@ mod test {
         )
     }
 
-    mod register_dex {
+    mod update_dexes {
+        use cosmwasm_std::OwnedDeps;
+        use cosmwasm_std::testing::{MockApi, MockQuerier, MockStorage};
+
         use super::*;
 
         #[test]
@@ -378,14 +386,12 @@ mod test {
 
             let res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
 
-            let expected_dexes = vec![new_dex];
-            let actual_dexes = REGISTERED_DEXES.load(&deps.storage)?;
-
-            assert_eq!(actual_dexes, expected_dexes);
+            assert_expected_dexes(&deps, vec![new_dex]);
 
             Ok(())
         }
 
+        /// Registering multiple dexes should work
         #[test]
         fn register_dex_twice() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
@@ -403,10 +409,447 @@ mod test {
             let res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
 
 
-            let expected_dexes = vec![new_dex];
-            let actual_dexes = REGISTERED_DEXES.load(&deps.storage)?;
+            assert_expected_dexes(&deps, vec![new_dex]);
+
+            Ok(())
+        }
+
+        #[test]
+        fn duplicate_in_msg() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            let info = mock_info(TEST_CREATOR, &[]);
+            let new_dex = "test_dex".to_string();
+
+            let msg = ExecuteMsg::UpdateDexes {
+                to_add: vec![new_dex.clone(), new_dex.clone()],
+                to_remove: vec![],
+            };
+
+            let res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
+
+            // ONly one dex should be registered
+            assert_expected_dexes(&deps, vec![new_dex]);
+
+            Ok(())
+        }
+
+        #[test]
+        fn register_and_deregister_dex_same_msg() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            let info = mock_info(TEST_CREATOR, &[]);
+            let new_dex = "test_dex".to_string();
+
+            let msg = ExecuteMsg::UpdateDexes {
+                to_add: vec![new_dex.clone()],
+                to_remove: vec![new_dex.clone()],
+            };
+
+            let res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
+
+            assert_expected_dexes(&deps, vec![]);
+
+            Ok(())
+        }
+
+        #[test]
+        fn register_multiple_dexes() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            let info = mock_info(TEST_CREATOR, &[]);
+            let new_dexes = vec!["test_dex".to_string(), "test_dex_2".to_string()];
+
+            let msg = ExecuteMsg::UpdateDexes {
+                to_add: new_dexes.clone(),
+                to_remove: vec![],
+            };
+
+            let res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
+
+            assert_expected_dexes(&deps, new_dexes);
+
+            Ok(())
+        }
+
+        #[test]
+        fn remove_nonexistent_dex() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            let info = mock_info(TEST_CREATOR, &[]);
+            let missing_dex = "test_dex".to_string();
+
+            let msg = ExecuteMsg::UpdateDexes {
+                to_add: vec![],
+                to_remove: vec![missing_dex.clone()],
+            };
+
+            let res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
+
+            let expected_dexes: Vec<String> = vec![];
+
+            assert_expected_dexes(&deps, expected_dexes);
+
+            Ok(())
+        }
+
+        fn assert_expected_dexes(deps: &OwnedDeps<MockStorage, MockApi, MockQuerier, Empty>, expected_dexes: Vec<String>) {
+            let actual_dexes = REGISTERED_DEXES.load(&deps.storage).unwrap();
 
             assert_eq!(actual_dexes, expected_dexes);
+        }
+    }
+
+    mod update_contract_addresses {
+        use cosmwasm_std::{Order, OwnedDeps};
+        use cosmwasm_std::testing::{MockApi, MockQuerier, MockStorage};
+
+        use abstract_os::objects::ContractEntry;
+
+        use super::*;
+
+        fn contract_entry(provider: &str, name: &str) -> UncheckedContractEntry {
+            UncheckedContractEntry {
+                protocol: provider.to_string(),
+                contract: name.to_string(),
+            }
+        }
+
+        fn contract_address_map_entry(provider: &str, name: &str, address: &str) -> (UncheckedContractEntry, String) {
+            (contract_entry(provider, name), address.to_string())
+        }
+
+        fn mock_contract_map_entry() -> (UncheckedContractEntry, String) {
+            contract_address_map_entry("test_provider", "test_contract", "test_address")
+        }
+
+        fn update_contract_addresses_msg_builder(to_add: Vec<(UncheckedContractEntry, String)>,
+                                                 to_remove: Vec<UncheckedContractEntry>, ) -> ExecuteMsg {
+            ExecuteMsg::UpdateContractAddresses {
+                to_add,
+                to_remove,
+            }
+        }
+
+        fn from_checked_entry(checked: (ContractEntry, Addr)) -> (UncheckedContractEntry, String) {
+            let key = checked.0;
+            let value = checked.1;
+            (UncheckedContractEntry {
+                protocol: key.protocol,
+                contract: key.contract,
+            }, value.into())
+        }
+
+        fn setup_map_tester<'a>() -> CwMapTester<'a, ContractEntry, Addr, UncheckedContractEntry, String> {
+            let info = mock_info(TEST_CREATOR, &[]);
+
+            let tester = CwMapTester::new(info, CONTRACT_ADDRESSES, update_contract_addresses_msg_builder, mock_contract_map_entry, from_checked_entry);
+
+            tester
+        }
+
+        #[test]
+        fn add_contract_address() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            let mut map_tester = setup_map_tester();
+            map_tester.test_add_one(&mut deps)
+        }
+
+        #[test]
+        fn add_contract_address_twice() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            let mut map_tester = setup_map_tester();
+            map_tester.test_add_one_twice(&mut deps)
+        }
+
+        #[test]
+        fn add_contract_address_twice_in_same_msg() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            let mut map_tester = setup_map_tester();
+            map_tester.test_add_two_same(&mut deps)
+        }
+
+        #[test]
+        fn add_and_remove_contract_address_same_msg() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            let mut map_tester = setup_map_tester();
+            map_tester.test_add_and_remove_same(&mut deps)
+        }
+
+        #[test]
+        fn remove_non_existent_contract_address() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            let mut map_tester = setup_map_tester();
+            map_tester.test_remove_nonexistent(&mut deps)
+        }
+
+        #[test]
+        fn add_multiple_contract_addresses() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+            let mut map_tester = setup_map_tester();
+
+            let info = mock_info(TEST_CREATOR, &[]);
+            let new_entry_1 = contract_address_map_entry("test_provider", "test_contract", "test_address");
+            let new_entry_2 = contract_address_map_entry("test_provider_2", "test_contract_2", "test_address_2");
+
+            let msg = ExecuteMsg::UpdateContractAddresses {
+                to_add: vec![new_entry_1.clone(), new_entry_2.clone()],
+                to_remove: vec![],
+            };
+
+            let res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
+
+            map_tester.assert_expected_entries(&deps.storage, vec![new_entry_1, new_entry_2]);
+
+            Ok(())
+        }
+
+        #[test]
+        fn add_multiple_contract_addresses_and_deregister_one() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+            let mut map_tester = setup_map_tester();
+
+            let info = mock_info(TEST_CREATOR, &[]);
+            let new_entry_1 = contract_address_map_entry("test_provider", "test_contract", "test_address");
+            let new_entry_2 = contract_address_map_entry("test_provider_2", "test_contract_2", "test_address_2");
+
+            let msg = ExecuteMsg::UpdateContractAddresses {
+                to_add: vec![new_entry_1.clone(), new_entry_2.clone()],
+                to_remove: vec![],
+            };
+
+            let res = contract::execute(deps.as_mut(), mock_env(), info.clone(), msg.clone())?;
+
+            let new_entry_3 = contract_address_map_entry("test_provider_3", "test_contract_3", "test_address_3");
+
+            let msg = ExecuteMsg::UpdateContractAddresses {
+                to_add: vec![new_entry_3.clone()],
+                to_remove: vec![new_entry_1.clone().0],
+            };
+
+            let res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
+
+            map_tester.assert_expected_entries(&deps.storage, vec![new_entry_2, new_entry_3]);
+
+            Ok(())
+        }
+    }
+
+    type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
+
+    struct CwMapTester<'a, K, V, UncheckedK, UncheckedV> {
+        info: MessageInfo,
+        map: Map<'a, K, V>,
+        msg_builder: fn(to_add: Vec<(UncheckedK, UncheckedV)>, to_remove: Vec<UncheckedK>) -> ExecuteMsg,
+        mock_entry_builder: fn() -> (UncheckedK, UncheckedV),
+        from_checked_entry: fn((K, V)) -> (UncheckedK, UncheckedV),
+    }
+
+    impl<'a, K, V, UncheckedK, UncheckedV> CwMapTester<'a, K, V, UncheckedK, UncheckedV>
+        where V: Serialize + DeserializeOwned + Clone + Debug,
+              K: PrimaryKey<'a> + KeyDeserialize + Debug,
+              (<K as KeyDeserialize>::Output, V): PartialEq<(K, V)>,
+              K::Output: 'static,
+              UncheckedK: From<<K as KeyDeserialize>::Output> + Clone + PartialEq + Debug + Ord,
+              UncheckedV: From<V> + Clone + PartialEq + Debug + Ord
+        , <K as KeyDeserialize>::Output: Debug
+    {
+        fn new(info: MessageInfo, map: Map<'a, K, V>,
+               msg_builder: fn(to_add: Vec<(UncheckedK, UncheckedV)>, to_remove: Vec<UncheckedK>) -> ExecuteMsg,
+               mock_entry_builder: fn() -> (UncheckedK, UncheckedV), from_checked_entry: fn((K, V)) -> (UncheckedK, UncheckedV),
+        ) -> Self {
+            Self {
+                info,
+                map,
+                msg_builder,
+                mock_entry_builder,
+                from_checked_entry,
+            }
+        }
+
+        fn msg_builder(&self, to_add: Vec<(UncheckedK, UncheckedV)>, to_remove: Vec<UncheckedK>) -> ExecuteMsg {
+            (self.msg_builder)(to_add, to_remove)
+        }
+
+        fn mock_entry_builder(&self) -> (UncheckedK, UncheckedV) {
+            (self.mock_entry_builder)()
+        }
+
+        fn determine_expected(&self, to_add: &Vec<(UncheckedK, UncheckedV)>, to_remove: &Vec<UncheckedK>) -> Vec<(UncheckedK, UncheckedV)> {
+            let mut expected = to_add.clone();
+            expected.retain(|(k, _)| !to_remove.contains(k));
+            expected.sort();
+            expected.dedup();
+            expected
+        }
+
+        fn assert_expected_entries<'c>(&self, storage: &'c dyn Storage, expected: Vec<(UncheckedK, UncheckedV)>) {
+            let res: Result<Vec<(K::Output, V)>, _> = self.map.range(storage, None, None, Order::Ascending).collect();
+
+            let actual = res.unwrap().into_iter().map(|(k, v)| (k.into(), v.into())).collect::<Vec<_>>();
+
+            // Sort, like map entries
+            let mut expected = expected.clone();
+            expected.sort();
+
+            assert_eq!(actual, expected)
+        }
+
+        fn test_add_one(&mut self, deps: &mut MockDeps) -> AnsHostTestResult {
+            let entry = self.mock_entry_builder();
+
+            let to_add: Vec<(UncheckedK, UncheckedV)> = vec![entry];
+            let to_remove: Vec<UncheckedK> = vec![];
+            let msg = self.msg_builder(to_add.clone(), to_remove.clone());
+
+            let expected = self.determine_expected(&to_add, &to_remove);
+
+            contract::execute(deps.as_mut(), mock_env(), self.info.clone(), msg)?;
+
+            self.assert_expected_entries(&deps.storage, expected);
+
+            Ok(())
+        }
+
+        fn test_add_one_twice(&mut self, deps: &mut MockDeps) -> AnsHostTestResult {
+            self.test_add_one(deps)?;
+            self.test_add_one(deps)
+        }
+
+        fn test_add_two_same(&mut self, deps: &mut MockDeps) -> AnsHostTestResult {
+            let entry = self.mock_entry_builder();
+
+            let to_add: Vec<(UncheckedK, UncheckedV)> = vec![entry.clone(), entry.clone()];
+            let to_remove: Vec<UncheckedK> = vec![];
+            let msg = self.msg_builder(to_add.clone(), to_remove.clone());
+
+            let expected: Vec<(UncheckedK, UncheckedV)> = self.determine_expected(&to_add, &to_remove);
+
+            contract::execute(deps.as_mut(), mock_env(), self.info.clone(), msg)?;
+
+            self.assert_expected_entries(&deps.storage, expected);
+
+            Ok(())
+        }
+
+        fn test_add_and_remove_same(&mut self, deps: &mut MockDeps) -> AnsHostTestResult {
+            let entry = self.mock_entry_builder();
+
+            let to_add: Vec<(UncheckedK, UncheckedV)> = vec![entry.clone()];
+            let to_remove: Vec<UncheckedK> = vec![entry.0];
+            let msg = self.msg_builder(to_add.clone(), to_remove.clone());
+
+            let expected: Vec<(UncheckedK, UncheckedV)> = vec![];
+
+            contract::execute(deps.as_mut(), mock_env(), self.info.clone(), msg)?;
+
+            self.assert_expected_entries(&deps.storage, expected);
+
+            Ok(())
+        }
+
+        fn test_remove_nonexistent(&mut self, deps: &mut MockDeps) -> AnsHostTestResult {
+            let entry = self.mock_entry_builder();
+
+            let to_add: Vec<(UncheckedK, UncheckedV)> = vec![];
+            let to_remove: Vec<UncheckedK> = vec![entry.0];
+            let msg = self.msg_builder(to_add.clone(), to_remove.clone());
+
+            let expected: Vec<(UncheckedK, UncheckedV)> = vec![];
+
+            contract::execute(deps.as_mut(), mock_env(), self.info.clone(), msg)?;
+
+            self.assert_expected_entries(&deps.storage, expected);
+
+            Ok(())
+        }
+    }
+
+
+    mod update_asset_addresses {
+        use super::*;
+
+        fn mock_asset_entry() -> (String, AssetInfoUnchecked) {
+            let name = "test";
+            let info = AssetInfoUnchecked::native("utest".to_string());
+
+            (name.into(), info)
+        }
+
+        #[test]
+        fn add_asset_address() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            let info = mock_info(TEST_CREATOR, &[]);
+            let new_entry = mock_asset_entry();
+
+            let msg = ExecuteMsg::UpdateAssetAddresses {
+                to_add: vec![new_entry.clone()],
+                to_remove: vec![],
+            };
+
+            let res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
+
+            // assert_expected_asset_addresses(&deps, vec![new_entry]);
+
+            Ok(())
+        }
+
+        #[test]
+        fn add_asset_address_twice() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            let info = mock_info(TEST_CREATOR, &[]);
+            let new_entry = mock_asset_entry();
+
+            let msg = ExecuteMsg::UpdateAssetAddresses {
+                to_add: vec![new_entry.clone(), new_entry.clone()],
+                to_remove: vec![],
+            };
+
+            let res = contract::execute(deps.as_mut(), mock_env(), info.clone(), msg.clone())?;
+            let res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
+
+            // assert_expected_asset_addresses(&deps, vec![new_entry]);
+
+            Ok(())
+        }
+
+        #[test]
+        fn add_multiple_asset_addresses() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            let info = mock_info(TEST_CREATOR, &[]);
+            let new_entry_1 = mock_asset_entry();
+            let new_entry_2 = mock_asset_entry();
+
+            let msg = ExecuteMsg::UpdateAssetAddresses {
+                to_add: vec![new_entry_1.clone(), new_entry_2.clone()],
+                to_remove: vec![],
+            };
+
+            let res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
+
+            // assert_expected_asset_addresses(&deps, vec![new_entry_1, new_entry_2]);
 
             Ok(())
         }
