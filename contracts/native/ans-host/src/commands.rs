@@ -170,8 +170,8 @@ fn update_pools(
     for (pool_id, pool_metadata) in to_add.into_iter() {
         let pool_id = pool_id.check(deps.api)?;
 
-        let assets = pool_metadata.assets.clone();
-        validate_pool_assets(&assets)?;
+        let assets = &pool_metadata.assets;
+        validate_pool_assets(assets)?;
 
         let dex = pool_metadata.dex.clone();
         if !registered_dexes.contains(&dex) {
@@ -179,7 +179,7 @@ fn update_pools(
         }
 
         // Register each pair of assets as a pairing and link it to the pool id
-        register_pool_pairings(deps.storage, next_unique_pool_id, pool_id, &assets, &dex)?;
+        register_pool_pairings(deps.storage, next_unique_pool_id, pool_id, assets, &dex)?;
 
         POOL_METADATA.save(deps.storage, next_unique_pool_id, &pool_metadata)?;
 
