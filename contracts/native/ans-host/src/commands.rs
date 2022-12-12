@@ -129,7 +129,7 @@ fn register_dex(deps: DepsMut, info: MessageInfo, name: String) -> AnsHostResult
     // Only Admin can call this method
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
 
-    let register = |dexes: Vec<String>| -> StdResult<Vec<String>> {
+    let register = |mut dexes: Vec<String>| -> StdResult<Vec<String>> {
         if dexes.contains(&name) {
             return Err(StdError::generic_err(format!(
                 "Dex {} is already registered",
@@ -137,7 +137,6 @@ fn register_dex(deps: DepsMut, info: MessageInfo, name: String) -> AnsHostResult
             )));
         }
 
-        let mut dexes = dexes;
         dexes.push(name);
         Ok(dexes)
     };
