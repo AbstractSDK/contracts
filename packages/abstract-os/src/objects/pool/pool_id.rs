@@ -82,6 +82,12 @@ impl From<&PoolId> for UncheckedPoolId {
     }
 }
 
+impl From<Addr> for PoolId {
+    fn from(contract_addr: Addr) -> Self {
+        PoolId::Contract(contract_addr)
+    }
+}
+
 impl UncheckedPoolId {
     /// Validate data contained in an _unchecked_ **pool id** instance; return a new _checked_
     /// **pool id** instance:

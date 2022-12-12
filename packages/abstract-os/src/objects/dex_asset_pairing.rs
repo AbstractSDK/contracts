@@ -9,35 +9,36 @@ use serde::{Deserialize, Serialize};
 type DexName = String;
 
 /// The key for an asset pairing
+/// Consists of the two assets and the dex name
+/// TODO: what if we made keys equal based on the two assets either way?
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord)]
-pub struct DexAssetPairing(String, String, DexName);
+pub struct DexAssetPairing((String, String, DexName));
 
-/// new impl
 impl DexAssetPairing {
     pub fn new(asset_x: &str, asset_y: &str, dex_name: &str) -> Self {
         Self(
-            str::to_ascii_lowercase(asset_x),
-            str::to_ascii_lowercase(asset_y),
-            str::to_ascii_lowercase(dex_name),
+            (str::to_ascii_lowercase(asset_x),
+             str::to_ascii_lowercase(asset_y),
+             str::to_ascii_lowercase(dex_name), )
         )
     }
 
     pub fn asset_x(&self) -> &str {
-        &self.0
+        &self.0.0
     }
 
     pub fn asset_y(&self) -> &str {
-        &self.1
+        &self.0.1
     }
 
     pub fn dex(&self) -> &str {
-        &self.2
+        &self.0.2
     }
 }
 
 impl Into<(String, String, String)> for DexAssetPairing {
     fn into(self) -> (String, String, String) {
-        (self.0, self.1, self.2)
+        self.0
     }
 }
 
@@ -60,19 +61,13 @@ impl<'a> PrimaryKey<'a> for DexAssetPairing {
     type SuperSuffix = (String, DexName);
 
     fn key(&self) -> Vec<cw_storage_plus::Key> {
-        let mut keys = self.0.key();
-        keys.extend(self.1.key());
-        keys.extend(self.2.key());
-        keys
+        self.0.key()
     }
 }
 
 impl<'a> Prefixer<'a> for DexAssetPairing {
     fn prefix(&self) -> Vec<cw_storage_plus::Key> {
-        let mut res = self.0.prefix();
-        res.extend(self.1.prefix().into_iter());
-        res.extend(self.2.prefix().into_iter());
-        res
+        self.0.prefix()
     }
 }
 
@@ -85,6 +80,7 @@ fn parse_length(value: &[u8]) -> StdResult<usize> {
     .into())
 }
 
+/// @todo: use existing method for triple tuple
 impl KeyDeserialize for DexAssetPairing {
     type Output = DexAssetPairing;
 
@@ -106,3 +102,109 @@ impl KeyDeserialize for DexAssetPairing {
             .into())
     }
 }
+
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use cosmwasm_std::{testing::mock_dependencies, Addr, Order};
+    use cw_storage_plus::Map;
+    use crate::objects::{PoolReference, UniquePoolId};
+
+    fn mock_key() -> DexAssetPairing {
+        DexAssetPairing::new("juno", "osmo", "junoswap")
+    }
+
+    fn mock_keys() -> (DexAssetPairing, DexAssetPairing, DexAssetPairing) {
+        (
+            DexAssetPairing::new("juno", "osmo", "junoswap"),
+            DexAssetPairing::new("juno", "osmo", "osmosis"),
+            DexAssetPairing::new("osmo", "usdt", "osmosis")
+        )
+    }
+
+    fn mock_pool_ref(id: u64, name: &str) -> PoolReference {
+        PoolReference {
+            id: UniquePoolId::new(id),
+            pool_id: Addr::unchecked(name).into(),
+        }
+    }
+
+    #[test]
+    fn storage_key_works() {
+        let mut deps = mock_dependencies();
+        let key = mock_key();
+        let map: Map<DexAssetPairing, u64> = Map::new("map");
+
+        map.save(deps.as_mut().storage, key.clone(), &42069)
+            .unwrap();
+
+        assert_eq!(map.load(deps.as_ref().storage, key.clone()).unwrap(), 42069);
+
+        let items = map
+            .range(deps.as_ref().storage, None, None, Order::Ascending)
+            .map(|item| item.unwrap())
+            .collect::<Vec<_>>();
+
+        assert_eq!(items.len(), 1);
+        assert_eq!(items[0], (key, 42069));
+    }
+
+    #[test]
+    fn composite_key_works() {
+        let mut deps = mock_dependencies();
+        let key = mock_key();
+        let map: Map<(DexAssetPairing, Addr), Vec<PoolReference>> = Map::new("map");
+
+        let ref_1 = mock_pool_ref(1, "larry0x");
+        let ref_2 = mock_pool_ref(2, "stablechen");
+
+        map.save(
+            deps.as_mut().storage,
+            (key.clone(), Addr::unchecked("astroport")),
+            &vec![ref_1.clone()],
+        )
+            .unwrap();
+
+        map.save(
+            deps.as_mut().storage,
+            (key.clone(), Addr::unchecked("terraswap")),
+            &vec![ref_2.clone()],
+        )
+            .unwrap();
+
+        let items = map
+            .prefix(key)
+            .range(deps.as_ref().storage, None, None, Order::Ascending)
+            .map(|item| item.unwrap())
+            .collect::<Vec<_>>();
+
+        assert_eq!(items.len(), 2);
+        assert_eq!(items[0], (Addr::unchecked("astroport"), vec![ref_1]));
+        assert_eq!(items[1], (Addr::unchecked("terraswap"), vec![ref_2]));
+    }
+
+    #[test]
+    fn partial_key_works() {
+        let mut deps = mock_dependencies();
+        let (key1, key2, key3) = mock_keys();
+        let map: Map<DexAssetPairing, u64> = Map::new("map");
+
+        map.save(deps.as_mut().storage, key1, &42069).unwrap();
+
+        map.save(deps.as_mut().storage, key2, &69420).unwrap();
+
+        map.save(deps.as_mut().storage, key3, &999).unwrap();
+
+        let items = map
+            .prefix(("juno".to_string(), "osmo".to_string()))
+            .range(deps.as_ref().storage, None, None, Order::Ascending)
+            .map(|item| item.unwrap())
+            .collect::<Vec<_>>();
+
+        assert_eq!(items.len(), 2);
+        assert_eq!(items[0], ("junoswap".to_string(), 42069));
+        assert_eq!(items[1], ("osmosis".to_string(), 69420));
+    }
+}
+
