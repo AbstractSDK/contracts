@@ -320,3 +320,64 @@ pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> AnsHostResu
         .add_attribute("previous admin", previous_admin)
         .add_attribute("admin", admin))
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
+    use cosmwasm_std::{coins, from_binary, Addr, CosmosMsg, SubMsg, WasmMsg};
+
+    use rstest::rstest;
+
+    mod validate_pool_assets {
+        use super::*;
+        
+        #[test]
+        fn too_few() {
+            let result = validate_pool_assets(&vec![]).unwrap_err();
+            assert_eq!(
+                result,
+                InvalidAssetCount {
+                    min: MIN_POOL_ASSETS,
+                    max: MAX_POOL_ASSETS,
+                    provided: 0,
+                }
+            );
+
+            let result = validate_pool_assets(&vec![]).unwrap_err();
+            assert_eq!(
+                result,
+                InvalidAssetCount {
+                    min: MIN_POOL_ASSETS,
+                    max: MAX_POOL_ASSETS,
+                    provided: 1,
+                }
+            );
+        }
+
+        #[test]
+        fn valid_amounts() {
+            let assets = vec!["a".to_string(), "b".to_string()];
+            let res = validate_pool_assets(&assets);
+            assert!(res.is_ok());
+
+            let assets: Vec<String> = vec!["a", "b", "c", "d", "e"].iter().map(|s| s.to_string()).collect();
+            let res = validate_pool_assets(&assets);
+            assert!(res.is_ok());
+        }
+
+        #[test]
+        fn too_many() {
+            let assets: Vec<String> = vec!["a", "b", "c", "d", "e", "f"].iter().map(|s| s.to_string()).collect();
+            let result = validate_pool_assets(&assets).unwrap_err();
+            assert_eq!(
+                result,
+                InvalidAssetCount {
+                    min: MIN_POOL_ASSETS,
+                    max: MAX_POOL_ASSETS,
+                    provided: 6,
+                }
+            );
+        }
+    }
+}
