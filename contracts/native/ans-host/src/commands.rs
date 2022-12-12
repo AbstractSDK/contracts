@@ -16,6 +16,9 @@ use crate::contract::AnsHostResult;
 use crate::error::AnsHostError;
 use crate::error::AnsHostError::InvalidAssetCount;
 
+const MIN_POOL_ASSETS: usize = 2;
+const MAX_POOL_ASSETS: usize = 5;
+
 /// Handles the common base execute messages
 pub fn handle_message(
     deps: DepsMut,
@@ -145,9 +148,6 @@ fn register_dex(deps: DepsMut, info: MessageInfo, name: String) -> AnsHostResult
 
     Ok(Response::new().add_attribute("action", "registered dex"))
 }
-
-const MIN_POOL_ASSETS: usize = 2;
-const MAX_POOL_ASSETS: usize = 5;
 
 fn update_pools(
     deps: DepsMut,
