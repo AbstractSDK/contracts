@@ -323,14 +323,10 @@ pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> AnsHostResu
 #[cfg(test)]
 mod test {
     use super::*;
-    
-    
-
-    
 
     mod validate_pool_assets {
         use super::*;
-        
+
         #[test]
         fn too_few() {
             let result = validate_pool_assets(&[]).unwrap_err();
@@ -343,7 +339,7 @@ mod test {
                 }
             );
 
-            let result = validate_pool_assets(&[]).unwrap_err();
+            let result = validate_pool_assets(&["a".to_string()]).unwrap_err();
             assert_eq!(
                 result,
                 InvalidAssetCount {
