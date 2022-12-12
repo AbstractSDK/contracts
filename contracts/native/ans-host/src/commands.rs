@@ -135,13 +135,9 @@ fn update_dex_registry(deps: DepsMut, info: MessageInfo, to_add: Vec<String>, to
     if !to_add.is_empty() {
         let register_dex = |mut dexes: Vec<String>| -> StdResult<Vec<String>> {
             for dex in to_add {
-                if dexes.contains(&dex) {
-                    return Err(StdError::generic_err(format!(
-                        "Dex {} is already registered",
-                        dex
-                    )));
+                if !dexes.contains(&dex) {
+                    dexes.push(dex);
                 }
-                dexes.push(dex);
             }
             Ok(dexes)
         };
@@ -342,8 +338,6 @@ mod test {
     use cw_controllers::AdminError;
     use abstract_os::ans_host::InstantiateMsg;
 
-    use abstract_os::etf::state::FEE;
-    use abstract_os::etf::EtfExecuteMsg;
     use crate::contract;
 
     use crate::contract::{AnsHostResult, instantiate};
@@ -356,8 +350,6 @@ mod test {
     const TEST_CREATOR: &str = "creator";
 
     fn mock_init(mut deps: DepsMut) -> AnsHostResult {
-        let init_fee = Decimal::from_str("0.01").unwrap();
-
         let info = mock_info(TEST_CREATOR, &[]);
 
         instantiate(
@@ -388,8 +380,31 @@ mod test {
 
             let expected_dexes = vec![new_dex];
             let actual_dexes = REGISTERED_DEXES.load(&deps.storage)?;
-            println!("{:?}", actual_dexes);
-            println!("{:?}", expected_dexes);
+
+            assert_eq!(actual_dexes, expected_dexes);
+
+            Ok(())
+        }
+
+        #[test]
+        fn register_dex_twice() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            let info = mock_info(TEST_CREATOR, &[]);
+            let new_dex = "test_dex".to_string();
+
+            let msg = ExecuteMsg::UpdateDexes {
+                to_add: vec![new_dex.clone()],
+                to_remove: vec![],
+            };
+
+            let res = contract::execute(deps.as_mut(), mock_env(), info.clone(), msg.clone())?;
+            let res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
+
+
+            let expected_dexes = vec![new_dex];
+            let actual_dexes = REGISTERED_DEXES.load(&deps.storage)?;
 
             assert_eq!(actual_dexes, expected_dexes);
 
