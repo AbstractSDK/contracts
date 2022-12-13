@@ -352,9 +352,10 @@ mod test {
     use crate::contract;
     use crate::contract::{instantiate, AnsHostResult};
     use crate::error::AnsHostError;
-    use abstract_testing::map_tester::{CwMapTester, CwMapTesterBuilder};
+    use abstract_testing::map_tester::{CwMapTester};
 
     use super::*;
+    use speculoos::prelude::*;
 
     type AnsHostTestResult = Result<(), AnsHostError>;
 
@@ -1027,14 +1028,17 @@ mod test {
 
     mod update_pools {
         use super::*;
-        use abstract_os::ans_host::{AssetPairingMapEntry, PoolMetadataMapEntry};
+        use abstract_os::ans_host::{PoolMetadataMapEntry};
         use abstract_os::objects::PoolType;
-        use abstract_testing::map_tester::CwMapTesterBuilder;
-        use cosmwasm_std::testing::{MockApi, MockQuerier, MockStorage};
-        use cosmwasm_std::{Order, OwnedDeps};
-        use std::str::FromStr;
+        
+        
+        use cosmwasm_std::{Order};
+        use speculoos::assert_that;
+        
 
         type UncheckedPoolMapEntry = (UncheckedPoolId, PoolMetadata);
+
+        const INITIAL_UNIQUE_POOL_ID: u64 = 1;
 
         // Makes a stable
         fn pool_metadata(dex: &str, pool_type: PoolType, assets: Vec<String>) -> PoolMetadata {
@@ -1118,9 +1122,10 @@ mod test {
                 .range(deps.as_ref().storage, None, None, Order::Ascending)
                 .collect();
 
-            let expected: Vec<PoolMetadataMapEntry> = vec![(1.into(), metadata)];
+            let expected: Vec<PoolMetadataMapEntry> =
+                vec![(INITIAL_UNIQUE_POOL_ID.into(), metadata)];
 
-            assert_eq!(actual?, expected);
+            assert_that(&actual?).is_equal_to(&expected);
 
             Ok(())
         }
@@ -1138,16 +1143,15 @@ mod test {
                 vec!["juno".into(), "osmo".into()],
             );
 
-            let entry = unchecked_pool_map_entry("junoxxxx", metadata.clone());
+            let entry = unchecked_pool_map_entry("junoxxxx", metadata);
 
-            let err = execute_update(deps.as_mut(), (vec![entry], vec![])).unwrap_err();
+            let res = execute_update(deps.as_mut(), (vec![entry], vec![]));
 
-            assert_eq!(
-                err,
-                AnsHostError::UnregisteredDex {
-                    dex: unregistered_dex.into()
-                }
-            );
+            assert_that(&res)
+                .is_err()
+                .is_equal_to(AnsHostError::UnregisteredDex {
+                    dex: unregistered_dex.into(),
+                });
 
             let actual: Result<Vec<PoolMetadataMapEntry>, _> = POOL_METADATA
                 .range(deps.as_ref().storage, None, None, Order::Ascending)
@@ -1155,7 +1159,40 @@ mod test {
 
             let expected: Vec<PoolMetadataMapEntry> = vec![];
 
-            assert_eq!(actual?, expected);
+            assert_that(&expected).is_equal_to(&actual?);
+
+            Ok(())
+        }
+
+        #[test]
+        fn add_and_remove_same_pool() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            let dex = "junoswap";
+
+            let metadata = pool_metadata(
+                dex.clone(),
+                PoolType::Weighted,
+                vec!["juno".into(), "osmo".into()],
+            );
+
+            register_dex(deps.as_mut(), dex)?;
+
+            let entry = unchecked_pool_map_entry("junoxxxx", metadata);
+
+            execute_update(
+                deps.as_mut(),
+                (vec![entry], vec![INITIAL_UNIQUE_POOL_ID.into()]),
+            )?;
+
+            let actual: Result<Vec<PoolMetadataMapEntry>, _> = POOL_METADATA
+                .range(deps.as_ref().storage, None, None, Order::Ascending)
+                .collect();
+
+            let _expected: Vec<PoolMetadataMapEntry> = vec![];
+
+            assert_that(&actual?).is_empty();
 
             Ok(())
         }
