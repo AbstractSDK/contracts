@@ -83,6 +83,9 @@ pub struct InstantiateMsg {
     pub link: Option<String>,
 }
 
+#[cosmwasm_schema::cw_serde]
+pub struct CallbackMsg {}
+
 /// Execute messages
 #[cosmwasm_schema::cw_serde]
 #[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
@@ -118,8 +121,7 @@ pub enum ExecuteMsg {
     /// Upgrade the module to a new version
     /// If module is `abstract::manager` then the contract will do a self-migration.
     Upgrade {
-        module: ModuleInfo,
-        migrate_msg: Option<Binary>,
+        modules: Vec<(ModuleInfo, Option<Binary>)>,
     },
     /// Update info
     UpdateInfo {
@@ -139,6 +141,7 @@ pub enum ExecuteMsg {
     EnableIBC {
         new_status: bool,
     },
+    Callback(CallbackMsg),
 }
 
 #[cosmwasm_schema::cw_serde]

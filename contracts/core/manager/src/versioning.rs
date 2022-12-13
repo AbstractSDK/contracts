@@ -142,10 +142,8 @@ pub fn maybe_add_new_deps(
     let new_deps = module_dependencies(deps.as_ref(), module_id)?;
     // find deps that are no longer required.
     // ie. the old deps contain a deps that the new deps doesn't.
-    let to_be_added_deps: Vec<Dependency> = new_deps
-        .into_iter()
-        .filter(|d| !old_deps.contains(d))
-        .collect();
+    let to_be_added_deps: Vec<&Dependency> =
+        new_deps.iter().filter(|d| !old_deps.contains(d)).collect();
     for dep_to_add in &to_be_added_deps {
         // Remove module from dependents on the removable dep
         DEPENDENTS.update(deps.storage, &dep_to_add.id, |dependents| {
@@ -155,5 +153,5 @@ pub fn maybe_add_new_deps(
             Ok::<_, StdError>(dependents)
         })?;
     }
-    Ok(to_be_added_deps)
+    Ok(new_deps)
 }

@@ -16,11 +16,12 @@ use abstract_sdk::os::{
 use abstract_sdk::*;
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo,
-    QueryRequest, Response, StdError, StdResult, SubMsg, WasmMsg, WasmQuery,
+    QueryRequest, Response, StdError, StdResult, WasmMsg, WasmQuery,
 };
 use cw2::{get_contract_version, ContractVersion};
 use cw_storage_plus::Item;
 use os::manager::state::DEPENDENTS;
+use os::manager::{CallbackMsg, ExecuteMsg};
 use os::objects::dependency::Dependency;
 use semver::Version;
 
@@ -31,9 +32,7 @@ use crate::{
 };
 use abstract_sdk::os::{MANAGER, PROXY};
 
-pub const POST_APP_MIGRATION_ID: u64 = 1;
-
-pub(crate) const MIGRATE_CONTEXT: Item<(String, Vec<Dependency>)> = Item::new("context");
+pub(crate) const MIGRATE_CONTEXT: Item<Vec<(String, Vec<Dependency>)>> = Item::new("context");
 
 /// Adds, updates or removes provided addresses.
 /// Should only be called by contract that adds/removes modules.
@@ -222,23 +221,47 @@ pub fn set_root_and_gov_type(
         .add_attribute("root", root))
 }
 
-pub fn upgrade_module(
+/// Migrate modules through address updates or contract migrations
+/// The dependency store is updated during migration
+/// A reply message is called after performing all the migrations which ensures version compatibility of the new state.
+/// Migrations are performed in-order and should be done in a top-down approach.
+pub fn upgrade_modules(
     mut deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    module_info: ModuleInfo,
-    migrate_msg: Option<Binary>,
+    modules: Vec<(ModuleInfo, Option<Binary>)>,
 ) -> ManagerResult {
     ROOT.assert_admin(deps.as_ref(), &info.sender)?;
-    // Check if trying to upgrade this contract.
-    if module_info.id() == MANAGER {
-        return upgrade_self(deps, env, module_info, migrate_msg.unwrap());
+    let mut upgrade_msgs = vec![];
+    for (module_info, migrate_msg) in modules {
+        if module_info.id() == MANAGER {
+            return upgrade_self(deps, env, module_info, migrate_msg.unwrap());
+        }
+        set_migrate_msgs_and_context(deps.branch(), module_info, migrate_msg, &mut upgrade_msgs)?;
     }
+    let callback_msg = wasm_execute(
+        env.contract.address,
+        &ExecuteMsg::Callback(CallbackMsg {}),
+        vec![],
+    )?;
+    Ok(Response::new()
+        .add_messages(upgrade_msgs)
+        .add_message(callback_msg))
+}
+
+pub fn set_migrate_msgs_and_context(
+    mut deps: DepsMut,
+    module_info: ModuleInfo,
+    migrate_msg: Option<Binary>,
+    msgs: &mut Vec<CosmosMsg>,
+) -> Result<(), ManagerError> {
     let old_module_addr = OS_MODULES.load(deps.storage, &module_info.id())?;
     let contract = query_module_version(&deps.as_ref(), old_module_addr.clone())?;
     let module = get_module(deps.as_ref(), module_info.clone(), Some(contract))?;
     let id = module_info.id();
+
     match module.reference {
+        // upgrading an extension is done by moving the traders to the new contract address and updating the permissions on the proxy.
         ModuleReference::Extension(addr) => {
             versioning::assert_migrate_requirements(
                 deps.as_ref(),
@@ -252,10 +275,15 @@ pub fn upgrade_module(
                 Some(vec![(id.clone(), addr.to_string())]),
                 None,
             )?;
-            // Remove any deps that are no longer required.
-            versioning::maybe_remove_old_deps(deps.branch(), &id, &old_deps)?;
-            // replace it
-            replace_extension(deps, addr, old_module_addr)
+
+            // Add module upgrade to reply context
+            let update_context = |mut upgraded_modules: Vec<(String,Vec<Dependency>)>| -> StdResult<Vec<(String,Vec<Dependency>)>> {
+                upgraded_modules.push((id,old_deps));
+                Ok(upgraded_modules)
+            };
+            MIGRATE_CONTEXT.update(deps.storage, update_context)?;
+
+            msgs.append(replace_extension(deps, addr, old_module_addr)?.as_mut());
         }
         ModuleReference::App(code_id) => {
             versioning::assert_migrate_requirements(
@@ -264,22 +292,28 @@ pub fn upgrade_module(
                 module.info.version.to_string().parse().unwrap(),
             )?;
             let old_deps = versioning::module_dependencies(deps.as_ref(), &id)?;
-            MIGRATE_CONTEXT.save(deps.storage, &(id, old_deps))?;
-            let migration_with_reply_msg = SubMsg {
-                gas_limit: None,
-                id: POST_APP_MIGRATION_ID,
-                msg: get_migrate_msg(old_module_addr, code_id, migrate_msg.unwrap()),
-                reply_on: cosmwasm_std::ReplyOn::Success,
+
+            // Add module upgrade to reply context
+            let update_context = |mut upgraded_modules: Vec<(String,Vec<Dependency>)>| -> StdResult<Vec<(String,Vec<Dependency>)>> {
+                upgraded_modules.push((id,old_deps));
+                Ok(upgraded_modules)
             };
-            Ok(Response::new().add_submessage(migration_with_reply_msg))
+            MIGRATE_CONTEXT.update(deps.storage, update_context)?;
+
+            msgs.push(get_migrate_msg(
+                old_module_addr,
+                code_id,
+                migrate_msg.unwrap_or_else(|| to_binary(&Empty {}).unwrap()),
+            ));
         }
-        ModuleReference::Standalone(code_id) => Ok(Response::new().add_message(get_migrate_msg(
+        ModuleReference::Standalone(code_id) => msgs.push(get_migrate_msg(
             old_module_addr,
             code_id,
             migrate_msg.unwrap(),
-        ))),
-        _ => Err(ManagerError::NotUpgradeable(module_info)),
-    }
+        )),
+        _ => return Err(ManagerError::NotUpgradeable(module_info)),
+    };
+    Ok(())
 }
 // migrates the module to a new version
 fn get_migrate_msg(module_addr: Addr, new_code_id: u64, migrate_msg: Binary) -> CosmosMsg {
@@ -297,7 +331,7 @@ pub fn replace_extension(
     deps: DepsMut,
     new_extension_addr: Addr,
     old_extension_addr: Addr,
-) -> ManagerResult {
+) -> Result<Vec<CosmosMsg>, ManagerError> {
     let mut msgs = vec![];
     // Makes sure we already have the extension installed
     let proxy_addr = OS_MODULES.load(deps.storage, PROXY)?;
@@ -346,7 +380,7 @@ pub fn replace_extension(
         new_extension_addr.into_string(),
     )?);
 
-    Ok(Response::new().add_messages(msgs))
+    Ok(msgs)
 }
 
 /// Update the OS information

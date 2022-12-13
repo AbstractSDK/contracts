@@ -97,7 +97,7 @@ mod tests {
         let contract_name = "crate:cw20-base";
         let contract_version = "0.2.0";
         let metadata = Some("https://example.com");
-        const requirement: [Comparator; 1] = [Comparator {
+        const REQUIREMENT: [Comparator; 1] = [Comparator {
             major: 1,
             minor: None,
             op: semver::Op::GreaterEq,
@@ -105,15 +105,15 @@ mod tests {
             pre: Prerelease::EMPTY,
         }];
 
-        const dependencies: &[StaticDependency; 1] = &[StaticDependency {
+        const DEPENDENCIES: &[StaticDependency; 1] = &[StaticDependency {
             id: "abstact::dex",
-            version_req: &requirement,
+            version_req: &REQUIREMENT,
         }];
         set_module_data(
             &mut store,
             contract_name,
             contract_version,
-            dependencies,
+            DEPENDENCIES,
             metadata,
         )
         .unwrap();
@@ -122,7 +122,7 @@ mod tests {
         let expected = ModuleData {
             module: contract_name.to_string(),
             version: contract_version.to_string(),
-            dependencies: dependencies.iter().map(Into::into).collect(),
+            dependencies: DEPENDENCIES.iter().map(Into::into).collect(),
             metadata: metadata.map(Into::into),
         };
         assert_eq!(expected, loaded);
