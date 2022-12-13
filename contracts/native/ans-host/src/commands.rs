@@ -38,7 +38,7 @@ pub fn handle_message(
             update_channels(deps, info, to_add, to_remove)
         }
         ExecuteMsg::UpdateDexes { to_add, to_remove } => {
-            update_dex_registry(deps, info, to_add, to_remove)
+            update_dexes(deps, info, to_add, to_remove)
         }
         ExecuteMsg::UpdatePools { to_add, to_remove } => {
             update_pools(deps, info, to_add, to_remove)
@@ -130,7 +130,7 @@ pub fn update_channels(
 }
 
 /// Updates the dex registry with additions and removals
-fn update_dex_registry(
+fn update_dexes(
     deps: DepsMut,
     info: MessageInfo,
     to_add: Vec<String>,
@@ -316,7 +316,11 @@ fn remove_pool_pairings(
 
 /// unsure
 fn validate_pool_assets(assets: &mut [String]) -> Result<(), AnsHostError> {
-    assets.iter_mut().map(|s| *s = s.to_ascii_lowercase());
+    // convert all assets to lower
+    for asset in assets.iter_mut() {
+        *asset = asset.to_ascii_lowercase();
+    }
+
     if assets.len() < MIN_POOL_ASSETS || assets.len() > MAX_POOL_ASSETS {
         return Err(InvalidAssetCount {
             min: MIN_POOL_ASSETS,
@@ -340,20 +344,10 @@ pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> AnsHostResu
 
 #[cfg(test)]
 mod test {
-    use std::fmt::Debug;
-    use std::str::FromStr;
-
-    use cosmwasm_std::testing::{
-        mock_dependencies, mock_env, mock_info, MockApi, MockQuerier, MockStorage,
-    };
-    use cosmwasm_std::{Addr, Decimal, Deps, DepsMut, Order, OwnedDeps, Response};
-    use cw_controllers::AdminError;
-    use cw_storage_plus::{KeyDeserialize, Map, PrimaryKey};
-    use serde::de::DeserializeOwned;
-    use serde::Serialize;
+    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
+    use cosmwasm_std::{Addr, DepsMut};
 
     use abstract_os::ans_host::InstantiateMsg;
-    use abstract_os::objects::ans_host::AnsHost;
 
     use crate::contract;
     use crate::contract::{instantiate, AnsHostResult};
@@ -391,7 +385,7 @@ mod test {
                 to_remove: vec![],
             };
 
-            let res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
+            let _res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
 
             assert_expected_dexes(&deps, vec![new_dex]);
 
@@ -412,8 +406,8 @@ mod test {
                 to_remove: vec![],
             };
 
-            let res = contract::execute(deps.as_mut(), mock_env(), info.clone(), msg.clone())?;
-            let res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
+            let _res = contract::execute(deps.as_mut(), mock_env(), info.clone(), msg.clone())?;
+            let _res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
 
             assert_expected_dexes(&deps, vec![new_dex]);
 
@@ -433,7 +427,7 @@ mod test {
                 to_remove: vec![],
             };
 
-            let res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
+            let _res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
 
             // ONly one dex should be registered
             assert_expected_dexes(&deps, vec![new_dex]);
@@ -451,10 +445,10 @@ mod test {
 
             let msg = ExecuteMsg::UpdateDexes {
                 to_add: vec![new_dex.clone()],
-                to_remove: vec![new_dex.clone()],
+                to_remove: vec![new_dex],
             };
 
-            let res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
+            let _res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
 
             assert_expected_dexes(&deps, vec![]);
 
@@ -474,7 +468,7 @@ mod test {
                 to_remove: vec![],
             };
 
-            let res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
+            let _res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
 
             assert_expected_dexes(&deps, new_dexes);
 
@@ -491,10 +485,10 @@ mod test {
 
             let msg = ExecuteMsg::UpdateDexes {
                 to_add: vec![],
-                to_remove: vec![missing_dex.clone()],
+                to_remove: vec![missing_dex],
             };
 
-            let res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
+            let _res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
 
             let expected_dexes: Vec<String> = vec![];
 
@@ -514,8 +508,6 @@ mod test {
     }
 
     mod update_contract_addresses {
-        use cosmwasm_std::testing::{MockApi, MockQuerier, MockStorage};
-        use cosmwasm_std::{Order, OwnedDeps};
 
         use abstract_os::objects::ContractEntry;
         use abstract_testing::map_tester::CwMapTesterBuilder;
@@ -654,7 +646,7 @@ mod test {
             mock_init(deps.as_mut()).unwrap();
             let mut map_tester = setup_map_tester();
 
-            let info = mock_info(TEST_CREATOR, &[]);
+            let _info = mock_info(TEST_CREATOR, &[]);
             let new_entry_1 =
                 contract_address_map_entry("test_provider", "test_contract", "test_address");
             let new_entry_2 =
@@ -814,7 +806,189 @@ mod test {
             mock_init(deps.as_mut()).unwrap();
             let mut map_tester = setup_map_tester();
 
-            let (new_entry_1, new_entry_2, new_entry_3) = mock_unchecked_entries();
+            let (new_entry_1, new_entry_2, _new_entry_3) = mock_unchecked_entries();
+
+            // add 1 and 2
+            map_tester.test_update_auto_expect(
+                &mut deps,
+                (vec![new_entry_1.clone(), new_entry_2.clone()], vec![]),
+            )?;
+
+            let new_entry_3 = unchecked_asset_map_entry("usd", AssetInfoBase::Cw20("uusd".into()));
+
+            // Add 3 and remove 1, leaving 2 and 3
+            map_tester.test_update_with_expected(
+                &mut deps,
+                (vec![new_entry_3.clone()], vec![new_entry_1.0]),
+                vec![new_entry_2, new_entry_3],
+            )
+        }
+
+        #[test]
+        fn bad_asset_address_throws() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+            let mut map_tester = setup_map_tester();
+
+            let bad_asset_address =
+                unchecked_asset_map_entry("BAD", AssetInfoUnchecked::Cw20("BAD".into()));
+
+            let err = map_tester
+                .execute_update(deps.as_mut(), (vec![bad_asset_address], vec![]))
+                .unwrap_err();
+
+            assert!(matches!(
+                err,
+                AnsHostError::Std(StdError::GenericErr { .. })
+            ));
+
+            assert!(err.to_string().contains("address not normalized"));
+
+            Ok(())
+        }
+    }
+
+    mod update_channels {
+        use super::*;
+        use abstract_os::objects::ChannelEntry;
+        use abstract_testing::map_tester::CwMapTesterBuilder;
+
+        type UncheckedChannelMapEntry = (UncheckedChannelEntry, String);
+
+        fn update_channels_msg_builder(
+            to_add: Vec<UncheckedChannelMapEntry>,
+            to_remove: Vec<UncheckedChannelEntry>,
+        ) -> ExecuteMsg {
+            ExecuteMsg::UpdateChannels { to_add, to_remove }
+        }
+
+        fn from_checked_entry((key, value): (ChannelEntry, String)) -> UncheckedChannelMapEntry {
+            (
+                UncheckedChannelEntry {
+                    connected_chain: key.clone().connected_chain,
+                    protocol: key.protocol,
+                },
+                value,
+            )
+        }
+
+        fn unchecked_channel_map_entry(
+            chain: &str,
+            protocol: &str,
+            channel_id: &str,
+        ) -> UncheckedChannelMapEntry {
+            let channel_entry = UncheckedChannelEntry::new(chain, protocol);
+            (channel_entry, channel_id.to_string())
+        }
+
+        fn mock_unchecked_channel_map_entry() -> UncheckedChannelMapEntry {
+            unchecked_channel_map_entry("test_chain", "test_protocol", "test_channel_id")
+        }
+
+        fn mock_unchecked_channel_entries() -> (
+            UncheckedChannelMapEntry,
+            UncheckedChannelMapEntry,
+            UncheckedChannelMapEntry,
+        ) {
+            let new_entry_1 =
+                unchecked_channel_map_entry("test_provider_1", "test_contract_1", "test_address_1");
+            let new_entry_2 =
+                unchecked_channel_map_entry("test_provider_2", "test_contract_2", "test_address_2");
+            let new_entry_3 =
+                unchecked_channel_map_entry("test_provider_3", "test_contract_3", "test_address_3");
+            (new_entry_1, new_entry_2, new_entry_3)
+        }
+
+        fn setup_map_tester<'a>() -> CwMapTester<
+            'a,
+            ExecuteMsg,
+            AnsHostError,
+            ChannelEntry,
+            String,
+            UncheckedChannelEntry,
+            String,
+        > {
+            let info = mock_info(TEST_CREATOR, &[]);
+
+            let tester = CwMapTesterBuilder::default()
+                .info(info)
+                .map(CHANNELS)
+                .execute(contract::execute)
+                .msg_builder(update_channels_msg_builder)
+                .mock_entry_builder(mock_unchecked_channel_map_entry)
+                .from_checked_entry(from_checked_entry)
+                .build()
+                .unwrap();
+
+            tester
+        }
+
+        #[test]
+        fn add_channel() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            let mut map_tester = setup_map_tester();
+            map_tester.test_add_one(&mut deps)
+        }
+
+        #[test]
+        fn add_channel_twice() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            let mut map_tester = setup_map_tester();
+            map_tester.test_add_one_twice(&mut deps)
+        }
+
+        #[test]
+        fn add_channel_twice_in_same_msg() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            let mut map_tester = setup_map_tester();
+            map_tester.test_add_two_same(&mut deps)
+        }
+
+        #[test]
+        fn add_and_remove_channel_same_msg() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            let mut map_tester = setup_map_tester();
+            map_tester.test_add_and_remove_same(&mut deps)
+        }
+
+        #[test]
+        fn remove_non_existent_channel() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            let mut map_tester = setup_map_tester();
+            map_tester.test_remove_nonexistent(&mut deps)
+        }
+
+        #[test]
+        fn add_multiple_channels() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+            let mut map_tester = setup_map_tester();
+
+            let (new_entry_1, new_entry_2, new_entry_3) = mock_unchecked_channel_entries();
+
+            map_tester.test_update_auto_expect(
+                &mut deps,
+                (vec![new_entry_1, new_entry_2, new_entry_3], vec![]),
+            )
+        }
+
+        #[test]
+        fn add_multiple_channels_and_deregister_one() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+            let mut map_tester = setup_map_tester();
+
+            let (new_entry_1, new_entry_2, _new_entry_3) = mock_unchecked_channel_entries();
 
             // add 1 and 2
             map_tester.test_update_auto_expect(
@@ -823,7 +997,7 @@ mod test {
             )?;
 
             let new_entry_3 =
-                contract_address_map_entry("test_provider_3", "test_contract_3", "test_address_3");
+                unchecked_channel_map_entry("test_provider_3", "test_contract_3", "test_address_3");
 
             // Add 3 and remove 1, leaving 2 and 3
             map_tester.test_update_with_expected(
@@ -831,6 +1005,23 @@ mod test {
                 (vec![new_entry_3.clone()], vec![new_entry_1.0]),
                 vec![new_entry_2, new_entry_3],
             )
+        }
+
+        #[test]
+        fn upper_channel_entry_goes_lower() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+            let mut map_tester = setup_map_tester();
+
+            let upper_entry = unchecked_channel_map_entry("UP_CHAIN", "UP_PROTOCOL", "channel_id");
+
+            map_tester.execute_update(deps.as_mut(), (vec![upper_entry], vec![]))?;
+
+            let expected_entry =
+                unchecked_channel_map_entry("up_chain", "up_protocol", "channel_id");
+            map_tester.assert_expected_entries(&deps.storage, vec![expected_entry]);
+
+            Ok(())
         }
     }
 

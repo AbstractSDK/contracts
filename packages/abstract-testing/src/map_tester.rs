@@ -1,14 +1,10 @@
 use std::fmt::Debug;
-use std::str::FromStr;
 
-use cosmwasm_std::testing::{
-    mock_dependencies, mock_env, mock_info, MockApi, MockQuerier, MockStorage,
-};
-use cosmwasm_std::{Addr, Decimal, Deps, Order, OwnedDeps};
-use cosmwasm_std::{DepsMut, Empty, MessageInfo, Response, StdResult};
-use cosmwasm_std::{Env, StdError, Storage};
-use cw_asset::{AssetInfo, AssetInfoUnchecked};
-use cw_controllers::AdminError;
+use cosmwasm_std::testing::{mock_env, MockApi, MockQuerier, MockStorage};
+use cosmwasm_std::{DepsMut, MessageInfo, Response};
+use cosmwasm_std::{Env, Storage};
+use cosmwasm_std::{Order, OwnedDeps};
+
 use cw_storage_plus::{KeyDeserialize, Map, PrimaryKey};
 use derive_builder::Builder;
 use serde::de::DeserializeOwned;
@@ -90,24 +86,36 @@ where
         (self.mock_entry_builder)()
     }
 
-    fn execute(&mut self, deps: DepsMut, msg: ExecMsg) -> Result<(), TError> {
+    /// Execute the msg with the mock env
+    pub fn execute(&mut self, deps: DepsMut, msg: ExecMsg) -> Result<(), TError> {
         (self.execute)(deps, mock_env(), self.info.clone(), msg)?;
         Ok(())
     }
 
+    pub fn execute_update(
+        &mut self,
+        deps: DepsMut,
+        (to_add, to_remove): (Vec<(UncheckedK, UncheckedV)>, Vec<UncheckedK>),
+    ) -> Result<(), TError> {
+        let msg = self.msg_builder(to_add, to_remove);
+        self.execute(deps, msg)
+    }
+
+    #[allow(clippy::wrong_self_convention)]
     fn from_checked_entry(&self, entry: (K::Output, V)) -> (UncheckedK, UncheckedV) {
         (self.from_checked_entry)(entry)
     }
 
     /// Sort the expected entries by *key*
-    fn sort_expected(expected: &mut Vec<(UncheckedK, UncheckedV)>) {
+    fn sort_expected(expected: &mut [(UncheckedK, UncheckedV)]) {
         expected.sort_by(|a, b| a.0.cmp(&b.0));
     }
 
+    #[allow(clippy::ptr_arg)]
     pub fn determine_expected(
         &self,
         to_add: &Vec<(UncheckedK, UncheckedV)>,
-        to_remove: &Vec<UncheckedK>,
+        to_remove: &[UncheckedK],
     ) -> Vec<(UncheckedK, UncheckedV)> {
         let mut expected = to_add.clone();
         expected.retain(|(k, _)| !to_remove.contains(k));
@@ -163,7 +171,7 @@ where
     pub fn test_add_two_same(&mut self, deps: &mut MockDeps) -> Result<(), TError> {
         let entry = self.mock_entry_builder();
 
-        let to_add: Vec<(UncheckedK, UncheckedV)> = vec![entry.clone(), entry.clone()];
+        let to_add: Vec<(UncheckedK, UncheckedV)> = vec![entry.clone(), entry];
         let to_remove: Vec<UncheckedK> = vec![];
         let msg = self.msg_builder(to_add.clone(), to_remove.clone());
 
@@ -181,7 +189,7 @@ where
 
         let to_add: Vec<(UncheckedK, UncheckedV)> = vec![entry.clone()];
         let to_remove: Vec<UncheckedK> = vec![entry.0];
-        let msg = self.msg_builder(to_add.clone(), to_remove.clone());
+        let msg = self.msg_builder(to_add, to_remove);
 
         let expected: Vec<(UncheckedK, UncheckedV)> = vec![];
 
@@ -197,7 +205,7 @@ where
 
         let to_add: Vec<(UncheckedK, UncheckedV)> = vec![];
         let to_remove: Vec<UncheckedK> = vec![entry.0];
-        let msg = self.msg_builder(to_add.clone(), to_remove.clone());
+        let msg = self.msg_builder(to_add, to_remove);
 
         let expected: Vec<(UncheckedK, UncheckedV)> = vec![];
 
@@ -234,7 +242,7 @@ where
         expected: Vec<(UncheckedK, UncheckedV)>,
     ) -> Result<(), TError> {
         let (to_add, to_remove) = update;
-        let msg = self.msg_builder(to_add.clone(), to_remove.clone());
+        let msg = self.msg_builder(to_add, to_remove);
 
         self.execute(deps.as_mut(), msg)?;
 
