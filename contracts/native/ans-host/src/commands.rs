@@ -136,7 +136,7 @@ fn update_dex_registry(deps: DepsMut, info: MessageInfo, to_add: Vec<String>, to
         let register_dex = |mut dexes: Vec<String>| -> StdResult<Vec<String>> {
             for dex in to_add {
                 if !dexes.contains(&dex) {
-                    dexes.push(dex);
+                    dexes.push(dex.to_ascii_lowercase());
                 }
             }
             Ok(dexes)
@@ -176,13 +176,13 @@ fn update_pools(
         REGISTERED_DEXES.load(deps.storage)?
     };
 
-    for (pool_id, pool_metadata) in to_add.into_iter() {
+    for (pool_id, mut pool_metadata) in to_add.into_iter() {
         let pool_id = pool_id.check(deps.api)?;
 
-        let assets = &pool_metadata.assets;
+        let assets = &mut pool_metadata.assets;
         validate_pool_assets(assets)?;
 
-        let dex = pool_metadata.dex.clone();
+        let dex = pool_metadata.dex.to_ascii_lowercase();
         if !registered_dexes.contains(&dex) {
             return Err(AnsHostError::UnregisteredDex { dex });
         }
@@ -307,7 +307,9 @@ fn remove_pool_pairings(
     exec_on_asset_pairings(assets, remove_pairing_action)
 }
 
-fn validate_pool_assets(assets: &[String]) -> Result<(), AnsHostError> {
+/// unsure 
+fn validate_pool_assets(assets: &mut [String]) -> Result<(), AnsHostError> {
+    assets.iter_mut().map(|s|*s = s.to_ascii_lowercase());
     if assets.len() < MIN_POOL_ASSETS || assets.len() > MAX_POOL_ASSETS {
         return Err(InvalidAssetCount {
             min: MIN_POOL_ASSETS,
@@ -860,7 +862,7 @@ mod test {
 
         #[test]
         fn too_few() {
-            let result = validate_pool_assets(&[]).unwrap_err();
+            let result = validate_pool_assets(&mut []).unwrap_err();
             assert_eq!(
                 result,
                 InvalidAssetCount {
@@ -883,19 +885,19 @@ mod test {
 
         #[test]
         fn valid_amounts() {
-            let assets = vec!["a".to_string(), "b".to_string()];
-            let res = validate_pool_assets(&assets);
+            let mut assets = vec!["a".to_string(), "b".to_string()];
+            let res = validate_pool_assets(&mut assets);
             assert!(res.is_ok());
 
-            let assets: Vec<String> = vec!["a", "b", "c", "d", "e"].iter().map(|s| s.to_string()).collect();
-            let res = validate_pool_assets(&assets);
+            let mut assets: Vec<String> = vec!["a", "b", "c", "d", "e"].iter().map(|s| s.to_string()).collect();
+            let res = validate_pool_assets(&mut assets);
             assert!(res.is_ok());
         }
 
         #[test]
         fn too_many() {
-            let assets: Vec<String> = vec!["a", "b", "c", "d", "e", "f"].iter().map(|s| s.to_string()).collect();
-            let result = validate_pool_assets(&assets).unwrap_err();
+            let mut assets: Vec<String> = vec!["a", "b", "c", "d", "e", "f"].iter().map(|s| s.to_string()).collect();
+            let result = validate_pool_assets(&mut assets).unwrap_err();
             assert_eq!(
                 result,
                 InvalidAssetCount {
