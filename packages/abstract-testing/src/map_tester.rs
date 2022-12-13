@@ -16,15 +16,15 @@ type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 #[builder(pattern = "owned")]
 pub struct CwMapTester<'a, ExecMsg, TError, K, V, UncheckedK, UncheckedV>
 where
-    V: Serialize + DeserializeOwned + Clone + Debug,
+    // V: Serialize + DeserializeOwned + Clone + Debug,
     K: PrimaryKey<'a> + KeyDeserialize + Debug,
-    (<K as KeyDeserialize>::Output, V): PartialEq<(K, V)>,
+    // (<K as KeyDeserialize>::Output, V): PartialEq<(K, V)>,
     K::Output: 'static,
     // UncheckedK: From<<K as KeyDeserialize>::Output> + Clone + PartialEq + Debug + Ord,
     // UncheckedV: From<V> + Clone + PartialEq + Debug + Ord,
-    UncheckedK: Clone + PartialEq + Debug + Ord,
-    UncheckedV: Clone + PartialEq + Debug,
-    <K as KeyDeserialize>::Output: Debug,
+    // UncheckedK: Clone + PartialEq + Debug + Ord,
+    // UncheckedV: Clone + PartialEq + Debug,
+    // <K as KeyDeserialize>::Output: Debug,
 {
     info: MessageInfo,
     map: Map<'a, K, V>,
@@ -33,6 +33,28 @@ where
     msg_builder: fn(to_add: Vec<(UncheckedK, UncheckedV)>, to_remove: Vec<UncheckedK>) -> ExecMsg,
     mock_entry_builder: fn() -> (UncheckedK, UncheckedV),
     from_checked_entry: fn((K::Output, V)) -> (UncheckedK, UncheckedV),
+}
+
+/// Sort the expected entries by *key*
+fn sort_expected<T, U>(expected: &mut [(T, U)])
+where
+    T: Clone + PartialEq + Debug + Ord,
+    U: Clone + PartialEq + Debug,
+{
+    expected.sort_by(|a, b| a.0.cmp(&b.0));
+}
+
+#[allow(clippy::ptr_arg)]
+pub fn determine_expected<T, U>(to_add: &Vec<(T, U)>, to_remove: &[T]) -> Vec<(T, U)>
+where
+    T: Clone + PartialEq + Debug + Ord,
+    U: Clone + PartialEq + Debug,
+{
+    let mut expected = to_add.clone();
+    expected.retain(|(k, _)| !to_remove.contains(k));
+    sort_expected(&mut expected);
+    expected.dedup();
+    expected
 }
 
 impl<'a, ExecMsg, TError, K, V, UncheckedK, UncheckedV>
@@ -44,8 +66,6 @@ where
     K::Output: 'static,
     UncheckedK: Clone + PartialEq + Debug + Ord,
     UncheckedV: Clone + PartialEq + Debug,
-    // UncheckedK: From<<K as KeyDeserialize>::Output> + Clone + PartialEq + Debug + Ord,
-    // UncheckedV: From<V> + Clone + PartialEq + Debug + Ord,
     <K as KeyDeserialize>::Output: Debug,
 {
     pub fn new(
@@ -106,24 +126,6 @@ where
         (self.from_checked_entry)(entry)
     }
 
-    /// Sort the expected entries by *key*
-    fn sort_expected(expected: &mut [(UncheckedK, UncheckedV)]) {
-        expected.sort_by(|a, b| a.0.cmp(&b.0));
-    }
-
-    #[allow(clippy::ptr_arg)]
-    pub fn determine_expected(
-        &self,
-        to_add: &Vec<(UncheckedK, UncheckedV)>,
-        to_remove: &[UncheckedK],
-    ) -> Vec<(UncheckedK, UncheckedV)> {
-        let mut expected = to_add.clone();
-        expected.retain(|(k, _)| !to_remove.contains(k));
-        Self::sort_expected(&mut expected);
-        expected.dedup();
-        expected
-    }
-
     pub fn assert_expected_entries(
         &self,
         storage: &'_ dyn Storage,
@@ -142,7 +144,7 @@ where
 
         // Sort, like map entries
         let mut expected = expected;
-        Self::sort_expected(&mut expected);
+        sort_expected(&mut expected);
 
         assert_eq!(actual, expected)
     }
@@ -154,7 +156,7 @@ where
         let to_remove: Vec<UncheckedK> = vec![];
         let msg = self.msg_builder(to_add.clone(), to_remove.clone());
 
-        let expected = self.determine_expected(&to_add, &to_remove);
+        let expected = determine_expected(&to_add, &to_remove);
 
         self.execute(deps.as_mut(), msg)?;
 
@@ -175,7 +177,7 @@ where
         let to_remove: Vec<UncheckedK> = vec![];
         let msg = self.msg_builder(to_add.clone(), to_remove.clone());
 
-        let expected: Vec<(UncheckedK, UncheckedV)> = self.determine_expected(&to_add, &to_remove);
+        let expected: Vec<(UncheckedK, UncheckedV)> = determine_expected(&to_add, &to_remove);
 
         self.execute(deps.as_mut(), msg)?;
 
@@ -225,7 +227,7 @@ where
         let (to_add, to_remove) = update;
         let msg = self.msg_builder(to_add.clone(), to_remove.clone());
 
-        let expected: Vec<(UncheckedK, UncheckedV)> = self.determine_expected(&to_add, &to_remove);
+        let expected: Vec<(UncheckedK, UncheckedV)> = determine_expected(&to_add, &to_remove);
 
         self.execute(deps.as_mut(), msg)?;
 
@@ -249,5 +251,48 @@ where
         self.assert_expected_entries(&deps.storage, expected);
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    mod determine_expected {
+        use super::*;
+
+        #[test]
+        fn removes_in_to_add() {
+            let to_add = vec![("a".to_string(), 1), ("b".to_string(), 2)];
+            let to_remove = vec!["a".to_string()];
+
+            let expected = vec![("b".to_string(), 2)];
+
+            assert_eq!(expected, determine_expected(&to_add, &to_remove));
+        }
+
+        #[test]
+        fn removes_all() {
+            let to_add = vec![("a".to_string(), 1), ("b".to_string(), 2)];
+            let to_remove = vec!["a".to_string(), "b".to_string()];
+
+            let expected: Vec<(String, i32)> = vec![];
+
+            assert_eq!(expected, determine_expected(&to_add, &to_remove));
+        }
+
+        #[test]
+        fn empty() {
+            let to_add: Vec<(String, i32)> = vec![];
+            let to_remove: Vec<String> = vec![];
+
+            let expected: Vec<(String, i32)> = vec![];
+
+            assert_eq!(expected, determine_expected(&to_add, &to_remove));
+        }
+    }
+
+    mod sort_expected {
+        use super::*;
     }
 }

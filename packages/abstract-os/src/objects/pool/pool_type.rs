@@ -25,6 +25,14 @@ impl FromStr for PoolType {
     }
 }
 
+impl TryFrom<String> for PoolType {
+    type Error = StdError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        PoolType::from_str(&value)
+    }
+}
+
 impl fmt::Display for PoolType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {

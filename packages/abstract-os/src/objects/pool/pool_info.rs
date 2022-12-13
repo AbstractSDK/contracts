@@ -14,12 +14,11 @@ pub struct PoolMetadata {
     pub dex: DexName,
     pub pool_type: PoolType,
     pub assets: Vec<String>,
-    pub lp_token: AssetEntry,
 }
 
-const ATTRIBUTE_COUNT: usize = 4;
+const ATTRIBUTE_COUNT: usize = 3;
 const ATTTRIBUTE_SEPARATOR: &str = ":";
-const ASSET_SEPARATOR: &str = "_";
+const ASSET_SEPARATOR: &str = ",";
 
 impl FromStr for PoolMetadata {
     type Err = StdError;
@@ -29,31 +28,28 @@ impl FromStr for PoolMetadata {
 
         if attributes.len() != ATTRIBUTE_COUNT {
             return Err(StdError::generic_err(format!(
-                "invalid pool metadata format `{}`; must be in format `{{dex}}:{{pool_type}}:{{asset1}}_{{asset2}}_...`",
+                "invalid pool metadata format `{}`; must be in format `{{dex}}:{{asset1}},{{asset2}}:{{pool_type}}...`",
                 s
             )));
         }
 
         let dex = String::from(attributes[0]);
-        let pool_type = PoolType::from_str(attributes[1])?;
-        let assets = String::from(attributes[2])
+        let assets = String::from(attributes[1])
             .split(ASSET_SEPARATOR)
             .map(String::from)
             .collect();
-
-        let lp_token = AssetEntry::new(attributes[3]);
+        let pool_type = PoolType::from_str(attributes[2])?;
 
         Ok(PoolMetadata {
             dex,
             pool_type,
             assets,
-            lp_token,
         })
     }
 }
 
 /// To string
-/// Ex: "junoswap:stable:uusd,uust"
+/// Ex: "junoswap:uusd,uust:stable"
 impl fmt::Display for PoolMetadata {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let assets_str = self.assets.join(ASSET_SEPARATOR);
@@ -62,7 +58,32 @@ impl fmt::Display for PoolMetadata {
         write!(
             f,
             "{}",
-            vec![self.dex.clone(), pool_type_str, assets_str].join(ATTTRIBUTE_SEPARATOR)
+            vec![self.dex.clone(), assets_str, pool_type_str].join(ATTTRIBUTE_SEPARATOR)
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use cosmwasm_std::testing::mock_env;
+    use cosmwasm_std::Env;
+
+    #[test]
+    fn test_pool_metadata_from_str() {
+        let pool_metadata_str = "junoswap:uusd,uust:stable";
+        let pool_metadata = PoolMetadata::from_str(pool_metadata_str).unwrap();
+
+        assert_eq!(pool_metadata.dex, "junoswap");
+        assert_eq!(pool_metadata.assets, vec!["uusd", "uust"]);
+        assert_eq!(pool_metadata.pool_type, PoolType::Stable);
+    }
+
+    #[test]
+    fn test_pool_metadata_to_string() {
+        let pool_metadata_str = "junoswap:uusd,uust:weighted";
+        let pool_metadata = PoolMetadata::from_str(pool_metadata_str).unwrap();
+
+        assert_eq!(pool_metadata.to_string(), pool_metadata_str);
     }
 }

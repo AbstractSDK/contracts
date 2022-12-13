@@ -5,7 +5,7 @@ use semver::Version;
 use crate::commands::*;
 use crate::error::AnsHostError;
 use crate::queries;
-use abstract_os::ans_host::state::{ADMIN, REGISTERED_DEXES};
+use abstract_os::ans_host::state::{Config, ADMIN, CONFIG, REGISTERED_DEXES};
 use abstract_os::ans_host::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 
 pub type AnsHostResult = Result<Response, AnsHostError>;
@@ -21,12 +21,19 @@ pub fn instantiate(
 ) -> AnsHostResult {
     set_contract_version(deps.storage, ANS_HOST, CONTRACT_VERSION)?;
 
+    // Initialize the config
+    CONFIG.save(
+        deps.storage,
+        &Config {
+            next_unique_pool_id: 1.into(),
+        },
+    )?;
+
     // Initialize the dexes
     REGISTERED_DEXES.save(deps.storage, &vec![])?;
 
     // Setup the admin as the creator of the contract
     ADMIN.set(deps, Some(info.sender))?;
-
 
     Ok(Response::default())
 }

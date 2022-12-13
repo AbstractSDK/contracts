@@ -352,7 +352,7 @@ mod test {
     use crate::contract;
     use crate::contract::{instantiate, AnsHostResult};
     use crate::error::AnsHostError;
-    use abstract_testing::map_tester::CwMapTester;
+    use abstract_testing::map_tester::{CwMapTester, CwMapTesterBuilder};
 
     use super::*;
 
@@ -1020,6 +1020,142 @@ mod test {
             let expected_entry =
                 unchecked_channel_map_entry("up_chain", "up_protocol", "channel_id");
             map_tester.assert_expected_entries(&deps.storage, vec![expected_entry]);
+
+            Ok(())
+        }
+    }
+
+    mod update_pools {
+        use super::*;
+        use abstract_os::ans_host::{AssetPairingMapEntry, PoolMetadataMapEntry};
+        use abstract_os::objects::PoolType;
+        use abstract_testing::map_tester::CwMapTesterBuilder;
+        use cosmwasm_std::testing::{MockApi, MockQuerier, MockStorage};
+        use cosmwasm_std::{Order, OwnedDeps};
+        use std::str::FromStr;
+
+        type UncheckedPoolMapEntry = (UncheckedPoolId, PoolMetadata);
+
+        // Makes a stable
+        fn pool_metadata(dex: &str, pool_type: PoolType, assets: Vec<String>) -> PoolMetadata {
+            PoolMetadata {
+                dex: dex.to_string(),
+                pool_type,
+                assets,
+            }
+        }
+
+        fn mock_pool_metadata() -> PoolMetadata {
+            pool_metadata(
+                "junoswap",
+                PoolType::Weighted,
+                vec!["juno".into(), "osmo".into()],
+            )
+        }
+
+        fn unchecked_pool_map_entry(
+            pool_contract_addr: &str,
+            metadata: PoolMetadata,
+        ) -> UncheckedPoolMapEntry {
+            let pool_id = UncheckedPoolId::contract(pool_contract_addr);
+            (pool_id, metadata)
+        }
+
+        fn mock_unchecked_pool_map_entry() -> UncheckedPoolMapEntry {
+            unchecked_pool_map_entry("junoxxxxx", mock_pool_metadata())
+        }
+
+        fn build_update_msg(
+            to_add: Vec<UncheckedPoolMapEntry>,
+            to_remove: Vec<UniquePoolId>,
+        ) -> ExecuteMsg {
+            ExecuteMsg::UpdatePools { to_add, to_remove }
+        }
+
+        fn execute_helper(deps: DepsMut, msg: ExecuteMsg) -> AnsHostTestResult {
+            contract::execute(deps, mock_env(), mock_info(TEST_CREATOR, &[]), msg)?;
+            Ok(())
+        }
+
+        fn execute_update(
+            deps: DepsMut,
+            (to_add, to_remove): (Vec<UncheckedPoolMapEntry>, Vec<UniquePoolId>),
+        ) -> AnsHostTestResult {
+            let msg = build_update_msg(to_add, to_remove);
+            execute_helper(deps, msg)?;
+            Ok(())
+        }
+
+        fn register_dex(deps: DepsMut, dex: &str) -> AnsHostTestResult {
+            let msg = ExecuteMsg::UpdateDexes {
+                to_add: vec![dex.into()],
+                to_remove: vec![],
+            };
+            execute_helper(deps, msg)?;
+            Ok(())
+        }
+
+        #[test]
+        fn add_pool() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            let dex = "junoswap";
+
+            let metadata = pool_metadata(
+                dex.clone(),
+                PoolType::Weighted,
+                vec!["juno".into(), "osmo".into()],
+            );
+
+            register_dex(deps.as_mut(), dex)?;
+
+            let entry = unchecked_pool_map_entry("junoxxxx", metadata.clone());
+
+            execute_update(deps.as_mut(), (vec![entry], vec![]))?;
+
+            let actual: Result<Vec<PoolMetadataMapEntry>, _> = POOL_METADATA
+                .range(deps.as_ref().storage, None, None, Order::Ascending)
+                .collect();
+
+            let expected: Vec<PoolMetadataMapEntry> = vec![(1.into(), metadata)];
+
+            assert_eq!(actual?, expected);
+
+            Ok(())
+        }
+
+        #[test]
+        fn add_pool_fails_without_registering_dex() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            let unregistered_dex = "unregistered";
+
+            let metadata = pool_metadata(
+                unregistered_dex.clone(),
+                PoolType::Weighted,
+                vec!["juno".into(), "osmo".into()],
+            );
+
+            let entry = unchecked_pool_map_entry("junoxxxx", metadata.clone());
+
+            let err = execute_update(deps.as_mut(), (vec![entry], vec![])).unwrap_err();
+
+            assert_eq!(
+                err,
+                AnsHostError::UnregisteredDex {
+                    dex: unregistered_dex.into()
+                }
+            );
+
+            let actual: Result<Vec<PoolMetadataMapEntry>, _> = POOL_METADATA
+                .range(deps.as_ref().storage, None, None, Order::Ascending)
+                .collect();
+
+            let expected: Vec<PoolMetadataMapEntry> = vec![];
+
+            assert_eq!(actual?, expected);
 
             Ok(())
         }
