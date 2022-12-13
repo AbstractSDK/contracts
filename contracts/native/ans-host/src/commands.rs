@@ -349,6 +349,7 @@ mod test {
     use crate::contract;
     use crate::contract::{AnsHostResult, instantiate};
     use crate::error::AnsHostError;
+    use abstract_testing::map_tester::CwMapTester;
 
     use super::*;
 
@@ -546,10 +547,10 @@ mod test {
             }, value.into())
         }
 
-        fn setup_map_tester<'a>() -> CwMapTester<'a, ContractEntry, Addr, UncheckedContractEntry, String> {
+        fn setup_map_tester<'a>() -> CwMapTester<'a, ExecuteMsg, AnsHostError, ContractEntry, Addr, UncheckedContractEntry, String> {
             let info = mock_info(TEST_CREATOR, &[]);
 
-            let tester = CwMapTester::new(info, CONTRACT_ADDRESSES, update_contract_addresses_msg_builder, mock_contract_map_entry, from_checked_entry);
+            let tester = CwMapTester::new(info, CONTRACT_ADDRESSES, contract::execute, update_contract_addresses_msg_builder, mock_contract_map_entry, from_checked_entry);
 
             tester
         }
@@ -648,136 +649,6 @@ mod test {
             let res = contract::execute(deps.as_mut(), mock_env(), info, msg)?;
 
             map_tester.assert_expected_entries(&deps.storage, vec![new_entry_2, new_entry_3]);
-
-            Ok(())
-        }
-    }
-
-    type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
-
-    struct CwMapTester<'a, K, V, UncheckedK, UncheckedV> {
-        info: MessageInfo,
-        map: Map<'a, K, V>,
-        msg_builder: fn(to_add: Vec<(UncheckedK, UncheckedV)>, to_remove: Vec<UncheckedK>) -> ExecuteMsg,
-        mock_entry_builder: fn() -> (UncheckedK, UncheckedV),
-        from_checked_entry: fn((K, V)) -> (UncheckedK, UncheckedV),
-    }
-
-    impl<'a, K, V, UncheckedK, UncheckedV> CwMapTester<'a, K, V, UncheckedK, UncheckedV>
-        where V: Serialize + DeserializeOwned + Clone + Debug,
-              K: PrimaryKey<'a> + KeyDeserialize + Debug,
-              (<K as KeyDeserialize>::Output, V): PartialEq<(K, V)>,
-              K::Output: 'static,
-              UncheckedK: From<<K as KeyDeserialize>::Output> + Clone + PartialEq + Debug + Ord,
-              UncheckedV: From<V> + Clone + PartialEq + Debug + Ord
-        , <K as KeyDeserialize>::Output: Debug
-    {
-        fn new(info: MessageInfo, map: Map<'a, K, V>,
-               msg_builder: fn(to_add: Vec<(UncheckedK, UncheckedV)>, to_remove: Vec<UncheckedK>) -> ExecuteMsg,
-               mock_entry_builder: fn() -> (UncheckedK, UncheckedV), from_checked_entry: fn((K, V)) -> (UncheckedK, UncheckedV),
-        ) -> Self {
-            Self {
-                info,
-                map,
-                msg_builder,
-                mock_entry_builder,
-                from_checked_entry,
-            }
-        }
-
-        fn msg_builder(&self, to_add: Vec<(UncheckedK, UncheckedV)>, to_remove: Vec<UncheckedK>) -> ExecuteMsg {
-            (self.msg_builder)(to_add, to_remove)
-        }
-
-        fn mock_entry_builder(&self) -> (UncheckedK, UncheckedV) {
-            (self.mock_entry_builder)()
-        }
-
-        fn determine_expected(&self, to_add: &Vec<(UncheckedK, UncheckedV)>, to_remove: &Vec<UncheckedK>) -> Vec<(UncheckedK, UncheckedV)> {
-            let mut expected = to_add.clone();
-            expected.retain(|(k, _)| !to_remove.contains(k));
-            expected.sort();
-            expected.dedup();
-            expected
-        }
-
-        fn assert_expected_entries<'c>(&self, storage: &'c dyn Storage, expected: Vec<(UncheckedK, UncheckedV)>) {
-            let res: Result<Vec<(K::Output, V)>, _> = self.map.range(storage, None, None, Order::Ascending).collect();
-
-            let actual = res.unwrap().into_iter().map(|(k, v)| (k.into(), v.into())).collect::<Vec<_>>();
-
-            // Sort, like map entries
-            let mut expected = expected.clone();
-            expected.sort();
-
-            assert_eq!(actual, expected)
-        }
-
-        fn test_add_one(&mut self, deps: &mut MockDeps) -> AnsHostTestResult {
-            let entry = self.mock_entry_builder();
-
-            let to_add: Vec<(UncheckedK, UncheckedV)> = vec![entry];
-            let to_remove: Vec<UncheckedK> = vec![];
-            let msg = self.msg_builder(to_add.clone(), to_remove.clone());
-
-            let expected = self.determine_expected(&to_add, &to_remove);
-
-            contract::execute(deps.as_mut(), mock_env(), self.info.clone(), msg)?;
-
-            self.assert_expected_entries(&deps.storage, expected);
-
-            Ok(())
-        }
-
-        fn test_add_one_twice(&mut self, deps: &mut MockDeps) -> AnsHostTestResult {
-            self.test_add_one(deps)?;
-            self.test_add_one(deps)
-        }
-
-        fn test_add_two_same(&mut self, deps: &mut MockDeps) -> AnsHostTestResult {
-            let entry = self.mock_entry_builder();
-
-            let to_add: Vec<(UncheckedK, UncheckedV)> = vec![entry.clone(), entry.clone()];
-            let to_remove: Vec<UncheckedK> = vec![];
-            let msg = self.msg_builder(to_add.clone(), to_remove.clone());
-
-            let expected: Vec<(UncheckedK, UncheckedV)> = self.determine_expected(&to_add, &to_remove);
-
-            contract::execute(deps.as_mut(), mock_env(), self.info.clone(), msg)?;
-
-            self.assert_expected_entries(&deps.storage, expected);
-
-            Ok(())
-        }
-
-        fn test_add_and_remove_same(&mut self, deps: &mut MockDeps) -> AnsHostTestResult {
-            let entry = self.mock_entry_builder();
-
-            let to_add: Vec<(UncheckedK, UncheckedV)> = vec![entry.clone()];
-            let to_remove: Vec<UncheckedK> = vec![entry.0];
-            let msg = self.msg_builder(to_add.clone(), to_remove.clone());
-
-            let expected: Vec<(UncheckedK, UncheckedV)> = vec![];
-
-            contract::execute(deps.as_mut(), mock_env(), self.info.clone(), msg)?;
-
-            self.assert_expected_entries(&deps.storage, expected);
-
-            Ok(())
-        }
-
-        fn test_remove_nonexistent(&mut self, deps: &mut MockDeps) -> AnsHostTestResult {
-            let entry = self.mock_entry_builder();
-
-            let to_add: Vec<(UncheckedK, UncheckedV)> = vec![];
-            let to_remove: Vec<UncheckedK> = vec![entry.0];
-            let msg = self.msg_builder(to_add.clone(), to_remove.clone());
-
-            let expected: Vec<(UncheckedK, UncheckedV)> = vec![];
-
-            contract::execute(deps.as_mut(), mock_env(), self.info.clone(), msg)?;
-
-            self.assert_expected_entries(&deps.storage, expected);
 
             Ok(())
         }
