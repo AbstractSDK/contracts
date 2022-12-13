@@ -9,7 +9,7 @@ use cosmwasm_std::Addr;
 use semver::Version;
 use serde::Serialize;
 
-use abstract_sdk::os::{
+use abstract_os::{
     extension,
     objects::{
         module::{ModuleInfo, ModuleVersion},

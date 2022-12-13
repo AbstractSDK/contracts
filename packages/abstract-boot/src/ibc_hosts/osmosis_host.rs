@@ -1,4 +1,4 @@
-use abstract_sdk::os::ibc_host::*;
+use abstract_os::ibc_host::*;
 use boot_core::prelude::boot_contract;
 use boot_core::{BootEnvironment, Contract};
 use cosmwasm_std::Empty;
