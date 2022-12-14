@@ -1,35 +1,9 @@
-mod ans_host;
-mod dex_extension;
-mod etf;
-mod ibc_client;
-mod idea_token;
-mod manager;
-mod module_factory;
-mod os_factory;
-mod osmosis_host;
-mod proxy;
-mod subscription;
-mod tendermint_staking_extension;
-mod version_control;
-mod vesting;
-
-pub use ans_host::AnsHost;
-pub use dex_extension::DexExtension;
-pub use etf::ETF;
-pub use ibc_client::IbcClient;
-pub use idea_token::Idea;
-pub use manager::Manager;
-pub use module_factory::ModuleFactory;
-pub use os_factory::OSFactory;
-pub use osmosis_host::OsmosisHost;
-pub use proxy::Proxy;
-pub use subscription::Subscription;
-pub use tendermint_staking_extension::TMintStakingExtension;
-pub use version_control::VersionControl;
-pub use vesting::Vesting;
-
 use abstract_os::IBC_CLIENT;
 
+use crate::{
+    AnsHost, DexExtension, IbcClient, Manager, ModuleFactory, OSFactory, Proxy, Subscription,
+    TMintStakingExtension, VersionControl, ETF as EtfBoot,
+};
 use abstract_os::{
     ANS_HOST, ETF, EXCHANGE, MANAGER, MODULE_FACTORY, OS_FACTORY, PROXY, SUBSCRIPTION,
     TENDERMINT_STAKING, VERSION_CONTROL,
@@ -85,11 +59,11 @@ where
     }
 }
 
-pub fn get_apps<Chain: BootEnvironment>(chain: &Chain) -> (ETF<Chain>, Subscription<Chain>)
+pub fn get_apps<Chain: BootEnvironment>(chain: &Chain) -> (EtfBoot<Chain>, Subscription<Chain>)
 where
     <Chain as TxHandler>::Response: IndexResponse,
 {
-    let liquidity_interface = ETF::new(ETF, chain);
+    let liquidity_interface = EtfBoot::new(ETF, chain);
     let subscription = Subscription::new(SUBSCRIPTION, chain);
     (liquidity_interface, subscription)
 }
