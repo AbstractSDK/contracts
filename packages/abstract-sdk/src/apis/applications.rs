@@ -57,6 +57,7 @@ impl<'a, T: ApplicationInterface> Applications<'a, T> {
         extension_id: ModuleId,
         message: impl Into<ExecuteMsg<M, Empty>>,
     ) -> StdResult<CosmosMsg> {
+        self.assert_app_is_dependency(extension_id)?;
         let extension_msg: ExecuteMsg<M, Empty> = message.into();
         let extension_address = self.app_address(extension_id)?;
         Ok(wasm_execute(extension_address, &extension_msg, vec![])?.into())
