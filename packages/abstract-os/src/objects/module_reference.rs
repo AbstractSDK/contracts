@@ -11,8 +11,6 @@ pub enum ModuleReference {
     Extension(Addr),
     /// Installable apps
     App(u64),
-    /// Usable perks
-    Perk(u64),
-    /// usable services
-    Service(u64),
+    /// A stand-alone contract
+    Standalone(u64),
 }
