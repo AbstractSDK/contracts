@@ -174,7 +174,8 @@ fn update_pools(
     // Only Admin can call this method
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
 
-    let mut next_unique_pool_id = CONFIG.load(deps.storage)?.next_unique_pool_id;
+    let original_unique_pool_id = CONFIG.load(deps.storage)?.next_unique_pool_id;
+    let mut next_unique_pool_id = original_unique_pool_id.clone();
 
     // only load dexes if necessary
     let registered_dexes = if to_add.is_empty() {
@@ -205,7 +206,13 @@ fn update_pools(
 
     for pool_id_to_remove in to_remove {
         // load the pool metadata
-        let pool_metadata = POOL_METADATA.load(deps.storage, pool_id_to_remove)?;
+        let pool_metadata = POOL_METADATA.may_load(deps.storage, pool_id_to_remove)?;
+
+        let pool_metadata = match pool_metadata {
+            Some(pool_metadata) => pool_metadata,
+            // THere is no existing metadata at that id, so we can skip it
+            None => continue,
+        };
 
         remove_pool_pairings(
             deps.storage,
@@ -218,11 +225,13 @@ fn update_pools(
         POOL_METADATA.remove(deps.storage, pool_id_to_remove);
     }
 
-    // Save the next unique pool id
-    CONFIG.update(deps.storage, |mut config| -> StdResult<_> {
-        config.next_unique_pool_id = next_unique_pool_id;
-        Ok(config)
-    })?;
+    // Only update the next pool id if necessary
+    if next_unique_pool_id != original_unique_pool_id {
+        CONFIG.update(deps.storage, |mut config| -> StdResult<_> {
+            config.next_unique_pool_id = next_unique_pool_id;
+            Ok(config)
+        })?;
+    }
 
     Ok(Response::new().add_attribute("action", "updated pools"))
 }
@@ -352,7 +361,7 @@ mod test {
     use crate::contract;
     use crate::contract::{instantiate, AnsHostResult};
     use crate::error::AnsHostError;
-    use abstract_testing::map_tester::{CwMapTester};
+    use abstract_testing::map_tester::CwMapTester;
 
     use super::*;
     use speculoos::prelude::*;
@@ -1028,13 +1037,12 @@ mod test {
 
     mod update_pools {
         use super::*;
-        use abstract_os::ans_host::{PoolMetadataMapEntry};
+        use abstract_os::ans_host::{AssetPairingMapEntry, PoolMetadataMapEntry};
         use abstract_os::objects::PoolType;
-        
-        
-        use cosmwasm_std::{Order};
+
+        use cosmwasm_std::testing::{MockApi, MockQuerier, MockStorage};
+        use cosmwasm_std::{Api, Order, OwnedDeps};
         use speculoos::assert_that;
-        
 
         type UncheckedPoolMapEntry = (UncheckedPoolId, PoolMetadata);
 
@@ -1099,6 +1107,42 @@ mod test {
             Ok(())
         }
 
+        fn load_pool_metadata(
+            storage: &dyn Storage,
+        ) -> Result<Vec<PoolMetadataMapEntry>, StdError> {
+            POOL_METADATA
+                .range(storage, None, None, Order::Ascending)
+                .collect()
+        }
+
+        fn load_asset_pairings(
+            storage: &dyn Storage,
+        ) -> Result<Vec<AssetPairingMapEntry>, StdError> {
+            ASSET_PAIRINGS
+                .range(storage, None, None, Order::Ascending)
+                .collect()
+        }
+
+        struct UncheckedTestPoolReference {
+            pub id: u64,
+            pub pool_id: String,
+        }
+
+        fn asset_pairing(
+            api: &dyn Api,
+            dex: &str,
+            (asset_x, asset_y): (&str, &str),
+            unchecked_pool_id: &UncheckedPoolId,
+        ) -> Result<(DexAssetPairing, Vec<PoolReference>), StdError> {
+            Ok((
+                DexAssetPairing::new(asset_x, asset_y, dex),
+                vec![PoolReference::new(
+                    INITIAL_UNIQUE_POOL_ID.into(),
+                    unchecked_pool_id.clone().check(api)?,
+                )],
+            ))
+        }
+
         #[test]
         fn add_pool() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
@@ -1114,18 +1158,73 @@ mod test {
 
             register_dex(deps.as_mut(), dex)?;
 
-            let entry = unchecked_pool_map_entry("junoxxxx", metadata.clone());
+            let new_entry = unchecked_pool_map_entry("junoxxxx", metadata.clone());
 
-            execute_update(deps.as_mut(), (vec![entry], vec![]))?;
+            execute_update(deps.as_mut(), (vec![new_entry.clone()], vec![]))?;
 
-            let actual: Result<Vec<PoolMetadataMapEntry>, _> = POOL_METADATA
-                .range(deps.as_ref().storage, None, None, Order::Ascending)
-                .collect();
-
-            let expected: Vec<PoolMetadataMapEntry> =
+            let expected_pools: Vec<PoolMetadataMapEntry> =
                 vec![(INITIAL_UNIQUE_POOL_ID.into(), metadata)];
+            let actual_pools: Result<Vec<PoolMetadataMapEntry>, _> =
+                load_pool_metadata(&deps.storage);
 
-            assert_that(&actual?).is_equal_to(&expected);
+            assert_that(&actual_pools?).is_equal_to(&expected_pools);
+
+            let pairing = DexAssetPairing::new("juno", "osmo", "junoswap");
+
+            let (unchecked_pool_id, _) = new_entry.clone();
+
+            let expected_pairings = vec![
+                asset_pairing(&deps.api, "junoswap", ("juno", "osmo"), &unchecked_pool_id)?,
+                asset_pairing(&deps.api, "junoswap", ("osmo", "juno"), &unchecked_pool_id)?,
+            ];
+            let actual_pairings: Result<Vec<AssetPairingMapEntry>, _> =
+                load_asset_pairings(&deps.storage);
+            assert_that(&actual_pairings?).is_equal_to(&expected_pairings);
+
+            Ok(())
+        }
+
+        #[test]
+        fn add_five_asset_pool() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            let dex = "junoswap";
+
+            let metadata = pool_metadata(
+                dex.clone(),
+                PoolType::Weighted,
+                vec![
+                    "juno".into(),
+                    "osmo".into(),
+                    "atom".into(),
+                    "uatom".into(),
+                    "uusd".into(),
+                ],
+            );
+
+            register_dex(deps.as_mut(), dex)?;
+
+            let new_entry = unchecked_pool_map_entry("junoxxxx", metadata.clone());
+
+            execute_update(deps.as_mut(), (vec![new_entry.clone()], vec![]))?;
+
+            let expected_pools: Vec<PoolMetadataMapEntry> =
+                vec![(INITIAL_UNIQUE_POOL_ID.into(), metadata)];
+            let actual_pools: Result<Vec<PoolMetadataMapEntry>, _> =
+                load_pool_metadata(&deps.storage);
+
+            assert_that(&actual_pools?).is_equal_to(&expected_pools);
+
+            let pairing = DexAssetPairing::new("juno", "osmo", "junoswap");
+
+            let (unchecked_pool_id, _) = new_entry.clone();
+
+            let expected_pairing_count = 32;
+
+            let actual_pairings: Result<Vec<AssetPairingMapEntry>, _> =
+                load_asset_pairings(&deps.storage);
+            assert_that(&actual_pairings?).has_length(expected_pairing_count);
 
             Ok(())
         }
@@ -1153,17 +1252,13 @@ mod test {
                     dex: unregistered_dex.into(),
                 });
 
-            let actual: Result<Vec<PoolMetadataMapEntry>, _> = POOL_METADATA
-                .range(deps.as_ref().storage, None, None, Order::Ascending)
-                .collect();
-
-            let expected: Vec<PoolMetadataMapEntry> = vec![];
-
-            assert_that(&expected).is_equal_to(&actual?);
+            let actual_pools = load_pool_metadata(&deps.storage)?;
+            assert_that(&actual_pools).is_empty();
 
             Ok(())
         }
 
+        // THis test is weird because we remove the same one that is just created in this call
         #[test]
         fn add_and_remove_same_pool() -> AnsHostTestResult {
             let mut deps = mock_dependencies();
@@ -1186,13 +1281,33 @@ mod test {
                 (vec![entry], vec![INITIAL_UNIQUE_POOL_ID.into()]),
             )?;
 
-            let actual: Result<Vec<PoolMetadataMapEntry>, _> = POOL_METADATA
-                .range(deps.as_ref().storage, None, None, Order::Ascending)
-                .collect();
+            // metadata should be emtpy
+            let actual_pools = load_pool_metadata(&deps.storage)?;
+            assert_that(&actual_pools).is_empty();
 
-            let _expected: Vec<PoolMetadataMapEntry> = vec![];
+            // all pairs should be empty
+            let actual_pairs = load_asset_pairings(&deps.storage)?;
+            assert_that(&actual_pairs).is_empty();
 
-            assert_that(&actual?).is_empty();
+            Ok(())
+        }
+
+        #[test]
+        fn remove_nonexistent_pool() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            let res = execute_update(deps.as_mut(), (vec![], vec![INITIAL_UNIQUE_POOL_ID.into()]));
+
+            assert_that(&res).is_ok();
+
+            // metadata should be empty
+            let actual_pools = load_pool_metadata(&deps.storage)?;
+            assert_that(&actual_pools).is_empty();
+
+            // all pairs should be empty
+            let actual_pairs = load_asset_pairings(&deps.storage)?;
+            assert_that(&actual_pairs).is_empty();
 
             Ok(())
         }
