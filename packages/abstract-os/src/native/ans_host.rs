@@ -102,16 +102,16 @@ pub enum ExecuteMsg {
     },
     /// Registers a dex
     UpdateDexes {
-        /// Dexes to add
+        // Dexes to add
         to_add: Vec<String>,
-        /// Dexes to remove
+        // Dexes to remove
         to_remove: Vec<String>,
     },
     /// Update the pools
     UpdatePools {
-        /// Pools to update or add
+        // Pools to update or add
         to_add: Vec<(UncheckedPoolId, PoolMetadata)>,
-        /// Pools to remove
+        // Pools to remove
         to_remove: Vec<UniquePoolId>,
     },
     /// Sets a new Admin
