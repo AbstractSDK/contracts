@@ -52,8 +52,11 @@ pub fn ibc_channel_connect(
     let channel = msg.channel();
     let chan_id = &channel.endpoint.channel_id;
     // re-open channel if it was closed previously.
-    let re_open_channel = | mut closed_channels: Vec<String>| -> StdResult<Vec<String>> {
-        Ok(closed_channels.into_iter().filter(|c|c!=chan_id).collect())
+    let re_open_channel = |mut closed_channels: Vec<String>| -> StdResult<Vec<String>> {
+        Ok(closed_channels
+            .into_iter()
+            .filter(|c| c != chan_id)
+            .collect())
     };
     CLOSED_CHANNELS.update(deps.storage, re_open_channel)?;
 

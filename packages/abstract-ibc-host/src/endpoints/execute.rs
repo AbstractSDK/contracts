@@ -1,7 +1,7 @@
-use abstract_sdk::Execution;
 use abstract_sdk::os::ibc_host::{
     BaseExecuteMsg, ExecuteMsg, HostAction, InternalAction, PacketMsg,
 };
+use abstract_sdk::Execution;
 
 use abstract_sdk::base::{ExecuteEndpoint, Handler};
 use cosmwasm_std::{
@@ -137,7 +137,9 @@ impl<
                 self.proxy_address = ACCOUNTS.may_load(deps.storage, (&closed_channel, os_id))?;
                 ACCOUNTS.remove(deps.storage, (&closed_channel, os_id));
                 // Execute provided msgs on proxy.
-                self.executor(deps.as_ref()).execute_response(msgs, "recover_account").map_err(Into::into)
+                self.executor(deps.as_ref())
+                    .execute_response(msgs, "recover_account")
+                    .map_err(Into::into)
             }
         }
     }

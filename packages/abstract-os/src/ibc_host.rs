@@ -93,9 +93,7 @@ pub struct PacketMsg {
 #[cosmwasm_schema::cw_serde]
 pub enum BaseExecuteMsg {
     /// Update the Admin
-    UpdateAdmin {
-        admin: String,
-    },
+    UpdateAdmin { admin: String },
     UpdateConfig {
         ans_host_address: Option<String>,
         cw1_code_id: Option<u64>,
@@ -104,7 +102,7 @@ pub enum BaseExecuteMsg {
     RecoverAccount {
         closed_channel: String,
         os_id: u32,
-        msgs: Vec<CosmosMsg>
+        msgs: Vec<CosmosMsg>,
     },
 }
 
