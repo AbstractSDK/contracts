@@ -13,8 +13,7 @@ use boot_core::interface::ContractInstance;
 
 type DexExtensionInstantiateMsg = abstract_os::extension::InstantiateMsg;
 type DexExtensionExecuteMsg = extension::ExecuteMsg<DexRequestMsg>;
-type DexExtensionQueryMsg =
-    abstract_os::extension::QueryMsg<abstract_os::dex::DexQueryMsg>;
+type DexExtensionQueryMsg = abstract_os::extension::QueryMsg<abstract_os::dex::DexQueryMsg>;
 
 #[boot_contract(
     DexExtensionInstantiateMsg,
