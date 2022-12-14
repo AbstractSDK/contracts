@@ -13,9 +13,8 @@ jobs:
     name: Clippy Linter
     runs-on: self-hosted
     steps:
-      - name: Chown user
-        run: |
-          sudo chown -R $USER:$USER $GITHUB_WORKSPACE
+      - name: Clean the workspace
+        run: rm -rf $GITHUB_WORKSPACE/*
       - name: Setup | Checkout
         uses: actions/checkout@v3
       - name: Setup | Rust
@@ -40,9 +39,8 @@ jobs:
     name: Compile
     runs-on: self-hosted
     steps:
-      - name: Chown user
-        run: |
-          sudo chown -R $USER:$USER $GITHUB_WORKSPACE
+      - name: Clean the workspace
+        run: rm -rf $GITHUB_WORKSPACE/*
       - name: Setup | Checkout
         uses: actions/checkout@v3
       - name: Setup | Rust
@@ -58,9 +56,8 @@ jobs:
     runs-on:  self-hosted
     needs: [compile]
     steps:
-      - name: Chown user
-        run: |
-          sudo chown -R $USER:$USER $GITHUB_WORKSPACE
+      - name: Clean the workspace
+        run: rm -rf $GITHUB_WORKSPACE/*
       - name: Setup | Checkout
         uses: actions/checkout@v3
       - name: Setup | Rust
