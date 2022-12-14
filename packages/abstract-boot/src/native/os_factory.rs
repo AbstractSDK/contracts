@@ -1,6 +1,6 @@
-use boot_core::prelude::boot_contract;
 use boot_core::{
-    state::StateInterface, BootEnvironment, BootError, Contract, IndexResponse, TxResponse,
+    prelude::boot_contract, state::StateInterface, BootEnvironment, BootError, Contract,
+    IndexResponse, TxResponse,
 };
 use cosmwasm_std::Addr;
 

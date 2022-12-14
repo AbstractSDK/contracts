@@ -1,5 +1,4 @@
-use boot_core::prelude::boot_contract;
-use boot_core::{BootEnvironment, Contract};
+use boot_core::{prelude::boot_contract, BootEnvironment, Contract};
 use cosmwasm_std::Empty;
 
 use abstract_os::tendermint_staking::*;
