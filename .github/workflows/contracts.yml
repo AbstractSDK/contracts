@@ -13,8 +13,6 @@ jobs:
     name: Clippy Linter
     runs-on: self-hosted
     steps:
-      - name: Clean the workspace
-        run: rm -rf $GITHUB_WORKSPACE/*
       - name: Setup | Checkout
         uses: actions/checkout@v3
       - name: Setup | Rust
@@ -39,8 +37,6 @@ jobs:
     name: Compile
     runs-on: self-hosted
     steps:
-      - name: Clean the workspace
-        run: rm -rf $GITHUB_WORKSPACE/*
       - name: Setup | Checkout
         uses: actions/checkout@v3
       - name: Setup | Rust
@@ -56,8 +52,6 @@ jobs:
     runs-on:  self-hosted
     needs: [compile]
     steps:
-      - name: Clean the workspace
-        run: rm -rf $GITHUB_WORKSPACE/*
       - name: Setup | Checkout
         uses: actions/checkout@v3
       - name: Setup | Rust
