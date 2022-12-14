@@ -13,7 +13,9 @@ jobs:
     name: Clippy Linter
     runs-on: self-hosted
     steps:
-      - uses: AutoModality/action-clean@v1
+      - name: Chown user
+        run: |
+          sudo chown -R $USER:$USER $GITHUB_WORKSPACE
       - name: Setup | Checkout
         uses: actions/checkout@v3
       - name: Setup | Rust
@@ -38,7 +40,9 @@ jobs:
     name: Compile
     runs-on: self-hosted
     steps:
-      - uses: AutoModality/action-clean@v1
+      - name: Chown user
+        run: |
+          sudo chown -R $USER:$USER $GITHUB_WORKSPACE
       - name: Setup | Checkout
         uses: actions/checkout@v3
       - name: Setup | Rust
@@ -54,7 +58,9 @@ jobs:
     runs-on:  self-hosted
     needs: [compile]
     steps:
-      - uses: AutoModality/action-clean@v1
+      - name: Chown user
+        run: |
+          sudo chown -R $USER:$USER $GITHUB_WORKSPACE
       - name: Setup | Checkout
         uses: actions/checkout@v3
       - name: Setup | Rust
