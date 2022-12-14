@@ -14,12 +14,14 @@ pub mod pool;
 pub use pool::*;
 
 pub mod core;
+pub mod dependency;
 pub mod deposit_info;
 pub mod deposit_manager;
 pub mod fee;
 pub mod gov_type;
 pub mod module;
 pub mod module_reference;
+pub mod module_version;
 pub mod paged_map;
 pub mod proxy_asset;
 pub mod time_weighted_average;

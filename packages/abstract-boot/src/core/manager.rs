@@ -1,18 +1,18 @@
 use std::fmt::Debug;
 
-use abstract_sdk::os::objects::module::{ModuleInfo, ModuleVersion};
+use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
 use boot_core::{state::StateInterface, BootEnvironment};
 use cosmwasm_std::{to_binary, Addr, Binary};
-
 use serde::Serialize;
 
-use abstract_sdk::os::manager::*;
+use abstract_os::manager::*;
 
 use boot_core::{BootError, Contract, IndexResponse, TxResponse};
 
-use boot_core::interface::BootExecute;
-use boot_core::interface::ContractInstance;
-use boot_core::prelude::boot_contract;
+use boot_core::{
+    interface::{BootExecute, ContractInstance},
+    prelude::boot_contract,
+};
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Manager<Chain>;
@@ -58,8 +58,10 @@ impl<Chain: BootEnvironment> Manager<Chain> {
     ) -> Result<(), BootError> {
         self.execute(
             &ExecuteMsg::Upgrade {
-                module: ModuleInfo::from_id(module_id, ModuleVersion::Latest {})?,
-                migrate_msg: Some(to_binary(migrate_msg)?),
+                modules: vec![(
+                    ModuleInfo::from_id(module_id, ModuleVersion::Latest {})?,
+                    Some(to_binary(migrate_msg)?),
+                )],
             },
             None,
         )?;

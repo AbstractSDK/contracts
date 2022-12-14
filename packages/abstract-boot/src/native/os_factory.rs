@@ -1,11 +1,11 @@
-use boot_core::prelude::boot_contract;
 use boot_core::{
-    state::StateInterface, BootEnvironment, BootError, Contract, IndexResponse, TxResponse,
+    prelude::boot_contract, state::StateInterface, BootEnvironment, BootError, Contract,
+    IndexResponse, TxResponse,
 };
 use cosmwasm_std::Addr;
 
-use abstract_sdk::os::{objects::gov_type::GovernanceDetails, os_factory::*};
-use abstract_sdk::os::{MANAGER, PROXY};
+use abstract_os::{objects::gov_type::GovernanceDetails, os_factory::*};
+use abstract_os::{MANAGER, PROXY};
 use boot_core::interface::BootExecute;
 use boot_core::interface::ContractInstance;
 

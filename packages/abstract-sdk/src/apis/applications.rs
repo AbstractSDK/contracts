@@ -11,16 +11,16 @@ use cosmwasm_std::{
 use cw2::{ContractVersion, CONTRACT};
 use serde::Serialize;
 
-use super::Identification;
+use super::{Dependencies, Identification};
 
 /// Interact with other applications on the OS.
-pub trait ApplicationInterface: Identification {
+pub trait ApplicationInterface: Identification + Dependencies {
     fn applications<'a>(&'a self, deps: Deps<'a>) -> Applications<Self> {
         Applications { base: self, deps }
     }
 }
 
-impl<T> ApplicationInterface for T where T: Identification {}
+impl<T> ApplicationInterface for T where T: Identification + Dependencies {}
 
 #[derive(Clone)]
 pub struct Applications<'a, T: ApplicationInterface> {
@@ -29,6 +29,9 @@ pub struct Applications<'a, T: ApplicationInterface> {
 }
 
 impl<'a, T: ApplicationInterface> Applications<'a, T> {
+    /// Retrieve the address of an application in this OS.
+    /// This should **not** be used to execute messages on an `Extension`.
+    /// Use `Applications::extension_request(..)` instead.
     pub fn app_address(&self, module_id: ModuleId) -> StdResult<Addr> {
         let manager_addr = self.base.manager_address(self.deps)?;
         let maybe_module_addr = OS_MODULES.query(&self.deps.querier, manager_addr, module_id)?;
@@ -48,21 +51,40 @@ impl<'a, T: ApplicationInterface> Applications<'a, T> {
         self.deps.querier.query::<ContractVersion>(&req)
     }
 
-    /// Construct an API request message.
-    pub fn api_request<M: Serialize>(
+    /// Construct an extension request message.
+    pub fn extension_request<M: Serialize>(
         &self,
-        api_id: ModuleId,
+        extension_id: ModuleId,
         message: impl Into<ExecuteMsg<M, Empty>>,
     ) -> StdResult<CosmosMsg> {
-        let api_msg: ExecuteMsg<M, Empty> = message.into();
-        let api_address = self.app_address(api_id)?;
-        Ok(wasm_execute(api_address, &api_msg, vec![])?.into())
+        self.assert_app_is_dependency(extension_id)?;
+        let extension_msg: ExecuteMsg<M, Empty> = message.into();
+        let extension_address = self.app_address(extension_id)?;
+        Ok(wasm_execute(extension_address, &extension_msg, vec![])?.into())
     }
 
     /// Construct an API configure message
-    pub fn configure_api(&self, api_id: ModuleId, message: BaseExecuteMsg) -> StdResult<CosmosMsg> {
-        let api_msg: ExecuteMsg<Empty, Empty> = message.into();
-        let api_address = self.app_address(api_id)?;
-        Ok(wasm_execute(api_address, &api_msg, vec![])?.into())
+    pub fn configure_extension(
+        &self,
+        extension_id: ModuleId,
+        message: BaseExecuteMsg,
+    ) -> StdResult<CosmosMsg> {
+        let extension_msg: ExecuteMsg<Empty, Empty> = message.into();
+        let extension_address = self.app_address(extension_id)?;
+        Ok(wasm_execute(extension_address, &extension_msg, vec![])?.into())
+    }
+
+    fn assert_app_is_dependency(&self, app: ModuleId) -> StdResult<()> {
+        let is_app_dependencies = Dependencies::dependencies(self.base)
+            .iter()
+            .map(|d| d.id)
+            .any(|x| x == app);
+        if !is_app_dependencies {
+            return Err(StdError::generic_err(format!(
+                "Module {} not defined as dependency on this module.",
+                app
+            )));
+        }
+        Ok(())
     }
 }
