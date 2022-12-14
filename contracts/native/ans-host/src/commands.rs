@@ -38,7 +38,7 @@ pub fn handle_message(
             update_channels(deps, info, to_add, to_remove)
         }
         ExecuteMsg::UpdateDexes { to_add, to_remove } => {
-            update_dexes(deps, info, to_add, to_remove)
+            update_dex_registry(deps, info, to_add, to_remove)
         }
         ExecuteMsg::UpdatePools { to_add, to_remove } => {
             update_pools(deps, info, to_add, to_remove)
@@ -63,9 +63,10 @@ pub fn update_contract_addresses(
     for (key, new_address) in to_add.into_iter() {
         let key = key.check();
         // validate addr
-        // let addr = deps.as_ref().api.addr_validate(&new_address)?;
+        let addr = deps.as_ref().api.addr_validate(&new_address)?;
+
         // Update function for new or existing keys
-        let insert = |_| -> StdResult<Addr> { Ok(Addr::unchecked(new_address)) };
+        let insert = |_| -> StdResult<Addr> { Ok(addr) };
         CONTRACT_ADDRESSES.update(deps.storage, key, insert)?;
     }
 
@@ -130,7 +131,7 @@ pub fn update_channels(
 }
 
 /// Updates the dex registry with additions and removals
-fn update_dexes(
+fn update_dex_registry(
     deps: DepsMut,
     info: MessageInfo,
     to_add: Vec<String>,
@@ -175,7 +176,7 @@ fn update_pools(
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
 
     let original_unique_pool_id = CONFIG.load(deps.storage)?.next_unique_pool_id;
-    let mut next_unique_pool_id = original_unique_pool_id.clone();
+    let mut next_unique_pool_id = original_unique_pool_id;
 
     // only load dexes if necessary
     let registered_dexes = if to_add.is_empty() {
@@ -188,7 +189,7 @@ fn update_pools(
         let pool_id = pool_id.check(deps.api)?;
 
         let assets = &mut pool_metadata.assets;
-        validate_pool_assets(assets)?;
+        validate_pool_assets(deps.storage, assets)?;
 
         let dex = pool_metadata.dex.to_ascii_lowercase();
         if !registered_dexes.contains(&dex) {
@@ -324,7 +325,7 @@ fn remove_pool_pairings(
 }
 
 /// unsure
-fn validate_pool_assets(assets: &mut [String]) -> Result<(), AnsHostError> {
+fn validate_pool_assets(storage: &dyn Storage, assets: &mut [String]) -> Result<(), AnsHostError> {
     // convert all assets to lower
     for asset in assets.iter_mut() {
         *asset = asset.to_ascii_lowercase();
@@ -336,6 +337,15 @@ fn validate_pool_assets(assets: &mut [String]) -> Result<(), AnsHostError> {
             max: MAX_POOL_ASSETS,
             provided: assets.len(),
         });
+    }
+
+    // Validate that each exists in the asset registry
+    for asset in assets.iter() {
+        if ASSET_ADDRESSES.may_load(storage, asset.into())?.is_none() {
+            return Err(AnsHostError::UnregisteredAsset {
+                asset: asset.clone(),
+            });
+        }
     }
     Ok(())
 }
@@ -374,6 +384,23 @@ mod test {
         let info = mock_info(TEST_CREATOR, &[]);
 
         instantiate(deps.branch(), mock_env(), info, InstantiateMsg {})
+    }
+
+    fn execute_helper(deps: DepsMut, msg: ExecuteMsg) -> AnsHostTestResult {
+        contract::execute(deps, mock_env(), mock_info(TEST_CREATOR, &[]), msg)?;
+        Ok(())
+    }
+
+    fn register_assets_helper(deps: DepsMut, assets: Vec<String>) -> AnsHostTestResult {
+        let msg = ExecuteMsg::UpdateAssetAddresses {
+            to_add: assets
+                .iter()
+                .map(|a| (a.clone(), AssetInfoUnchecked::native(a.clone())))
+                .collect(),
+            to_remove: vec![],
+        };
+        execute_helper(deps, msg)?;
+        Ok(())
     }
 
     mod update_dexes {
@@ -677,6 +704,24 @@ mod test {
                 (vec![new_entry_3.clone()], vec![new_entry_1.0]),
                 vec![new_entry_2, new_entry_3],
             )
+        }
+
+        #[test]
+        fn invalid_address_rejected() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+            let mut map_tester = setup_map_tester();
+
+            let bad_entry =
+                contract_address_map_entry("test_provider", "test_contract", "BAD_ADDRESS");
+
+            let res = map_tester.execute_update(deps.as_mut(), (vec![bad_entry], vec![]));
+
+            assert_that!(res).is_err();
+            assert_that(&res.unwrap_err())
+                .matches(|err| matches!(err, AnsHostError::Std(StdError::GenericErr { .. })));
+
+            Ok(())
         }
     }
 
@@ -1084,11 +1129,6 @@ mod test {
             ExecuteMsg::UpdatePools { to_add, to_remove }
         }
 
-        fn execute_helper(deps: DepsMut, msg: ExecuteMsg) -> AnsHostTestResult {
-            contract::execute(deps, mock_env(), mock_info(TEST_CREATOR, &[]), msg)?;
-            Ok(())
-        }
-
         fn execute_update(
             deps: DepsMut,
             (to_add, to_remove): (Vec<UncheckedPoolMapEntry>, Vec<UniquePoolId>),
@@ -1150,12 +1190,11 @@ mod test {
 
             let dex = "junoswap";
 
-            let metadata = pool_metadata(
-                dex.clone(),
-                PoolType::Weighted,
-                vec!["juno".into(), "osmo".into()],
-            );
+            let pool_assets = vec!["juno".into(), "osmo".into()];
+            let metadata = pool_metadata(dex.clone(), PoolType::Weighted, pool_assets.clone());
 
+            // Register the assets in ANS
+            register_assets_helper(deps.as_mut(), pool_assets)?;
             register_dex(deps.as_mut(), dex)?;
 
             let new_entry = unchecked_pool_map_entry("junoxxxx", metadata.clone());
@@ -1191,18 +1230,17 @@ mod test {
 
             let dex = "junoswap";
 
-            let metadata = pool_metadata(
-                dex.clone(),
-                PoolType::Weighted,
-                vec![
-                    "juno".into(),
-                    "osmo".into(),
-                    "atom".into(),
-                    "uatom".into(),
-                    "uusd".into(),
-                ],
-            );
+            let pool_assets = vec![
+                "juno".into(),
+                "osmo".into(),
+                "atom".into(),
+                "uatom".into(),
+                "uusd".into(),
+            ];
+            let metadata = pool_metadata(dex.clone(), PoolType::Weighted, pool_assets.clone());
 
+            // Register the assets in ANS
+            register_assets_helper(deps.as_mut(), pool_assets)?;
             register_dex(deps.as_mut(), dex)?;
 
             let new_entry = unchecked_pool_map_entry("junoxxxx", metadata.clone());
@@ -1220,11 +1258,19 @@ mod test {
 
             let (unchecked_pool_id, _) = new_entry.clone();
 
-            let expected_pairing_count = 32;
+            // asset_count * (asset_count - 1)
+            // Total pairs = 5 * (5 - 1) = 20
+            let expected_pairing_count = 20;
 
-            let actual_pairings: Result<Vec<AssetPairingMapEntry>, _> =
-                load_asset_pairings(&deps.storage);
-            assert_that(&actual_pairings?).has_length(expected_pairing_count);
+            let actual_pairings = load_asset_pairings(&deps.storage)?;
+            assert_that(&actual_pairings).has_length(expected_pairing_count);
+
+            for (pairing, ref_vec) in actual_pairings {
+                assert_that(&ref_vec).has_length(1);
+                // check the pool id is correct
+                assert_that(&UncheckedPoolId::from(&ref_vec[0].pool_id))
+                    .is_equal_to(&unchecked_pool_id);
+            }
 
             Ok(())
         }
@@ -1236,11 +1282,14 @@ mod test {
 
             let unregistered_dex = "unregistered";
 
+            let pool_assets = vec!["juno".into(), "osmo".into()];
             let metadata = pool_metadata(
                 unregistered_dex.clone(),
                 PoolType::Weighted,
-                vec!["juno".into(), "osmo".into()],
+                pool_assets.clone(),
             );
+            // Register the assets in ANS
+            register_assets_helper(deps.as_mut(), pool_assets)?;
 
             let entry = unchecked_pool_map_entry("junoxxxx", metadata);
 
@@ -1266,12 +1315,11 @@ mod test {
 
             let dex = "junoswap";
 
-            let metadata = pool_metadata(
-                dex.clone(),
-                PoolType::Weighted,
-                vec!["juno".into(), "osmo".into()],
-            );
+            let pool_assets = vec!["juno".into(), "osmo".into()];
+            let metadata = pool_metadata(dex.clone(), PoolType::Weighted, pool_assets.clone());
 
+            // Register the assets in ANS
+            register_assets_helper(deps.as_mut(), pool_assets)?;
             register_dex(deps.as_mut(), dex)?;
 
             let entry = unchecked_pool_map_entry("junoxxxx", metadata);
@@ -1311,6 +1359,36 @@ mod test {
 
             Ok(())
         }
+
+        #[test]
+        fn unregistered_assets_fail() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            let dex = "junoswap";
+
+            let metadata = pool_metadata(
+                dex.clone(),
+                PoolType::Weighted,
+                vec!["juno".into(), "osmo".into()],
+            );
+
+            register_dex(deps.as_mut(), dex)?;
+
+            let entry = unchecked_pool_map_entry("junoxxxx", metadata);
+
+            let res = execute_update(deps.as_mut(), (vec![entry], vec![]));
+
+            assert_that(&res).is_err();
+
+            assert_that(&res)
+                .is_err()
+                .is_equal_to(AnsHostError::UnregisteredAsset {
+                    asset: "juno".to_string(),
+                });
+
+            Ok(())
+        }
     }
 
     mod validate_pool_assets {
@@ -1318,7 +1396,9 @@ mod test {
 
         #[test]
         fn too_few() {
-            let result = validate_pool_assets(&mut []).unwrap_err();
+            let assets = &mut [];
+            let deps = mock_dependencies();
+            let result = validate_pool_assets(&deps.storage, assets).unwrap_err();
             assert_eq!(
                 result,
                 InvalidAssetCount {
@@ -1328,7 +1408,9 @@ mod test {
                 }
             );
 
-            let result = validate_pool_assets(&mut ["a".to_string()]).unwrap_err();
+            let assets = &mut ["a".to_string()];
+            let deps = mock_dependencies();
+            let result = validate_pool_assets(&deps.storage, assets).unwrap_err();
             assert_eq!(
                 result,
                 InvalidAssetCount {
@@ -1340,17 +1422,39 @@ mod test {
         }
 
         #[test]
+        fn unregistered() {
+            let mut assets = vec!["a".to_string(), "b".to_string()];
+            let deps = mock_dependencies();
+            let res = validate_pool_assets(&deps.storage, &mut assets);
+
+            assert_that(&res)
+                .is_err()
+                .is_equal_to(AnsHostError::UnregisteredAsset {
+                    asset: "a".to_string(),
+                });
+        }
+
+        #[test]
         fn valid_amounts() {
             let mut assets = vec!["a".to_string(), "b".to_string()];
-            let res = validate_pool_assets(&mut assets);
-            assert!(res.is_ok());
+            let mut deps = mock_dependencies();
+
+            mock_init(deps.as_mut()).unwrap();
+            register_assets_helper(deps.as_mut(), assets.clone()).unwrap();
+
+            let res = validate_pool_assets(&deps.storage, &mut assets);
+
+            assert_that(&res).is_ok();
 
             let mut assets: Vec<String> = vec!["a", "b", "c", "d", "e"]
                 .iter()
                 .map(|s| s.to_string())
                 .collect();
-            let res = validate_pool_assets(&mut assets);
-            assert!(res.is_ok());
+
+            register_assets_helper(deps.as_mut(), assets.clone()).unwrap();
+            let res = validate_pool_assets(&deps.storage, &mut assets);
+
+            assert_that(&res).is_ok();
         }
 
         #[test]
@@ -1359,7 +1463,8 @@ mod test {
                 .iter()
                 .map(|s| s.to_string())
                 .collect();
-            let result = validate_pool_assets(&mut assets).unwrap_err();
+            let deps = mock_dependencies();
+            let result = validate_pool_assets(&deps.storage, &mut assets).unwrap_err();
             assert_eq!(
                 result,
                 InvalidAssetCount {

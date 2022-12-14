@@ -26,6 +26,9 @@ pub enum AnsHostError {
     #[error("Dex {} is not registered", dex)]
     UnregisteredDex { dex: String },
 
+    #[error("Asset {} is not registered", asset)]
+    UnregisteredAsset { asset: String },
+
     #[error("Dex {} is already registered", dex)]
     DexAlreadyRegistered { dex: String },
 }
