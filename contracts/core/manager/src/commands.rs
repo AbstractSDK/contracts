@@ -550,3 +550,8 @@ fn configure_extension(
     let extension_msg: ExtensionExecMsg<Empty> = message.into();
     Ok(wasm_execute(extension_address, &extension_msg, vec![])?.into())
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+}
