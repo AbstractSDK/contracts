@@ -28,11 +28,11 @@ use os::manager::{CallbackMsg, ExecuteMsg};
 use os::objects::dependency::Dependency;
 
 use crate::validators::{validate_description, validate_link};
-use crate::versioning;
 use crate::{
     contract::ManagerResult, error::ManagerError, queries::query_module_version,
     validators::validate_name_or_gov_type,
 };
+use crate::{validators, versioning};
 
 pub(crate) const MIGRATE_CONTEXT: Item<Vec<(String, Vec<Dependency>)>> = Item::new("context");
 
@@ -60,7 +60,7 @@ pub fn update_module_addresses(
 
     if let Some(modules_to_remove) = to_remove {
         for id in modules_to_remove.into_iter() {
-            validate_not_proxy(&id)?;
+            validators::validate_not_proxy(&id)?;
             OS_MODULES.remove(deps.storage, id.as_str());
         }
     }
@@ -69,7 +69,7 @@ pub fn update_module_addresses(
 }
 
 // Attempts to install a new module through the Module Factory Contract
-pub fn create_module(
+pub fn install_module(
     deps: DepsMut,
     msg_info: MessageInfo,
     _env: Env,
@@ -81,7 +81,7 @@ pub fn create_module(
 
     // Check if module is already enabled.
     if OS_MODULES.may_load(deps.storage, &module.id())?.is_some() {
-        return Err(ManagerError::ModuleAlreadyAdded {});
+        return Err(ManagerError::ModuleAlreadyInstalled {});
     }
 
     let config = CONFIG.load(deps.storage)?;
@@ -183,7 +183,7 @@ pub fn uninstall_module(deps: DepsMut, msg_info: MessageInfo, module_id: String)
     // Only root can uninstall modules
     ROOT.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
-    validate_not_proxy(&module_id)?;
+    validators::validate_not_proxy(&module_id)?;
 
     // module can only be uninstalled if there are no dependencies on it
     let dependents = DEPENDENTS.may_load(deps.storage, &module_id)?;
@@ -211,13 +211,6 @@ pub fn uninstall_module(deps: DepsMut, msg_info: MessageInfo, module_id: String)
     Ok(Response::new()
         .add_message(remove_from_proxy_msg)
         .add_attribute("Removed module", &module_id))
-}
-
-fn validate_not_proxy(module_id: &str) -> Result<(), ManagerError> {
-    match module_id {
-        PROXY => Err(ManagerError::CannotRemoveProxy {}),
-        _ => Ok(()),
-    }
 }
 
 pub fn set_root_and_gov_type(
@@ -455,7 +448,7 @@ pub fn enable_ibc(deps: DepsMut, msg_info: MessageInfo, enable_ibc: bool) -> Man
     let proxy_callback_msg = if enable_ibc {
         // we have an IBC client so can't add more
         if maybe_client.is_some() {
-            return Err(ManagerError::ModuleAlreadyAdded {});
+            return Err(ManagerError::ModuleAlreadyInstalled {});
         }
 
         install_ibc_client(deps, proxy)?
@@ -682,19 +675,14 @@ mod test {
         Ok(())
     }
 
-    
     use cw_controllers::AdminError;
 
     type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 
     mod set_root_and_gov_type {
         use super::*;
-        
-        
-        
-        use cosmwasm_std::{Storage};
-        
-        
+
+        use cosmwasm_std::Storage;
 
         #[test]
         fn only_root() -> ManagerTestResult {
@@ -799,6 +787,21 @@ mod test {
         }
 
         #[test]
+        fn missing_id() -> ManagerTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            let to_add: Vec<(String, String)> = vec![("".to_string(), "module1_addr".to_string())];
+
+            let res = update_module_addresses(deps.as_mut(), Some(to_add), Some(vec![]));
+            assert_that(&res)
+                .is_err()
+                .is_equal_to(ManagerError::InvalidModuleName {});
+
+            Ok(())
+        }
+
+        #[test]
         fn manual_removes_module_from_os_modules() -> ManagerTestResult {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
@@ -885,6 +888,33 @@ mod test {
         }
 
         #[test]
+        fn cannot_reinstall_module() -> ManagerTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let _info = mock_info(ROOT.get(deps.as_ref())?.unwrap().as_str(), &[]);
+
+            let msg = ExecuteMsg::InstallModule {
+                module: ModuleInfo::from_id_latest("test:module")?,
+                init_msg: None,
+            };
+
+            // manual installation
+            OS_MODULES.save(
+                &mut deps.storage,
+                "test:module",
+                &Addr::unchecked("test_module_addr"),
+            )?;
+
+            let res = execute_as_root(deps.as_mut(), msg);
+            assert_that(&res)
+                .is_err()
+                .is_equal_to(ManagerError::ModuleAlreadyInstalled {});
+
+            Ok(())
+        }
+
+        #[test]
         fn adds_module_to_os_modules() -> ManagerTestResult {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
@@ -939,11 +969,8 @@ mod test {
 
     mod uninstall_module {
         use super::*;
-        
-        
-        
+
         use std::collections::HashSet;
-        
 
         #[test]
         fn only_root() -> ManagerTestResult {
@@ -1000,10 +1027,6 @@ mod test {
 
     mod register_module {
         use super::*;
-        
-        
-        
-        
 
         fn execute_as_module_factory(deps: DepsMut, msg: ExecuteMsg) -> ManagerResult {
             execute_as(deps, TEST_MODULE_FACTORY, msg)
@@ -1094,10 +1117,6 @@ mod test {
 
     mod upgrade {
         use super::*;
-        
-        
-        
-        
 
         #[test]
         fn only_root() -> ManagerTestResult {
@@ -1111,10 +1130,6 @@ mod test {
 
     mod update_info {
         use super::*;
-        
-        
-        
-        
 
         #[test]
         fn only_root() -> ManagerTestResult {
@@ -1300,7 +1315,7 @@ mod test {
             let res = execute_as_root(deps.as_mut(), msg);
             assert_that(&res)
                 .is_err()
-                .is_equal_to(ManagerError::ModuleAlreadyAdded {});
+                .is_equal_to(ManagerError::ModuleAlreadyInstalled {});
 
             Ok(())
         }

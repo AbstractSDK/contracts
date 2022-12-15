@@ -12,7 +12,7 @@ pub enum ManagerError {
     Admin(#[from] AdminError),
 
     #[error("Cannot add two modules of the same kind")]
-    ModuleAlreadyAdded {},
+    ModuleAlreadyInstalled {},
 
     #[error("Cannot remove module because {0:?} depend(s) on it.")]
     ModuleHasDependents(Vec<String>),
