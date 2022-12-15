@@ -1,20 +1,21 @@
-use abstract_sdk::os::IBC_CLIENT;
 use cosmwasm_std::{
     wasm_execute, CosmosMsg, DepsMut, Empty, MessageInfo, Order, Response, StdError,
 };
 
-use crate::contract::ProxyResult;
-use crate::error::ProxyError;
-use crate::queries::*;
 use abstract_sdk::os::ibc_client::ExecuteMsg as IbcClientMsg;
 use abstract_sdk::os::objects::proxy_asset::UncheckedProxyAsset;
 use abstract_sdk::os::proxy::state::{ADMIN, ANS_HOST, STATE, VAULT_ASSETS};
+use abstract_sdk::os::IBC_CLIENT;
+
+use crate::contract::ProxyResult;
+use crate::error::ProxyError;
+use crate::queries::*;
 
 const LIST_SIZE_LIMIT: usize = 15;
 
 /// Executes actions forwarded by whitelisted contracts
 /// This contracts acts as a proxy contract for the dApps
-pub fn execute_action(
+pub fn execute_module_action(
     deps: DepsMut,
     msg_info: MessageInfo,
     msgs: Vec<CosmosMsg<Empty>>,
@@ -146,14 +147,18 @@ pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module: String) -> Pr
 
 #[cfg(test)]
 mod test {
-    use super::*;
-    use crate::contract::{execute, instantiate};
-    use abstract_os::proxy::{ExecuteMsg, InstantiateMsg};
+    use cosmwasm_std::testing::mock_dependencies;
     use cosmwasm_std::testing::{
         mock_env, mock_info, MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR,
     };
     use cosmwasm_std::{Addr, OwnedDeps, Storage};
     use speculoos::prelude::*;
+
+    use abstract_os::proxy::{ExecuteMsg, InstantiateMsg};
+
+    use crate::contract::{execute, instantiate};
+
+    use super::*;
 
     const TEST_MODULE: &str = "module";
     const TEST_CREATOR: &str = "creator";
@@ -179,10 +184,11 @@ mod test {
     }
 
     mod add_module {
-        use super::*;
         use cosmwasm_std::testing::mock_dependencies;
         use cosmwasm_std::Addr;
         use cw_controllers::AdminError;
+
+        use super::*;
 
         #[test]
         fn only_admin_can_add_module() {
@@ -262,11 +268,13 @@ mod test {
     type ProxyTestResult = Result<(), ProxyError>;
 
     mod remove_module {
-        use super::*;
-        use abstract_os::proxy::state::State;
         use cosmwasm_std::testing::mock_dependencies;
         use cosmwasm_std::Addr;
         use cw_controllers::AdminError;
+
+        use abstract_os::proxy::state::State;
+
+        use super::*;
 
         #[test]
         fn only_admin() {
@@ -321,6 +329,67 @@ mod test {
             assert_that(&res)
                 .is_err()
                 .is_equal_to(ProxyError::NotInList(TEST_MODULE.to_string()));
+        }
+    }
+
+    mod execute_action {
+        use super::*;
+        use abstract_os::proxy::state::State;
+        
+
+        #[test]
+        fn only_whitelisted_can_execute() {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut());
+
+            let msg = ExecuteMsg::ModuleAction { msgs: vec![] };
+
+            let info = mock_info("not_whitelisted", &[]);
+
+            let res = execute(deps.as_mut(), mock_env(), info, msg);
+            assert_that(&res)
+                .is_err()
+                .is_equal_to(ProxyError::SenderNotWhitelisted {});
+        }
+
+        #[test]
+        fn forwards_action() -> ProxyTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut());
+
+            // stub a module
+            STATE.save(
+                &mut deps.storage,
+                &State {
+                    modules: vec![Addr::unchecked(TEST_MODULE)],
+                },
+            )?;
+
+            let action: CosmosMsg = wasm_execute(
+                MOCK_CONTRACT_ADDR.to_string(),
+                // example garbage
+                &ExecuteMsg::SetAdmin {
+                    admin: TEST_CREATOR.to_string(),
+                },
+                vec![],
+            )?
+            .into();
+
+            let msg = ExecuteMsg::ModuleAction {
+                msgs: vec![action.clone()],
+            };
+
+            // execute it AS the module
+            let res = execute(deps.as_mut(), mock_env(), mock_info(TEST_MODULE, &[]), msg);
+            assert_that(&res).is_ok();
+
+            let msgs = res.unwrap().messages;
+            assert_that(&msgs).has_length(1);
+
+            let msg = &msgs[0];
+            assert_that(&msg.msg).is_equal_to(&action);
+
+            Ok(())
         }
     }
 }
