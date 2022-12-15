@@ -10,10 +10,10 @@ pub enum ProxyError {
     Admin(#[from] ::cw_controllers::AdminError),
 
     #[error("Module with address {0} is already whitelisted")]
-    AlreadyInList(String),
+    AlreadyWhitelisted(String),
 
     #[error("Module with address {0} not found in whitelist")]
-    NotInList(String),
+    NotWhitelisted(String),
 
     #[error("Sender is not whitelisted")]
     SenderNotWhitelisted {},

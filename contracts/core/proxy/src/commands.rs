@@ -48,11 +48,11 @@ pub fn execute_ibc_action(
     let manager_address = ADMIN.get(deps.as_ref())?.unwrap();
     let ibc_client_address = abstract_sdk::os::manager::state::OS_MODULES
         .query(&deps.querier, manager_address, IBC_CLIENT)?
-        .ok_or_else(|| StdError::GenericErr {
-            msg: format!(
+        .ok_or_else(|| {
+            StdError::generic_err(format!(
                 "ibc_client not found on manager. Add it under the {} name.",
                 IBC_CLIENT
-            ),
+            ))
         })?;
     let client_msgs: Result<Vec<_>, _> = msgs
         .into_iter()
@@ -115,7 +115,7 @@ pub fn add_module(deps: DepsMut, msg_info: MessageInfo, module: String) -> Proxy
     let module_addr = deps.api.addr_validate(&module)?;
 
     if state.modules.contains(&module_addr) {
-        return Err(ProxyError::AlreadyInList(module));
+        return Err(ProxyError::AlreadyWhitelisted(module));
     }
 
     // Add contract to whitelist.
@@ -134,7 +134,7 @@ pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module: String) -> Pr
         let module_address = deps.api.addr_validate(&module)?;
 
         if !state.modules.contains(&module_address) {
-            return Err(ProxyError::NotInList(module.clone()));
+            return Err(ProxyError::NotWhitelisted(module.clone()));
         }
         // Remove contract from whitelist.
         state.modules.retain(|addr| *addr != module_address);
@@ -238,7 +238,7 @@ mod test {
             let res = execute_as_admin(&mut deps, msg);
             assert_that(&res)
                 .is_err()
-                .is_equal_to(ProxyError::AlreadyInList(TEST_MODULE.to_string()));
+                .is_equal_to(ProxyError::AlreadyWhitelisted(TEST_MODULE.to_string()));
         }
 
         #[test]
@@ -328,14 +328,13 @@ mod test {
             let res = execute_as_admin(&mut deps, msg);
             assert_that(&res)
                 .is_err()
-                .is_equal_to(ProxyError::NotInList(TEST_MODULE.to_string()));
+                .is_equal_to(ProxyError::NotWhitelisted(TEST_MODULE.to_string()));
         }
     }
 
     mod execute_action {
         use super::*;
         use abstract_os::proxy::state::State;
-        
 
         #[test]
         fn only_whitelisted_can_execute() {
@@ -392,4 +391,13 @@ mod test {
             Ok(())
         }
     }
+}
+
+pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: &String) -> Result<Response, ProxyError> {
+    let admin_addr = deps.api.addr_validate(admin)?;
+    let previous_admin = ADMIN.get(deps.as_ref())?.unwrap();
+    ADMIN.execute_update_admin::<Empty, Empty>(deps, info, Some(admin_addr))?;
+    Ok(Response::default()
+        .add_attribute("previous admin", previous_admin)
+        .add_attribute("admin", admin))
 }

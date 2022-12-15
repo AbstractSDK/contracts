@@ -6,7 +6,7 @@ use abstract_sdk::Resolve;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    to_binary, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Order, Response, StdError,
+    to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Order, Response, StdError,
     StdResult, Uint128,
 };
 
@@ -58,14 +58,7 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
     match msg {
         ExecuteMsg::ModuleAction { msgs } => execute_module_action(deps, info, msgs),
         ExecuteMsg::IbcAction { msgs } => execute_ibc_action(deps, info, msgs),
-        ExecuteMsg::SetAdmin { admin } => {
-            let admin_addr = deps.api.addr_validate(&admin)?;
-            let previous_admin = ADMIN.get(deps.as_ref())?.unwrap();
-            ADMIN.execute_update_admin::<Empty, Empty>(deps, info, Some(admin_addr))?;
-            Ok(Response::default()
-                .add_attribute("previous admin", previous_admin)
-                .add_attribute("admin", admin))
-        }
+        ExecuteMsg::SetAdmin { admin } => set_admin(deps, info, &admin),
         ExecuteMsg::AddModule { module } => add_module(deps, info, module),
         ExecuteMsg::RemoveModule { module } => remove_module(deps, info, module),
         ExecuteMsg::UpdateAssets { to_add, to_remove } => {
