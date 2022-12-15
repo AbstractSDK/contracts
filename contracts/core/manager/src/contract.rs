@@ -21,7 +21,7 @@ pub type ManagerResult = Result<Response, ManagerError>;
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub(crate) const MIN_DESC_LENGTH: usize = 4;
 pub(crate) const MAX_DESC_LENGTH: usize = 1024;
-pub(crate) const MIN_LINK_LENGTH: usize = 12;
+pub(crate) const MIN_LINK_LENGTH: usize = 11;
 pub(crate) const MAX_LINK_LENGTH: usize = 128;
 pub(crate) const MIN_TITLE_LENGTH: usize = 4;
 pub(crate) const MAX_TITLE_LENGTH: usize = 64;
@@ -110,6 +110,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                 ExecuteMsg::InstallModule { module, init_msg } => {
                     create_module(deps, info, env, module, init_msg)
                 }
+                ExecuteMsg::RemoveModule { module_id } => uninstall_module(deps, info, module_id),
                 ExecuteMsg::RegisterModule {
                     module,
                     module_addr,
@@ -119,7 +120,6 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     exec_msg,
                 } => exec_on_module(deps, info, module_id, exec_msg),
                 ExecuteMsg::Upgrade { modules } => upgrade_modules(deps, env, info, modules),
-                ExecuteMsg::RemoveModule { module_id } => remove_module(deps, info, module_id),
                 ExecuteMsg::UpdateInfo {
                     name,
                     description,

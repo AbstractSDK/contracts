@@ -7,7 +7,7 @@ use semver::{Comparator, Version};
 
 /// Assert the dependencies that this app relies on are installed.
 pub fn assert_install_requirements(deps: Deps, module_id: &str) -> StdResult<Vec<Dependency>> {
-    let module_dependencies = module_dependencies(deps, module_id)?;
+    let module_dependencies = load_module_dependencies(deps, module_id)?;
     assert_dependency_requirements(deps, &module_dependencies)?;
     Ok(module_dependencies)
 }
@@ -105,7 +105,7 @@ pub fn assert_dependency_requirements(deps: Deps, dependencies: &[Dependency]) -
     Ok(())
 }
 
-pub fn module_dependencies(deps: Deps, module_id: &str) -> StdResult<Vec<Dependency>> {
+pub fn load_module_dependencies(deps: Deps, module_id: &str) -> StdResult<Vec<Dependency>> {
     let querier = &deps.querier;
     let module_addr = OS_MODULES.load(deps.storage, module_id)?;
     let module_data = MODULE.query(querier, module_addr)?;
@@ -117,7 +117,7 @@ pub fn maybe_remove_old_deps(
     module_id: &str,
     old_deps: &[Dependency],
 ) -> StdResult<()> {
-    let new_deps = module_dependencies(deps.as_ref(), module_id)?;
+    let new_deps = load_module_dependencies(deps.as_ref(), module_id)?;
     // find deps that are no longer required.
     // ie. the old deps contain a deps that the new deps doesn't.
     let removable_deps: Vec<&Dependency> =
@@ -139,7 +139,7 @@ pub fn maybe_add_new_deps(
     module_id: &str,
     old_deps: &[Dependency],
 ) -> StdResult<Vec<Dependency>> {
-    let new_deps = module_dependencies(deps.as_ref(), module_id)?;
+    let new_deps = load_module_dependencies(deps.as_ref(), module_id)?;
     // find deps that are no longer required.
     // ie. the old deps contain a deps that the new deps doesn't.
     let to_be_added_deps: Vec<&Dependency> =

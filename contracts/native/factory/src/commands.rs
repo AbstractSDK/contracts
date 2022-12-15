@@ -2,7 +2,7 @@ use abstract_os::app;
 use abstract_sdk::os::{
     objects::{
         gov_type::GovernanceDetails,
-        module::{ModuleInfo, ModuleVersion},
+        module::{ModuleInfo},
         module_reference::ModuleReference,
     },
     os_factory::ExecuteMsg,

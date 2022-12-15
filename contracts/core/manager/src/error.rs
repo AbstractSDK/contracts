@@ -44,8 +44,8 @@ pub enum ManagerError {
     #[error("The provided contract version {0} is lower than the current version {1}")]
     OlderVersion(String, String),
 
-    #[error("The provided module key ({0},{1}) was not found in version control")]
-    ModuleNotFound(String, String),
+    #[error("The provided module {0} was not found")]
+    ModuleNotFound(String),
 
     #[error("The provided module {0} has an invalid module reference.")]
     InvalidReference(ModuleInfo),
@@ -67,4 +67,7 @@ pub enum ManagerError {
 
     #[error("title/gov-type too long, must be at most {0} characters")]
     TitleInvalidLong(usize),
+
+    #[error("Cannot remove proxy")]
+    CannotRemoveProxy {},
 }
