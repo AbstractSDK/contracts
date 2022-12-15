@@ -5,10 +5,15 @@
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Uint128;
 
-use crate::extension::ExtensionExecuteMsg;
+use crate::extension::{self};
+
+pub type ExecuteMsg = extension::ExecuteMsg<TendermintStakingExecuteMsg>;
+pub type QueryMsg = extension::QueryMsg<TendermintStakingQueryMsg>;
+impl extension::ExtensionExecuteMsg for TendermintStakingExecuteMsg {}
+impl extension::ExtensionQueryMsg for TendermintStakingQueryMsg {}
 
 #[cosmwasm_schema::cw_serde]
-pub enum RequestMsg {
+pub enum TendermintStakingExecuteMsg {
     Delegate {
         /// Validator address
         validator: String,
@@ -39,9 +44,9 @@ pub enum RequestMsg {
     WithdrawAllRewards {},
 }
 
-impl ExtensionExecuteMsg for RequestMsg {}
-
 /// Staking queries are available on [`cosmwasm_std::QuerierWrapper`] through [`cosmwasm_std::Deps`]. Helper function are exposed by [`abstract_sdk::tendermint_staking`]
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
-pub enum QueryMsg {}
+#[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
+#[cfg_attr(feature = "boot", impl_into(QueryMsg))]
+pub enum TendermintStakingQueryMsg {}

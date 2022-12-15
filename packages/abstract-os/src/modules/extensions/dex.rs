@@ -6,7 +6,7 @@ use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Decimal, Uint128};
 
 use crate::{
-    extension::{ExtensionExecuteMsg, ExtensionQueryMsg},
+    extension::{self},
     objects::{AnsAsset, AssetEntry, ContractEntry},
 };
 
@@ -15,6 +15,19 @@ pub type OfferAsset = AnsAsset;
 pub type AskAsset = AnsAsset;
 
 pub const IBC_DEX_ID: u32 = 11335;
+
+pub type ExecuteMsg = extension::ExecuteMsg<DexExecuteMsg>;
+pub type QueryMsg = extension::QueryMsg<DexQueryMsg>;
+impl extension::ExtensionExecuteMsg for DexExecuteMsg {}
+impl extension::ExtensionQueryMsg for DexQueryMsg {}
+
+/// Dex Execute msg
+#[cosmwasm_schema::cw_serde]
+// Struct messages not yet supported by BOOT
+pub struct DexExecuteMsg {
+    pub dex: DexName,
+    pub action: DexAction,
+}
 
 #[cosmwasm_schema::cw_serde]
 /// Possible actions to perform on the DEX
@@ -55,9 +68,6 @@ pub enum DexAction {
     },
 }
 
-/// Flag as the extension execute message
-impl ExtensionExecuteMsg for DexRequestMsg {}
-
 #[cosmwasm_schema::cw_serde]
 pub enum SwapRouter {
     /// Matrix router
@@ -66,15 +76,10 @@ pub enum SwapRouter {
     Custom(String),
 }
 
-/// Dex Execute msg
-#[cosmwasm_schema::cw_serde]
-pub struct DexRequestMsg {
-    pub dex: DexName,
-    pub action: DexAction,
-}
-
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
+#[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
+#[cfg_attr(feature = "boot", impl_into(QueryMsg))]
 pub enum DexQueryMsg {
     #[returns(SimulateSwapResponse)]
     SimulateSwap {
@@ -83,9 +88,6 @@ pub enum DexQueryMsg {
         dex: Option<DexName>,
     },
 }
-
-/// Flag as the extension query message
-impl ExtensionQueryMsg for DexQueryMsg {}
 
 // LP/protocol fees could be withheld from either input or output so commission asset must be included.
 #[cosmwasm_schema::cw_serde]
