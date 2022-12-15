@@ -5,7 +5,10 @@
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Decimal, Uint128};
 
-use crate::objects::{AnsAsset, AssetEntry, ContractEntry};
+use crate::{
+    extension::{ExtensionExecuteMsg, ExtensionQueryMsg},
+    objects::{AnsAsset, AssetEntry, ContractEntry},
+};
 
 pub type DexName = String;
 pub type OfferAsset = AnsAsset;
@@ -52,6 +55,9 @@ pub enum DexAction {
     },
 }
 
+/// Flag as the extension execute message
+impl ExtensionExecuteMsg for DexRequestMsg {}
+
 #[cosmwasm_schema::cw_serde]
 pub enum SwapRouter {
     /// Matrix router
@@ -77,6 +83,9 @@ pub enum DexQueryMsg {
         dex: Option<DexName>,
     },
 }
+
+/// Flag as the extension query message
+impl ExtensionQueryMsg for DexQueryMsg {}
 
 // LP/protocol fees could be withheld from either input or output so commission asset must be included.
 #[cosmwasm_schema::cw_serde]

@@ -59,6 +59,8 @@ pub mod state {
 
 use cosmwasm_std::Decimal;
 use cw_asset::AssetUnchecked;
+
+use crate::app::{self, AppExecuteMsg, AppQueryMsg};
 /// Init msg
 #[cosmwasm_schema::cw_serde]
 pub struct EtfInstantiateMsg {
@@ -73,6 +75,7 @@ pub struct EtfInstantiateMsg {
     /// Symbol of the etf token
     pub token_symbol: Option<String>,
 }
+pub type ExecuteMsg = app::ExecuteMsg<EtfExecuteMsg>;
 
 #[cosmwasm_schema::cw_serde]
 pub enum EtfExecuteMsg {
@@ -82,12 +85,16 @@ pub enum EtfExecuteMsg {
     SetFee { fee: Decimal },
 }
 
+impl AppExecuteMsg for EtfExecuteMsg {}
+
 #[cosmwasm_schema::cw_serde]
 pub enum EtfQueryMsg {
     // Add dapp-specific queries here
     /// Returns [`StateResponse`]
     State {},
 }
+
+impl AppQueryMsg for EtfQueryMsg {}
 
 #[cosmwasm_schema::cw_serde]
 pub enum DepositHookMsg {

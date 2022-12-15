@@ -5,6 +5,8 @@
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Uint128;
 
+use crate::extension::ExtensionExecuteMsg;
+
 #[cosmwasm_schema::cw_serde]
 pub enum RequestMsg {
     Delegate {
@@ -36,6 +38,8 @@ pub enum RequestMsg {
     /// Withdraw all the rewards
     WithdrawAllRewards {},
 }
+
+impl ExtensionExecuteMsg for RequestMsg {}
 
 /// Staking queries are available on [`cosmwasm_std::QuerierWrapper`] through [`cosmwasm_std::Deps`]. Helper function are exposed by [`abstract_sdk::tendermint_staking`]
 #[cosmwasm_schema::cw_serde]

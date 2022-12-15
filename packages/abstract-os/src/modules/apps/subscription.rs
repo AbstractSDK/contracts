@@ -233,6 +233,8 @@ use state::{
     SubscriptionState,
 };
 
+use crate::app::{AppExecuteMsg, AppQueryMsg};
+
 use self::state::UncheckedEmissionType;
 
 #[cosmwasm_schema::cw_serde]
@@ -304,6 +306,8 @@ pub enum ExecuteMsg {
     },
 }
 
+impl AppExecuteMsg for ExecuteMsg {}
+
 #[cosmwasm_schema::cw_serde]
 pub enum QueryMsg {
     State {},
@@ -312,6 +316,8 @@ pub enum QueryMsg {
     SubscriberState { os_id: u32 },
     ContributorState { os_id: u32 },
 }
+
+impl AppQueryMsg for QueryMsg {}
 
 #[cosmwasm_schema::cw_serde]
 pub enum DepositHookMsg {
