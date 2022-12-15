@@ -18,7 +18,7 @@ use abstract_sdk::os::{
         module::{Module, ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
     },
-    proxy::ExecuteMsg as TreasuryMsg,
+    proxy::ExecuteMsg as ProxyMsg,
     IBC_CLIENT,
 };
 use abstract_sdk::os::{MANAGER, PROXY};
@@ -193,6 +193,8 @@ pub fn uninstall_module(deps: DepsMut, msg_info: MessageInfo, module_id: String)
                 dependents,
             )));
         }
+        // Remove the module from the dependents list
+        DEPENDENTS.remove(deps.storage, &module_id);
     }
 
     // Remove module as dependant from its dependencies.
@@ -555,7 +557,7 @@ fn whitelist_dapp_on_proxy(
 ) -> StdResult<CosmosMsg<Empty>> {
     Ok(wasm_execute(
         proxy_address,
-        &TreasuryMsg::AddModule {
+        &ProxyMsg::AddModule {
             module: dapp_address,
         },
         vec![],
@@ -570,7 +572,7 @@ fn remove_dapp_from_proxy_msg(
 ) -> StdResult<CosmosMsg<Empty>> {
     Ok(wasm_execute(
         proxy_address,
-        &TreasuryMsg::RemoveModule {
+        &ProxyMsg::RemoveModule {
             module: dapp_address,
         },
         vec![],
@@ -1339,7 +1341,7 @@ mod test {
 
             let expected_msg: CosmosMsg = wasm_execute(
                 TEST_PROXY_ADDR.to_string(),
-                &TreasuryMsg::RemoveModule {
+                &ProxyMsg::RemoveModule {
                     module: TEST_IBC_CLIENT_ADDR.to_string(),
                 },
                 vec![],
