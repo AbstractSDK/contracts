@@ -428,9 +428,14 @@ pub fn update_info(
     Ok(Response::new())
 }
 
-pub fn update_os_status(deps: DepsMut, info: MessageInfo, new_status: Subscribed) -> ManagerResult {
+pub fn update_subscription_status(
+    deps: DepsMut,
+    info: MessageInfo,
+    new_status: Subscribed,
+) -> ManagerResult {
     let config = CONFIG.load(deps.storage)?;
 
+    // Only the subscription contract can load
     if let Some(sub_addr) = config.subscription_address {
         if sub_addr.eq(&info.sender) {
             STATUS.save(deps.storage, &new_status)?;
@@ -607,11 +612,11 @@ mod test {
 
     const TEST_OS_FACTORY: &str = "os_factory";
     const TEST_ROOT: &str = "testroot";
-    const TEST_MODULE_FACTORY: &'static str = "module_factory";
+    const TEST_MODULE_FACTORY: &str = "module_factory";
 
-    const TEST_VERSION_CONTROL: &'static str = "version_control";
+    const TEST_VERSION_CONTROL: &str = "version_control";
 
-    const TEST_PROXY_ADDR: &'static str = "proxy";
+    const TEST_PROXY_ADDR: &str = "proxy";
 
     /// Initialize the manager with the test root as the root
     fn mock_init(mut deps: DepsMut) -> ManagerResult {
@@ -635,8 +640,8 @@ mod test {
         )
     }
 
-    fn mock_installed_proxy(mut deps: DepsMut) -> StdResult<()> {
-        let info = mock_info(TEST_ROOT, &[]);
+    fn mock_installed_proxy(deps: DepsMut) -> StdResult<()> {
+        let _info = mock_info(TEST_ROOT, &[]);
         OS_MODULES.save(deps.storage, PROXY, &Addr::unchecked(TEST_PROXY_ADDR))
     }
 
@@ -652,7 +657,7 @@ mod test {
         execute_as(deps, TEST_ROOT, msg)
     }
 
-    fn init_with_proxy(mut deps: &mut MockDeps) {
+    fn init_with_proxy(deps: &mut MockDeps) {
         mock_init(deps.as_mut()).unwrap();
         mock_installed_proxy(deps.as_mut()).unwrap();
     }
@@ -667,7 +672,7 @@ mod test {
         let mut deps = mock_dependencies();
         mock_init(deps.as_mut())?;
 
-        let info = mock_info("not_root", &[]);
+        let _info = mock_info("not_root", &[]);
 
         let res = execute_as(deps.as_mut(), "not_root", msg);
         assert_that(&res)
@@ -677,19 +682,19 @@ mod test {
         Ok(())
     }
 
-    use abstract_os::manager::state::ModuleId;
+    
     use cw_controllers::AdminError;
 
     type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 
     mod set_root_and_gov_type {
         use super::*;
-        use abstract_os::manager::state::ModuleId;
-        use abstract_os::objects::gov_type::GovernanceDetails;
-        use cosmwasm_std::testing::MockStorage;
-        use cosmwasm_std::{Order, OwnedDeps, Storage};
-        use std::collections::HashSet;
-        use std::ops::Add;
+        
+        
+        
+        use cosmwasm_std::{Storage};
+        
+        
 
         #[test]
         fn only_root() -> ManagerTestResult {
@@ -807,7 +812,7 @@ mod test {
 
             let to_remove: Vec<String> = vec!["test:module".to_string()];
 
-            let res = update_module_addresses(deps.as_mut(), Some(vec![]), Some(to_remove.clone()));
+            let res = update_module_addresses(deps.as_mut(), Some(vec![]), Some(to_remove));
             assert_that(&res).is_ok();
 
             let actual_modules = load_os_modules(&deps.storage)?;
@@ -824,7 +829,7 @@ mod test {
 
             let to_remove: Vec<String> = vec![PROXY.to_string()];
 
-            let res = update_module_addresses(deps.as_mut(), Some(vec![]), Some(to_remove.clone()));
+            let res = update_module_addresses(deps.as_mut(), Some(vec![]), Some(to_remove));
             assert_that(&res)
                 .is_err()
                 .is_equal_to(ManagerError::CannotRemoveProxy {});
@@ -848,7 +853,7 @@ mod test {
             let res = execute_as_root(deps.as_mut(), msg.clone());
             assert_that(&res).is_ok();
 
-            let res = execute_as(deps.as_mut(), "not_os_factory", msg.clone());
+            let res = execute_as(deps.as_mut(), "not_os_factory", msg);
             assert_that(&res)
                 .is_err()
                 .is_equal_to(ManagerError::Admin(AdminError::NotAdmin {}));
@@ -865,7 +870,7 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let info = mock_info("not_root", &[]);
+            let _info = mock_info("not_root", &[]);
             let msg = ExecuteMsg::InstallModule {
                 module: ModuleInfo::from_id_latest("test:module")?,
                 init_msg: None,
@@ -934,11 +939,11 @@ mod test {
 
     mod uninstall_module {
         use super::*;
-        use abstract_os::manager::state::ModuleId;
-        use cosmwasm_std::testing::MockStorage;
-        use cosmwasm_std::{Order, OwnedDeps, Storage};
+        
+        
+        
         use std::collections::HashSet;
-        use std::ops::Add;
+        
 
         #[test]
         fn only_root() -> ManagerTestResult {
@@ -995,10 +1000,10 @@ mod test {
 
     mod register_module {
         use super::*;
-        use abstract_os::manager::state::ModuleId;
-        use cosmwasm_std::testing::MockStorage;
-        use cosmwasm_std::{Order, OwnedDeps, Storage};
-        use std::ops::Add;
+        
+        
+        
+        
 
         fn execute_as_module_factory(deps: DepsMut, msg: ExecuteMsg) -> ManagerResult {
             execute_as(deps, TEST_MODULE_FACTORY, msg)
@@ -1009,7 +1014,7 @@ mod test {
             let mut deps = mock_dependencies();
             init_with_proxy(&mut deps);
 
-            let info = mock_info("not_module_factory", &[]);
+            let _info = mock_info("not_module_factory", &[]);
 
             let msg = ExecuteMsg::RegisterModule {
                 module_addr: "module_addr".to_string(),
@@ -1089,10 +1094,10 @@ mod test {
 
     mod upgrade {
         use super::*;
-        use abstract_os::manager::state::ModuleId;
-        use cosmwasm_std::testing::MockStorage;
-        use cosmwasm_std::{Order, OwnedDeps, Storage};
-        use std::ops::Add;
+        
+        
+        
+        
 
         #[test]
         fn only_root() -> ManagerTestResult {
@@ -1106,10 +1111,10 @@ mod test {
 
     mod update_info {
         use super::*;
-        use abstract_os::manager::state::ModuleId;
-        use cosmwasm_std::testing::MockStorage;
-        use cosmwasm_std::{Order, OwnedDeps, Storage};
-        use std::ops::Add;
+        
+        
+        
+        
 
         #[test]
         fn only_root() -> ManagerTestResult {
@@ -1249,10 +1254,10 @@ mod test {
     mod enable_ibc {
         use super::*;
 
-        const TEST_IBC_CLIENT_ADDR: &'static str = "ibc_client";
+        const TEST_IBC_CLIENT_ADDR: &str = "ibc_client";
 
         fn mock_installed_ibc_client(
-            mut deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
+            deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
         ) -> StdResult<()> {
             OS_MODULES.save(
                 &mut deps.storage,
@@ -1357,6 +1362,98 @@ mod test {
                 .is_err()
                 .matches(|err| matches!(err, ManagerError::Std(StdError::GenericErr { .. })));
 
+            Ok(())
+        }
+    }
+
+    mod update_subscription_status {
+        use super::*;
+
+        const SUBSCRIPTION: &str = "subscription";
+
+        fn mock_init_with_subscription(mut deps: DepsMut) -> ManagerResult {
+            let info = mock_info(TEST_OS_FACTORY, &[]);
+
+            contract::instantiate(
+                deps.branch(),
+                mock_env(),
+                info,
+                InstantiateMsg {
+                    os_id: 1,
+                    root_user: TEST_ROOT.to_string(),
+                    version_control_address: TEST_VERSION_CONTROL.to_string(),
+                    module_factory_address: TEST_MODULE_FACTORY.to_string(),
+                    subscription_address: Some(SUBSCRIPTION.to_string()),
+                    governance_type: "monarchy".to_string(),
+                    name: "test".to_string(),
+                    description: None,
+                    link: None,
+                },
+            )
+        }
+
+        fn execute_as_subscription(deps: DepsMut, msg: ExecuteMsg) -> ManagerResult {
+            let info = mock_info(SUBSCRIPTION, &[]);
+            contract::execute(deps, mock_env(), info, msg)
+        }
+
+        #[test]
+        fn only_subscription() -> ManagerTestResult {
+            let mut deps = mock_dependencies();
+            mock_init_with_subscription(deps.as_mut())?;
+
+            let msg = ExecuteMsg::SuspendOs { new_status: true };
+
+            let res = execute_as(deps.as_mut(), "not subscsription", msg);
+            assert_that(&res)
+                .is_err()
+                .is_equal_to(ManagerError::CallerNotSubscriptionContract {});
+
+            Ok(())
+        }
+
+        #[test]
+        fn fails_without_subscription() -> ManagerTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let msg = ExecuteMsg::SuspendOs { new_status: true };
+
+            let res = execute_as_subscription(deps.as_mut(), msg);
+            assert_that(&res)
+                .is_err()
+                .is_equal_to(ManagerError::CallerNotSubscriptionContract {});
+
+            Ok(())
+        }
+
+        #[test]
+        fn subscribed() -> ManagerTestResult {
+            let mut deps = mock_dependencies();
+            mock_init_with_subscription(deps.as_mut())?;
+
+            let msg = ExecuteMsg::SuspendOs { new_status: true };
+
+            let res = execute_as_subscription(deps.as_mut(), msg);
+
+            assert_that(&res).is_ok();
+            let actual_status = STATUS.load(&deps.storage).unwrap();
+            assert_that(&actual_status).is_equal_to(true);
+            Ok(())
+        }
+
+        #[test]
+        fn unsubscribed() -> ManagerTestResult {
+            let mut deps = mock_dependencies();
+            mock_init_with_subscription(deps.as_mut())?;
+
+            let msg = ExecuteMsg::SuspendOs { new_status: false };
+
+            let res = execute_as_subscription(deps.as_mut(), msg);
+
+            assert_that(&res).is_ok();
+            let actual_status = STATUS.load(&deps.storage).unwrap();
+            assert_that(&actual_status).is_equal_to(false);
             Ok(())
         }
     }
