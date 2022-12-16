@@ -115,7 +115,7 @@ pub fn query_module_addresses(
     for module in module_names.iter() {
         let result: StdResult<Addr> = OS_MODULES
             .query(&deps.querier, manager_addr.clone(), module)?
-            .ok_or(StdError::generic_err(format!(
+            .ok_or_else(|| StdError::generic_err(format!(
                 "Module {} not present in OS",
                 module
             )));
