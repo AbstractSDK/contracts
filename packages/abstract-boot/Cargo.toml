@@ -7,7 +7,8 @@ description = "Abstract deployment helpers with BOOT"
 
 
 [features]
-testing = ["dep:os-factory"]
+default = ["testing"]
+testing = ["dep:os-factory", "dep:module-factory", "dep:ans-host", "dep:version-control", "dep:ibc-client", "dep:cw-multi-test"]
 
 [dependencies]
 cosmwasm-std = { workspace = true }
@@ -28,8 +29,9 @@ log = "0.4.14"
 serde_json = "1.0.79"
 
 
-os-factory = {path = "../../contracts/native/factory", optional = true}
-module-factory = {path = "../../contracts/native/module-factory", optional = true}
-ans-host = {path = "../../contracts/native/ans-host", optional = true}
-version-control = {path = "../../contracts/native/version-control", optional = true}
-ibc-client = {path = "../../contracts/native/ibc-client", optional = true}
+os-factory = {path = "../../contracts/native/factory",features = ["library"], optional = true}
+module-factory = {path = "../../contracts/native/module-factory",features = ["library"], optional = true}
+ans-host = {path = "../../contracts/native/ans-host",features = ["library"], optional = true}
+version-control = {path = "../../contracts/native/version-control",features = ["library"], optional = true}
+ibc-client = {path = "../../contracts/native/ibc-client",features = ["library"], optional = true}
+cw-multi-test = {workspace = true , optional = true}
