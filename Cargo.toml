@@ -40,7 +40,7 @@ thiserror = { version = "1.0" }
 protobuf = { version = "2", features = ["with-bytes"] }
 
 semver = {version = "1.0", git = "https://github.com/Abstract-OS/semver.git"}
-boot-core = {version = "0.2.0", git =  "https://github.com/Abstract-OS/BOOT.git"}
+boot-core = {version = "0.2.0", path = "../BOOT/boot-core"}
 boot-cw-plus = {version = "0.2.0", git =  "https://github.com/Abstract-OS/BOOT.git"}
 
 abstract-sdk = { version = "0.2.0-beta.7", path = "packages/abstract-sdk" }
@@ -50,11 +50,14 @@ abstract-api = { version = "0.2.0-beta.7", path = "packages/abstract-api", featu
 abstract-ibc-host = { version = "0.2.0-beta.7", path = "packages/abstract-ibc-host" }
 abstract-ica = { version = "0.2.0-beta.7", path = "packages/abstract-ica" }
 abstract-testing = { path = "packages/abstract-testing" }
+abstract-boot = { path = "packages/abstract-boot" }
 
 ## Testing
-cw-multi-test = { git = "https://github.com/Abstract-OS/cw-plus.git", branch = "main" }
+# cw-multi-test = { git = "https://github.com/Abstract-OS/cw-plus.git", branch = "main" }
+cw-multi-test = { version = "0.16.2" }
 rstest = "0.16.0"
 speculoos = "0.11.0"
+anyhow = "1"
 
 [profile.release]
 rpath = false

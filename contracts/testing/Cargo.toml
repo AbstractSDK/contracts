@@ -32,7 +32,7 @@ cosmwasm-std = { workspace = true }
 abstract-os = {workspace = true}
 abstract-sdk = {workspace = true}
 cw-multi-test = {workspace = true}
-anyhow = "1.0.57"
+anyhow = {workspace = true}
 proxy = { path = "../core/proxy" }
 manager = { path = "../core/manager" }
 ans-host = {path = "../native/ans-host" }
