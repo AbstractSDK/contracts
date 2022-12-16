@@ -1,14 +1,14 @@
-use std::collections::BTreeMap;
 use abstract_sdk::os::manager::state::{OsInfo, CONFIG, INFO, OS_ID, OS_MODULES, ROOT};
 use abstract_sdk::os::manager::{
     ConfigResponse, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse, ModuleInfosResponse,
     ModuleVersionsResponse,
 };
 use cosmwasm_std::{
-    to_binary, Addr, Binary, Deps, Env, Order, QueryRequest, StdResult, Uint64, WasmQuery, StdError,
+    to_binary, Addr, Binary, Deps, Env, Order, QueryRequest, StdError, StdResult, Uint64, WasmQuery,
 };
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Bound;
+use std::collections::BTreeMap;
 
 const DEFAULT_LIMIT: u8 = 5;
 const MAX_LIMIT: u8 = 10;
@@ -113,10 +113,12 @@ pub fn query_module_addresses(
 
     // Query over
     for module in module_names.iter() {
-        let result: StdResult<Addr> =
-            OS_MODULES.query(&deps.querier, manager_addr.clone(), module)?.ok_or(StdError::generic_err(
-                format!("Module {} not present in OS", module),
-            ));
+        let result: StdResult<Addr> = OS_MODULES
+            .query(&deps.querier, manager_addr.clone(), module)?
+            .ok_or(StdError::generic_err(format!(
+                "Module {} not present in OS",
+                module
+            )));
         // Add to map if present, skip otherwise. Allows version control to check what modules are present.
         match result {
             Ok(address) => modules.insert(module.clone(), address),

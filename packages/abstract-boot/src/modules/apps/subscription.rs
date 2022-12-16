@@ -4,7 +4,9 @@ use abstract_os::{
     app::{BaseInstantiateMsg, InstantiateMsg as AppInitMsg},
     subscription::*,
 };
-use boot_core::{interface::BootExecute, prelude::boot_contract, BootEnvironment, Contract, BootError};
+use boot_core::{
+    interface::BootExecute, prelude::boot_contract, BootEnvironment, BootError, Contract,
+};
 use cosmwasm_std::{Decimal, Uint128};
 use cw_asset::AssetInfoUnchecked;
 

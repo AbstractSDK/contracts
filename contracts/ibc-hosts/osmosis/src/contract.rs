@@ -6,7 +6,7 @@ use abstract_sdk::os::dex::DexAction;
 use abstract_sdk::os::ibc_host::{InstantiateMsg, MigrateMsg, QueryMsg};
 use abstract_sdk::os::OSMOSIS_HOST;
 
-use abstract_sdk::base::{InstantiateEndpoint, QueryEndpoint, ReplyEndpoint, MigrateEndpoint};
+use abstract_sdk::base::{InstantiateEndpoint, MigrateEndpoint, QueryEndpoint, ReplyEndpoint};
 
 use cosmwasm_std::Reply;
 use cosmwasm_std::{
