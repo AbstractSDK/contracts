@@ -7,8 +7,9 @@ description = "Abstract deployment helpers with BOOT"
 
 
 [features]
-default = ["testing"]
-testing = ["dep:os-factory", "dep:module-factory", "dep:ans-host", "dep:version-control", "dep:ibc-client", "dep:cw-multi-test"]
+testing = ["dep:os-factory", "dep:module-factory", "dep:ans-host", "dep:version-control", 
+    "dep:ibc-client", "dep:cw-multi-test", "dep:osmosis-host", "dep:proxy", "dep:manager", 
+    "dep:etf", "dep:subscription"]
 
 [dependencies]
 cosmwasm-std = { workspace = true }
@@ -33,5 +34,11 @@ os-factory = {path = "../../contracts/native/factory",features = ["library"], op
 module-factory = {path = "../../contracts/native/module-factory",features = ["library"], optional = true}
 ans-host = {path = "../../contracts/native/ans-host",features = ["library"], optional = true}
 version-control = {path = "../../contracts/native/version-control",features = ["library"], optional = true}
+osmosis-host = {path = "../../contracts/ibc-hosts/osmosis",features = ["library"], optional = true}
+proxy = {path = "../../contracts/core/proxy",features = ["library"], optional = true}
+manager = {path = "../../contracts/core/manager",features = ["library"], optional = true}
 ibc-client = {path = "../../contracts/native/ibc-client",features = ["library"], optional = true}
+etf = {path = "../../contracts/modules/apps/etf",features = ["library"], optional = true}
+subscription = {path = "../../contracts/modules/apps/subscription",features = ["library"], optional = true}
+
 cw-multi-test = {workspace = true , optional = true}
