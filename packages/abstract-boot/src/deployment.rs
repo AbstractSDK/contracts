@@ -109,7 +109,6 @@ impl<'a, Chain: BootEnvironment> Deployment<'a, Chain> {
             self.version_control.as_instance(),
             self.os_factory.as_instance(),
             self.module_factory.as_instance(),
-            self.ibc_client.as_instance(),
         ]
     }
 

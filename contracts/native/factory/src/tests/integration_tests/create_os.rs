@@ -1,9 +1,9 @@
 type Res = anyhow::Result<()>;
 
 use abstract_boot::boot::*;
-use abstract_boot::{Deployment, OSFactory};
-use abstract_os::objects::gov_type::GovernanceDetails;
-use abstract_os::os_factory::*;
+use abstract_boot::{Deployment, os_factory::{OSFactory, OsFactoryExecFns}};
+
+
 use cosmwasm_std::Addr;
 
 use crate::tests::common;
@@ -17,7 +17,7 @@ fn instantiate() -> Res {
     let mut deployment = Deployment::new(&chain, common::DEFAULT_VERSION.to_string().parse()?);
     deployment.deploy()?;
 
-    deployment.os_factory;
-
+    let factory: OSFactory<Mock> = deployment.os_factory;
+    factory.create_os()?;
     Ok(())
 }

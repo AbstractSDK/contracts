@@ -1,5 +1,5 @@
 use cosmwasm_std::{
-    entry_point, to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response,
+    to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response,
     StdResult,
 };
 use cw_asset::Asset;
