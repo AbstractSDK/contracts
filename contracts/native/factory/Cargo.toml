@@ -34,3 +34,7 @@ thiserror = {workspace = true}
 protobuf = {workspace = true}
 cw-asset= {workspace = true}
 semver = {workspace = true}
+
+[dev-dependencies]
+abstract-boot = {workspace = true, features = ["testing"]}
+anyhow = {workspace = true}
