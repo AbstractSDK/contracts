@@ -36,5 +36,15 @@ cw-asset= {workspace = true}
 semver = {workspace = true}
 
 [dev-dependencies]
-abstract-boot = {workspace = true, features = ["testing"]}
+abstract-boot = {workspace = true}
+boot-core = { workspace = true}
 anyhow = {workspace = true}
+cw-multi-test = {workspace = true}
+
+module-factory = { workspace = true }
+ans-host = { workspace = true }
+version-control = { workspace = true }
+proxy = { workspace = true }
+manager = { workspace = true }
+
+speculoos = { workspace = true }
