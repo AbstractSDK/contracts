@@ -19,15 +19,15 @@ backtraces = ["cosmwasm-std/backtraces"]
 [dependencies]
 cosmwasm-std = { workspace = true, features = ["iterator"] }
 cosmwasm-schema = { workspace = true }
-schemars = {workspace = true}
-cw-controllers = {workspace = true}
-cw-storage-plus = {workspace = true}
-serde = {workspace = true}
-semver = {git = "https://github.com/Abstract-OS/semver.git", features = ["serde"]}
-cw-asset= {workspace = true}
-cw2 = {workspace = true}
-cw20 = {workspace = true}
-cw20-base = {workspace = true}
-abstract-ica = {workspace = true}
+schemars = { workspace = true }
+cw-controllers = { workspace = true }
+cw-storage-plus = { workspace = true }
+serde = { workspace = true }
+semver = { version = "1.0.14", git = "https://github.com/Abstract-OS/semver.git", features = ["serde"], rev = "8295a2ecb3adb18bfa5bf86bd14482556fb57f1e" }
+cw-asset = { workspace = true }
+cw2 = { workspace = true }
+cw20 = { workspace = true }
+cw20-base = { workspace = true }
+abstract-ica = { workspace = true }
 
-boot-core = { workspace = true, optional = true}
+boot-core = { workspace = true, optional = true }
