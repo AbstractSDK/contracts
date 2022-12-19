@@ -66,7 +66,7 @@ fn proper_initialization() {
         .wrap()
         .query_wasm_smart(
             subscription_addr,
-            &app::QueryMsg::App(msgs::QueryMsg::Config {}),
+            &app::QueryMsg::App(msgs::SubscriptionQueryMsg::Config {}),
         )
         .unwrap();
 
@@ -99,7 +99,7 @@ fn proper_initialization() {
         .wrap()
         .query_wasm_smart(
             subscription_addr,
-            &app::QueryMsg::App(msgs::QueryMsg::State {}),
+            &app::QueryMsg::App(msgs::SubscriptionQueryMsg::State {}),
         )
         .unwrap();
 
@@ -148,12 +148,13 @@ fn add_and_remove_contributors() {
     for _ in 0..5u32 {
         init_os(&mut app, &sender, &env.native_contracts, &mut env.os_store).unwrap();
     }
-    let msg = app::ExecuteMsg::<_>::App(msgs::ExecuteMsg::UpdateContributor {
+    let msg: msgs::ExecuteMsg = msgs::SubscriptionExecuteMsg::UpdateContributor {
         contributor_os_id: contributing_os1,
         base_per_block: Some(Decimal::from_str(DEFAULT_PAY).unwrap()),
         weight: Some(100u64.into()),
         expiration_block: Some((app.block_info().height + 500).into()),
-    });
+    }
+    .into();
 
     let resp = app
         .execute_contract(sender.clone(), subscription_addr.clone(), &msg, &[])
@@ -170,7 +171,7 @@ fn add_and_remove_contributors() {
         .wrap()
         .query_wasm_smart(
             subscription_addr,
-            &app::QueryMsg::App(msgs::QueryMsg::State {}),
+            &app::QueryMsg::App(msgs::SubscriptionQueryMsg::State {}),
         )
         .unwrap();
 
@@ -184,7 +185,7 @@ fn add_and_remove_contributors() {
         }
     );
 
-    let msg = app::ExecuteMsg::<_>::App(msgs::ExecuteMsg::UpdateContributor {
+    let msg = app::ExecuteMsg::<_>::App(msgs::SubscriptionExecuteMsg::UpdateContributor {
         contributor_os_id: contributing_os2,
         base_per_block: Some(Decimal::from_str(DEFAULT_PAY).unwrap()),
         weight: Some(200u64.into()),
@@ -197,7 +198,7 @@ fn add_and_remove_contributors() {
         .wrap()
         .query_wasm_smart(
             subscription_addr,
-            &app::QueryMsg::App(msgs::QueryMsg::ContributorState {
+            &app::QueryMsg::App(msgs::SubscriptionQueryMsg::ContributorState {
                 os_id: contributing_os2,
             }),
         )
@@ -213,7 +214,7 @@ fn add_and_remove_contributors() {
         }
     );
 
-    let msg = app::ExecuteMsg::<_>::App(msgs::ExecuteMsg::RemoveContributor {
+    let msg = app::ExecuteMsg::<_>::App(msgs::SubscriptionExecuteMsg::RemoveContributor {
         os_id: contributing_os1,
     });
 
@@ -231,7 +232,7 @@ fn add_and_remove_contributors() {
         .wrap()
         .query_wasm_smart(
             subscription_addr,
-            &app::QueryMsg::App(msgs::QueryMsg::State {}),
+            &Into::<msgs::QueryMsg>::into(msgs::SubscriptionQueryMsg::State {}),
         )
         .unwrap();
 

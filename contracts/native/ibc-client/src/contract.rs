@@ -138,7 +138,7 @@ pub fn execute_send_packet(
     // auth check
     let cfg = CONFIG.load(deps.storage)?;
     let version_control = VersionControlContract {
-        contract_address: cfg.version_control_address,
+        address: cfg.version_control_address,
     };
     // Verify that the sender is a proxy contract
     let core = version_control
@@ -184,7 +184,7 @@ pub fn execute_register_os(
     let cfg = CONFIG.load(deps.storage)?;
     // Verify that the sender is a proxy contract
     let version_control = VersionControlContract {
-        contract_address: cfg.version_control_address,
+        address: cfg.version_control_address,
     };
     let core = version_control
         .os_register(deps.as_ref())
@@ -231,7 +231,7 @@ pub fn execute_send_funds(
     let mem = ANS_HOST.load(deps.storage)?;
     // Verify that the sender is a proxy contract
     let version_control = VersionControlContract {
-        contract_address: cfg.version_control_address,
+        address: cfg.version_control_address,
     };
     let core = version_control
         .os_register(deps.as_ref())
@@ -287,7 +287,7 @@ fn clear_accounts(store: &mut dyn Storage) {
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<QueryResponse> {
     match msg {
-        QueryMsg::Admin {} => to_binary(&query_config(deps)?),
+        QueryMsg::Config {} => to_binary(&query_config(deps)?),
         QueryMsg::Account { chain, os_id } => to_binary(&query_account(deps, chain, os_id)?),
         QueryMsg::ListAccounts {} => to_binary(&query_list_accounts(deps)?),
         QueryMsg::LatestQueryResult { chain, os_id } => {
@@ -348,13 +348,6 @@ fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
     set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
     // type migration
-    let config = old_abstract_os::ibc_client::state::CONFIG.load(deps.storage)?;
-    let new_config = Config {
-        chain: config.chain,
-        version_control_address: config.version_control_address,
-    };
-    CONFIG.save(deps.storage, &new_config)?;
-    ADMIN.set(deps, Some(config.admin))?;
     Ok(Response::default())
 }
 

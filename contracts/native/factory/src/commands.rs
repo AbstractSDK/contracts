@@ -1,14 +1,18 @@
+use crate::contract::OsFactoryResult;
+use crate::state::*;
+use crate::{error::OsFactoryError, response::MsgInstantiateContractResponse};
 use abstract_os::app;
+use abstract_sdk::os::version_control::{ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery};
 use abstract_sdk::os::{
-    objects::{
-        gov_type::GovernanceDetails,
-        module::{ModuleInfo, ModuleVersion},
-        module_reference::ModuleReference,
-    },
+    manager::{ExecuteMsg::UpdateModuleAddresses, InstantiateMsg as ManagerInstantiateMsg},
+    proxy::{ExecuteMsg as ProxyExecMsg, InstantiateMsg as ProxyInstantiateMsg},
+};
+use abstract_sdk::os::{
+    objects::{gov_type::GovernanceDetails, module::ModuleInfo, module_reference::ModuleReference},
     os_factory::ExecuteMsg,
     subscription::{
-        DepositHookMsg as SubDepositHook, ExecuteMsg as SubscriptionExecMsg,
-        QueryMsg as SubscriptionQuery, SubscriptionFeeResponse,
+        DepositHookMsg as SubDepositHook, SubscriptionExecuteMsg, SubscriptionFeeResponse,
+        SubscriptionQueryMsg,
     },
     version_control::{Core, ModuleResponse},
 };
@@ -18,20 +22,8 @@ use cosmwasm_std::{
     WasmMsg, WasmQuery,
 };
 use cw20::Cw20ReceiveMsg;
-use protobuf::Message;
-
-use crate::contract::OsFactoryResult;
-
-use crate::{error::OsFactoryError, response::MsgInstantiateContractResponse};
-
-use crate::state::*;
-use abstract_sdk::os::{
-    manager::{ExecuteMsg::UpdateModuleAddresses, InstantiateMsg as ManagerInstantiateMsg},
-    proxy::{ExecuteMsg as ProxyExecMsg, InstantiateMsg as ProxyInstantiateMsg},
-};
-
-use abstract_sdk::os::version_control::{ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery};
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};
+use protobuf::Message;
 
 pub const CREATE_OS_MANAGER_MSG_ID: u64 = 1u64;
 pub const CREATE_OS_PROXY_MSG_ID: u64 = 2u64;
@@ -94,14 +86,9 @@ pub fn execute_create_os(
 
     // Query version_control for code_id of Manager contract
     let module_resp: ModuleResponse =
-        deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-            contract_addr: config.version_control_contract.to_string(),
-            msg: to_binary(&VCQuery::Module {
-                module: ModuleInfo::from_id(MANAGER, ModuleVersion::Latest {})?,
-            })?,
-        }))?;
+        query_code_id(&deps.querier, &config.version_control_contract, MANAGER)?;
 
-    if let ModuleReference::App(manager_code_id) = module_resp.module.reference {
+    if let ModuleReference::Core(manager_code_id) = module_resp.module.reference {
         Ok(Response::new()
             .add_attributes(vec![
                 ("action", "create os"),
@@ -162,14 +149,9 @@ pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> OsFact
 
     // Query version_control for code_id of proxy
     let module_resp: ModuleResponse =
-        deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-            contract_addr: config.version_control_contract.to_string(),
-            msg: to_binary(&VCQuery::Module {
-                module: ModuleInfo::from_id(PROXY, ModuleVersion::Latest {})?,
-            })?,
-        }))?;
+        query_code_id(&deps.querier, &config.version_control_contract, PROXY)?;
 
-    if let ModuleReference::App(proxy_code_id) = module_resp.module.reference {
+    if let ModuleReference::Core(proxy_code_id) = module_resp.module.reference {
         Ok(Response::new()
             .add_attribute("manager_address", manager_address.to_string())
             // Instantiate proxy contract
@@ -196,6 +178,20 @@ pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> OsFact
         ))
     }
 }
+
+fn query_code_id(
+    querier: &QuerierWrapper,
+    version_control_addr: &Addr,
+    module_id: &str,
+) -> StdResult<ModuleResponse> {
+    querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+        contract_addr: version_control_addr.to_string(),
+        msg: to_binary(&VCQuery::Module {
+            module: ModuleInfo::from_id_latest(module_id)?,
+        })?,
+    }))
+}
+
 /// Registers the DAO on the version_control contract and
 /// adds proxy contract address to Manager
 pub fn after_proxy_add_to_manager_and_set_admin(
@@ -322,7 +318,7 @@ fn query_subscription_fee(
     let subscription_fee_response: SubscriptionFeeResponse =
         querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: subscription_address.to_string(),
-            msg: to_binary(&app::QueryMsg::App(SubscriptionQuery::Fee {}))?,
+            msg: to_binary(&app::QueryMsg::App(SubscriptionQueryMsg::Fee {}))?,
         }))?;
     Ok(subscription_fee_response)
 }
@@ -346,8 +342,8 @@ fn forward_payment(
             )?,
             AssetInfoBase::Native(denom) => CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: sub_addr.into(),
-                msg: to_binary::<app::ExecuteMsg<SubscriptionExecMsg>>(&app::ExecuteMsg::App(
-                    SubscriptionExecMsg::Pay {
+                msg: to_binary::<app::ExecuteMsg<SubscriptionExecuteMsg>>(&app::ExecuteMsg::App(
+                    SubscriptionExecuteMsg::Pay {
                         os_id: config.next_os_id,
                     },
                 ))?,

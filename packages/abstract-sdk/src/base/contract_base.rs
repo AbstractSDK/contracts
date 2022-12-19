@@ -5,7 +5,9 @@ use cosmwasm_std::{
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Item;
 
-use super::endpoints::migrate::{Name, VersionString};
+use os::objects::dependency::StaticDependency;
+
+use super::endpoints::migrate::{Metadata, Name, VersionString};
 
 use super::handler::Handler;
 
@@ -29,6 +31,8 @@ pub type ReceiveHandlerFn<App, Msg, Error> =
 
 pub type ReplyHandlerFn<Module, Error> = fn(DepsMut, Env, Module, Reply) -> Result<Response, Error>;
 
+const MAX_REPLY_COUNT: usize = 2;
+
 /// State variables for a generic contract
 pub struct AbstractContract<
     Module: Handler + 'static,
@@ -40,16 +44,16 @@ pub struct AbstractContract<
     ReceiveMsg = Empty,
 > {
     /// static info about the contract, used for migration
-    pub(crate) info: (Name, VersionString),
+    pub(crate) info: (Name, VersionString, Metadata),
     /// On-chain storage of the same info
     pub(crate) version: Item<'static, ContractVersion>,
     /// ID's that this contract depends on
-    pub(crate) dependencies: &'static [&'static str],
+    pub(crate) dependencies: &'static [StaticDependency],
     /// Expected callbacks following an IBC action
     pub(crate) ibc_callback_handlers:
         &'static [(&'static str, IbcCallbackHandlerFn<Module, Error>)],
     /// Expected replies
-    pub reply_handlers: [&'static [(u64, ReplyHandlerFn<Module, Error>)]; 2],
+    pub reply_handlers: [&'static [(u64, ReplyHandlerFn<Module, Error>)]; MAX_REPLY_COUNT],
     /// Handler of execute messages
     pub(crate) execute_handler: Option<ExecuteHandlerFn<Module, CustomExecMsg, Error>>,
     /// Handler of instantiate messages
@@ -83,9 +87,9 @@ impl<
 where
     Module: Handler,
 {
-    pub const fn new(name: Name, version: VersionString) -> Self {
+    pub const fn new(name: Name, version: VersionString, metadata: Metadata) -> Self {
         Self {
-            info: (name, version),
+            info: (name, version, metadata),
             version: CONTRACT,
             ibc_callback_handlers: &[],
             reply_handlers: [&[], &[]],
@@ -101,18 +105,18 @@ where
     pub fn version(&self, store: &dyn Storage) -> StdResult<ContractVersion> {
         self.version.load(store)
     }
-    pub fn info(&self) -> (&str, &str) {
+    pub fn info(&self) -> (Name, VersionString, Metadata) {
         self.info
     }
     /// add dependencies to the contract
-    pub const fn with_dependencies(mut self, dependencies: &'static [&'static str]) -> Self {
+    pub const fn with_dependencies(mut self, dependencies: &'static [StaticDependency]) -> Self {
         self.dependencies = dependencies;
         self
     }
 
     pub const fn with_replies(
         mut self,
-        reply_handlers: [&'static [(u64, ReplyHandlerFn<Module, Error>)]; 2],
+        reply_handlers: [&'static [(u64, ReplyHandlerFn<Module, Error>)]; MAX_REPLY_COUNT],
     ) -> Self {
         self.reply_handlers = reply_handlers;
         self

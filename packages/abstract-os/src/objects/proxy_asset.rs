@@ -47,6 +47,13 @@ pub struct UncheckedProxyAsset {
 }
 
 impl UncheckedProxyAsset {
+    pub fn new(asset: impl Into<String>, value_reference: Option<UncheckedValueRef>) -> Self {
+        Self {
+            asset: asset.into(),
+            value_reference,
+        }
+    }
+
     /// Perform checks on the proxy asset to ensure it can be resolved by the AnsHost
     pub fn check(self, deps: Deps, ans_host: &AnsHost) -> StdResult<ProxyAsset> {
         let entry: AssetEntry = self.asset.into();
@@ -81,7 +88,7 @@ pub enum UncheckedValueRef {
     },
     // Query an external contract to get the value
     External {
-        extension_name: String,
+        api_name: String,
     },
 }
 
@@ -120,9 +127,7 @@ impl UncheckedValueRef {
                     multiplier,
                 })
             }
-            UncheckedValueRef::External { extension_name } => {
-                Ok(ValueRef::External { extension_name })
-            }
+            UncheckedValueRef::External { api_name } => Ok(ValueRef::External { api_name }),
         }
     }
 }
@@ -153,7 +158,7 @@ pub enum ValueRef {
         multiplier: Decimal,
     },
     /// Query an external contract to get the value
-    External { extension_name: String },
+    External { api_name: String },
 }
 
 impl ProxyAsset {
@@ -197,14 +202,13 @@ impl ProxyAsset {
                 ValueRef::ValueAs { asset, multiplier } => {
                     return value_as_value(deps, env, ans_host, asset, multiplier, holding)
                 }
-                ValueRef::External { extension_name } => {
+                ValueRef::External { api_name } => {
                     let manager = ADMIN.get(deps)?.unwrap();
-                    let maybe_extension_addr =
-                        OS_MODULES.query(&deps.querier, manager, &extension_name)?;
-                    if let Some(extension_addr) = maybe_extension_addr {
+                    let maybe_api_addr = OS_MODULES.query(&deps.querier, manager, &api_name)?;
+                    if let Some(api_addr) = maybe_api_addr {
                         let response: ExternalValueResponse =
                             deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-                                contract_addr: extension_addr.to_string(),
+                                contract_addr: api_addr.to_string(),
                                 msg: to_binary(&ValueQueryMsg {
                                     asset: self.asset.clone(),
                                     amount: valued_asset.amount,
@@ -213,8 +217,8 @@ impl ProxyAsset {
                         return Ok(response.value);
                     } else {
                         return Err(StdError::generic_err(format!(
-                            "external contract extension {} must be enabled on OS",
-                            extension_name
+                            "external contract api {} must be enabled on OS",
+                            api_name
                         )));
                     }
                 }
@@ -347,29 +351,6 @@ pub fn other_asset_name<'a>(asset: &'a str, composite: &'a str) -> StdResult<&'a
 /// Composite of form asset1_asset2
 pub fn get_pair_asset_names(composite: &str) -> Vec<&str> {
     composite.split('_').collect()
-}
-
-/// The proxy struct acts as an Asset overwrite.
-/// By setting this proxy you define the asset to be some
-/// other asset with a multiplier.
-/// For example: AssetInfo = bluna, BaseAsset = uusd, Proxy: luna, multiplier = 1
-/// Each bluna would be valued as one luna.
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-
-pub struct Proxy {
-    // Proxy asset
-    proxy_asset: String,
-    // Can be set to some constant or set to price,
-    multiplier: Decimal,
-}
-
-impl Proxy {
-    pub fn new(multiplier: Decimal, proxy_asset: String) -> StdResult<Self> {
-        Ok(Self {
-            proxy_asset,
-            multiplier,
-        })
-    }
 }
 
 fn query_cw20_supply(querier: &QuerierWrapper, contract_addr: &Addr) -> StdResult<Uint128> {

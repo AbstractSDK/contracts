@@ -1,8 +1,12 @@
-use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use abstract_os::manager::CallbackMsg;
+use cosmwasm_std::{
+    ensure_eq, entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
+};
 use semver::Version;
 
 use crate::queries::{handle_config_query, handle_module_info_query, handle_os_info_query};
 use crate::validators::{validate_description, validate_link, validate_name_or_gov_type};
+use crate::versioning;
 use crate::{commands::*, error::ManagerError, queries};
 use abstract_sdk::os::manager::state::{Config, OsInfo, CONFIG, INFO, OS_FACTORY, ROOT, STATUS};
 use abstract_sdk::os::MANAGER;
@@ -17,7 +21,7 @@ pub type ManagerResult = Result<Response, ManagerError>;
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub(crate) const MIN_DESC_LENGTH: usize = 4;
 pub(crate) const MAX_DESC_LENGTH: usize = 1024;
-pub(crate) const MIN_LINK_LENGTH: usize = 12;
+pub(crate) const MIN_LINK_LENGTH: usize = 11;
 pub(crate) const MAX_LINK_LENGTH: usize = 128;
 pub(crate) const MIN_TITLE_LENGTH: usize = 4;
 pub(crate) const MAX_TITLE_LENGTH: usize = 64;
@@ -69,6 +73,8 @@ pub fn instantiate(
     };
 
     INFO.save(deps.storage, &os_info)?;
+    MIGRATE_CONTEXT.save(deps.storage, &vec![])?;
+
     // Set root
     let root = deps.api.addr_validate(&msg.root_user)?;
     ROOT.set(deps.branch(), Some(root))?;
@@ -80,7 +86,7 @@ pub fn instantiate(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> ManagerResult {
     match msg {
-        ExecuteMsg::SuspendOs { new_status } => update_os_status(deps, info, new_status),
+        ExecuteMsg::SuspendOs { new_status } => update_subscription_status(deps, info, new_status),
         msg => {
             // Block actions if user is not subscribed
             let is_subscribed = STATUS.load(deps.storage)?;
@@ -99,12 +105,12 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     OS_FACTORY
                         .assert_admin(deps.as_ref(), &info.sender)
                         .or_else(|_| ROOT.assert_admin(deps.as_ref(), &info.sender))?;
-
                     update_module_addresses(deps, to_add, to_remove)
                 }
                 ExecuteMsg::InstallModule { module, init_msg } => {
-                    create_module(deps, info, env, module, init_msg)
+                    install_module(deps, info, env, module, init_msg)
                 }
+                ExecuteMsg::RemoveModule { module_id } => uninstall_module(deps, info, module_id),
                 ExecuteMsg::RegisterModule {
                     module,
                     module_addr,
@@ -113,17 +119,14 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     module_id,
                     exec_msg,
                 } => exec_on_module(deps, info, module_id, exec_msg),
-                ExecuteMsg::Upgrade {
-                    module,
-                    migrate_msg,
-                } => upgrade_module(deps, env, info, module, migrate_msg),
-                ExecuteMsg::RemoveModule { module_id } => remove_module(deps, info, module_id),
+                ExecuteMsg::Upgrade { modules } => upgrade_modules(deps, env, info, modules),
                 ExecuteMsg::UpdateInfo {
                     name,
                     description,
                     link,
                 } => update_info(deps, info, name, description, link),
                 ExecuteMsg::EnableIBC { new_status } => enable_ibc(deps, info, new_status),
+                ExecuteMsg::Callback(CallbackMsg {}) => handle_callback(deps, env, info),
                 _ => panic!(),
             }
         }
@@ -142,4 +145,23 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::Info {} => handle_os_info_query(deps),
         QueryMsg::Config {} => handle_config_query(deps),
     }
+}
+
+pub fn handle_callback(mut deps: DepsMut, env: Env, info: MessageInfo) -> ManagerResult {
+    ensure_eq!(
+        info.sender,
+        env.contract.address,
+        StdError::generic_err("Callback must be called by contract")
+    );
+    let migrated_modules = MIGRATE_CONTEXT.load(deps.storage)?;
+
+    for (migrated_module_id, old_deps) in migrated_modules {
+        versioning::maybe_remove_old_deps(deps.branch(), &migrated_module_id, &old_deps)?;
+        let new_deps =
+            versioning::maybe_add_new_deps(deps.branch(), &migrated_module_id, &old_deps)?;
+        versioning::assert_dependency_requirements(deps.as_ref(), &new_deps)?;
+    }
+
+    MIGRATE_CONTEXT.save(deps.storage, &vec![])?;
+    Ok(Response::new())
 }

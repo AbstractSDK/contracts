@@ -162,14 +162,14 @@ pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> Result<Response, 
     Ok(Response::default())
 }
 
-fn addr_validate_to_lower(extension: &dyn Api, addr: &str) -> StdResult<Addr> {
+fn addr_validate_to_lower(api: &dyn Api, addr: &str) -> StdResult<Addr> {
     if addr.to_lowercase() != addr {
         return Err(StdError::generic_err(format!(
             "Address {} should be lowercase",
             addr
         )));
     }
-    extension.addr_validate(addr)
+    api.addr_validate(addr)
 }
 
 fn assert_recipient_allowed(deps: Deps, recipient: &str) -> Result<(), ContractError> {
@@ -183,7 +183,7 @@ fn assert_recipient_allowed(deps: Deps, recipient: &str) -> Result<(), ContractE
         return Ok(());
     }
     let verify_feature = VersionControlContract {
-        contract_address: config.version_control_address,
+        address: config.version_control_address,
     };
     verify_feature
         .os_register(deps)

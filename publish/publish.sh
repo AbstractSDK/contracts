@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -o errexit -o nounset -o pipefail
 command -v shellcheck >/dev/null && shellcheck "$0"
 
@@ -16,7 +16,7 @@ fi
 # these are imported by other packages
 BASE_PACKAGES="abstract-ica abstract-os"
 UTILS_PACKAGES="abstract-sdk"
-ALL_PACKAGES="abstract-extension abstract-app abstract-ibc-host abstract-boot"
+ALL_PACKAGES="abstract-api abstract-app abstract-ibc-host abstract-boot"
 
 SLEEP_TIME=30
 

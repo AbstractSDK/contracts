@@ -2,7 +2,6 @@
 # will have compiled files and executables
 contracts/**/target/**
 target
-scripts
 
 .env
 
