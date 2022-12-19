@@ -28,12 +28,6 @@ where
     pub fn new(name: &str, chain: &Chain) -> Self {
         let mut contract = Contract::new(name, chain);
         contract = contract.with_wasm_path("version_control");
-        #[cfg(feature = "testing")]
-        contract.set_mock(Box::new(cw_multi_test::ContractWrapper::new_with_empty(
-            ::version_control::contract::execute,
-            ::version_control::contract::instantiate,
-            ::version_control::contract::query,
-        )));
         Self(contract)
     }
 

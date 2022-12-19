@@ -22,12 +22,6 @@ impl<Chain: BootEnvironment> Manager<Chain> {
     pub fn new(name: &str, chain: &Chain) -> Self {
         let mut contract = Contract::new(name, chain);
         contract = contract.with_wasm_path("manager");
-        #[cfg(feature = "testing")]
-        contract.set_mock(Box::new(cw_multi_test::ContractWrapper::new_with_empty(
-            ::manager::contract::execute,
-            ::manager::contract::instantiate,
-            ::manager::contract::query,
-        )));
         Self(contract)
     }
 

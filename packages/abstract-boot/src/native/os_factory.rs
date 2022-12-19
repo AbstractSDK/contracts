@@ -19,12 +19,6 @@ impl<Chain: BootEnvironment> OSFactory<Chain> {
     pub fn new(name: &str, chain: &Chain) -> Self {
         let mut contract = Contract::new(name, chain);
         contract = contract.with_wasm_path("os_factory");
-        #[cfg(feature = "testing")]
-        contract.set_mock(Box::new(cw_multi_test::ContractWrapper::new_with_empty(
-            ::os_factory::contract::execute,
-            ::os_factory::contract::instantiate,
-            ::os_factory::contract::query,
-        )));
         Self(contract)
     }
 

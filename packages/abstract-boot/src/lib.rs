@@ -1,12 +1,3 @@
-#[cfg(feature = "testing")]
-pub mod boot {
-    pub use boot_core::prelude::{
-        instantiate_custom_mock_env, instantiate_default_mock_env, BootEnvironment, BootError,
-        BootExecute, BootInstantiate, BootMigrate, BootQuery, BootUpload, Contract,
-        ContractInstance, IndexResponse, Mock, TxResponse,
-    };
-}
-
 pub mod idea_token;
 
 mod core;
