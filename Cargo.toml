@@ -30,7 +30,7 @@ cosmwasm-schema = { version = "1.1" }
 cw-controllers = { version = "0.16" }
 cw-utils = { version = "0.16" }
 cw-storage-plus = "0.16"
-cw2 = { version = "0.16" }
+cw2 = { version = "1.0" }
 cw20 = { version = "0.16" }
 cw20-base = { version = "0.16", features = ["library"] }
 cw-asset = { version = "2.2" }
