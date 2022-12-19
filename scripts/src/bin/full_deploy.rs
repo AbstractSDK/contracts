@@ -18,7 +18,7 @@ pub fn script() -> anyhow::Result<()> {
 
     let mut deployment = Deployment::new(&chain, abstract_os_version);
 
-    deployment.deploy()?;
+    // deployment.deploy()?;
 
     let _dex = DexApi::new("dex", &chain);
     // dex.simulate_swap()
