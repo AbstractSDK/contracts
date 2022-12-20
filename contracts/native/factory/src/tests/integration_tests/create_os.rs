@@ -1,20 +1,13 @@
 use super::init::init_test_env;
 use crate::tests::common;
-use abstract_boot::{
-    os_factory::OsFactoryQueryFns, OsFactoryExecFns, VCExecFns, VCQueryFns, OS, *,
-};
-use abstract_os::{
-    objects::gov_type::GovernanceDetails,
-    os_factory,
-    version_control::{Core, OsCoreResponse},
-};
+use abstract_boot::{os_factory::OsFactoryQueryFns, OsFactoryExecFns, VCQueryFns, OS, *};
+use abstract_os::{objects::gov_type::GovernanceDetails, os_factory, version_control::Core};
 use boot_core::{
     prelude::{instantiate_default_mock_env, ContractInstance},
-    IndexResponse, MockState,
+    IndexResponse,
 };
 use cosmwasm_std::{Addr, Uint64};
 use speculoos::prelude::*;
-use std::{cell::RefCell, os, rc::Rc};
 
 type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 
@@ -211,7 +204,6 @@ fn sender_is_not_admin_monarchy() -> AResult {
 
     Ok(())
 }
-
 
 #[test]
 fn sender_is_not_admin_external() -> AResult {

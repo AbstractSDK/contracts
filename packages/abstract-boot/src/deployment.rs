@@ -86,7 +86,7 @@ impl<'a, Chain: BootEnvironment> Deployment<'a, Chain> {
         // ########### upload modules and token ##############
 
         self.version_control
-            .register_core(&os_core, &self.version.to_string())?;
+            .register_core(os_core, &self.version.to_string())?;
 
         self.version_control.register_native(self)?;
 
