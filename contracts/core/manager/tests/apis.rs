@@ -1,8 +1,10 @@
-use crate::{
+mod common;
+
+use ::manager::{
     contract::CONTRACT_VERSION,
-    tests::common::{
-        self, create_default_os, init_abstract_env, init_staking_api, AResult, TEST_COIN,
-    },
+};
+use common::{
+    create_default_os, init_abstract_env, init_staking_api, AResult, TEST_COIN,
 };
 use abstract_boot::*;
 use abstract_os::{

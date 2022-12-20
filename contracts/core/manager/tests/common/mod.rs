@@ -23,7 +23,7 @@ use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL
 
 use cw_multi_test::ContractWrapper;
 
-use crate::contract::CONTRACT_VERSION;
+use manager::contract::CONTRACT_VERSION;
 
 pub fn init_abstract_env<'a>(chain: &'a Mock) -> anyhow::Result<(Deployment<'a, Mock>, OS<Mock>)> {
     let mut ans_host = AnsHost::new(ANS_HOST, chain);
@@ -70,9 +70,9 @@ pub fn init_abstract_env<'a>(chain: &'a Mock) -> anyhow::Result<(Deployment<'a, 
     manager
         .as_instance_mut()
         .set_mock(Box::new(cw_multi_test::ContractWrapper::new_with_empty(
-            crate::contract::execute,
-            crate::contract::instantiate,
-            crate::contract::query,
+            ::manager::contract::execute,
+            ::manager::contract::instantiate,
+            ::manager::contract::query,
         )));
 
     proxy

@@ -1,4 +1,6 @@
-use crate::tests::common::{self, create_default_os, init_abstract_env, AResult, TEST_COIN};
+mod common;
+
+use common::{create_default_os, init_abstract_env, AResult, TEST_COIN};
 use abstract_boot::*;
 use abstract_os::PROXY;
 

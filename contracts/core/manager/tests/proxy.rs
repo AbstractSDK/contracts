@@ -1,7 +1,9 @@
-use crate::{
+mod common;
+
+use manager::{
     contract::CONTRACT_VERSION,
-    tests::common::{self, create_default_os, init_abstract_env, AResult, TEST_COIN},
 };
+use common::{create_default_os, init_abstract_env, AResult, TEST_COIN};
 use abstract_boot::{OsFactoryQueryFns, VCQueryFns, *};
 use abstract_os::{manager::ManagerModuleInfo, PROXY};
 
