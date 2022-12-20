@@ -5,6 +5,5 @@ mod queries;
 mod validators;
 mod versioning;
 
-// #[cfg(test)]
-// #[cfg(not(target_arch = "wasm32"))]
-// mod tests;
+#[cfg(test)]
+mod tests;

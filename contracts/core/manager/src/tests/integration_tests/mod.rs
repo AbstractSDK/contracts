@@ -1,4 +1,2 @@
-mod common_integration;
-mod instantiate;
-mod integration;
-mod upload;
+mod execute_on_proxy;
+mod init;
