@@ -12,7 +12,7 @@ use abstract_os::{MANAGER, PROXY};
 use boot_core::interface::BootExecute;
 use boot_core::interface::ContractInstance;
 
-use crate::{OS, Proxy, Manager};
+use crate::{Manager, Proxy, OS};
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct OSFactory<Chain>;
@@ -46,7 +46,7 @@ impl<Chain: BootEnvironment> OSFactory<Chain> {
         self.get_chain()
             .state()
             .set_address(PROXY, &Addr::unchecked(proxy_address));
-        Ok(OS{
+        Ok(OS {
             manager: Manager::new(MANAGER, self.get_chain()),
             proxy: Proxy::new(PROXY, self.get_chain()),
         })

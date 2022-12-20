@@ -10,13 +10,13 @@ use abstract_os::{
     tendermint_staking::{TendermintStakingExecuteMsg, TendermintStakingExecuteMsgFns},
     *,
 };
-use abstract_os::{manager::ManagerModuleInfo, PROXY, TENDERMINT_STAKING};
+use abstract_os::{manager::ManagerModuleInfo, TENDERMINT_STAKING};
 
 use boot_core::{
     prelude::{instantiate_default_mock_env, CallAs, ContractInstance},
-    Mock, TxHandler, BootError,
+    Mock, TxHandler,
 };
-use cosmwasm_std::{Addr, Coin, CosmosMsg, Decimal, Empty, Validator};
+use cosmwasm_std::{Addr, Coin, Decimal, Empty, Validator};
 use cw_multi_test::StakingInfo;
 use speculoos::prelude::*;
 
@@ -144,7 +144,7 @@ fn manager_api_exec() -> AResult {
 
     deployment.deploy(&mut core)?;
     let os = create_default_os(&chain, &deployment.os_factory)?;
-    let staking_api = init_staking_api(&chain, &deployment)?;
+    let _staking_api = init_staking_api(&chain, &deployment)?;
     install_api(&os.manager, TENDERMINT_STAKING)?;
 
     chain.init_balance(&os.proxy.address()?, vec![Coin::new(100_000, TEST_COIN)])?;

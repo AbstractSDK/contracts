@@ -1,5 +1,5 @@
 use abstract_boot::{
-    os_factory::OSFactory, AnsHost, Deployment, Manager, ModuleFactory, Proxy, VersionControl, OS,
+    AnsHost, Deployment, Manager, ModuleFactory, OSFactory, Proxy, VersionControl, OS,
 };
 
 use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, PROXY, VERSION_CONTROL};

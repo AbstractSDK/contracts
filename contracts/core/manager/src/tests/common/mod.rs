@@ -4,7 +4,7 @@ pub const ANS_HOST_CONTRACT: &str = "ans_host_addr";
 pub const TEST_CREATOR: &str = "creator";
 pub const TEST_COIN: &str = "ucoin";
 
-use abstract_boot::{TMintStakingApi, VCExecFns, OS};
+use abstract_boot::{TMintStakingApi, OS};
 use abstract_os::{
     api::InstantiateMsg, objects::gov_type::GovernanceDetails, PROXY, TENDERMINT_STAKING,
 };
