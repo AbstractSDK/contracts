@@ -7,7 +7,7 @@
         },
         {
           "dex": "junoswap",
-          "poolType": "constant_product",
+          "pool_type": "ConstantProduct",
           "assets": [
             "junox",
             "crab"
@@ -20,7 +20,7 @@
         },
         {
           "dex": "junoswap",
-          "poolType": "constant_product",
+          "pool_type": "ConstantProduct",
           "assets": [
             "dao",
             "junox"
@@ -33,7 +33,7 @@
         },
         {
           "dex": "junoswap",
-          "poolType": "constant_product",
+          "pool_type": "ConstantProduct",
           "assets": [
             "junox",
             "pood"
@@ -46,7 +46,7 @@
         },
         {
           "dex": "junoswap",
-          "poolType": "constant_product",
+          "pool_type": "ConstantProduct",
           "assets": [
             "junox",
             "dog"
@@ -59,7 +59,7 @@
         },
         {
           "dex": "junoswap",
-          "poolType": "constant_product",
+          "pool_type": "ConstantProduct",
           "assets": [
             "junox",
             "bull"
@@ -72,7 +72,7 @@
         },
         {
           "dex": "junoswap",
-          "poolType": "constant_product",
+          "pool_type": "ConstantProduct",
           "assets": [
             "junox",
             "cat"

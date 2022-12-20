@@ -35,8 +35,8 @@ impl<'a, Chain: BootEnvironment> Deployment<'a, Chain> {
 
         // ########### Upload ##############
 
-        // self.ans_host.upload()?;
-        // self.version_control.upload()?;
+        self.ans_host.upload()?;
+        self.version_control.upload()?;
         self.os_factory.upload()?;
         self.module_factory.upload()?;
 

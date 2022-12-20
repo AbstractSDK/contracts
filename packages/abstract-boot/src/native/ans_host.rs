@@ -38,6 +38,7 @@ impl AnsHost<Daemon> {
     pub fn update_all(&self) -> Result<(), BootError> {
         self.update_assets()?;
         self.update_contracts()?;
+        self.update_pools()?;
         Ok(())
     }
 
@@ -72,28 +73,21 @@ impl AnsHost<Daemon> {
 
         let assets = maybe_assets.as_array().unwrap();
 
-        let to_add: Vec<(String, AssetInfoUnchecked)> = assets
+        let assets_to_add: Vec<(String, AssetInfoUnchecked)> = assets
             .iter()
             .map(|value| {
                 let asset: (String, AssetInfoUnchecked) =
                     serde_json::from_value(value.clone()).unwrap();
-                // let asset: AssetInfoUnchecked = serde_json::from_value(value.clone()).unwrap();
                 asset
-                // (name.clone(), asset)
             })
             .collect();
-        let mut i = 0;
-        while i != to_add.len() {
-            let chunk = to_add.get(i..min(i + 25, to_add.len())).unwrap();
-            i += chunk.len();
-            self.execute(
-                &ExecuteMsg::UpdateAssetAddresses {
-                    to_add: chunk.to_vec(),
-                    to_remove: vec![],
-                },
-                None,
-            )?;
-        }
+
+        self.execute_chunked(&assets_to_add, 25, |chunk| {
+            ExecuteMsg::UpdateAssetAddresses {
+                to_add: chunk.to_vec(),
+                to_remove: vec![],
+            }
+        })?;
 
         Ok(())
     }
@@ -190,16 +184,16 @@ impl AnsHost<Daemon> {
 
         let mut dexes_to_register: HashSet<String> = HashSet::new();
 
-        let pools = pools.as_object().unwrap();
+        let pools = pools.as_array().unwrap();
         let pools_to_add: Vec<(UncheckedPoolId, PoolMetadata)> = pools
             .iter()
-            .map(|(key, value)| {
-                let pool_id: UncheckedPoolId = serde_json::from_str(&key.clone()).unwrap();
-                let metadata: PoolMetadata = serde_json::from_value(value.clone()).unwrap();
+            .map(|value| {
+                let pool: (UncheckedPoolId, PoolMetadata) =
+                    serde_json::from_value(value.clone()).unwrap();
 
-                dexes_to_register.insert(metadata.dex.clone());
+                dexes_to_register.insert(pool.1.dex.clone());
 
-                (pool_id, metadata)
+                pool
             })
             .collect();
 
