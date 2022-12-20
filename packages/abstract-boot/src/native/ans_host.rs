@@ -1,6 +1,6 @@
 use abstract_os::ans_host::*;
 use abstract_os::objects::{PoolMetadata, UncheckedChannelEntry, UncheckedContractEntry};
-use boot_core::prelude::{BootExecute, ContractInstance};
+use boot_core::prelude::ContractInstance;
 use cw_asset::AssetInfoUnchecked;
 
 use abstract_os::objects::pool_id::UncheckedPoolId;

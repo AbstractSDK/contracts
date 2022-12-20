@@ -3,8 +3,6 @@ use abstract_sdk::os::objects::AssetEntry;
 
 use abstract_sdk::feature_objects::AnsHost;
 use abstract_sdk::Resolve;
-#[cfg(not(feature = "library"))]
-use cosmwasm_std::entry_point;
 use cosmwasm_std::{
     to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Order, Response, StdError, StdResult,
     Uint128,
