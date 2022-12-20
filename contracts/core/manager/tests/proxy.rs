@@ -1,11 +1,9 @@
 mod common;
 
-use manager::{
-    contract::CONTRACT_VERSION,
-};
-use common::{create_default_os, init_abstract_env, AResult, TEST_COIN};
-use abstract_boot::{OsFactoryQueryFns, VCQueryFns, *};
+use abstract_boot::*;
 use abstract_os::{manager::ManagerModuleInfo, PROXY};
+use common::{create_default_os, init_abstract_env, AResult, TEST_COIN};
+use manager::contract::CONTRACT_VERSION;
 
 use boot_core::prelude::{instantiate_default_mock_env, ContractInstance};
 use cosmwasm_std::{Addr, Coin, CosmosMsg};

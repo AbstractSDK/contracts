@@ -1,7 +1,4 @@
-pub const PROXY_CONTRACT: &str = "proxy_addr";
 pub const ROOT_USER: &str = "root_user";
-pub const ANS_HOST_CONTRACT: &str = "ans_host_addr";
-pub const TEST_CREATOR: &str = "creator";
 pub const TEST_COIN: &str = "ucoin";
 
 use abstract_boot::{TMintStakingApi, OS};
@@ -112,6 +109,7 @@ pub(crate) fn create_default_os(
 }
 
 /// Instantiates the staking api and registers it with the version control
+#[allow(dead_code)]
 pub(crate) fn init_staking_api(
     chain: &Mock,
     deployment: &Deployment<Mock>,

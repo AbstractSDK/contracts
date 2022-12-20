@@ -1,11 +1,6 @@
 mod common;
 
-use ::manager::{
-    contract::CONTRACT_VERSION,
-};
-use common::{
-    create_default_os, init_abstract_env, init_staking_api, AResult, TEST_COIN,
-};
+use ::manager::contract::CONTRACT_VERSION;
 use abstract_boot::*;
 use abstract_os::{
     api::BaseQueryMsgFns,
@@ -13,6 +8,7 @@ use abstract_os::{
     *,
 };
 use abstract_os::{manager::ManagerModuleInfo, TENDERMINT_STAKING};
+use common::{create_default_os, init_abstract_env, init_staking_api, AResult, TEST_COIN};
 
 use boot_core::{
     prelude::{instantiate_default_mock_env, CallAs, ContractInstance},

@@ -1,12 +1,12 @@
 mod common;
 
-use common::init_test_env;
-use abstract_boot::{os_factory::OsFactoryQueryFns, OsFactoryExecFns, VCQueryFns, OS, *};
+use abstract_boot::{OsFactoryExecFns, OsFactoryQueryFns, VCQueryFns, OS, *};
 use abstract_os::{objects::gov_type::GovernanceDetails, os_factory, version_control::Core};
 use boot_core::{
     prelude::{instantiate_default_mock_env, ContractInstance},
     IndexResponse,
 };
+use common::init_abstract_env;
 use cosmwasm_std::{Addr, Uint64};
 use speculoos::prelude::*;
 
