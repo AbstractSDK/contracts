@@ -1,4 +1,4 @@
-use super::init::init_test_env;
+use super::init::init_abstract_env;
 use crate::tests::common;
 use abstract_boot::{os_factory::OsFactoryQueryFns, OsFactoryExecFns, VCQueryFns, OS, *};
 use abstract_os::{objects::gov_type::GovernanceDetails, os_factory, version_control::Core};
@@ -16,7 +16,7 @@ fn instantiate() -> AResult {
     let _not_owner = Addr::unchecked("not_owner");
     let sender = Addr::unchecked(common::ROOT_USER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
-    let (mut deployment, mut core) = init_test_env(&chain)?;
+    let (mut deployment, mut core) = init_abstract_env(&chain)?;
     deployment.deploy(&mut core)?;
 
     let factory = deployment.os_factory;
@@ -39,7 +39,7 @@ fn create_one_os() -> AResult {
     let _not_owner = Addr::unchecked("not_owner");
     let sender = Addr::unchecked(common::ROOT_USER);
     let (_, chain) = instantiate_default_mock_env(&sender)?;
-    let (mut deployment, mut core) = init_test_env(&chain)?;
+    let (mut deployment, mut core) = init_abstract_env(&chain)?;
     deployment.deploy(&mut core)?;
 
     let factory = &deployment.os_factory;
@@ -91,7 +91,7 @@ fn create_two_os_s() -> AResult {
     let _not_owner = Addr::unchecked("not_owner");
     let sender = Addr::unchecked(common::ROOT_USER);
     let (_, chain) = instantiate_default_mock_env(&sender)?;
-    let (mut deployment, mut core) = init_test_env(&chain)?;
+    let (mut deployment, mut core) = init_abstract_env(&chain)?;
     deployment.deploy(&mut core)?;
 
     let factory = &deployment.os_factory;
@@ -161,7 +161,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
     let owner = Addr::unchecked("owner");
     let sender = Addr::unchecked(common::ROOT_USER);
     let (_, chain) = instantiate_default_mock_env(&sender)?;
-    let (mut deployment, mut core) = init_test_env(&chain)?;
+    let (mut deployment, mut core) = init_abstract_env(&chain)?;
     deployment.deploy(&mut core)?;
 
     let factory = &deployment.os_factory;
@@ -210,7 +210,7 @@ fn sender_is_not_admin_external() -> AResult {
     let owner = Addr::unchecked("owner");
     let sender = Addr::unchecked(common::ROOT_USER);
     let (_, chain) = instantiate_default_mock_env(&sender)?;
-    let (mut deployment, mut core) = init_test_env(&chain)?;
+    let (mut deployment, mut core) = init_abstract_env(&chain)?;
     deployment.deploy(&mut core)?;
 
     let factory = &deployment.os_factory;
