@@ -34,11 +34,11 @@ pub fn init_test_env<'a>(chain: &'a Mock) -> anyhow::Result<(Deployment<'a, Mock
 
     module_factory.as_instance_mut().set_mock(Box::new(
         cw_multi_test::ContractWrapper::new_with_empty(
-            crate::contract::execute,
-            crate::contract::instantiate,
-            crate::contract::query,
+            ::module_factory::contract::execute,
+            ::module_factory::contract::instantiate,
+            ::module_factory::contract::query,
         )
-        .with_reply_empty(crate::contract::reply),
+        .with_reply_empty(::module_factory::contract::reply),
     ));
 
     version_control.as_instance_mut().set_mock(Box::new(
