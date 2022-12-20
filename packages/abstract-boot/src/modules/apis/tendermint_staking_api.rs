@@ -6,9 +6,9 @@ use abstract_os::tendermint_staking::*;
 
 #[boot_contract(
     InstantiateMsg,
-    TendermintStakingExecuteMsg,
-    TendermintStakingQueryMsg,
-    Empty
+    ExecuteMsg,
+    QueryMsg,
+    Empty,
 )]
 pub struct TMintStakingApi<Chain>;
 
