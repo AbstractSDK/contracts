@@ -1,6 +1,7 @@
-use super::init::init_abstract_env;
-use crate::tests::common;
-use abstract_boot::{OsFactoryExecFns, OsFactoryQueryFns, VCQueryFns, OS, *};
+mod common;
+
+use common::init_test_env;
+use abstract_boot::{os_factory::OsFactoryQueryFns, OsFactoryExecFns, VCQueryFns, OS, *};
 use abstract_os::{objects::gov_type::GovernanceDetails, os_factory, version_control::Core};
 use boot_core::{
     prelude::{instantiate_default_mock_env, ContractInstance},
@@ -22,7 +23,7 @@ fn instantiate() -> AResult {
     let factory = deployment.os_factory;
     let factory_config = factory.config()?;
     let expected = os_factory::ConfigResponse {
-        owner: sender.clone().into_string(),
+        owner: sender.into_string(),
         ans_host_contract: deployment.ans_host.address()?.into(),
         version_control_contract: deployment.version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),
@@ -70,7 +71,7 @@ fn create_one_os() -> AResult {
 
     let vc_config = version_control.config()?;
     let expected = abstract_os::version_control::ConfigResponse {
-        admin: sender.clone().into_string(),
+        admin: sender.into_string(),
         factory: factory.address()?.into_string(),
     };
 
@@ -135,7 +136,7 @@ fn create_two_os_s() -> AResult {
 
     let vc_config = version_control.config()?;
     let expected = abstract_os::version_control::ConfigResponse {
-        admin: sender.clone().into_string(),
+        admin: sender.into_string(),
         factory: factory.address()?.into_string(),
     };
 

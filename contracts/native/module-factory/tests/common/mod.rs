@@ -1,5 +1,5 @@
 use abstract_boot::{
-    AnsHost, Deployment, Manager, ModuleFactory, OSFactory, Proxy, VersionControl, OS,
+    os_factory::OSFactory, AnsHost, Deployment, Manager, ModuleFactory, Proxy, VersionControl, OS,
 };
 
 use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, PROXY, VERSION_CONTROL};
@@ -7,7 +7,14 @@ use boot_core::{prelude::ContractInstance, Mock};
 
 use cw_multi_test::ContractWrapper;
 
-pub fn init_abstract_env<'a>(chain: &'a Mock) -> anyhow::Result<(Deployment<'a, Mock>, OS<Mock>)> {
+pub const PROXY_CONTRACT: &str = "proxy_addr";
+pub const ROOT_USER: &str = "root_user";
+pub const ANS_HOST_CONTRACT: &str = "ans_host_addr";
+pub const TEST_CREATOR: &str = "creator";
+pub const DEFAULT_VERSION: &str = "1.0.0";
+
+
+pub fn init_test_env<'a>(chain: &'a Mock) -> anyhow::Result<(Deployment<'a, Mock>, OS<Mock>)> {
     let mut ans_host = AnsHost::new(ANS_HOST, chain);
     let mut os_factory = OSFactory::new(OS_FACTORY, chain);
     let mut version_control = VersionControl::new(VERSION_CONTROL, chain);
@@ -25,11 +32,11 @@ pub fn init_abstract_env<'a>(chain: &'a Mock) -> anyhow::Result<(Deployment<'a, 
 
     os_factory.as_instance_mut().set_mock(Box::new(
         ContractWrapper::new_with_empty(
-            crate::contract::execute,
-            crate::contract::instantiate,
-            crate::contract::query,
+            ::os_factory::contract::execute,
+            ::os_factory::contract::instantiate,
+            ::os_factory::contract::query,
         )
-        .with_reply_empty(crate::contract::reply),
+        .with_reply_empty(::os_factory::contract::reply),
     ));
 
     module_factory.as_instance_mut().set_mock(Box::new(
