@@ -54,7 +54,7 @@ abstract-boot = { path = "packages/abstract-boot" }
 
 
 module-factory = {path = "contracts/native/module-factory",features = ["library"]}
-os-factory = {path = "contracts/native/os-factory",features = ["library"]}
+os-factory = {path = "contracts/native/factory",features = ["library"]}
 ans-host = {path = "contracts/native/ans-host",features = ["library"]}
 version-control = {path = "contracts/native/version-control",features = ["library"]}
 osmosis-host = {path = "contracts/ibc-hosts/osmosis",features = ["library"]}
