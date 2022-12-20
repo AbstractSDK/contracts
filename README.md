@@ -4,7 +4,7 @@
  <img src="https://codecov.io/gh/Abstract-OS/contracts/branch/main/graph/badge.svg?token=FOIDUFYSCY"/> 
  </a>
 
-<!-- ![alt text](https://github.com/Pandora-OS/contracts/blob/main/architecture.png?raw=true) -->
+<!-- ![alt text](https://github.com/Abstract-OS/contracts/blob/main/architecture.png?raw=true) -->
 ## Core
 Every OS start off with the core contracts. These contracts handle the most important business logic of the DAO, including fund management.
 
