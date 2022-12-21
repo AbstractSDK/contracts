@@ -39,7 +39,7 @@ fn caller_must_be_manager() -> AResult {
     let factory = &deployment.module_factory;
     let test_module = ModuleInfo::from_id(
         "publisher:test",
-        abstract_os::objects::module::ModuleVersion::Latest {},
+        abstract_os::objects::module::ModuleVersion::Latest,
     )?;
 
     let res = factory.install_module(test_module, None).unwrap_err();

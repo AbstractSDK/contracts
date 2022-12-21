@@ -518,7 +518,7 @@ fn query_module(
                 reference: version_registry.query_module_reference_raw(module_info)?,
             })
         }
-        ModuleVersion::Latest {} => {
+        ModuleVersion::Latest => {
             // Query latest version of contract
             version_registry
                 .query_module(module_info)
@@ -867,7 +867,6 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let _info = mock_info("not_root", &[]);
             let msg = ExecuteMsg::InstallModule {
                 module: ModuleInfo::from_id_latest("test:module")?,
                 init_msg: None,
@@ -885,8 +884,6 @@ mod test {
         fn cannot_reinstall_module() -> ManagerTestResult {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
-
-            let _info = mock_info(ROOT.get(deps.as_ref())?.unwrap().as_str(), &[]);
 
             let msg = ExecuteMsg::InstallModule {
                 module: ModuleInfo::from_id_latest("test:module")?,
