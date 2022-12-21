@@ -157,9 +157,9 @@ impl Display for ModuleVersion {
     }
 }
 
-impl From<Option<String>> for ModuleVersion {
-    fn from(value: Option<String>) -> Self {
-        value.map_or(ModuleVersion::Latest, ModuleVersion::Version)
+impl<T> From<T> for ModuleVersion where T: Into<String>{
+    fn from(ver: T) -> Self {
+        Self::Version(ver.into())
     }
 }
 
