@@ -90,7 +90,7 @@ mod test {
     const TEST_OS_FACTORY: &str = "os_factory";
     const TEST_ADMIN: &str = "testadmin";
     const TEST_MODULE: &str = "provider:test";
-    const TEST_VERSION: &str = "verren";
+    const TEST_VERSION: &str = "1.1.0";
 
     const TEST_VERSION_CONTROL: &str = "version_control";
 
@@ -212,10 +212,7 @@ mod test {
 
         }
 
-        // - bad version nr
-        // - try add a "latest"
         // - Query latest
-        // - add under Abstract namespace
 
         #[test]
         fn add_module() -> VersionControlTestResult {
@@ -236,13 +233,37 @@ mod test {
         fn bad_version() -> VersionControlTestResult {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
+
             let bad_version_module = ModuleInfo::from_id(TEST_MODULE, ModuleVersion::Version("non_compliant_version".into()))?;
             let msg = ExecuteMsg::AddModules {
                 modules: vec![(bad_version_module.clone(),ModuleReference::App(0))]
             };
+            let res = execute_as(deps.as_mut(), "test_sender", msg);
+            assert_that!(&res)
+            .is_err()
+            .is_equal_to(&StdError::generic_err("unexpected character 'n' while parsing major version number" ).into());
+
+
             let latest_version_module = ModuleInfo::from_id(TEST_MODULE, ModuleVersion::Latest)?;
             let msg = ExecuteMsg::AddModules {
-                modules: vec![(bad_version_module.clone(),ModuleReference::App(0))]
+                modules: vec![(latest_version_module.clone(),ModuleReference::App(0))]
+            };
+            let res = execute_as(deps.as_mut(), "test_sender", msg);
+            assert_that!(&res)
+            .is_err()
+            .is_equal_to(&StdError::generic_err(
+                "Module version must be set for this action.",
+            ).into());
+            Ok(())
+        }
+
+        #[test]
+        fn abstract_namespace() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+            let new_module = ModuleInfo::from_id(ABSTRACT_NAMESPACE, TEST_VERSION.into())?;
+            let msg = ExecuteMsg::AddModules {
+                modules: vec![(new_module.clone(),ModuleReference::App(0))]
             };
             let res = execute_as(deps.as_mut(), "test_sender", msg);
             assert_that(&res).is_ok();
