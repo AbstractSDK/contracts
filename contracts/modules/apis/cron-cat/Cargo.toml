@@ -1,0 +1,29 @@
+[package]
+name = "cron-cat"
+version = {workspace = true}
+authors = {workspace = true}
+edition = {workspace = true}
+
+exclude = [
+  "contract.wasm",
+  "hash.txt",
+]
+
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+library = []
+backtraces = ["cosmwasm-std/backtraces"]
+
+# Keep as is until TendermintStake updates.
+[dependencies]
+cosmwasm-std = {workspace = true}
+thiserror = {workspace = true}
+abstract-os = {workspace = true}
+abstract-sdk = { workspace = true }
+abstract-api = { workspace = true }
+
+[dev-dependencies]
+cosmwasm-schema = { workspace = true }
