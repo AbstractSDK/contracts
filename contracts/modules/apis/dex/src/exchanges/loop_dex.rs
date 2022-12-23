@@ -3,7 +3,8 @@ use crate::{dex_trait::Identify, error::DexError, DEX};
 use crate::dex_trait::{Fee, FeeOnInput, Return, Spread};
 use abstract_os::objects::PoolId;
 use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, QueryRequest, StdResult, WasmMsg, WasmQuery,
+    to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, QueryRequest, StdResult,
+    WasmMsg, WasmQuery,
 };
 use cw20::Cw20ExecuteMsg;
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};
@@ -158,11 +159,7 @@ impl DEX for Loop {
             receiver: None,
         };
         // actual call to pair
-        let liquidity_msg = CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: pool_id.into_string(),
-            msg: to_binary(&msg)?,
-            funds: coins,
-        });
+        let liquidity_msg = wasm_execute(pool_id, &msg, coins)?.into();
         msgs.push(liquidity_msg);
         Ok(msgs)
     }

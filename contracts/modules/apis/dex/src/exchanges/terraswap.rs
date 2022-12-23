@@ -1,82 +1,81 @@
-use crate::{
-    contract::{DexApi, DexResult},
-    error::DexError,
-    DEX,
-};
+use crate::{error::DexError, DEX};
 
-use crate::dex_trait::{Fee, FeeOnInput, Return, Spread};
+use crate::dex_trait::{Fee, FeeOnInput, Identify, Return, Spread};
 use abstract_os::objects::PoolId;
-use abstract_sdk::OsExecute;
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, QueryRequest, StdResult,
-    Uint128, WasmMsg, WasmQuery,
+    WasmMsg, WasmQuery,
 };
 use cw20::Cw20ExecuteMsg;
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};
 use terraswap::pair::{PoolResponse, SimulationResponse};
 
 pub const TERRASWAP: &str = "terraswap";
+
 pub struct Terraswap {}
 
-impl DEX for Terraswap {
-    fn name(&self) -> &'static str {
-        TERRASWAP
-    }
+impl Identify for Terraswap {
     fn over_ibc(&self) -> bool {
         false
     }
+    fn name(&self) -> &'static str {
+        TERRASWAP
+    }
+}
+
+impl DEX for Terraswap {
     fn swap(
         &self,
-        deps: Deps,
-        pair_address: PoolId,
+        _deps: Deps,
+        pool_id: PoolId,
         offer_asset: Asset,
-        ask_asset: AssetInfo,
+        _ask_asset: AssetInfo,
         belief_price: Option<Decimal>,
         max_spread: Option<Decimal>,
-        max_spread: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
-        let proxy_msg = if let AssetInfoBase::Cw20(token_addr) = &ask_asset.info {
+        let pair_address = pool_id.expect_contract()?;
+
+        let proxy_msg = if let AssetInfoBase::Cw20(token_addr) = &offer_asset.info {
             let hook_msg = terraswap::pair::Cw20HookMsg::Swap {
-                max_spread: belief_price,
+                belief_price,
                 max_spread,
                 to: None,
             };
             // Call swap on pair through cw20 Send
-            let msg = Cw20ExecuteMsg::Send {
-                contract: ask_asset.to_string(),
-                amount: ask_asset.amount,
+            let send_msg = Cw20ExecuteMsg::Send {
+                contract: pair_address.to_string(),
+                amount: offer_asset.amount,
                 msg: to_binary(&hook_msg)?,
             };
             // call send on cw20
-            wasm_execute(token_addr, &msg, vec![])?
+            wasm_execute(token_addr, &send_msg, vec![])?
         } else {
             let swap_msg = terraswap::pair::ExecuteMsg::Swap {
-                offer_asset: cw_asset_to_terraswap(&ask_asset)?,
-                max_spread: belief_price,
+                offer_asset: cw_asset_to_terraswap(&offer_asset)?,
                 max_spread,
+                belief_price,
                 to: None,
             };
-            wasm_execute(ask_asset, &swap_msg, coins_in_assets(&[ask_asset]))?
+            wasm_execute(pair_address, &swap_msg, coins_in_assets(&[offer_asset]))?
         };
 
-        ask_asset
-            .os_execute(deps, vec![proxy_msg.into()])
-            .map_err(From::from)
+        Ok(vec![proxy_msg.into()])
     }
 
     fn provide_liquidity(
         &self,
-        deps: Deps,
-        pair_address: PoolId,
+        _deps: Deps,
+        pool_id: PoolId,
         offer_assets: Vec<Asset>,
         max_spread: Option<Decimal>,
-        max_spread: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
-        if max_spread.len() > 2 {
+        let pair_address = pool_id.expect_contract()?;
+
+        if offer_assets.len() > 2 {
             return Err(DexError::TooManyAssets(2));
         }
 
-        let terraswap_assets = max_spread
+        let terraswap_assets = offer_assets
             .iter()
             .map(cw_asset_to_terraswap)
             .collect::<Result<Vec<_>, _>>()?;
@@ -87,57 +86,54 @@ impl DEX for Terraswap {
             receiver: None,
         };
         // approval msgs for cw20 tokens (if present)
-        let mut msgs = cw_approve_msgs(&max_spread, &max_spread)?;
-        let coins = coins_in_assets(&max_spread);
+        let mut msgs = cw_approve_msgs(&offer_assets, &pair_address)?;
+        let coins = coins_in_assets(&offer_assets);
         // actual call to pair
-        let liquidity_msg = CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: max_spread.into_string(),
-            msg: to_binary(&msg)?,
-            funds: coins,
-        });
+        let liquidity_msg = wasm_execute(pair_address, &msg, coins)?.into();
         msgs.push(liquidity_msg);
 
-        max_spread.os_execute(deps, msgs).map_err(From::from)
+        Ok(msgs)
     }
 
     fn provide_liquidity_symmetric(
         &self,
         deps: Deps,
-        pair_address: PoolId,
+        pool_id: PoolId,
         offer_asset: Asset,
         paired_assets: Vec<AssetInfo>,
-        other_assets: Vec<AssetInfo>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
-        if other_assets.len() > 1 {
+        let pair_address = pool_id.expect_contract()?;
+
+        if paired_assets.len() > 1 {
             return Err(DexError::TooManyAssets(2));
         }
         // Get pair info
         let pair_config: PoolResponse =
             deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-                contract_addr: paired_assets.to_string(),
+                contract_addr: pair_address.to_string(),
                 msg: to_binary(&terraswap::pair::QueryMsg::Pool {})?,
             }))?;
 
-        let ts_offer_asset = cw_asset_to_terraswap(&paired_assets)?;
+        let ts_offer_asset = cw_asset_to_terraswap(&offer_asset)?;
         let other_asset = if pair_config.assets[0].info == ts_offer_asset.info {
             let price =
                 Decimal::from_ratio(pair_config.assets[1].amount, pair_config.assets[0].amount);
-            let other_token_amount = price * paired_assets.amount;
+            let other_token_amount = price * offer_asset.amount;
             Asset {
                 amount: other_token_amount,
-                info: other_assets[0].clone(),
+                info: paired_assets[0].clone(),
             }
         } else if pair_config.assets[1].info == ts_offer_asset.info {
             let price =
                 Decimal::from_ratio(pair_config.assets[0].amount, pair_config.assets[1].amount);
-            let other_token_amount = price * paired_assets.amount;
+            let other_token_amount = price * offer_asset.amount;
             Asset {
                 amount: other_token_amount,
-                info: other_assets[0].clone(),
+                info: paired_assets[0].clone(),
             }
         } else {
             return Err(DexError::ArgumentMismatch(
-                paired_assets.to_string(),
+                offer_asset.to_string(),
                 pair_config
                     .assets
                     .iter()
@@ -146,11 +142,11 @@ impl DEX for Terraswap {
             ));
         };
 
-        let offer_assets = [paired_assets, other_asset];
+        let offer_assets = [offer_asset, other_asset];
 
         let coins = coins_in_assets(&offer_assets);
         // approval msgs for cw20 tokens (if present)
-        let mut msgs = cw_approve_msgs(&offer_assets, &paired_assets)?;
+        let mut msgs = cw_approve_msgs(&offer_assets, &pair_address)?;
 
         // construct execute msg
         let terraswap_assets = offer_assets
@@ -163,38 +159,34 @@ impl DEX for Terraswap {
             receiver: None,
         };
         // actual call to pair
-        let liquidity_msg = CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: paired_assets.into_string(),
-            msg: to_binary(&msg)?,
-            funds: coins,
-        });
+        let liquidity_msg = wasm_execute(pair_address, &msg, coins)?.into();
         msgs.push(liquidity_msg);
 
-        paired_assets.os_execute(deps, msgs).map_err(From::from)
+        Ok(msgs)
     }
 
     fn withdraw_liquidity(
         &self,
-        deps: Deps,
-        pair_address: PoolId,
-        lp_token: Asset,
+        _deps: Deps,
+        pool_id: PoolId,
         lp_token: Asset,
     ) -> Result<Vec<CosmosMsg>, DexError> {
+        let pair_address = pool_id.expect_contract()?;
         let hook_msg = terraswap::pair::Cw20HookMsg::WithdrawLiquidity {};
         // Call swap on pair through cw20 Send
-        let withdraw_msg = lp_token.send_msg(lp_token, to_binary(&hook_msg)?)?;
-        lp_token
-            .os_execute(deps, vec![withdraw_msg])
-            .map_err(From::from)
+        let withdraw_msg = lp_token.send_msg(pair_address, to_binary(&hook_msg)?)?;
+
+        Ok(vec![withdraw_msg])
     }
 
     fn simulate_swap(
         &self,
         deps: Deps,
-        pair_address: PoolId,
+        pool_id: PoolId,
         offer_asset: Asset,
-        ask_asset: AssetInfo,
+        _ask_asset: AssetInfo,
     ) -> Result<(Return, Spread, Fee, FeeOnInput), DexError> {
+        let pair_address = pool_id.expect_contract()?;
         // Do simulation
         let SimulationResponse {
             return_amount,
