@@ -41,7 +41,9 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
         Ok(module_addr)
     }
 
-    /// RawQuery the version of an enabled module
+    /// Retrieve the version of an application in this OS.
+    /// Note: this method makes use of the Cw2 query and may not coincide with the version of the
+    /// module listed in VersionControl.
     pub fn module_version(&self, module_id: ModuleId) -> StdResult<ContractVersion> {
         let module_address = self.module_address(module_id)?;
         let req = QueryRequest::Wasm(WasmQuery::Raw {
@@ -109,6 +111,192 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
                 "Module {} is not a dependency of this contract.",
                 module_id
             ))),
+        }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use cw_storage_plus::Map;
+    use os::objects::dependency::StaticDependency;
+    use std::collections::HashMap;
+    use std::marker::PhantomData;
+
+    use crate::apis::test_common::*;
+
+    const TEST_MODULE_ID: ModuleId = "test_module";
+
+    const TEST_MODULE_DEP: StaticDependency = StaticDependency::new(TEST_MODULE_ID, &[">1.0.0"]);
+
+    impl Dependencies for MockModule {
+        fn dependencies(&self) -> &[StaticDependency] {
+            &[TEST_MODULE_DEP]
+        }
+    }
+
+    /// mock querier that has the os modules loaded
+    fn mock_querier_with_existing_module() -> MockQuerier {
+        let mut q = MockQuerier::default();
+
+        q.update_wasm(|wasm| match wasm {
+            WasmQuery::Raw { contract_addr, key } => {
+                let os_mod_key = "os_modules";
+                let string_key = String::from_utf8(key.to_vec()).unwrap();
+                let str_key = string_key.as_str();
+                let mut store = MemoryStorage::new();
+
+                let mut modulse = Map::<ModuleId, Addr>::new("os_modules");
+                modulse
+                    .save(&mut store, TEST_MODULE_ID, &Addr::unchecked("aoeu"))
+                    .unwrap();
+
+                let res = match contract_addr.as_str() {
+                    TEST_PROXY => match str_key {
+                        "admin" => Ok(to_binary(&TEST_MANAGER).unwrap()),
+                        _ => Err("unexpected key"),
+                    },
+                    TEST_MANAGER => {
+                        let b: str = from_binary(key).unwrap();
+                        if let Some(value) = modulse.query(&mut store, b).unwrap() {
+                            Ok(to_binary(&value.clone()).unwrap())
+                        } else {
+                            let b: Binary = b"\ros_modulestest_module".into();
+                            panic!("{}, {}, {}", contract_addr, key, b);
+                        }
+                    }
+                    _ => Err("unexpected contract"),
+                }
+                .into();
+
+                //
+                // let res: ContractResult<Binary> = match string_key.as_str() {
+                //     "os_taco" => Ok(to_binary(&Some(Addr::unchecked("existing_address"))).unwrap()),
+                //     _ => Err(format!(
+                //         "Unexpected query: {} {}",
+                //         contract_addr, string_key
+                //     )),
+                // }
+                // .into();
+
+                SystemResult::Ok(res)
+            }
+            _ => panic!("Unexpected smart query"),
+        });
+
+        q
+    }
+
+    pub fn mock_dependencies_with_existing_module(
+    ) -> OwnedDeps<MockStorage, MockApi, MockQuerier, Empty> {
+        OwnedDeps {
+            storage: MockStorage::default(),
+            api: MockApi::default(),
+            querier: mock_querier_with_existing_module(),
+            custom_query_type: PhantomData,
+        }
+    }
+
+    mod assert_module_dependency {
+        use super::*;
+
+        #[test]
+        fn should_return_ok_if_dependency() {
+            let deps = mock_dependencies();
+            let app = mock_module();
+
+            let mods = app.modules(deps.as_ref());
+
+            let res = mods.assert_module_dependency(TEST_MODULE_ID);
+            assert_that!(res).is_ok();
+        }
+
+        #[test]
+        fn should_return_err_if_not_dependency() {
+            let deps = mock_dependencies();
+            let app = mock_module();
+
+            let mods = app.modules(deps.as_ref());
+
+            let fake_module = "lol_no_chance";
+            let res = mods.assert_module_dependency(fake_module);
+
+            assert_that!(res).is_err().matches(|e| {
+                e.to_string()
+                    .contains(&format!("{} is not a dependency", fake_module))
+            });
+        }
+    }
+
+    /// Helper to check that the method is not callable when the module is not a dependency
+    fn fail_when_not_dependency_test(
+        modules_fn: impl FnOnce(&MockModule, Deps) -> StdResult<CosmosMsg>,
+    ) {
+        let deps = mock_dependencies_with_existing_module();
+        let app = mock_module();
+
+        let mods = app.modules(deps.as_ref());
+
+        let fake_module = "lol_no_chance";
+        let res = modules_fn(&app, deps.as_ref());
+
+        print!("res: {:?}", res);
+
+        assert_that!(res)
+            .is_err()
+            .matches(|e| e.to_string().contains(fake_module));
+    }
+
+    mod api_request {
+        use super::*;
+
+        #[test]
+        fn should_return_err_if_not_dependency() {
+            fail_when_not_dependency_test(|app, deps| {
+                let mods = app.modules(deps);
+                mods.api_request(TEST_MODULE_ID, MockModuleExecuteMsg {})
+            });
+        }
+    }
+
+    mod app_request {
+        use super::*;
+
+        #[test]
+        fn should_return_err_if_not_dependency() {
+            fail_when_not_dependency_test(|app, deps| {
+                let mods = app.modules(deps);
+                mods.app_request(TEST_MODULE_ID, MockModuleExecuteMsg {})
+            });
+        }
+    }
+
+    mod configure_api {
+        use super::*;
+
+        #[test]
+        fn should_return_err_if_not_dependency() {
+            fail_when_not_dependency_test(|app, deps| {
+                let mods = app.modules(deps);
+                mods.configure_api(TEST_MODULE_ID, api::BaseExecuteMsg::Remove {})
+            });
+        }
+    }
+
+    mod configure_app {
+        use super::*;
+
+        #[test]
+        fn should_return_err_if_not_dependency() {
+            fail_when_not_dependency_test(|app, deps| {
+                let mods = app.modules(deps);
+                mods.configure_app(
+                    TEST_MODULE_ID,
+                    app::BaseExecuteMsg::UpdateConfig {
+                        ans_host_address: None,
+                    },
+                )
+            });
         }
     }
 }

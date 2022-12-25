@@ -28,3 +28,4 @@ semver = { workspace = true }
 
 [dev-dependencies]
 speculoos = { workspace = true }
+cosmwasm-schema = { workspace = true }

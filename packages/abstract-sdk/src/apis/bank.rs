@@ -112,7 +112,7 @@ mod test {
 
         #[test]
         fn transfer_asset_to_sender() {
-            let app = stub_module();
+            let app = mock_module();
             let deps = mock_dependencies();
             let expected_amount = 100u128;
             let expected_recipient = Addr::unchecked("recipient");
@@ -148,7 +148,7 @@ mod test {
 
         #[test]
         fn deposit_coins() {
-            let app = stub_module();
+            let app = mock_module();
             let deps = mock_dependencies();
             let expected_amount = 100u128;
 
@@ -164,4 +164,6 @@ mod test {
             assert_that!(actual_res).is_ok().is_equal_to(expected_msg);
         }
     }
+
+    // deposit must be tested via integration test
 }
