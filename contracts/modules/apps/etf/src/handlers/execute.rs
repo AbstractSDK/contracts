@@ -9,7 +9,7 @@ use cw_asset::{Asset, AssetInfo};
 use abstract_app::state::AppState;
 use abstract_os::etf::EtfExecuteMsg;
 use abstract_sdk::base::features::AbstractNameService;
-use abstract_sdk::helpers::cosmwasm_sdk::wasm_smart_query;
+use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
 use abstract_sdk::*;
 
 use abstract_sdk::os::objects::deposit_info::DepositInfo;

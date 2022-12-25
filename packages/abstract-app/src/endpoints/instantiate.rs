@@ -6,14 +6,12 @@ use abstract_sdk::{
         module_factory::{ContextResponse, QueryMsg as FactoryQuery},
     },
 };
-use cosmwasm_std::{
-    DepsMut, Env, MessageInfo, Response, StdError,
-};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
 use cw2::set_contract_version;
 
 use crate::{Handler, InstantiateEndpoint};
 
-use abstract_sdk::helpers::cosmwasm_sdk::wasm_smart_query;
+use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
 use schemars::JsonSchema;
 use serde::Serialize;
 

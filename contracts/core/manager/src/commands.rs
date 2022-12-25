@@ -1,12 +1,13 @@
 use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo, Response, StdResult, Storage, WasmMsg,
+    to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo,
+    Response, StdResult, Storage, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
 use cw_storage_plus::Item;
 use semver::Version;
 
 use abstract_sdk::feature_objects::VersionControlContract;
-use abstract_sdk::helpers::cosmwasm_sdk::wasm_smart_query;
+use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
 use abstract_sdk::os::{
     api::{
         BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as ApiExecMsg, QueryMsg as ApiQuery,

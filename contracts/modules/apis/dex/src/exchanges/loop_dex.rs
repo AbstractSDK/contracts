@@ -1,9 +1,8 @@
 use crate::{dex_trait::Identify, error::DexError, DEX};
 
-use abstract_sdk::helpers::cosmwasm_sdk::wasm_smart_query;
+use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
 use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, StdResult,
-    Uint128, WasmMsg,
+    to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, StdResult, Uint128, WasmMsg,
 };
 use cw20::Cw20ExecuteMsg;
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};

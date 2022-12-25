@@ -1,9 +1,9 @@
 use crate::{dex_trait::Identify, error::DexError, DEX};
 
-use abstract_sdk::helpers::cosmwasm_sdk::wasm_smart_query;
+use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
 use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, Fraction,
-    StdResult, Uint128, WasmMsg,
+    to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, Fraction, StdResult, Uint128,
+    WasmMsg,
 };
 use cw20_junoswap::{Cw20ExecuteMsg, Denom};
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};

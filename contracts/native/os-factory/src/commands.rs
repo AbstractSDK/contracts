@@ -2,7 +2,7 @@ use crate::contract::OsFactoryResult;
 use crate::state::*;
 use crate::{error::OsFactoryError, response::MsgInstantiateContractResponse};
 use abstract_os::app;
-use abstract_sdk::helpers::cosmwasm_sdk::wasm_smart_query;
+use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
 use abstract_sdk::os::version_control::{ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery};
 use abstract_sdk::os::{
     manager::{ExecuteMsg::UpdateModuleAddresses, InstantiateMsg as ManagerInstantiateMsg},
@@ -19,8 +19,7 @@ use abstract_sdk::os::{
 };
 use cosmwasm_std::{
     from_binary, to_binary, Addr, Coin, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
-    QuerierWrapper, ReplyOn, Response, StdError, StdResult, SubMsg, SubMsgResult,
-    WasmMsg,
+    QuerierWrapper, ReplyOn, Response, StdError, StdResult, SubMsg, SubMsgResult, WasmMsg,
 };
 use cw20::Cw20ReceiveMsg;
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};

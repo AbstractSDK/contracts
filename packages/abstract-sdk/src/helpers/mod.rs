@@ -1,1 +1,1 @@
-pub mod cosmwasm_sdk;
+pub mod cosmwasm_std;
