@@ -144,12 +144,11 @@ mod test {
                 let os_mod_key = "os_modules";
                 let string_key = String::from_utf8(key.to_vec()).unwrap();
                 let str_key = string_key.as_str();
-                let mut store = MemoryStorage::new();
 
-                let mut modulse = Map::<ModuleId, Addr>::new("os_modules");
-                modulse
-                    .save(&mut store, TEST_MODULE_ID, &Addr::unchecked("aoeu"))
-                    .unwrap();
+                let mut modules = HashMap::<Binary, Binary>::default();
+                modules.insert(b"os_modulestest_module".into(), b"the value".into());
+
+                let test_binary = to_binary("os_modulestest_module".as_bytes()).unwrap();
 
                 let res = match contract_addr.as_str() {
                     TEST_PROXY => match str_key {
@@ -157,12 +156,11 @@ mod test {
                         _ => Err("unexpected key"),
                     },
                     TEST_MANAGER => {
-                        let b: str = from_binary(key).unwrap();
-                        if let Some(value) = modulse.query(&mut store, b).unwrap() {
+                        if let Some(value) = modules.get(key) {
                             Ok(to_binary(&value.clone()).unwrap())
                         } else {
                             let b: Binary = b"\ros_modulestest_module".into();
-                            panic!("{}, {}, {}", contract_addr, key, b);
+                            panic!("{}, {}, {}, {}", contract_addr, key, b, test_binary);
                         }
                     }
                     _ => Err("unexpected contract"),
