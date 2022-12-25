@@ -6,4 +6,7 @@ pub mod vault;
 pub mod verify;
 pub mod version_register;
 
+#[cfg(test)]
+mod test_common;
+
 pub(crate) use crate::base::features::*;
