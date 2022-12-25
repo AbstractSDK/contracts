@@ -126,6 +126,8 @@ mod test {
     use crate::apis::test_common::*;
 
     const TEST_MODULE_ID: ModuleId = "test_module";
+    /// Nonexistent module
+    const FAKE_MODULE_ID: ModuleId = "fake_module";
 
     const TEST_MODULE_DEP: StaticDependency = StaticDependency::new(TEST_MODULE_ID, &[">1.0.0"]);
 
@@ -135,54 +137,58 @@ mod test {
         }
     }
 
+    const TEST_MODULE_ADDRESS: &str = "test_module_address";
+
     /// mock querier that has the os modules loaded
     fn mock_querier_with_existing_module() -> MockQuerier {
-        let mut q = MockQuerier::default();
+        let mut querier = MockQuerier::default();
 
-        q.update_wasm(|wasm| match wasm {
-            WasmQuery::Raw { contract_addr, key } => {
-                let os_mod_key = "os_modules";
-                let string_key = String::from_utf8(key.to_vec()).unwrap();
-                let str_key = string_key.as_str();
+        querier.update_wasm(|wasm| {
+            match wasm {
+                WasmQuery::Raw { contract_addr, key } => {
+                    let os_mod_key = "os_modules";
+                    let string_key = String::from_utf8(key.to_vec()).unwrap();
+                    let str_key = string_key.as_str();
 
-                let mut modules = HashMap::<Binary, Binary>::default();
-                modules.insert(b"os_modulestest_module".into(), b"the value".into());
+                    let mut modules = HashMap::<Binary, Addr>::default();
 
-                let test_binary = to_binary("os_modulestest_module".as_bytes()).unwrap();
+                    // binary key is "os_modules<module_id>" (though with a \n or \r before)
+                    let binary = Binary::from_base64("AApvc19tb2R1bGVzdGVzdF9tb2R1bGU=").unwrap();
+                    modules.insert(binary, Addr::unchecked(TEST_MODULE_ADDRESS));
 
-                let res = match contract_addr.as_str() {
-                    TEST_PROXY => match str_key {
-                        "admin" => Ok(to_binary(&TEST_MANAGER).unwrap()),
-                        _ => Err("unexpected key"),
-                    },
-                    TEST_MANAGER => {
-                        if let Some(value) = modules.get(key) {
-                            Ok(to_binary(&value.clone()).unwrap())
-                        } else {
-                            let b: Binary = b"\ros_modulestest_module".into();
-                            panic!("{}, {}, {}, {}", contract_addr, key, b, test_binary);
+                    let res = match contract_addr.as_str() {
+                        TEST_PROXY => match str_key {
+                            "admin" => Ok(to_binary(&TEST_MANAGER).unwrap()),
+                            _ => Err("unexpected key"),
+                        },
+                        TEST_MANAGER => {
+                            if let Some(value) = modules.get(key) {
+                                Ok(to_binary(&value.to_owned().clone()).unwrap())
+                            } else {
+                                // Debug print out what the key was
+                                // let into_binary: Binary = b"\ros_modulestest_module".into();
+                                // let to_binary_res =
+                                //     to_binary("os_modulestest_module".as_bytes()).unwrap();
+                                // panic!(
+                                //     "contract: {}, binary_key: {}, into_binary: {}, to_binary_res: {}",
+                                //     contract_addr, key, into_binary, to_binary_res
+                                // );
+                                Ok(Binary::default())
+                            }
                         }
+                        _ => Err("unexpected contract"),
+                    };
+
+                    match res {
+                        Ok(res) => SystemResult::Ok(ContractResult::Ok(res)),
+                        Err(e) => SystemResult::Ok(ContractResult::Err(e.to_string())),
                     }
-                    _ => Err("unexpected contract"),
                 }
-                .into();
-
-                //
-                // let res: ContractResult<Binary> = match string_key.as_str() {
-                //     "os_taco" => Ok(to_binary(&Some(Addr::unchecked("existing_address"))).unwrap()),
-                //     _ => Err(format!(
-                //         "Unexpected query: {} {}",
-                //         contract_addr, string_key
-                //     )),
-                // }
-                // .into();
-
-                SystemResult::Ok(res)
+                _ => panic!("Unexpected smart query"),
             }
-            _ => panic!("Unexpected smart query"),
         });
 
-        q
+        querier
     }
 
     pub fn mock_dependencies_with_existing_module(
@@ -229,31 +235,59 @@ mod test {
     /// Helper to check that the method is not callable when the module is not a dependency
     fn fail_when_not_dependency_test(
         modules_fn: impl FnOnce(&MockModule, Deps) -> StdResult<CosmosMsg>,
+        fake_module: ModuleId,
     ) {
         let deps = mock_dependencies_with_existing_module();
         let app = mock_module();
 
         let mods = app.modules(deps.as_ref());
 
-        let fake_module = "lol_no_chance";
         let res = modules_fn(&app, deps.as_ref());
 
         print!("res: {:?}", res);
 
-        assert_that!(res)
-            .is_err()
-            .matches(|e| e.to_string().contains(fake_module));
+        assert_that!(res).is_err().matches(|e| match e {
+            StdError::GenericErr { msg, .. } => msg.contains(&format!("{}", fake_module)),
+            _ => false,
+        });
     }
 
     mod api_request {
         use super::*;
+        use os::api::ApiRequestMsg;
 
         #[test]
         fn should_return_err_if_not_dependency() {
-            fail_when_not_dependency_test(|app, deps| {
-                let mods = app.modules(deps);
-                mods.api_request(TEST_MODULE_ID, MockModuleExecuteMsg {})
+            fail_when_not_dependency_test(
+                |app, deps| {
+                    let mods = app.modules(deps);
+                    mods.api_request(FAKE_MODULE_ID, MockModuleExecuteMsg {})
+                },
+                FAKE_MODULE_ID,
+            );
+        }
+
+        #[test]
+        fn expected_api_request() {
+            let deps = mock_dependencies_with_existing_module();
+            let app = mock_module();
+
+            let mods = app.modules(deps.as_ref());
+
+            let res = mods.api_request(TEST_MODULE_ID, MockModuleExecuteMsg {});
+
+            let expected_msg: api::ExecuteMsg<_, Empty> = api::ExecuteMsg::App(ApiRequestMsg {
+                proxy_address: None,
+                request: MockModuleExecuteMsg {},
             });
+
+            assert_that!(res)
+                .is_ok()
+                .is_equal_to(CosmosMsg::Wasm(WasmMsg::Execute {
+                    contract_addr: TEST_MODULE_ADDRESS.into(),
+                    msg: to_binary(&expected_msg).unwrap(),
+                    funds: vec![],
+                }));
         }
     }
 
@@ -262,10 +296,34 @@ mod test {
 
         #[test]
         fn should_return_err_if_not_dependency() {
-            fail_when_not_dependency_test(|app, deps| {
-                let mods = app.modules(deps);
-                mods.app_request(TEST_MODULE_ID, MockModuleExecuteMsg {})
-            });
+            fail_when_not_dependency_test(
+                |app, deps| {
+                    let mods = app.modules(deps);
+                    mods.app_request(FAKE_MODULE_ID, MockModuleExecuteMsg {})
+                },
+                FAKE_MODULE_ID,
+            );
+        }
+
+        #[test]
+        fn expected_app_request() {
+            let deps = mock_dependencies_with_existing_module();
+            let app = mock_module();
+
+            let mods = app.modules(deps.as_ref());
+
+            let res = mods.app_request(TEST_MODULE_ID, MockModuleExecuteMsg {});
+
+            let expected_msg: app::ExecuteMsg<_, Empty> =
+                app::ExecuteMsg::App(MockModuleExecuteMsg {});
+
+            assert_that!(res)
+                .is_ok()
+                .is_equal_to(CosmosMsg::Wasm(WasmMsg::Execute {
+                    contract_addr: TEST_MODULE_ADDRESS.into(),
+                    msg: to_binary(&expected_msg).unwrap(),
+                    funds: vec![],
+                }));
         }
     }
 
@@ -274,10 +332,34 @@ mod test {
 
         #[test]
         fn should_return_err_if_not_dependency() {
-            fail_when_not_dependency_test(|app, deps| {
-                let mods = app.modules(deps);
-                mods.configure_api(TEST_MODULE_ID, api::BaseExecuteMsg::Remove {})
-            });
+            fail_when_not_dependency_test(
+                |app, deps| {
+                    let mods = app.modules(deps);
+                    mods.configure_api(FAKE_MODULE_ID, api::BaseExecuteMsg::Remove {})
+                },
+                FAKE_MODULE_ID,
+            );
+        }
+
+        #[test]
+        fn expected_configure_msg() {
+            let deps = mock_dependencies_with_existing_module();
+            let app = mock_module();
+
+            let mods = app.modules(deps.as_ref());
+
+            let res = mods.configure_api(TEST_MODULE_ID, api::BaseExecuteMsg::Remove {});
+
+            let expected_msg: api::ExecuteMsg<Empty, Empty> =
+                api::ExecuteMsg::Base(api::BaseExecuteMsg::Remove {});
+
+            assert_that!(res)
+                .is_ok()
+                .is_equal_to(CosmosMsg::Wasm(WasmMsg::Execute {
+                    contract_addr: TEST_MODULE_ADDRESS.into(),
+                    msg: to_binary(&expected_msg).unwrap(),
+                    funds: vec![],
+                }));
         }
     }
 
@@ -286,15 +368,46 @@ mod test {
 
         #[test]
         fn should_return_err_if_not_dependency() {
-            fail_when_not_dependency_test(|app, deps| {
-                let mods = app.modules(deps);
-                mods.configure_app(
-                    TEST_MODULE_ID,
-                    app::BaseExecuteMsg::UpdateConfig {
-                        ans_host_address: None,
-                    },
-                )
-            });
+            fail_when_not_dependency_test(
+                |app, deps| {
+                    let mods = app.modules(deps);
+                    mods.configure_app(
+                        FAKE_MODULE_ID,
+                        app::BaseExecuteMsg::UpdateConfig {
+                            ans_host_address: None,
+                        },
+                    )
+                },
+                FAKE_MODULE_ID,
+            );
+        }
+
+        #[test]
+        fn expected_configure_msg() {
+            let deps = mock_dependencies_with_existing_module();
+            let app = mock_module();
+
+            let mods = app.modules(deps.as_ref());
+
+            let res = mods.configure_app(
+                TEST_MODULE_ID,
+                app::BaseExecuteMsg::UpdateConfig {
+                    ans_host_address: Some("new_ans_addr".to_string()),
+                },
+            );
+
+            let expected_msg: app::ExecuteMsg<Empty, Empty> =
+                app::ExecuteMsg::Base(app::BaseExecuteMsg::UpdateConfig {
+                    ans_host_address: Some("new_ans_addr".to_string()),
+                });
+
+            assert_that!(res)
+                .is_ok()
+                .is_equal_to(CosmosMsg::Wasm(WasmMsg::Execute {
+                    contract_addr: TEST_MODULE_ADDRESS.into(),
+                    msg: to_binary(&expected_msg).unwrap(),
+                    funds: vec![],
+                }));
         }
     }
 }
