@@ -68,6 +68,15 @@ impl<Chain: BootEnvironment> Manager<Chain> {
         module_id: &str,
         init_msg: Option<&TInitMsg>,
     ) -> Result<(), BootError> {
+        self.install_module_version(module_id, ModuleVersion::Latest, init_msg)
+    }
+
+    pub fn install_module_version<M: Serialize>(
+        &self,
+        module_id: &str,
+        version: ModuleVersion,
+        init_msg: Option<&M>,
+    ) -> Result<(), BootError> {
         self.execute(
             &ExecuteMsg::InstallModule {
                 module: ModuleInfo::from_id_latest(module_id)?,
