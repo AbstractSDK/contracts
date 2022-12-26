@@ -10,19 +10,29 @@ use abstract_os::{
 use abstract_os::{manager::ManagerModuleInfo, TENDERMINT_STAKING};
 use common::{create_default_os, init_abstract_env, init_staking_api, AResult, TEST_COIN};
 
+use ::manager::error::ManagerError;
+use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
 use boot_core::{
     prelude::{instantiate_default_mock_env, CallAs, ContractInstance},
-    Mock, TxHandler,
+    BootError, Mock, TxHandler,
 };
 use cosmwasm_std::{Addr, Coin, Decimal, Empty, Validator};
 use cw_multi_test::StakingInfo;
 use speculoos::prelude::*;
 
 const VALIDATOR: &str = "testvaloper1";
+
 fn install_api(manager: &Manager<Mock>, api: &str) -> AResult {
     manager
         .install_module(api, Some(&Empty {}))
         .map_err(Into::into)
+}
+
+pub(crate) fn uninstall_module(manager: &Manager<Mock>, api: &str) -> AResult {
+    manager
+        .remove_module(api.to_string())
+        .map_err(Into::<BootError>::into)?;
+    Ok(())
 }
 
 /// TODO
@@ -33,7 +43,6 @@ fn install_api(manager: &Manager<Mock>, api: &str) -> AResult {
 /// - Migration with traders
 /// - Uninstall
 /// - Add one
-/// - Add duplicate
 ///
 
 fn setup_staking(mock: &Mock) -> AResult {
@@ -108,6 +117,159 @@ fn add_one_api() -> AResult {
 
     Ok(())
 }
+
+#[test]
+fn install_duplicate_api() -> AResult {
+    let sender = Addr::unchecked(common::ROOT_USER);
+    let (_state, chain) = instantiate_default_mock_env(&sender)?;
+    let (mut deployment, mut core) = init_abstract_env(&chain)?;
+    deployment.deploy(&mut core)?;
+    let os = create_default_os(&chain, &deployment.os_factory)?;
+    let staking_api = init_staking_api(&chain, &deployment)?;
+
+    install_api(&os.manager, TENDERMINT_STAKING)?;
+
+    let modules = os.manager.module_infos(None, None)?.module_infos;
+
+    // assert proxy module
+    assert_that(&modules.len()).is_equal_to(2);
+    // check staking api
+    assert_that(&modules[1]).is_equal_to(&ManagerModuleInfo {
+        address: staking_api.addr_str()?,
+        id: TENDERMINT_STAKING.to_string(),
+        version: cw2::ContractVersion {
+            contract: TENDERMINT_STAKING.into(),
+            version: CONTRACT_VERSION.into(),
+        },
+    });
+    // check proxy config
+    assert_that!(os.proxy.config()?).is_equal_to(proxy::ConfigResponse {
+        modules: vec![os.manager.address()?.into_string(), staking_api.addr_str()?],
+    });
+
+    // install again
+    let second_install_res = install_api(&os.manager, TENDERMINT_STAKING);
+    assert_that!(second_install_res).is_err().matches(|e| {
+        e.to_string()
+            .contains("Cannot add two modules of the same kind")
+    });
+
+    let modules = os.manager.module_infos(None, None)?.module_infos;
+    assert_that!(modules.len()).is_equal_to(2);
+
+    Ok(())
+}
+
+#[test]
+fn reinstall() -> AResult {
+    let sender = Addr::unchecked(common::ROOT_USER);
+    let (_state, chain) = instantiate_default_mock_env(&sender)?;
+    let (mut deployment, mut core) = init_abstract_env(&chain)?;
+    deployment.deploy(&mut core)?;
+    let os = create_default_os(&chain, &deployment.os_factory)?;
+    let staking_api = init_staking_api(&chain, &deployment)?;
+
+    install_api(&os.manager, TENDERMINT_STAKING)?;
+
+    let modules = os.manager.module_infos(None, None)?.module_infos;
+
+    // assert proxy module
+    assert_that(&modules.len()).is_equal_to(2);
+    // check staking api
+    assert_that(&modules[1]).is_equal_to(&ManagerModuleInfo {
+        address: staking_api.addr_str()?,
+        id: TENDERMINT_STAKING.to_string(),
+        version: cw2::ContractVersion {
+            contract: TENDERMINT_STAKING.into(),
+            version: CONTRACT_VERSION.into(),
+        },
+    });
+
+    // uninstall
+    uninstall_module(&os.manager, TENDERMINT_STAKING)?;
+
+    let modules = os.manager.module_infos(None, None)?.module_infos;
+    // assert proxy module
+    assert_that(&modules.len()).is_equal_to(1);
+
+    // reinstall
+    install_api(&os.manager, TENDERMINT_STAKING)?;
+
+    let modules = os.manager.module_infos(None, None)?.module_infos;
+    // assert proxy module
+    assert_that(&modules.len()).is_equal_to(2);
+
+    Ok(())
+}
+
+/// Reinstalling the API should install the latest version
+#[test]
+fn reinstall_new_version() -> AResult {
+    let sender = Addr::unchecked(common::ROOT_USER);
+    let (_state, chain) = instantiate_default_mock_env(&sender)?;
+    let (mut deployment, mut core) = init_abstract_env(&chain)?;
+    deployment.deploy(&mut core)?;
+    let os = create_default_os(&chain, &deployment.os_factory)?;
+    let staking_api = init_staking_api(&chain, &deployment)?;
+
+    install_api(&os.manager, TENDERMINT_STAKING)?;
+
+    let modules = os.manager.module_infos(None, None)?.module_infos;
+
+    // assert proxy module
+    assert_that(&modules.len()).is_equal_to(2);
+    // check staking api
+    assert_that(&modules[1]).is_equal_to(&ManagerModuleInfo {
+        address: staking_api.addr_str()?,
+        id: TENDERMINT_STAKING.to_string(),
+        version: cw2::ContractVersion {
+            contract: TENDERMINT_STAKING.into(),
+            version: CONTRACT_VERSION.into(),
+        },
+    });
+
+    // uninstall
+    uninstall_module(&os.manager, TENDERMINT_STAKING)?;
+
+    let modules = os.manager.module_infos(None, None)?.module_infos;
+    // assert proxy module
+    assert_that(&modules.len()).is_equal_to(1);
+
+    let new_version_num = "100.0.0";
+    let new_version = new_version_num.parse()?;
+
+    deployment
+        .version_control
+        .register_apis(vec![staking_api.as_instance()], &new_version)?;
+
+    // check that the latest staking version is the new one
+    let latest_staking = deployment
+        .version_control
+        .module(ModuleInfo::from_id_latest(TENDERMINT_STAKING)?)?
+        .module;
+    assert_that!(latest_staking.info.version)
+        .is_equal_to(ModuleVersion::Version(new_version_num.to_string()));
+
+    // reinstall
+    install_api(&os.manager, TENDERMINT_STAKING)?;
+
+    let modules = os.manager.module_infos(None, None)?.module_infos;
+    // assert proxy module
+    assert_that(&modules.len()).is_equal_to(2);
+
+    assert_that!(modules[1]).is_equal_to(&ManagerModuleInfo {
+        address: staking_api.addr_str()?,
+        id: TENDERMINT_STAKING.to_string(),
+        version: cw2::ContractVersion {
+            contract: TENDERMINT_STAKING.into(),
+            version: new_version.to_string(),
+        },
+    });
+
+    Ok(())
+}
+
+// struct TestModule = AppContract
 
 #[test]
 fn not_trader_exec() -> AResult {
