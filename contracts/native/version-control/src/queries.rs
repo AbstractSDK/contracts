@@ -110,8 +110,8 @@ mod test {
     mod module {
         use super::*;
         use abstract_os::objects::module::ModuleVersion::Latest;
-        
-        use cosmwasm_std::{from_binary};
+
+        use cosmwasm_std::from_binary;
 
         fn add_module(deps: DepsMut, new_module_info: ModuleInfo) {
             let add_msg = ExecuteMsg::AddModules {
@@ -177,17 +177,17 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let moduleId = "test:module";
+            let module_id = "test:module";
             let oldest_version =
-                ModuleInfo::from_id(moduleId, ModuleVersion::Version("0.1.2".into())).unwrap();
+                ModuleInfo::from_id(module_id, ModuleVersion::Version("0.1.2".into())).unwrap();
 
             add_module(deps.as_mut(), oldest_version);
             let newest_version =
-                ModuleInfo::from_id(moduleId, ModuleVersion::Version("100.1.2".into())).unwrap();
+                ModuleInfo::from_id(module_id, ModuleVersion::Version("100.1.2".into())).unwrap();
             add_module(deps.as_mut(), newest_version.clone());
 
             let another_version =
-                ModuleInfo::from_id(moduleId, ModuleVersion::Version("1.1.2".into())).unwrap();
+                ModuleInfo::from_id(module_id, ModuleVersion::Version("1.1.2".into())).unwrap();
             add_module(deps.as_mut(), another_version);
 
             let query_msg = QueryMsg::Module {
