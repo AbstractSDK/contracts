@@ -1,7 +1,5 @@
-
-
 use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
-use boot_core::{BootEnvironment};
+use boot_core::BootEnvironment;
 use cosmwasm_std::{to_binary, Empty};
 use serde::Serialize;
 
@@ -10,10 +8,7 @@ pub use abstract_os::manager::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as M
 
 use boot_core::{BootError, Contract};
 
-use boot_core::{
-    interface::{BootExecute},
-    prelude::boot_contract,
-};
+use boot_core::{interface::BootExecute, prelude::boot_contract};
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Manager<Chain>;
@@ -53,7 +48,7 @@ impl<Chain: BootEnvironment> Manager<Chain> {
         self.execute(
             &ExecuteMsg::Upgrade {
                 modules: vec![(
-                    ModuleInfo::from_id(module_id, ModuleVersion::Latest {})?,
+                    ModuleInfo::from_id(module_id, ModuleVersion::Latest)?,
                     Some(to_binary(migrate_msg)?),
                 )],
             },
