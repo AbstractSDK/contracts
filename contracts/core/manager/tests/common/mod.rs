@@ -1,9 +1,10 @@
 pub const ROOT_USER: &str = "root_user";
 pub const TEST_COIN: &str = "ucoin";
 
-use abstract_boot::{TMintStakingApi, OS};
+use abstract_boot::{DexApi, TMintStakingApi, OS};
 use abstract_os::{
-    api::InstantiateMsg, objects::gov_type::GovernanceDetails, PROXY, TENDERMINT_STAKING,
+    api::InstantiateMsg, dex, objects::gov_type::GovernanceDetails, EXCHANGE, PROXY,
+    TENDERMINT_STAKING,
 };
 
 use boot_core::{
