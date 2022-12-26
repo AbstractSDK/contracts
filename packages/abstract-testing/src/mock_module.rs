@@ -1,12 +1,15 @@
-use crate::apis::{AbstractNameService, Dependencies, Identification};
-pub use cosmwasm_std::testing::*;
-pub use cosmwasm_std::*;
-use os::objects::ans_host::AnsHost;
-use os::objects::dependency::StaticDependency;
-use os::{api, app};
-pub use speculoos::prelude::*;
+use abstract_os::objects::ans_host::AnsHost;
+use abstract_os::{api, app};
+use abstract_sdk::base::features::{AbstractNameService, Identification};
+use cosmwasm_std::{Addr, Deps, StdError, StdResult};
 
 pub struct MockModule {}
+
+impl MockModule {
+    pub const fn new() -> Self {
+        Self {}
+    }
+}
 
 pub const TEST_PROXY: &str = "proxy_address";
 pub const TEST_MANAGER: &str = "manager_address";
@@ -38,7 +41,3 @@ impl api::ApiQueryMsg for MockModuleQueryMsg {}
 impl app::AppExecuteMsg for MockModuleExecuteMsg {}
 
 impl app::AppQueryMsg for MockModuleQueryMsg {}
-
-pub const fn mock_module() -> MockModule {
-    MockModule {}
-}

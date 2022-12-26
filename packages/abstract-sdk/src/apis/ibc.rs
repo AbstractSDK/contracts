@@ -80,7 +80,7 @@ mod test {
     #[test]
     fn test_host_action_no_callback() {
         let deps = mock_dependencies();
-        let stub = mock_module();
+        let stub = MockModule::new();
         let client = stub.ibc_client(deps.as_ref());
         let expected_retries = 0;
         let msg = client.host_action(
@@ -111,7 +111,7 @@ mod test {
     #[test]
     fn test_host_action_with_callback() {
         let deps = mock_dependencies();
-        let stub = mock_module();
+        let stub = MockModule::new();
         let client = stub.ibc_client(deps.as_ref());
 
         let expected_callback = CallbackInfo {
@@ -150,7 +150,7 @@ mod test {
     #[test]
     fn test_ics20_transfer() {
         let deps = mock_dependencies();
-        let stub = mock_module();
+        let stub = MockModule::new();
         let client = stub.ibc_client(deps.as_ref());
 
         let expected_funds = coins(100, "denom");

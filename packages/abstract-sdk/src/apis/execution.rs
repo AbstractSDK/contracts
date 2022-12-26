@@ -84,7 +84,7 @@ mod test {
         #[test]
         fn empty_msgs() {
             let deps = mock_dependencies();
-            let stub = mock_module();
+            let stub = MockModule::new();
             let executor = stub.executor(deps.as_ref());
 
             let messages = vec![];
@@ -103,7 +103,7 @@ mod test {
         #[test]
         fn with_msgs() {
             let deps = mock_dependencies();
-            let stub = mock_module();
+            let stub = MockModule::new();
             let executor = stub.executor(deps.as_ref());
 
             // build a bank message
@@ -124,13 +124,13 @@ mod test {
 
     mod execute_with_reply {
         use super::*;
-        use crate::apis::test_common::{mock_module, TEST_PROXY};
+        use crate::apis::test_common::TEST_PROXY;
 
         /// Tests that no error is thrown with empty messages provided
         #[test]
         fn empty_msgs() {
             let deps = mock_dependencies();
-            let stub = mock_module();
+            let stub = MockModule::new();
             let executor = stub.executor(deps.as_ref());
 
             let empty_msgs = vec![];
@@ -160,7 +160,7 @@ mod test {
         #[test]
         fn with_msgs() {
             let deps = mock_dependencies();
-            let stub = mock_module();
+            let stub = MockModule::new();
             let executor = stub.executor(deps.as_ref());
 
             // build a bank message
@@ -193,14 +193,14 @@ mod test {
 
     mod execute_with_response {
         use super::*;
-        use crate::apis::test_common::{mock_module, TEST_PROXY};
+        use crate::apis::test_common::TEST_PROXY;
         use cosmwasm_std::coins;
 
         /// Tests that no error is thrown with empty messages provided
         #[test]
         fn empty_msgs() {
             let deps = mock_dependencies();
-            let stub = mock_module();
+            let stub = MockModule::new();
             let executor = stub.executor(deps.as_ref());
 
             let empty_msgs = vec![];
@@ -224,7 +224,7 @@ mod test {
         #[test]
         fn with_msgs() {
             let deps = mock_dependencies();
-            let stub = mock_module();
+            let stub = MockModule::new();
             let executor = stub.executor(deps.as_ref());
 
             // build a bank message

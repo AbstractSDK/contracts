@@ -118,7 +118,6 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use cw_storage_plus::Map;
     use os::objects::dependency::StaticDependency;
     use std::collections::HashMap;
     use std::marker::PhantomData;
@@ -207,7 +206,7 @@ mod test {
         #[test]
         fn should_return_ok_if_dependency() {
             let deps = mock_dependencies();
-            let app = mock_module();
+            let app = MockModule::new();
 
             let mods = app.modules(deps.as_ref());
 
@@ -218,7 +217,7 @@ mod test {
         #[test]
         fn should_return_err_if_not_dependency() {
             let deps = mock_dependencies();
-            let app = mock_module();
+            let app = MockModule::new();
 
             let mods = app.modules(deps.as_ref());
 
@@ -238,7 +237,7 @@ mod test {
         fake_module: ModuleId,
     ) {
         let deps = mock_dependencies_with_existing_module();
-        let app = mock_module();
+        let app = MockModule::new();
 
         let mods = app.modules(deps.as_ref());
 
@@ -270,7 +269,7 @@ mod test {
         #[test]
         fn expected_api_request() {
             let deps = mock_dependencies_with_existing_module();
-            let app = mock_module();
+            let app = MockModule::new();
 
             let mods = app.modules(deps.as_ref());
 
@@ -308,7 +307,7 @@ mod test {
         #[test]
         fn expected_app_request() {
             let deps = mock_dependencies_with_existing_module();
-            let app = mock_module();
+            let app = MockModule::new();
 
             let mods = app.modules(deps.as_ref());
 
@@ -344,7 +343,7 @@ mod test {
         #[test]
         fn expected_configure_msg() {
             let deps = mock_dependencies_with_existing_module();
-            let app = mock_module();
+            let app = MockModule::new();
 
             let mods = app.modules(deps.as_ref());
 
@@ -385,7 +384,7 @@ mod test {
         #[test]
         fn expected_configure_msg() {
             let deps = mock_dependencies_with_existing_module();
-            let app = mock_module();
+            let app = MockModule::new();
 
             let mods = app.modules(deps.as_ref());
 
