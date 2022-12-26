@@ -236,3 +236,304 @@ fn load_pool_metadata_entry(
     let value = POOL_METADATA.load(storage, key)?;
     Ok((key, value))
 }
+#[cfg(test)]
+mod test {
+    use abstract_os::objects::UncheckedChannelEntry;
+    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
+    use cosmwasm_std::{from_binary, DepsMut};
+
+    use abstract_os::ans_host::InstantiateMsg;
+    use abstract_os::ans_host::QueryMsg;
+
+    use crate::contract;
+    use crate::contract::{instantiate, AnsHostResult};
+    use crate::error::AnsHostError;
+
+    use super::*;
+
+    type AnsHostTestResult = Result<(), AnsHostError>;
+
+    const TEST_CREATOR: &str = "creator";
+
+    fn mock_init(mut deps: DepsMut) -> AnsHostResult {
+        let info = mock_info(TEST_CREATOR, &[]);
+
+        instantiate(deps.branch(), mock_env(), info, InstantiateMsg {})
+    }
+
+    fn query_helper(deps: Deps, msg: QueryMsg) -> StdResult<Binary> {
+        let res = contract::query(deps, mock_env(), msg)?;
+        Ok(res)
+    }
+
+    fn query_asset_list_msg(token: String, size: usize) -> QueryMsg {
+        let msg = QueryMsg::AssetList {
+            page_token: (Some(token.to_string())),
+            page_size: (Some(size as u8)),
+        };
+        msg
+    }
+    mod test_query_responses {
+        use abstract_os::objects::UncheckedContractEntry;
+
+        use super::*;
+        use cw_asset::AssetInfoUnchecked;
+        use speculoos::assert_that;
+        #[test]
+        fn test_query_assets() -> AnsHostTestResult {
+            // arrange mocks
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+            let api = deps.api;
+
+            // create test query data
+            let test_assets: Vec<(String, AssetInfoUnchecked)> = vec![
+                (
+                    "test1".to_string(),
+                    AssetInfoUnchecked::native("1234".to_string()),
+                ),
+                (
+                    "test2".to_string(),
+                    AssetInfoUnchecked::native("5678".to_string()),
+                ),
+            ];
+            for (test_asset_name, test_asset_info) in test_assets.clone().into_iter() {
+                let insert = |_| -> StdResult<AssetInfo> { test_asset_info.check(&api, None) };
+                ASSET_ADDRESSES.update(&mut deps.storage, test_asset_name.into(), insert)?;
+            }
+
+            // create msg
+            let msg = QueryMsg::Assets {
+                names: vec!["test1".to_string(), "test2".to_string()],
+            };
+            // send query message
+            let res: AssetsResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+
+            // Stage data for equality test
+            let expected = abstract_os::ans_host::AssetsResponse {
+                assets: test_assets
+                    .iter()
+                    .map(|item| {
+                        (
+                            item.0.clone().into(),
+                            item.1.clone().check(&api, None).unwrap().into(),
+                        )
+                    })
+                    .collect(),
+            };
+
+            // Assert
+            assert_that!(&res).is_equal_to(&expected);
+
+            Ok(())
+        }
+
+        #[test]
+        fn test_query_contract() -> AnsHostTestResult {
+            // arrange mocks
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            // create test query data
+            let to_add = UncheckedContractEntry {
+                protocol: "test1".to_string().to_ascii_lowercase(),
+                contract: "1234".to_string().to_ascii_lowercase(),
+            };
+            let to_add: Vec<(UncheckedContractEntry, String)> = vec![(to_add, "1234".to_string())];
+            for (key, new_address) in to_add.into_iter() {
+                let key = key.check();
+                let addr = deps.as_ref().api.addr_validate(&new_address)?;
+                let insert = |_| -> StdResult<Addr> { Ok(addr) };
+                CONTRACT_ADDRESSES.update(&mut deps.storage, key, insert)?;
+            }
+
+            // create msg
+            let msg = QueryMsg::Contracts {
+                names: vec![
+                    (ContractEntry {
+                        protocol: "test1".to_string().to_ascii_lowercase(),
+                        contract: "1234".to_string().to_ascii_lowercase(),
+                    }),
+                ],
+            };
+            // send query message
+            let res: ContractsResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+
+            // Stage data for equality test
+            let expected = abstract_os::ans_host::ContractsResponse {
+                contracts: vec![(
+                    ContractEntry {
+                        protocol: "test1".to_string().to_ascii_lowercase(),
+                        contract: "1234".to_string().to_ascii_lowercase(),
+                    },
+                    "1234".to_string(),
+                )],
+            };
+
+            // Assert
+            assert_that!(&res).is_equal_to(&expected);
+
+            Ok(())
+        }
+
+        #[test]
+        fn test_query_channels() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            // create test query data
+            let to_add = UncheckedChannelEntry {
+                connected_chain: "test1".to_string().to_ascii_lowercase(),
+                protocol: "1234".to_string().to_ascii_lowercase(),
+            };
+            let to_add: Vec<(UncheckedChannelEntry, String)> = vec![(to_add, "1234".to_string())];
+            for (key, new_channel) in to_add.into_iter() {
+                let key = key.check();
+                // Update function for new or existing keys
+                let insert = |_| -> StdResult<String> { Ok(new_channel) };
+                CHANNELS.update(&mut deps.storage, key, insert)?;
+            }
+
+            // create msg
+            let msg = QueryMsg::Channels {
+                names: vec![
+                    (ChannelEntry {
+                        connected_chain: "test1".to_string().to_ascii_lowercase(),
+                        protocol: "1234".to_string().to_ascii_lowercase(),
+                    }),
+                ],
+            };
+            // send query message
+            let res: ChannelsResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+
+            // Stage data for equality test
+            let expected = abstract_os::ans_host::ChannelsResponse {
+                channels: vec![(
+                    ChannelEntry {
+                        connected_chain: "test1".to_string(),
+                        protocol: "1234".to_string(),
+                    },
+                    "1234".to_string(),
+                )],
+            };
+            // Assert
+            assert_that!(&res).is_equal_to(&expected);
+
+            Ok(())
+        }
+        #[test]
+        fn test_query_registered_dexes() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            // Create test data
+            let to_add: Vec<String> = vec!["test_dex1".to_string(), "test_dex2".to_string()];
+            for _dex in to_add.clone() {
+                let register_dex = |mut dexes: Vec<String>| -> StdResult<Vec<String>> {
+                    for _dex in to_add.clone() {
+                        if !dexes.contains(&_dex) {
+                            dexes.push(_dex.to_ascii_lowercase());
+                        }
+                    }
+                    Ok(dexes)
+                };
+                REGISTERED_DEXES.update(&mut deps.storage, register_dex)?;
+            }
+            // create msg
+            let msg = QueryMsg::RegisteredDexes {};
+            // deserialize response
+            let res = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+
+            // comparisons
+            let expected = RegisteredDexesResponse {
+                dexes: vec!["test_dex1".to_string(), "test_dex2".to_string()],
+            };
+            let not_expected = RegisteredDexesResponse {
+                dexes: vec!["test_dex3".to_string(), "test_dex2".to_string()],
+            };
+            // tests
+            assert_that!(&res).is_equal_to(expected);
+            assert_that!(&res).is_not_equal_to(not_expected);
+            Ok(())
+        }
+
+        #[test]
+        fn test_query_asset_list() -> AnsHostTestResult {
+            // arrange mocks
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+            let api = deps.api;
+
+            // create test query data
+            let test_assets: Vec<(String, AssetInfoUnchecked)> = vec![
+                (
+                    "bar".to_string(),
+                    AssetInfoUnchecked::native("1234".to_string()),
+                ),
+                (
+                    "foo".to_string(),
+                    AssetInfoUnchecked::native("5678".to_string()),
+                ),
+            ];
+            for (test_asset_name, test_asset_info) in test_assets.clone().into_iter() {
+                let insert = |_| -> StdResult<AssetInfo> { test_asset_info.check(&api, None) };
+                ASSET_ADDRESSES.update(&mut deps.storage, test_asset_name.into(), insert)?;
+            }
+            // create second entry
+            let test_assets1: Vec<(String, AssetInfoUnchecked)> = vec![(
+                "foobar".to_string(),
+                AssetInfoUnchecked::native("1234".to_string()),
+            )];
+            for (test_asset_name, test_asset_info) in test_assets1.clone().into_iter() {
+                let insert = |_| -> StdResult<AssetInfo> { test_asset_info.check(&api, None) };
+                ASSET_ADDRESSES.update(&mut deps.storage, test_asset_name.into(), insert)?;
+            }
+
+            // create msgs
+            let msg = query_asset_list_msg("".to_string(), 2);
+            let res: AssetListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+
+            // limit response to 1 result
+            let msg = query_asset_list_msg("".to_string(), 1);
+            let res_singular: AssetListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+
+            // results after specified entry
+            let msg = query_asset_list_msg("foo".to_string(), 2);
+            let res_of_foobar: AssetListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+
+            // Stage data for equality test
+            let expected = abstract_os::ans_host::AssetListResponse {
+                assets: test_assets
+                    .iter()
+                    .map(|item| {
+                        (
+                            item.0.clone().into(),
+                            item.1.clone().check(&api, None).unwrap().into(),
+                        )
+                    })
+                    .collect(),
+            };
+
+            let expected_of_one = abstract_os::ans_host::AssetListResponse {
+                assets: vec![(
+                    "bar".to_string().into(),
+                    AssetInfoUnchecked::native("1234".to_string()).check(&api, None)?,
+                )],
+            };
+            let expected_foobar = abstract_os::ans_host::AssetListResponse {
+                assets: vec![(
+                    "foobar".to_string().into(),
+                    AssetInfoUnchecked::native("1234".to_string()).check(&api, None)?,
+                )],
+            };
+
+            // Assert
+            assert_that!(&res).is_equal_to(&expected);
+            assert_that!(res_singular).is_equal_to(expected_of_one);
+            assert_that!(&res_of_foobar).is_equal_to(&expected_foobar);
+            assert_that!(&res).is_not_equal_to(&expected_foobar);
+
+            Ok(())
+        }
+    }
+}
