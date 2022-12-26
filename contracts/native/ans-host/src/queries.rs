@@ -238,7 +238,6 @@ fn load_pool_metadata_entry(
 }
 #[cfg(test)]
 mod test {
-    use abstract_os::objects::UncheckedChannelEntry;
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use cosmwasm_std::{from_binary, DepsMut};
 
@@ -386,15 +385,14 @@ mod test {
             mock_init(deps.as_mut()).unwrap();
 
             // create test query data
-            let to_add: Vec<(UncheckedChannelEntry, String)> = vec![(
-                UncheckedChannelEntry {
+            let to_add: Vec<(ChannelEntry, String)> = vec![(
+                ChannelEntry {
                     connected_chain: "test1".to_string().to_ascii_lowercase(),
                     protocol: "1234".to_string().to_ascii_lowercase(),
                 },
                 "1234".to_string(),
             )];
             for (key, new_channel) in to_add.into_iter() {
-                let key = key.check();
                 // Update function for new or existing keys
                 let insert = |_| -> StdResult<String> { Ok(new_channel) };
                 CHANNELS.update(&mut deps.storage, key, insert)?;
