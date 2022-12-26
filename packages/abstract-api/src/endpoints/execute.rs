@@ -126,26 +126,7 @@ impl<
             .map_err(Into::into)
     }
 
-    // pub(crate) fn verify_sender_is_manager(
-    //     &self,
-    //     deps: Deps,
-    //     maybe_manager: &Addr,
-    // ) -> Result<Core, ApiError> {
-    //     let version_control_addr = self.base_state.load(deps.storage)?.version_control;
-    //     let core = verify_os_manager(&deps.querier, maybe_manager, &version_control_addr)?;
-    //     Ok(core)
-    // }
-
-    // pub(crate) fn verify_sender_is_proxy(
-    //     &self,
-    //     deps: Deps,
-    //     maybe_proxy: &Addr,
-    // ) -> Result<Core, ApiError> {
-    //     let version_control_addr = self.base_state.load(deps.storage)?.version_control;
-    //     let core = verify_os_proxy(&deps.querier, maybe_proxy, &version_control_addr)?;
-    //     Ok(core)
-    // }
-
+    /// Remove traders from the api.
     fn update_traders(
         &self,
         deps: DepsMut,
