@@ -172,3 +172,14 @@ impl<
         Ok(Response::new().add_attribute("action", format!("update_{}_traders", proxy)))
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn add_trader() {
+
+    }
+}
