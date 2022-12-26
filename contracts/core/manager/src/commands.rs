@@ -900,8 +900,8 @@ mod test {
 
             let res = execute_as_root(deps.as_mut(), msg);
             assert_that(&res).is_err().matches(|e| {
-                let module_id = String::from("test:module");
-                matches!(e, ManagerError::ModuleAlreadyInstalled(module_id))
+                let _module_id = String::from("test:module");
+                matches!(e, ManagerError::ModuleAlreadyInstalled(_module_id))
             });
 
             Ok(())

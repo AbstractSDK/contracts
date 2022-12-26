@@ -40,7 +40,7 @@ pub fn handle_module_query(deps: Deps, mut module: ModuleInfo) -> StdResult<Bina
         let (latest_version, id) = versions?
             .first()
             .ok_or_else(|| StdError::GenericErr {
-                msg: VCError::MissingModule(module.clone()).to_string(),
+                msg: VCError::ModuleNotInstalled(module.clone()).to_string(),
             })?
             .clone();
         module.version = ModuleVersion::Version(latest_version);
@@ -49,7 +49,7 @@ pub fn handle_module_query(deps: Deps, mut module: ModuleInfo) -> StdResult<Bina
 
     match maybe_module {
         Err(_) => Err(StdError::generic_err(
-            VCError::MissingModule(module).to_string(),
+            VCError::ModuleNotInstalled(module).to_string(),
         )),
         Ok(mod_ref) => to_binary(&ModuleResponse {
             module: Module {
@@ -79,7 +79,7 @@ pub fn handle_modules_query(
 #[cfg(test)]
 mod test {
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-    use cosmwasm_std::{Addr, DepsMut, StdError, Storage};
+    use cosmwasm_std::{DepsMut, StdError};
 
     use abstract_os::version_control::*;
 
@@ -110,12 +110,12 @@ mod test {
     mod module {
         use super::*;
         use abstract_os::objects::module::ModuleVersion::Latest;
-        use cosmwasm_std::testing::{MockApi, MockQuerier, MockStorage};
-        use cosmwasm_std::{from_binary, OwnedDeps};
+        
+        use cosmwasm_std::{from_binary};
 
-        fn add_module(mut deps: DepsMut, new_module_info: ModuleInfo) {
+        fn add_module(deps: DepsMut, new_module_info: ModuleInfo) {
             let add_msg = ExecuteMsg::AddModules {
-                modules: vec![(new_module_info.clone(), ModuleReference::App(0))],
+                modules: vec![(new_module_info, ModuleReference::App(0))],
             };
 
             let res = execute_helper(deps, add_msg);
@@ -155,7 +155,7 @@ mod test {
 
             let ModuleInfo { name, provider, .. } = new_module_info.clone();
 
-            add_module(deps.as_mut(), new_module_info.clone());
+            add_module(deps.as_mut(), new_module_info);
 
             let query_msg = QueryMsg::Module {
                 module: ModuleInfo {
@@ -181,14 +181,14 @@ mod test {
             let oldest_version =
                 ModuleInfo::from_id(moduleId, ModuleVersion::Version("0.1.2".into())).unwrap();
 
-            add_module(deps.as_mut(), oldest_version.clone());
+            add_module(deps.as_mut(), oldest_version);
             let newest_version =
                 ModuleInfo::from_id(moduleId, ModuleVersion::Version("100.1.2".into())).unwrap();
             add_module(deps.as_mut(), newest_version.clone());
 
             let another_version =
                 ModuleInfo::from_id(moduleId, ModuleVersion::Version("1.1.2".into())).unwrap();
-            add_module(deps.as_mut(), another_version.clone());
+            add_module(deps.as_mut(), another_version);
 
             let query_msg = QueryMsg::Module {
                 module: ModuleInfo {
