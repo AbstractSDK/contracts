@@ -73,10 +73,8 @@ pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> VCResult {
 
 #[cfg(test)]
 mod test {
-    use cosmwasm_std::testing::{
-        mock_dependencies, mock_env, mock_info, MockApi, MockQuerier, MockStorage,
-    };
-    use cosmwasm_std::{Addr, Order, OwnedDeps, StdError, Storage};
+    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
+    use cosmwasm_std::{Addr, StdError, Storage};
 
     use abstract_os::version_control::*;
 
@@ -198,11 +196,8 @@ mod test {
 
     mod update_modules {
         use super::*;
-        use abstract_os::{
-            manager::state::ModuleId,
-            objects::{module::*, module_reference::ModuleReference},
-        };
-        use boot_core::BootError;
+        use abstract_os::objects::{module::*, module_reference::ModuleReference};
+
         fn test_module() -> ModuleInfo {
             ModuleInfo::from_id(TEST_MODULE, ModuleVersion::Version(TEST_VERSION.into())).unwrap()
         }
@@ -270,7 +265,7 @@ mod test {
                 ModuleVersion::Version("non_compliant_version".into()),
             )?;
             let msg = ExecuteMsg::AddModules {
-                modules: vec![(bad_version_module.clone(), ModuleReference::App(0))],
+                modules: vec![(bad_version_module, ModuleReference::App(0))],
             };
             let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
             assert_that!(&res).is_err().is_equal_to(
@@ -282,7 +277,7 @@ mod test {
 
             let latest_version_module = ModuleInfo::from_id(TEST_MODULE, ModuleVersion::Latest)?;
             let msg = ExecuteMsg::AddModules {
-                modules: vec![(latest_version_module.clone(), ModuleReference::App(0))],
+                modules: vec![(latest_version_module, ModuleReference::App(0))],
             };
             let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
             assert_that!(&res).is_err().is_equal_to(
@@ -354,9 +349,6 @@ mod test {
     }
 
     mod configure {
-        use std::sync::Arc;
-
-        use abstract_os::OS_FACTORY;
 
         use super::*;
 
@@ -376,7 +368,7 @@ mod test {
                 .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
 
             // as admin
-            execute_as(deps.as_mut(), TEST_ADMIN, msg.clone())?;
+            execute_as(deps.as_mut(), TEST_ADMIN, msg)?;
             let new_admin = ADMIN.query_admin(deps.as_ref())?.admin;
             assert_that!(new_admin).is_equal_to(&Some(TEST_OTHER.into()));
             Ok(())
@@ -398,7 +390,7 @@ mod test {
                 .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
 
             // as admin
-            execute_as(deps.as_mut(), TEST_ADMIN, msg.clone())?;
+            execute_as(deps.as_mut(), TEST_ADMIN, msg)?;
             let new_factory = FACTORY.query_admin(deps.as_ref())?.admin;
             assert_that!(new_factory).is_equal_to(&Some(TEST_OS_FACTORY.into()));
             Ok(())

@@ -9,7 +9,7 @@ use cw_multi_test::ContractWrapper;
 
 pub const ROOT_USER: &str = "root_user";
 
-pub fn init_test_env<'a>(chain: &'a Mock) -> anyhow::Result<(Deployment<'a, Mock>, OS<Mock>)> {
+pub fn init_test_env(chain: &Mock) -> anyhow::Result<(Deployment<Mock>, OS<Mock>)> {
     let mut ans_host = AnsHost::new(ANS_HOST, chain);
     let mut os_factory = OSFactory::new(OS_FACTORY, chain);
     let mut version_control = VersionControl::new(VERSION_CONTROL, chain);
@@ -70,7 +70,7 @@ pub fn init_test_env<'a>(chain: &'a Mock) -> anyhow::Result<(Deployment<'a, Mock
     // do as above for the rest of the contracts
 
     let deployment = Deployment {
-        chain: chain,
+        chain,
         version: "1.0.0".parse()?,
         ans_host,
         os_factory,
