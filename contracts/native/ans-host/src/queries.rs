@@ -273,6 +273,7 @@ mod test {
         };
         msg
     }
+
     mod test_query_responses {
         use abstract_os::objects::UncheckedContractEntry;
 
@@ -335,11 +336,14 @@ mod test {
             mock_init(deps.as_mut()).unwrap();
 
             // create test query data
-            let to_add = UncheckedContractEntry {
-                protocol: "test1".to_string().to_ascii_lowercase(),
-                contract: "1234".to_string().to_ascii_lowercase(),
-            };
-            let to_add: Vec<(UncheckedContractEntry, String)> = vec![(to_add, "1234".to_string())];
+            let to_add: Vec<(UncheckedContractEntry, String)> = vec![(
+                UncheckedContractEntry {
+                    protocol: "foo".to_string().to_ascii_lowercase(),
+                    contract: "1234".to_string().to_ascii_lowercase(),
+                },
+                "1234".to_string(),
+            )];
+
             for (key, new_address) in to_add.into_iter() {
                 let key = key.check();
                 let addr = deps.as_ref().api.addr_validate(&new_address)?;
@@ -351,7 +355,7 @@ mod test {
             let msg = QueryMsg::Contracts {
                 names: vec![
                     (ContractEntry {
-                        protocol: "test1".to_string().to_ascii_lowercase(),
+                        protocol: "foo".to_string().to_ascii_lowercase(),
                         contract: "1234".to_string().to_ascii_lowercase(),
                     }),
                 ],
@@ -363,7 +367,7 @@ mod test {
             let expected = abstract_os::ans_host::ContractsResponse {
                 contracts: vec![(
                     ContractEntry {
-                        protocol: "test1".to_string().to_ascii_lowercase(),
+                        protocol: "foo".to_string().to_ascii_lowercase(),
                         contract: "1234".to_string().to_ascii_lowercase(),
                     },
                     "1234".to_string(),
@@ -382,11 +386,13 @@ mod test {
             mock_init(deps.as_mut()).unwrap();
 
             // create test query data
-            let to_add = UncheckedChannelEntry {
-                connected_chain: "test1".to_string().to_ascii_lowercase(),
-                protocol: "1234".to_string().to_ascii_lowercase(),
-            };
-            let to_add: Vec<(UncheckedChannelEntry, String)> = vec![(to_add, "1234".to_string())];
+            let to_add: Vec<(UncheckedChannelEntry, String)> = vec![(
+                UncheckedChannelEntry {
+                    connected_chain: "test1".to_string().to_ascii_lowercase(),
+                    protocol: "1234".to_string().to_ascii_lowercase(),
+                },
+                "1234".to_string(),
+            )];
             for (key, new_channel) in to_add.into_iter() {
                 let key = key.check();
                 // Update function for new or existing keys
@@ -465,7 +471,7 @@ mod test {
             let api = deps.api;
 
             // create test query data
-            let test_assets: Vec<(String, AssetInfoUnchecked)> = vec![
+            let to_add: Vec<(String, AssetInfoUnchecked)> = vec![
                 (
                     "bar".to_string(),
                     AssetInfoUnchecked::native("1234".to_string()),
@@ -475,16 +481,16 @@ mod test {
                     AssetInfoUnchecked::native("5678".to_string()),
                 ),
             ];
-            for (test_asset_name, test_asset_info) in test_assets.clone().into_iter() {
+            for (test_asset_name, test_asset_info) in to_add.clone().into_iter() {
                 let insert = |_| -> StdResult<AssetInfo> { test_asset_info.check(&api, None) };
                 ASSET_ADDRESSES.update(&mut deps.storage, test_asset_name.into(), insert)?;
             }
             // create second entry
-            let test_assets1: Vec<(String, AssetInfoUnchecked)> = vec![(
+            let to_add1: Vec<(String, AssetInfoUnchecked)> = vec![(
                 "foobar".to_string(),
                 AssetInfoUnchecked::native("1234".to_string()),
             )];
-            for (test_asset_name, test_asset_info) in test_assets1.clone().into_iter() {
+            for (test_asset_name, test_asset_info) in to_add1.clone().into_iter() {
                 let insert = |_| -> StdResult<AssetInfo> { test_asset_info.check(&api, None) };
                 ASSET_ADDRESSES.update(&mut deps.storage, test_asset_name.into(), insert)?;
             }
@@ -503,7 +509,7 @@ mod test {
 
             // Stage data for equality test
             let expected = abstract_os::ans_host::AssetListResponse {
-                assets: test_assets
+                assets: to_add
                     .iter()
                     .map(|item| {
                         (
@@ -532,6 +538,94 @@ mod test {
             assert_that!(res_singular).is_equal_to(expected_of_one);
             assert_that!(&res_of_foobar).is_equal_to(&expected_foobar);
             assert_that!(&res).is_not_equal_to(&expected_foobar);
+
+            Ok(())
+        }
+        #[test]
+        fn test_query_contract_list() -> AnsHostTestResult {
+            // arrange mocks
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            // create test query data
+            let to_add: Vec<(UncheckedContractEntry, String)> = vec![(
+                UncheckedContractEntry {
+                    protocol: "foo".to_string().to_ascii_lowercase(),
+                    contract: "1234".to_string().to_ascii_lowercase(),
+                },
+                "1234".to_string(),
+            )];
+            for (key, new_address) in to_add.into_iter() {
+                let key = key.check();
+                let addr = deps.as_ref().api.addr_validate(&new_address)?;
+                let insert = |_| -> StdResult<Addr> { Ok(addr) };
+                CONTRACT_ADDRESSES.update(&mut deps.storage, key, insert)?;
+            }
+            // create second entry
+            let to_add1: Vec<(UncheckedContractEntry, String)> = vec![(
+                UncheckedContractEntry {
+                    protocol: "bar".to_string().to_ascii_lowercase(),
+                    contract: "1234".to_string().to_ascii_lowercase(),
+                },
+                "1234".to_string(),
+            )];
+            for (key, new_address) in to_add1.into_iter() {
+                let key = key.check();
+                let addr = deps.as_ref().api.addr_validate(&new_address)?;
+                let insert = |_| -> StdResult<Addr> { Ok(addr) };
+                CONTRACT_ADDRESSES.update(&mut deps.storage, key, insert)?;
+            }
+
+            // create msgs
+            let msg = QueryMsg::ContractList {
+                page_token: None,
+                page_size: Some(2 as u8),
+            };
+            let res: ContractListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+
+            let msg = QueryMsg::ContractList {
+                page_token: Some(ContractEntry {
+                    protocol: "bar".to_string().to_ascii_lowercase(),
+                    contract: "1234".to_string().to_ascii_lowercase(),
+                }),
+                page_size: Some(2 as u8),
+            };
+            let res_of_bar_as_token: ContractListResponse =
+                from_binary(&query_helper(deps.as_ref(), msg)?)?;
+
+            // Stage data for equality test
+            let expected = abstract_os::ans_host::ContractListResponse {
+                contracts: vec![
+                    (
+                        ContractEntry {
+                            protocol: "bar".to_string().to_ascii_lowercase(),
+                            contract: "1234".to_string().to_ascii_lowercase(),
+                        },
+                        "1234".to_string(),
+                    ),
+                    (
+                        ContractEntry {
+                            protocol: "foo".to_string().to_ascii_lowercase(),
+                            contract: "1234".to_string().to_ascii_lowercase(),
+                        },
+                        "1234".to_string(),
+                    ),
+                ],
+            };
+
+            let expected_foo = abstract_os::ans_host::ContractListResponse {
+                contracts: vec![(
+                    ContractEntry {
+                        protocol: "foo".to_string().to_ascii_lowercase(),
+                        contract: "1234".to_string().to_ascii_lowercase(),
+                    },
+                    "1234".to_string(),
+                )],
+            };
+
+            // Assert
+            assert_that!(&res).is_equal_to(&expected);
+            assert_that!(&res_of_bar_as_token).is_equal_to(&expected_foo);
 
             Ok(())
         }
