@@ -44,7 +44,6 @@
 //!   ```
 
 pub extern crate abstract_os as os;
-extern crate core;
 
 mod ans_resolve;
 mod apis;
