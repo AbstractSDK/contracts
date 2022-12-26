@@ -49,11 +49,11 @@ mod ans_resolve;
 mod apis;
 pub mod base;
 pub mod feature_objects;
+pub mod helpers;
 
 pub use crate::apis::{
-    applications::ApplicationInterface, bank::TransferInterface, execution::Execution,
-    ibc::IbcInterface, vault::VaultInterface, verify::Verification,
-    version_register::VersionRegisterInterface,
+    bank::TransferInterface, execution::Execution, ibc::IbcInterface, modules::ModuleInterface,
+    vault::VaultInterface, verify::Verification, version_register::VersionRegisterInterface,
 };
 pub use ans_resolve::Resolve;
 
