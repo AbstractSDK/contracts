@@ -12,9 +12,6 @@ pub enum PoolIdBase<T> {
 }
 
 impl<T> PoolIdBase<T> {
-    pub fn new<P: Into<PoolIdBase<T>>>(pool_id: P) -> Self {
-        pool_id.into()
-    }
     pub fn contract<C: Into<T>>(contract: C) -> Self {
         Self::Contract(contract.into())
     }

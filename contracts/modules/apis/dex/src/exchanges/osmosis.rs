@@ -104,7 +104,6 @@ impl DEX for Osmosis {
             return Err(DexError::TooManyAssets(2));
         }
 
-        let pool_id = pool_id.to_string().parse::<u64>().unwrap();
         let token_in_maxs: Vec<OsmoCoin> = offer_assets
             .iter()
             .map(|asset| Coin::try_from(asset).unwrap().into())

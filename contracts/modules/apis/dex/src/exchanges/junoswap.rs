@@ -2,9 +2,10 @@ use crate::{dex_trait::Identify, error::DexError, DEX};
 
 use crate::dex_trait::{Fee, FeeOnInput, Return, Spread};
 use abstract_os::objects::PoolId;
+use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
 use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, Fraction, QueryRequest,
-    StdResult, Uint128, WasmMsg, WasmQuery,
+    to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, Fraction, StdResult, Uint128,
+    WasmMsg,
 };
 use cw20_junoswap::{Cw20ExecuteMsg, Denom};
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};
@@ -28,19 +29,18 @@ impl DEX for JunoSwap {
     fn swap(
         &self,
         deps: Deps,
-        pair_address: PoolId,
+        pool_id: PoolId,
         offer_asset: Asset,
         ask_asset: AssetInfo,
         belief_price: Option<Decimal>,
         max_spread: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
-        let pair_address = pair_address.expect_contract()?;
+        let pair_address = pool_id.expect_contract()?;
 
-        let pair_config: InfoResponse =
-            deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-                contract_addr: pair_address.to_string(),
-                msg: to_binary(&QueryMsg::Info {})?,
-            }))?;
+        let pair_config: InfoResponse = deps.querier.query(&wasm_smart_query(
+            pair_address.to_string(),
+            &QueryMsg::Info {},
+        )?)?;
 
         let (offer_token, price) =
             if denom_and_asset_match(&pair_config.token1_denom, &offer_asset.info)? {
@@ -106,19 +106,18 @@ impl DEX for JunoSwap {
     fn provide_liquidity(
         &self,
         deps: Deps,
-        pair_address: PoolId,
+        pool_id: PoolId,
         offer_assets: Vec<Asset>,
         max_spread: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
-        let pair_address = pair_address.expect_contract()?;
+        let pair_address = pool_id.expect_contract()?;
         if offer_assets.len() > 2 {
             return Err(DexError::TooManyAssets(2));
         }
-        let pair_config: InfoResponse =
-            deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-                contract_addr: pair_address.to_string(),
-                msg: to_binary(&QueryMsg::Info {})?,
-            }))?;
+        let pair_config: InfoResponse = deps.querier.query(&wasm_smart_query(
+            pair_address.to_string(),
+            &QueryMsg::Info {},
+        )?)?;
         let (token1, token2) =
             if denom_and_asset_match(&pair_config.token1_denom, &offer_assets[0].info)? {
                 (&offer_assets[0], &offer_assets[1])
@@ -159,20 +158,19 @@ impl DEX for JunoSwap {
     fn provide_liquidity_symmetric(
         &self,
         deps: Deps,
-        pair_address: PoolId,
+        pool_id: PoolId,
         offer_asset: Asset,
         paired_assets: Vec<AssetInfo>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
-        let pair_address = pair_address.expect_contract()?;
+        let pair_address = pool_id.expect_contract()?;
         if paired_assets.len() > 1 {
             return Err(DexError::TooManyAssets(2));
         }
         // Get pair info
-        let pair_config: InfoResponse =
-            deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-                contract_addr: pair_address.to_string(),
-                msg: to_binary(&QueryMsg::Info {})?,
-            }))?;
+        let pair_config: InfoResponse = deps.querier.query(&wasm_smart_query(
+            pair_address.to_string(),
+            &QueryMsg::Info {},
+        )?)?;
         // because of the token1 / token2 thing we need to figure out what the offer asset is and calculate the required amount of the other asset.
         let (token_1_amount, token_2_amount, other_asset) =
             if denom_and_asset_match(&pair_config.token1_denom, &offer_asset.info)? {
@@ -224,10 +222,10 @@ impl DEX for JunoSwap {
     fn withdraw_liquidity(
         &self,
         _deps: Deps,
-        pair_address: PoolId,
+        pool_id: PoolId,
         lp_token: Asset,
     ) -> Result<Vec<CosmosMsg>, DexError> {
-        let pair_address = pair_address.expect_contract()?;
+        let pair_address = pool_id.expect_contract()?;
         // approve lp token spend
         let mut msgs = cw_approve_msgs(&[lp_token.clone()], &pair_address)?;
         // dex msg
@@ -248,16 +246,16 @@ impl DEX for JunoSwap {
     fn simulate_swap(
         &self,
         deps: Deps,
-        pair_address: PoolId,
+        pool_id: PoolId,
         offer_asset: Asset,
         ask_asset: AssetInfo,
     ) -> Result<(Return, Spread, Fee, FeeOnInput), DexError> {
-        let pair_address = pair_address.expect_contract()?;
-        let pair_config: InfoResponse =
-            deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-                contract_addr: pair_address.to_string(),
-                msg: to_binary(&QueryMsg::Info {})?,
-            }))?;
+        let pair_address = pool_id.expect_contract()?;
+
+        let pair_config: InfoResponse = deps.querier.query(&wasm_smart_query(
+            pair_address.to_string(),
+            &QueryMsg::Info {},
+        )?)?;
 
         let (return_amount, spread_amount) =
             if denom_and_asset_match(&pair_config.token1_denom, &offer_asset.info)? {
