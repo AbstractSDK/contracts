@@ -238,11 +238,9 @@ fn load_pool_metadata_entry(
 }
 #[cfg(test)]
 mod test {
+    use abstract_os::ans_host::{InstantiateMsg, QueryMsg};
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use cosmwasm_std::{from_binary, DepsMut};
-
-    use abstract_os::ans_host::InstantiateMsg;
-    use abstract_os::ans_host::QueryMsg;
 
     use crate::contract;
     use crate::contract::{instantiate, AnsHostResult};
@@ -512,29 +510,27 @@ mod test {
             mock_init(deps.as_mut()).unwrap();
 
             // create test query data
-            let to_add: Vec<(UncheckedContractEntry, String)> = vec![(
-                UncheckedContractEntry {
+            let to_add: Vec<(ContractEntry, String)> = vec![(
+                ContractEntry {
                     protocol: "foo".to_string().to_ascii_lowercase(),
                     contract: "1234".to_string().to_ascii_lowercase(),
                 },
                 "1234".to_string(),
             )];
             for (key, new_address) in to_add.into_iter() {
-                let key = key.check();
                 let addr = deps.as_ref().api.addr_validate(&new_address)?;
                 let insert = |_| -> StdResult<Addr> { Ok(addr) };
                 CONTRACT_ADDRESSES.update(&mut deps.storage, key, insert)?;
             }
             // create second entry
-            let to_add1: Vec<(UncheckedContractEntry, String)> = vec![(
-                UncheckedContractEntry {
+            let to_add1: Vec<(ContractEntry, String)> = vec![(
+                ContractEntry {
                     protocol: "bar".to_string().to_ascii_lowercase(),
                     contract: "1234".to_string().to_ascii_lowercase(),
                 },
                 "1234".to_string(),
             )];
             for (key, new_address) in to_add1.into_iter() {
-                let key = key.check();
                 let addr = deps.as_ref().api.addr_validate(&new_address)?;
                 let insert = |_| -> StdResult<Addr> { Ok(addr) };
                 CONTRACT_ADDRESSES.update(&mut deps.storage, key, insert)?;
