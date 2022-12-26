@@ -11,4 +11,5 @@ cw-storage-plus = { workspace = true }
 serde = { workspace = true }
 derive_builder = "0.12.0"
 abstract-os = { workspace = true }
-speculoos = { workspace = true }
+abstract-sdk = { workspace = true }
+cosmwasm-schema = { workspace = true }

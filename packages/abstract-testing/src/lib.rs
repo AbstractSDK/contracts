@@ -10,3 +10,4 @@ pub const TEST_ANS_HOST: &str = "test_ans_host_address";
 pub const TEST_VERSION_CONTROL: &str = "version_control_address";
 pub const TEST_MODULE_ID: &str = "test_module_id";
 pub const TEST_OS_ID: u32 = 0;
+pub mod mock_module;
