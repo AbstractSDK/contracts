@@ -427,41 +427,6 @@ mod test {
 
             Ok(())
         }
-        #[test]
-        fn test_query_registered_dexes() -> AnsHostTestResult {
-            let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
-
-            // Create test data
-            let to_add: Vec<String> = vec!["test_dex1".to_string(), "test_dex2".to_string()];
-            for _dex in to_add.clone() {
-                let register_dex = |mut dexes: Vec<String>| -> StdResult<Vec<String>> {
-                    for _dex in to_add.clone() {
-                        if !dexes.contains(&_dex) {
-                            dexes.push(_dex.to_ascii_lowercase());
-                        }
-                    }
-                    Ok(dexes)
-                };
-                REGISTERED_DEXES.update(&mut deps.storage, register_dex)?;
-            }
-            // create msg
-            let msg = QueryMsg::RegisteredDexes {};
-            // deserialize response
-            let res = from_binary(&query_helper(deps.as_ref(), msg)?)?;
-
-            // comparisons
-            let expected = RegisteredDexesResponse {
-                dexes: vec!["test_dex1".to_string(), "test_dex2".to_string()],
-            };
-            let not_expected = RegisteredDexesResponse {
-                dexes: vec!["test_dex3".to_string(), "test_dex2".to_string()],
-            };
-            // tests
-            assert_that!(&res).is_equal_to(expected);
-            assert_that!(&res).is_not_equal_to(not_expected);
-            Ok(())
-        }
 
         #[test]
         fn test_query_asset_list() -> AnsHostTestResult {
@@ -541,6 +506,7 @@ mod test {
 
             Ok(())
         }
+
         #[test]
         fn test_query_contract_list() -> AnsHostTestResult {
             // arrange mocks
@@ -627,6 +593,163 @@ mod test {
             assert_that!(&res).is_equal_to(&expected);
             assert_that!(&res_of_bar_as_token).is_equal_to(&expected_foo);
 
+            Ok(())
+        }
+        #[test]
+        fn test_query_channel_list() -> AnsHostTestResult {
+            // arrange mocks
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            // create test query data
+            let to_add: Vec<(ChannelEntry, String)> = vec![
+                (
+                    ChannelEntry {
+                        connected_chain: "foo".to_string(),
+                        protocol: "foo".to_string(),
+                    },
+                    "foo".to_string(),
+                ),
+                (
+                    ChannelEntry {
+                        connected_chain: "bar".to_string(),
+                        protocol: "bar".to_string(),
+                    },
+                    "bar".to_string(),
+                ),
+            ];
+            for (key, new_channel) in to_add.into_iter() {
+                // Update function for new or existing keys
+                let insert = |_| -> StdResult<String> { Ok(new_channel) };
+                CHANNELS.update(&mut deps.storage, key, insert)?;
+            }
+            // create second entry
+            let to_add1: Vec<(ChannelEntry, String)> = vec![(
+                ChannelEntry {
+                    connected_chain: "foobar".to_string(),
+                    protocol: "foobar".to_string(),
+                },
+                "foobar".to_string(),
+            )];
+            for (key, new_channel) in to_add1.into_iter() {
+                // Update function for new or existing keys
+                let insert = |_| -> StdResult<String> { Ok(new_channel) };
+                CHANNELS.update(&mut deps.storage, key, insert)?;
+            }
+
+            // create msgs
+            // No token filter - should return up to `page_size` entries
+            let msg = QueryMsg::ChannelList {
+                page_token: None,
+                page_size: Some(3 as u8),
+            };
+            let res_all = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+
+            // Filter for entries after `Foo` - Alphabetically
+            let msg = QueryMsg::ChannelList {
+                page_token: Some(ChannelEntry {
+                    connected_chain: "foo".to_string(),
+                    protocol: "foo".to_string(),
+                }),
+                page_size: Some(1 as u8),
+            };
+            let res_foobar = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+
+            // Return first entry - Alphabetically
+            let msg = QueryMsg::ChannelList {
+                page_token: None,
+                page_size: Some(1 as u8),
+            };
+            let res_bar = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+
+            // Stage data for equality test
+            // Return all
+            let expected_all = abstract_os::ans_host::ChannelListResponse {
+                channels: vec![
+                    (
+                        ChannelEntry {
+                            connected_chain: "bar".to_string(),
+                            protocol: "bar".to_string(),
+                        },
+                        "bar".to_string(),
+                    ),
+                    (
+                        ChannelEntry {
+                            connected_chain: "foo".to_string(),
+                            protocol: "foo".to_string(),
+                        },
+                        "foo".to_string(),
+                    ),
+                    (
+                        ChannelEntry {
+                            connected_chain: "foobar".to_string(),
+                            protocol: "foobar".to_string(),
+                        },
+                        "foobar".to_string(),
+                    ),
+                ],
+            };
+            // Filter from `Foo`
+            let expected_foobar = abstract_os::ans_host::ChannelListResponse {
+                channels: vec![(
+                    ChannelEntry {
+                        connected_chain: "foobar".to_string(),
+                        protocol: "foobar".to_string(),
+                    },
+                    "foobar".to_string(),
+                )],
+            };
+            // Return first entry (alphabetically)
+            let expected_bar = abstract_os::ans_host::ChannelListResponse {
+                channels: vec![(
+                    ChannelEntry {
+                        connected_chain: "bar".to_string(),
+                        protocol: "bar".to_string(),
+                    },
+                    "bar".to_string(),
+                )],
+            };
+            // Assert
+            assert_that!(&res_all).is_equal_to(expected_all);
+            assert_that!(&res_foobar).is_equal_to(expected_foobar);
+            assert_that!(&res_bar).is_equal_to(expected_bar);
+
+            Ok(())
+        }
+
+        #[test]
+        fn test_query_registered_dexes() -> AnsHostTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            // Create test data
+            let to_add: Vec<String> = vec!["test_dex1".to_string(), "test_dex2".to_string()];
+            for _dex in to_add.clone() {
+                let register_dex = |mut dexes: Vec<String>| -> StdResult<Vec<String>> {
+                    for _dex in to_add.clone() {
+                        if !dexes.contains(&_dex) {
+                            dexes.push(_dex.to_ascii_lowercase());
+                        }
+                    }
+                    Ok(dexes)
+                };
+                REGISTERED_DEXES.update(&mut deps.storage, register_dex)?;
+            }
+            // create msg
+            let msg = QueryMsg::RegisteredDexes {};
+            // deserialize response
+            let res = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+
+            // comparisons
+            let expected = RegisteredDexesResponse {
+                dexes: vec!["test_dex1".to_string(), "test_dex2".to_string()],
+            };
+            let not_expected = RegisteredDexesResponse {
+                dexes: vec!["test_dex3".to_string(), "test_dex2".to_string()],
+            };
+            // tests
+            assert_that!(&res).is_equal_to(expected);
+            assert_that!(&res).is_not_equal_to(not_expected);
             Ok(())
         }
     }
