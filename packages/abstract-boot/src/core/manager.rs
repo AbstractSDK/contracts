@@ -79,7 +79,7 @@ impl<Chain: BootEnvironment> Manager<Chain> {
     ) -> Result<(), BootError> {
         self.execute(
             &ExecuteMsg::InstallModule {
-                module: ModuleInfo::from_id_latest(module_id)?,
+                module: ModuleInfo::from_id(module_id, version)?,
                 init_msg: init_msg.map(to_binary).transpose()?,
             },
             None,
