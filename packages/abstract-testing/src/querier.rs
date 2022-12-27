@@ -80,50 +80,83 @@ fn map_key<'a>(namespace: &'a str, key: &'a str) -> String {
 
 #[cfg(test)]
 mod tests {
-
-    use crate::TEST_MODULE_ID;
+    use crate::{TEST_MODULE_ID, TEST_OS_ID};
 
     use super::*;
     use abstract_os::manager::state::OS_MODULES;
     use abstract_os::proxy::state::OS_ID;
     use abstract_os::version_control::state::OS_ADDRESSES;
     use cosmwasm_std::testing::mock_dependencies;
+    use speculoos::prelude::*;
 
-    #[test]
-    fn os_id() {
-        let mut deps = mock_dependencies();
-        deps.querier = querier();
+    mod os_core {
+        use super::*;
 
-        OS_ID
-            .query(&wrap_querier(&deps.querier), Addr::unchecked(TEST_MANAGER))
-            .unwrap();
+        #[test]
+        fn should_return_os_address() {
+            let mut deps = mock_dependencies();
+            deps.querier = querier();
+
+            let actual = OS_ADDRESSES.query(
+                &wrap_querier(&deps.querier),
+                Addr::unchecked(TEST_VERSION_CONTROL),
+                TEST_OS_ID,
+            );
+
+            let expected = Core {
+                proxy: Addr::unchecked(TEST_PROXY),
+                manager: Addr::unchecked(TEST_MANAGER),
+            };
+
+            assert_that!(actual).is_ok().is_some().is_equal_to(expected)
+        }
     }
 
-    #[test]
-    fn modules() {
-        let mut deps = mock_dependencies();
-        deps.querier = querier();
+    mod os_id {
+        use super::*;
 
-        OS_MODULES
-            .query(
+        #[test]
+        fn should_return_test_os_id_with_test_manager() {
+            let mut deps = mock_dependencies();
+            deps.querier = querier();
+            let actual = OS_ID.query(&wrap_querier(&deps.querier), Addr::unchecked(TEST_MANAGER));
+
+            assert_that!(actual).is_ok().is_equal_to(TEST_OS_ID);
+        }
+    }
+
+    mod os_modules {
+        use super::*;
+
+        #[test]
+        fn should_return_test_module_address_for_test_module() {
+            let mut deps = mock_dependencies();
+            deps.querier = querier();
+
+            let actual = OS_MODULES.query(
                 &wrap_querier(&deps.querier),
                 Addr::unchecked(TEST_MANAGER),
                 TEST_MODULE_ID,
-            )
-            .unwrap();
-    }
+            );
 
-    #[test]
-    fn os_address() {
-        let mut deps = mock_dependencies();
-        deps.querier = querier();
+            assert_that!(actual)
+                .is_ok()
+                .is_some()
+                .is_equal_to(Addr::unchecked(TEST_MODULE_ADDRESS));
+        }
 
-        OS_ADDRESSES
-            .query(
-                &wrap_querier(&deps.querier),
-                Addr::unchecked(TEST_VERSION_CONTROL),
-                0,
-            )
-            .unwrap();
+        // #[test]
+        // fn should_return_none_for_unknown_module() {
+        //     let mut deps = mock_dependencies();
+        //     deps.querier = querier();
+        //
+        //     let actual = OS_MODULES.query(
+        //         &wrap_querier(&deps.querier),
+        //         Addr::unchecked(TEST_MANAGER),
+        //         "unknown_module",
+        //     );
+        //
+        //     assert_that!(actual).is_ok().is_none();
+        // }
     }
 }
