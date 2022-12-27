@@ -1,8 +1,6 @@
-use std::ascii;
 use std::collections::HashMap;
-
 use abstract_os::objects::ans_host::AnsHost;
-use abstract_os::proxy::state::OS_ID;
+use abstract_os::version_control::Core;
 use abstract_os::{api, app};
 use abstract_sdk::base::features::{AbstractNameService, Identification};
 use cosmwasm_std::testing::MockQuerier;
@@ -10,8 +8,7 @@ use cosmwasm_std::{
     to_binary, Addr, Binary, ContractResult, Deps, Empty, QuerierWrapper, StdError, StdResult,
     SystemResult, WasmQuery,
 };
-
-use crate::{TEST_ANS_HOST, TEST_MANAGER, TEST_MODULE_ADDRESS, TEST_MODULE_ID, TEST_PROXY};
+use crate::{TEST_ANS_HOST, TEST_MANAGER, TEST_MODULE_ADDRESS, TEST_MODULE_ID, TEST_PROXY, TEST_VERSION_CONTROL};
 
 pub struct MockModule {}
 
@@ -36,10 +33,13 @@ impl MockModule {
                             // add module
                             let map_key = map_key("os_modules", TEST_MODULE_ID);
                             let mut modules = HashMap::<Binary, Addr>::default();
-                            modules.insert(Binary(map_key.as_bytes().to_vec()), Addr::unchecked(TEST_MODULE_ADDRESS));
+                            modules.insert(
+                                Binary(map_key.as_bytes().to_vec()),
+                                Addr::unchecked(TEST_MODULE_ADDRESS),
+                            );
 
                             if let Some(value) = modules.get(key) {
-                                Ok(to_binary(&value.to_owned().clone()).unwrap())
+                                Ok(to_binary(&value.clone()).unwrap())
                             } else {
                                 if str_key == "\u{0}{5}os_id" {
                                     Ok(to_binary(&1).unwrap())
@@ -47,17 +47,21 @@ impl MockModule {
                                     Err(format!("unexpected key {}", str_key))
                                 }
                             }
-                        },
-                        TEST_VERSION_CONTROL => match key {
-                            bin => Ok(to_binary(&1).unwrap()),
-                            _ => Err("unexpected key".into()),
+                        }
+                        TEST_VERSION_CONTROL => if str_key == "\0\u{7}os_core\0\0\0\0"{
+                            Ok(to_binary(&Core{
+                                manager: Addr::unchecked(TEST_MANAGER),
+                                proxy: Addr::unchecked(TEST_PROXY),
+                            }).unwrap())
+                        } else {
+                            Err(format!("unexpected key {}", str_key))
                         },
                         _ => Err("unexpected contract".into()),
                     };
 
                     match res {
                         Ok(res) => SystemResult::Ok(ContractResult::Ok(res)),
-                        Err(e) => SystemResult::Ok(ContractResult::Err(e.to_string())),
+                        Err(e) => SystemResult::Ok(ContractResult::Err(e)),
                     }
                 }
                 _ => panic!("Unexpected smart query"),
@@ -79,8 +83,8 @@ mod tests {
     use super::*;
     use abstract_os::manager::state::OS_MODULES;
     use abstract_os::proxy::state::OS_ID;
+    use abstract_os::version_control::state::OS_ADDRESSES;
     use cosmwasm_std::testing::mock_dependencies;
-    use cosmwasm_std::{Deps, Empty, QuerierWrapper, QueryRequest};
 
     #[test]
     fn test_querier() {
@@ -100,6 +104,14 @@ mod tests {
                 TEST_MODULE_ID,
             )
             .unwrap();
+
+        OS_ADDRESSES
+        .query(
+            &MockModule::wrap_querier(&deps.querier),
+            Addr::unchecked(TEST_VERSION_CONTROL),
+            0,
+        )
+        .unwrap();
     }
 }
 
@@ -131,6 +143,7 @@ impl app::AppExecuteMsg for MockModuleExecuteMsg {}
 
 impl app::AppQueryMsg for MockModuleQueryMsg {}
 
+// TODO: Fix to actually make this work!
 fn map_key<'a>(namespace: &'a str, key: &'a str) -> String {
     let line_feed_char = b"\x0a";
     let mut res = vec![0u8];
