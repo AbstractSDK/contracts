@@ -11,6 +11,7 @@ pub const TEST_VERSION_CONTROL: &str = "version_control_address";
 pub const TEST_MODULE_ID: &str = "test_module_id";
 pub const TEST_OS_ID: u32 = 0;
 pub mod mock_module;
+pub mod querier;
 
 pub const TEST_PROXY: &str = "proxy_address";
 pub const TEST_MANAGER: &str = "manager_address";
