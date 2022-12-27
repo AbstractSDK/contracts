@@ -178,14 +178,13 @@ impl<
 mod tests {
     use std::collections::HashMap;
 
+    use abstract_os::api::{InstantiateMsg, BaseInstantiateMsg};
+    use abstract_sdk::base::InstantiateEndpoint;
     use cosmwasm_std::{testing::{MockQuerier, mock_env,mock_info, mock_dependencies}, WasmQuery, Binary, Addr, SystemResult, ContractResult, Empty};
     use thiserror::Error;
 
     use super::*;
-    const TEST_MODULE_ADDRESS: &str = "test_module_address";
-    const TEST_MANAGER: &str = "manager";
-    const TEST_SENDER: &str = "sender";
-    const TEST_PROXY: &str = "proxy";
+    use abstract_testing::*;
 
     type TestApi = ApiContract::<TestError, Empty, Empty, Empty, Empty>;
     type ApiTestResult = Result<(), TestError>;
@@ -199,63 +198,23 @@ mod tests {
         Api(#[from] ApiError),
     }
 
-    /// mock querier that has the os modules loaded
-    fn mock_querier_with_existing_module() -> MockQuerier {
-        let mut querier = MockQuerier::default();
-
-        querier.update_wasm(|wasm| {
-            match wasm {
-                WasmQuery::Raw { contract_addr, key } => {
-                    let string_key = String::from_utf8(key.to_vec()).unwrap();
-                    let str_key = string_key.as_str();
-
-                    let mut modules = HashMap::<Binary, Addr>::default();
-
-                    // binary key is "os_modules<module_id>" (though with a \n or \r before)
-                    let binary = Binary::from_base64("AApvc19tb2R1bGVzdGVzdF9tb2R1bGU=").unwrap();
-                    modules.insert(binary, Addr::unchecked(TEST_MODULE_ADDRESS));
-
-                    let res = match contract_addr.as_str() {
-                        TEST_PROXY => match str_key {
-                            "admin" => Ok(to_binary(&TEST_MANAGER).unwrap()),
-                            _ => Err("unexpected key"),
-                        },
-                        TEST_MANAGER => {
-                            if let Some(value) = modules.get(key) {
-                                Ok(to_binary(&value.to_owned().clone()).unwrap())
-                            } else {
-                                // Debug print out what the key was
-                                // let into_binary: Binary = b"\ros_modulestest_module".into();
-                                // let to_binary_res =
-                                //     to_binary("os_modulestest_module".as_bytes()).unwrap();
-                                // panic!(
-                                //     "contract: {}, binary_key: {}, into_binary: {}, to_binary_res: {}",
-                                //     contract_addr, key, into_binary, to_binary_res
-                                // );
-                                Ok(Binary::default())
-                            }
-                        }
-                        _ => Err("unexpected contract"),
-                    };
-
-                    match res {
-                        Ok(res) => SystemResult::Ok(ContractResult::Ok(res)),
-                        Err(e) => SystemResult::Ok(ContractResult::Err(e.to_string())),
-                    }
-                }
-                _ => panic!("Unexpected smart query"),
-            }
-        });
-
-        querier
-    }
-
     #[test]
     fn add_trader() -> ApiTestResult {
         let mut api = TestApi::new("mock", "v1.9.9", None);
         let env = mock_env();
-        let info = mock_info(TEST_SENDER, &vec![]);
+        let info = mock_info(TEST_MANAGER, &vec![]);
         let mut deps = mock_dependencies();
+        deps.querier = abstract_testing::querier();
+        let init_msg = InstantiateMsg {
+            base: BaseInstantiateMsg {
+                ans_host_address: TEST_ANS_HOST.into(),
+                version_control_address:TEST_VERSION_CONTROL.into()
+            },
+            app: Empty {},
+        };
+        api.instantiate(deps.as_mut(), env.clone(), info.clone(), init_msg)?;
+        
+        let mut api = TestApi::new("mock", "v1.9.9", None);
         let msg = BaseExecuteMsg::UpdateTraders { to_add: None, to_remove: None };
         api.base_execute(deps.as_mut(), env, info, msg)?;
 
