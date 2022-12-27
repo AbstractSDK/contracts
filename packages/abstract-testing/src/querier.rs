@@ -1,15 +1,10 @@
-use crate::{
-    TEST_ANS_HOST, TEST_MANAGER, TEST_MODULE_ADDRESS, TEST_MODULE_ID, TEST_PROXY,
-    TEST_VERSION_CONTROL,
-};
-use abstract_os::objects::ans_host::AnsHost;
+use crate::{TEST_MANAGER, TEST_MODULE_ADDRESS, TEST_MODULE_ID, TEST_PROXY, TEST_VERSION_CONTROL};
+
 use abstract_os::version_control::Core;
-use abstract_os::{api, app};
-use abstract_sdk::base::features::{AbstractNameService, Identification};
+
 use cosmwasm_std::testing::MockQuerier;
 use cosmwasm_std::{
-    to_binary, Addr, Binary, ContractResult, Deps, Empty, QuerierWrapper, StdError, StdResult,
-    SystemResult, WasmQuery,
+    to_binary, Addr, Binary, ContractResult, Empty, QuerierWrapper, SystemResult, WasmQuery,
 };
 use std::collections::HashMap;
 
@@ -97,12 +92,19 @@ mod tests {
     use cosmwasm_std::testing::mock_dependencies;
 
     #[test]
-    fn test_querier() {
+    fn os_id() {
         let mut deps = mock_dependencies();
         deps.querier = querier();
+
         OS_ID
             .query(&wrap_querier(&deps.querier), Addr::unchecked(TEST_MANAGER))
             .unwrap();
+    }
+
+    #[test]
+    fn modules() {
+        let mut deps = mock_dependencies();
+        deps.querier = querier();
 
         OS_MODULES
             .query(
@@ -111,6 +113,12 @@ mod tests {
                 TEST_MODULE_ID,
             )
             .unwrap();
+    }
+
+    #[test]
+    fn os_address() {
+        let mut deps = mock_dependencies();
+        deps.querier = querier();
 
         OS_ADDRESSES
             .query(
