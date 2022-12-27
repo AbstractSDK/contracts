@@ -9,7 +9,9 @@ use cosmwasm_std::{
     SystemResult, WasmQuery,
 };
 
-use crate::{TEST_ANS_HOST, TEST_MANAGER, TEST_MODULE_ADDRESS, TEST_MODULE_ID, TEST_PROXY};
+use crate::{
+    TEST_ANS_HOST, TEST_MANAGER, TEST_MODULE_ADDRESS, TEST_MODULE_ID, TEST_OS_ID, TEST_PROXY,
+};
 
 pub struct MockModule {}
 
@@ -42,9 +44,10 @@ impl MockModule {
                             if let Some(value) = modules.get(key) {
                                 Ok(to_binary(&value.to_owned()).unwrap())
                             } else if str_key == "\u{0}{5}os_id" {
-                                Ok(to_binary(&1).unwrap())
+                                Ok(to_binary(&TEST_OS_ID).unwrap())
                             } else {
-                                Err(format!("unexpected key {}", str_key))
+                                // return none
+                                Ok(Binary::default())
                             }
                         }
                         // TODO: VERSION CONTROL
@@ -79,26 +82,82 @@ mod tests {
     use abstract_os::manager::state::OS_MODULES;
     use abstract_os::proxy::state::OS_ID;
     use cosmwasm_std::testing::mock_dependencies;
-    use cosmwasm_std::{Deps, Empty, QuerierWrapper, QueryRequest};
+    use speculoos::prelude::*;
 
     #[test]
-    fn test_querier() {
+    fn should_return_test_os_id_with_test_manager() {
         let mut deps = mock_dependencies();
         deps.querier = MockModule::querier();
-        OS_ID
-            .query(
-                &MockModule::wrap_querier(&deps.querier),
-                Addr::unchecked(TEST_MANAGER),
-            )
-            .unwrap();
+        let actual = OS_ID.query(
+            &MockModule::wrap_querier(&deps.querier),
+            Addr::unchecked(TEST_MANAGER),
+        );
 
-        OS_MODULES
-            .query(
+        assert_that!(actual).is_ok().is_equal_to(TEST_OS_ID);
+    }
+
+    mod querying_os_modules {
+        use super::*;
+
+        #[test]
+        fn should_return_test_module_address_for_test_module() {
+            let mut deps = mock_dependencies();
+            deps.querier = MockModule::querier();
+
+            let actual = OS_MODULES.query(
                 &MockModule::wrap_querier(&deps.querier),
                 Addr::unchecked(TEST_MANAGER),
                 TEST_MODULE_ID,
-            )
-            .unwrap();
+            );
+
+            assert_that!(actual)
+                .is_ok()
+                .is_some()
+                .is_equal_to(Addr::unchecked(TEST_MODULE_ADDRESS));
+        }
+
+        #[test]
+        fn should_return_none_for_unknown_module() {
+            let mut deps = mock_dependencies();
+            deps.querier = MockModule::querier();
+
+            let actual = OS_MODULES.query(
+                &MockModule::wrap_querier(&deps.querier),
+                Addr::unchecked(TEST_MANAGER),
+                "unknown_module",
+            );
+
+            assert_that!(actual).is_ok().is_none();
+        }
+    }
+
+    mod querying_proxy {
+        // use super::*;
+        // TODO: doesn't invalid type response
+        // use abstract_os::objects::common_namespace::ADMIN_NAMESPACE;
+        // use abstract_os::proxy::state::ADMIN;
+        // use cosmwasm_std::{to_vec, Querier};
+        // use cw_controllers::AdminResponse;
+        //
+        // #[test]
+        // fn admin_should_return_test_manager() {
+        //     let mut deps = mock_dependencies();
+        //     deps.querier = MockModule::querier();
+        //
+        //     let admin_query = QueryRequest::Wasm(WasmQuery::Raw {
+        //         contract_addr: Addr::unchecked(TEST_PROXY).into(),
+        //         key: ADMIN_NAMESPACE.as_bytes().into(),
+        //     });
+        //
+        //     let actual =
+        //         MockModule::wrap_querier(&deps.querier).query::<AdminResponse>(&admin_query);
+        //
+        //     assert_that!(actual)
+        //         .is_ok()
+        //         .map(|a| &a.admin)
+        //         .is_some()
+        //         .is_equal_to(&TEST_MANAGER.to_string());
+        // }
     }
 }
 
