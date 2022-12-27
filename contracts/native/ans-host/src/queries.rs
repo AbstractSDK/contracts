@@ -381,12 +381,25 @@ mod test {
         // create test query data
         let to_add: Vec<(ChannelEntry, String)> = vec![(
             ChannelEntry {
-                connected_chain: "test1".to_string().to_ascii_lowercase(),
-                protocol: "1234".to_string().to_ascii_lowercase(),
+                connected_chain: "foo".to_string().to_ascii_lowercase(),
+                protocol: "foo".to_string().to_ascii_lowercase(),
             },
-            "1234".to_string(),
+            "foo".to_string(),
         )];
         for (key, new_channel) in to_add.into_iter() {
+            // Update function for new or existing keys
+            let insert = |_| -> StdResult<String> { Ok(new_channel) };
+            CHANNELS.update(&mut deps.storage, key, insert)?;
+        }
+        // create duplicate entry
+        let to_add1: Vec<(ChannelEntry, String)> = vec![(
+            ChannelEntry {
+                connected_chain: "foo".to_string().to_ascii_lowercase(),
+                protocol: "foo".to_string().to_ascii_lowercase(),
+            },
+            "foo".to_string(),
+        )];
+        for (key, new_channel) in to_add1.into_iter() {
             // Update function for new or existing keys
             let insert = |_| -> StdResult<String> { Ok(new_channel) };
             CHANNELS.update(&mut deps.storage, key, insert)?;
@@ -396,8 +409,8 @@ mod test {
         let msg = QueryMsg::Channels {
             names: vec![
                 (ChannelEntry {
-                    connected_chain: "test1".to_string().to_ascii_lowercase(),
-                    protocol: "1234".to_string().to_ascii_lowercase(),
+                    connected_chain: "foo".to_string().to_ascii_lowercase(),
+                    protocol: "foo".to_string().to_ascii_lowercase(),
                 }),
             ],
         };
@@ -408,15 +421,16 @@ mod test {
         let expected = ChannelsResponse {
             channels: vec![(
                 ChannelEntry {
-                    connected_chain: "test1".to_string(),
-                    protocol: "1234".to_string(),
+                    connected_chain: "foo".to_string(),
+                    protocol: "foo".to_string(),
                 },
-                "1234".to_string(),
+                "foo".to_string(),
             )],
         };
         // Assert
         assert_that!(&res).is_equal_to(&expected);
-
+        // Assert no duplication
+        assert!(res.channels.len() == 1 as usize);
         Ok(())
     }
 
@@ -431,11 +445,11 @@ mod test {
         let to_add: Vec<(String, AssetInfoUnchecked)> = vec![
             (
                 "bar".to_string(),
-                AssetInfoUnchecked::native("1234".to_string()),
+                AssetInfoUnchecked::native("bar".to_string()),
             ),
             (
                 "foo".to_string(),
-                AssetInfoUnchecked::native("5678".to_string()),
+                AssetInfoUnchecked::native("foo".to_string()),
             ),
         ];
         for (test_asset_name, test_asset_info) in to_add.clone().into_iter() {
@@ -445,9 +459,18 @@ mod test {
         // create second entry
         let to_add1: Vec<(String, AssetInfoUnchecked)> = vec![(
             "foobar".to_string(),
-            AssetInfoUnchecked::native("1234".to_string()),
+            AssetInfoUnchecked::native("foobar".to_string()),
         )];
         for (test_asset_name, test_asset_info) in to_add1.clone().into_iter() {
+            let insert = |_| -> StdResult<AssetInfo> { test_asset_info.check(&api, None) };
+            ASSET_ADDRESSES.update(&mut deps.storage, test_asset_name.into(), insert)?;
+        }
+        // create duplicate entry
+        let to_add2: Vec<(String, AssetInfoUnchecked)> = vec![(
+            "foobar".to_string(),
+            AssetInfoUnchecked::native("foobar".to_string()),
+        )];
+        for (test_asset_name, test_asset_info) in to_add2.clone().into_iter() {
             let insert = |_| -> StdResult<AssetInfo> { test_asset_info.check(&api, None) };
             ASSET_ADDRESSES.update(&mut deps.storage, test_asset_name.into(), insert)?;
         }
@@ -463,6 +486,10 @@ mod test {
         // results after specified entry
         let msg = query_asset_list_msg("foo".to_string(), 2);
         let res_of_foobar: AssetListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+
+        // results do not loop for range-out-of-bounds
+        let msg = query_asset_list_msg("".to_string(), 42);
+        let res_of_large_size: AssetListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
         // Stage data for equality test
         let expected = AssetListResponse {
@@ -480,13 +507,13 @@ mod test {
         let expected_of_one = AssetListResponse {
             assets: vec![(
                 "bar".to_string().into(),
-                AssetInfoUnchecked::native("1234".to_string()).check(&api, None)?,
+                AssetInfoUnchecked::native("bar".to_string()).check(&api, None)?,
             )],
         };
         let expected_foobar = AssetListResponse {
             assets: vec![(
                 "foobar".to_string().into(),
-                AssetInfoUnchecked::native("1234".to_string()).check(&api, None)?,
+                AssetInfoUnchecked::native("foobar".to_string()).check(&api, None)?,
             )],
         };
 
@@ -495,6 +522,7 @@ mod test {
         assert_that!(res_singular).is_equal_to(expected_of_one);
         assert_that!(&res_of_foobar).is_equal_to(&expected_foobar);
         assert_that!(&res).is_not_equal_to(&expected_foobar);
+        assert!(res_of_large_size.assets.len() == 3 as usize);
 
         Ok(())
     }
@@ -509,9 +537,9 @@ mod test {
         let to_add: Vec<(ContractEntry, String)> = vec![(
             ContractEntry {
                 protocol: "foo".to_string().to_ascii_lowercase(),
-                contract: "1234".to_string().to_ascii_lowercase(),
+                contract: "foo".to_string().to_ascii_lowercase(),
             },
-            "1234".to_string(),
+            "foo".to_string(),
         )];
         for (key, new_address) in to_add.into_iter() {
             let addr = deps.as_ref().api.addr_validate(&new_address)?;
@@ -522,9 +550,22 @@ mod test {
         let to_add1: Vec<(ContractEntry, String)> = vec![(
             ContractEntry {
                 protocol: "bar".to_string().to_ascii_lowercase(),
-                contract: "1234".to_string().to_ascii_lowercase(),
+                contract: "bar".to_string().to_ascii_lowercase(),
             },
-            "1234".to_string(),
+            "bar".to_string(),
+        )];
+        for (key, new_address) in to_add1.into_iter() {
+            let addr = deps.as_ref().api.addr_validate(&new_address)?;
+            let insert = |_| -> StdResult<Addr> { Ok(addr) };
+            CONTRACT_ADDRESSES.update(&mut deps.storage, key, insert)?;
+        }
+        // create duplicate entry
+        let to_add1: Vec<(ContractEntry, String)> = vec![(
+            ContractEntry {
+                protocol: "foo".to_string().to_ascii_lowercase(),
+                contract: "foo".to_string().to_ascii_lowercase(),
+            },
+            "foo".to_string(),
         )];
         for (key, new_address) in to_add1.into_iter() {
             let addr = deps.as_ref().api.addr_validate(&new_address)?;
@@ -535,19 +576,18 @@ mod test {
         // create msgs
         let msg = QueryMsg::ContractList {
             page_token: None,
-            page_size: Some(2 as u8),
+            page_size: Some(42 as u8),
         };
         let res: ContractListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
         let msg = QueryMsg::ContractList {
             page_token: Some(ContractEntry {
                 protocol: "bar".to_string().to_ascii_lowercase(),
-                contract: "1234".to_string().to_ascii_lowercase(),
+                contract: "bar".to_string().to_ascii_lowercase(),
             }),
-            page_size: Some(2 as u8),
+            page_size: Some(42 as u8),
         };
-        let res_of_bar_as_token: ContractListResponse =
-            from_binary(&query_helper(deps.as_ref(), msg)?)?;
+        let res_expect_foo: ContractListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
         // Stage data for equality test
         let expected = ContractListResponse {
@@ -555,16 +595,16 @@ mod test {
                 (
                     ContractEntry {
                         protocol: "bar".to_string().to_ascii_lowercase(),
-                        contract: "1234".to_string().to_ascii_lowercase(),
+                        contract: "bar".to_string().to_ascii_lowercase(),
                     },
-                    "1234".to_string(),
+                    "bar".to_string(),
                 ),
                 (
                     ContractEntry {
                         protocol: "foo".to_string().to_ascii_lowercase(),
-                        contract: "1234".to_string().to_ascii_lowercase(),
+                        contract: "foo".to_string().to_ascii_lowercase(),
                     },
-                    "1234".to_string(),
+                    "foo".to_string(),
                 ),
             ],
         };
@@ -573,15 +613,18 @@ mod test {
             contracts: vec![(
                 ContractEntry {
                     protocol: "foo".to_string().to_ascii_lowercase(),
-                    contract: "1234".to_string().to_ascii_lowercase(),
+                    contract: "foo".to_string().to_ascii_lowercase(),
                 },
-                "1234".to_string(),
+                "foo".to_string(),
             )],
         };
 
         // Assert
+        // Assert only returns unqiue data entries looping
         assert_that!(&res).is_equal_to(&expected);
-        assert_that!(&res_of_bar_as_token).is_equal_to(&expected_foo);
+        // Assert - sanity check for duplication
+        assert_that!(&res_expect_foo).is_equal_to(&expected_foo);
+        assert!(res.contracts.len() == 2 as usize);
 
         Ok(())
     }
@@ -641,7 +684,7 @@ mod test {
                 connected_chain: "foo".to_string(),
                 protocol: "foo".to_string(),
             }),
-            page_size: Some(1 as u8),
+            page_size: Some(42 as u8),
         };
         let res_foobar = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
@@ -703,6 +746,7 @@ mod test {
         assert_that!(&res_all).is_equal_to(expected_all);
         assert_that!(&res_foobar).is_equal_to(expected_foobar);
         assert_that!(&res_bar).is_equal_to(expected_bar);
+        assert!(res_all.channels.len() == 3 as usize);
 
         Ok(())
     }
@@ -713,7 +757,20 @@ mod test {
         mock_init(deps.as_mut()).unwrap();
 
         // Create test data
-        let to_add: Vec<String> = vec!["test_dex1".to_string(), "test_dex2".to_string()];
+        let to_add: Vec<String> = vec!["foo".to_string(), "bar".to_string()];
+        for _dex in to_add.clone() {
+            let register_dex = |mut dexes: Vec<String>| -> StdResult<Vec<String>> {
+                for _dex in to_add.clone() {
+                    if !dexes.contains(&_dex) {
+                        dexes.push(_dex.to_ascii_lowercase());
+                    }
+                }
+                Ok(dexes)
+            };
+            REGISTERED_DEXES.update(&mut deps.storage, register_dex)?;
+        }
+        // create duplicate entry
+        let to_add: Vec<String> = vec!["foo".to_string(), "foo".to_string()];
         for _dex in to_add.clone() {
             let register_dex = |mut dexes: Vec<String>| -> StdResult<Vec<String>> {
                 for _dex in to_add.clone() {
@@ -728,18 +785,18 @@ mod test {
         // create msg
         let msg = QueryMsg::RegisteredDexes {};
         // deserialize response
-        let res = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+        let res: RegisteredDexesResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
         // comparisons
         let expected = RegisteredDexesResponse {
-            dexes: vec!["test_dex1".to_string(), "test_dex2".to_string()],
-        };
-        let not_expected = RegisteredDexesResponse {
-            dexes: vec!["test_dex3".to_string(), "test_dex2".to_string()],
+            dexes: vec!["foo".to_string(), "bar".to_string()],
         };
         // tests
         assert_that!(&res).is_equal_to(expected);
-        assert_that!(&res).is_not_equal_to(not_expected);
+        // assert no duplication
+        assert!(res.dexes.len() == 2 as usize);
+        assert!(res.dexes[0] == ("foo"));
+        assert!(res.dexes[1] == ("bar"));
         Ok(())
     }
 }
