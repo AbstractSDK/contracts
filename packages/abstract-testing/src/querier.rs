@@ -1,0 +1,123 @@
+use crate::{
+    TEST_ANS_HOST, TEST_MANAGER, TEST_MODULE_ADDRESS, TEST_MODULE_ID, TEST_PROXY,
+    TEST_VERSION_CONTROL,
+};
+use abstract_os::objects::ans_host::AnsHost;
+use abstract_os::version_control::Core;
+use abstract_os::{api, app};
+use abstract_sdk::base::features::{AbstractNameService, Identification};
+use cosmwasm_std::testing::MockQuerier;
+use cosmwasm_std::{
+    to_binary, Addr, Binary, ContractResult, Deps, Empty, QuerierWrapper, StdError, StdResult,
+    SystemResult, WasmQuery,
+};
+use std::collections::HashMap;
+
+pub type AbstractQuerier = MockQuerier<Empty>;
+
+pub fn querier() -> AbstractQuerier {
+    let mut querier = AbstractQuerier::default();
+    querier.update_wasm(|wasm| {
+        match wasm {
+            WasmQuery::Raw { contract_addr, key } => {
+                let str_key = std::str::from_utf8(&key.0).unwrap();
+
+                let res = match contract_addr.as_str() {
+                    TEST_PROXY => match str_key {
+                        "admin" => Ok(to_binary(&TEST_MANAGER).unwrap()),
+                        _ => Err("unexpected key".to_string()),
+                    },
+                    TEST_MANAGER => {
+                        // add module
+                        let map_key = map_key("os_modules", TEST_MODULE_ID);
+                        let mut modules = HashMap::<Binary, Addr>::default();
+                        modules.insert(
+                            Binary(map_key.as_bytes().to_vec()),
+                            Addr::unchecked(TEST_MODULE_ADDRESS),
+                        );
+
+                        if let Some(value) = modules.get(key) {
+                            Ok(to_binary(&value.clone()).unwrap())
+                        } else {
+                            if str_key == "\u{0}{5}os_id" {
+                                Ok(to_binary(&0).unwrap())
+                            } else {
+                                Err(format!("unexpected key {}", str_key))
+                            }
+                        }
+                    }
+                    TEST_VERSION_CONTROL => {
+                        if str_key == "\0\u{7}os_core\0\0\0\0" {
+                            Ok(to_binary(&Core {
+                                manager: Addr::unchecked(TEST_MANAGER),
+                                proxy: Addr::unchecked(TEST_PROXY),
+                            })
+                            .unwrap())
+                        } else {
+                            Err(format!("unexpected key {}", str_key))
+                        }
+                    }
+                    _ => Err("unexpected contract".into()),
+                };
+
+                match res {
+                    Ok(res) => SystemResult::Ok(ContractResult::Ok(res)),
+                    Err(e) => SystemResult::Ok(ContractResult::Err(e)),
+                }
+            }
+            _ => panic!("Unexpected smart query"),
+        }
+    });
+    querier
+}
+
+pub fn wrap_querier(querier: &AbstractQuerier) -> QuerierWrapper<'_, Empty> {
+    QuerierWrapper::<Empty>::new(querier)
+}
+
+// TODO: Fix to actually make this work!
+fn map_key<'a>(namespace: &'a str, key: &'a str) -> String {
+    let line_feed_char = b"\x0a";
+    let mut res = vec![0u8];
+    res.extend_from_slice(line_feed_char);
+    res.extend_from_slice(namespace.as_bytes());
+    res.extend_from_slice(key.as_bytes());
+    std::str::from_utf8(&res).unwrap().to_string()
+}
+
+#[cfg(test)]
+mod tests {
+
+    use crate::TEST_MODULE_ID;
+
+    use super::*;
+    use abstract_os::manager::state::OS_MODULES;
+    use abstract_os::proxy::state::OS_ID;
+    use abstract_os::version_control::state::OS_ADDRESSES;
+    use cosmwasm_std::testing::mock_dependencies;
+
+    #[test]
+    fn test_querier() {
+        let mut deps = mock_dependencies();
+        deps.querier = querier();
+        OS_ID
+            .query(&wrap_querier(&deps.querier), Addr::unchecked(TEST_MANAGER))
+            .unwrap();
+
+        OS_MODULES
+            .query(
+                &wrap_querier(&deps.querier),
+                Addr::unchecked(TEST_MANAGER),
+                TEST_MODULE_ID,
+            )
+            .unwrap();
+
+        OS_ADDRESSES
+            .query(
+                &wrap_querier(&deps.querier),
+                Addr::unchecked(TEST_VERSION_CONTROL),
+                0,
+            )
+            .unwrap();
+    }
+}
