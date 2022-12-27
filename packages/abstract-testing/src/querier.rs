@@ -33,12 +33,10 @@ pub fn querier() -> AbstractQuerier {
 
                         if let Some(value) = modules.get(key) {
                             Ok(to_binary(&value.clone()).unwrap())
+                        } else if str_key == "\u{0}{5}os_id" {
+                            Ok(to_binary(&0).unwrap())
                         } else {
-                            if str_key == "\u{0}{5}os_id" {
-                                Ok(to_binary(&0).unwrap())
-                            } else {
-                                Err(format!("unexpected key {}", str_key))
-                            }
+                            Err(format!("unexpected key {}", str_key))
                         }
                     }
                     TEST_VERSION_CONTROL => {
