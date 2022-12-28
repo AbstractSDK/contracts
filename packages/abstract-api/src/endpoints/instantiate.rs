@@ -53,3 +53,106 @@ impl<
         handler(deps, env, info, self, msg.app)
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use abstract_os::{api::{BaseInstantiateMsg, InstantiateMsg}, objects::module_version::{MODULE, ModuleData}};
+    use abstract_sdk::base::InstantiateEndpoint;
+    use cosmwasm_std::{
+        testing::{mock_dependencies, mock_env, mock_info},
+        Empty, StdError,
+    };
+    use cw2::{ContractVersion, CONTRACT};
+    use thiserror::Error;
+    use speculoos::prelude::*;
+
+    use super::*;
+    use abstract_testing::*;
+
+    type MockApi = ApiContract<MockError, Empty, Empty, Empty, Empty>;
+    type ApiMockResult = Result<(), MockError>;
+    const TEST_METADATA: &str = "test_metadata";
+
+    #[derive(Error, Debug, PartialEq)]
+    enum MockError {
+        #[error("{0}")]
+        Std(#[from] StdError),
+
+        #[error(transparent)]
+        Api(#[from] ApiError),
+    }
+
+    #[test]
+    fn successful () -> ApiMockResult {
+        let api = MockApi::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA));
+        let env = mock_env();
+        let info = mock_info(TEST_MANAGER, &vec![]);
+        let mut deps = mock_dependencies();
+        deps.querier = abstract_testing::querier();
+        let init_msg = InstantiateMsg {
+            base: BaseInstantiateMsg {
+                ans_host_address: TEST_ANS_HOST.into(),
+                version_control_address: TEST_VERSION_CONTROL.into(),
+            },
+            app: Empty {},
+        };
+        let res = api.instantiate(deps.as_mut(), env.clone(), info.clone(), init_msg);
+        assert_that!(&res).is_ok();
+        assert_that!(res?.messages.len()).is_equal_to(0);
+
+        let module_data = MODULE.load(&deps.storage)?;
+        assert_that!(module_data).is_equal_to(ModuleData{
+            module: TEST_MODULE_ID.into(),
+            version: TEST_VERSION.into(),
+            dependencies: vec![],
+            metadata: Some(TEST_METADATA.into()),
+        });
+
+        let contract_version = CONTRACT.load(&deps.storage)?;
+        assert_that!(contract_version).is_equal_to(ContractVersion {
+            contract: TEST_MODULE_ID.into(),
+            version: TEST_VERSION.into(),
+        });
+
+        Ok(())
+    }
+
+    #[test]
+    fn invalid_ans_host () -> ApiMockResult {
+        let api = MockApi::new(TEST_MODULE_ID, TEST_VERSION, None);
+        let env = mock_env();
+        let info = mock_info(TEST_MANAGER, &vec![]);
+        let mut deps = mock_dependencies();
+        deps.querier = abstract_testing::querier();
+        let init_msg = InstantiateMsg {
+            base: BaseInstantiateMsg {
+                ans_host_address: TEST_ANS_HOST.into(),
+                version_control_address: "5".into(),
+            },
+            app: Empty {},
+        };
+        let res = api.instantiate(deps.as_mut(), env.clone(), info.clone(), init_msg);
+        assert_that!(&res).is_err_containing(&StdError::generic_err("Invalid input: human address too short").into());
+        Ok(())
+    }
+
+    #[test]
+    fn invalid_version_control () -> ApiMockResult {
+        let api = MockApi::new(TEST_MODULE_ID, TEST_VERSION, None);
+        let env = mock_env();
+        let info = mock_info(TEST_MANAGER, &vec![]);
+        let mut deps = mock_dependencies();
+        deps.querier = abstract_testing::querier();
+        let init_msg = InstantiateMsg {
+            base: BaseInstantiateMsg {
+                ans_host_address: TEST_ANS_HOST.into(),
+                version_control_address: "4".into(),
+            },
+            app: Empty {},
+        };
+        let res = api.instantiate(deps.as_mut(), env.clone(), info.clone(), init_msg);
+        assert_that!(&res).is_err_containing(&StdError::generic_err("Invalid input: human address too short").into());
+        Ok(())
+    }
+}
