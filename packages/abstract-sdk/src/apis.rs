@@ -15,6 +15,19 @@ mod test_common {
     pub use cosmwasm_std::testing::*;
     pub use cosmwasm_std::*;
     use os::objects::ans_host::AnsHost;
-    use os::{api, app};
     pub use speculoos::prelude::*;
+
+    impl Identification for MockModule {
+        fn proxy_address(&self, _deps: Deps) -> Result<Addr, StdError> {
+            Ok(Addr::unchecked(TEST_PROXY))
+        }
+    }
+
+    impl AbstractNameService for MockModule {
+        fn ans_host(&self, _deps: Deps) -> StdResult<AnsHost> {
+            Ok(AnsHost {
+                address: Addr::unchecked("ans"),
+            })
+        }
+    }
 }
