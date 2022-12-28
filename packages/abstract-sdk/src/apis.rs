@@ -17,6 +17,7 @@ mod test_common {
     use os::objects::ans_host::AnsHost;
     pub use speculoos::prelude::*;
 
+    // We implement the following traits here for the mock module (in this package) to avoid a circular dependency
     impl Identification for MockModule {
         fn proxy_address(&self, _deps: Deps) -> Result<Addr, StdError> {
             Ok(Addr::unchecked(TEST_PROXY))
