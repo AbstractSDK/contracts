@@ -1,8 +1,8 @@
 pub mod map_tester;
 pub mod mock_module;
-pub(crate) mod querier;
+pub(crate) mod mock_querier;
 
-pub use querier::{querier, wrap_querier};
+pub use mock_querier::{querier, wrap_querier};
 
 pub const TEST_PROXY: &str = "proxy_address";
 pub const TEST_MANAGER: &str = "manager_address";
@@ -13,4 +13,3 @@ pub const TEST_MODULE_ID: &str = "test_module_id";
 pub const TEST_OS_ID: u32 = 0;
 pub const TEST_ADMIN: &str = "test_admin_address";
 pub const TEST_VERSION: &str = "1.0.0";
-
