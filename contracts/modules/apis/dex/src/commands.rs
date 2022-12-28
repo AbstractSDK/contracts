@@ -1,6 +1,6 @@
 use abstract_os::objects::{DexAssetPairing, PoolReference};
 use abstract_sdk::base::features::AbstractNameService;
-use abstract_sdk::os::objects::{AnsAsset};
+use abstract_sdk::os::objects::AnsAsset;
 use abstract_sdk::Execution;
 use cosmwasm_std::{CosmosMsg, Decimal, Deps, DepsMut, ReplyOn, StdError, SubMsg};
 use cw_asset::Asset;
@@ -9,7 +9,7 @@ use crate::{error::DexError, DEX};
 use abstract_sdk::os::dex::AskAsset;
 use abstract_sdk::os::{
     dex::{DexAction, OfferAsset, SwapRouter},
-    objects::{AssetEntry},
+    objects::AssetEntry,
 };
 
 pub const PROVIDE_LIQUIDITY: u64 = 7542;

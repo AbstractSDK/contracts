@@ -173,20 +173,21 @@ impl<
     }
 }
 
-
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
 
-    use abstract_os::api::{InstantiateMsg, BaseInstantiateMsg};
+    use abstract_os::api::{BaseInstantiateMsg, InstantiateMsg};
     use abstract_sdk::base::InstantiateEndpoint;
-    use cosmwasm_std::{testing::{MockQuerier, mock_env,mock_info, mock_dependencies}, WasmQuery, Binary, Addr, SystemResult, ContractResult, Empty};
+    use cosmwasm_std::{
+        testing::{mock_dependencies, mock_env, mock_info},
+        Empty,
+    };
     use thiserror::Error;
 
     use super::*;
     use abstract_testing::*;
 
-    type TestApi = ApiContract::<TestError, Empty, Empty, Empty, Empty>;
+    type TestApi = ApiContract<TestError, Empty, Empty, Empty, Empty>;
     type ApiTestResult = Result<(), TestError>;
 
     #[derive(Error, Debug, PartialEq)]
@@ -200,7 +201,7 @@ mod tests {
 
     #[test]
     fn add_trader() -> ApiTestResult {
-        let mut api = TestApi::new("mock", "v1.9.9", None);
+        let api = TestApi::new("mock", "v1.9.9", None);
         let env = mock_env();
         let info = mock_info(TEST_MANAGER, &vec![]);
         let mut deps = mock_dependencies();
@@ -208,14 +209,17 @@ mod tests {
         let init_msg = InstantiateMsg {
             base: BaseInstantiateMsg {
                 ans_host_address: TEST_ANS_HOST.into(),
-                version_control_address:TEST_VERSION_CONTROL.into()
+                version_control_address: TEST_VERSION_CONTROL.into(),
             },
             app: Empty {},
         };
         api.instantiate(deps.as_mut(), env.clone(), info.clone(), init_msg)?;
-        
+
         let mut api = TestApi::new("mock", "v1.9.9", None);
-        let msg = BaseExecuteMsg::UpdateTraders { to_add: None, to_remove: None };
+        let msg = BaseExecuteMsg::UpdateTraders {
+            to_add: None,
+            to_remove: None,
+        };
         api.base_execute(deps.as_mut(), env, info, msg)?;
 
         Ok(())

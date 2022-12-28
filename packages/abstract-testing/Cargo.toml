@@ -13,3 +13,6 @@ derive_builder = "0.12.0"
 abstract-os = { workspace = true }
 abstract-sdk = { workspace = true }
 cosmwasm-schema = { workspace = true }
+
+[dev-dependencies]
+speculoos = { workspace = true }

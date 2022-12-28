@@ -1,17 +1,10 @@
-use crate::{
-    TEST_ANS_HOST, TEST_MANAGER, TEST_MODULE_ADDRESS, TEST_MODULE_ID, TEST_PROXY,
-    TEST_VERSION_CONTROL,
-};
+use crate::{TEST_ANS_HOST, TEST_PROXY};
 use abstract_os::objects::ans_host::AnsHost;
-use abstract_os::version_control::Core;
+
 use abstract_os::{api, app};
 use abstract_sdk::base::features::{AbstractNameService, Identification};
-use cosmwasm_std::testing::MockQuerier;
-use cosmwasm_std::{
-    to_binary, Addr, Binary, ContractResult, Deps, Empty, QuerierWrapper, StdError, StdResult,
-    SystemResult, WasmQuery,
-};
-use std::collections::HashMap;
+
+use cosmwasm_std::{Addr, Deps, StdError, StdResult};
 
 pub struct MockModule {}
 
