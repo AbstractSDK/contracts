@@ -61,7 +61,7 @@ mod tests {
     use abstract_sdk::base::InstantiateEndpoint;
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
-        Empty, StdError,
+        Empty, StdError, Addr,
     };
     use cw2::{ContractVersion, CONTRACT};
     use thiserror::Error;
@@ -83,9 +83,18 @@ mod tests {
         Api(#[from] ApiError),
     }
 
+    fn mock_init_handler(_deps: DepsMut, _env: Env, _info: MessageInfo,_api: MockApi, _msg: Empty) -> Result<Response, MockError> {
+        Ok(Response::new().set_data("mock_response".as_bytes()))
+    }
+
+    fn mock_api() -> MockApi {
+        MockApi::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
+        .with_instantiate(mock_init_handler)
+    }
+
     #[test]
     fn successful () -> ApiMockResult {
-        let api = MockApi::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA));
+        let api = mock_api();
         let env = mock_env();
         let info = mock_info(TEST_MANAGER, &vec![]);
         let mut deps = mock_dependencies();
@@ -97,9 +106,10 @@ mod tests {
             },
             app: Empty {},
         };
-        let res = api.instantiate(deps.as_mut(), env.clone(), info.clone(), init_msg);
-        assert_that!(&res).is_ok();
-        assert_that!(res?.messages.len()).is_equal_to(0);
+        let res = api.instantiate(deps.as_mut(), env.clone(), info.clone(), init_msg)?;
+        assert_that!(&res.messages.len()).is_equal_to(0);
+        // confirm mock init handler executed
+        assert_that!(&res.data).is_equal_to(Some("mock_response".as_bytes().into()));
 
         let module_data = MODULE.load(&deps.storage)?;
         assert_that!(module_data).is_equal_to(ModuleData{
@@ -115,6 +125,17 @@ mod tests {
             version: TEST_VERSION.into(),
         });
 
+        let api = mock_api();
+        let no_traders_registered = api.traders.is_empty(&deps.storage);
+        assert!(no_traders_registered);
+
+        let state = api.base_state.load(&deps.storage)?;
+        assert_that!(state).is_equal_to( ApiState {
+            version_control: Addr::unchecked(TEST_VERSION_CONTROL),
+            ans_host: AnsHost {
+                address: Addr::unchecked(TEST_ANS_HOST),
+            },
+        });
         Ok(())
     }
 
