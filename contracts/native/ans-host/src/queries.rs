@@ -274,16 +274,16 @@ mod test {
         msg
     }
 
-    fn create_test_assets_and_update(
-        input: Vec<(String, String)>,
+    fn create_test_assets(
+        input: Vec<(&str, &str)>,
         api: MockApi,
     ) -> Vec<(String, AssetInfoBase<Addr>)> {
         let test_assets: Vec<(String, AssetInfoBase<Addr>)> = input
             .into_iter()
             .map(|input| {
                 (
-                    input.0.clone().into(),
-                    (AssetInfoUnchecked::native(input.1.clone()))
+                    input.0.to_string().clone().into(),
+                    (AssetInfoUnchecked::native(input.1.to_string().clone()))
                         .check(&api, None)
                         .unwrap()
                         .into(),
@@ -302,7 +302,33 @@ mod test {
         };
         expected
     }
-
+    fn create_contract_entry_and_string(
+        input: Vec<(&str, &str, &str)>,
+    ) -> Vec<(ContractEntry, String)> {
+        let contract_entry: Vec<(ContractEntry, String)> = input
+            .into_iter()
+            .map(|input| {
+                (
+                    ContractEntry {
+                        protocol: input.0.to_string().to_ascii_lowercase().clone(),
+                        contract: input.1.to_string().to_ascii_lowercase().clone(),
+                    },
+                    input.2.to_string().clone(),
+                )
+            })
+            .collect();
+        contract_entry
+    }
+    fn create_contract_entry(input: Vec<(&str, &str)>) -> Vec<ContractEntry> {
+        let contract_entry: Vec<ContractEntry> = input
+            .into_iter()
+            .map(|input| ContractEntry {
+                protocol: input.0.to_string().to_ascii_lowercase().clone(),
+                contract: input.1.to_string().to_ascii_lowercase().clone(),
+            })
+            .collect();
+        contract_entry
+    }
     #[test]
     fn test_query_assets() -> AnsHostTestResult {
         // arrange mocks
@@ -311,13 +337,7 @@ mod test {
         let api = deps.api;
 
         // create test query data
-        let test_assets = create_test_assets_and_update(
-            vec![
-                ("bar".to_string(), "bar".to_string()),
-                ("foo".to_string(), "foo".to_string()),
-            ],
-            api,
-        );
+        let test_assets = create_test_assets(vec![("bar", "bar"), ("foo", "foo")], api);
         for (test_asset_name, test_asset_info) in test_assets.clone().into_iter() {
             let insert = |_| -> StdResult<AssetInfo> { Ok(test_asset_info) };
             ASSET_ADDRESSES.update(&mut deps.storage, test_asset_name.into(), insert)?;
@@ -344,14 +364,7 @@ mod test {
         mock_init(deps.as_mut()).unwrap();
 
         // create test query data
-        let to_add: Vec<(ContractEntry, String)> = vec![(
-            ContractEntry {
-                protocol: "foo".to_string().to_ascii_lowercase(),
-                contract: "1234".to_string().to_ascii_lowercase(),
-            },
-            "1234".to_string(),
-        )];
-
+        let to_add = create_contract_entry_and_string(vec![("foo", "foo", "foo")]);
         for (key, new_address) in to_add.into_iter() {
             let addr = deps.as_ref().api.addr_validate(&new_address)?;
             let insert = |_| -> StdResult<Addr> { Ok(addr) };
@@ -360,25 +373,15 @@ mod test {
 
         // create msg
         let msg = QueryMsg::Contracts {
-            names: vec![
-                (ContractEntry {
-                    protocol: "foo".to_string().to_ascii_lowercase(),
-                    contract: "1234".to_string().to_ascii_lowercase(),
-                }),
-            ],
+            names: create_contract_entry(vec![("foo", "foo")]),
         };
+
         // send query message
         let res: ContractsResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
         // Stage data for equality test
         let expected = ContractsResponse {
-            contracts: vec![(
-                ContractEntry {
-                    protocol: "foo".to_string().to_ascii_lowercase(),
-                    contract: "1234".to_string().to_ascii_lowercase(),
-                },
-                "1234".to_string(),
-            )],
+            contracts: create_contract_entry_and_string(vec![("foo", "foo", "foo")]),
         };
 
         // Assert
