@@ -7,7 +7,6 @@ use cosmwasm_std::{Env, Storage};
 
 use cw_storage_plus::{KeyDeserialize, Map, PrimaryKey};
 use derive_builder::Builder;
-use schemars::_serde_json::value::Serializer;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
