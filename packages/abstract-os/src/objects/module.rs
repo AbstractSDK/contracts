@@ -18,9 +18,6 @@ pub struct ModuleInfo {
 }
 
 impl ModuleInfo {
-    pub fn id(&self) -> String {
-        format!("{}:{}", self.provider, self.name)
-    }
     pub fn from_id(id: &str, version: ModuleVersion) -> StdResult<Self> {
         let split: Vec<&str> = id.split(':').collect();
         if split.len() != 2 {
@@ -35,9 +32,12 @@ impl ModuleInfo {
             version,
         })
     }
-
     pub fn from_id_latest(id: &str) -> StdResult<Self> {
         Self::from_id(id, ModuleVersion::Latest)
+    }
+
+    pub fn id(&self) -> String {
+        format!("{}:{}", self.provider, self.name)
     }
 
     pub fn assert_version_variant(&self) -> StdResult<()> {
@@ -47,9 +47,9 @@ impl ModuleInfo {
             )),
             ModuleVersion::Version(ver) => {
                 // assert version parses correctly
-                semver::Version::parse(ver).map_err(|e|StdError::generic_err(e.to_string()))?;
+                semver::Version::parse(ver).map_err(|e| StdError::generic_err(e.to_string()))?;
                 Ok(())
-            },
+            }
         }
     }
 }
@@ -157,7 +157,10 @@ impl Display for ModuleVersion {
     }
 }
 
-impl<T> From<T> for ModuleVersion where T: Into<String>{
+impl<T> From<T> for ModuleVersion
+where
+    T: Into<String>,
+{
     fn from(ver: T) -> Self {
         Self::Version(ver.into())
     }
