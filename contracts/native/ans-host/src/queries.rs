@@ -284,12 +284,12 @@ mod test {
         // create test query data
         let test_assets: Vec<(String, AssetInfoUnchecked)> = vec![
             (
-                "test1".to_string(),
-                AssetInfoUnchecked::native("1234".to_string()),
+                "bar".to_string(),
+                AssetInfoUnchecked::native("bar".to_string()),
             ),
             (
-                "test2".to_string(),
-                AssetInfoUnchecked::native("5678".to_string()),
+                "foo".to_string(),
+                AssetInfoUnchecked::native("foo".to_string()),
             ),
         ];
         for (test_asset_name, test_asset_info) in test_assets.clone().into_iter() {
@@ -299,7 +299,7 @@ mod test {
 
         // create msg
         let msg = QueryMsg::Assets {
-            names: vec!["test1".to_string(), "test2".to_string()],
+            names: vec!["bar".to_string(), "foo".to_string()],
         };
         // send query message
         let res: AssetsResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
@@ -526,7 +526,149 @@ mod test {
 
         Ok(())
     }
+    #[test]
+    fn test_query_asset_list_above_max() -> AnsHostTestResult {
+        // arrange mocks
+        let mut deps = mock_dependencies();
+        mock_init(deps.as_mut()).unwrap();
+        let api = deps.api;
 
+        // create test query data
+        let to_add: Vec<(String, AssetInfoUnchecked)> = vec![
+            (
+                "bar".to_string(),
+                AssetInfoUnchecked::native("bar".to_string()),
+            ),
+            (
+                "foo".to_string(),
+                AssetInfoUnchecked::native("foo".to_string()),
+            ),
+            (
+                "baz".to_string(),
+                AssetInfoUnchecked::native("baz".to_string()),
+            ),
+            (
+                "quox".to_string(),
+                AssetInfoUnchecked::native("quox".to_string()),
+            ),
+            (
+                "foobar".to_string(),
+                AssetInfoUnchecked::native("foobar".to_string()),
+            ),
+            (
+                "foobaz".to_string(),
+                AssetInfoUnchecked::native("foobaz".to_string()),
+            ),
+            (
+                "bar1".to_string(),
+                AssetInfoUnchecked::native("bar1".to_string()),
+            ),
+            (
+                "foo1".to_string(),
+                AssetInfoUnchecked::native("foo1".to_string()),
+            ),
+            (
+                "baz1".to_string(),
+                AssetInfoUnchecked::native("baz1".to_string()),
+            ),
+            (
+                "quox1".to_string(),
+                AssetInfoUnchecked::native("quox1".to_string()),
+            ),
+            (
+                "foobar1".to_string(),
+                AssetInfoUnchecked::native("foobar1".to_string()),
+            ),
+            (
+                "foobaz1".to_string(),
+                AssetInfoUnchecked::native("foobaz1".to_string()),
+            ),
+            (
+                "bar2".to_string(),
+                AssetInfoUnchecked::native("bar2".to_string()),
+            ),
+            (
+                "foo2".to_string(),
+                AssetInfoUnchecked::native("foo2".to_string()),
+            ),
+            (
+                "baz2".to_string(),
+                AssetInfoUnchecked::native("baz2".to_string()),
+            ),
+            (
+                "quox2".to_string(),
+                AssetInfoUnchecked::native("quox2".to_string()),
+            ),
+            (
+                "foobar2".to_string(),
+                AssetInfoUnchecked::native("foobar2".to_string()),
+            ),
+            (
+                "foobaz2".to_string(),
+                AssetInfoUnchecked::native("foobaz2".to_string()),
+            ),
+            (
+                "bar3".to_string(),
+                AssetInfoUnchecked::native("bar3".to_string()),
+            ),
+            (
+                "foo3".to_string(),
+                AssetInfoUnchecked::native("foo3".to_string()),
+            ),
+            (
+                "baz3".to_string(),
+                AssetInfoUnchecked::native("baz3".to_string()),
+            ),
+            (
+                "quox3".to_string(),
+                AssetInfoUnchecked::native("quox3".to_string()),
+            ),
+            (
+                "foobar3".to_string(),
+                AssetInfoUnchecked::native("foobar3".to_string()),
+            ),
+            (
+                "foobaz3".to_string(),
+                AssetInfoUnchecked::native("foobaz3".to_string()),
+            ),
+            (
+                "bar4".to_string(),
+                AssetInfoUnchecked::native("bar4".to_string()),
+            ),
+            (
+                "foo4".to_string(),
+                AssetInfoUnchecked::native("foo4".to_string()),
+            ),
+            (
+                "baz4".to_string(),
+                AssetInfoUnchecked::native("baz4".to_string()),
+            ),
+            (
+                "quox4".to_string(),
+                AssetInfoUnchecked::native("quox4".to_string()),
+            ),
+            (
+                "foobar4".to_string(),
+                AssetInfoUnchecked::native("foobar4".to_string()),
+            ),
+            (
+                "foobaz4".to_string(),
+                AssetInfoUnchecked::native("foobaz4".to_string()),
+            ),
+        ];
+        for (test_asset_name, test_asset_info) in to_add.clone().into_iter() {
+            let insert = |_| -> StdResult<AssetInfo> { test_asset_info.check(&api, None) };
+            ASSET_ADDRESSES.update(&mut deps.storage, test_asset_name.into(), insert)?;
+        }
+
+        // create msg
+        let msg = query_asset_list_msg("".to_string(), 42);
+        let res: AssetListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+
+        // Assert that despite 30 entries the returned data is capped at the `MAX_LIMIT` of 25 results
+        assert!(res.assets.len() == 25 as usize);
+        Ok(())
+    }
     #[test]
     fn test_query_contract_list() -> AnsHostTestResult {
         // arrange mocks
