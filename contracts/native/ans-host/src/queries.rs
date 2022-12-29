@@ -329,6 +329,39 @@ mod test {
             .collect();
         contract_entry
     }
+    fn create_channel_entry_and_string(
+        input: Vec<(&str, &str, &str)>,
+    ) -> Vec<(ChannelEntry, String)> {
+        let channel_entry: Vec<(ChannelEntry, String)> = input
+            .into_iter()
+            .map(|input| {
+                (
+                    ChannelEntry {
+                        connected_chain: input.0.to_string().to_ascii_lowercase().clone(),
+                        protocol: input.1.to_string().to_ascii_lowercase().clone(),
+                    },
+                    input.2.to_string().clone(),
+                )
+            })
+            .collect();
+        channel_entry
+    }
+    fn create_channel_entry(input: Vec<(&str, &str)>) -> Vec<ChannelEntry> {
+        let channel_entry: Vec<ChannelEntry> = input
+            .into_iter()
+            .map(|input| ChannelEntry {
+                connected_chain: input.0.to_string().to_ascii_lowercase().clone(),
+                protocol: input.1.to_string().to_ascii_lowercase().clone(),
+            })
+            .collect();
+        channel_entry
+    }
+    fn create_channel_msg(input: Vec<(&str, &str)>) -> QueryMsg {
+        let msg = QueryMsg::Channels {
+            names: create_channel_entry(input),
+        };
+        msg
+    }
     #[test]
     fn test_query_assets() -> AnsHostTestResult {
         // arrange mocks
@@ -396,53 +429,27 @@ mod test {
         mock_init(deps.as_mut()).unwrap();
 
         // create test query data
-        let to_add: Vec<(ChannelEntry, String)> = vec![(
-            ChannelEntry {
-                connected_chain: "foo".to_string().to_ascii_lowercase(),
-                protocol: "foo".to_string().to_ascii_lowercase(),
-            },
-            "foo".to_string(),
-        )];
+        let to_add = create_channel_entry_and_string(vec![("foo", "foo", "foo")]);
         for (key, new_channel) in to_add.into_iter() {
             // Update function for new or existing keys
             let insert = |_| -> StdResult<String> { Ok(new_channel) };
             CHANNELS.update(&mut deps.storage, key, insert)?;
         }
         // create duplicate entry
-        let to_add1: Vec<(ChannelEntry, String)> = vec![(
-            ChannelEntry {
-                connected_chain: "foo".to_string().to_ascii_lowercase(),
-                protocol: "foo".to_string().to_ascii_lowercase(),
-            },
-            "foo".to_string(),
-        )];
+        let to_add1 = create_channel_entry_and_string(vec![("foo", "foo", "foo")]);
         for (key, new_channel) in to_add1.into_iter() {
             // Update function for new or existing keys
             let insert = |_| -> StdResult<String> { Ok(new_channel) };
             CHANNELS.update(&mut deps.storage, key, insert)?;
         }
 
-        // create msg
-        let msg = QueryMsg::Channels {
-            names: vec![
-                (ChannelEntry {
-                    connected_chain: "foo".to_string().to_ascii_lowercase(),
-                    protocol: "foo".to_string().to_ascii_lowercase(),
-                }),
-            ],
-        };
-        // send query message
+        // create and send and deserialise msg
+        let msg = create_channel_msg(vec![("foo", "foo")]);
         let res: ChannelsResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
         // Stage data for equality test
         let expected = ChannelsResponse {
-            channels: vec![(
-                ChannelEntry {
-                    connected_chain: "foo".to_string(),
-                    protocol: "foo".to_string(),
-                },
-                "foo".to_string(),
-            )],
+            channels: create_channel_entry_and_string(vec![("foo", "foo", "foo")]),
         };
         // Assert
         assert_that!(&res).is_equal_to(&expected);
