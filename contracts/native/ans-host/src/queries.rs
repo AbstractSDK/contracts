@@ -651,35 +651,15 @@ mod test {
         mock_init(deps.as_mut()).unwrap();
 
         // create test query data
-        let to_add: Vec<(ChannelEntry, String)> = vec![
-            (
-                ChannelEntry {
-                    connected_chain: "foo".to_string(),
-                    protocol: "foo".to_string(),
-                },
-                "foo".to_string(),
-            ),
-            (
-                ChannelEntry {
-                    connected_chain: "bar".to_string(),
-                    protocol: "bar".to_string(),
-                },
-                "bar".to_string(),
-            ),
-        ];
+        let to_add =
+            create_channel_entry_and_string(vec![("bar", "bar", "bar"), ("foo", "foo", "foo")]);
         for (key, new_channel) in to_add.into_iter() {
             // Update function for new or existing keys
             let insert = |_| -> StdResult<String> { Ok(new_channel) };
             CHANNELS.update(&mut deps.storage, key, insert)?;
         }
         // create second entry
-        let to_add1: Vec<(ChannelEntry, String)> = vec![(
-            ChannelEntry {
-                connected_chain: "foobar".to_string(),
-                protocol: "foobar".to_string(),
-            },
-            "foobar".to_string(),
-        )];
+        let to_add1 = create_channel_entry_and_string(vec![("foobar", "foobar", "foobar")]);
         for (key, new_channel) in to_add1.into_iter() {
             // Update function for new or existing keys
             let insert = |_| -> StdResult<String> { Ok(new_channel) };
@@ -690,7 +670,7 @@ mod test {
         // No token filter - should return up to `page_size` entries
         let msg = QueryMsg::ChannelList {
             page_token: None,
-            page_size: Some(3 as u8),
+            page_size: Some(42 as u8),
         };
         let res_all = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
@@ -712,51 +692,22 @@ mod test {
         let res_bar = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
         // Stage data for equality test
+        
         // Return all
         let expected_all = ChannelListResponse {
-            channels: vec![
-                (
-                    ChannelEntry {
-                        connected_chain: "bar".to_string(),
-                        protocol: "bar".to_string(),
-                    },
-                    "bar".to_string(),
-                ),
-                (
-                    ChannelEntry {
-                        connected_chain: "foo".to_string(),
-                        protocol: "foo".to_string(),
-                    },
-                    "foo".to_string(),
-                ),
-                (
-                    ChannelEntry {
-                        connected_chain: "foobar".to_string(),
-                        protocol: "foobar".to_string(),
-                    },
-                    "foobar".to_string(),
-                ),
-            ],
+            channels: create_channel_entry_and_string(vec![
+                ("bar", "bar", "bar"),
+                ("foo", "foo", "foo"),
+                ("foobar", "foobar", "foobar"),
+            ]),
         };
         // Filter from `Foo`
         let expected_foobar = ChannelListResponse {
-            channels: vec![(
-                ChannelEntry {
-                    connected_chain: "foobar".to_string(),
-                    protocol: "foobar".to_string(),
-                },
-                "foobar".to_string(),
-            )],
+            channels: create_channel_entry_and_string(vec![("foobar", "foobar", "foobar")]),
         };
         // Return first entry (alphabetically)
         let expected_bar = ChannelListResponse {
-            channels: vec![(
-                ChannelEntry {
-                    connected_chain: "bar".to_string(),
-                    protocol: "bar".to_string(),
-                },
-                "bar".to_string(),
-            )],
+            channels: create_channel_entry_and_string(vec![("bar", "bar", "bar")]),
         };
         // Assert
         assert_that!(&res_all).is_equal_to(expected_all);
