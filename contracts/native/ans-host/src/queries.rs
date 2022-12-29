@@ -341,6 +341,7 @@ mod test {
             .collect();
         contract_entry
     }
+
     fn create_channel_entry_and_string(
         input: Vec<(&str, &str, &str)>,
     ) -> Vec<(ChannelEntry, String)> {
@@ -477,7 +478,7 @@ mod test {
         let api = deps.api;
 
         // create test query data
-        let test_assets = create_test_assets(vec![("bar", "bar"), ("foo", "foo")], api);
+        let test_assets = create_test_assets(vec![("foo", "foo"), ("bar", "bar")], api);
         for (test_asset_name, test_asset_info) in test_assets.clone().into_iter() {
             let insert = |_| -> StdResult<AssetInfo> { Ok(test_asset_info) };
             ASSET_ADDRESSES.update(&mut deps.storage, test_asset_name.into(), insert)?;
@@ -489,22 +490,23 @@ mod test {
             ASSET_ADDRESSES.update(&mut deps.storage, test_asset_name.into(), insert)?;
         }
         // create duplicate entry
-        let test_assets2 = create_test_assets(vec![("foobar", "foobar")], api);
-        for (test_asset_name, test_asset_info) in test_assets2.clone().into_iter() {
+        let test_assets_duplicate = create_test_assets(vec![("foobar", "foobar")], api);
+        for (test_asset_name, test_asset_info) in test_assets_duplicate.clone().into_iter() {
             let insert = |_| -> StdResult<AssetInfo> { Ok(test_asset_info) };
             ASSET_ADDRESSES.update(&mut deps.storage, test_asset_name.into(), insert)?;
         }
 
         // create msgs
+
+        // return all entries
         let msg = query_asset_list_msg("".to_string(), 42);
         let res: AssetListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
-
-        // limit response to 1 result
+        // limit response to 1st result - entries are stored alphabetically
         let msg = query_asset_list_msg("".to_string(), 1);
         let res_first_entry: AssetListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
         // results after specified entry
-        let msg = query_asset_list_msg("foo".to_string(), 2);
+        let msg = query_asset_list_msg("foo".to_string(), 1);
         let res_of_foobar: AssetListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
         // Stage data for equality test
@@ -513,15 +515,14 @@ mod test {
             api,
         ));
 
-        let expected_foobar = create_asset_list_response(test_assets2);
+        let expected_foobar =
+            create_asset_list_response(create_test_assets(vec![("foobar", "foobar")], api));
         let expected_bar =
             create_asset_list_response(create_test_assets(vec![("bar", "bar")], api));
 
         assert_that!(res).is_equal_to(&expected);
         assert_that!(res_first_entry).is_equal_to(&expected_bar);
         assert_that!(&res_of_foobar).is_equal_to(&expected_foobar);
-        assert_that!(&res).is_not_equal_to(&expected_foobar);
-        assert!(res.assets.len() == 3 as usize);
 
         Ok(())
     }
@@ -533,136 +534,46 @@ mod test {
         let api = deps.api;
 
         // create test query data
-        let to_add: Vec<(String, AssetInfoUnchecked)> = vec![
-            (
-                "bar".to_string(),
-                AssetInfoUnchecked::native("bar".to_string()),
-            ),
-            (
-                "foo".to_string(),
-                AssetInfoUnchecked::native("foo".to_string()),
-            ),
-            (
-                "baz".to_string(),
-                AssetInfoUnchecked::native("baz".to_string()),
-            ),
-            (
-                "quox".to_string(),
-                AssetInfoUnchecked::native("quox".to_string()),
-            ),
-            (
-                "foobar".to_string(),
-                AssetInfoUnchecked::native("foobar".to_string()),
-            ),
-            (
-                "foobaz".to_string(),
-                AssetInfoUnchecked::native("foobaz".to_string()),
-            ),
-            (
-                "bar1".to_string(),
-                AssetInfoUnchecked::native("bar1".to_string()),
-            ),
-            (
-                "foo1".to_string(),
-                AssetInfoUnchecked::native("foo1".to_string()),
-            ),
-            (
-                "baz1".to_string(),
-                AssetInfoUnchecked::native("baz1".to_string()),
-            ),
-            (
-                "quox1".to_string(),
-                AssetInfoUnchecked::native("quox1".to_string()),
-            ),
-            (
-                "foobar1".to_string(),
-                AssetInfoUnchecked::native("foobar1".to_string()),
-            ),
-            (
-                "foobaz1".to_string(),
-                AssetInfoUnchecked::native("foobaz1".to_string()),
-            ),
-            (
-                "bar2".to_string(),
-                AssetInfoUnchecked::native("bar2".to_string()),
-            ),
-            (
-                "foo2".to_string(),
-                AssetInfoUnchecked::native("foo2".to_string()),
-            ),
-            (
-                "baz2".to_string(),
-                AssetInfoUnchecked::native("baz2".to_string()),
-            ),
-            (
-                "quox2".to_string(),
-                AssetInfoUnchecked::native("quox2".to_string()),
-            ),
-            (
-                "foobar2".to_string(),
-                AssetInfoUnchecked::native("foobar2".to_string()),
-            ),
-            (
-                "foobaz2".to_string(),
-                AssetInfoUnchecked::native("foobaz2".to_string()),
-            ),
-            (
-                "bar3".to_string(),
-                AssetInfoUnchecked::native("bar3".to_string()),
-            ),
-            (
-                "foo3".to_string(),
-                AssetInfoUnchecked::native("foo3".to_string()),
-            ),
-            (
-                "baz3".to_string(),
-                AssetInfoUnchecked::native("baz3".to_string()),
-            ),
-            (
-                "quox3".to_string(),
-                AssetInfoUnchecked::native("quox3".to_string()),
-            ),
-            (
-                "foobar3".to_string(),
-                AssetInfoUnchecked::native("foobar3".to_string()),
-            ),
-            (
-                "foobaz3".to_string(),
-                AssetInfoUnchecked::native("foobaz3".to_string()),
-            ),
-            (
-                "bar4".to_string(),
-                AssetInfoUnchecked::native("bar4".to_string()),
-            ),
-            (
-                "foo4".to_string(),
-                AssetInfoUnchecked::native("foo4".to_string()),
-            ),
-            (
-                "baz4".to_string(),
-                AssetInfoUnchecked::native("baz4".to_string()),
-            ),
-            (
-                "quox4".to_string(),
-                AssetInfoUnchecked::native("quox4".to_string()),
-            ),
-            (
-                "foobar4".to_string(),
-                AssetInfoUnchecked::native("foobar4".to_string()),
-            ),
-            (
-                "foobaz4".to_string(),
-                AssetInfoUnchecked::native("foobaz4".to_string()),
-            ),
-        ];
-        for (test_asset_name, test_asset_info) in to_add.clone().into_iter() {
-            let insert = |_| -> StdResult<AssetInfo> { test_asset_info.check(&api, None) };
+        let test_assets_large = create_test_assets(
+            vec![
+                ("foo", "foo"),
+                ("foo1", "foo1"),
+                ("foo2", "foo2"),
+                ("foo3", "foo3"),
+                ("foo4", "foo4"),
+                ("foo5", "foo5"),
+                ("foo6", "foo6"),
+                ("foo7", "foo7"),
+                ("foo8", "foo8"),
+                ("foo9", "foo9"),
+                ("foo10", "foo10"),
+                ("foo11", "foo11"),
+                ("foo12", "foo12"),
+                ("foo13", "foo13"),
+                ("foo14", "foo14"),
+                ("foo15", "foo15"),
+                ("foo16", "foo16"),
+                ("foo17", "foo17"),
+                ("foo18", "foo18"),
+                ("foo19", "foo19"),
+                ("foo20", "foo20"),
+                ("foo21", "foo21"),
+                ("foo22", "foo22"),
+                ("foo23", "foo23"),
+                ("foo24", "foo24"),
+                ("foo25", "foo25"),
+                ("foo26", "foo26"),
+                ("foo27", "foo27"),
+            ],
+            api,
+        );
+        for (test_asset_name, test_asset_info) in test_assets_large.clone().into_iter() {
+            let insert = |_| -> StdResult<AssetInfo> { Ok(test_asset_info) };
             ASSET_ADDRESSES.update(&mut deps.storage, test_asset_name.into(), insert)?;
         }
-
-        // create msg
         let msg = query_asset_list_msg("".to_string(), 42);
         let res: AssetListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+        assert!(res.assets.len() == 25 as usize);
 
         // Assert that despite 30 entries the returned data is capped at the `MAX_LIMIT` of 25 results
         assert!(res.assets.len() == 25 as usize);
@@ -675,39 +586,21 @@ mod test {
         mock_init(deps.as_mut()).unwrap();
 
         // create test query data
-        let to_add: Vec<(ContractEntry, String)> = vec![(
-            ContractEntry {
-                protocol: "foo".to_string().to_ascii_lowercase(),
-                contract: "foo".to_string().to_ascii_lowercase(),
-            },
-            "foo".to_string(),
-        )];
+        let to_add = create_contract_entry_and_string(vec![("foo", "foo", "foo")]);
         for (key, new_address) in to_add.into_iter() {
             let addr = deps.as_ref().api.addr_validate(&new_address)?;
             let insert = |_| -> StdResult<Addr> { Ok(addr) };
             CONTRACT_ADDRESSES.update(&mut deps.storage, key, insert)?;
         }
         // create second entry
-        let to_add1: Vec<(ContractEntry, String)> = vec![(
-            ContractEntry {
-                protocol: "bar".to_string().to_ascii_lowercase(),
-                contract: "bar".to_string().to_ascii_lowercase(),
-            },
-            "bar".to_string(),
-        )];
+        let to_add1 = create_contract_entry_and_string(vec![("bar", "bar", "bar")]);
         for (key, new_address) in to_add1.into_iter() {
             let addr = deps.as_ref().api.addr_validate(&new_address)?;
             let insert = |_| -> StdResult<Addr> { Ok(addr) };
             CONTRACT_ADDRESSES.update(&mut deps.storage, key, insert)?;
         }
         // create duplicate entry
-        let to_add1: Vec<(ContractEntry, String)> = vec![(
-            ContractEntry {
-                protocol: "foo".to_string().to_ascii_lowercase(),
-                contract: "foo".to_string().to_ascii_lowercase(),
-            },
-            "foo".to_string(),
-        )];
+        let to_add1 = create_contract_entry_and_string(vec![("bar", "bar", "bar")]);
         for (key, new_address) in to_add1.into_iter() {
             let addr = deps.as_ref().api.addr_validate(&new_address)?;
             let insert = |_| -> StdResult<Addr> { Ok(addr) };
@@ -732,32 +625,14 @@ mod test {
 
         // Stage data for equality test
         let expected = ContractListResponse {
-            contracts: vec![
-                (
-                    ContractEntry {
-                        protocol: "bar".to_string().to_ascii_lowercase(),
-                        contract: "bar".to_string().to_ascii_lowercase(),
-                    },
-                    "bar".to_string(),
-                ),
-                (
-                    ContractEntry {
-                        protocol: "foo".to_string().to_ascii_lowercase(),
-                        contract: "foo".to_string().to_ascii_lowercase(),
-                    },
-                    "foo".to_string(),
-                ),
-            ],
+            contracts: create_contract_entry_and_string(vec![
+                ("bar", "bar", "bar"),
+                ("foo", "foo", "foo"),
+            ]),
         };
 
         let expected_foo = ContractListResponse {
-            contracts: vec![(
-                ContractEntry {
-                    protocol: "foo".to_string().to_ascii_lowercase(),
-                    contract: "foo".to_string().to_ascii_lowercase(),
-                },
-                "foo".to_string(),
-            )],
+            contracts: create_contract_entry_and_string(vec![("foo", "foo", "foo")]),
         };
 
         // Assert
