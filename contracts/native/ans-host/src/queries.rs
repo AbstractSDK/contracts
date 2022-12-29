@@ -239,14 +239,14 @@ fn load_pool_metadata_entry(
 #[cfg(test)]
 mod test {
     use abstract_os::ans_host::*;
-    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
+    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info, MockApi};
     use cosmwasm_std::{from_binary, DepsMut};
 
     use crate::contract;
     use crate::contract::{instantiate, AnsHostResult};
     use crate::error::AnsHostError;
 
-    use cw_asset::AssetInfoUnchecked;
+    use cw_asset::{AssetInfoBase, AssetInfoUnchecked};
     use speculoos::prelude::*;
 
     use super::*;
@@ -274,6 +274,35 @@ mod test {
         msg
     }
 
+    fn create_test_assets_and_update(
+        input: Vec<(String, String)>,
+        api: MockApi,
+    ) -> Vec<(String, AssetInfoBase<Addr>)> {
+        let test_assets: Vec<(String, AssetInfoBase<Addr>)> = input
+            .into_iter()
+            .map(|input| {
+                (
+                    input.0.clone().into(),
+                    (AssetInfoUnchecked::native(input.1.clone()))
+                        .check(&api, None)
+                        .unwrap()
+                        .into(),
+                )
+            })
+            .collect();
+        test_assets
+    }
+
+    fn create_asset_response(test_assets: Vec<(String, AssetInfoBase<Addr>)>) -> AssetsResponse {
+        let expected = AssetsResponse {
+            assets: test_assets
+                .iter()
+                .map(|item| (item.0.clone().into(), item.1.clone().into()))
+                .collect(),
+        };
+        expected
+    }
+
     #[test]
     fn test_query_assets() -> AnsHostTestResult {
         // arrange mocks
@@ -282,21 +311,17 @@ mod test {
         let api = deps.api;
 
         // create test query data
-        let test_assets: Vec<(String, AssetInfoUnchecked)> = vec![
-            (
-                "bar".to_string(),
-                AssetInfoUnchecked::native("bar".to_string()),
-            ),
-            (
-                "foo".to_string(),
-                AssetInfoUnchecked::native("foo".to_string()),
-            ),
-        ];
+        let test_assets = create_test_assets_and_update(
+            vec![
+                ("bar".to_string(), "bar".to_string()),
+                ("foo".to_string(), "foo".to_string()),
+            ],
+            api,
+        );
         for (test_asset_name, test_asset_info) in test_assets.clone().into_iter() {
-            let insert = |_| -> StdResult<AssetInfo> { test_asset_info.check(&api, None) };
+            let insert = |_| -> StdResult<AssetInfo> { Ok(test_asset_info) };
             ASSET_ADDRESSES.update(&mut deps.storage, test_asset_name.into(), insert)?;
         }
-
         // create msg
         let msg = QueryMsg::Assets {
             names: vec!["bar".to_string(), "foo".to_string()],
@@ -305,18 +330,7 @@ mod test {
         let res: AssetsResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
         // Stage data for equality test
-        let expected = AssetsResponse {
-            assets: test_assets
-                .iter()
-                .map(|item| {
-                    (
-                        item.0.clone().into(),
-                        item.1.clone().check(&api, None).unwrap().into(),
-                    )
-                })
-                .collect(),
-        };
-
+        let expected = create_asset_response(test_assets);
         // Assert
         assert_that!(&res).is_equal_to(&expected);
 
