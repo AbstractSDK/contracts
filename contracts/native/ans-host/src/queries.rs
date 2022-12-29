@@ -302,6 +302,18 @@ mod test {
         };
         expected
     }
+
+    fn create_asset_list_response(
+        test_assets: Vec<(String, AssetInfoBase<Addr>)>,
+    ) -> AssetListResponse {
+        let expected = AssetListResponse {
+            assets: test_assets
+                .iter()
+                .map(|item| (item.0.clone().into(), item.1.clone()))
+                .collect(),
+        };
+        expected
+    }
     fn create_contract_entry_and_string(
         input: Vec<(&str, &str, &str)>,
     ) -> Vec<(ContractEntry, String)> {
@@ -362,6 +374,7 @@ mod test {
         };
         msg
     }
+
     #[test]
     fn test_query_assets() -> AnsHostTestResult {
         // arrange mocks
@@ -466,87 +479,51 @@ mod test {
         let api = deps.api;
 
         // create test query data
-        let to_add: Vec<(String, AssetInfoUnchecked)> = vec![
-            (
-                "bar".to_string(),
-                AssetInfoUnchecked::native("bar".to_string()),
-            ),
-            (
-                "foo".to_string(),
-                AssetInfoUnchecked::native("foo".to_string()),
-            ),
-        ];
-        for (test_asset_name, test_asset_info) in to_add.clone().into_iter() {
-            let insert = |_| -> StdResult<AssetInfo> { test_asset_info.check(&api, None) };
+        let test_assets = create_test_assets(vec![("bar", "bar"), ("foo", "foo")], api);
+        for (test_asset_name, test_asset_info) in test_assets.clone().into_iter() {
+            let insert = |_| -> StdResult<AssetInfo> { Ok(test_asset_info) };
             ASSET_ADDRESSES.update(&mut deps.storage, test_asset_name.into(), insert)?;
         }
         // create second entry
-        let to_add1: Vec<(String, AssetInfoUnchecked)> = vec![(
-            "foobar".to_string(),
-            AssetInfoUnchecked::native("foobar".to_string()),
-        )];
-        for (test_asset_name, test_asset_info) in to_add1.clone().into_iter() {
-            let insert = |_| -> StdResult<AssetInfo> { test_asset_info.check(&api, None) };
+        let test_assets1 = create_test_assets(vec![("foobar", "foobar")], api);
+        for (test_asset_name, test_asset_info) in test_assets1.clone().into_iter() {
+            let insert = |_| -> StdResult<AssetInfo> { Ok(test_asset_info) };
             ASSET_ADDRESSES.update(&mut deps.storage, test_asset_name.into(), insert)?;
         }
         // create duplicate entry
-        let to_add2: Vec<(String, AssetInfoUnchecked)> = vec![(
-            "foobar".to_string(),
-            AssetInfoUnchecked::native("foobar".to_string()),
-        )];
-        for (test_asset_name, test_asset_info) in to_add2.clone().into_iter() {
-            let insert = |_| -> StdResult<AssetInfo> { test_asset_info.check(&api, None) };
+        let test_assets2 = create_test_assets(vec![("foobar", "foobar")], api);
+        for (test_asset_name, test_asset_info) in test_assets2.clone().into_iter() {
+            let insert = |_| -> StdResult<AssetInfo> { Ok(test_asset_info) };
             ASSET_ADDRESSES.update(&mut deps.storage, test_asset_name.into(), insert)?;
         }
 
         // create msgs
-        let msg = query_asset_list_msg("".to_string(), 2);
+        let msg = query_asset_list_msg("".to_string(), 42);
         let res: AssetListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
         // limit response to 1 result
         let msg = query_asset_list_msg("".to_string(), 1);
-        let res_singular: AssetListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+        let res_first_entry: AssetListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
         // results after specified entry
         let msg = query_asset_list_msg("foo".to_string(), 2);
         let res_of_foobar: AssetListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
-        // results do not loop for range-out-of-bounds
-        let msg = query_asset_list_msg("".to_string(), 42);
-        let res_of_large_size: AssetListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
-
         // Stage data for equality test
-        let expected = AssetListResponse {
-            assets: to_add
-                .iter()
-                .map(|item| {
-                    (
-                        item.0.clone().into(),
-                        item.1.clone().check(&api, None).unwrap().into(),
-                    )
-                })
-                .collect(),
-        };
+        let expected = create_asset_list_response(create_test_assets(
+            vec![("bar", "bar"), ("foo", "foo"), ("foobar", "foobar")],
+            api,
+        ));
 
-        let expected_of_one = AssetListResponse {
-            assets: vec![(
-                "bar".to_string().into(),
-                AssetInfoUnchecked::native("bar".to_string()).check(&api, None)?,
-            )],
-        };
-        let expected_foobar = AssetListResponse {
-            assets: vec![(
-                "foobar".to_string().into(),
-                AssetInfoUnchecked::native("foobar".to_string()).check(&api, None)?,
-            )],
-        };
+        let expected_foobar = create_asset_list_response(test_assets2);
+        let expected_bar =
+            create_asset_list_response(create_test_assets(vec![("bar", "bar")], api));
 
-        // Assert
-        assert_that!(&res).is_equal_to(&expected);
-        assert_that!(res_singular).is_equal_to(expected_of_one);
+        assert_that!(res).is_equal_to(&expected);
+        assert_that!(res_first_entry).is_equal_to(&expected_bar);
         assert_that!(&res_of_foobar).is_equal_to(&expected_foobar);
         assert_that!(&res).is_not_equal_to(&expected_foobar);
-        assert!(res_of_large_size.assets.len() == 3 as usize);
+        assert!(res.assets.len() == 3 as usize);
 
         Ok(())
     }
