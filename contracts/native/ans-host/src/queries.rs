@@ -417,12 +417,10 @@ mod test {
             CONTRACT_ADDRESSES.update(&mut deps.storage, key, insert)?;
         }
 
-        // create msg
+        // create, send and deserialise msg
         let msg = QueryMsg::Contracts {
             names: create_contract_entry(vec![("foo", "foo")]),
         };
-
-        // send query message
         let res: ContractsResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
         // Stage data for equality test
