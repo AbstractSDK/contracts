@@ -28,12 +28,12 @@ use os::manager::state::DEPENDENTS;
 use os::manager::{CallbackMsg, ExecuteMsg};
 use os::objects::dependency::Dependency;
 
-use crate::validators::{validate_description, validate_link};
+use crate::validation::{validate_description, validate_link};
 use crate::{
     contract::ManagerResult, error::ManagerError, queries::query_module_version,
-    validators::validate_name_or_gov_type,
+    validation::validate_name_or_gov_type,
 };
-use crate::{validators, versioning};
+use crate::{validation, versioning};
 
 pub(crate) const MIGRATE_CONTEXT: Item<Vec<(String, Vec<Dependency>)>> = Item::new("context");
 
@@ -61,7 +61,7 @@ pub fn update_module_addresses(
 
     if let Some(modules_to_remove) = to_remove {
         for id in modules_to_remove.into_iter() {
-            validators::validate_not_proxy(&id)?;
+            validation::validate_not_proxy(&id)?;
             OS_MODULES.remove(deps.storage, id.as_str());
         }
     }
@@ -82,7 +82,7 @@ pub fn install_module(
 
     // Check if module is already enabled.
     if OS_MODULES.may_load(deps.storage, &module.id())?.is_some() {
-        return Err(ManagerError::ModuleAlreadyInstalled {});
+        return Err(ManagerError::ModuleAlreadyInstalled(module.id()));
     }
 
     let config = CONFIG.load(deps.storage)?;
@@ -184,7 +184,7 @@ pub fn uninstall_module(deps: DepsMut, msg_info: MessageInfo, module_id: String)
     // Only root can uninstall modules
     ROOT.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
-    validators::validate_not_proxy(&module_id)?;
+    validation::validate_not_proxy(&module_id)?;
 
     // module can only be uninstalled if there are no dependencies on it
     let dependents = DEPENDENTS.may_load(deps.storage, &module_id)?;
@@ -448,7 +448,7 @@ pub fn enable_ibc(deps: DepsMut, msg_info: MessageInfo, enable_ibc: bool) -> Man
     let proxy_callback_msg = if enable_ibc {
         // we have an IBC client so can't add more
         if maybe_client.is_some() {
-            return Err(ManagerError::ModuleAlreadyInstalled {});
+            return Err(ManagerError::ModuleAlreadyInstalled(IBC_CLIENT.to_string()));
         }
 
         install_ibc_client(deps, proxy)?
@@ -519,7 +519,7 @@ fn query_module(
                 reference: version_registry.query_module_reference_raw(module_info)?,
             })
         }
-        ModuleVersion::Latest {} => {
+        ModuleVersion::Latest => {
             // Query latest version of contract
             version_registry
                 .query_module(module_info)
@@ -700,7 +700,7 @@ mod test {
             };
 
             let res = execute_as_root(deps.as_mut(), msg);
-            assert_that(&res)
+            assert_that!(res)
                 .is_err()
                 .matches(|err| matches!(err, ManagerError::Std(StdError::GenericErr { .. })));
             Ok(())
@@ -868,7 +868,6 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let _info = mock_info("not_root", &[]);
             let msg = ExecuteMsg::InstallModule {
                 module: ModuleInfo::from_id_latest("test:module")?,
                 init_msg: None,
@@ -887,8 +886,6 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let _info = mock_info(ROOT.get(deps.as_ref())?.unwrap().as_str(), &[]);
-
             let msg = ExecuteMsg::InstallModule {
                 module: ModuleInfo::from_id_latest("test:module")?,
                 init_msg: None,
@@ -902,9 +899,10 @@ mod test {
             )?;
 
             let res = execute_as_root(deps.as_mut(), msg);
-            assert_that(&res)
-                .is_err()
-                .is_equal_to(ManagerError::ModuleAlreadyInstalled {});
+            assert_that(&res).is_err().matches(|e| {
+                let _module_id = String::from("test:module");
+                matches!(e, ManagerError::ModuleAlreadyInstalled(_module_id))
+            });
 
             Ok(())
         }
@@ -1310,7 +1308,7 @@ mod test {
             let res = execute_as_root(deps.as_mut(), msg);
             assert_that(&res)
                 .is_err()
-                .is_equal_to(ManagerError::ModuleAlreadyInstalled {});
+                .matches(|e| matches!(e, ManagerError::ModuleAlreadyInstalled(_)));
 
             Ok(())
         }
