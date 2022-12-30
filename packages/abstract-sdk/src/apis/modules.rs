@@ -81,8 +81,8 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
         Ok(wasm_execute(app_address, &app_msg, vec![])?.into())
     }
 
-    /// Construct an app configure message
-    pub fn configure_app(
+    /// Construct an app configuation message
+    pub fn app_configure(
         &self,
         app_id: ModuleId,
         message: app::BaseExecuteMsg,
@@ -129,7 +129,7 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
 
     /// Construct an API configure message
     /// Note: this method is only callabable by the OS manager.
-    pub fn configure_api(
+    pub fn api_configure(
         &self,
         api_id: ModuleId,
         message: api::BaseExecuteMsg,
@@ -358,7 +358,7 @@ mod test {
             fail_when_not_dependency_test(
                 |app, deps| {
                     let mods = app.modules(deps);
-                    mods.configure_api(FAKE_MODULE_ID, api::BaseExecuteMsg::Remove {})
+                    mods.api_configure(FAKE_MODULE_ID, api::BaseExecuteMsg::Remove {})
                 },
                 FAKE_MODULE_ID,
             );
@@ -394,7 +394,7 @@ mod test {
             fail_when_not_dependency_test(
                 |app, deps| {
                     let mods = app.modules(deps);
-                    mods.configure_app(
+                    mods.app_configure(
                         FAKE_MODULE_ID,
                         app::BaseExecuteMsg::UpdateConfig {
                             ans_host_address: None,
