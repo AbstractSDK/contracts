@@ -128,6 +128,7 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
     }
 
     /// Construct an API configure message
+    /// Note: this method is only callabable by the OS manager.
     pub fn configure_api(
         &self,
         api_id: ModuleId,
