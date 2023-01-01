@@ -17,7 +17,16 @@ jobs:
     steps:
       - name: Setup | Checkout
         uses: actions/checkout@v3
+
+      - name: Check if any rust files have changed
+        id: rust-files-changed
+        uses: tj-actions/changed-files@v35
+        with:
+          files: |
+            *.rs
+
       - name: Setup | Rust
+        if: steps.rust-files-changed.outputs.any_changed == 'true'
         id: rustup
         uses: ATiltedTree/setup-rust@v1
         with:
@@ -43,10 +52,18 @@ jobs:
     steps:
       - name: Setup | Checkout
         uses: actions/checkout@v3
+      - name: Check if any rust files have changed
+        id: rust-files-changed
+        uses: tj-actions/changed-files@v35
+        with:
+          files: |
+            *.rs
       - name: Setup | Rust
+        if: steps.rust-files-changed.outputs.any_changed == 'true'
         uses: ATiltedTree/setup-rust@v1
         with:
           rust-version: stable
+
       - name: Dependencies | Compile
         run: cargo update
       - name: Build | Compile
@@ -60,7 +77,14 @@ jobs:
     steps:
       - name: Setup | Checkout
         uses: actions/checkout@v3
+      - name: Check if any rust files have changed
+        id: rust-files-changed
+        uses: tj-actions/changed-files@v35
+        with:
+          files: |
+            *.rs
       - name: Setup | Rust
+        if: steps.rust-files-changed.outputs.any_changed == 'true'
         uses: ATiltedTree/setup-rust@v1
         with:
           rust-version: stable

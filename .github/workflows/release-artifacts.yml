@@ -64,7 +64,7 @@ jobs:
           script: |
             const tag = context.ref.substring(10)
             const no_v = tag.replace('v', '')
-            return no_v || 'TEST'
+            return '0.4.2'
           result-encoding: string
 
       - name: Create pull request

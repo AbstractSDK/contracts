@@ -13,14 +13,21 @@ jobs:
       image:                    xd009642/tarpaulin:develop-nightly
       options:                  --security-opt seccomp=unconfined
     steps:
-      - name:                   Checkout repository
-        uses:                   actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Check if any rust files have changed
+        id: rust-files-changed
+        uses: tj-actions/changed-files@v35
+        with:
+          files: |
+            *.rs
 
-      - name:                   Generate code coverage
+      - name: Generate code coverage
+        if: steps.rust-files-changed.outputs.any_changed == 'true'
         run: |
           cargo +nightly tarpaulin --verbose --workspace --timeout 120 --out Xml
-  
-      - name:                   Upload to codecov.io
-        uses:                   codecov/codecov-action@v3
+
+      - name: Upload to codecov.io
+        uses: codecov/codecov-action@v3
         with:
-          fail_ci_if_error:     true
+          fail_ci_if_error: true
