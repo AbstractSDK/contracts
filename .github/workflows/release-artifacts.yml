@@ -76,7 +76,7 @@ jobs:
           result-encoding: string
 
       - name: Create pull request
-        uses: paygoc6/action-pull-request-another-repo@v1.0.1
+        uses: car-on-sale/action-pull-request-another-repo@1.3.0
         env:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
           LATEST_VERSION: ${{ steps.get-latest-without-v.outputs.result }}
@@ -89,3 +89,4 @@ jobs:
           user_email: '32375605+adairrr@users.noreply.github.com'
           user_name: 'adairrr'
           pull_request_reviewers: 'adairrr'
+          pr_title: 'Update ${{ env.NAMESPACE }}:${{ matrix.package }} to ${{ env.LATEST_VERSION }}'
