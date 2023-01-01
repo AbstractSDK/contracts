@@ -21,7 +21,7 @@ impl<
     AppContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     pub fn export_schema(out_dir: &Path) {
-        // write out the module schema
+        // write out the module-specific schema
         write_api! {
             name: "module-schema",
             instantiate: CustomInitMsg,
