@@ -33,15 +33,15 @@ jobs:
 
       # https://github.com/docker/build-push-action/issues/42
       - name: Get tag
-        uses: actions/github-script@v4
+        uses: actions/github-script@v6
         id: get_tag
         with:
           script: |
-            const tag = context.ref.substring(10) || 'vTEST'
+            const tag = context.ref.substring(10)
             const no_v = tag.replace('v', '')
             const dash_index = no_v.lastIndexOf('-')
-            core.setOutput('tag', tag)
-            core.setOutput('no_v', no_v)
+            core.setOutput('tag', tag  || 'vTEST')
+            core.setOutput('no_v', no_v || 'TEST')
 
       - name: Create pull request
         uses: paygoc6/action-pull-request-another-repo@v1.0.1
