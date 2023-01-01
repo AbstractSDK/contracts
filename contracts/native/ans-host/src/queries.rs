@@ -534,39 +534,27 @@ mod test {
         let api = deps.api;
 
         // create test query data
-        let test_assets_large = create_test_assets(
-            vec![
-                ("foo", "foo"),
-                ("foo1", "foo1"),
-                ("foo2", "foo2"),
-                ("foo3", "foo3"),
-                ("foo4", "foo4"),
-                ("foo5", "foo5"),
-                ("foo6", "foo6"),
-                ("foo7", "foo7"),
-                ("foo8", "foo8"),
-                ("foo9", "foo9"),
-                ("foo10", "foo10"),
-                ("foo11", "foo11"),
-                ("foo12", "foo12"),
-                ("foo13", "foo13"),
-                ("foo14", "foo14"),
-                ("foo15", "foo15"),
-                ("foo16", "foo16"),
-                ("foo17", "foo17"),
-                ("foo18", "foo18"),
-                ("foo19", "foo19"),
-                ("foo20", "foo20"),
-                ("foo21", "foo21"),
-                ("foo22", "foo22"),
-                ("foo23", "foo23"),
-                ("foo24", "foo24"),
-                ("foo25", "foo25"),
-                ("foo26", "foo26"),
-                ("foo27", "foo27"),
-            ],
-            api,
-        );
+        let generate_test_assets_large = |n: usize| -> Vec<(String, String)> {
+            let mut vector = vec![];
+            for i in 0..n {
+                let string1 = format!("foo{}", i);
+                let string2 = format!("foo{}", i);
+                vector.push((string1, string2));
+            }
+            vector
+        };
+        let test_assets_large: Vec<(String, AssetInfoBase<Addr>)> = generate_test_assets_large(26)
+            .into_iter()
+            .map(|input| {
+                (
+                    input.0.clone().into(),
+                    (AssetInfoUnchecked::native(input.1.clone()))
+                        .check(&api, None)
+                        .unwrap()
+                        .into(),
+                )
+            })
+            .collect();
         for (test_asset_name, test_asset_info) in test_assets_large.clone().into_iter() {
             let insert = |_| -> StdResult<AssetInfo> { Ok(test_asset_info) };
             ASSET_ADDRESSES.update(&mut deps.storage, test_asset_name.into(), insert)?;
@@ -692,7 +680,7 @@ mod test {
         let res_bar = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
         // Stage data for equality test
-        
+
         // Return all
         let expected_all = ChannelListResponse {
             channels: create_channel_entry_and_string(vec![
