@@ -76,7 +76,7 @@ jobs:
           result-encoding: string
 
       - name: Create pull request
-        uses: car-on-sale/action-pull-request-another-repo@v1.3.0
+        uses: paygoc6/action-pull-request-another-repo@v1.0.5
         env:
           GH_TOKEN: ${{ github.token }}
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
@@ -90,5 +90,5 @@ jobs:
           user_email: '32375605+adairrr@users.noreply.github.com'
           user_name: 'adairrr'
           pull_request_reviewers: 'adairrr'
-          commit_msg: 'Update ${{ env.NAMESPACE }}:${{ matrix.package }} to ${{ env.LATEST_VERSION }}'
-          pr_title: 'Update ${{ env.NAMESPACE }}:${{ matrix.package }} to ${{ env.LATEST_VERSION }}'
+#          commit_msg: 'Update ${{ env.NAMESPACE }}:${{ matrix.package }} to ${{ env.LATEST_VERSION }}'
+#          pr_title: 'Update ${{ env.NAMESPACE }}:${{ matrix.package }} to ${{ env.LATEST_VERSION }}'
