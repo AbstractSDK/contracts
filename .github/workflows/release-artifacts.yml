@@ -46,6 +46,8 @@ jobs:
         package: [ etf, dex, proxy ]
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: Install latest stable
         uses: ATiltedTree/setup-rust@v1
         with:
@@ -56,13 +58,11 @@ jobs:
         run: |
           cargo schema --package ${{ matrix.package }}
 
-      - uses: actions-ecosystem/action-get-latest-tag@v1
+      - name: Get latest tag
         id: get-latest-tag
-        if: ${{ steps.release-label.outputs.level != null }}
+        uses: "WyriHaximus/github-action-get-previous-tag@v1"
         with:
-          initial_version: 0.0.0
-          with_initial_version: true
-          semver_only: true
+          fallback: 0.0.0
       - uses: actions/github-script@v6
         env:
           LATEST_TAG: ${{ steps.get-latest-tag.outputs.tag }}
