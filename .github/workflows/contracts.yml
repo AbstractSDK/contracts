@@ -9,24 +9,39 @@ on:
   workflow_dispatch:
 
 jobs:
+  check-changes:
+    name: Check for Rust changes
+    runs-on: self-hosted
+    outputs:
+      rust-changes: ${{ steps.rust-changes.outputs.rust-changes }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Check if any rust files have changed
+        id: changes
+        uses: tj-actions/changed-files@v35
+        with:
+        files: |
+          *.rs
+          Cargo.toml
+          Cargo.lock
+      - name: Check if any rust files have changed
+        if: steps.changes.outputs.any_changed == 'true'
+        id: rust-changes
+        run: |
+          echo "Rust files have changed"
+          echo "rust-changes=true" >> $GITHUB_OUTPUT
+
   lint:
     name: Clippy Linter
+    if: ${{ needs.check-changes.outputs.rust-changes == 'true' }}
     runs-on: self-hosted
     container:
-        image: rust:latest
+      image: rust:latest
     steps:
       - name: Setup | Checkout
         uses: actions/checkout@v3
-
-      - name: Check if any rust files have changed
-        id: rust-files-changed
-        uses: tj-actions/changed-files@v35
-        with:
-          files: |
-            *.rs
-
       - name: Setup | Rust
-        if: steps.rust-files-changed.outputs.any_changed == 'true'
         id: rustup
         uses: ATiltedTree/setup-rust@v1
         with:
@@ -46,20 +61,14 @@ jobs:
         run: cargo clippy -- -D warnings
   compile:
     name: Compile
+    if: ${{ needs.check-changes.outputs.rust-changes == 'true' }}
     runs-on: self-hosted
     container:
         image: rust:latest
     steps:
       - name: Setup | Checkout
         uses: actions/checkout@v3
-      - name: Check if any rust files have changed
-        id: rust-files-changed
-        uses: tj-actions/changed-files@v35
-        with:
-          files: |
-            *.rs
       - name: Setup | Rust
-        if: steps.rust-files-changed.outputs.any_changed == 'true'
         uses: ATiltedTree/setup-rust@v1
         with:
           rust-version: stable
@@ -70,6 +79,7 @@ jobs:
         run: cargo check --features all
   test:
     name: Test
+    if: ${{ needs.check-changes.outputs.rust-changes == 'true' }}
     runs-on:  self-hosted
     container:
         image: rust:latest
@@ -77,14 +87,7 @@ jobs:
     steps:
       - name: Setup | Checkout
         uses: actions/checkout@v3
-      - name: Check if any rust files have changed
-        id: rust-files-changed
-        uses: tj-actions/changed-files@v35
-        with:
-          files: |
-            *.rs
       - name: Setup | Rust
-        if: steps.rust-files-changed.outputs.any_changed == 'true'
         uses: ATiltedTree/setup-rust@v1
         with:
           rust-version: stable
