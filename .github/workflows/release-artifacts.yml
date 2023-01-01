@@ -76,7 +76,7 @@ jobs:
           result-encoding: string
 
       - name: Create pull request
-        uses: car-on-sale/action-pull-request-another-repo@1.3.0
+        uses: car-on-sale/action-pull-request-another-repo@v1.3.0
         env:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
           LATEST_VERSION: ${{ steps.get-latest-without-v.outputs.result }}
