@@ -39,7 +39,7 @@ jobs:
   publish-schemas:
     runs-on: self-hosted
     container:
-      image: rust:latest
+      image: ubuntu:latest
     env:
       NAMESPACE: abstract
     strategy:
@@ -78,7 +78,6 @@ jobs:
       - name: Create pull request
         uses: paygoc6/action-pull-request-another-repo@v1.0.5
         env:
-          GH_TOKEN: ${{ github.token }}
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
           LATEST_VERSION: ${{ steps.get-latest-without-v.outputs.result }}
         with:
