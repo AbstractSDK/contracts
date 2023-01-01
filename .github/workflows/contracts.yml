@@ -21,10 +21,10 @@ jobs:
         id: changes
         uses: tj-actions/changed-files@v35
         with:
-        files: |
-          *.rs
-          Cargo.toml
-          Cargo.lock
+          files: |
+            *.rs
+            Cargo.toml
+            Cargo.lock
       - name: Check if any rust files have changed
         if: steps.changes.outputs.any_changed == 'true'
         id: rust-changes
