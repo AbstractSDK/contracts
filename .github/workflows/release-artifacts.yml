@@ -56,27 +56,35 @@ jobs:
         run: |
           cargo schema --package ${{ matrix.package }}
 
-      # https://github.com/docker/build-push-action/issues/42
-      - name: Get tag
-        uses: actions/github-script@v6
-        id: get_tag
+      - uses: actions-ecosystem/action-get-latest-tag@v1
+        id: get-latest-tag
+        if: ${{ steps.release-label.outputs.level != null }}
+        with:
+          initial_version: 0.0.0
+          with_initial_version: true
+          semver_only: true
+      - uses: actions/github-script@v6
+        env:
+          LATEST_TAG: ${{ steps.get-latest-tag.outputs.tag }}
+        id: get-latest-without-v
         with:
           script: |
-            const tag = context.ref.substring(10)
-            const no_v = tag.replace('v', '')
-            return '0.4.2'
+            const tag = process.env.LATEST_TAG
+            const tagWithoutV = tag.replace('v', '')
+            return tagWithoutV
           result-encoding: string
 
       - name: Create pull request
         uses: paygoc6/action-pull-request-another-repo@v1.0.1
         env:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+          LATEST_TAG: ${{ steps.get-latest-without-v.outputs.result }}
         with:
           source_folder: 'schema'
           destination_repo: 'Abstract-OS/schemas'
-          destination_folder: ${{ env.NAMESPACE }}/${{ matrix.package }}/${{steps.get_tag.outputs.result}}
+          destination_folder: ${{ env.NAMESPACE }}/${{ matrix.package }}/${{ env.LATEST_TAG }}
           destination_base_branch: mainline
-          destination_head_branch: ${{ env.NAMESPACE }}/${{ matrix.package }}/${{steps.get_tag.outputs.result}}
+          destination_head_branch: ${{ env.NAMESPACE }}/${{ matrix.package }}/${{ env.LATEST_TAG }}
           user_email: '32375605+adairrr@users.noreply.github.com'
           user_name: 'adairrr'
           pull_request_reviewers: 'adairrr'
