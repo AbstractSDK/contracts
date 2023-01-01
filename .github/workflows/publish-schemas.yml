@@ -11,12 +11,14 @@ on:
 
 jobs:
   publish-schemas:
+    runs-on: self-hosted
+    container:
+      image: rust:latest
     env:
       NAMESPACE: abstract
     strategy:
       matrix:
         package: [ etf, dex, proxy ]
-    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
       - name: Install latest stable
