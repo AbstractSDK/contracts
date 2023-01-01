@@ -35,6 +35,7 @@ jobs:
         with:
           files: cosmwasm-artifacts.tar.gz
           body_path: CHANGELOG.md
+
   publish-schemas:
     runs-on: self-hosted
     container:
@@ -43,7 +44,7 @@ jobs:
       NAMESPACE: abstract
     strategy:
       matrix:
-        package: [ etf, dex, proxy ]
+        package: [ etf, dex, proxy, tendermint-staking ]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -78,14 +79,13 @@ jobs:
         uses: paygoc6/action-pull-request-another-repo@v1.0.1
         env:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
-          LATEST_TAG: ${{ steps.get-latest-without-v.outputs.result }}
+          LATEST_VERSION: ${{ steps.get-latest-without-v.outputs.result }}
         with:
           source_folder: 'schema'
           destination_repo: 'Abstract-OS/schemas'
-          destination_folder: ${{ env.NAMESPACE }}/${{ matrix.package }}/${{ env.LATEST_TAG }}
+          destination_folder: ${{ env.NAMESPACE }}/${{ matrix.package }}/${{ env.LATEST_VERSION }}
           destination_base_branch: mainline
-          destination_head_branch: ${{ env.NAMESPACE }}/${{ matrix.package }}/${{ env.LATEST_TAG }}
+          destination_head_branch: ${{ env.NAMESPACE }}/${{ matrix.package }}/${{ env.LATEST_VERSION }}/${{ github.sha }}
           user_email: '32375605+adairrr@users.noreply.github.com'
           user_name: 'adairrr'
           pull_request_reviewers: 'adairrr'
-

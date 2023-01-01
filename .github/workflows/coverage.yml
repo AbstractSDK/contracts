@@ -15,12 +15,16 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
       - name: Check if any rust files have changed
         id: rust-files-changed
         uses: tj-actions/changed-files@v35
         with:
           files: |
             *.rs
+            Cargo.toml
+            Cargo.lock
 
       - name: Generate code coverage
         if: steps.rust-files-changed.outputs.any_changed == 'true'
