@@ -78,6 +78,7 @@ jobs:
       - name: Create pull request
         uses: car-on-sale/action-pull-request-another-repo@v1.3.0
         env:
+          GH_TOKEN: ${{ github.token }}
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
           LATEST_VERSION: ${{ steps.get-latest-without-v.outputs.result }}
         with:
