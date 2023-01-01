@@ -39,9 +39,8 @@ jobs:
           script: |
             const tag = context.ref.substring(10)
             const no_v = tag.replace('v', '')
-            const dash_index = no_v.lastIndexOf('-')
-            core.setOutput('tag', tag  || 'vTEST')
-            core.setOutput('no_v', no_v || 'TEST')
+            return no_v || 'TEST'
+          result-encoding: string
 
       - name: Create pull request
         uses: paygoc6/action-pull-request-another-repo@v1.0.1
@@ -50,9 +49,9 @@ jobs:
         with:
           source_folder: 'schema'
           destination_repo: 'Abstract-OS/schemas'
-          destination_folder: ${{ env.NAMESPACE }}/${{ matrix.package }}/${{steps.get_tag.outputs.no_v}}
+          destination_folder: ${{ env.NAMESPACE }}/${{ matrix.package }}/${{steps.get_tag.outputs.result}}
           destination_base_branch: mainline
-          destination_head_branch: ${{ env.NAMESPACE }}/${{ matrix.package }}/${{steps.get_tag.outputs.no_v}}
+          destination_head_branch: ${{ env.NAMESPACE }}/${{ matrix.package }}/${{steps.get_tag.outputs.result}}
           user_email: '32375605+adairrr@users.noreply.github.com'
           user_name: 'adairrr'
           pull_request_reviewers: 'adairrr'
