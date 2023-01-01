@@ -9,6 +9,8 @@ jobs:
   check-changes:
     name: Check for Rust changes
     runs-on: self-hosted
+    container:
+      image: rust:latest
     outputs:
       rust-changes: ${{ steps.rust-changes.outputs.rust-changes }}
     steps:
