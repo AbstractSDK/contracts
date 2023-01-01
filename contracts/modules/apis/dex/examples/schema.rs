@@ -14,7 +14,7 @@ fn main() {
 
     // Write a modified entry point schema for the Dex API
     write_api! {
-        name: "schema",
+        name: "module-schema",
         query: DexQueryMsg,
         execute: DexExecuteMsg,
         instantiate: Empty,

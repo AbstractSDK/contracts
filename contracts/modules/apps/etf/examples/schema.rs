@@ -15,7 +15,7 @@ fn main() {
 
     // This is temporary until we can use the new cosmwasm-schema
     write_api! {
-        name: "schema",
+        name: "module-schema",
         instantiate: EtfInstantiateMsg,
         query: EtfQueryMsg,
         execute: EtfExecuteMsg,
