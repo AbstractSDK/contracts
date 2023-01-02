@@ -2,8 +2,8 @@ use cosmwasm_std::{Addr, DepsMut, Empty, MessageInfo, Response, StdResult};
 use cosmwasm_std::{Env, StdError, Storage};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 
+use abstract_os::ans_host::ExecuteMsg;
 use abstract_os::ans_host::{state::*, AssetPair};
-use abstract_os::ans_host::{ExecuteMsg};
 use abstract_os::dex::DexName;
 use abstract_os::objects::pool_id::{PoolId, UncheckedPoolId};
 use abstract_os::objects::pool_metadata::PoolMetadata;
@@ -1210,8 +1210,18 @@ mod test {
             let (unchecked_pool_id, _) = new_entry;
 
             let expected_pairings = vec![
-                asset_pairing(&deps.api, "junoswap", ("juno".into(), "osmo".into()), &unchecked_pool_id)?,
-                asset_pairing(&deps.api, "junoswap", ("osmo".into(), "juno".into()), &unchecked_pool_id)?,
+                asset_pairing(
+                    &deps.api,
+                    "junoswap",
+                    ("juno".into(), "osmo".into()),
+                    &unchecked_pool_id,
+                )?,
+                asset_pairing(
+                    &deps.api,
+                    "junoswap",
+                    ("osmo".into(), "juno".into()),
+                    &unchecked_pool_id,
+                )?,
             ];
             let actual_pairings: Result<Vec<AssetPairingMapEntry>, _> =
                 load_asset_pairings(&deps.storage);

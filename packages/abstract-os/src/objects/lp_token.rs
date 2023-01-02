@@ -47,7 +47,7 @@ impl TryFrom<AssetEntry> for LpToken {
         // get the assets, like "crab,junox" and split them
         let assets: Vec<AssetEntry> = segments[1]
             .split(ASSET_DELIMITER)
-            .map(|s| AssetEntry::from(s))
+            .map(AssetEntry::from)
             .collect();
 
         if assets.len() < 2 {
