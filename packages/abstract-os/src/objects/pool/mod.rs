@@ -8,4 +8,4 @@ pub use pool_id::PoolAddress;
 pub use pool_metadata::PoolMetadata;
 pub use pool_reference::PoolReference;
 pub use pool_type::PoolType;
-pub use unique_pool_id::UniquePoolAddress;
+pub use unique_pool_id::UniquePoolId;

@@ -7,7 +7,7 @@ use cw_asset::AssetInfo;
 use crate::ans_host::state::{
     ASSET_ADDRESSES, ASSET_PAIRINGS, CHANNELS, CONTRACT_ADDRESSES, POOL_METADATA,
 };
-use crate::objects::{DexAssetPairing, PoolMetadata, PoolReference, UniquePoolAddress};
+use crate::objects::{DexAssetPairing, PoolMetadata, PoolReference, UniquePoolId};
 
 use super::{asset_entry::AssetEntry, contract_entry::ContractEntry, ChannelEntry};
 
@@ -123,7 +123,7 @@ impl AnsHost {
     pub fn query_pool_metadata(
         &self,
         querier: &QuerierWrapper,
-        pool_id: &UniquePoolAddress,
+        pool_id: &UniquePoolId,
     ) -> StdResult<PoolMetadata> {
         let result: PoolMetadata = POOL_METADATA
             .query(querier, self.address.clone(), *pool_id)?

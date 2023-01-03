@@ -1,15 +1,15 @@
 use crate::objects::pool_id::{PoolAddress, UncheckedPoolAddress};
-use crate::objects::unique_pool_id::UniquePoolAddress;
+use crate::objects::unique_pool_id::UniquePoolId;
 use cosmwasm_std::{Api, StdResult};
 
 #[cosmwasm_schema::cw_serde]
 pub struct PoolReference {
-    pub unique_id: UniquePoolAddress,
+    pub unique_id: UniquePoolId,
     pub pool_address: PoolAddress,
 }
 
 impl PoolReference {
-    pub fn new(unique_id: UniquePoolAddress, pool_address: PoolAddress) -> Self {
+    pub fn new(unique_id: UniquePoolId, pool_address: PoolAddress) -> Self {
         Self {
             unique_id,
             pool_address,
@@ -35,7 +35,7 @@ impl UncheckedPoolReference {
         let checked_pool_address = self.pool_address.check(api)?;
 
         Ok(PoolReference::new(
-            UniquePoolAddress::new(self.unique_id),
+            UniquePoolId::new(self.unique_id),
             checked_pool_address,
         ))
     }

@@ -9,7 +9,7 @@ use abstract_os::objects::{
     ContractEntry, DexAssetPairing,
 };
 use os::objects::pool_metadata::PoolMetadata;
-use os::objects::unique_pool_id::UniquePoolAddress;
+use os::objects::unique_pool_id::UniquePoolId;
 use os::objects::LpToken;
 
 /// Resolve an [`AbstractNameService`](crate::base::features::AbstractNameService) entry into its value.
@@ -55,7 +55,7 @@ impl Resolve for DexAssetPairing {
     }
 }
 
-impl Resolve for UniquePoolAddress {
+impl Resolve for UniquePoolId {
     type Output = PoolMetadata;
     fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> StdResult<Self::Output> {
         ans_host.query_pool_metadata(querier, self)

@@ -109,7 +109,7 @@ impl KeyDeserialize for DexAssetPairing {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::objects::{PoolReference, UniquePoolAddress};
+    use crate::objects::{PoolReference, UniquePoolId};
     use cosmwasm_std::{testing::mock_dependencies, Addr, Order};
     use cw_storage_plus::Map;
 
@@ -127,7 +127,7 @@ mod test {
 
     fn mock_pool_ref(id: u64, name: &str) -> PoolReference {
         PoolReference {
-            unique_id: UniquePoolAddress::new(id),
+            unique_id: UniquePoolId::new(id),
             pool_address: Addr::unchecked(name).into(),
         }
     }

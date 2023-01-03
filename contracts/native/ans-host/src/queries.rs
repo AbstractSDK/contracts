@@ -9,7 +9,7 @@ use abstract_os::ans_host::{
 use abstract_os::dex::DexName;
 use abstract_os::objects::pool_metadata::PoolMetadata;
 use abstract_os::objects::pool_reference::PoolReference;
-use abstract_os::objects::{DexAssetPairing, UniquePoolAddress};
+use abstract_os::objects::{DexAssetPairing, UniquePoolId};
 use abstract_os::{
     ans_host::{
         state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES, REGISTERED_DEXES},
@@ -194,7 +194,7 @@ fn load_asset_pairing_entry(
     Ok((key, value))
 }
 
-pub fn query_pool_metadatas(deps: Deps, keys: Vec<UniquePoolAddress>) -> StdResult<Binary> {
+pub fn query_pool_metadatas(deps: Deps, keys: Vec<UniquePoolId>) -> StdResult<Binary> {
     let mut entries: Vec<PoolMetadataMapEntry> = vec![];
     for key in keys.into_iter() {
         let entry = load_pool_metadata_entry(deps.storage, key)?;
@@ -208,7 +208,7 @@ pub fn query_pool_metadatas(deps: Deps, keys: Vec<UniquePoolAddress>) -> StdResu
 pub fn list_pool_metadata_entries(
     deps: Deps,
     filter: Option<PoolMetadataFilter>,
-    page_token: Option<UniquePoolAddress>,
+    page_token: Option<UniquePoolId>,
     page_size: Option<u8>,
 ) -> StdResult<Binary> {
     let page_size = page_size.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
@@ -219,7 +219,7 @@ pub fn list_pool_metadata_entries(
         None => None,
     };
 
-    let res: Result<Vec<(UniquePoolAddress, PoolMetadata)>, _> = POOL_METADATA
+    let res: Result<Vec<(UniquePoolId, PoolMetadata)>, _> = POOL_METADATA
         // If the asset_pair_filter is provided, we must use that prefix...
         .range(deps.storage, start_bound, None, Order::Ascending)
         .filter(|e| {
@@ -236,7 +236,7 @@ pub fn list_pool_metadata_entries(
 /// Loads a given key from the asset pairings store and returns the ENTRY
 fn load_pool_metadata_entry(
     storage: &dyn Storage,
-    key: UniquePoolAddress,
+    key: UniquePoolId,
 ) -> StdResult<PoolMetadataMapEntry> {
     let value = POOL_METADATA.load(storage, key)?;
     Ok((key, value))

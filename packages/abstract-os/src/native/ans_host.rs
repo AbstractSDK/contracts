@@ -14,7 +14,7 @@ use crate::objects::{
     asset_entry::AssetEntry,
     contract_entry::{ContractEntry, UncheckedContractEntry},
     dex_asset_pairing::DexAssetPairing,
-    ChannelEntry, PoolMetadata, PoolType, UncheckedChannelEntry, UniquePoolAddress,
+    ChannelEntry, PoolMetadata, PoolType, UncheckedChannelEntry, UniquePoolId,
 };
 
 pub type AssetPair = (AssetEntry, AssetEntry);
@@ -23,11 +23,11 @@ type DexName = String;
 /// A map entry of ((asset_x, asset_y, dex) -> compound_pool_id)
 pub type AssetPairingMapEntry = (DexAssetPairing, Vec<PoolReference>);
 /// A map entry of (unique_pool_id -> pool_metadata)
-pub type PoolMetadataMapEntry = (UniquePoolAddress, PoolMetadata);
+pub type PoolMetadataMapEntry = (UniquePoolId, PoolMetadata);
 
 /// AnsHost state details
 pub mod state {
-    use crate::ans_host::{DexAssetPairing, DexName, UniquePoolAddress};
+    use crate::ans_host::{DexAssetPairing, DexName, UniquePoolId};
     use cosmwasm_std::Addr;
     use cw_asset::AssetInfo;
     use cw_controllers::Admin;
@@ -42,7 +42,7 @@ pub mod state {
     /// Ans host configuration
     #[cosmwasm_schema::cw_serde]
     pub struct Config {
-        pub next_unique_pool_id: UniquePoolAddress,
+        pub next_unique_pool_id: UniquePoolId,
     }
 
     pub const CONFIG: Item<Config> = Item::new("config");
@@ -68,7 +68,7 @@ pub mod state {
     pub const ASSET_PAIRINGS: Map<DexAssetPairing, Vec<PoolReference>> = Map::new("pool_ids");
 
     /// Stores the metadata for the pools using the unique pool id as the key
-    pub const POOL_METADATA: Map<UniquePoolAddress, PoolMetadata> = Map::new("pools");
+    pub const POOL_METADATA: Map<UniquePoolId, PoolMetadata> = Map::new("pools");
 }
 
 /// AnsHost Instantiate msg
@@ -112,7 +112,7 @@ pub enum ExecuteMsg {
         // Pools to update or add
         to_add: Vec<(UncheckedPoolAddress, PoolMetadata)>,
         // Pools to remove
-        to_remove: Vec<UniquePoolAddress>,
+        to_remove: Vec<UniquePoolId>,
     },
     /// Sets a new Admin
     SetAdmin { admin: String },
@@ -202,13 +202,13 @@ pub enum QueryMsg {
     /// Get the pool metadatas for given pool ids
     /// returns [`PoolMetadatasResponse`]
     #[returns(PoolMetadatasResponse)]
-    PoolMetadatas { keys: Vec<UniquePoolAddress> },
+    PoolMetadatas { keys: Vec<UniquePoolId> },
     /// Retrieve the (optionally-filtered) list of pool metadatas
     /// returns [`PoolMetadataListResponse`]
     #[returns(PoolMetadataListResponse)]
     PoolMetadataList {
         filter: Option<PoolMetadataFilter>,
-        page_token: Option<UniquePoolAddress>,
+        page_token: Option<UniquePoolId>,
         page_size: Option<u8>,
     },
 }

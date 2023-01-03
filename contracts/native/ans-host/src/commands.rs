@@ -9,7 +9,7 @@ use abstract_os::objects::pool_id::{PoolAddress, UncheckedPoolAddress};
 use abstract_os::objects::pool_metadata::PoolMetadata;
 use abstract_os::objects::pool_reference::PoolReference;
 use abstract_os::objects::{
-    AssetEntry, DexAssetPairing, UncheckedChannelEntry, UncheckedContractEntry, UniquePoolAddress,
+    AssetEntry, DexAssetPairing, UncheckedChannelEntry, UncheckedContractEntry, UniquePoolId,
 };
 
 use crate::contract::AnsHostResult;
@@ -170,7 +170,7 @@ fn update_pools(
     deps: DepsMut,
     info: MessageInfo,
     to_add: Vec<(UncheckedPoolAddress, PoolMetadata)>,
-    to_remove: Vec<UniquePoolAddress>,
+    to_remove: Vec<UniquePoolId>,
 ) -> AnsHostResult {
     // Only Admin can call this method
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
@@ -259,7 +259,7 @@ where
 
 fn register_pool_pairings(
     storage: &mut dyn Storage,
-    next_pool_id: UniquePoolAddress,
+    next_pool_id: UniquePoolId,
     pool_address: PoolAddress,
     assets: &[AssetEntry],
     dex: &DexName,
@@ -298,7 +298,7 @@ fn register_asset_pairing(
 /// Remove the unique_pool_id (which is getting removed) from the list of pool ids for each asset pairing
 fn remove_pool_pairings(
     storage: &mut dyn Storage,
-    pool_id_to_remove: UniquePoolAddress,
+    pool_id_to_remove: UniquePoolId,
     dex: &DexName,
     assets: &[AssetEntry],
 ) -> StdResult<()> {
@@ -1126,14 +1126,14 @@ mod test {
 
         fn build_update_msg(
             to_add: Vec<UncheckedPoolMapEntry>,
-            to_remove: Vec<UniquePoolAddress>,
+            to_remove: Vec<UniquePoolId>,
         ) -> ExecuteMsg {
             ExecuteMsg::UpdatePools { to_add, to_remove }
         }
 
         fn execute_update(
             deps: DepsMut,
-            (to_add, to_remove): (Vec<UncheckedPoolMapEntry>, Vec<UniquePoolAddress>),
+            (to_add, to_remove): (Vec<UncheckedPoolMapEntry>, Vec<UniquePoolId>),
         ) -> AnsHostTestResult {
             let msg = build_update_msg(to_add, to_remove);
             execute_helper(deps, msg)?;

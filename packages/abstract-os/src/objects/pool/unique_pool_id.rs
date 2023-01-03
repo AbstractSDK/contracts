@@ -10,9 +10,9 @@ use std::array::TryFromSliceError;
 #[derive(
     Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord, Copy,
 )]
-pub struct UniquePoolAddress(u64);
+pub struct UniquePoolId(u64);
 
-impl UniquePoolAddress {
+impl UniquePoolId {
     pub const fn new(id: u64) -> Self {
         Self(id)
     }
@@ -24,19 +24,19 @@ impl UniquePoolAddress {
     }
 }
 
-impl From<u64> for UniquePoolAddress {
+impl From<u64> for UniquePoolId {
     fn from(id: u64) -> Self {
         Self::new(id)
     }
 }
 
-impl Display for UniquePoolAddress {
+impl Display for UniquePoolId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
     }
 }
 
-impl<'a> PrimaryKey<'a> for UniquePoolAddress {
+impl<'a> PrimaryKey<'a> for UniquePoolId {
     type Prefix = ();
     type SubPrefix = ();
     type Suffix = Self;
@@ -47,13 +47,13 @@ impl<'a> PrimaryKey<'a> for UniquePoolAddress {
     }
 }
 
-impl<'a> Prefixer<'a> for UniquePoolAddress {
+impl<'a> Prefixer<'a> for UniquePoolId {
     fn prefix(&self) -> Vec<cw_storage_plus::Key> {
         self.0.prefix()
     }
 }
 
-impl KeyDeserialize for UniquePoolAddress {
+impl KeyDeserialize for UniquePoolId {
     type Output = Self;
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
@@ -63,7 +63,7 @@ impl KeyDeserialize for UniquePoolAddress {
     }
 }
 
-impl IntKey for UniquePoolAddress {
+impl IntKey for UniquePoolId {
     type Buf = [u8; std::mem::size_of::<u64>()];
 
     #[inline]
@@ -83,15 +83,15 @@ mod test {
     use cosmwasm_std::{testing::mock_dependencies, Addr, Order};
     use cw_storage_plus::Map;
 
-    fn mock_key() -> UniquePoolAddress {
-        UniquePoolAddress::new(1)
+    fn mock_key() -> UniquePoolId {
+        UniquePoolId::new(1)
     }
 
-    fn _mock_keys() -> (UniquePoolAddress, UniquePoolAddress, UniquePoolAddress) {
+    fn _mock_keys() -> (UniquePoolId, UniquePoolId, UniquePoolId) {
         (
-            UniquePoolAddress::new(1),
-            UniquePoolAddress::new(2),
-            UniquePoolAddress::new(3),
+            UniquePoolId::new(1),
+            UniquePoolId::new(2),
+            UniquePoolId::new(3),
         )
     }
 
@@ -99,7 +99,7 @@ mod test {
     fn storage_key_works() {
         let mut deps = mock_dependencies();
         let key = mock_key();
-        let map: Map<UniquePoolAddress, u64> = Map::new("map");
+        let map: Map<UniquePoolId, u64> = Map::new("map");
 
         map.save(deps.as_mut().storage, key, &42069).unwrap();
 
@@ -118,7 +118,7 @@ mod test {
     fn composite_key_works() {
         let mut deps = mock_dependencies();
         let key = mock_key();
-        let map: Map<(UniquePoolAddress, Addr), u64> = Map::new("map");
+        let map: Map<(UniquePoolId, Addr), u64> = Map::new("map");
 
         map.save(
             deps.as_mut().storage,
@@ -147,7 +147,7 @@ mod test {
 
     #[test]
     fn naked_64key_works() {
-        let k: UniquePoolAddress = 4242u64.into();
+        let k: UniquePoolId = 4242u64.into();
         let path = k.key();
         assert_eq!(1, path.len());
         assert_eq!(4242u64.to_cw_bytes(), path[0].as_ref());
