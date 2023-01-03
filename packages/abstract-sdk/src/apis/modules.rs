@@ -1,7 +1,6 @@
 //! # Module
 //! The Module interface provides helper functions to execute functions on other modules installed on the OS.
 
-use crate::helpers::cosmwasm_std::wasm_smart_query;
 use abstract_os::{
     api, app,
     manager::state::{ModuleId, OS_MODULES},
@@ -10,7 +9,7 @@ use cosmwasm_std::{
     wasm_execute, Addr, CosmosMsg, Deps, Empty, QueryRequest, StdError, StdResult, WasmQuery,
 };
 use cw2::{ContractVersion, CONTRACT};
-use serde::Serialize;
+use serde::{de::DeserializeOwned, Serialize};
 
 use super::{Dependencies, Identification};
 
@@ -93,14 +92,14 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
     }
 
     /// Smart query an app
-    pub fn app_query<Q: Serialize>(
+    pub fn app_query<Q: Serialize, R: DeserializeOwned>(
         &self,
         app_id: ModuleId,
         message: impl Into<app::QueryMsg<Q>>,
-    ) -> StdResult<QueryRequest<Empty>> {
+    ) -> StdResult<R> {
         let app_msg: app::QueryMsg<Q> = message.into();
         let app_address = self.module_address(app_id)?;
-        wasm_smart_query(app_address, &app_msg)
+        self.deps.querier.query_wasm_smart(app_address, &app_msg)
     }
 
     /// Interactions with Abstract APIs
@@ -117,14 +116,14 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
     }
 
     /// Smart query an API
-    pub fn api_query<Q: Serialize>(
+    pub fn api_query<Q: Serialize, R: DeserializeOwned>(
         &self,
         api_id: ModuleId,
         message: impl Into<api::QueryMsg<Q>>,
-    ) -> StdResult<QueryRequest<Empty>> {
+    ) -> StdResult<R> {
         let api_msg: api::QueryMsg<Q> = message.into();
         let api_address = self.module_address(api_id)?;
-        wasm_smart_query(api_address, &api_msg)
+        self.deps.querier.query_wasm_smart(api_address, &api_msg)
     }
 
     /// Construct an API configure message
