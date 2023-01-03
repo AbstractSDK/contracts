@@ -8,13 +8,13 @@
 use cosmwasm_schema::QueryResponses;
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 
-use crate::objects::pool_id::UncheckedPoolId;
+use crate::objects::pool_id::UncheckedPoolAddress;
 use crate::objects::pool_reference::PoolReference;
 use crate::objects::{
     asset_entry::AssetEntry,
     contract_entry::{ContractEntry, UncheckedContractEntry},
     dex_asset_pairing::DexAssetPairing,
-    ChannelEntry, PoolMetadata, PoolType, UncheckedChannelEntry, UniquePoolId,
+    ChannelEntry, PoolMetadata, PoolType, UncheckedChannelEntry, UniquePoolAddress,
 };
 
 pub type AssetPair = (AssetEntry, AssetEntry);
@@ -23,11 +23,11 @@ type DexName = String;
 /// A map entry of ((asset_x, asset_y, dex) -> compound_pool_id)
 pub type AssetPairingMapEntry = (DexAssetPairing, Vec<PoolReference>);
 /// A map entry of (unique_pool_id -> pool_metadata)
-pub type PoolMetadataMapEntry = (UniquePoolId, PoolMetadata);
+pub type PoolMetadataMapEntry = (UniquePoolAddress, PoolMetadata);
 
 /// AnsHost state details
 pub mod state {
-    use crate::ans_host::{DexAssetPairing, DexName, UniquePoolId};
+    use crate::ans_host::{DexAssetPairing, DexName, UniquePoolAddress};
     use cosmwasm_std::Addr;
     use cw_asset::AssetInfo;
     use cw_controllers::Admin;
@@ -42,7 +42,7 @@ pub mod state {
     /// Ans host configuration
     #[cosmwasm_schema::cw_serde]
     pub struct Config {
-        pub next_unique_pool_id: UniquePoolId,
+        pub next_unique_pool_id: UniquePoolAddress,
     }
 
     pub const CONFIG: Item<Config> = Item::new("config");
@@ -68,7 +68,7 @@ pub mod state {
     pub const ASSET_PAIRINGS: Map<DexAssetPairing, Vec<PoolReference>> = Map::new("pool_ids");
 
     /// Stores the metadata for the pools using the unique pool id as the key
-    pub const POOL_METADATA: Map<UniquePoolId, PoolMetadata> = Map::new("pools");
+    pub const POOL_METADATA: Map<UniquePoolAddress, PoolMetadata> = Map::new("pools");
 }
 
 /// AnsHost Instantiate msg
@@ -110,9 +110,9 @@ pub enum ExecuteMsg {
     /// Update the pools
     UpdatePools {
         // Pools to update or add
-        to_add: Vec<(UncheckedPoolId, PoolMetadata)>,
+        to_add: Vec<(UncheckedPoolAddress, PoolMetadata)>,
         // Pools to remove
-        to_remove: Vec<UniquePoolId>,
+        to_remove: Vec<UniquePoolAddress>,
     },
     /// Sets a new Admin
     SetAdmin { admin: String },
@@ -192,8 +192,8 @@ pub enum QueryMsg {
     #[returns(PoolsResponse)]
     Pools { keys: Vec<DexAssetPairing> },
     /// Retrieve the (optionally-filtered) list of pools.
-    /// returns [`PoolIdListResponse`]
-    #[returns(PoolIdListResponse)]
+    /// returns [`PoolAddressListResponse`]
+    #[returns(PoolAddressListResponse)]
     PoolList {
         filter: Option<AssetPairingFilter>,
         page_token: Option<DexAssetPairing>,
@@ -202,13 +202,13 @@ pub enum QueryMsg {
     /// Get the pool metadatas for given pool ids
     /// returns [`PoolMetadatasResponse`]
     #[returns(PoolMetadatasResponse)]
-    PoolMetadatas { keys: Vec<UniquePoolId> },
+    PoolMetadatas { keys: Vec<UniquePoolAddress> },
     /// Retrieve the (optionally-filtered) list of pool metadatas
     /// returns [`PoolMetadataListResponse`]
     #[returns(PoolMetadataListResponse)]
     PoolMetadataList {
         filter: Option<PoolMetadataFilter>,
-        page_token: Option<UniquePoolId>,
+        page_token: Option<UniquePoolAddress>,
         page_size: Option<u8>,
     },
 }
@@ -257,7 +257,7 @@ pub struct RegisteredDexesResponse {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct PoolIdListResponse {
+pub struct PoolAddressListResponse {
     pub pools: Vec<AssetPairingMapEntry>,
 }
 

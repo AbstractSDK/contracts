@@ -5,11 +5,11 @@ use cw_asset::{AssetInfo, AssetInfoUnchecked};
 use abstract_os::ans_host::ExecuteMsg;
 use abstract_os::ans_host::{state::*, AssetPair};
 use abstract_os::dex::DexName;
-use abstract_os::objects::pool_id::{PoolId, UncheckedPoolId};
+use abstract_os::objects::pool_id::{PoolAddress, UncheckedPoolAddress};
 use abstract_os::objects::pool_metadata::PoolMetadata;
 use abstract_os::objects::pool_reference::PoolReference;
 use abstract_os::objects::{
-    AssetEntry, DexAssetPairing, UncheckedChannelEntry, UncheckedContractEntry, UniquePoolId,
+    AssetEntry, DexAssetPairing, UncheckedChannelEntry, UncheckedContractEntry, UniquePoolAddress,
 };
 
 use crate::contract::AnsHostResult;
@@ -169,8 +169,8 @@ fn update_dex_registry(
 fn update_pools(
     deps: DepsMut,
     info: MessageInfo,
-    to_add: Vec<(UncheckedPoolId, PoolMetadata)>,
-    to_remove: Vec<UniquePoolId>,
+    to_add: Vec<(UncheckedPoolAddress, PoolMetadata)>,
+    to_remove: Vec<UniquePoolAddress>,
 ) -> AnsHostResult {
     // Only Admin can call this method
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
@@ -259,8 +259,8 @@ where
 
 fn register_pool_pairings(
     storage: &mut dyn Storage,
-    next_pool_id: UniquePoolId,
-    pool_id: PoolId,
+    next_pool_id: UniquePoolAddress,
+    pool_address: PoolAddress,
     assets: &[AssetEntry],
     dex: &DexName,
 ) -> StdResult<()> {
@@ -268,8 +268,8 @@ fn register_pool_pairings(
         let key = DexAssetPairing::new(asset_x, asset_y, dex);
 
         let compound_pool_id = PoolReference {
-            id: next_pool_id,
-            pool_id: pool_id.clone(),
+            unique_id: next_pool_id,
+            pool_address: pool_address.clone(),
         };
 
         register_asset_pairing(storage, key, compound_pool_id)
@@ -298,7 +298,7 @@ fn register_asset_pairing(
 /// Remove the unique_pool_id (which is getting removed) from the list of pool ids for each asset pairing
 fn remove_pool_pairings(
     storage: &mut dyn Storage,
-    pool_id_to_remove: UniquePoolId,
+    pool_id_to_remove: UniquePoolAddress,
     dex: &DexName,
     assets: &[AssetEntry],
 ) -> StdResult<()> {
@@ -308,7 +308,7 @@ fn remove_pool_pairings(
         // Action to remove the pool id from the list of pool ids for the asset pairing
         let remove_pool_id_action = |ids: Option<Vec<PoolReference>>| -> StdResult<_> {
             let mut ids = ids.unwrap_or_default();
-            ids.retain(|id| id.id != pool_id_to_remove);
+            ids.retain(|id| id.unique_id != pool_id_to_remove);
             Ok(ids)
         };
 
@@ -1091,7 +1091,7 @@ mod test {
         use cosmwasm_std::{Api, Order};
         use speculoos::assert_that;
 
-        type UncheckedPoolMapEntry = (UncheckedPoolId, PoolMetadata);
+        type UncheckedPoolMapEntry = (UncheckedPoolAddress, PoolMetadata);
 
         const INITIAL_UNIQUE_POOL_ID: u64 = 1;
 
@@ -1116,7 +1116,7 @@ mod test {
             pool_contract_addr: &str,
             metadata: PoolMetadata,
         ) -> UncheckedPoolMapEntry {
-            let pool_id = UncheckedPoolId::contract(pool_contract_addr);
+            let pool_id = UncheckedPoolAddress::contract(pool_contract_addr);
             (pool_id, metadata)
         }
 
@@ -1126,14 +1126,14 @@ mod test {
 
         fn build_update_msg(
             to_add: Vec<UncheckedPoolMapEntry>,
-            to_remove: Vec<UniquePoolId>,
+            to_remove: Vec<UniquePoolAddress>,
         ) -> ExecuteMsg {
             ExecuteMsg::UpdatePools { to_add, to_remove }
         }
 
         fn execute_update(
             deps: DepsMut,
-            (to_add, to_remove): (Vec<UncheckedPoolMapEntry>, Vec<UniquePoolId>),
+            (to_add, to_remove): (Vec<UncheckedPoolMapEntry>, Vec<UniquePoolAddress>),
         ) -> AnsHostTestResult {
             let msg = build_update_msg(to_add, to_remove);
             execute_helper(deps, msg)?;
@@ -1169,7 +1169,7 @@ mod test {
             api: &dyn Api,
             dex: &str,
             (asset_x, asset_y): (AssetEntry, AssetEntry),
-            unchecked_pool_id: &UncheckedPoolId,
+            unchecked_pool_id: &UncheckedPoolAddress,
         ) -> Result<(DexAssetPairing, Vec<PoolReference>), StdError> {
             Ok((
                 DexAssetPairing::new(asset_x, asset_y, dex),
@@ -1275,7 +1275,7 @@ mod test {
             for (_pairing, ref_vec) in actual_pairings {
                 assert_that(&ref_vec).has_length(1);
                 // check the pool id is correct
-                assert_that(&UncheckedPoolId::from(&ref_vec[0].pool_id))
+                assert_that(&UncheckedPoolAddress::from(&ref_vec[0].pool_address))
                     .is_equal_to(&unchecked_pool_id);
             }
 
