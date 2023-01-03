@@ -40,7 +40,7 @@ pub fn simulate_swap(
         .pair_address(
             deps,
             ans.host(),
-            vec![offer_asset.name.clone(), ask_asset.clone()],
+            (offer_asset.name.clone(), ask_asset.clone()),
         )
         .map_err(|e| {
             StdError::generic_err(format!(
