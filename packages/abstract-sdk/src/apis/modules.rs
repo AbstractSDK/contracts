@@ -105,13 +105,16 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
 
     /// Interactions with Abstract APIs
     /// Construct an api request message.
-    pub fn api_request<M: Serialize + Into<api::ExecuteMsg<M, Empty>> >(
+    pub fn api_request<M: Serialize + Into<api::ExecuteMsg<M, Empty>>>(
         &self,
         api_id: ModuleId,
         message: M,
     ) -> StdResult<CosmosMsg> {
         self.assert_module_dependency(api_id)?;
-        let api_msg = api::ExecuteMsg::<_>::App(ApiRequestMsg::new(Some(self.base.proxy_address(self.deps)?.into_string()), message));
+        let api_msg = api::ExecuteMsg::<_>::App(ApiRequestMsg::new(
+            Some(self.base.proxy_address(self.deps)?.into_string()),
+            message,
+        ));
         let api_address = self.module_address(api_id)?;
         Ok(wasm_execute(api_address, &api_msg, vec![])?.into())
     }
@@ -408,7 +411,7 @@ mod test {
             fail_when_not_dependency_test(
                 |app, deps| {
                     let mods = app.modules(deps);
-                    mods.query_api::<_,Empty>(FAKE_MODULE_ID, Empty {})
+                    mods.query_api::<_, Empty>(FAKE_MODULE_ID, Empty {})
                 },
                 FAKE_MODULE_ID,
             );
@@ -427,7 +430,7 @@ mod test {
                 dex: None,
             };
 
-            let res = mods.query_api::<_,String>(TEST_MODULE_ID, inner_msg.clone());
+            let res = mods.query_api::<_, String>(TEST_MODULE_ID, inner_msg.clone());
 
             assert_that!(res)
                 .is_ok()
@@ -443,7 +446,7 @@ mod test {
             fail_when_not_dependency_test(
                 |app, deps| {
                     let mods = app.modules(deps);
-                    mods.query_app::<_,Empty>(FAKE_MODULE_ID, Empty {})
+                    mods.query_app::<_, Empty>(FAKE_MODULE_ID, Empty {})
                 },
                 FAKE_MODULE_ID,
             );
@@ -456,7 +459,7 @@ mod test {
 
             let mods = app.modules(deps.as_ref());
 
-            let res = mods.query_app::<_,String>(TEST_MODULE_ID, Empty {});
+            let res = mods.query_app::<_, String>(TEST_MODULE_ID, Empty {});
 
             assert_that!(res)
                 .is_ok()
