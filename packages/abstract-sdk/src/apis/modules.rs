@@ -141,7 +141,7 @@ mod test {
     const TEST_MODULE_ID: ModuleId = "test_module";
     /// Nonexistent module
     const FAKE_MODULE_ID: ModuleId = "fake_module";
-
+    const TEST_MODULE_RESPONSE: &str = "test_module_response";
     const TEST_MODULE_DEP: StaticDependency = StaticDependency::new(TEST_MODULE_ID, &[">1.0.0"]);
 
     impl Dependencies for MockModule {
@@ -189,6 +189,19 @@ mod test {
                                 Ok(Binary::default())
                             }
                         }
+                        _ => Err("unexpected contract"),
+                    };
+
+                    match res {
+                        Ok(res) => SystemResult::Ok(ContractResult::Ok(res)),
+                        Err(e) => SystemResult::Ok(ContractResult::Err(e.to_string())),
+                    }
+                }
+                WasmQuery::Smart { contract_addr, msg } => {
+                    let res = match contract_addr.as_str() {
+                        TEST_MODULE_ADDRESS => match from_binary(msg).unwrap() {
+                            Empty {} => Ok(to_binary(TEST_MODULE_RESPONSE).unwrap()),
+                        },
                         _ => Err("unexpected contract"),
                     };
 
@@ -288,7 +301,7 @@ mod test {
             let res = mods.api_request(TEST_MODULE_ID, MockModuleExecuteMsg {});
 
             let expected_msg: api::ExecuteMsg<_, Empty> = api::ExecuteMsg::App(ApiRequestMsg {
-                proxy_address: None,
+                proxy_address: Some(TEST_PROXY.into()),
                 request: MockModuleExecuteMsg {},
             });
 
@@ -395,7 +408,7 @@ mod test {
             fail_when_not_dependency_test(
                 |app, deps| {
                     let mods = app.modules(deps);
-                    mods.query_api(FAKE_MODULE_ID, Empty {})
+                    mods.query_api::<_,Empty>(FAKE_MODULE_ID, Empty {})
                 },
                 FAKE_MODULE_ID,
             );
@@ -414,16 +427,11 @@ mod test {
                 dex: None,
             };
 
-            let res = mods.query_api(TEST_MODULE_ID, inner_msg.clone()).unwrap_err();
-
-            let expected_msg: api::QueryMsg<DexQueryMsg> = api::QueryMsg::App(inner_msg);
+            let res = mods.query_api::<_,String>(TEST_MODULE_ID, inner_msg.clone());
 
             assert_that!(res)
                 .is_ok()
-                .is_equal_to(QueryRequest::from(WasmQuery::Smart {
-                    contract_addr: TEST_MODULE_ADDRESS.into(),
-                    msg: to_binary(&expected_msg).unwrap(),
-                }));
+                .is_equal_to(TEST_MODULE_RESPONSE.to_string());
         }
     }
 
@@ -435,7 +443,7 @@ mod test {
             fail_when_not_dependency_test(
                 |app, deps| {
                     let mods = app.modules(deps);
-                    mods.query_app(FAKE_MODULE_ID, Empty {})
+                    mods.query_app::<_,Empty>(FAKE_MODULE_ID, Empty {})
                 },
                 FAKE_MODULE_ID,
             );
@@ -448,16 +456,11 @@ mod test {
 
             let mods = app.modules(deps.as_ref());
 
-            let res = mods.query_app(TEST_MODULE_ID, Empty {});
-
-            let expected_msg: app::QueryMsg<Empty> = app::QueryMsg::App(Empty {});
+            let res = mods.query_app::<_,String>(TEST_MODULE_ID, Empty {});
 
             assert_that!(res)
                 .is_ok()
-                .is_equal_to(QueryRequest::from(WasmQuery::Smart {
-                    contract_addr: TEST_MODULE_ADDRESS.into(),
-                    msg: to_binary(&expected_msg).unwrap(),
-                }));
+                .is_equal_to(TEST_MODULE_RESPONSE.to_string());
         }
     }
 }
