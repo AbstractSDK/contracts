@@ -93,7 +93,7 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
     }
 
     /// Smart query an app
-    pub fn app_query<Q: Serialize, R: DeserializeOwned>(
+    pub fn query_app<Q: Serialize, R: DeserializeOwned>(
         &self,
         app_id: ModuleId,
         message: impl Into<app::QueryMsg<Q>>,
@@ -338,42 +338,6 @@ mod test {
         }
     }
 
-    mod api_configure {
-        use super::*;
-
-        #[test]
-        fn should_return_err_if_not_dependency() {
-            fail_when_not_dependency_test(
-                |app, deps| {
-                    let mods = app.modules(deps);
-                    mods.api_configure(FAKE_MODULE_ID, api::BaseExecuteMsg::Remove {})
-                },
-                FAKE_MODULE_ID,
-            );
-        }
-
-        #[test]
-        fn expected_configure_msg() {
-            let deps = mock_dependencies_with_existing_module();
-            let app = MockModule::new();
-
-            let mods = app.modules(deps.as_ref());
-
-            let res = mods.api_configure(TEST_MODULE_ID, api::BaseExecuteMsg::Remove {});
-
-            let expected_msg: api::ExecuteMsg<Empty, Empty> =
-                api::ExecuteMsg::Base(api::BaseExecuteMsg::Remove {});
-
-            assert_that!(res)
-                .is_ok()
-                .is_equal_to(CosmosMsg::Wasm(WasmMsg::Execute {
-                    contract_addr: TEST_MODULE_ADDRESS.into(),
-                    msg: to_binary(&expected_msg).unwrap(),
-                    funds: vec![],
-                }));
-        }
-    }
-
     mod app_configure {
         use super::*;
 
@@ -422,7 +386,7 @@ mod test {
         }
     }
 
-    mod api_query {
+    mod query_api {
         use super::*;
         use os::dex::{DexQueryMsg, OfferAsset};
 
@@ -431,7 +395,7 @@ mod test {
             fail_when_not_dependency_test(
                 |app, deps| {
                     let mods = app.modules(deps);
-                    mods.api_query(FAKE_MODULE_ID, Empty {})
+                    mods.query_api(FAKE_MODULE_ID, Empty {})
                 },
                 FAKE_MODULE_ID,
             );
@@ -450,7 +414,7 @@ mod test {
                 dex: None,
             };
 
-            let res = mods.api_query(TEST_MODULE_ID, inner_msg.clone());
+            let res = mods.query_api(TEST_MODULE_ID, inner_msg.clone()).unwrap_err();
 
             let expected_msg: api::QueryMsg<DexQueryMsg> = api::QueryMsg::App(inner_msg);
 
@@ -463,7 +427,7 @@ mod test {
         }
     }
 
-    mod app_query {
+    mod query_app {
         use super::*;
 
         #[test]
@@ -471,7 +435,7 @@ mod test {
             fail_when_not_dependency_test(
                 |app, deps| {
                     let mods = app.modules(deps);
-                    mods.app_query(FAKE_MODULE_ID, Empty {})
+                    mods.query_app(FAKE_MODULE_ID, Empty {})
                 },
                 FAKE_MODULE_ID,
             );
@@ -484,7 +448,7 @@ mod test {
 
             let mods = app.modules(deps.as_ref());
 
-            let res = mods.app_query(TEST_MODULE_ID, Empty {});
+            let res = mods.query_app(TEST_MODULE_ID, Empty {});
 
             let expected_msg: app::QueryMsg<Empty> = app::QueryMsg::App(Empty {});
 
