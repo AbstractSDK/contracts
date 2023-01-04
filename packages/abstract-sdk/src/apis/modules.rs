@@ -9,6 +9,7 @@ use cosmwasm_std::{
     wasm_execute, Addr, CosmosMsg, Deps, Empty, QueryRequest, StdError, StdResult, WasmQuery,
 };
 use cw2::{ContractVersion, CONTRACT};
+use os::api::ApiRequestMsg;
 use serde::{de::DeserializeOwned, Serialize};
 
 use super::{Dependencies, Identification};
@@ -104,19 +105,19 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
 
     /// Interactions with Abstract APIs
     /// Construct an api request message.
-    pub fn api_request<M: Serialize>(
+    pub fn api_request<M: Serialize + Into<api::ExecuteMsg<Empty>> >(
         &self,
         api_id: ModuleId,
-        message: impl Into<api::ExecuteMsg<M, Empty>>,
+        message: M,
     ) -> StdResult<CosmosMsg> {
         self.assert_module_dependency(api_id)?;
-        let api_msg: api::ExecuteMsg<M, Empty> = message.into();
+        let api_msg = api::ExecuteMsg::<_>::App(ApiRequestMsg::new(Some(self.base.proxy_address(self.deps)?.into_string()), message));
         let api_address = self.module_address(api_id)?;
         Ok(wasm_execute(api_address, &api_msg, vec![])?.into())
     }
 
     /// Smart query an API
-    pub fn api_query<Q: Serialize, R: DeserializeOwned>(
+    pub fn query_api<Q: Serialize, R: DeserializeOwned>(
         &self,
         api_id: ModuleId,
         message: impl Into<api::QueryMsg<Q>>,
@@ -124,18 +125,6 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
         let api_msg: api::QueryMsg<Q> = message.into();
         let api_address = self.module_address(api_id)?;
         self.deps.querier.query_wasm_smart(api_address, &api_msg)
-    }
-
-    /// Construct an API configure message
-    /// Note: this method is only callabable by the OS manager.
-    pub fn api_configure(
-        &self,
-        api_id: ModuleId,
-        message: api::BaseExecuteMsg,
-    ) -> StdResult<CosmosMsg> {
-        let api_msg: api::ExecuteMsg<Empty, Empty> = message.into();
-        let api_address = self.module_address(api_id)?;
-        Ok(wasm_execute(api_address, &api_msg, vec![])?.into())
     }
 }
 
