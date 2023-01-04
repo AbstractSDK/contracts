@@ -126,18 +126,6 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
         let api_address = self.module_address(api_id)?;
         self.deps.querier.query_wasm_smart(api_address, &api_msg)
     }
-
-    /// Construct an API configure message
-    /// Note: this method is only callabable by the OS manager.
-    pub fn api_configure(
-        &self,
-        api_id: ModuleId,
-        message: api::BaseExecuteMsg,
-    ) -> StdResult<CosmosMsg> {
-        let api_msg: api::ExecuteMsg<Empty, Empty> = message.into();
-        let api_address = self.module_address(api_id)?;
-        Ok(wasm_execute(api_address, &api_msg, vec![])?.into())
-    }
 }
 
 #[cfg(test)]
