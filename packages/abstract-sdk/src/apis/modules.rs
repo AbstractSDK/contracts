@@ -105,7 +105,7 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
 
     /// Interactions with Abstract APIs
     /// Construct an api request message.
-    pub fn api_request<M: Serialize + Into<api::ExecuteMsg<Empty>> >(
+    pub fn api_request<M: Serialize + Into<api::ExecuteMsg<M, Empty>> >(
         &self,
         api_id: ModuleId,
         message: M,
