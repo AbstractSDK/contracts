@@ -140,6 +140,10 @@ pub struct PoolMetadataFilter {
 #[derive(QueryResponses)]
 #[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
 pub enum QueryMsg {
+    /// Query the config
+    /// Returns [`ConfigResponse`]
+    #[returns(ConfigResponse)]
+    Config {},
     /// Queries assets based on name
     /// returns [`AssetsResponse`]
     #[returns(AssetsResponse)]
@@ -215,6 +219,11 @@ pub enum QueryMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
+
+#[cosmwasm_schema::cw_serde]
+pub struct ConfigResponse {
+    pub next_unique_pool_id: UniquePoolId,
+}
 /// Query response
 #[cosmwasm_schema::cw_serde]
 pub struct AssetsResponse {
