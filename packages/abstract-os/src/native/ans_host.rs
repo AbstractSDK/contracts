@@ -6,6 +6,7 @@
 //! Contract and asset addresses are stored on the ans_host contract and are retrievable trough smart or raw queries.
 
 use cosmwasm_schema::QueryResponses;
+use cosmwasm_std::Addr;
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 
 use crate::objects::pool_id::UncheckedPoolAddress;
@@ -223,6 +224,7 @@ pub struct MigrateMsg {}
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     pub next_unique_pool_id: UniquePoolId,
+    pub admin: Addr,
 }
 /// Query response
 #[cosmwasm_schema::cw_serde]
