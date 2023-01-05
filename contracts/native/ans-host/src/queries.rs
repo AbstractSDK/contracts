@@ -543,7 +543,7 @@ mod test {
             }
             vector
         };
-        let test_assets_large: Vec<(String, AssetInfoBase<Addr>)> = generate_test_assets_large(26)
+        let test_assets_large: Vec<(String, AssetInfoBase<Addr>)> = generate_test_assets_large(30)
             .into_iter()
             .map(|input| {
                 (
@@ -752,6 +752,16 @@ mod test {
         assert!(res.dexes.len() == 2 as usize);
         assert!(res.dexes[0] == ("foo"));
         assert!(res.dexes[1] == ("bar"));
+        Ok(())
+    }
+
+    fn test_query_asset_pairings() -> AnsHostTestResult {
+        let mut deps = mock_dependencies();
+        mock_init(deps.as_mut()).unwrap();
+        // create DexAssetPairing
+        let dex = DexAssetPairing::new("foo", "foo", "foo");
+        let pool_base_id: abstract_os::objects::pool::pool_id::PoolIdBase<String> =
+            abstract_os::objects::pool_id::PoolIdBase::contract("foo");
         Ok(())
     }
 }
