@@ -9,8 +9,6 @@ jobs:
   check_changes:
     name: Check for Rust changes
     runs-on: self-hosted
-    needs: check_changes
-    # TODO: different image?
     container:
       image: rust:latest
     outputs:
@@ -38,6 +36,7 @@ jobs:
     name: coverage
     if: ${{ needs.check-changes.outputs.rust-changes == 'true' }}
     runs-on: self-hosted
+    needs: check_changes
     container:
       image: xd009642/tarpaulin:develop-nightly
       options: --security-opt seccomp=unconfined
