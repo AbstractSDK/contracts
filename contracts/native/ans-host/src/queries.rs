@@ -384,6 +384,14 @@ mod test {
         }]);
         pool_ref
     }
+    fn create_pool_metadata(_dex: &str, asset_x: &str, asset_y: &str) -> PoolMetadata {
+        let pool_metadata = PoolMetadata::new(
+            "bar",
+            abstract_os::objects::PoolType::Stable,
+            &vec![asset_x.to_string(), asset_y.to_string()],
+        );
+        pool_metadata
+    }
     #[test]
     fn test_query_assets() -> AnsHostTestResult {
         // arrange mocks
@@ -896,6 +904,61 @@ mod test {
         assert!(&res_foo.pools.len() == &1usize);
         assert_eq!(&res_foo_using_page_token, &expected_foo);
         assert_eq!(&res_all, &expected_all);
+        Ok(())
+    }
+    #[test]
+    fn test_query_pool_metadata() -> AnsHostTestResult {
+        let mut deps = mock_dependencies();
+        mock_init(deps.as_mut()).unwrap();
+        // create metadata entries
+        let bar_key = UniquePoolId::new(42);
+        let bar_metadata = create_pool_metadata("bar", "ETH", "BTC");
+        let insert = |_| -> StdResult<PoolMetadata> { Ok(bar_metadata) };
+        POOL_METADATA.update(&mut deps.storage, bar_key, insert)?;
+
+        let foo_key = UniquePoolId::new(69);
+        let foo_metadata = create_pool_metadata("foo", "JUNO", "ATOM");
+        let insert = |_| -> StdResult<PoolMetadata> { Ok(foo_metadata) };
+        POOL_METADATA.update(&mut deps.storage, foo_key, insert)?;
+
+        // create msgs
+        let msg_bar = QueryMsg::PoolMetadatas {
+            keys: vec![UniquePoolId::new(42)],
+        };
+        let res_bar: PoolMetadatasResponse = from_binary(&query_helper(deps.as_ref(), msg_bar)?)?;
+
+        let msg_foo = QueryMsg::PoolMetadatas {
+            keys: vec![UniquePoolId::new(69)],
+        };
+        let res_foo: PoolMetadatasResponse = from_binary(&query_helper(deps.as_ref(), msg_foo)?)?;
+
+        // create comparisons
+        let expected_bar = PoolMetadatasResponse {
+            metadatas: vec![(
+                UniquePoolId::new(42),
+                PoolMetadata::new(
+                    "bar",
+                    abstract_os::objects::PoolType::Stable,
+                    &vec!["ETH".to_string(), "BTC".to_string()],
+                ),
+            )],
+        };
+        let expected_foo = PoolMetadatasResponse {
+            metadatas: vec![(
+                UniquePoolId::new(69),
+                PoolMetadata::new(
+                    "foo",
+                    abstract_os::objects::PoolType::Stable,
+                    &vec!["JUNO".to_string(), "ATOM".to_string()],
+                ),
+            )],
+        };
+
+        assert_eq!(&res_bar, &expected_bar);
+        assert_eq!(&res_foo, &expected_foo);
+
+        // assert
+
         Ok(())
     }
 }
