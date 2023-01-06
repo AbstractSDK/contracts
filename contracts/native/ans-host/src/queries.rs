@@ -815,6 +815,15 @@ mod test {
             Ok(_pool_ref_foo)
         };
         ASSET_PAIRINGS.update(&mut deps.storage, dex_foo, insert)?;
+
+        // create duplicate pool entry
+        let dex_foo = DexAssetPairing::new("foo", "foo", "foo");
+        let _pool_ref_foo = create_option_pool_ref(69, "foo", api);
+        let insert = |pool_ref_foo: Option<Vec<PoolReference>>| -> StdResult<_> {
+            let _pool_ref_foo = pool_ref_foo.unwrap_or_default();
+            Ok(_pool_ref_foo)
+        };
+        ASSET_PAIRINGS.update(&mut deps.storage, dex_foo, insert)?;
         // create msgs bar/ foo / foo using `page_token` as filter
         let msg_bar = QueryMsg::PoolList {
             filter: Some(AssetPairingFilter {
@@ -884,6 +893,7 @@ mod test {
         // assert
         assert_eq!(&res_bar, &expected_bar);
         assert_eq!(&res_foo, &expected_foo);
+        assert!(&res_foo.pools.len() == &1usize);
         assert_eq!(&res_foo_using_page_token, &expected_foo);
         assert_eq!(&res_all, &expected_all);
         Ok(())
