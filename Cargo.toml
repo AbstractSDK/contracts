@@ -43,7 +43,7 @@ cw-utils = { version = "1.0" }
 cw-storage-plus = "0.16"
 cw2 = { version = "0.16" }
 cw20 = { version = "0.16" }
-cw20-base = { version = "0.16", features = ["library"] }
+cw20-base = { version = "1.0", features = ["library"] }
 cw-asset = { version = "2.2" }
 schemars = "0.8"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
