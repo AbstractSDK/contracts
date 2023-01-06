@@ -6,9 +6,10 @@
 //! Contract and asset addresses are stored on the ans_host contract and are retrievable trough smart or raw queries.
 
 use cosmwasm_schema::QueryResponses;
+use cosmwasm_std::Addr;
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 
-use crate::objects::pool_id::UncheckedPoolId;
+use crate::objects::pool_id::UncheckedPoolAddress;
 use crate::objects::pool_reference::PoolReference;
 use crate::objects::{
     asset_entry::AssetEntry,
@@ -17,7 +18,7 @@ use crate::objects::{
     ChannelEntry, PoolMetadata, PoolType, UncheckedChannelEntry, UniquePoolId,
 };
 
-pub type AssetPair = (String, String);
+pub type AssetPair = (AssetEntry, AssetEntry);
 type DexName = String;
 
 /// A map entry of ((asset_x, asset_y, dex) -> compound_pool_id)
@@ -36,7 +37,7 @@ pub mod state {
     use crate::objects::pool_reference::PoolReference;
     use crate::objects::{
         asset_entry::AssetEntry, common_namespace::ADMIN_NAMESPACE, contract_entry::ContractEntry,
-        pool_info::PoolMetadata, ChannelEntry,
+        pool_metadata::PoolMetadata, ChannelEntry,
     };
 
     /// Ans host configuration
@@ -110,7 +111,7 @@ pub enum ExecuteMsg {
     /// Update the pools
     UpdatePools {
         // Pools to update or add
-        to_add: Vec<(UncheckedPoolId, PoolMetadata)>,
+        to_add: Vec<(UncheckedPoolAddress, PoolMetadata)>,
         // Pools to remove
         to_remove: Vec<UniquePoolId>,
     },
@@ -140,6 +141,10 @@ pub struct PoolMetadataFilter {
 #[derive(QueryResponses)]
 #[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
 pub enum QueryMsg {
+    /// Query the config
+    /// Returns [`ConfigResponse`]
+    #[returns(ConfigResponse)]
+    Config {},
     /// Queries assets based on name
     /// returns [`AssetsResponse`]
     #[returns(AssetsResponse)]
@@ -192,8 +197,8 @@ pub enum QueryMsg {
     #[returns(PoolsResponse)]
     Pools { keys: Vec<DexAssetPairing> },
     /// Retrieve the (optionally-filtered) list of pools.
-    /// returns [`PoolIdListResponse`]
-    #[returns(PoolIdListResponse)]
+    /// returns [`PoolAddressListResponse`]
+    #[returns(PoolAddressListResponse)]
     PoolList {
         filter: Option<AssetPairingFilter>,
         page_token: Option<DexAssetPairing>,
@@ -215,6 +220,12 @@ pub enum QueryMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
+
+#[cosmwasm_schema::cw_serde]
+pub struct ConfigResponse {
+    pub next_unique_pool_id: UniquePoolId,
+    pub admin: Addr,
+}
 /// Query response
 #[cosmwasm_schema::cw_serde]
 pub struct AssetsResponse {
@@ -257,7 +268,7 @@ pub struct RegisteredDexesResponse {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct PoolIdListResponse {
+pub struct PoolAddressListResponse {
     pub pools: Vec<AssetPairingMapEntry>,
 }
 
