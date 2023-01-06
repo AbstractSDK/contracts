@@ -796,7 +796,7 @@ mod test {
         mock_init(deps.as_mut()).unwrap();
         let api = deps.api;
         // create DexAssetPairing
-        let dex = DexAssetPairing::new("foo", "foo", "foo");
+        let dex = DexAssetPairing::new("btc", "eth", "foo");
         let _pool_ref = create_option_pool_ref(42, "foo", api);
         let insert = |pool_ref: Option<Vec<PoolReference>>| -> StdResult<_> {
             let _pool_ref = pool_ref.unwrap_or_default();
@@ -806,15 +806,15 @@ mod test {
 
         // create msg
         let msg = QueryMsg::Pools {
-            keys: vec![DexAssetPairing::new("foo", "foo", "foo")],
+            keys: vec![DexAssetPairing::new("btc", "eth", "foo")],
         };
         let res: PoolsResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
         //comparisons
         let expected = ASSET_PAIRINGS
-            .load(&deps.storage, DexAssetPairing::new("foo", "foo", "foo"))
+            .load(&deps.storage, DexAssetPairing::new("btc", "eth", "foo"))
             .unwrap();
         let expected = PoolsResponse {
-            pools: vec![(DexAssetPairing::new("foo", "foo", "foo"), expected)],
+            pools: vec![(DexAssetPairing::new("btc", "eth", "foo"), expected)],
         };
         // assert
         assert_eq!(&res, &expected);
@@ -826,8 +826,8 @@ mod test {
         let mut deps = mock_dependencies();
         mock_init(deps.as_mut()).unwrap();
         let api = deps.api;
-        // create First pool entry
-        let dex_bar = DexAssetPairing::new("bar", "bar", "bar");
+        // create first pool entry
+        let dex_bar = DexAssetPairing::new("btc", "eth", "bar");
         let _pool_ref_bar = create_option_pool_ref(42, "bar", api);
         let insert = |pool_ref_bar: Option<Vec<PoolReference>>| -> StdResult<_> {
             let _pool_ref_bar = pool_ref_bar.unwrap_or_default();
@@ -836,7 +836,7 @@ mod test {
         ASSET_PAIRINGS.update(&mut deps.storage, dex_bar, insert)?;
 
         // create second pool entry
-        let dex_foo = DexAssetPairing::new("foo", "foo", "foo");
+        let dex_foo = DexAssetPairing::new("juno", "atom", "foo");
         let _pool_ref_foo = create_option_pool_ref(69, "foo", api);
         let insert = |pool_ref_foo: Option<Vec<PoolReference>>| -> StdResult<_> {
             let _pool_ref_foo = pool_ref_foo.unwrap_or_default();
@@ -845,7 +845,7 @@ mod test {
         ASSET_PAIRINGS.update(&mut deps.storage, dex_foo, insert)?;
 
         // create duplicate pool entry
-        let dex_foo = DexAssetPairing::new("foo", "foo", "foo");
+        let dex_foo = DexAssetPairing::new("juno", "atom", "foo");
         let _pool_ref_foo = create_option_pool_ref(69, "foo", api);
         let insert = |pool_ref_foo: Option<Vec<PoolReference>>| -> StdResult<_> {
             let _pool_ref_foo = pool_ref_foo.unwrap_or_default();
@@ -855,7 +855,7 @@ mod test {
         // create msgs bar/ foo / foo using `page_token` as filter
         let msg_bar = QueryMsg::PoolList {
             filter: Some(AssetPairingFilter {
-                asset_pair: Some(("bar".to_string(), "bar".to_string())),
+                asset_pair: Some(("btc".to_string(), "eth".to_string())),
                 dex: None,
             }),
             page_token: None,
@@ -865,7 +865,7 @@ mod test {
 
         let msg_foo = QueryMsg::PoolList {
             filter: Some(AssetPairingFilter {
-                asset_pair: Some(("foo".to_string(), "foo".to_string())),
+                asset_pair: Some(("juno".to_string(), "atom".to_string())),
                 dex: None,
             }),
             page_token: None,
@@ -878,7 +878,7 @@ mod test {
                 asset_pair: None,
                 dex: None,
             }),
-            page_token: Some(DexAssetPairing::new("bar", "bar", "bar")),
+            page_token: Some(DexAssetPairing::new("btc", "eth", "bar")),
             page_size: Some(42),
         };
         let res_foo_using_page_token: PoolIdListResponse =
@@ -886,28 +886,31 @@ mod test {
 
         // create comparisons - bar / foo / all
         let expected_bar = ASSET_PAIRINGS
-            .load(&deps.storage, DexAssetPairing::new("bar", "bar", "bar"))
+            .load(&deps.storage, DexAssetPairing::new("btc", "eth", "bar"))
             .unwrap();
         let expected_bar = PoolIdListResponse {
-            pools: vec![(DexAssetPairing::new("bar", "bar", "bar"), expected_bar)],
+            pools: vec![(DexAssetPairing::new("btc", "eth", "bar"), expected_bar)],
         };
 
         let expected_foo = ASSET_PAIRINGS
-            .load(&deps.storage, DexAssetPairing::new("foo", "foo", "foo"))
+            .load(&deps.storage, DexAssetPairing::new("juno", "atom", "foo"))
             .unwrap();
         let expected_foo = PoolIdListResponse {
-            pools: vec![(DexAssetPairing::new("foo", "foo", "foo"), expected_foo)],
+            pools: vec![(DexAssetPairing::new("juno", "atom", "foo"), expected_foo)],
         };
         let expected_all_bar = ASSET_PAIRINGS
-            .load(&deps.storage, DexAssetPairing::new("bar", "bar", "bar"))
+            .load(&deps.storage, DexAssetPairing::new("btc", "eth", "bar"))
             .unwrap();
         let expected_all_foo = ASSET_PAIRINGS
-            .load(&deps.storage, DexAssetPairing::new("foo", "foo", "foo"))
+            .load(&deps.storage, DexAssetPairing::new("juno", "atom", "foo"))
             .unwrap();
         let expected_all = PoolIdListResponse {
             pools: vec![
-                (DexAssetPairing::new("bar", "bar", "bar"), expected_all_bar),
-                (DexAssetPairing::new("foo", "foo", "foo"), expected_all_foo),
+                (DexAssetPairing::new("btc", "eth", "bar"), expected_all_bar),
+                (
+                    DexAssetPairing::new("juno", "atom", "foo"),
+                    expected_all_foo,
+                ),
             ],
         };
         // comparison all
@@ -932,14 +935,14 @@ mod test {
         mock_init(deps.as_mut()).unwrap();
         // create metadata entries
         let bar_key = UniquePoolId::new(42);
-        let bar_metadata = create_pool_metadata("bar", "ETH", "BTC");
-        let insert = |_| -> StdResult<PoolMetadata> { Ok(bar_metadata) };
-        POOL_METADATA.update(&mut deps.storage, bar_key, insert)?;
+        let bar_metadata = create_pool_metadata("bar", "btc", "eth");
+        let insert_bar = |_| -> StdResult<PoolMetadata> { Ok(bar_metadata) };
+        POOL_METADATA.update(&mut deps.storage, bar_key, insert_bar)?;
 
         let foo_key = UniquePoolId::new(69);
-        let foo_metadata = create_pool_metadata("foo", "JUNO", "ATOM");
-        let insert = |_| -> StdResult<PoolMetadata> { Ok(foo_metadata) };
-        POOL_METADATA.update(&mut deps.storage, foo_key, insert)?;
+        let foo_metadata = create_pool_metadata("foo", "juno", "atom");
+        let insert_foo = |_| -> StdResult<PoolMetadata> { Ok(foo_metadata) };
+        POOL_METADATA.update(&mut deps.storage, foo_key, insert_foo)?;
 
         // create msgs
         let msg_bar = QueryMsg::PoolMetadatas {
@@ -959,7 +962,7 @@ mod test {
                 PoolMetadata::new(
                     "bar",
                     abstract_os::objects::PoolType::Stable,
-                    &vec!["ETH".to_string(), "BTC".to_string()],
+                    &vec!["btc".to_string(), "eth".to_string()],
                 ),
             )],
         };
@@ -969,11 +972,12 @@ mod test {
                 PoolMetadata::new(
                     "foo",
                     abstract_os::objects::PoolType::Stable,
-                    &vec!["JUNO".to_string(), "ATOM".to_string()],
+                    &vec!["juno".to_string(), "atom".to_string()],
                 ),
             )],
         };
-
+        println!("res bar {:?}", res_bar);
+        println!("res foo {:?}", res_foo);
         assert_eq!(&res_bar, &expected_bar);
         assert_eq!(&res_foo, &expected_foo);
 
