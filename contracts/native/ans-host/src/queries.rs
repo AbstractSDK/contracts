@@ -754,14 +754,91 @@ mod test {
         assert!(res.dexes[1] == ("bar"));
         Ok(())
     }
-
-    fn test_query_asset_pairings() -> AnsHostTestResult {
+    #[test]
+    fn test_query_pools() -> AnsHostTestResult {
+        use abstract_os::objects::pool::pool_id::PoolIdBase;
         let mut deps = mock_dependencies();
         mock_init(deps.as_mut()).unwrap();
+        let api = deps.api;
         // create DexAssetPairing
         let dex = DexAssetPairing::new("foo", "foo", "foo");
-        let pool_base_id: abstract_os::objects::pool::pool_id::PoolIdBase<String> =
-            abstract_os::objects::pool_id::PoolIdBase::contract("foo");
+        let pool_ref: Vec<PoolReference> = vec![PoolReference {
+            id: UniquePoolId::new(42),
+            pool_id: PoolIdBase::contract("foo").check(&api).unwrap(),
+        }];
+        let _pool_ref = Some(pool_ref);
+        let insert = |pool_ref: Option<Vec<PoolReference>>| -> StdResult<_> {
+            let _pool_ref = pool_ref.unwrap_or_default();
+            Ok(_pool_ref)
+        };
+        ASSET_PAIRINGS.update(&mut deps.storage, dex, insert)?;
+
+        // create msg
+        let msg = QueryMsg::Pools {
+            keys: vec![DexAssetPairing::new("foo", "foo", "foo")],
+        };
+        let res: PoolsResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+        //comparisons
+        let expected = ASSET_PAIRINGS
+            .load(&deps.storage, DexAssetPairing::new("foo", "foo", "foo"))
+            .unwrap();
+        let expected = PoolsResponse {
+            pools: vec![(DexAssetPairing::new("foo", "foo", "foo"), expected)],
+        };
+        // assert
+        assert_eq!(&res, &expected);
+        Ok(())
+    }
+    #[test]
+    fn test_query_pool_id_list() -> AnsHostTestResult {
+        use abstract_os::objects::pool::pool_id::PoolIdBase;
+        let mut deps = mock_dependencies();
+        mock_init(deps.as_mut()).unwrap();
+        let api = deps.api;
+        // create First pool entry
+        let dex_bar = DexAssetPairing::new("bar", "bar", "bar");
+        let pool_ref_bar: Vec<PoolReference> = vec![PoolReference {
+            id: UniquePoolId::new(42),
+            pool_id: PoolIdBase::contract("foo").check(&api).unwrap(),
+        }];
+        let _pool_ref_bar = Some(pool_ref_bar);
+        let insert = |pool_ref_bar: Option<Vec<PoolReference>>| -> StdResult<_> {
+            let _pool_ref_bar = pool_ref_bar.unwrap_or_default();
+            Ok(_pool_ref_bar)
+        };
+        ASSET_PAIRINGS.update(&mut deps.storage, dex_bar, insert)?;
+
+        // create second pool entry
+        let dex_foo = DexAssetPairing::new("foo", "foo", "foo");
+        let pool_ref_foo: Vec<PoolReference> = vec![PoolReference {
+            id: UniquePoolId::new(69),
+            pool_id: PoolIdBase::contract("foo").check(&api).unwrap(),
+        }];
+        let _pool_ref_foo = Some(pool_ref_foo);
+        let insert = |pool_ref_foo: Option<Vec<PoolReference>>| -> StdResult<_> {
+            let _pool_ref_foo = pool_ref_foo.unwrap_or_default();
+            Ok(_pool_ref_foo)
+        };
+        ASSET_PAIRINGS.update(&mut deps.storage, dex_foo, insert)?;
+        // create msg
+        let msg_bar = QueryMsg::PoolList {
+            filter: Some(AssetPairingFilter {
+                asset_pair: Some(("bar".to_string(), "bar".to_string())),
+                dex: None,
+            }),
+            page_token: None,
+            page_size: None,
+        };
+        let res: PoolIdListResponse = from_binary(&query_helper(deps.as_ref(), msg_bar)?)?;
+        //comparisons
+        let expected = ASSET_PAIRINGS
+            .load(&deps.storage, DexAssetPairing::new("bar", "bar", "bar"))
+            .unwrap();
+        let expected = PoolIdListResponse {
+            pools: vec![(DexAssetPairing::new("bar", "bar", "bar"), expected)],
+        };
+        // assert
+        assert_eq!(&res, &expected);
         Ok(())
     }
 }
