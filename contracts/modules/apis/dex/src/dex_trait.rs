@@ -1,6 +1,6 @@
-use abstract_os::objects::{DexAssetPairing, PoolId, PoolReference};
+use abstract_os::objects::{DexAssetPairing, PoolAddress, PoolReference};
 use abstract_sdk::feature_objects::AnsHost;
-use abstract_sdk::os::objects::{AssetEntry};
+use abstract_sdk::os::objects::AssetEntry;
 use cosmwasm_std::{CosmosMsg, Decimal, Deps, Uint128};
 use cw_asset::{Asset, AssetInfo};
 
@@ -23,27 +23,21 @@ pub trait DEX: Identify {
         &self,
         deps: Deps,
         ans_host: &AnsHost,
-        assets: &mut Vec<&AssetEntry>,
-    ) -> Result<PoolId, DexError> {
-        let mut pair: [&AssetEntry; 2] = [(assets[0]), &assets[1].clone()];
-        let dex_pair = self.asset_pairing(&mut pair);
-        let pool_ref = ans_host.query_asset_pairing(&deps.querier, &dex_pair)?;
-        if pool_ref.is_empty() {
-            return Err(DexError::AssetPairingNotFound {
-                asset_pairing: dex_pair,
-            });
-        }
-        let found: PoolReference = pool_ref[0].clone();
-        Ok(found.pool_id)
-    }
-    fn asset_pairing(&self, assets: &mut [&AssetEntry; 2]) -> DexAssetPairing {
-        DexAssetPairing::from_assets(self.name(), assets)
+        assets: (AssetEntry, AssetEntry),
+    ) -> Result<PoolAddress, DexError> {
+        let dex_pair = DexAssetPairing::new(assets.0, assets.1, self.name());
+        let mut pool_ref = ans_host.query_asset_pairing(&deps.querier, &dex_pair)?;
+        // Currently takes the first pool found, but should be changed to take the best pool
+        let found: PoolReference = pool_ref.pop().ok_or(DexError::AssetPairingNotFound {
+            asset_pairing: dex_pair,
+        })?;
+        Ok(found.pool_address)
     }
     #[allow(clippy::too_many_arguments)]
     fn swap(
         &self,
         deps: Deps,
-        pool_id: PoolId,
+        pool_id: PoolAddress,
         offer_asset: Asset,
         ask_asset: AssetInfo,
         belief_price: Option<Decimal>,
@@ -62,14 +56,14 @@ pub trait DEX: Identify {
     fn provide_liquidity(
         &self,
         deps: Deps,
-        pool_id: PoolId,
+        pool_id: PoolAddress,
         offer_assets: Vec<Asset>,
         max_spread: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError>;
     fn provide_liquidity_symmetric(
         &self,
         deps: Deps,
-        pool_id: PoolId,
+        pool_id: PoolAddress,
         offer_asset: Asset,
         paired_assets: Vec<AssetInfo>,
     ) -> Result<Vec<CosmosMsg>, DexError>;
@@ -78,7 +72,7 @@ pub trait DEX: Identify {
     fn withdraw_liquidity(
         &self,
         deps: Deps,
-        pool_id: PoolId,
+        pool_id: PoolAddress,
         lp_token: Asset,
     ) -> Result<Vec<CosmosMsg>, DexError>;
     // fn raw_withdraw_liquidity();
@@ -87,7 +81,7 @@ pub trait DEX: Identify {
     fn simulate_swap(
         &self,
         deps: Deps,
-        pool_id: PoolId,
+        pool_id: PoolAddress,
         offer_asset: Asset,
         ask_asset: AssetInfo,
     ) -> Result<(Return, Spread, Fee, FeeOnInput), DexError>;

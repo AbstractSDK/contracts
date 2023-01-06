@@ -1,11 +1,10 @@
 use crate::{dex_trait::Identify, error::DexError, DEX};
 
 use crate::dex_trait::{Fee, FeeOnInput, Return, Spread};
-use abstract_os::objects::PoolId;
+use abstract_os::objects::PoolAddress;
 use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
 use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, StdResult,
-    WasmMsg,
+    to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, StdResult, WasmMsg,
 };
 use cw20::Cw20ExecuteMsg;
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};
@@ -28,7 +27,7 @@ impl DEX for Loop {
     fn swap(
         &self,
         _deps: Deps,
-        pool_id: PoolId,
+        pool_id: PoolAddress,
         offer_asset: Asset,
         _ask_asset: AssetInfo,
         belief_price: Option<Decimal>,
@@ -65,7 +64,7 @@ impl DEX for Loop {
     fn provide_liquidity(
         &self,
         _deps: Deps,
-        pool_id: PoolId,
+        pool_id: PoolAddress,
         offer_assets: Vec<Asset>,
         max_spread: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
@@ -100,7 +99,7 @@ impl DEX for Loop {
     fn provide_liquidity_symmetric(
         &self,
         deps: Deps,
-        pool_id: PoolId,
+        pool_id: PoolAddress,
         offer_asset: Asset,
         paired_assets: Vec<AssetInfo>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
@@ -167,7 +166,7 @@ impl DEX for Loop {
     fn withdraw_liquidity(
         &self,
         _deps: Deps,
-        pool_id: PoolId,
+        pool_id: PoolAddress,
         lp_token: Asset,
     ) -> Result<Vec<CosmosMsg>, DexError> {
         let pair_address = pool_id.expect_contract()?;
@@ -179,7 +178,7 @@ impl DEX for Loop {
     fn simulate_swap(
         &self,
         deps: Deps,
-        pool_id: PoolId,
+        pool_id: PoolAddress,
         offer_asset: Asset,
         _ask_asset: AssetInfo,
     ) -> Result<(Return, Spread, Fee, FeeOnInput), DexError> {

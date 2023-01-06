@@ -1,10 +1,10 @@
 use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, StdResult, Storage};
 
-use abstract_os::ans_host::state::{ASSET_PAIRINGS, POOL_METADATA};
+use abstract_os::ans_host::state::{Config, ADMIN, ASSET_PAIRINGS, CONFIG, POOL_METADATA};
 use abstract_os::ans_host::{
-    AssetPairingFilter, AssetPairingMapEntry, PoolIdListResponse, PoolMetadataFilter,
-    PoolMetadataListResponse, PoolMetadataMapEntry, PoolMetadatasResponse, PoolsResponse,
-    RegisteredDexesResponse,
+    AssetPairingFilter, AssetPairingMapEntry, ConfigResponse, PoolAddressListResponse,
+    PoolMetadataFilter, PoolMetadataListResponse, PoolMetadataMapEntry, PoolMetadatasResponse,
+    PoolsResponse, RegisteredDexesResponse,
 };
 use abstract_os::dex::DexName;
 use abstract_os::objects::pool_metadata::PoolMetadata;
@@ -23,6 +23,21 @@ use cw_storage_plus::Bound;
 
 pub(crate) const DEFAULT_LIMIT: u8 = 15;
 pub(crate) const MAX_LIMIT: u8 = 25;
+
+pub fn query_config(deps: Deps) -> StdResult<Binary> {
+    let Config {
+        next_unique_pool_id,
+    } = CONFIG.load(deps.storage)?;
+
+    let admin = ADMIN.get(deps)?.unwrap();
+
+    let res = ConfigResponse {
+        next_unique_pool_id,
+        admin,
+    };
+
+    to_binary(&res)
+}
 
 pub fn query_assets(deps: Deps, _env: Env, asset_names: Vec<String>) -> StdResult<Binary> {
     let assets: Vec<AssetEntry> = asset_names
@@ -128,7 +143,7 @@ pub fn list_pool_entries(
     let entry_list: Vec<AssetPairingMapEntry> = if full_key_provided {
         // We have the full key, so load the entry
         let (asset_x, asset_y) = asset_pair_filter.unwrap();
-        let key = DexAssetPairing::new(&asset_x, &asset_y, &dex_filter.unwrap());
+        let key = DexAssetPairing::new(asset_x, asset_y, &dex_filter.unwrap());
         let entry = load_asset_pairing_entry(deps.storage, key)?;
         // Add the result to a vec
         vec![entry]
@@ -145,7 +160,12 @@ pub fn list_pool_entries(
         // Re add the key prefix, since only the dex is returned as a key
         let matched: Vec<AssetPairingMapEntry> = res?
             .into_iter()
-            .map(|(dex, ids)| (DexAssetPairing::new(&asset_x, &asset_y, &dex), ids))
+            .map(|(dex, ids)| {
+                (
+                    DexAssetPairing::new(asset_x.clone(), asset_y.clone(), &dex),
+                    ids,
+                )
+            })
             .collect();
 
         matched
@@ -165,7 +185,7 @@ pub fn list_pool_entries(
         res?
     };
 
-    to_binary(&PoolIdListResponse { pools: entry_list })
+    to_binary(&PoolAddressListResponse { pools: entry_list })
 }
 
 /// Query the pool ids based on the actual keys
