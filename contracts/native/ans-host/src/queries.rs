@@ -246,6 +246,7 @@ mod test {
     use crate::contract::{instantiate, AnsHostResult};
     use crate::error::AnsHostError;
 
+    use abstract_os::objects::pool_id::PoolIdBase;
     use cw_asset::{AssetInfoBase, AssetInfoUnchecked};
     use speculoos::prelude::*;
 
@@ -376,6 +377,13 @@ mod test {
         msg
     }
 
+    fn create_option_pool_ref(id: u64, pool_id: &str, api: MockApi) -> Option<Vec<PoolReference>> {
+        let pool_ref = Some(vec![PoolReference {
+            id: UniquePoolId::new(id),
+            pool_id: PoolIdBase::contract(pool_id).check(&api).unwrap(),
+        }]);
+        pool_ref
+    }
     #[test]
     fn test_query_assets() -> AnsHostTestResult {
         // arrange mocks
@@ -756,17 +764,12 @@ mod test {
     }
     #[test]
     fn test_query_pools() -> AnsHostTestResult {
-        use abstract_os::objects::pool::pool_id::PoolIdBase;
         let mut deps = mock_dependencies();
         mock_init(deps.as_mut()).unwrap();
         let api = deps.api;
         // create DexAssetPairing
         let dex = DexAssetPairing::new("foo", "foo", "foo");
-        let pool_ref: Vec<PoolReference> = vec![PoolReference {
-            id: UniquePoolId::new(42),
-            pool_id: PoolIdBase::contract("foo").check(&api).unwrap(),
-        }];
-        let _pool_ref = Some(pool_ref);
+        let _pool_ref = create_option_pool_ref(42, "foo", api);
         let insert = |pool_ref: Option<Vec<PoolReference>>| -> StdResult<_> {
             let _pool_ref = pool_ref.unwrap_or_default();
             Ok(_pool_ref)
@@ -789,19 +792,15 @@ mod test {
         assert_eq!(&res, &expected);
         Ok(())
     }
+
     #[test]
     fn test_query_pool_id_list() -> AnsHostTestResult {
-        use abstract_os::objects::pool::pool_id::PoolIdBase;
         let mut deps = mock_dependencies();
         mock_init(deps.as_mut()).unwrap();
         let api = deps.api;
         // create First pool entry
         let dex_bar = DexAssetPairing::new("bar", "bar", "bar");
-        let pool_ref_bar: Vec<PoolReference> = vec![PoolReference {
-            id: UniquePoolId::new(42),
-            pool_id: PoolIdBase::contract("foo").check(&api).unwrap(),
-        }];
-        let _pool_ref_bar = Some(pool_ref_bar);
+        let _pool_ref_bar = create_option_pool_ref(42, "bar", api);
         let insert = |pool_ref_bar: Option<Vec<PoolReference>>| -> StdResult<_> {
             let _pool_ref_bar = pool_ref_bar.unwrap_or_default();
             Ok(_pool_ref_bar)
@@ -810,17 +809,13 @@ mod test {
 
         // create second pool entry
         let dex_foo = DexAssetPairing::new("foo", "foo", "foo");
-        let pool_ref_foo: Vec<PoolReference> = vec![PoolReference {
-            id: UniquePoolId::new(69),
-            pool_id: PoolIdBase::contract("foo").check(&api).unwrap(),
-        }];
-        let _pool_ref_foo = Some(pool_ref_foo);
+        let _pool_ref_foo = create_option_pool_ref(69, "foo", api);
         let insert = |pool_ref_foo: Option<Vec<PoolReference>>| -> StdResult<_> {
             let _pool_ref_foo = pool_ref_foo.unwrap_or_default();
             Ok(_pool_ref_foo)
         };
         ASSET_PAIRINGS.update(&mut deps.storage, dex_foo, insert)?;
-        // create msg
+        // create msgs bar/ foo / foo using `page_token` as filter
         let msg_bar = QueryMsg::PoolList {
             filter: Some(AssetPairingFilter {
                 asset_pair: Some(("bar".to_string(), "bar".to_string())),
@@ -829,16 +824,68 @@ mod test {
             page_token: None,
             page_size: None,
         };
-        let res: PoolIdListResponse = from_binary(&query_helper(deps.as_ref(), msg_bar)?)?;
-        //comparisons
-        let expected = ASSET_PAIRINGS
+        let res_bar: PoolIdListResponse = from_binary(&query_helper(deps.as_ref(), msg_bar)?)?;
+
+        let msg_foo = QueryMsg::PoolList {
+            filter: Some(AssetPairingFilter {
+                asset_pair: Some(("foo".to_string(), "foo".to_string())),
+                dex: None,
+            }),
+            page_token: None,
+            page_size: Some(42),
+        };
+        let res_foo: PoolIdListResponse = from_binary(&query_helper(deps.as_ref(), msg_foo)?)?;
+
+        let msg_foo_using_page_token = QueryMsg::PoolList {
+            filter: Some(AssetPairingFilter {
+                asset_pair: None,
+                dex: None,
+            }),
+            page_token: Some(DexAssetPairing::new("bar", "bar", "bar")),
+            page_size: Some(42),
+        };
+        let res_foo_using_page_token: PoolIdListResponse =
+            from_binary(&query_helper(deps.as_ref(), msg_foo_using_page_token)?)?;
+
+        // create comparisons - bar / foo / all
+        let expected_bar = ASSET_PAIRINGS
             .load(&deps.storage, DexAssetPairing::new("bar", "bar", "bar"))
             .unwrap();
-        let expected = PoolIdListResponse {
-            pools: vec![(DexAssetPairing::new("bar", "bar", "bar"), expected)],
+        let expected_bar = PoolIdListResponse {
+            pools: vec![(DexAssetPairing::new("bar", "bar", "bar"), expected_bar)],
         };
+
+        let expected_foo = ASSET_PAIRINGS
+            .load(&deps.storage, DexAssetPairing::new("foo", "foo", "foo"))
+            .unwrap();
+        let expected_foo = PoolIdListResponse {
+            pools: vec![(DexAssetPairing::new("foo", "foo", "foo"), expected_foo)],
+        };
+        let expected_all_bar = ASSET_PAIRINGS
+            .load(&deps.storage, DexAssetPairing::new("bar", "bar", "bar"))
+            .unwrap();
+        let expected_all_foo = ASSET_PAIRINGS
+            .load(&deps.storage, DexAssetPairing::new("foo", "foo", "foo"))
+            .unwrap();
+        let expected_all = PoolIdListResponse {
+            pools: vec![
+                (DexAssetPairing::new("bar", "bar", "bar"), expected_all_bar),
+                (DexAssetPairing::new("foo", "foo", "foo"), expected_all_foo),
+            ],
+        };
+        // comparison all
+        let msg_all = QueryMsg::PoolList {
+            filter: None,
+            page_token: None,
+            page_size: Some(42),
+        };
+        let res_all: PoolIdListResponse = from_binary(&query_helper(deps.as_ref(), msg_all)?)?;
+
         // assert
-        assert_eq!(&res, &expected);
+        assert_eq!(&res_bar, &expected_bar);
+        assert_eq!(&res_foo, &expected_foo);
+        assert_eq!(&res_foo_using_page_token, &expected_foo);
+        assert_eq!(&res_all, &expected_all);
         Ok(())
     }
 }
