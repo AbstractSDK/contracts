@@ -9,6 +9,7 @@ use abstract_sdk::os::subscription::{
 };
 
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
+#[cfg(feature = "schema")]
 use subscription::contract::SubscriptionApp;
 
 fn main() {
@@ -17,6 +18,7 @@ fn main() {
     create_dir_all(&out_dir).unwrap();
     remove_schemas(&out_dir).unwrap();
 
+    #[cfg(feature = "schema")]
     SubscriptionApp::export_schema(&out_dir);
 
     export_schema(&schema_for!(ConfigResponse), &out_dir);

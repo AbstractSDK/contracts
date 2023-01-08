@@ -3,6 +3,7 @@ use std::fs::create_dir_all;
 
 use cosmwasm_schema::remove_schemas;
 
+#[cfg(feature = "schema")]
 use tendermint_staking::contract::TendermintStakeApi;
 
 fn main() {
@@ -11,5 +12,6 @@ fn main() {
     create_dir_all(&out_dir).unwrap();
     remove_schemas(&out_dir).unwrap();
 
+    #[cfg(feature = "schema")]
     TendermintStakeApi::export_schema(&out_dir);
 }

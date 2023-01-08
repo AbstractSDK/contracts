@@ -16,6 +16,7 @@ crate-type = ["cdylib", "rlib"]
 [features]
 library = []
 backtraces = ["cosmwasm-std/backtraces"]
+schema = ["abstract-api/schema"]
 
 # Keep as is until TendermintStake updates.
 [dependencies]

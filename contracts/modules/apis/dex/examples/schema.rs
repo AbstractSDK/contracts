@@ -1,9 +1,10 @@
 use std::env::current_dir;
 use std::fs::create_dir_all;
 
-use abstract_sdk::os::dex::{SimulateSwapResponse};
+use abstract_sdk::os::dex::SimulateSwapResponse;
 use cosmwasm_schema::{export_schema_with_title, remove_schemas, schema_for};
 
+#[cfg(feature = "schema")]
 use dex::contract::DexApi;
 
 fn main() {
@@ -12,6 +13,7 @@ fn main() {
     create_dir_all(&out_dir).unwrap();
     remove_schemas(&out_dir).unwrap();
 
+    #[cfg(feature = "schema")]
     DexApi::export_schema(&out_dir);
     export_schema_with_title(&schema_for!(SimulateSwapResponse), &out_dir, "ApiResponse");
 }
