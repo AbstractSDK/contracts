@@ -42,6 +42,7 @@ jobs:
     #      image: ubuntu:latest
     env:
       NAMESPACE: abstract
+      GH_TOKEN: ${{ github.token }}
     strategy:
       matrix:
         package: [ etf ]
