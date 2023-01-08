@@ -90,7 +90,7 @@ jobs:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
           LATEST_VERSION: ${{ steps.get-latest-without-v.outputs.result }}
         with:
-          source_folder: 'schema/*'
+          source_folder: 'schema/'
           destination_repo: 'Abstract-OS/schemas'
           destination_folder: ${{ env.NAMESPACE }}/${{ matrix.package }}/${{ env.LATEST_VERSION }}
           destination_base_branch: mainline
