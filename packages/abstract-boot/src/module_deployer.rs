@@ -60,7 +60,7 @@ impl<'a, Chain: BootEnvironment> ModuleDeployer<'a, Chain> {
         &self,
         api: &mut Contract<Chain>,
         version: Version,
-        api_init_msg: Option<TInitMsg>,
+        api_init_msg: TInitMsg,
     ) -> Result<(), BootError>
     where
         TInitMsg: Serialize + Debug,
@@ -79,7 +79,7 @@ impl<'a, Chain: BootEnvironment> ModuleDeployer<'a, Chain> {
 
         api.upload()?;
         let init_msg = abstract_os::api::InstantiateMsg {
-            app: api_init_msg.ok_or(Empty {}),
+            app: api_init_msg,
             base: abstract_os::api::BaseInstantiateMsg {
                 ans_host_address: self.ans_host.address()?.into(),
                 version_control_address: self.version_control.address()?.into(),

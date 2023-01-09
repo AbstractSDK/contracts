@@ -29,7 +29,7 @@ fn deploy_dex() -> anyhow::Result<()> {
 
     let mut dex = DexApi::new("abstract:dex", &chain);
 
-    deployer.deploy_api(dex.as_instance_mut(), version, None)?;
+    deployer.deploy_api(dex.as_instance_mut(), version, Empty {})?;
 
     Ok(())
 }
