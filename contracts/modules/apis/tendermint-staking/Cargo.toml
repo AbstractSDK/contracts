@@ -28,3 +28,4 @@ abstract-api = { workspace = true }
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }
+abstract-api = { workspace = true, features = ["schema"] }
