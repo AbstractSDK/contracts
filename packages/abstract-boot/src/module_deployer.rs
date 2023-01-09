@@ -2,7 +2,7 @@ use abstract_os::objects::module::ModuleVersion;
 use abstract_os::{ANS_HOST, VERSION_CONTROL};
 use boot_core::BootError::StdErr;
 use boot_core::{prelude::*, BootEnvironment, BootError};
-use cosmwasm_std::{Addr, Empty};
+use cosmwasm_std::Addr;
 use semver::Version;
 use serde::Serialize;
 use std::fmt::Debug;
