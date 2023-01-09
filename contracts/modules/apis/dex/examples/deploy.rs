@@ -20,9 +20,10 @@ fn deploy_dex() -> anyhow::Result<()> {
     let options = DaemonOptionsBuilder::default().network(network).build();
     let (_sender, chain) = instantiate_daemon_env(&rt, options?)?;
 
+    let abstract_version: Version = "0.1.0-rc.3".parse().unwrap();
     let mut deployer = ModuleDeployer::load_from_version_control(
         &chain,
-        "0.1.0-rc.3",
+        &abstract_version,
         &Addr::unchecked("juno102k70cekzkwgex55en0zst5gy9x5h3gf8cegvn76w2uevqj4wdgs0q67mq"),
     )?;
 

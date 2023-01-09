@@ -7,9 +7,7 @@ use semver::Version;
 use serde::Serialize;
 use std::fmt::Debug;
 
-use crate::{
-    AnsHost, VersionControl,
-};
+use crate::{AnsHost, VersionControl};
 
 /// An Abstract module deployer that can deploy modules to a chain.
 pub struct ModuleDeployer<'a, Chain: BootEnvironment> {
@@ -34,7 +32,7 @@ impl<'a, Chain: BootEnvironment> ModuleDeployer<'a, Chain> {
     /// Loads a deployment instance from a live chain given the **version_control_address**.
     pub fn load_from_version_control(
         chain: &'a Chain,
-        abstract_version: &str,
+        abstract_version: &Version,
         version_control_address: &Addr,
     ) -> Result<Self, BootError> {
         let version_control = VersionControl::load(chain, version_control_address);
@@ -45,9 +43,7 @@ impl<'a, Chain: BootEnvironment> ModuleDeployer<'a, Chain> {
         //     self.address()?,
         // ))?;
 
-        let version: Version = abstract_version.parse().unwrap();
-
-        let result = version_control.get_module_addr(ANS_HOST, ModuleVersion::Latest);
+        let result = version_control.get_api_addr(ANS_HOST, ModuleVersion::Latest);
 
         let ans_host = AnsHost::load(chain, &result?);
 
@@ -55,7 +51,7 @@ impl<'a, Chain: BootEnvironment> ModuleDeployer<'a, Chain> {
             chain,
             ans_host,
             version_control,
-            version,
+            version: abstract_version.clone(),
         })
     }
 
@@ -72,7 +68,7 @@ impl<'a, Chain: BootEnvironment> ModuleDeployer<'a, Chain> {
         // check for existing version
         let version_check = self
             .version_control
-            .get_module_addr(&api.id, ModuleVersion::from(version.to_string()));
+            .get_api_addr(&api.id, ModuleVersion::from(version.to_string()));
 
         if version_check.is_ok() {
             return Err(StdErr(format!(

@@ -135,8 +135,8 @@ where
         Ok(resp.os_core)
     }
 
-    /// Retrieves a module address from version control given the module **id** and **version**.
-    pub fn get_module_addr(&self, id: &str, version: ModuleVersion) -> Result<Addr, BootError> {
+    /// Retrieves an API's address from version control given the module **id** and **version**.
+    pub fn get_api_addr(&self, id: &str, version: ModuleVersion) -> Result<Addr, BootError> {
         let resp: ModuleResponse = self.query(&QueryMsg::Module {
             module: ModuleInfo::from_id(id, version)?,
         })?;
