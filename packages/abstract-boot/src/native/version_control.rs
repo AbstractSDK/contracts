@@ -25,13 +25,13 @@ impl<Chain: BootEnvironment> VersionControl<Chain>
 where
     TxResponse<Chain>: IndexResponse,
 {
-    pub fn new(name: &str, chain: &Chain) -> Self {
+    pub fn new(name: &str, chain: Chain) -> Self {
         let mut contract = Contract::new(name, chain);
         contract = contract.with_wasm_path("version_control");
         Self(contract)
     }
 
-    pub fn load(chain: &Chain, address: &Addr) -> Self {
+    pub fn load(chain: Chain, address: &Addr) -> Self {
         Self(Contract::new(VERSION_CONTROL, chain).with_address(Some(address)))
     }
 
@@ -133,6 +133,15 @@ where
     pub fn get_os_core(&self, os_id: u32) -> Result<Core, BootError> {
         let resp: OsCoreResponse = self.query(&QueryMsg::OsCore { os_id })?;
         Ok(resp.os_core)
+    }
+
+    /// Retrieves an API's address from version control given the module **id** and **version**.
+    pub fn get_api_addr(&self, id: &str, version: ModuleVersion) -> Result<Addr, BootError> {
+        let resp: ModuleResponse = self.query(&QueryMsg::Module {
+            module: ModuleInfo::from_id(id, version)?,
+        })?;
+
+        Ok(resp.module.reference.unwrap_addr()?)
     }
 }
 

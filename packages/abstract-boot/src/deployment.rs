@@ -1,4 +1,5 @@
 use abstract_os::manager::ManagerModuleInfo;
+
 use abstract_os::{
     manager::QueryMsgFns as ManagerQueryMsgFns, proxy::QueryMsgFns as ProxyQueryMsgFns,
 };
