@@ -1024,21 +1024,4 @@ mod test {
 
         Ok(())
     }
-
-    // fn query_pool_metadata_list() -> AnsHostTestResult {
-    //     let mut deps = mock_dependencies();
-    //     mock_init(deps.as_mut()).unwrap();
-    //     // create metadata entries
-    //     let bar_key = UniquePoolId::new(42);
-    //     let bar_metadata = create_pool_metadata("bar", "btc", "eth");
-    //     let insert_bar = |_| -> StdResult<PoolMetadata> { Ok(bar_metadata) };
-    //     POOL_METADATA.update(&mut deps.storage, bar_key, insert_bar)?;
-
-    //     let foo_key = UniquePoolId::new(69);
-    //     let foo_metadata = create_pool_metadata("foo", "juno", "atom");
-    //     let insert_foo = |_| -> StdResult<PoolMetadata> { Ok(foo_metadata) };
-    //     POOL_METADATA.update(&mut deps.storage, foo_key, insert_foo)?;
-
-    //     Ok()
-    // }
 }
