@@ -335,6 +335,7 @@ mod test {
         };
         expected
     }
+
     fn create_contract_entry_and_string(
         input: Vec<(&str, &str, &str)>,
     ) -> Vec<(ContractEntry, String)> {
@@ -352,6 +353,7 @@ mod test {
             .collect();
         contract_entry
     }
+
     fn create_contract_entry(input: Vec<(&str, &str)>) -> Vec<ContractEntry> {
         let contract_entry: Vec<ContractEntry> = input
             .into_iter()
@@ -380,6 +382,7 @@ mod test {
             .collect();
         channel_entry
     }
+
     fn create_channel_entry(input: Vec<(&str, &str)>) -> Vec<ChannelEntry> {
         let channel_entry: Vec<ChannelEntry> = input
             .into_iter()
@@ -390,6 +393,7 @@ mod test {
             .collect();
         channel_entry
     }
+
     fn create_channel_msg(input: Vec<(&str, &str)>) -> QueryMsg {
         let msg = QueryMsg::Channels {
             names: create_channel_entry(input),
@@ -397,11 +401,130 @@ mod test {
         msg
     }
 
+    fn update_asset_addresses(
+        deps: DepsMut<'_>,
+        to_add: Vec<(String, AssetInfoBase<Addr>)>,
+    ) -> Result<(), cosmwasm_std::StdError> {
+        for (test_asset_name, test_asset_info) in to_add.clone().into_iter() {
+            let insert = |_| -> StdResult<AssetInfo> { Ok(test_asset_info) };
+            ASSET_ADDRESSES.update(deps.storage, test_asset_name.into(), insert)?;
+        }
+        Ok(())
+    }
+
+    fn update_contract_addresses(
+        deps: DepsMut<'_>,
+        to_add: Vec<(ContractEntry, String)>,
+    ) -> Result<(), cosmwasm_std::StdError> {
+        for (key, new_address) in to_add.into_iter() {
+            let addr = deps.as_ref().api.addr_validate(&new_address)?;
+            let insert = |_| -> StdResult<Addr> { Ok(addr) };
+            CONTRACT_ADDRESSES.update(deps.storage, key, insert)?;
+        }
+        Ok(())
+    }
+
+    fn update_channels(
+        deps: DepsMut<'_>,
+        to_add: Vec<(ChannelEntry, String)>,
+    ) -> Result<(), cosmwasm_std::StdError> {
+        for (key, new_channel) in to_add.into_iter() {
+            // Update function for new or existing keys
+            let insert = |_| -> StdResult<String> { Ok(new_channel) };
+            CHANNELS.update(deps.storage, key, insert)?;
+        }
+        Ok(())
+    }
+
+    fn update_registered_dexes(
+        deps: DepsMut<'_>,
+        to_add: Vec<String>,
+    ) -> Result<(), cosmwasm_std::StdError> {
+        for _dex in to_add.clone() {
+            let register_dex = |mut dexes: Vec<String>| -> StdResult<Vec<String>> {
+                for _dex in to_add.clone() {
+                    if !dexes.contains(&_dex) {
+                        dexes.push(_dex.to_ascii_lowercase());
+                    }
+                }
+                Ok(dexes)
+            };
+            REGISTERED_DEXES.update(deps.storage, register_dex)?;
+        }
+        Ok(())
+    }
+
+    fn update_asset_pairing(
+        asset_x: &str,
+        asset_y: &str,
+        dex: &str,
+        id: u64,
+        deps: DepsMut<'_>,
+        api: MockApi,
+    ) -> Result<(), cosmwasm_std::StdError> {
+        let dex_asset_pairing =
+            DexAssetPairing::new(AssetEntry::new(asset_x), AssetEntry::new(asset_y), dex);
+        let _pool_ref = create_option_pool_ref(id, dex, api);
+        let insert = |pool_ref: Option<Vec<PoolReference>>| -> StdResult<_> {
+            let _pool_ref = pool_ref.unwrap_or_default();
+            Ok(_pool_ref)
+        };
+        ASSET_PAIRINGS.update(deps.storage, dex_asset_pairing, insert)?;
+        Ok(())
+    }
+
     fn create_dex_asset_pairing(asset_x: &str, asset_y: &str, dex: &str) -> DexAssetPairing {
         let dex_asset_pairing =
             DexAssetPairing::new(AssetEntry::new(asset_x), AssetEntry::new(asset_y), dex);
         dex_asset_pairing
     }
+
+    fn create_asset_pairing_filter(
+        asset_x: &str,
+        asset_y: &str,
+        dex: Option<String>,
+    ) -> Result<AssetPairingFilter, cosmwasm_std::StdError> {
+        let filter = AssetPairingFilter {
+            asset_pair: Some((AssetEntry::new(asset_x), AssetEntry::new(asset_y))),
+            dex: dex,
+        };
+        Ok(filter)
+    }
+
+    fn create_pool_list_msg(
+        filter: Option<AssetPairingFilter>,
+        page_token: Option<DexAssetPairing>,
+        page_size: Option<u8>,
+    ) -> Result<QueryMsg, cosmwasm_std::StdError> {
+        let msg = QueryMsg::PoolList {
+            filter: filter,
+            page_token: page_token,
+            page_size: page_size,
+        };
+        Ok(msg)
+    }
+
+    fn load_asset_pairing_into_pools_response(
+        asset_x: &str,
+        asset_y: &str,
+        dex: &str,
+        deps: DepsMut<'_>,
+    ) -> Result<PoolsResponse, cosmwasm_std::StdError> {
+        let asset_pairing = ASSET_PAIRINGS
+            .load(
+                deps.storage,
+                create_dex_asset_pairing(asset_x, asset_y, dex),
+            )
+            .unwrap();
+        let asset_pairing = PoolsResponse {
+            pools: vec![(
+                create_dex_asset_pairing(asset_x, asset_y, dex),
+                asset_pairing,
+            )],
+        };
+        Ok(asset_pairing)
+    }
+
     fn create_option_pool_ref(id: u64, pool_id: &str, api: MockApi) -> Option<Vec<PoolReference>> {
         let pool_ref = Some(vec![PoolReference {
             unique_id: UniquePoolId::new(id),
@@ -409,6 +532,7 @@ mod test {
         }]);
         pool_ref
     }
+
     fn create_pool_metadata(_dex: &str, asset_x: &str, asset_y: &str) -> PoolMetadata {
         let pool_metadata = PoolMetadata::new(
             "bar",
@@ -417,6 +541,7 @@ mod test {
         );
         pool_metadata
     }
+
     #[test]
     fn test_query_assets() -> AnsHostTestResult {
         // arrange mocks
@@ -426,10 +551,7 @@ mod test {
 
         // create test query data
         let test_assets = create_test_assets(vec![("bar", "bar"), ("foo", "foo")], api);
-        for (test_asset_name, test_asset_info) in test_assets.clone().into_iter() {
-            let insert = |_| -> StdResult<AssetInfo> { Ok(test_asset_info) };
-            ASSET_ADDRESSES.update(&mut deps.storage, test_asset_name.into(), insert)?;
-        }
+        update_asset_addresses(deps.as_mut(), test_assets)?;
         // create msg
         let msg = QueryMsg::Assets {
             names: vec!["bar".to_string(), "foo".to_string()],
@@ -438,7 +560,10 @@ mod test {
         let res: AssetsResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
         // Stage data for equality test
-        let expected = create_asset_response(test_assets);
+        let expected = create_asset_response(create_test_assets(
+            vec![("bar", "bar"), ("foo", "foo")],
+            api,
+        ));
         // Assert
         assert_that!(&res).is_equal_to(&expected);
 
@@ -453,12 +578,7 @@ mod test {
 
         // create test query data
         let to_add = create_contract_entry_and_string(vec![("foo", "foo", "foo")]);
-        for (key, new_address) in to_add.into_iter() {
-            let addr = deps.as_ref().api.addr_validate(&new_address)?;
-            let insert = |_| -> StdResult<Addr> { Ok(addr) };
-            CONTRACT_ADDRESSES.update(&mut deps.storage, key, insert)?;
-        }
-
+        update_contract_addresses(deps.as_mut(), to_add)?;
         // create, send and deserialise msg
         let msg = QueryMsg::Contracts {
             names: create_contract_entry(vec![("foo", "foo")]),
@@ -483,18 +603,10 @@ mod test {
 
         // create test query data
         let to_add = create_channel_entry_and_string(vec![("foo", "foo", "foo")]);
-        for (key, new_channel) in to_add.into_iter() {
-            // Update function for new or existing keys
-            let insert = |_| -> StdResult<String> { Ok(new_channel) };
-            CHANNELS.update(&mut deps.storage, key, insert)?;
-        }
+        update_channels(deps.as_mut(), to_add)?;
         // create duplicate entry
         let to_add1 = create_channel_entry_and_string(vec![("foo", "foo", "foo")]);
-        for (key, new_channel) in to_add1.into_iter() {
-            // Update function for new or existing keys
-            let insert = |_| -> StdResult<String> { Ok(new_channel) };
-            CHANNELS.update(&mut deps.storage, key, insert)?;
-        }
+        update_channels(deps.as_mut(), to_add1)?;
 
         // create and send and deserialise msg
         let msg = create_channel_msg(vec![("foo", "foo")]);
@@ -520,28 +632,20 @@ mod test {
 
         // create test query data
         let test_assets = create_test_assets(vec![("foo", "foo"), ("bar", "bar")], api);
-        for (test_asset_name, test_asset_info) in test_assets.clone().into_iter() {
-            let insert = |_| -> StdResult<AssetInfo> { Ok(test_asset_info) };
-            ASSET_ADDRESSES.update(&mut deps.storage, test_asset_name.into(), insert)?;
-        }
+        update_asset_addresses(deps.as_mut(), test_assets)?;
+
         // create second entry
         let test_assets1 = create_test_assets(vec![("foobar", "foobar")], api);
-        for (test_asset_name, test_asset_info) in test_assets1.clone().into_iter() {
-            let insert = |_| -> StdResult<AssetInfo> { Ok(test_asset_info) };
-            ASSET_ADDRESSES.update(&mut deps.storage, test_asset_name.into(), insert)?;
-        }
+        update_asset_addresses(deps.as_mut(), test_assets1)?;
+
         // create duplicate entry
         let test_assets_duplicate = create_test_assets(vec![("foobar", "foobar")], api);
-        for (test_asset_name, test_asset_info) in test_assets_duplicate.clone().into_iter() {
-            let insert = |_| -> StdResult<AssetInfo> { Ok(test_asset_info) };
-            ASSET_ADDRESSES.update(&mut deps.storage, test_asset_name.into(), insert)?;
-        }
-
-        // create msgs
+        update_asset_addresses(deps.as_mut(), test_assets_duplicate)?;
 
         // return all entries
         let msg = query_asset_list_msg("".to_string(), 42);
         let res: AssetListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+
         // limit response to 1st result - entries are stored alphabetically
         let msg = query_asset_list_msg("".to_string(), 1);
         let res_first_entry: AssetListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
@@ -596,10 +700,8 @@ mod test {
                 )
             })
             .collect();
-        for (test_asset_name, test_asset_info) in test_assets_large.clone().into_iter() {
-            let insert = |_| -> StdResult<AssetInfo> { Ok(test_asset_info) };
-            ASSET_ADDRESSES.update(&mut deps.storage, test_asset_name.into(), insert)?;
-        }
+        update_asset_addresses(deps.as_mut(), test_assets_large)?;
+
         let msg = query_asset_list_msg("".to_string(), 42);
         let res: AssetListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
         assert!(res.assets.len() == 25 as usize);
@@ -615,26 +717,16 @@ mod test {
         mock_init(deps.as_mut()).unwrap();
 
         // create test query data
-        let to_add = create_contract_entry_and_string(vec![("foo", "foo", "foo")]);
-        for (key, new_address) in to_add.into_iter() {
-            let addr = deps.as_ref().api.addr_validate(&new_address)?;
-            let insert = |_| -> StdResult<Addr> { Ok(addr) };
-            CONTRACT_ADDRESSES.update(&mut deps.storage, key, insert)?;
-        }
+        let to_add = create_contract_entry_and_string(vec![("foo", "foo1", "foo2")]);
+        update_contract_addresses(deps.as_mut(), to_add)?;
+
         // create second entry
-        let to_add1 = create_contract_entry_and_string(vec![("bar", "bar", "bar")]);
-        for (key, new_address) in to_add1.into_iter() {
-            let addr = deps.as_ref().api.addr_validate(&new_address)?;
-            let insert = |_| -> StdResult<Addr> { Ok(addr) };
-            CONTRACT_ADDRESSES.update(&mut deps.storage, key, insert)?;
-        }
+        let to_add1 = create_contract_entry_and_string(vec![("bar", "bar1", "bar2")]);
+        update_contract_addresses(deps.as_mut(), to_add1)?;
+
         // create duplicate entry
-        let to_add1 = create_contract_entry_and_string(vec![("bar", "bar", "bar")]);
-        for (key, new_address) in to_add1.into_iter() {
-            let addr = deps.as_ref().api.addr_validate(&new_address)?;
-            let insert = |_| -> StdResult<Addr> { Ok(addr) };
-            CONTRACT_ADDRESSES.update(&mut deps.storage, key, insert)?;
-        }
+        let to_add1 = create_contract_entry_and_string(vec![("bar", "bar1", "bar2")]);
+        update_contract_addresses(deps.as_mut(), to_add1)?;
 
         // create msgs
         let msg = QueryMsg::ContractList {
@@ -646,7 +738,7 @@ mod test {
         let msg = QueryMsg::ContractList {
             page_token: Some(ContractEntry {
                 protocol: "bar".to_string().to_ascii_lowercase(),
-                contract: "bar".to_string().to_ascii_lowercase(),
+                contract: "bar1".to_string().to_ascii_lowercase(),
             }),
             page_size: Some(42 as u8),
         };
@@ -655,13 +747,13 @@ mod test {
         // Stage data for equality test
         let expected = ContractListResponse {
             contracts: create_contract_entry_and_string(vec![
-                ("bar", "bar", "bar"),
-                ("foo", "foo", "foo"),
+                ("bar", "bar1", "bar2"),
+                ("foo", "foo1", "foo2"),
             ]),
         };
 
         let expected_foo = ContractListResponse {
-            contracts: create_contract_entry_and_string(vec![("foo", "foo", "foo")]),
+            contracts: create_contract_entry_and_string(vec![("foo", "foo1", "foo2")]),
         };
 
         // Assert
@@ -681,19 +773,12 @@ mod test {
 
         // create test query data
         let to_add =
-            create_channel_entry_and_string(vec![("bar", "bar", "bar"), ("foo", "foo", "foo")]);
-        for (key, new_channel) in to_add.into_iter() {
-            // Update function for new or existing keys
-            let insert = |_| -> StdResult<String> { Ok(new_channel) };
-            CHANNELS.update(&mut deps.storage, key, insert)?;
-        }
+            create_channel_entry_and_string(vec![("bar", "bar1", "bar2"), ("foo", "foo1", "foo2")]);
+        update_channels(deps.as_mut(), to_add)?;
+
         // create second entry
-        let to_add1 = create_channel_entry_and_string(vec![("foobar", "foobar", "foobar")]);
-        for (key, new_channel) in to_add1.into_iter() {
-            // Update function for new or existing keys
-            let insert = |_| -> StdResult<String> { Ok(new_channel) };
-            CHANNELS.update(&mut deps.storage, key, insert)?;
-        }
+        let to_add1 = create_channel_entry_and_string(vec![("foobar", "foobar1", "foobar2")]);
+        update_channels(deps.as_mut(), to_add1)?;
 
         // create msgs
         // No token filter - should return up to `page_size` entries
@@ -707,7 +792,7 @@ mod test {
         let msg = QueryMsg::ChannelList {
             page_token: Some(ChannelEntry {
                 connected_chain: "foo".to_string(),
-                protocol: "foo".to_string(),
+                protocol: "foo1".to_string(),
             }),
             page_size: Some(42 as u8),
         };
@@ -725,18 +810,18 @@ mod test {
         // Return all
         let expected_all = ChannelListResponse {
             channels: create_channel_entry_and_string(vec![
-                ("bar", "bar", "bar"),
-                ("foo", "foo", "foo"),
-                ("foobar", "foobar", "foobar"),
+                ("bar", "bar1", "bar2"),
+                ("foo", "foo1", "foo2"),
+                ("foobar", "foobar1", "foobar2"),
             ]),
         };
         // Filter from `Foo`
         let expected_foobar = ChannelListResponse {
-            channels: create_channel_entry_and_string(vec![("foobar", "foobar", "foobar")]),
+            channels: create_channel_entry_and_string(vec![("foobar", "foobar1", "foobar2")]),
         };
         // Return first entry (alphabetically)
         let expected_bar = ChannelListResponse {
-            channels: create_channel_entry_and_string(vec![("bar", "bar", "bar")]),
+            channels: create_channel_entry_and_string(vec![("bar", "bar1", "bar2")]),
         };
         // Assert
         assert_that!(&res_all).is_equal_to(expected_all);
@@ -754,30 +839,12 @@ mod test {
 
         // Create test data
         let to_add: Vec<String> = vec!["foo".to_string(), "bar".to_string()];
-        for _dex in to_add.clone() {
-            let register_dex = |mut dexes: Vec<String>| -> StdResult<Vec<String>> {
-                for _dex in to_add.clone() {
-                    if !dexes.contains(&_dex) {
-                        dexes.push(_dex.to_ascii_lowercase());
-                    }
-                }
-                Ok(dexes)
-            };
-            REGISTERED_DEXES.update(&mut deps.storage, register_dex)?;
-        }
+        update_registered_dexes(deps.as_mut(), to_add)?;
+
         // create duplicate entry
-        let to_add: Vec<String> = vec!["foo".to_string(), "foo".to_string()];
-        for _dex in to_add.clone() {
-            let register_dex = |mut dexes: Vec<String>| -> StdResult<Vec<String>> {
-                for _dex in to_add.clone() {
-                    if !dexes.contains(&_dex) {
-                        dexes.push(_dex.to_ascii_lowercase());
-                    }
-                }
-                Ok(dexes)
-            };
-            REGISTERED_DEXES.update(&mut deps.storage, register_dex)?;
-        }
+        let to_add1: Vec<String> = vec!["foo".to_string(), "foo".to_string()];
+        update_registered_dexes(deps.as_mut(), to_add1)?;
+
         // create msg
         let msg = QueryMsg::RegisteredDexes {};
         // deserialize response
@@ -800,14 +867,9 @@ mod test {
         let mut deps = mock_dependencies();
         mock_init(deps.as_mut()).unwrap();
         let api = deps.api;
+
         // create DexAssetPairing
-        let dex = create_dex_asset_pairing("btc", "eth", "foo");
-        let _pool_ref = create_option_pool_ref(42, "foo", api);
-        let insert = |pool_ref: Option<Vec<PoolReference>>| -> StdResult<_> {
-            let _pool_ref = pool_ref.unwrap_or_default();
-            Ok(_pool_ref)
-        };
-        ASSET_PAIRINGS.update(&mut deps.storage, dex, insert)?;
+        update_asset_pairing("btc", "eth", "foo", 42, deps.as_mut(), api)?;
 
         // create msg
         let msg = QueryMsg::Pools {
@@ -822,93 +884,57 @@ mod test {
             pools: vec![(create_dex_asset_pairing("btc", "eth", "foo"), expected)],
         };
         // assert
+        println!("{:?}", res);
         assert_eq!(&res, &expected);
         Ok(())
     }
 
     #[test]
-    fn test_query_pool_id_list() -> AnsHostTestResult {
+    fn test_query_pool_list() -> AnsHostTestResult {
         let mut deps = mock_dependencies();
         mock_init(deps.as_mut()).unwrap();
         let api = deps.api;
+
         // create first pool entry
-        let dex_bar = create_dex_asset_pairing("btc", "eth", "bar");
-        let _pool_ref_bar = create_option_pool_ref(42, "bar", api);
-        let insert = |pool_ref_bar: Option<Vec<PoolReference>>| -> StdResult<_> {
-            let _pool_ref_bar = pool_ref_bar.unwrap_or_default();
-            Ok(_pool_ref_bar)
-        };
-        ASSET_PAIRINGS.update(&mut deps.storage, dex_bar, insert)?;
+        update_asset_pairing("btc", "eth", "bar", 42, deps.as_mut(), api)?;
 
         // create second pool entry
-        let dex_foo = create_dex_asset_pairing("juno", "atom", "foo");
-        let _pool_ref_foo = create_option_pool_ref(69, "foo", api);
-        let insert = |pool_ref_foo: Option<Vec<PoolReference>>| -> StdResult<_> {
-            let _pool_ref_foo = pool_ref_foo.unwrap_or_default();
-            Ok(_pool_ref_foo)
-        };
-        ASSET_PAIRINGS.update(&mut deps.storage, dex_foo, insert)?;
+        update_asset_pairing("juno", "atom", "foo", 69, deps.as_mut(), api)?;
 
         // create duplicate pool entry
-        let dex_foo = create_dex_asset_pairing("juno", "atom", "foo");
-        let _pool_ref_foo = create_option_pool_ref(69, "foo", api);
-        let insert = |pool_ref_foo: Option<Vec<PoolReference>>| -> StdResult<_> {
-            let _pool_ref_foo = pool_ref_foo.unwrap_or_default();
-            Ok(_pool_ref_foo)
-        };
-        ASSET_PAIRINGS.update(&mut deps.storage, dex_foo, insert)?;
+        update_asset_pairing("juno", "atom", "foo", 69, deps.as_mut(), api)?;
+
         // create msgs bar/ foo / foo using `page_token` as filter
-        let msg_bar = QueryMsg::PoolList {
-            filter: Some(AssetPairingFilter {
-                asset_pair: Some((AssetEntry::new("btc"), AssetEntry::new("eth"))),
-                dex: None,
-            }),
-            page_token: None,
-            page_size: None,
-        };
+        let msg_bar = create_pool_list_msg(
+            Some(create_asset_pairing_filter("btc", "eth", None)?),
+            None,
+            None,
+        )?;
         let res_bar: PoolsResponse = from_binary(&query_helper(deps.as_ref(), msg_bar)?)?;
 
-        let msg_foo = QueryMsg::PoolList {
-            filter: Some(AssetPairingFilter {
-                asset_pair: Some((AssetEntry::new("juno"), AssetEntry::new("atom"))),
-                dex: None,
-            }),
-            page_token: None,
-            page_size: Some(42),
-        };
+        let msg_foo = create_pool_list_msg(
+            Some(create_asset_pairing_filter("juno", "atom", None)?),
+            None,
+            Some(42),
+        )?;
         let res_foo: PoolsResponse = from_binary(&query_helper(deps.as_ref(), msg_foo)?)?;
 
-        let msg_foo_using_page_token = QueryMsg::PoolList {
-            filter: Some(AssetPairingFilter {
+        let msg_foo_using_page_token = create_pool_list_msg(
+            Some(AssetPairingFilter {
                 asset_pair: None,
                 dex: None,
             }),
-            page_token: Some(create_dex_asset_pairing("btc", "eth", "bar")),
-            page_size: Some(42),
-        };
+            Some(create_dex_asset_pairing("btc", "eth", "bar")),
+            Some(42),
+        )?;
         let res_foo_using_page_token: PoolsResponse =
             from_binary(&query_helper(deps.as_ref(), msg_foo_using_page_token)?)?;
 
         // create comparisons - bar / foo / all
-        let expected_bar = ASSET_PAIRINGS
-            .load(&deps.storage, create_dex_asset_pairing("btc", "eth", "bar"))
-            .unwrap();
-        let expected_bar = PoolsResponse {
-            pools: vec![(create_dex_asset_pairing("btc", "eth", "bar"), expected_bar)],
-        };
-
-        let expected_foo = ASSET_PAIRINGS
-            .load(
-                &deps.storage,
-                create_dex_asset_pairing("juno", "atom", "foo"),
-            )
-            .unwrap();
-        let expected_foo = PoolsResponse {
-            pools: vec![(
-                create_dex_asset_pairing("juno", "atom", "foo"),
-                expected_foo,
-            )],
-        };
+        let expected_bar =
+            load_asset_pairing_into_pools_response("btc", "eth", "bar", deps.as_mut())?;
+        let expected_foo =
+            load_asset_pairing_into_pools_response("juno", "atom", "foo", deps.as_mut())?;
         let expected_all_bar = ASSET_PAIRINGS
             .load(&deps.storage, create_dex_asset_pairing("btc", "eth", "bar"))
             .unwrap();
@@ -931,11 +957,7 @@ mod test {
             ],
         };
         // comparison all
-        let msg_all = QueryMsg::PoolList {
-            filter: None,
-            page_token: None,
-            page_size: Some(42),
-        };
+        let msg_all = create_pool_list_msg(None, None, Some(42))?;
         let res_all: PoolsResponse = from_binary(&query_helper(deps.as_ref(), msg_all)?)?;
 
         // assert
@@ -1002,4 +1024,21 @@ mod test {
 
         Ok(())
     }
+
+    // fn query_pool_metadata_list() -> AnsHostTestResult {
+    //     let mut deps = mock_dependencies();
+    //     mock_init(deps.as_mut()).unwrap();
+    //     // create metadata entries
+    //     let bar_key = UniquePoolId::new(42);
+    //     let bar_metadata = create_pool_metadata("bar", "btc", "eth");
+    //     let insert_bar = |_| -> StdResult<PoolMetadata> { Ok(bar_metadata) };
+    //     POOL_METADATA.update(&mut deps.storage, bar_key, insert_bar)?;
+
+    //     let foo_key = UniquePoolId::new(69);
+    //     let foo_metadata = create_pool_metadata("foo", "juno", "atom");
+    //     let insert_foo = |_| -> StdResult<PoolMetadata> { Ok(foo_metadata) };
+    //     POOL_METADATA.update(&mut deps.storage, foo_key, insert_foo)?;
+
+    //     Ok()
+    // }
 }
