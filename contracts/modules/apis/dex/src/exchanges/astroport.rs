@@ -4,6 +4,8 @@ use crate::{
     DEX,
 };
 use abstract_os::objects::PoolAddress;
+use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
+use astroport::pair::SimulationResponse;
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, StdResult, WasmMsg,
 };
@@ -105,61 +107,6 @@ impl DEX for Astroport {
 
         Ok(msgs)
     }
-    //     fn provide_liquidity(
-    //         &self,
-    //         deps: Deps,
-    //         env: &Env,
-    //         assets: AssetList,
-    //         min_out: Uint128,
-    //     ) -> Result<Response, DexError> {
-    //         let lp_out = self.simulate_provide_liquidity(deps, env, assets.clone())?;
-    //         if min_out > lp_out.amount {
-    //             return Err(CwDexError::MinOutNotReceived {
-    //                 min_out,
-    //                 received: lp_out.amount,
-    //             });
-    //         }
-
-    //         let msg = PairExecuteMsg::ProvideLiquidity {
-    //             assets: assets.to_owned().try_into()?,
-    //             slippage_tolerance: Some(Decimal::from_str(MAX_ALLOWED_SLIPPAGE)?),
-    //             auto_stake: Some(false),
-    //             receiver: None,
-    //         };
-
-    //         let (funds, cw20s) = separate_natives_and_cw20s(&assets);
-
-    //         // Increase allowance on all Cw20s
-    //         let allowance_msgs: Vec<CosmosMsg> = cw20s
-    //             .into_iter()
-    //             .map(|asset| {
-    //                 Ok(CosmosMsg::Wasm(WasmMsg::Execute {
-    //                     contract_addr: asset.address,
-    //                     msg: to_binary(&Cw20ExecuteMsg::IncreaseAllowance {
-    //                         spender: self.pair_addr.to_string(),
-    //                         amount: asset.amount,
-    //                         expires: Some(Expiration::AtHeight(env.block.height + 1)),
-    //                     })?,
-    //                     funds: vec![],
-    //                 }))
-    //             })
-    //             .collect::<StdResult<Vec<_>>>()?;
-
-    //         let provide_liquidity = CosmosMsg::Wasm(WasmMsg::Execute {
-    //             contract_addr: self.pair_addr.to_string(),
-    //             msg: to_binary(&msg)?,
-    //             funds,
-    //         });
-
-    //         let event = Event::new("apollo/cw-dex/provide_liquidity")
-    //             .add_attribute("pair_addr", &self.pair_addr)
-    //             .add_attribute("assets", format!("{:?}", assets));
-
-    //         Ok(Response::new()
-    //             .add_messages(allowance_msgs)
-    //             .add_message(provide_liquidity)
-    //             .add_event(event))
-    //     }
 
     // TODO: Provide liquidity symmetric
     fn provide_liquidity_symmetric(
@@ -184,24 +131,6 @@ impl DEX for Astroport {
         // let withdraw_msg = lp_token.send_msg(pair_address, to_binary(&hook_msg)?)?;
     }
 
-    //     fn simulate_swap(
-    //         &self,
-    //         deps: Deps,
-    //         offer_asset: Asset,
-    //         _ask_asset_info: AssetInfo,
-    //         _sender: Option<String>,
-    //     ) -> StdResult<Uint128> {
-    //         Ok(deps
-    //             .querier
-    //             .query::<SimulationResponse>(&QueryRequest::Wasm(WasmQuery::Smart {
-    //                 contract_addr: self.pair_addr.to_string(),
-    //                 msg: to_binary(&PairQueryMsg::Simulation {
-    //                     offer_asset: offer_asset.into(),
-    //                 })?,
-    //             }))?
-    //             .return_amount)
-    //     }
-
     fn simulate_swap(
         &self,
         deps: Deps,
@@ -209,7 +138,21 @@ impl DEX for Astroport {
         offer_asset: Asset,
         _ask_asset: AssetInfo,
     ) -> Result<(Return, Spread, Fee, FeeOnInput), DexError> {
-        Err(DexError::NotImplemented(self.name().to_string()))
+        let pair_address = pool_id.expect_contract()?;
+        // Do simulation
+        let SimulationResponse {
+            return_amount,
+            spread_amount,
+            commission_amount,
+        } = deps.querier.query(&wasm_smart_query(
+            pair_address.to_string(),
+            &astroport::pair::QueryMsg::Simulation {
+                offer_asset: cw_asset_to_astroport(&offer_asset)?,
+                ask_asset_info: None,
+            },
+        )?)?;
+        // commission paid in result asset
+        Ok((return_amount, spread_amount, commission_amount, false))
     }
 }
 
