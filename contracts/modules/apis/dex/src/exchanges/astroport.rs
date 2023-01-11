@@ -5,7 +5,7 @@ use crate::{
 };
 use abstract_os::objects::PoolAddress;
 use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
-use astroport::pair::SimulationResponse;
+use astroport::pair::{PoolResponse, SimulationResponse};
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, StdResult, WasmMsg,
 };
@@ -111,12 +111,74 @@ impl DEX for Astroport {
     // TODO: Provide liquidity symmetric
     fn provide_liquidity_symmetric(
         &self,
-        _deps: Deps,
-        _pool_id: PoolAddress,
-        _offer_asset: Asset,
-        _paired_assets: Vec<AssetInfo>,
+        deps: Deps,
+        pool_id: PoolAddress,
+        offer_asset: Asset,
+        paired_assets: Vec<AssetInfo>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
-        Err(DexError::NotImplemented(self.name().to_string()))
+        let pair_address = pool_id.expect_contract()?;
+
+        if paired_assets.len() > 1 {
+            return Err(DexError::TooManyAssets(2));
+        }
+        // Get pair info
+        let pair_config: PoolResponse = deps.querier.query(&wasm_smart_query(
+            pair_address.to_string(),
+            &astroport::pair::QueryMsg::Pool {},
+        )?)?;
+        let astroport_offer_asset = cw_asset_to_astroport(&offer_asset)?;
+        let other_asset = if pair_config.assets[0].info == astroport_offer_asset.info {
+            let price =
+                Decimal::from_ratio(pair_config.assets[1].amount, pair_config.assets[0].amount);
+            let other_token_amount = price * offer_asset.amount;
+            Asset {
+                amount: other_token_amount,
+                info: paired_assets[0].clone(),
+            }
+        } else if pair_config.assets[1].info == astroport_offer_asset.info {
+            let price =
+                Decimal::from_ratio(pair_config.assets[0].amount, pair_config.assets[1].amount);
+            let other_token_amount = price * offer_asset.amount;
+            Asset {
+                amount: other_token_amount,
+                info: paired_assets[0].clone(),
+            }
+        } else {
+            return Err(DexError::ArgumentMismatch(
+                offer_asset.to_string(),
+                pair_config
+                    .assets
+                    .iter()
+                    .map(|e| e.info.to_string())
+                    .collect(),
+            ));
+        };
+
+        let offer_assets = [offer_asset, other_asset];
+
+        let coins = coins_in_assets(&offer_assets);
+
+        // approval msgs for cw20 tokens (if present)
+        let mut msgs = cw_approve_msgs(&offer_assets, &pair_address)?;
+
+        // construct execute msg
+        let astroport_assets = offer_assets
+            .iter()
+            .map(cw_asset_to_astroport)
+            .collect::<Result<Vec<_>, _>>()?;
+
+        let msg = astroport::pair::ExecuteMsg::ProvideLiquidity {
+            assets: vec![astroport_assets[0].clone(), astroport_assets[1].clone()],
+            slippage_tolerance: None,
+            receiver: None,
+            auto_stake: None,
+        };
+
+        // actual call to pair
+        let liquidity_msg = wasm_execute(pair_address, &msg, coins)?.into();
+        msgs.push(liquidity_msg);
+
+        Ok(msgs)
     }
 
     fn withdraw_liquidity(
