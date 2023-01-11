@@ -1,13 +1,14 @@
-use crate::{dex_trait::Identify, error::DexError, DEX};
+use crate::{
+    dex_trait::{Fee, FeeOnInput, Identify, Return, Spread},
+    error::DexError,
+    DEX,
+};
 use abstract_os::objects::PoolAddress;
-use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
-use astroport::{asset::PairInfo, pair::QueryMsg};
 use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, Fraction, StdResult, Uint128,
-    WasmMsg,
+    to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, StdResult, WasmMsg,
 };
 use cw20::Cw20ExecuteMsg;
-use cw_asset::{Asset, AssetInfo, AssetInfoBase, AssetList};
+use cw_asset::{Asset, AssetInfo, AssetInfoBase};
 pub const ASTROPORT: &str = "astroport";
 
 // Source https://github.com/astroport-fi/astroport-core
@@ -25,24 +26,20 @@ impl Identify for Astroport {
 impl DEX for Astroport {
     fn swap(
         &self,
-        deps: Deps,
+        _deps: Deps,
         pool_id: PoolAddress,
         offer_asset: Asset,
-        ask_asset: AssetInfo,
+        _ask_asset: AssetInfo,
         belief_price: Option<Decimal>,
         max_spread: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
         let pair_address = pool_id.expect_contract()?;
-        let pair_config: PairInfo = deps.querier.query(&wasm_smart_query(
-            pair_address.to_string(),
-            &QueryMsg::Pair {},
-        )?)?;
 
         let swap_msg: Vec<CosmosMsg> = match &offer_asset.info {
             AssetInfo::Native(_) => vec![wasm_execute(
                 pair_address.to_string(),
                 &astroport::pair::ExecuteMsg::Swap {
-                    offer_asset: cw_asset_to_astroport(offer_asset.clone())?,
+                    offer_asset: cw_asset_to_astroport(&offer_asset)?,
                     ask_asset_info: None,
                     belief_price,
                     max_spread,
@@ -72,6 +69,42 @@ impl DEX for Astroport {
         Ok(swap_msg)
     }
 
+    fn provide_liquidity(
+        &self,
+        _deps: Deps,
+        pool_id: PoolAddress,
+        offer_assets: Vec<Asset>,
+        max_spread: Option<Decimal>,
+    ) -> Result<Vec<CosmosMsg>, DexError> {
+        let pair_address = pool_id.expect_contract()?;
+
+        if offer_assets.len() > 2 {
+            return Err(DexError::TooManyAssets(2));
+        }
+
+        let astroport_assets = offer_assets
+            .iter()
+            .map(cw_asset_to_astroport)
+            .collect::<Result<Vec<_>, _>>()?;
+
+        // execute msg
+        let msg = astroport::pair::ExecuteMsg::ProvideLiquidity {
+            assets: astroport_assets,
+            slippage_tolerance: max_spread,
+            auto_stake: Some(false),
+            receiver: None,
+        };
+
+        // approval msgs for cw20 tokens (if present)
+        let mut msgs = cw_approve_msgs(&offer_assets, &pair_address)?;
+        let coins = coins_in_assets(&offer_assets);
+
+        // actual call to pair
+        let liquidity_msg = wasm_execute(pair_address, &msg, coins)?.into();
+        msgs.push(liquidity_msg);
+
+        Ok(msgs)
+    }
     //     fn provide_liquidity(
     //         &self,
     //         deps: Deps,
@@ -128,45 +161,28 @@ impl DEX for Astroport {
     //             .add_event(event))
     //     }
 
-    //     fn provide_liquidity_symmetric(
-    //         &self,
-    //         _deps: Deps,
-    //         _pool_id: PoolAddress,
-    //         _offer_asset: Asset,
-    //         _paired_assets: Vec<AssetInfo>,
-    //     ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
-    //         Err(DexError::NotImplemented(self.name().to_string()))
-    //     }
+    // TODO: Provide liquidity symmetric
+    fn provide_liquidity_symmetric(
+        &self,
+        _deps: Deps,
+        _pool_id: PoolAddress,
+        _offer_asset: Asset,
+        _paired_assets: Vec<AssetInfo>,
+    ) -> Result<Vec<CosmosMsg>, DexError> {
+        Err(DexError::NotImplemented(self.name().to_string()))
+    }
 
-    //     fn withdraw_liquidity(
-    //         &self,
-    //         _deps: Deps,
-    //         _env: &Env,
-    //         asset: Asset,
-    //     ) -> Result<Response, DexError> {
-    //         if let AssetInfoBase::Cw20(token_addr) = &asset.info {
-    //             let withdraw_liquidity = CosmosMsg::Wasm(WasmMsg::Execute {
-    //                 contract_addr: token_addr.to_string(),
-    //                 msg: to_binary(&Cw20ExecuteMsg::Send {
-    //                     contract: self.pair_addr.to_string(),
-    //                     amount: asset.amount,
-    //                     msg: to_binary(&PairCw20HookMsg::WithdrawLiquidity {})?,
-    //                 })?,
-    //                 funds: vec![],
-    //             });
-
-    //             let event = Event::new("apollo/cw-dex/withdraw_liquidity")
-    //                 .add_attribute("pair_addr", &self.pair_addr)
-    //                 .add_attribute("asset", format!("{:?}", asset))
-    //                 .add_attribute("token_amount", asset.amount);
-
-    //             Ok(Response::new()
-    //                 .add_message(withdraw_liquidity)
-    //                 .add_event(event))
-    //         } else {
-    //             Err(CwDexError::InvalidInAsset { a: asset })
-    //         }
-    //     }
+    fn withdraw_liquidity(
+        &self,
+        _deps: Deps,
+        pool_id: PoolAddress,
+        lp_token: Asset,
+    ) -> Result<Vec<CosmosMsg>, DexError> {
+        Err(DexError::NotImplemented(self.name().to_string()))
+        // let pair_address = pool_id.expect_contract()?;
+        // let hook_msg = astroport::pair::Cw20HookMsg::WithdrawLiquidity {};
+        // let withdraw_msg = lp_token.send_msg(pair_address, to_binary(&hook_msg)?)?;
+    }
 
     //     fn simulate_swap(
     //         &self,
@@ -185,10 +201,20 @@ impl DEX for Astroport {
     //             }))?
     //             .return_amount)
     //     }
+
+    fn simulate_swap(
+        &self,
+        deps: Deps,
+        pool_id: PoolAddress,
+        offer_asset: Asset,
+        _ask_asset: AssetInfo,
+    ) -> Result<(Return, Spread, Fee, FeeOnInput), DexError> {
+        Err(DexError::NotImplemented(self.name().to_string()))
+    }
 }
 
-fn cw_asset_to_astroport(asset: Asset) -> Result<astroport::asset::Asset, DexError> {
-    match asset.info {
+fn cw_asset_to_astroport(asset: &Asset) -> Result<astroport::asset::Asset, DexError> {
+    match &asset.info {
         AssetInfoBase::Native(denom) => Ok(astroport::asset::Asset {
             amount: asset.amount,
             info: astroport::asset::AssetInfo::NativeToken {
@@ -197,8 +223,39 @@ fn cw_asset_to_astroport(asset: Asset) -> Result<astroport::asset::Asset, DexErr
         }),
         AssetInfoBase::Cw20(contract_addr) => Ok(astroport::asset::Asset {
             amount: asset.amount,
-            info: astroport::asset::AssetInfo::Token { contract_addr },
+            info: astroport::asset::AssetInfo::Token {
+                contract_addr: contract_addr.clone(),
+            },
         }),
         _ => Err(DexError::Cw1155Unsupported {}),
     }
+}
+
+fn cw_approve_msgs(assets: &[Asset], spender: &Addr) -> StdResult<Vec<CosmosMsg>> {
+    let mut msgs = vec![];
+    for asset in assets {
+        if let AssetInfo::Cw20(addr) = &asset.info {
+            let msg = cw20_junoswap::Cw20ExecuteMsg::IncreaseAllowance {
+                spender: spender.to_string(),
+                amount: asset.amount,
+                expires: None,
+            };
+            msgs.push(CosmosMsg::Wasm(WasmMsg::Execute {
+                contract_addr: addr.to_string(),
+                msg: to_binary(&msg)?,
+                funds: vec![],
+            }))
+        }
+    }
+    Ok(msgs)
+}
+
+fn coins_in_assets(assets: &[Asset]) -> Vec<Coin> {
+    let mut coins = vec![];
+    for asset in assets {
+        if let AssetInfo::Native(denom) = &asset.info {
+            coins.push(Coin::new(asset.amount.u128(), denom.clone()));
+        }
+    }
+    coins
 }
