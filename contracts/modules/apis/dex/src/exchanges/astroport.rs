@@ -25,6 +25,13 @@ impl Identify for Astroport {
     }
 }
 
+/// This structure describes a CW20 hook message.
+#[cosmwasm_schema::cw_serde]
+pub enum StubCw20HookMsg {
+    /// Withdraw liquidity from the pool
+    WithdrawLiquidity {},
+}
+
 impl DEX for Astroport {
     fn swap(
         &self,
@@ -108,7 +115,6 @@ impl DEX for Astroport {
         Ok(msgs)
     }
 
-    // TODO: Provide liquidity symmetric
     fn provide_liquidity_symmetric(
         &self,
         deps: Deps,
@@ -187,10 +193,10 @@ impl DEX for Astroport {
         pool_id: PoolAddress,
         lp_token: Asset,
     ) -> Result<Vec<CosmosMsg>, DexError> {
-        Err(DexError::NotImplemented(self.name().to_string()))
-        // let pair_address = pool_id.expect_contract()?;
-        // let hook_msg = astroport::pair::Cw20HookMsg::WithdrawLiquidity {};
-        // let withdraw_msg = lp_token.send_msg(pair_address, to_binary(&hook_msg)?)?;
+        let pair_address = pool_id.expect_contract()?;
+        let hook_msg = StubCw20HookMsg::WithdrawLiquidity {};
+        let withdraw_msg = lp_token.send_msg(pair_address, to_binary(&hook_msg)?)?;
+        Ok(vec![withdraw_msg])
     }
 
     fn simulate_swap(
