@@ -202,9 +202,10 @@ mod test {
                 }
                 WasmQuery::Smart { contract_addr, msg } => {
                     let res = match contract_addr.as_str() {
-                        TEST_MODULE_ADDRESS => match from_binary(msg).unwrap() {
-                            Empty {} => Ok(to_binary(TEST_MODULE_RESPONSE).unwrap()),
-                        },
+                        TEST_MODULE_ADDRESS => {
+                            let Empty {} = from_binary(msg).unwrap();
+                            Ok(to_binary(TEST_MODULE_RESPONSE).unwrap())
+                        }
                         _ => Err("unexpected contract"),
                     };
 
