@@ -12,6 +12,8 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 default = ["juno", "terra"]
+# feature flag that fixes the astroport liquidity msg for testing
+testing = ["terra"]
 library = []
 backtraces = ["cosmwasm-std/backtraces"]
 juno = ["dep:wasmswap", "dep:cw20_junoswap", "dep:terraswap"]

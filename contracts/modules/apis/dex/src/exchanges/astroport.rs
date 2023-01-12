@@ -194,7 +194,11 @@ impl DEX for Astroport {
         lp_token: Asset,
     ) -> Result<Vec<CosmosMsg>, DexError> {
         let pair_address = pool_id.expect_contract()?;
+        #[cfg(not(feature = "testing"))]
         let hook_msg = StubCw20HookMsg::WithdrawLiquidity {};
+        #[cfg(feature = "testing")]
+        let hook_msg = astroport::pair::Cw20HookMsg::WithdrawLiquidity { assets: vec![] };
+
         let withdraw_msg = lp_token.send_msg(pair_address, to_binary(&hook_msg)?)?;
         Ok(vec![withdraw_msg])
     }
