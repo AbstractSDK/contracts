@@ -140,8 +140,8 @@ mod test {
     use std::marker::PhantomData;
 
     use crate::apis::test_common::*;
+    use abstract_testing::TEST_MODULE_ID;
 
-    const TEST_MODULE_ID: ModuleId = "test_module";
     /// Nonexistent module
     const FAKE_MODULE_ID: ModuleId = "fake_module";
     const TEST_MODULE_RESPONSE: &str = "test_module_response";

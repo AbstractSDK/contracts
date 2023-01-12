@@ -148,8 +148,6 @@ mod test {
     use crate::apis::test_common::*;
     use abstract_os::objects::dependency::StaticDependency;
 
-    const TEST_MODULE_ID: ModuleId = "test_module";
-
     #[test]
     fn swap_msg() {
         let mut deps = mock_dependencies();
@@ -157,7 +155,7 @@ mod test {
         let stub = MockModule::new();
         let dex = stub
             .dex(deps.as_ref(), "junoswap".into())
-            .with_module_id(TEST_MODULE_ID);
+            .with_module_id(abstract_testing::TEST_MODULE_ID);
 
         let dex_name = "junoswap".to_string();
         let offer_asset = OfferAsset::new("juno", 1000u128);
@@ -183,7 +181,8 @@ mod test {
             CosmosMsg::Wasm(msg) => msg,
             _ => panic!("expected wasm msg"),
         };
-        let expected = wasm_execute(EXCHANGE, &expected, vec![]).unwrap();
+        let expected =
+            wasm_execute(abstract_testing::TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
 
         assert_that!(actual).is_equal_to(expected);
     }
