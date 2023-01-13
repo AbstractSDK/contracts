@@ -259,6 +259,7 @@ fn load_pool_metadata_entry(
 #[cfg(test)]
 mod test {
     use abstract_os::ans_host::*;
+    use abstract_os::objects::PoolType;
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info, MockApi};
     use cosmwasm_std::{from_binary, DepsMut};
 
@@ -1022,6 +1023,57 @@ mod test {
 
         // assert
 
+        Ok(())
+    }
+    #[test]
+    fn test_query_pool_metadata_list() -> AnsHostTestResult {
+        let mut deps = mock_dependencies();
+        mock_init(deps.as_mut()).unwrap();
+        // create metadata entries
+        let bar_key = UniquePoolId::new(42);
+        let bar_metadata = create_pool_metadata("bar", "btc", "eth");
+        let insert_bar = |_| -> StdResult<PoolMetadata> { Ok(bar_metadata) };
+        POOL_METADATA.update(&mut deps.storage, bar_key, insert_bar)?;
+
+        let foo_key = UniquePoolId::new(69);
+        let foo_metadata = create_pool_metadata("foo", "juno", "atom");
+        let insert_foo = |_| -> StdResult<PoolMetadata> { Ok(foo_metadata) };
+        POOL_METADATA.update(&mut deps.storage, foo_key, insert_foo)?;
+
+        let msg_bar = QueryMsg::PoolMetadataList {
+            filter: Some(PoolMetadataFilter {
+                pool_type: Some(PoolType::Stable),
+            }),
+            page_token: Some(UniquePoolId::new(42)),
+            page_size: Some(42),
+        };
+        let res_bar: PoolMetadatasResponse = from_binary(&query_helper(deps.as_ref(), msg_bar)?)?;
+
+        let msg_foo = QueryMsg::PoolMetadataList {
+            filter: Some(PoolMetadataFilter {
+                pool_type: Some(PoolType::Stable),
+            }),
+            page_token: Some(UniquePoolId::new(69)),
+            page_size: Some(42),
+        };
+        let res_foo: PoolMetadatasResponse = from_binary(&query_helper(deps.as_ref(), msg_foo)?)?;
+
+        let expected_bar = PoolMetadatasResponse {
+            metadatas: vec![(
+                UniquePoolId::new(42),
+                create_pool_metadata("bar", "btc", "eth"),
+            )],
+        };
+
+        let expected_foo = PoolMetadatasResponse {
+            metadatas: vec![(
+                UniquePoolId::new(69),
+                create_pool_metadata("foo", "juno", "atom"),
+            )],
+        };
+
+        assert_eq!(&expected_bar, &res_bar);
+        assert_eq!(&expected_foo, &res_foo);
         Ok(())
     }
 }
