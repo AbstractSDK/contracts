@@ -149,7 +149,7 @@ impl DEX for Astroport {
         };
 
         // approval msgs for cw20 tokens (if present)
-        let mut msgs = cw_approve_msgs(&offer_assets, &pair_address)?;
+        msgs.extend(cw_approve_msgs(&offer_assets, &pair_address)?);
         let coins = coins_in_assets(&offer_assets);
 
         // actual call to pair
