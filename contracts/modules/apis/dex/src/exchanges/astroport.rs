@@ -80,7 +80,7 @@ impl DEX for Astroport {
 
     fn provide_liquidity(
         &self,
-        _deps: Deps,
+        deps: Deps,
         pool_id: PoolAddress,
         offer_assets: Vec<Asset>,
         max_spread: Option<Decimal>,
@@ -90,11 +90,36 @@ impl DEX for Astroport {
         if offer_assets.len() > 2 {
             return Err(DexError::TooManyAssets(2));
         }
-
-        let astroport_assets = offer_assets
+        let mut astroport_assets = offer_assets
             .iter()
             .map(cw_asset_to_astroport)
             .collect::<Result<Vec<_>, _>>()?;
+
+        // if there is only one asset, we need to simulate swap, swap and provide liquidity.
+        let mut msgs: Vec<CosmosMsg> = vec![];
+        if astroport_assets.len() == 1 {
+
+            let mut offer_asset = offer_assets[0].clone();
+            let other_asset = other_asset(deps, &pair_address, &offer_asset)?;
+
+            offer_asset.amount = offer_asset.clone().amount * Decimal::percent(50);
+            let astro_offer_asset = cw_asset_to_astroport(&offer_asset)?;
+
+            let simulation: SimulationResponse = deps.querier.query(&wasm_smart_query(
+                pair_address.to_string(),
+                &astroport::pair::QueryMsg::Simulation {
+                    offer_asset: astro_offer_asset.clone(),
+                    ask_asset_info: Some(other_asset.clone()),
+                })?)?;
+
+            let mut msg = self.swap(deps, pool_id, offer_asset, astroport_assetinfo_to_cw(&other_asset) , None, max_spread)?;
+            msgs.append(&mut msg);
+        
+            astroport_assets = vec![astro_offer_asset, astroport::asset::Asset {
+                info: other_asset.into(),
+                amount: simulation.return_amount,
+            }];
+        }
 
         // execute msg
         let msg = astroport::pair::ExecuteMsg::ProvideLiquidity {
@@ -111,7 +136,7 @@ impl DEX for Astroport {
         .collect::<Vec<_>>();
         
         // approval msgs for cw20 tokens (if present)
-        let mut msgs = cw_approve_msgs(&offer_assets, &pair_address)?;
+        msgs.append(&mut cw_approve_msgs(&offer_assets, &pair_address)?);
         let coins = coins_in_assets(&offer_assets);
 
         // actual call to pair
@@ -137,7 +162,7 @@ impl DEX for Astroport {
         let pair_config: PoolResponse = deps.querier.query(&wasm_smart_query(
             pair_address.to_string(),
             &astroport::pair::QueryMsg::Pool {},
-        )?)?;
+        )?)?; 
         let astroport_offer_asset = cw_asset_to_astroport(&offer_asset)?;
         let other_asset = if pair_config.assets[0].info == astroport_offer_asset.info {
             let price =
@@ -231,6 +256,38 @@ impl DEX for Astroport {
         )?)?;
         // commission paid in result asset
         Ok((return_amount, spread_amount, commission_amount, false))
+    }
+}
+
+fn other_asset(deps: Deps, pair_address: &Addr, offer_asset: &Asset ) -> Result<astroport::asset::AssetInfo, DexError> {
+    // Get pair info
+    let pair_config: PoolResponse = deps.querier.query(&wasm_smart_query(
+        pair_address.to_string(),
+        &astroport::pair::QueryMsg::Pool {},
+    )?)?;
+    let astroport_offer_asset = cw_asset_to_astroport(offer_asset)?;
+
+    let other_asset = if pair_config.assets[0].info == astroport_offer_asset.info {
+        pair_config.assets[1].clone()
+    } else if pair_config.assets[1].info == astroport_offer_asset.info {
+        pair_config.assets[0].clone()
+    } else {
+        return Err(DexError::ArgumentMismatch(
+            offer_asset.to_string(),
+            pair_config
+                .assets
+                .iter()
+                .map(|e| e.info.to_string())
+                .collect(),
+        ));
+    };
+    Ok(other_asset.info)
+}
+
+fn astroport_assetinfo_to_cw(asset_info: &astroport::asset::AssetInfo) -> AssetInfo {
+    match asset_info {
+        astroport::asset::AssetInfo::NativeToken { denom } => AssetInfo::Native( denom.clone() ),
+        astroport::asset::AssetInfo::Token { contract_addr } => AssetInfo::Cw20(contract_addr.clone()),
     }
 }
 
