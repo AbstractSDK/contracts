@@ -38,20 +38,27 @@ impl<
                 let core = match request.proxy_address {
                     Some(addr) => {
                         let proxy_addr = deps.api.addr_validate(&addr)?;
-                        let traders = self.traders.load(deps.storage, proxy_addr)?;
+                        let traders =
+                            self.traders.load(deps.storage, proxy_addr).map_err(|_| {
+                                ApiError::UnauthorizedTraderApiRequest(info.sender.to_string())
+                            })?;
                         if traders.contains(sender) {
                             self.os_register(deps.as_ref())
                                 .assert_proxy(&deps.api.addr_validate(&addr)?)?
                         } else {
                             self.os_register(deps.as_ref())
                                 .assert_manager(sender)
-                                .map_err(|_| ApiError::UnauthorizedTraderApiRequest {})?
+                                .map_err(|_| {
+                                    ApiError::UnauthorizedTraderApiRequest(info.sender.to_string())
+                                })?
                         }
                     }
                     None => self
                         .os_register(deps.as_ref())
                         .assert_manager(sender)
-                        .map_err(|_| ApiError::UnauthorizedTraderApiRequest {})?,
+                        .map_err(|_| {
+                            ApiError::UnauthorizedTraderApiRequest(info.sender.to_string())
+                        })?,
                 };
                 self.target_os = Some(core);
                 self.execute_handler()?(deps, env, info, self, request.request)
@@ -115,8 +122,8 @@ impl<
             msgs.push(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: api_addr?.into_string(),
                 msg: to_binary(&BaseExecuteMsg::UpdateTraders {
-                    to_add: None,
-                    to_remove: Some(vec![env.contract.address.to_string()]),
+                    to_add: vec![],
+                    to_remove: vec![env.contract.address.to_string()],
                 })?,
                 funds: vec![],
             }));
@@ -150,8 +157,8 @@ impl<
         &self,
         deps: DepsMut,
         info: MessageInfo,
-        to_add: Option<Vec<String>>,
-        to_remove: Option<Vec<String>>,
+        to_add: Vec<String>,
+        to_remove: Vec<String>,
     ) -> Result<Response, ApiError> {
         // Either manager or proxy can add/remove traders.
         // This allows other apis to automatically add themselves, allowing for api-cross-calling.
@@ -168,22 +175,18 @@ impl<
             .unwrap_or_default();
 
         // Handle the addition of traders
-        if let Some(to_add) = to_add {
-            for trader in to_add {
-                let trader_addr = deps.api.addr_validate(trader.as_str())?;
-                if !traders.insert(trader_addr) {
-                    return Err(ApiError::TraderAlreadyPresent { trader });
-                }
+        for trader in to_add {
+            let trader_addr = deps.api.addr_validate(trader.as_str())?;
+            if !traders.insert(trader_addr) {
+                return Err(ApiError::TraderAlreadyPresent { trader });
             }
         }
 
         // Handling the removal of traders
-        if let Some(to_remove) = to_remove {
-            for trader in to_remove {
-                let trader_addr = deps.api.addr_validate(trader.as_str())?;
-                if !traders.remove(&trader_addr) {
-                    return Err(ApiError::TraderNotPresent { trader });
-                }
+        for trader in to_remove {
+            let trader_addr = deps.api.addr_validate(trader.as_str())?;
+            if !traders.remove(&trader_addr) {
+                return Err(ApiError::TraderNotPresent { trader });
             }
         }
 
