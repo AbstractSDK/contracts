@@ -1,6 +1,6 @@
 use cosmwasm_std::{Empty, Response};
 
-use abstract_api::{export_endpoints, ApiContract};
+use abstract_api::ApiContract;
 use abstract_sdk::os::{
     dex::{DexExecuteMsg, DexQueryMsg},
     EXCHANGE,
@@ -17,4 +17,5 @@ pub const DEX_API: DexApi = DexApi::new(EXCHANGE, CONTRACT_VERSION, None)
     .with_execute(handlers::execute_handler)
     .with_query(handlers::query_handler);
 
-export_endpoints!(DEX_API, DexApi);
+#[cfg(not(feature = "library"))]
+abstract_api::export_endpoints!(DEX_API, DexApi);
