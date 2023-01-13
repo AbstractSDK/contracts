@@ -104,6 +104,12 @@ impl DEX for Astroport {
             receiver: None,
         };
 
+        // filter out assets that have amount zero
+        let offer_assets = offer_assets
+        .into_iter()
+        .filter(|asset| !asset.amount.is_zero())
+        .collect::<Vec<_>>();
+        
         // approval msgs for cw20 tokens (if present)
         let mut msgs = cw_approve_msgs(&offer_assets, &pair_address)?;
         let coins = coins_in_assets(&offer_assets);
