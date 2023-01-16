@@ -157,23 +157,6 @@ impl<'a, Chain: BootEnvironment> Deployment<'a, Chain> {
     }
 }
 
-impl<'a> Deployment<'a, Daemon> {
-    // pub fn deploy_with_ibc_client(&mut self) -> Result<(), BootError> {
-    //     let sender = &self.chain.sender();
-    //     self.ibc_client.upload()?;
-    //     self.ibc_client.instantiate(
-    //         &abstract_os::ibc_client::InstantiateMsg {
-    //             ans_host_address: self.ans_host.address()?.into_string(),
-    //             version_control_address: self.version_control.address()?.into_string(),
-    //             chain: self.chain.state.chain.chain_id.clone(),
-    //         },
-    //         Some(sender),
-    //         None,
-    //     )?;
-    //     self.deploy()
-    // }
-}
-
 pub struct OS<Chain: BootEnvironment> {
     pub manager: Manager<Chain>,
     pub proxy: Proxy<Chain>,
