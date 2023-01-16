@@ -21,7 +21,7 @@ use semver::Version;
 
 use manager::contract::CONTRACT_VERSION;
 
-pub fn init_abstract_env(chain: &Mock) -> anyhow::Result<(Abstract<Mock>, OS<Mock>)> {
+pub fn init_abstract_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, OS<Mock>)> {
     let mut ans_host = AnsHost::new(ANS_HOST, chain.clone());
     let mut os_factory = OSFactory::new(OS_FACTORY, chain.clone());
     let mut version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
@@ -97,10 +97,7 @@ pub fn init_abstract_env(chain: &Mock) -> anyhow::Result<(Abstract<Mock>, OS<Moc
 
 pub(crate) type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 
-pub(crate) fn create_default_os(
-    _chain: &Mock,
-    factory: &OSFactory<Mock>,
-) -> anyhow::Result<OS<Mock>> {
+pub(crate) fn create_default_os(factory: &OSFactory<Mock>) -> anyhow::Result<OS<Mock>> {
     let os = factory.create_default_os(GovernanceDetails::Monarchy {
         monarch: Addr::unchecked(ROOT_USER).to_string(),
     })?;
