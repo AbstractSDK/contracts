@@ -33,7 +33,7 @@ pub(crate) fn uninstall_module(manager: &Manager<Mock>, api: &str) -> AResult {
     Ok(())
 }
 
-fn setup_staking(mock: &Mock) -> AResult {
+fn setup_staking(mock: Mock) -> AResult {
     let block_info = mock.block_info()?;
 
     mock.app.borrow_mut().init_modules(|router, api, store| {

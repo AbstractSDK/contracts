@@ -107,7 +107,7 @@ pub(crate) fn create_default_os(factory: &OSFactory<Mock>) -> anyhow::Result<OS<
 /// Instantiates the staking api and registers it with the version control
 #[allow(dead_code)]
 pub(crate) fn init_staking_api(
-    chain: &Mock,
+    chain: Mock,
     deployment: &Abstract<Mock>,
     version: Option<String>,
 ) -> anyhow::Result<TMintStakingApi<Mock>> {
