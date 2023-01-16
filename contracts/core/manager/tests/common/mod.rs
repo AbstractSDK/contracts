@@ -12,9 +12,7 @@ use boot_core::{
 };
 use cosmwasm_std::{Addr, Empty};
 
-use abstract_boot::{
-    AnsHost, Deployment, Manager, ModuleFactory, OSFactory, Proxy, VersionControl,
-};
+use abstract_boot::{Abstract, AnsHost, Manager, ModuleFactory, OSFactory, Proxy, VersionControl};
 
 use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL};
 
@@ -23,7 +21,7 @@ use semver::Version;
 
 use manager::contract::CONTRACT_VERSION;
 
-pub fn init_abstract_env(chain: &Mock) -> anyhow::Result<(Deployment<Mock>, OS<Mock>)> {
+pub fn init_abstract_env(chain: &Mock) -> anyhow::Result<(Abstract<Mock>, OS<Mock>)> {
     let mut ans_host = AnsHost::new(ANS_HOST, chain.clone());
     let mut os_factory = OSFactory::new(OS_FACTORY, chain.clone());
     let mut version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
@@ -83,7 +81,7 @@ pub fn init_abstract_env(chain: &Mock) -> anyhow::Result<(Deployment<Mock>, OS<M
 
     // do as above for the rest of the contracts
 
-    let deployment = Deployment {
+    let deployment = Abstract {
         chain,
         version: "1.0.0".parse()?,
         ans_host,
@@ -113,7 +111,7 @@ pub(crate) fn create_default_os(
 #[allow(dead_code)]
 pub(crate) fn init_staking_api(
     chain: &Mock,
-    deployment: &Deployment<Mock>,
+    deployment: &Abstract<Mock>,
     version: Option<String>,
 ) -> anyhow::Result<TMintStakingApi<Mock>> {
     let mut staking_api = TMintStakingApi::new(TENDERMINT_STAKING, chain.clone());

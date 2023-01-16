@@ -12,7 +12,7 @@ use boot_core::{state::StateInterface, BootEnvironment, IndexResponse, TxHandler
 
 #[allow(clippy::type_complexity)]
 pub fn get_native_contracts<Chain: BootEnvironment>(
-    chain: &Chain,
+    chain: Chain,
 ) -> (
     AnsHost<Chain>,
     OSFactory<Chain>,
@@ -38,7 +38,7 @@ where
 }
 
 pub fn get_os_core_contracts<Chain: BootEnvironment>(
-    chain: &Chain,
+    chain: Chain,
     os_id: Option<u32>,
 ) -> (Manager<Chain>, Proxy<Chain>)
 where
@@ -59,7 +59,7 @@ where
     }
 }
 
-pub fn get_apps<Chain: BootEnvironment>(chain: &Chain) -> (EtfBoot<Chain>, Subscription<Chain>)
+pub fn get_apps<Chain: BootEnvironment>(chain: Chain) -> (EtfBoot<Chain>, Subscription<Chain>)
 where
     <Chain as TxHandler>::Response: IndexResponse,
 {
@@ -68,7 +68,7 @@ where
     (liquidity_interface, subscription)
 }
 
-pub fn get_apis<Chain: BootEnvironment>(chain: &Chain) -> (DexApi<Chain>, TMintStakingApi<Chain>)
+pub fn get_apis<Chain: BootEnvironment>(chain: Chain) -> (DexApi<Chain>, TMintStakingApi<Chain>)
 where
     <Chain as TxHandler>::Response: IndexResponse,
 {

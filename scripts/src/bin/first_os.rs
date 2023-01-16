@@ -6,7 +6,7 @@ use boot_core::prelude::*;
 use semver::Version;
 use tokio::runtime::Runtime;
 
-use abstract_boot::Deployment;
+use abstract_boot::Abstract;
 use abstract_os::objects::gov_type::GovernanceDetails;
 
 /// Script that registers the first OS in abstract (our OS)
@@ -18,7 +18,7 @@ pub fn first_os() -> anyhow::Result<()> {
     let options = DaemonOptionsBuilder::default().network(network).build();
     let (sender, chain) = instantiate_daemon_env(&rt, options?)?;
 
-    let deployment = Deployment::new(&chain, abstract_os_version);
+    let deployment = Abstract::new(&chain, abstract_os_version);
 
     // NOTE: this assumes that the deployment has been deployed
 
