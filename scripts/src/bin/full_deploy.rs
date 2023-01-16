@@ -18,9 +18,9 @@ pub fn full_deploy() -> anyhow::Result<()> {
     let options = DaemonOptionsBuilder::default().network(NETWORK).build();
     let (_sender, chain) = instantiate_daemon_env(&rt, options?)?;
 
-    let mut os_core = OS::new(&chain, None);
+    let mut os_core = OS::new(chain.clone(), None);
 
-    let mut deployment = Abstract::new(&chain, abstract_os_version);
+    let mut deployment = Abstract::new(chain.clone(), abstract_os_version);
 
     deployment.deploy(&mut os_core)?;
 
