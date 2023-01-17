@@ -108,7 +108,7 @@ impl<Chain: BootEnvironment> boot_core::deploy::Deploy<Chain> for Abstract<Chain
         Ok(deployment)
     }
 
-    fn load_from(chain: &Chain) -> Result<Self, Self::Error> {
+    fn load_from(chain: Chain) -> Result<Self, Self::Error> {
         let (ans_host, os_factory, version_control, module_factory, _ibc_client) =
             get_native_contracts(chain.clone());
         let version = env!("CARGO_PKG_VERSION").parse().unwrap();
