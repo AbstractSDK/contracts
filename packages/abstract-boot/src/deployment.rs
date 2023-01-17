@@ -24,30 +24,103 @@ pub struct Abstract<Chain: BootEnvironment> {
     pub module_factory: ModuleFactory<Chain>,
 }
 
+use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, PROXY, VERSION_CONTROL};
+
 #[cfg(feature = "integration")]
-mod integration {
-use super::*;
 use cw_multi_test::ContractWrapper;
+
 impl<Chain: BootEnvironment> boot_core::deploy::Deploy<Chain> for Abstract<Chain> {
     // We don't have a custom error type
     type Error = BootError;
+    type DeployData = semver::Version;
 
-    fn deploy_on(chain: Chain, version: impl Into<String>) -> Result<Self, BootError> {
-        let mut abstract_deployment = Self::new(chain.clone(), version.into().parse().unwrap());
-        abstract_deployment
-            .ans_host
-            .as_instance_mut()
-            .set_mock(Box::new(ContractWrapper::new_with_empty(
-                ::ans_host::contract::execute,
-                ::ans_host::contract::instantiate,
-                ::ans_host::contract::query,
-            )));
-        let mut os_core = OS::new(chain, None);
+    fn deploy_on(chain: Chain, version: semver::Version) -> Result<Self, BootError> {
+        let mut ans_host = AnsHost::new(ANS_HOST, chain.clone());
+        let mut os_factory = OSFactory::new(OS_FACTORY, chain.clone());
+        let mut version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
+        let mut module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
+        let mut manager = Manager::new(MANAGER, chain.clone());
+        let mut proxy = Proxy::new(PROXY, chain.clone());
+        if cfg!(feature = "integration") {
+            ans_host
+                .as_instance_mut()
+                .set_mock(Box::new(ContractWrapper::new_with_empty(
+                    ::ans_host::contract::execute,
+                    ::ans_host::contract::instantiate,
+                    ::ans_host::contract::query,
+                )));
 
-        abstract_deployment.deploy(&mut os_core)?;
-        Ok(abstract_deployment)
+            os_factory.as_instance_mut().set_mock(Box::new(
+                ContractWrapper::new_with_empty(
+                    ::os_factory::contract::execute,
+                    ::os_factory::contract::instantiate,
+                    ::os_factory::contract::query,
+                )
+                .with_reply_empty(::os_factory::contract::reply),
+            ));
+
+            module_factory.as_instance_mut().set_mock(Box::new(
+                cw_multi_test::ContractWrapper::new_with_empty(
+                    ::module_factory::contract::execute,
+                    ::module_factory::contract::instantiate,
+                    ::module_factory::contract::query,
+                )
+                .with_reply_empty(::module_factory::contract::reply),
+            ));
+
+            version_control.as_instance_mut().set_mock(Box::new(
+                cw_multi_test::ContractWrapper::new_with_empty(
+                    ::version_control::contract::execute,
+                    ::version_control::contract::instantiate,
+                    ::version_control::contract::query,
+                ),
+            ));
+
+            manager.as_instance_mut().set_mock(Box::new(
+                cw_multi_test::ContractWrapper::new_with_empty(
+                    ::manager::contract::execute,
+                    ::manager::contract::instantiate,
+                    ::manager::contract::query,
+                ),
+            ));
+
+            proxy.as_instance_mut().set_mock(Box::new(
+                cw_multi_test::ContractWrapper::new_with_empty(
+                    ::proxy::contract::execute,
+                    ::proxy::contract::instantiate,
+                    ::proxy::contract::query,
+                ),
+            ));
+        }
+
+        let mut deployment = Abstract {
+            chain,
+            version,
+            ans_host,
+            os_factory,
+            version_control,
+            module_factory,
+        };
+
+        let mut os_core = OS { manager, proxy };
+
+        deployment.deploy(&mut os_core)?;
+        Ok(deployment)
     }
-}
+
+    fn load_from(chain: &Chain) -> Result<Self, Self::Error> {
+        let (ans_host, os_factory, version_control, module_factory, _ibc_client) =
+            get_native_contracts(chain.clone());
+        let version = env!("CARGO_PKG_VERSION").parse().unwrap();
+        Ok(Self {
+            chain: chain.clone(),
+            version,
+            ans_host,
+            version_control,
+            os_factory,
+            module_factory,
+        })
+    }
 }
 
 impl<'a, Chain: BootEnvironment> Abstract<Chain> {
