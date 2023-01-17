@@ -51,8 +51,8 @@ protobuf = { version = "2", features = ["with-bytes"] }
 
 clap = { version = "4.0.32", features = ["derive"] }
 
-
-semver = { package = "cw-semver", version = "1.0", git = "https://github.com/Abstract-OS/cw-semver.git" }
+semver = "1.0"
+cw-semver = {version = "1.0", git = "https://github.com/Abstract-OS/cw-semver.git" }
 boot-core = { version = "0.5.1", git =  "https://github.com/Abstract-OS/BOOT.git", branch = "feature/deployment_trait"}
 boot-cw-plus = { version = "0.5.1",  git =  "https://github.com/Abstract-OS/BOOT.git", branch = "feature/deployment_trait" }
 
