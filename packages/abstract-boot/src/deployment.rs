@@ -24,23 +24,37 @@ pub struct Abstract<Chain: BootEnvironment> {
     pub module_factory: ModuleFactory<Chain>,
 }
 
+#[cfg(feature = "integration")]
+mod integration {
+use super::*;
+use cw_multi_test::ContractWrapper;
 impl<Chain: BootEnvironment> boot_core::deploy::Deploy<Chain> for Abstract<Chain> {
     // We don't have a custom error type
     type Error = BootError;
 
     fn deploy_on(chain: Chain, version: impl Into<String>) -> Result<Self, BootError> {
         let mut abstract_deployment = Self::new(chain.clone(), version.into().parse().unwrap());
+        abstract_deployment
+            .ans_host
+            .as_instance_mut()
+            .set_mock(Box::new(ContractWrapper::new_with_empty(
+                ::ans_host::contract::execute,
+                ::ans_host::contract::instantiate,
+                ::ans_host::contract::query,
+            )));
         let mut os_core = OS::new(chain, None);
 
         abstract_deployment.deploy(&mut os_core)?;
         Ok(abstract_deployment)
     }
 }
+}
 
 impl<'a, Chain: BootEnvironment> Abstract<Chain> {
     pub fn new(chain: Chain, version: Version) -> Self {
         let (ans_host, os_factory, version_control, module_factory, _ibc_client) =
             get_native_contracts(chain.clone());
+
         Self {
             chain,
             ans_host,
