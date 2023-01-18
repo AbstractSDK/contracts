@@ -37,11 +37,11 @@ impl<Chain: BootEnvironment> OSFactory<Chain> {
             None,
         )?;
 
-        let manager_address = &result.event_attr_value("wasm", "manager_address")?;
+        let manager_address = &result.event_attr_value("wasm-abstract", "manager_address")?;
         self.get_chain()
             .state()
             .set_address(MANAGER, &Addr::unchecked(manager_address));
-        let proxy_address = &result.event_attr_value("wasm", "proxy_address")?;
+        let proxy_address = &result.event_attr_value("wasm-abstract", "proxy_address")?;
         self.get_chain()
             .state()
             .set_address(PROXY, &Addr::unchecked(proxy_address));

@@ -20,7 +20,7 @@ use abstract_sdk::os::{
 };
 use cosmwasm_std::{
     from_binary, to_binary, wasm_execute, Addr, Coin, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
-    QuerierWrapper, ReplyOn, Response, StdError, StdResult, SubMsg, SubMsgResult, WasmMsg,
+    QuerierWrapper, ReplyOn, StdError, StdResult, SubMsg, SubMsgResult, WasmMsg,
 };
 use cw20::Cw20ReceiveMsg;
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};

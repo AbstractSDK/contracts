@@ -34,7 +34,7 @@ pub fn abstract_response(attrs: TokenStream, input: TokenStream) -> TokenStream 
                         .add_attributes(attrs),
                 )
             }
-            fn action<T: Into<String>>(action: T) -> Response {
+            fn action<T: Into<String>>(action: T) -> cosmwasm_std::Response {
                 #name::new(action, Vec::<cosmwasm_std::Attribute>::new())
             }
         }
