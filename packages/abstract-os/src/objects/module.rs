@@ -38,6 +38,10 @@ impl ModuleInfo {
         format!("{}:{}", self.provider, self.name)
     }
 
+    pub fn id_with_version(&self) -> String {
+        format!("{}:{}", self.id(), self.version)
+    }
+
     pub fn assert_version_variant(&self) -> StdResult<()> {
         match &self.version {
             ModuleVersion::Latest => Err(StdError::generic_err(
@@ -244,9 +248,11 @@ impl ModuleInitMsg {
 
 #[cfg(test)]
 mod test {
+
     use super::*;
     use cosmwasm_std::{testing::mock_dependencies, Addr, Order};
     use cw_storage_plus::Map;
+    use speculoos::prelude::*;
 
     fn mock_key() -> ModuleInfo {
         ModuleInfo {
@@ -401,5 +407,31 @@ mod test {
         assert_eq!(items[0], ("1.0.0".to_string(), 69420));
 
         assert_eq!(items[1], ("2.0.0".to_string(), 999));
+    }
+
+    #[test]
+    fn id() {
+        let info = ModuleInfo {
+            name: "name".to_string(),
+            provider: "provider".to_string(),
+            version: ModuleVersion::Version("1.0.0".into()),
+        };
+
+        let expected = "provider:name".to_string();
+
+        assert_that!(info.id()).is_equal_to(expected);
+    }
+
+    #[test]
+    fn id_with_version() {
+        let info = ModuleInfo {
+            name: "name".to_string(),
+            provider: "provider".to_string(),
+            version: ModuleVersion::Version("1.0.0".into()),
+        };
+
+        let expected = "provider:name".to_string();
+
+        assert_that!(info.id_with_version()).is_equal_to(expected);
     }
 }
