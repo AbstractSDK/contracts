@@ -43,6 +43,7 @@
 //!   # fn main() {}
 //!   ```
 
+pub extern crate abstract_macros as macros;
 pub extern crate abstract_os as os;
 
 mod ans_resolve;

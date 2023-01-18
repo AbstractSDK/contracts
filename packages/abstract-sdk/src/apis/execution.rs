@@ -2,10 +2,9 @@
 //! The executor provides function for executing commands on the OS.
 //!
 use super::{Identification, ModuleIdentification};
+use abstract_macros::with_abstract_event;
 use abstract_os::proxy::ExecuteMsg;
-use cosmwasm_std::{
-    wasm_execute, CosmosMsg, Deps, Event, ReplyOn, Response, StdError, StdResult, SubMsg,
-};
+use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, ReplyOn, Response, StdError, StdResult, SubMsg};
 
 /// Execute an arbitrary `CosmosMsg` action on the OS.
 pub trait Execution: Identification + ModuleIdentification {
@@ -58,13 +57,9 @@ impl<'a, T: Execution> Executor<'a, T> {
     /// Return a "standard" response for the executed messages. (with the provided action).
     pub fn execute_with_response(&self, msgs: Vec<CosmosMsg>, action: &str) -> StdResult<Response> {
         let msg = self.execute(msgs)?;
-        Ok(Response::new()
-            .add_event(
-                Event::new("abstract")
-                    .add_attribute("contract", self.base.module_id())
-                    .add_attribute("action", action),
-            )
-            .add_message(msg))
+        let resp = Response::default();
+
+        Ok(with_abstract_event!(resp, self.base.module_id(), action).add_message(msg))
     }
 }
 
