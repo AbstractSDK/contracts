@@ -18,6 +18,8 @@ pub fn abstract_response(attrs: TokenStream, input: TokenStream) -> TokenStream 
     };
     let name = boot_struct.ident.clone();
 
+    // if attributes.is_empty() {}
+
     let contract_name = attributes[0].clone();
 
     let struct_def = quote!(

@@ -33,7 +33,7 @@ const OSMO_HOST: OsmoHost = OsmoHost::new(OSMOSIS_HOST, CONTRACT_VERSION, OSMOSI
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn instantiate(deps: DepsMut, env: Env, info: MessageInfo, msg: InstantiateMsg) -> OsmoResult {
     OSMO_HOST.instantiate(deps, env, info, msg)?;
-    OsmosisHostResponse::action("instantiate")
+    Ok(OsmosisHostResponse::action("instantiate"))
 }
 
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
