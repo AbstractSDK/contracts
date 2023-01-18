@@ -1,5 +1,4 @@
-use std::{collections::HashSet, fmt::Debug};
-
+use crate::ApiError;
 use abstract_os::objects::dependency::StaticDependency;
 use abstract_sdk::{
     base::{
@@ -10,14 +9,11 @@ use abstract_sdk::{
     namespaces::BASE_STATE,
     os::version_control::Core,
 };
-
 use cosmwasm_std::{Addr, Empty, StdError, StdResult, Storage};
-
 use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-
-use crate::ApiError;
+use std::{collections::HashSet, fmt::Debug};
 
 pub const TRADER_NAMESPACE: &str = "traders";
 

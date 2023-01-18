@@ -1,5 +1,8 @@
+use crate::{
+    get_apis, get_apps, get_native_contracts, get_os_core_contracts, AnsHost, Manager,
+    ModuleFactory, OSFactory, Proxy, VersionControl,
+};
 use abstract_os::manager::ManagerModuleInfo;
-
 use abstract_os::{
     manager::QueryMsgFns as ManagerQueryMsgFns, proxy::QueryMsgFns as ProxyQueryMsgFns,
 };
@@ -9,11 +12,6 @@ use semver::Version;
 use serde::Serialize;
 use speculoos::prelude::*;
 use std::collections::HashSet;
-
-use crate::{
-    get_apis, get_apps, get_native_contracts, get_os_core_contracts, AnsHost, Manager,
-    ModuleFactory, OSFactory, Proxy, VersionControl,
-};
 
 pub struct Deployment<'a, Chain: BootEnvironment> {
     pub chain: &'a Chain,
