@@ -27,9 +27,14 @@ pub fn abstract_response(attrs: TokenStream, input: TokenStream) -> TokenStream 
                 action: T,
                 attrs: impl IntoIterator<Item = A>,
             ) -> cosmwasm_std::Response {
-                abstract_os::AbstractResponse::new(#contract_name, action, attrs)
+                cosmwasm_std::Response::new().add_event(
+                    cosmwasm_std::Event::new("abstract")
+                        .add_attributes(vec![("contract", #contract_name)])
+                        .add_attributes(vec![("action", action)])
+                        .add_attributes(attrs),
+                )
             }
-            fn default<T: Into<String>>(action: T) -> Response {
+            fn action<T: Into<String>>(action: T) -> Response {
                 #name::new(action, Vec::<cosmwasm_std::Attribute>::new())
             }
         }

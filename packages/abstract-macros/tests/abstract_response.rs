@@ -4,51 +4,33 @@ mod tests {
     use cosmwasm_std::Response;
     use speculoos::prelude::*;
 
+    const TEST_CONTRACT: &str = "test:contract";
+
+    #[abstract_response(TEST_CONTRACT)]
+    struct TestResponse;
+
     #[test]
-    fn test_abstract_response() {
-        const CONTRACT_NAME: &str = "abstract:contract";
-        const ACTION: &str = "instantiate";
-        let resp = Response::new();
-        let actual: Response = abstract_response!(resp, CONTRACT_NAME, ACTION);
+    fn test_action() {
+        let actual: Response = TestResponse::action("instantiate");
         let expected = Response::new().add_event(
             cosmwasm_std::Event::new("abstract")
-                .add_attributes(vec![("contract", CONTRACT_NAME), ("action", ACTION)]),
+                .add_attributes(vec![("contract", TEST_CONTRACT), ("action", "instantiate")]),
         );
+
         assert_that!(actual).is_equal_to(expected);
     }
 
     #[test]
-    fn test_addition_to_response() {
-        const CONTRACT_NAME: &str = "abstract:contract";
-        const ACTION: &str = "instantiate";
-        let new_attributes = vec![("who dat who dat", "IGGY")];
-        let resp = Response::new();
-        let actual: Response =
-            abstract_response!(resp, CONTRACT_NAME, ACTION).add_attributes(new_attributes.clone());
-        let expected = Response::new()
-            .add_event(cosmwasm_std::Event::new("abstract").add_attributes(vec![
-                ("contract", "abstract:contract"),
-                ("action", "instantiate"),
-            ]))
-            .add_attributes(new_attributes);
-        assert_that!(actual).is_equal_to(expected);
-    }
+    fn test_new_with_attrs() {
+        let actual: Response = TestResponse::new("action", vec![("custom", "abstract")]);
 
-    #[test]
-    fn test_with_quoted_attributes() {
-        let resp = Response::new();
-        let actual: Response = abstract_response!(
-            resp,
-            "abstract:contract",
-            "instantiate",
-            [("custom", "abstract")]
-        );
         let expected =
             Response::new().add_event(cosmwasm_std::Event::new("abstract").add_attributes(vec![
-                ("contract", "abstract:contract"),
-                ("action", "instantiate"),
+                ("contract", TEST_CONTRACT),
+                ("action", "action"),
                 ("custom", "abstract"),
             ]));
+
         assert_that!(actual).is_equal_to(expected);
     }
 }

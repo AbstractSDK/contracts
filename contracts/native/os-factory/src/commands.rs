@@ -315,7 +315,7 @@ pub fn execute_update_config(
         ADMIN.set(deps, Some(addr))?;
     }
 
-    Ok(OsFactoryResponse::default("update_config"))
+    Ok(OsFactoryResponse::action("update_config"))
 }
 
 fn query_subscription_fee(
