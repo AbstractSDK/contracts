@@ -1,33 +1,39 @@
 extern crate proc_macro2;
 
 use proc_macro::TokenStream;
+use quote::quote;
+use syn::parse_macro_input;
+use syn::{AttributeArgs, Fields, Item};
 
-const DELIMITER: &str = ",";
+#[proc_macro_attribute]
+pub fn abstract_response(attrs: TokenStream, input: TokenStream) -> TokenStream {
+    let mut item = parse_macro_input!(input as syn::Item);
+    let attributes = parse_macro_input!(attrs as AttributeArgs);
 
-#[proc_macro]
-pub fn abstract_response(input: TokenStream) -> TokenStream {
-    let input = input.to_string();
-    let mut input = input.split(DELIMITER);
-    let base_response = input.next().unwrap().trim();
-    let contract_name = input.next().unwrap().trim();
-    let action = input.next().unwrap().trim();
-    // Collect the remaining
-    let attrs = input.collect::<Vec<&str>>().join(DELIMITER);
-
-    let attribute_addition = if attrs.is_empty() {
-        "".to_string()
-    } else {
-        format!(".add_attributes(vec!{})", attrs)
+    let Item::Struct(boot_struct) = &mut item else {
+        panic!("Only works on structs");
     };
-    let output = format!(
-        "{}
-        .add_event(
-            cosmwasm_std::Event::new(\"abstract\")
-                .add_attributes(vec![(\"contract\", {}), (\"action\", {})])
-                {}
-        )",
-        base_response, contract_name, action, attribute_addition
+    let Fields::Unit = &mut boot_struct.fields else {
+        panic!("Struct must be unit-struct");
+    };
+    let name = boot_struct.ident.clone();
+
+    let contract_name = attributes[0].clone();
+
+    let struct_def = quote!(
+        struct #name;
+        impl #name {
+            fn new<T: Into<String>, A: Into<cosmwasm_std::Attribute>>(
+                action: T,
+                attrs: impl IntoIterator<Item = A>,
+            ) -> cosmwasm_std::Response {
+                abstract_os::AbstractResponse::new(#contract_name, action, attrs)
+            }
+            fn default<T: Into<String>>(action: T) -> Response {
+                #name::new(action, Vec::<cosmwasm_std::Attribute>::new())
+            }
+        }
     );
 
-    output.parse().unwrap()
+    struct_def.into()
 }
