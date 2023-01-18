@@ -533,9 +533,9 @@ mod test {
         pool_ref
     }
 
-    fn create_pool_metadata(_dex: &str, asset_x: &str, asset_y: &str) -> PoolMetadata {
+    fn create_pool_metadata(dex: &str, asset_x: &str, asset_y: &str) -> PoolMetadata {
         let pool_metadata = PoolMetadata::new(
-            "bar",
+            dex,
             abstract_os::objects::PoolType::Stable,
             vec![asset_x.to_string(), asset_y.to_string()],
         );
@@ -992,7 +992,7 @@ mod test {
         let msg_foo = QueryMsg::PoolMetadatas {
             keys: vec![UniquePoolId::new(69)],
         };
-        let _res_foo: PoolMetadatasResponse = from_binary(&query_helper(deps.as_ref(), msg_foo)?)?;
+        let res_foo: PoolMetadatasResponse = from_binary(&query_helper(deps.as_ref(), msg_foo)?)?;
 
         // create comparisons
         let expected_bar = PoolMetadatasResponse {
@@ -1005,7 +1005,7 @@ mod test {
                 ),
             )],
         };
-        let _expected_foo = PoolMetadatasResponse {
+        let expected_foo = PoolMetadatasResponse {
             metadatas: vec![(
                 UniquePoolId::new(69),
                 PoolMetadata::new(
@@ -1016,14 +1016,15 @@ mod test {
             )],
         };
         assert_eq!(&res_bar, &expected_bar);
-
+        println!("res_foo:{:?} expected_foo:{:?}", res_foo, expected_foo);
         // TO-DO : this test is failing - the dex updates but the assets do not.
-        // assert_eq!(&res_foo, &expected_foo);
+        assert_eq!(&res_foo, &expected_foo);
 
         // assert
 
         Ok(())
     }
+
     #[test]
     fn test_query_pool_metadata_list() -> AnsHostTestResult {
         let mut deps = mock_dependencies();
@@ -1031,48 +1032,59 @@ mod test {
         // create metadata entries
         let bar_key = UniquePoolId::new(42);
         let bar_metadata = create_pool_metadata("bar", "btc", "eth");
-        let insert_bar = |_| -> StdResult<PoolMetadata> { Ok(bar_metadata) };
+        let insert_bar = |_| -> StdResult<PoolMetadata> { Ok(bar_metadata.clone()) };
         POOL_METADATA.update(&mut deps.storage, bar_key, insert_bar)?;
-
-        let foo_key = UniquePoolId::new(69);
-        let foo_metadata = create_pool_metadata("foo", "juno", "atom");
-        let insert_foo = |_| -> StdResult<PoolMetadata> { Ok(foo_metadata) };
-        POOL_METADATA.update(&mut deps.storage, foo_key, insert_foo)?;
 
         let msg_bar = QueryMsg::PoolMetadataList {
             filter: Some(PoolMetadataFilter {
                 pool_type: Some(PoolType::Stable),
             }),
-            page_token: Some(UniquePoolId::new(42)),
-            page_size: Some(42),
+            page_token: None,
+            page_size: None,
         };
         let res_bar: PoolMetadatasResponse = from_binary(&query_helper(deps.as_ref(), msg_bar)?)?;
+        let expected_bar = PoolMetadatasResponse {
+            metadatas: vec![(bar_key, bar_metadata.clone())],
+        };
+        assert_that!(res_bar).is_equal_to(expected_bar);
+
+        let foo_key = UniquePoolId::new(69);
+        let foo_metadata = create_pool_metadata("foo", "juno", "atom");
+        let insert_foo = |_| -> StdResult<PoolMetadata> { Ok(foo_metadata.clone()) };
+        POOL_METADATA.update(&mut deps.storage, foo_key, insert_foo)?;
+
+        let msg_both = QueryMsg::PoolMetadataList {
+            filter: Some(PoolMetadataFilter {
+                pool_type: Some(PoolType::Stable),
+            }),
+            page_token: None,
+            page_size: Some(42),
+        };
+        let res_both: PoolMetadatasResponse = from_binary(&query_helper(deps.as_ref(), msg_both)?)?;
+
+        let expected_both = PoolMetadatasResponse {
+            metadatas: vec![
+                (bar_key, bar_metadata.clone()),
+                (foo_key.clone(), foo_metadata.clone()),
+            ],
+        };
+        println!("{:?} {:?}", res_both, expected_both);
+        assert_that!(res_both).is_equal_to(expected_both);
 
         let msg_foo = QueryMsg::PoolMetadataList {
             filter: Some(PoolMetadataFilter {
                 pool_type: Some(PoolType::Stable),
             }),
-            page_token: Some(UniquePoolId::new(69)),
+            page_token: Some(bar_key),
             page_size: Some(42),
         };
         let res_foo: PoolMetadatasResponse = from_binary(&query_helper(deps.as_ref(), msg_foo)?)?;
 
-        let expected_bar = PoolMetadatasResponse {
-            metadatas: vec![(
-                UniquePoolId::new(42),
-                create_pool_metadata("bar", "btc", "eth"),
-            )],
-        };
-
         let expected_foo = PoolMetadatasResponse {
-            metadatas: vec![(
-                UniquePoolId::new(69),
-                create_pool_metadata("foo", "juno", "atom"),
-            )],
+            metadatas: vec![(foo_key, foo_metadata)],
         };
 
-        assert_eq!(&expected_bar, &res_bar);
-        assert_eq!(&expected_foo, &res_foo);
+        assert_that!(res_foo).is_equal_to(expected_foo);
         Ok(())
     }
 }
