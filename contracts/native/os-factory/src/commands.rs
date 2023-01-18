@@ -19,7 +19,7 @@ use abstract_sdk::os::{
     version_control::{Core, ModuleResponse},
 };
 use cosmwasm_std::{
-    from_binary, to_binary, Addr, Coin, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
+    from_binary, to_binary, wasm_execute, Addr, Coin, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
     QuerierWrapper, ReplyOn, Response, StdError, StdResult, SubMsg, SubMsgResult, WasmMsg,
 };
 use cw20::Cw20ReceiveMsg;
@@ -260,14 +260,14 @@ pub fn after_proxy_add_to_manager_and_set_admin(
         vec![("proxy_address", res.get_contract_address())],
     )
     .add_message(add_os_core_to_version_control_msg)
-    .add_message(CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: context.os_manager_address.to_string(),
-        msg: to_binary(&UpdateModuleAddresses {
+    .add_message(wasm_execute(
+        context.os_manager_address.to_string(),
+        &UpdateModuleAddresses {
             to_add: Some(vec![(PROXY.to_string(), proxy_address.to_string())]),
             to_remove: None,
-        })?,
-        funds: vec![],
-    }))
+        },
+        vec![],
+    )?)
     .add_message(whitelist_manager)
     .add_message(set_proxy_admin_msg)
     .add_message(set_manager_admin_msg))
