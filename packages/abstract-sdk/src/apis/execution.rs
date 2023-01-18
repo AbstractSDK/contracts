@@ -215,8 +215,12 @@ mod test {
             });
 
             let expected = Response::new()
-                .add_message(expected_msg)
-                .add_attribute("action", expected_action);
+                .add_event(
+                    Event::new("abstract")
+                        .add_attribute("contract", stub.module_id())
+                        .add_attribute("action", expected_action),
+                )
+                .add_message(expected_msg);
 
             assert_that!(actual_res).is_ok().is_equal_to(expected);
         }
@@ -240,8 +244,12 @@ mod test {
                 funds: vec![],
             });
             let expected = Response::new()
-                .add_message(expected_msg)
-                .add_attribute("action", expected_action);
+                .add_event(
+                    Event::new("abstract")
+                        .add_attribute("contract", stub.module_id())
+                        .add_attribute("action", expected_action),
+                )
+                .add_message(expected_msg);
             assert_that!(actual_res).is_ok().is_equal_to(expected);
         }
     }

@@ -3,7 +3,7 @@ use abstract_os::{api, app};
 use cosmwasm_std::{Addr, Deps, StdError, StdResult};
 
 #[cfg(feature = "sdk")]
-use abstract_sdk::base::features::{AbstractNameService, Identification};
+use abstract_sdk::base::features::{AbstractNameService, Identification, ModuleIdentification};
 
 pub struct MockModule {}
 
@@ -20,6 +20,13 @@ pub const TEST_MANAGER: &str = "manager_address";
 impl Identification for MockModule {
     fn proxy_address(&self, _deps: Deps) -> Result<Addr, StdError> {
         Ok(Addr::unchecked(TEST_PROXY))
+    }
+}
+
+#[cfg(feature = "sdk")]
+impl ModuleIdentification for MockModule {
+    fn module_id(&self) -> &'static str {
+        "mock_module"
     }
 }
 

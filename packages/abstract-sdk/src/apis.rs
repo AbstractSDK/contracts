@@ -11,7 +11,7 @@ pub(crate) use crate::base::features::*;
 
 #[cfg(test)]
 mod test_common {
-    use crate::apis::{AbstractNameService, Identification};
+    use crate::apis::{AbstractNameService, Identification, ModuleIdentification};
     pub use abstract_testing::mock_module::*;
     pub use cosmwasm_std::testing::*;
     pub use cosmwasm_std::*;
@@ -22,6 +22,12 @@ mod test_common {
     impl Identification for MockModule {
         fn proxy_address(&self, _deps: Deps) -> Result<Addr, StdError> {
             Ok(Addr::unchecked(TEST_PROXY))
+        }
+    }
+
+    impl ModuleIdentification for MockModule {
+        fn module_id(&self) -> &'static str {
+            "mock_module"
         }
     }
 

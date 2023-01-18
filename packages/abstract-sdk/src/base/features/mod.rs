@@ -7,10 +7,11 @@ mod dependencies;
 mod identification;
 mod module_identification;
 mod register_access;
-pub mod respond;
+mod respond;
 
 pub use abstract_name_service::AbstractNameService;
 pub use dependencies::Dependencies;
 pub use identification::Identification;
 pub use module_identification::ModuleIdentification;
 pub use register_access::RegisterAccess;
+pub use respond::AbstractResponse;
