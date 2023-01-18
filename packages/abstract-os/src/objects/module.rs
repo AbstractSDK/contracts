@@ -430,7 +430,7 @@ mod test {
             version: ModuleVersion::Version("1.0.0".into()),
         };
 
-        let expected = "provider:name".to_string();
+        let expected = "provider:name:1.0.0".to_string();
 
         assert_that!(info.id_with_version()).is_equal_to(expected);
     }

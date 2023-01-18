@@ -263,7 +263,7 @@ mod test {
     mod instantiate_contract {
         use super::*;
         use abstract_os::objects::module::ModuleVersion;
-        use cosmwasm_std::testing::mock_info;
+        use cosmwasm_std::{testing::mock_info, to_binary};
 
         #[test]
         fn should_create_submsg_with_instantiate_msg() -> ModuleFactoryTestResult {
@@ -318,6 +318,8 @@ mod test {
             Ok(())
         }
     }
+
+    use cosmwasm_std::to_binary;
 
     mod update_factory_binaries {
         use super::*;
