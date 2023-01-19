@@ -1,16 +1,15 @@
+use crate::{error::DexError, DEX};
 use abstract_os::objects::{DexAssetPairing, PoolReference};
 use abstract_sdk::base::features::AbstractNameService;
-use abstract_sdk::os::objects::AnsAsset;
-use abstract_sdk::Execution;
-use cosmwasm_std::{CosmosMsg, Decimal, Deps, DepsMut, ReplyOn, StdError, SubMsg};
-use cw_asset::Asset;
-
-use crate::{error::DexError, DEX};
 use abstract_sdk::os::dex::AskAsset;
+use abstract_sdk::os::objects::AnsAsset;
 use abstract_sdk::os::{
     dex::{DexAction, OfferAsset, SwapRouter},
     objects::AssetEntry,
 };
+use abstract_sdk::Execution;
+use cosmwasm_std::{CosmosMsg, Decimal, Deps, DepsMut, ReplyOn, StdError, SubMsg};
+use cw_asset::Asset;
 
 pub const PROVIDE_LIQUIDITY: u64 = 7542;
 pub const PROVIDE_LIQUIDITY_SYM: u64 = 7543;
@@ -194,7 +193,7 @@ pub trait LocalDex: AbstractNameService + Execution {
         let pair_address = exchange.pair_address(
             deps,
             ans.host(),
-            (pair_assets.swap_remove(0), pair_assets.swap_remove(1)),
+            (pair_assets.swap_remove(0), pair_assets.swap_remove(0)),
         )?;
         exchange.provide_liquidity(deps, pair_address, assets, max_spread)
     }

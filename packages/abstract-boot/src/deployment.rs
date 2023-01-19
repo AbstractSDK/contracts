@@ -1,3 +1,7 @@
+use crate::{
+    get_apis, get_apps, get_native_contracts, get_os_core_contracts, AnsHost, Manager,
+    ModuleFactory, OSFactory, Proxy, VersionControl,
+};
 use abstract_os::manager::ManagerModuleInfo;
 use abstract_os::{
     manager::QueryMsgFns as ManagerQueryMsgFns, proxy::QueryMsgFns as ProxyQueryMsgFns,
@@ -5,13 +9,9 @@ use abstract_os::{
 use boot_core::{prelude::*, BootEnvironment, BootError};
 use cosmwasm_std::Empty;
 use semver::Version;
+use serde::Serialize;
 use speculoos::prelude::*;
 use std::collections::HashSet;
-
-use crate::{
-    get_apis, get_apps, get_native_contracts, get_os_core_contracts, AnsHost, Manager,
-    ModuleFactory, OSFactory, Proxy, VersionControl,
-};
 
 pub struct Deployment<'a, Chain: BootEnvironment> {
     pub chain: &'a Chain,
@@ -187,6 +187,14 @@ impl<Chain: BootEnvironment> OS<Chain> {
         self.manager.upload()?;
         self.proxy.upload()?;
         Ok(())
+    }
+
+    pub fn install_module<TInitMsg: Serialize>(
+        &mut self,
+        module_id: &str,
+        init_msg: &TInitMsg,
+    ) -> Result<(), BootError> {
+        self.manager.install_module(module_id, init_msg)
     }
 
     /// Assert that the OS has the expected modules with the provided **expected_module_addrs** installed.

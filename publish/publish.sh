@@ -16,24 +16,15 @@ fi
 # these are imported by other packages
 BASE_PACKAGES="abstract-ica abstract-os"
 UTILS_PACKAGES="abstract-sdk"
-ALL_PACKAGES="abstract-api abstract-app abstract-ibc-host"
-# TODO: We are not publishing abstract-boot at the moment
-#ALL_PACKAGES="abstract-api abstract-app abstract-ibc-host abstract-boot"
-
-SLEEP_TIME=30
+ALL_PACKAGES="abstract-api abstract-app abstract-ibc-host abstract-boot"
 
 for pack in $BASE_PACKAGES; do
   (
     cd "packages/$pack"
     echo "Publishing $pack"
     cargo publish
-    sleep $SLEEP_TIME
   )
 done
-
-# wait for these to be processed on crates.io
-echo "Waiting for publishing base packages"
-sleep $SLEEP_TIME
 
 for pack in $UTILS_PACKAGES; do
   (
@@ -42,10 +33,6 @@ for pack in $UTILS_PACKAGES; do
     cargo publish
   )
 done
-
-# wait for these to be processed on crates.io
-echo "Waiting for publishing utils packages"
-sleep $SLEEP_TIME
 
 for pack in $ALL_PACKAGES; do
   (

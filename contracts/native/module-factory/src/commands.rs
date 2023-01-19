@@ -1,8 +1,5 @@
-use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo, ReplyOn,
-    Response, StdError, StdResult, SubMsg, SubMsgResult, WasmMsg,
-};
-
+use crate::{contract::ModuleFactoryResult, error::ModuleFactoryError};
+use crate::{response::MsgInstantiateContractResponse, state::*};
 use abstract_sdk::{
     feature_objects::VersionControlContract,
     os::{
@@ -11,12 +8,11 @@ use abstract_sdk::{
     },
     *,
 };
-
+use cosmwasm_std::{
+    to_binary, wasm_execute, Addr, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo, ReplyOn,
+    Response, StdError, StdResult, SubMsg, SubMsgResult, WasmMsg,
+};
 use protobuf::Message;
-
-use crate::{contract::ModuleFactoryResult, error::ModuleFactoryError};
-
-use crate::{response::MsgInstantiateContractResponse, state::*};
 
 pub const CREATE_APP_RESPONSE_ID: u64 = 1u64;
 pub const CREATE_STANDALONE_RESPONSE_ID: u64 = 4u64;
@@ -313,7 +309,7 @@ mod test {
         use super::*;
         use abstract_os::objects::module::ModuleVersion;
         use abstract_testing::map_tester::{CwMapTester, CwMapTesterBuilder};
-        use abstract_testing::{TEST_ADMIN};
+        use abstract_testing::TEST_ADMIN;
 
         fn update_module_msgs_builder(
             to_add: Vec<(ModuleInfo, Binary)>,

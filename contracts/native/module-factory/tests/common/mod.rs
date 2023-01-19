@@ -1,21 +1,19 @@
 use abstract_boot::{
     AnsHost, Deployment, Manager, ModuleFactory, OSFactory, Proxy, VersionControl, OS,
 };
-
 use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, PROXY, VERSION_CONTROL};
 use boot_core::{prelude::ContractInstance, Mock};
-
 use cw_multi_test::ContractWrapper;
 
 pub const ROOT_USER: &str = "root_user";
 
 pub fn init_test_env<'a>(chain: &'a Mock) -> anyhow::Result<(Deployment<'a, Mock>, OS<Mock>)> {
-    let mut ans_host = AnsHost::new(ANS_HOST, chain);
-    let mut os_factory = OSFactory::new(OS_FACTORY, chain);
-    let mut version_control = VersionControl::new(VERSION_CONTROL, chain);
-    let mut module_factory = ModuleFactory::new(MODULE_FACTORY, chain);
-    let mut manager = Manager::new(MANAGER, chain);
-    let mut proxy = Proxy::new(PROXY, chain);
+    let mut ans_host = AnsHost::new(ANS_HOST, chain.clone());
+    let mut os_factory = OSFactory::new(OS_FACTORY, chain.clone());
+    let mut version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
+    let mut module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
+    let mut manager = Manager::new(MANAGER, chain.clone());
+    let mut proxy = Proxy::new(PROXY, chain.clone());
 
     ans_host
         .as_instance_mut()

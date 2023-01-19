@@ -1,8 +1,8 @@
 [package]
 name = "abstract-api"
 version = { workspace = true }
-authors = {workspace = true}
-edition = {workspace = true}
+authors = { workspace = true }
+edition = { workspace = true }
 license = { workspace = true }
 description = "base api contract implementation"
 
@@ -16,21 +16,22 @@ default = []
 backtraces = ["cosmwasm-std/backtraces"]
 # # use library feature to disable all instantiate/execute/query exports
 library = []
+schema = ["dep:cosmwasm-schema"]
 # ibc = ["dep:abstract-ica","abstract-os = {workspace = true}
 
 
 [dependencies]
 cosmwasm-std = { workspace = true }
-cosmwasm-schema = {workspace = true}
-cw-storage-plus = {workspace = true}
-serde = {workspace = true}
-schemars = {workspace = true}
-cw-controllers = {workspace = true}
-thiserror = {workspace = true}
-cw2 = {workspace = true}
-abstract-sdk = {workspace = true}
-abstract-os = {workspace = true}
+cosmwasm-schema = { workspace = true, optional = true }
+cw-storage-plus = { workspace = true }
+serde = { workspace = true }
+schemars = { workspace = true }
+cw-controllers = { workspace = true }
+thiserror = { workspace = true }
+cw2 = { workspace = true }
+abstract-sdk = { workspace = true }
+abstract-os = { workspace = true }
 
 [dev-dependencies]
-abstract-testing = {workspace = true}
-speculoos = {workspace = true}
+abstract-testing = { workspace = true }
+speculoos = { workspace = true }

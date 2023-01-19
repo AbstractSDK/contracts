@@ -1,7 +1,6 @@
 pub mod map_tester;
 pub mod mock_module;
 pub(crate) mod mock_querier;
-
 use cosmwasm_std::testing::{MockApi, MockQuerier, MockStorage};
 use cosmwasm_std::OwnedDeps;
 pub use mock_querier::{querier, wrap_querier};
@@ -16,5 +15,5 @@ pub const TEST_ADMIN: &str = "admin";
 pub const TEST_MODULE_ADDRESS: &str = "test_module_address";
 pub const TEST_MODULE_ID: &str = "test_module_id";
 pub const TEST_OS_ID: u32 = 0;
-pub const TEST_ADMIN: &str = "test_admin_address";
 pub const TEST_VERSION: &str = "1.0.0";
+pub const TEST_MODULE_RESPONSE: &str = "test_module_response";

@@ -1,3 +1,13 @@
+use crate::contract::{EtfApp, EtfResult};
+use crate::error::EtfError;
+use crate::state::{State, FEE, STATE};
+use abstract_app::state::AppState;
+use abstract_os::etf::EtfExecuteMsg;
+use abstract_sdk::base::features::AbstractNameService;
+use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
+use abstract_sdk::os::objects::deposit_info::DepositInfo;
+use abstract_sdk::os::objects::fee::Fee;
+use abstract_sdk::*;
 use cosmwasm_std::{
     to_binary, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response, Uint128, WasmMsg,
 };
@@ -5,19 +15,6 @@ use cosmwasm_std::{QuerierWrapper, StdResult};
 use cw20::Cw20ExecuteMsg;
 use cw20::{Cw20QueryMsg, TokenInfoResponse};
 use cw_asset::{Asset, AssetInfo};
-
-use abstract_app::state::AppState;
-use abstract_os::etf::EtfExecuteMsg;
-use abstract_sdk::base::features::AbstractNameService;
-use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
-use abstract_sdk::*;
-
-use abstract_sdk::os::objects::deposit_info::DepositInfo;
-use abstract_sdk::os::objects::fee::Fee;
-
-use crate::contract::{EtfApp, EtfResult};
-use crate::error::EtfError;
-use crate::state::{State, FEE, STATE};
 
 pub fn execute_handler(
     deps: DepsMut,
@@ -87,7 +84,7 @@ pub fn try_provide_liquidity(
 
     // Init vector for logging
     let attrs = vec![
-        ("Action:", String::from("Deposit to vault")),
+        ("action", String::from("deposit_to_vault")),
         ("Received funds:", asset.to_string()),
     ];
 
@@ -152,7 +149,7 @@ pub fn try_withdraw_liquidity(
 
     // Logging var
     let mut attrs = vec![
-        ("Action:", String::from("Withdraw from vault")),
+        ("action", String::from("Withdraw from vault")),
         ("Received liquidity tokens:", amount.to_string()),
     ];
 
@@ -226,7 +223,7 @@ pub fn try_withdraw_liquidity(
     });
 
     Ok(response
-        .add_attribute("Action:", "Withdraw Liquidity")
+        .add_attribute("action", "Withdraw Liquidity")
         // Burn LP tokens
         .add_message(burn_msg)
         // Send proxy funds to owner

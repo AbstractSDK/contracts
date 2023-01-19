@@ -1,35 +1,29 @@
 pub const ROOT_USER: &str = "root_user";
 pub const TEST_COIN: &str = "ucoin";
-
+use abstract_boot::{
+    AnsHost, Deployment, Manager, ModuleFactory, OSFactory, Proxy, VersionControl,
+};
 use abstract_boot::{TMintStakingApi, OS};
 use abstract_os::{
     api::InstantiateMsg, objects::gov_type::GovernanceDetails, PROXY, TENDERMINT_STAKING,
 };
-
+use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL};
 use boot_core::{
     prelude::{BootInstantiate, BootUpload, ContractInstance},
     Mock,
 };
 use cosmwasm_std::{Addr, Empty};
-
-use abstract_boot::{
-    AnsHost, Deployment, Manager, ModuleFactory, OSFactory, Proxy, VersionControl,
-};
-
-use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL};
-
 use cw_multi_test::ContractWrapper;
+use manager::contract::CONTRACT_VERSION;
 use semver::Version;
 
-use manager::contract::CONTRACT_VERSION;
-
 pub fn init_abstract_env(chain: &Mock) -> anyhow::Result<(Deployment<Mock>, OS<Mock>)> {
-    let mut ans_host = AnsHost::new(ANS_HOST, chain);
-    let mut os_factory = OSFactory::new(OS_FACTORY, chain);
-    let mut version_control = VersionControl::new(VERSION_CONTROL, chain);
-    let mut module_factory = ModuleFactory::new(MODULE_FACTORY, chain);
-    let mut manager = Manager::new(MANAGER, chain);
-    let mut proxy = Proxy::new(PROXY, chain);
+    let mut ans_host = AnsHost::new(ANS_HOST, chain.clone());
+    let mut os_factory = OSFactory::new(OS_FACTORY, chain.clone());
+    let mut version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
+    let mut module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
+    let mut manager = Manager::new(MANAGER, chain.clone());
+    let mut proxy = Proxy::new(PROXY, chain.clone());
 
     ans_host
         .as_instance_mut()
@@ -116,7 +110,7 @@ pub(crate) fn init_staking_api(
     deployment: &Deployment<Mock>,
     version: Option<String>,
 ) -> anyhow::Result<TMintStakingApi<Mock>> {
-    let mut staking_api = TMintStakingApi::new(TENDERMINT_STAKING, chain);
+    let mut staking_api = TMintStakingApi::new(TENDERMINT_STAKING, chain.clone());
     staking_api.as_instance_mut().set_mock(Box::new(
         cw_multi_test::ContractWrapper::new_with_empty(
             ::tendermint_staking::contract::execute,
@@ -137,7 +131,9 @@ pub(crate) fn init_staking_api(
         None,
     )?;
 
-    let version: Version = version.unwrap_or(CONTRACT_VERSION.to_string()).parse()?;
+    let version: Version = version
+        .unwrap_or_else(|| CONTRACT_VERSION.to_string())
+        .parse()?;
 
     deployment
         .version_control

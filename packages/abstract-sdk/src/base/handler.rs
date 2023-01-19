@@ -1,13 +1,3 @@
-use cosmwasm_std::{StdError, StdResult, Storage};
-use cw2::ContractVersion;
-
-use crate::base::{
-    endpoints::migrate::{Name, VersionString},
-    ReplyHandlerFn,
-};
-
-use abstract_os::objects::dependency::StaticDependency;
-
 use super::{
     contract_base::{
         AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
@@ -15,6 +5,13 @@ use super::{
     },
     endpoints::migrate::Metadata,
 };
+use crate::base::{
+    endpoints::migrate::{Name, VersionString},
+    ReplyHandlerFn,
+};
+use abstract_os::objects::dependency::StaticDependency;
+use cosmwasm_std::{StdError, StdResult, Storage};
+use cw2::ContractVersion;
 pub trait Handler
 where
     Self: Sized + 'static,
@@ -152,7 +149,7 @@ where
 
     fn reply_handler(&self, id: u64) -> StdResult<ReplyHandlerFn<Self, Self::Error>> {
         let Some(handler) = self.maybe_reply_handler(id) else {
-            return Err(StdError::generic_err(format!{"expected reply handler for id: {id}"}))
+            return Err(StdError::generic_err(format! {"expected reply handler for id: {id}"}))
         };
         Ok(handler)
     }

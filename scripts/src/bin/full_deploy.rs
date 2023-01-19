@@ -1,19 +1,18 @@
-use std::sync::Arc;
-
-use boot_core::networks::UNI_5;
+use abstract_boot::{Deployment, DexApi, OS};
+use boot_core::networks::{NetworkInfo, UNI_5};
 use boot_core::prelude::*;
-
 use semver::Version;
+use std::sync::Arc;
 use tokio::runtime::Runtime;
 
-use abstract_boot::{Deployment, DexApi, OS};
+const NETWORK: NetworkInfo = UNI_5;
+const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub fn full_deploy() -> anyhow::Result<()> {
-    let abstract_os_version: Version = "0.1.0-rc.3".parse().unwrap();
-    let network = UNI_5;
-    // let network = LOCAL_JUNO;
+    let abstract_os_version: Version = ABSTRACT_VERSION.parse().unwrap();
+
     let rt = Arc::new(Runtime::new()?);
-    let options = DaemonOptionsBuilder::default().network(network).build();
+    let options = DaemonOptionsBuilder::default().network(NETWORK).build();
     let (_sender, chain) = instantiate_daemon_env(&rt, options?)?;
 
     let mut os_core = OS::new(&chain, None);
@@ -22,7 +21,9 @@ pub fn full_deploy() -> anyhow::Result<()> {
 
     deployment.deploy(&mut os_core)?;
 
-    let _dex = DexApi::new("dex", &chain);
+    let _dex = DexApi::new("dex", chain.clone());
+
+    deployment.deploy_modules()?;
 
     let ans_host = deployment.ans_host;
     ans_host.update_all()?;

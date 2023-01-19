@@ -1,14 +1,13 @@
 use abstract_os::api::InstantiateMsg;
+use abstract_os::tendermint_staking::*;
 use boot_core::{prelude::boot_contract, BootEnvironment, Contract};
 use cosmwasm_std::Empty;
-
-use abstract_os::tendermint_staking::*;
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
 pub struct TMintStakingApi<Chain>;
 
 impl<Chain: BootEnvironment> TMintStakingApi<Chain> {
-    pub fn new(name: &str, chain: &Chain) -> Self {
+    pub fn new(name: &str, chain: Chain) -> Self {
         Self(
             Contract::new(name, chain).with_wasm_path("tendermint_staking"),
             // .with_mock(Box::new(

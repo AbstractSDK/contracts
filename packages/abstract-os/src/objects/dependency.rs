@@ -1,12 +1,11 @@
 //! Dependency definitions for Abstract Modules
 
+use crate::manager::state::ModuleId;
 use semver::{Comparator, Version};
 use serde::{Deserialize, Serialize};
 
-use crate::manager::state::ModuleId;
-
 /// Statically defined dependency used in-contract
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct StaticDependency {
     pub id: ModuleId<'static>,
     pub version_req: &'static [&'static str],

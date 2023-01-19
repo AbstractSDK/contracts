@@ -1,11 +1,9 @@
-use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo,
-    Response, StdResult, Storage, WasmMsg,
+use crate::validation::{validate_description, validate_link};
+use crate::{
+    contract::ManagerResult, error::ManagerError, queries::query_module_version,
+    validation::validate_name_or_gov_type,
 };
-use cw2::{get_contract_version, ContractVersion};
-use cw_storage_plus::Item;
-use semver::Version;
-
+use crate::{validation, versioning};
 use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
 use abstract_sdk::os::{
@@ -24,16 +22,16 @@ use abstract_sdk::os::{
 };
 use abstract_sdk::os::{MANAGER, PROXY};
 use abstract_sdk::*;
+use cosmwasm_std::{
+    to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo,
+    Response, StdResult, Storage, WasmMsg,
+};
+use cw2::{get_contract_version, ContractVersion};
+use cw_storage_plus::Item;
 use os::manager::state::DEPENDENTS;
 use os::manager::{CallbackMsg, ExecuteMsg};
 use os::objects::dependency::Dependency;
-
-use crate::validation::{validate_description, validate_link};
-use crate::{
-    contract::ManagerResult, error::ManagerError, queries::query_module_version,
-    validation::validate_name_or_gov_type,
-};
-use crate::{validation, versioning};
+use semver::Version;
 
 pub(crate) const MIGRATE_CONTEXT: Item<Vec<(String, Vec<Dependency>)>> = Item::new("context");
 
@@ -66,7 +64,7 @@ pub fn update_module_addresses(
         }
     }
 
-    Ok(Response::new().add_attribute("action", "update OS module addresses"))
+    Ok(Response::new().add_attribute("action", "update_module_addresses"))
 }
 
 // Attempts to install a new module through the Module Factory Contract
@@ -369,8 +367,8 @@ pub fn replace_api(
     msgs.push(configure_api(
         &old_api_addr,
         BaseExecuteMsg::UpdateTraders {
-            to_add: None,
-            to_remove: Some(traders_to_migrate.clone()),
+            to_add: vec![],
+            to_remove: traders_to_migrate.clone(),
         },
     )?);
     // Remove api as trader on dependencies
@@ -379,8 +377,8 @@ pub fn replace_api(
     msgs.push(configure_api(
         &new_api_addr,
         BaseExecuteMsg::UpdateTraders {
-            to_add: Some(traders_to_migrate),
-            to_remove: None,
+            to_add: traders_to_migrate,
+            to_remove: vec![],
         },
     )?);
     // Remove api permissions from proxy

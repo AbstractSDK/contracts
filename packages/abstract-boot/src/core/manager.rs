@@ -1,20 +1,17 @@
-use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
-use boot_core::BootEnvironment;
-use cosmwasm_std::{to_binary, Empty};
-use serde::Serialize;
-
 use abstract_os::manager::*;
 pub use abstract_os::manager::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns};
-
-use boot_core::{BootError, Contract};
-
+use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
+use boot_core::BootEnvironment;
 use boot_core::{interface::BootExecute, prelude::boot_contract};
+use boot_core::{BootError, Contract};
+use cosmwasm_std::{to_binary, Empty};
+use serde::Serialize;
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Manager<Chain>;
 
 impl<Chain: BootEnvironment> Manager<Chain> {
-    pub fn new(name: &str, chain: &Chain) -> Self {
+    pub fn new(name: &str, chain: Chain) -> Self {
         let mut contract = Contract::new(name, chain);
         contract = contract.with_wasm_path("manager");
         Self(contract)
@@ -58,15 +55,16 @@ impl<Chain: BootEnvironment> Manager<Chain> {
     }
 
     pub fn replace_api(&self, module_id: &str) -> Result<(), BootError> {
+        // this should check if installed?
         self.uninstall_module(module_id)?;
 
-        self.install_module::<Empty>(module_id, None)
+        self.install_module(module_id, &Empty {})
     }
 
     pub fn install_module<TInitMsg: Serialize>(
         &self,
         module_id: &str,
-        init_msg: Option<&TInitMsg>,
+        init_msg: &TInitMsg,
     ) -> Result<(), BootError> {
         self.install_module_version(module_id, ModuleVersion::Latest, init_msg)
     }
@@ -75,12 +73,13 @@ impl<Chain: BootEnvironment> Manager<Chain> {
         &self,
         module_id: &str,
         version: ModuleVersion,
-        init_msg: Option<&M>,
+        // not option
+        init_msg: &M,
     ) -> Result<(), BootError> {
         self.execute(
             &ExecuteMsg::InstallModule {
                 module: ModuleInfo::from_id(module_id, version)?,
-                init_msg: init_msg.map(to_binary).transpose()?,
+                init_msg: Some(to_binary(init_msg)?),
             },
             None,
         )?;

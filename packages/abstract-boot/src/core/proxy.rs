@@ -1,8 +1,6 @@
-use abstract_os::{objects::proxy_asset::UncheckedProxyAsset, proxy::*, MANAGER, PROXY};
-
 use crate::Manager;
 pub use abstract_os::proxy::{ExecuteMsgFns as ProxyExecFns, QueryMsgFns as ProxyQueryFns};
-
+use abstract_os::{objects::proxy_asset::UncheckedProxyAsset, proxy::*, MANAGER, PROXY};
 use boot_core::{
     interface::ContractInstance, prelude::boot_contract, BootEnvironment, BootError, Contract,
 };
@@ -11,14 +9,14 @@ use boot_core::{
 pub struct Proxy<Chain>;
 
 impl<Chain: BootEnvironment> Proxy<Chain> {
-    pub fn new(name: &str, chain: &Chain) -> Self {
+    pub fn new(name: &str, chain: Chain) -> Self {
         let mut contract = Contract::new(name, chain);
         contract = contract.with_wasm_path("proxy");
         Self(contract)
     }
 
     pub fn set_proxy_asset(&self, to_add: Vec<UncheckedProxyAsset>) -> Result<(), BootError> {
-        let manager = Manager::new(MANAGER, self.get_chain());
+        let manager = Manager::new(MANAGER, self.get_chain().clone());
         manager.execute_on_module(
             PROXY,
             ExecuteMsg::UpdateAssets {

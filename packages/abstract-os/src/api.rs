@@ -7,14 +7,13 @@
 //! It is not migratable and its functionality is shared between users, meaning that all users call the same contract address to perform operations on the OS.
 //! The api structure is well-suited for implementing standard interfaces to external services like dexes, lending platforms, etc.
 
-use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Empty};
-use serde::Serialize;
-
 use crate::base::{
     ExecuteMsg as MiddlewareExecMsg, InstantiateMsg as MiddlewareInstantiateMsg,
     QueryMsg as MiddlewareQueryMsg,
 };
+use cosmwasm_schema::QueryResponses;
+use cosmwasm_std::{Addr, Empty};
+use serde::Serialize;
 
 pub type ExecuteMsg<Request, ReceiveMsg = Empty> =
     MiddlewareExecMsg<BaseExecuteMsg, ApiRequestMsg<Request>, ReceiveMsg>;
@@ -100,8 +99,8 @@ pub enum BaseExecuteMsg {
     /// Add or remove traders
     /// If a trader is both in to_add and to_remove, it will be removed.
     UpdateTraders {
-        to_add: Option<Vec<String>>,
-        to_remove: Option<Vec<String>>,
+        to_add: Vec<String>,
+        to_remove: Vec<String>,
     },
     /// Remove the api
     Remove {},

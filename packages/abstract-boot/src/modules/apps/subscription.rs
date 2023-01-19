@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use abstract_os::{
     app::{BaseInstantiateMsg, InstantiateMsg as AppInitMsg},
     subscription::*,
@@ -9,12 +7,13 @@ use boot_core::{
 };
 use cosmwasm_std::{Decimal, Uint128};
 use cw_asset::AssetInfoUnchecked;
+use std::str::FromStr;
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Subscription<Chain>;
 
 impl<Chain: BootEnvironment> Subscription<Chain> {
-    pub fn new(name: &str, chain: &Chain) -> Self {
+    pub fn new(name: &str, chain: Chain) -> Self {
         let mut contract = Contract::new(name, chain);
         contract = contract.with_wasm_path("subscription");
         Self(contract)
