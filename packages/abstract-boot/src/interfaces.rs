@@ -1,9 +1,8 @@
-use abstract_os::IBC_CLIENT;
-
 use crate::{
     AnsHost, DexApi, IbcClient, Manager, ModuleFactory, OSFactory, Proxy, Subscription,
     TMintStakingApi, VersionControl, ETF as EtfBoot,
 };
+use abstract_os::IBC_CLIENT;
 use abstract_os::{
     ANS_HOST, ETF, EXCHANGE, MANAGER, MODULE_FACTORY, OS_FACTORY, PROXY, SUBSCRIPTION,
     TENDERMINT_STAKING, VERSION_CONTROL,
@@ -27,7 +26,7 @@ where
     let os_factory = OSFactory::new(OS_FACTORY, chain.clone());
     let version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
     let module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
-    let ibc_client = IbcClient::new(IBC_CLIENT, chain.clone());
+    let ibc_client = IbcClient::new(IBC_CLIENT, chain);
     (
         ans_host,
         os_factory,
@@ -50,11 +49,11 @@ where
         chain.state().set_address(MANAGER, &core.manager);
         chain.state().set_address(PROXY, &core.proxy);
         let manager = Manager::new(MANAGER, chain.clone());
-        let proxy = Proxy::new(PROXY, chain.clone());
+        let proxy = Proxy::new(PROXY, chain);
         (manager, proxy)
     } else {
         let manager = Manager::new(MANAGER, chain.clone());
-        let proxy = Proxy::new(PROXY, chain.clone());
+        let proxy = Proxy::new(PROXY, chain);
         (manager, proxy)
     }
 }
@@ -64,7 +63,7 @@ where
     <Chain as TxHandler>::Response: IndexResponse,
 {
     let liquidity_interface = EtfBoot::new(ETF, chain.clone());
-    let subscription = Subscription::new(SUBSCRIPTION, chain.clone());
+    let subscription = Subscription::new(SUBSCRIPTION, chain);
     (liquidity_interface, subscription)
 }
 
@@ -73,6 +72,6 @@ where
     <Chain as TxHandler>::Response: IndexResponse,
 {
     let dex_api = DexApi::new(EXCHANGE, chain.clone());
-    let staking_api = TMintStakingApi::new(TENDERMINT_STAKING, chain.clone());
+    let staking_api = TMintStakingApi::new(TENDERMINT_STAKING, chain);
     (dex_api, staking_api)
 }

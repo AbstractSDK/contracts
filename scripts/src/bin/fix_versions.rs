@@ -22,7 +22,7 @@ pub fn fix_versions() -> anyhow::Result<()> {
     let options = DaemonOptionsBuilder::default().network(NETWORK).build();
     let (_sender, chain) = instantiate_daemon_env(&rt, options?)?;
 
-    let deployment = Abstract::new(chain.clone(), abstract_os_version);
+    let deployment = Abstract::new(chain, abstract_os_version);
 
     let ModulesResponse { modules } = deployment.version_control.modules(None, None)?;
 

@@ -1,6 +1,7 @@
 //! # Module
 //! The Module interface provides helper functions to execute functions on other modules installed on the OS.
 
+use super::{Dependencies, Identification};
 use abstract_os::{
     api, app,
     manager::state::{ModuleId, OS_MODULES},
@@ -11,8 +12,6 @@ use cosmwasm_std::{
 use cw2::{ContractVersion, CONTRACT};
 use os::api::ApiRequestMsg;
 use serde::{de::DeserializeOwned, Serialize};
-
-use super::{Dependencies, Identification};
 
 /// Interact with other modules on the OS.
 pub trait ModuleInterface: Identification + Dependencies {
@@ -135,9 +134,9 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
 mod test {
     use super::*;
     use os::objects::dependency::StaticDependency;
-    use std::collections::HashMap;
+    
     use std::fmt::Debug;
-    use std::marker::PhantomData;
+    
 
     use crate::apis::test_common::*;
     use abstract_testing::TEST_MODULE_ID;

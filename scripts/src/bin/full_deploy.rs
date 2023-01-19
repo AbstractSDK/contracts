@@ -1,9 +1,7 @@
-use std::sync::Arc;
-
 use boot_core::networks::{NetworkInfo, UNI_5};
 use boot_core::prelude::*;
-
 use semver::Version;
+use std::sync::Arc;
 use tokio::runtime::Runtime;
 
 use abstract_boot::{Abstract, DexApi, OS};
@@ -24,7 +22,7 @@ pub fn full_deploy() -> anyhow::Result<()> {
 
     deployment.deploy(&mut os_core)?;
 
-    let _dex = DexApi::new("dex", chain.clone());
+    let _dex = DexApi::new("dex", chain);
 
     deployment.deploy_modules()?;
 

@@ -18,7 +18,7 @@ pub fn first_os() -> anyhow::Result<()> {
     let options = DaemonOptionsBuilder::default().network(network).build();
     let (sender, chain) = instantiate_daemon_env(&rt, options?)?;
 
-    let deployment = Abstract::new(chain.clone(), abstract_os_version);
+    let deployment = Abstract::new(chain, abstract_os_version);
 
     // NOTE: this assumes that the deployment has been deployed
 

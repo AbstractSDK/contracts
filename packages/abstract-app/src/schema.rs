@@ -1,5 +1,3 @@
-use std::path::Path;
-
 use crate::{
     AppContract, AppError, ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint,
 };
@@ -9,9 +7,10 @@ use cosmwasm_schema::{export_schema_with_title, schema_for, write_api, QueryResp
 use cw_controllers::AdminResponse;
 use schemars::JsonSchema;
 use serde::Serialize;
+use std::path::Path;
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<AppError>,
+        Error: From<cosmwasm_std::StdError> + From<AppError> + 'static,
         CustomExecMsg: Serialize + JsonSchema + AppExecuteMsg,
         CustomInitMsg: Serialize + JsonSchema,
         CustomQueryMsg: Serialize + JsonSchema + AppQueryMsg + QueryResponses,

@@ -1,5 +1,8 @@
+use crate::{
+    get_apis, get_apps, get_native_contracts, get_os_core_contracts, AnsHost, Manager,
+    ModuleFactory, OSFactory, Proxy, VersionControl,
+};
 use abstract_os::manager::ManagerModuleInfo;
-
 use abstract_os::{
     manager::QueryMsgFns as ManagerQueryMsgFns, proxy::QueryMsgFns as ProxyQueryMsgFns,
 };
@@ -9,11 +12,6 @@ use semver::Version;
 use serde::Serialize;
 use speculoos::prelude::*;
 use std::collections::HashSet;
-
-use crate::{
-    get_apis, get_apps, get_native_contracts, get_os_core_contracts, AnsHost, Manager,
-    ModuleFactory, OSFactory, Proxy, VersionControl,
-};
 
 pub struct Abstract<Chain: BootEnvironment> {
     pub chain: Chain,
@@ -113,7 +111,7 @@ impl<Chain: BootEnvironment> boot_core::deploy::Deploy<Chain> for Abstract<Chain
             get_native_contracts(chain.clone());
         let version = env!("CARGO_PKG_VERSION").parse().unwrap();
         Ok(Self {
-            chain: chain.clone(),
+            chain,
             version,
             ans_host,
             version_control,
@@ -123,7 +121,7 @@ impl<Chain: BootEnvironment> boot_core::deploy::Deploy<Chain> for Abstract<Chain
     }
 }
 
-impl<'a, Chain: BootEnvironment> Abstract<Chain> {
+impl<Chain: BootEnvironment> Abstract<Chain> {
     pub fn new(chain: Chain, version: Version) -> Self {
         let (ans_host, os_factory, version_control, module_factory, _ibc_client) =
             get_native_contracts(chain.clone());

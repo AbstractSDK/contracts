@@ -4,15 +4,14 @@ use boot_core::{
 };
 use cosmwasm_std::Addr;
 
+use crate::{Manager, Proxy, OS};
 pub use abstract_os::os_factory::{
     ExecuteMsgFns as OsFactoryExecFns, QueryMsgFns as OsFactoryQueryFns,
 };
-use abstract_os::{objects::gov_type::GovernanceDetails, os_factory::*};
+use abstract_os::{objects::gov_type::GovernanceDetails, os_factory::*, ABSTRACT_EVENT_NAME};
 use abstract_os::{MANAGER, PROXY};
 use boot_core::interface::BootExecute;
 use boot_core::interface::ContractInstance;
-
-use crate::{Manager, Proxy, OS};
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct OSFactory<Chain>;
@@ -38,11 +37,11 @@ impl<Chain: BootEnvironment> OSFactory<Chain> {
             None,
         )?;
 
-        let manager_address = &result.event_attr_value("wasm", "manager_address")?;
+        let manager_address = &result.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
         self.get_chain()
             .state()
             .set_address(MANAGER, &Addr::unchecked(manager_address));
-        let proxy_address = &result.event_attr_value("wasm", "proxy_address")?;
+        let proxy_address = &result.event_attr_value(ABSTRACT_EVENT_NAME, "proxy_address")?;
         self.get_chain()
             .state()
             .set_address(PROXY, &Addr::unchecked(proxy_address));

@@ -1,15 +1,13 @@
+use crate::{state::AppContract, AppError, AppResult};
+use crate::{ExecuteEndpoint, Handler, IbcCallbackEndpoint};
 use abstract_os::app::AppExecuteMsg;
 use abstract_sdk::{
     base::ReceiveEndpoint,
     os::app::{BaseExecuteMsg, ExecuteMsg},
 };
-
-use crate::{ExecuteEndpoint, Handler, IbcCallbackEndpoint};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
 use schemars::JsonSchema;
 use serde::Serialize;
-
-use crate::{state::AppContract, AppError, AppResult};
 
 impl<
         Error: From<cosmwasm_std::StdError> + From<AppError> + 'static,
@@ -95,6 +93,6 @@ impl<
 
         self.base_state.save(deps.storage, &state)?;
 
-        Ok(Response::default().add_attribute("action", "updated_ans_host_address"))
+        Ok(Response::default().add_attribute("action", "update_config"))
     }
 }
