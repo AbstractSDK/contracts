@@ -178,17 +178,20 @@ impl<
 
 #[cfg(test)]
 mod tests {
-    use abstract_os::{api::{BaseInstantiateMsg, InstantiateMsg}, objects::module_version::{MODULE, ModuleData}};
+    use super::*;
+    use abstract_os::{
+        api::{BaseInstantiateMsg, InstantiateMsg},
+        objects::module_version::{ModuleData, MODULE},
+    };
     use abstract_sdk::base::InstantiateEndpoint;
+    use abstract_testing::*;
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
-        Empty, StdError, Addr,
+        Addr, Empty, StdError,
     };
     use cw2::{ContractVersion, CONTRACT};
-    use thiserror::Error;
     use speculoos::prelude::*;
-    use super::*;
-    use abstract_testing::*;
+    use thiserror::Error;
 
     type MockApi = ApiContract<MockError, Empty, Empty, Empty, Empty>;
     type ApiMockResult = Result<(), MockError>;
@@ -217,13 +220,19 @@ mod tests {
         api.instantiate(deps, mock_env(), info, init_msg)
     }
 
-    fn mock_exec_handler(_deps: DepsMut, _env: Env, _info: MessageInfo,_api: MockApi, _msg: Empty) -> Result<Response, MockError> {
+    fn mock_exec_handler(
+        _deps: DepsMut,
+        _env: Env,
+        _info: MessageInfo,
+        _api: MockApi,
+        _msg: Empty,
+    ) -> Result<Response, MockError> {
         Ok(Response::new().set_data("mock_response".as_bytes()))
     }
 
     fn mock_api() -> MockApi {
         MockApi::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
-        .with_execute(mock_exec_handler)
+            .with_execute(mock_exec_handler)
     }
 
     #[test]
@@ -232,13 +241,13 @@ mod tests {
         let info = mock_info(TEST_MANAGER, &vec![]);
         let mut deps = mock_dependencies();
         deps.querier = abstract_testing::querier();
-        
+
         mock_init(deps.as_mut())?;
 
         let mut api = mock_api();
         let msg = BaseExecuteMsg::UpdateTraders {
-            to_add: Some(vec![TEST_TRADER.into()]),
-            to_remove: None,
+            to_add: vec![TEST_TRADER.into()],
+            to_remove: vec![],
         };
         // consumes api
         api.base_execute(deps.as_mut(), env, info, msg)?;
@@ -247,7 +256,9 @@ mod tests {
         let no_traders_registered = api.traders.is_empty(&deps.storage);
         assert_that!(no_traders_registered).is_false();
 
-        let test_proxy_traders = api.traders.load(&deps.storage, Addr::unchecked(TEST_PROXY))?;
+        let test_proxy_traders = api
+            .traders
+            .load(&deps.storage, Addr::unchecked(TEST_PROXY))?;
 
         assert_that!(test_proxy_traders).has_length(1);
         assert_that!(test_proxy_traders).contains(Addr::unchecked(TEST_TRADER));
