@@ -80,6 +80,17 @@ impl Resolve for AssetInfo {
     }
 }
 
+impl Resolve for Asset {
+    type Output = AnsAsset;
+
+    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> StdResult<Self::Output> {
+        Ok(AnsAsset {
+            name: self.info.resolve(querier, ans_host)?,
+            amount: self.amount,
+        })
+    }
+}
+
 impl<T> Resolve for Vec<T>
 where
     T: Resolve,
