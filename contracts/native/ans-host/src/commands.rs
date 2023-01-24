@@ -732,7 +732,8 @@ mod test {
         use super::*;
         use abstract_os::objects::AssetEntry;
         use abstract_testing::map_tester::CwMapTesterBuilder;
-        use cw_asset::AssetInfoBase;
+        use cw_asset::{AssetInfoBase, AssetInfo};
+        use cw_storage_plus::Map;
 
         fn unchecked_asset_map_entry(
             name: &str,
@@ -805,7 +806,11 @@ mod test {
             mock_init(deps.as_mut()).unwrap();
 
             let mut map_tester = setup_map_tester();
-            map_tester.test_add_one(&mut deps)
+            map_tester.test_add_one(&mut deps)?;
+            let reverse_map = Map::<AssetInfo, AssetEntry>::new("rev_assets");
+            let test_entry = reverse_map.load(&deps.storage, AssetInfoBase::Native("utest".into()))?;
+            assert_that!(test_entry).is_equal_to(AssetEntry::from("test"));
+            Ok(())
         }
 
         #[test]
@@ -832,7 +837,11 @@ mod test {
             mock_init(deps.as_mut()).unwrap();
 
             let mut map_tester = setup_map_tester();
-            map_tester.test_add_and_remove_same(&mut deps)
+            map_tester.test_add_and_remove_same(&mut deps)?;
+            let reverse_map = Map::<AssetInfo, AssetEntry>::new("rev_assets");
+            let test_entry = reverse_map.may_load(&deps.storage, AssetInfoBase::Native("utest".into()))?;
+            assert_that!(test_entry).is_equal_to(None);
+            Ok(())
         }
 
         #[test]
