@@ -161,7 +161,7 @@ mod tests {
         };
         let res = api.instantiate(deps.as_mut(), env.clone(), info.clone(), init_msg);
         assert_that!(&res).is_err_containing(
-            &StdError::generic_err("Invalid input: human address too short").into(),
+            &StdError::generic_err("Invalid input: human address too short for this mock implementation (must be >= 3).").into(),
         );
         Ok(())
     }
@@ -182,7 +182,7 @@ mod tests {
         };
         let res = api.instantiate(deps.as_mut(), env.clone(), info.clone(), init_msg);
         assert_that!(&res).is_err_containing(
-            &StdError::generic_err("Invalid input: human address too short").into(),
+            &StdError::generic_err("Invalid input: human address too short for this mock implementation (must be >= 3).").into(),
         );
         Ok(())
     }
