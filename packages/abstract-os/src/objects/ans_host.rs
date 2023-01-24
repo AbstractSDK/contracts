@@ -1,6 +1,7 @@
 use super::{asset_entry::AssetEntry, contract_entry::ContractEntry, ChannelEntry};
 use crate::ans_host::state::{
-    ASSET_ADDRESSES, ASSET_PAIRINGS, CHANNELS, CONTRACT_ADDRESSES, POOL_METADATA, REV_ASSET_ADDRESSES,
+    ASSET_ADDRESSES, ASSET_PAIRINGS, CHANNELS, CONTRACT_ADDRESSES, POOL_METADATA,
+    REV_ASSET_ADDRESSES,
 };
 use crate::objects::{DexAssetPairing, PoolMetadata, PoolReference, UniquePoolId};
 use cosmwasm_std::{Addr, QuerierWrapper, StdError, StdResult};

@@ -12,7 +12,7 @@ use abstract_os::objects::{
 };
 use cosmwasm_std::{Addr, DepsMut, Empty, MessageInfo, Response, StdResult};
 use cosmwasm_std::{Env, StdError, Storage};
-use cw_asset::{AssetInfo, AssetInfoUnchecked};
+use cw_asset::AssetInfoUnchecked;
 
 const MIN_POOL_ASSETS: usize = 2;
 const MAX_POOL_ASSETS: usize = 5;
@@ -89,16 +89,16 @@ pub fn update_asset_addresses(
     for (name, new_asset) in to_add.into_iter() {
         // validate asset
         let asset = new_asset.check(deps.as_ref().api, None)?;
-        
+
         ASSET_ADDRESSES.save(deps.storage, name.clone().into(), &asset)?;
-        REV_ASSET_ADDRESSES.save(deps.storage, asset,&name.into())?;
+        REV_ASSET_ADDRESSES.save(deps.storage, asset, &name.into())?;
     }
 
     for name in to_remove {
-        let asset = ASSET_ADDRESSES.may_load(deps.storage, name.clone().into())?;
-        if asset.is_some() {
+        let maybe_asset = ASSET_ADDRESSES.may_load(deps.storage, name.clone().into())?;
+        if let Some(asset) = maybe_asset {
             ASSET_ADDRESSES.remove(deps.storage, name.into());
-            REV_ASSET_ADDRESSES.remove(deps.storage, asset.unwrap());
+            REV_ASSET_ADDRESSES.remove(deps.storage, asset);
         }
     }
 
