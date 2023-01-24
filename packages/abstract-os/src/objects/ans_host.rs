@@ -95,11 +95,7 @@ impl AnsHost {
         let mut resolved_assets = vec![];
 
         for asset in assets.into_iter() {
-            let result = REV_ASSET_ADDRESSES
-                .query(querier, self.address.clone(), asset.clone())?
-                .ok_or_else(|| {
-                    StdError::generic_err(format!("asset {} not found in ans_host", &asset))
-                })?;
+            let result = self.query_asset_reverse(querier, &asset)?;
             resolved_assets.push(result);
         }
         Ok(resolved_assets)
