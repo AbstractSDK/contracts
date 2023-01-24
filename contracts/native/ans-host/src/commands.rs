@@ -95,9 +95,11 @@ pub fn update_asset_addresses(
     }
 
     for name in to_remove {
-        let asset = ASSET_ADDRESSES.load(deps.storage, name.clone().into())?;
-        ASSET_ADDRESSES.remove(deps.storage, name.into());
-        REV_ASSET_ADDRESSES.remove(deps.storage, asset);
+        let asset = ASSET_ADDRESSES.may_load(deps.storage, name.clone().into())?;
+        if asset.is_some() {
+            ASSET_ADDRESSES.remove(deps.storage, name.into());
+            REV_ASSET_ADDRESSES.remove(deps.storage, asset.unwrap());
+        }
     }
 
     Ok(Response::new().add_attribute("action", "updated asset addresses"))
