@@ -1,6 +1,6 @@
 use super::{asset_entry::AssetEntry, contract_entry::ContractEntry, ChannelEntry};
 use crate::ans_host::state::{
-    ASSET_ADDRESSES, ASSET_PAIRINGS, CHANNELS, CONTRACT_ADDRESSES, POOL_METADATA,
+    ASSET_ADDRESSES, ASSET_PAIRINGS, CHANNELS, CONTRACT_ADDRESSES, POOL_METADATA, REV_ASSET_ADDRESSES,
 };
 use crate::objects::{DexAssetPairing, PoolMetadata, PoolReference, UniquePoolId};
 use cosmwasm_std::{Addr, QuerierWrapper, StdError, StdResult};
@@ -77,6 +77,39 @@ impl AnsHost {
         asset: &AssetEntry,
     ) -> StdResult<AssetInfo> {
         let result = ASSET_ADDRESSES
+            .query(querier, self.address.clone(), asset.clone())?
+            .ok_or_else(|| {
+                StdError::generic_err(format!("asset {} not found in ans_host", &asset))
+            })?;
+        Ok(result)
+    }
+    
+    /// Raw Query to AnsHost contract
+    pub fn query_assets_reverse(
+        &self,
+        querier: &QuerierWrapper,
+        assets: Vec<AssetInfo>,
+    ) -> StdResult<BTreeMap<AssetInfo, AssetEntry>> {
+        let mut resolved_assets: BTreeMap<AssetInfo, AssetEntry> = BTreeMap::new();
+
+        for asset in assets.into_iter() {
+            let result = REV_ASSET_ADDRESSES
+                .query(querier, self.address.clone(), asset.clone())?
+                .ok_or_else(|| {
+                    StdError::generic_err(format!("asset {} not found in ans_host", &asset))
+                })?;
+            resolved_assets.insert(asset, result);
+        }
+        Ok(resolved_assets)
+    }
+
+    /// Raw query of a single AssetEntry
+    pub fn query_asset_reverse(
+        &self,
+        querier: &QuerierWrapper,
+        asset: &AssetInfo,
+    ) -> StdResult<AssetEntry> {
+        let result = REV_ASSET_ADDRESSES
             .query(querier, self.address.clone(), asset.clone())?
             .ok_or_else(|| {
                 StdError::generic_err(format!("asset {} not found in ans_host", &asset))
