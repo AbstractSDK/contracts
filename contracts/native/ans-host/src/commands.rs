@@ -87,17 +87,17 @@ pub fn update_asset_addresses(
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
     for (name, new_asset) in to_add.into_iter() {
-        // Update function for new or existing keys
-        let api = deps.api;
-        let insert = |_| -> StdResult<AssetInfo> {
-            // use own check, cw_asset otherwise changes cases to lowercase
-            new_asset.check(api, None)
-        };
-        ASSET_ADDRESSES.update(deps.storage, name.into(), insert)?;
+        // validate asset
+        let asset = new_asset.check(deps.as_ref().api, None)?;
+        
+        ASSET_ADDRESSES.save(deps.storage, name.clone().into(), &asset)?;
+        REV_ASSET_ADDRESSES.save(deps.storage, asset,&name.into())?;
     }
 
     for name in to_remove {
+        let asset = ASSET_ADDRESSES.load(deps.storage, name.clone().into())?;
         ASSET_ADDRESSES.remove(deps.storage, name.into());
+        REV_ASSET_ADDRESSES.remove(deps.storage, asset);
     }
 
     Ok(Response::new().add_attribute("action", "updated asset addresses"))
