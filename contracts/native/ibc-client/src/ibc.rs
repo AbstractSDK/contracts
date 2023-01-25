@@ -1,4 +1,4 @@
-use crate::error::ClientError;
+use crate::error::IbcClientError;
 use abstract_sdk::os::abstract_ica::{
     check_order, check_version, BalancesResponse, RegisterResponse, StdAck, WhoAmIResponse,
 };
@@ -23,7 +23,7 @@ pub fn ibc_channel_open(
     _deps: DepsMut,
     _env: Env,
     msg: IbcChannelOpenMsg,
-) -> Result<Option<Ibc3ChannelOpenResponse>, ClientError> {
+) -> Result<Option<Ibc3ChannelOpenResponse>, IbcClientError> {
     let channel = msg.channel();
     check_order(&channel.order)?;
     check_version(&channel.version)?;
@@ -102,7 +102,7 @@ pub fn ibc_packet_ack(
     deps: DepsMut,
     env: Env,
     msg: IbcPacketAckMsg,
-) -> Result<IbcBasicResponse, ClientError> {
+) -> Result<IbcBasicResponse, IbcClientError> {
     // which local channel was this packet send from
     let channel_id = msg.original_packet.src.channel_id.clone();
     // we need to parse the ack based on our request
@@ -156,7 +156,7 @@ fn acknowledge_dispatch(
     _env: Env,
     callback_info: Option<CallbackInfo>,
     ack: IbcPacketAckMsg,
-) -> Result<IbcBasicResponse, ClientError> {
+) -> Result<IbcBasicResponse, IbcClientError> {
     let res = IbcBasicResponse::new().add_attribute("action", "acknowledge_dispatch");
     maybe_add_callback(res, callback_info, ack).map_err(Into::into)
 }
@@ -184,7 +184,7 @@ fn acknowledge_query(
     os_id: u32,
     callback_info: Option<CallbackInfo>,
     ack: IbcPacketAckMsg,
-) -> Result<IbcBasicResponse, ClientError> {
+) -> Result<IbcBasicResponse, IbcClientError> {
     let msg: StdAck = from_slice(&ack.acknowledgement.data)?;
     let res = IbcBasicResponse::new().add_attribute("action", "acknowledge_ibc_query");
     // store IBC response for later querying from the smart contract??
@@ -213,7 +213,7 @@ fn acknowledge_who_am_i(
     deps: DepsMut,
     channel_id: String,
     ack: StdAck,
-) -> Result<IbcBasicResponse, ClientError> {
+) -> Result<IbcBasicResponse, IbcClientError> {
     // ignore errors (but mention in log)
     let WhoAmIResponse { chain } = match ack {
         StdAck::Result(res) => from_slice(&res)?,
@@ -225,7 +225,7 @@ fn acknowledge_who_am_i(
     };
     // ensure no third-party can overwrite
     if CHANNELS.has(deps.storage, &chain) {
-        return Err(ClientError::HostAlreadyExists {});
+        return Err(IbcClientError::HostAlreadyExists {});
     }
     // Now we know over what channel to communicate!
     CHANNELS.save(deps.storage, &chain, &channel_id)?;
@@ -240,7 +240,7 @@ fn acknowledge_register(
     channel_id: String,
     os_id: u32,
     ack: StdAck,
-) -> Result<IbcBasicResponse, ClientError> {
+) -> Result<IbcBasicResponse, IbcClientError> {
     // ignore errors (but mention in log)
     let RegisterResponse { account } = match ack {
         StdAck::Result(res) => from_slice(&res)?,
@@ -260,7 +260,7 @@ fn acknowledge_register(
                 }
                 Ok(acct)
             }
-            None => Err(ClientError::UnregisteredChannel(channel_id.clone())),
+            None => Err(IbcClientError::UnregisteredChannel(channel_id.clone())),
         }
     })?;
 
@@ -274,7 +274,7 @@ fn acknowledge_balances(
     channel_id: String,
     os_id: u32,
     ack: StdAck,
-) -> Result<IbcBasicResponse, ClientError> {
+) -> Result<IbcBasicResponse, IbcClientError> {
     // ignore errors (but mention in log)
     let BalancesResponse { account, balances } = match ack {
         StdAck::Result(res) => from_slice(&res)?,
@@ -289,7 +289,7 @@ fn acknowledge_balances(
         Some(acct) => {
             if let Some(old) = acct.remote_addr {
                 if old != account {
-                    return Err(ClientError::RemoteAccountChanged { old, addr: account });
+                    return Err(IbcClientError::RemoteAccountChanged { old, addr: account });
                 }
             }
             Ok(AccountData {
@@ -298,7 +298,7 @@ fn acknowledge_balances(
                 remote_balance: balances,
             })
         }
-        None => Err(ClientError::UnregisteredChannel(channel_id.clone())),
+        None => Err(IbcClientError::UnregisteredChannel(channel_id.clone())),
     })?;
 
     Ok(IbcBasicResponse::new().add_attribute("action", "acknowledge_balances"))
