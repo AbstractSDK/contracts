@@ -1,17 +1,22 @@
 use crate::contract::{IbcClientResponse, IbcClientResult, MAX_RETRIES};
-use crate::error::ClientError;
+use crate::error::IbcClientError;
 use crate::ibc::PACKET_LIFETIME;
-use abstract_os::ibc_client::state::{
-    AccountData, ACCOUNTS, ADMIN, ANS_HOST, CHANNELS, CONFIG, LATEST_QUERIES,
+
+use abstract_sdk::{
+    base::features::Identification,
+    feature_objects::VersionControlContract,
+    os::{
+        ibc_client::state::{
+            AccountData, ACCOUNTS, ADMIN, ANS_HOST, CHANNELS, CONFIG, LATEST_QUERIES,
+        },
+        ibc_client::CallbackInfo,
+        ibc_host::{HostAction, InternalAction, PacketMsg},
+        objects::ans_host::AnsHost,
+        objects::ChannelEntry,
+        ICS20,
+    },
+    Execution, Resolve, Verification,
 };
-use abstract_os::ibc_client::CallbackInfo;
-use abstract_os::ibc_host::{HostAction, InternalAction, PacketMsg};
-use abstract_os::objects::ans_host::AnsHost;
-use abstract_os::objects::ChannelEntry;
-use abstract_os::ICS20;
-use abstract_sdk::base::features::Identification;
-use abstract_sdk::feature_objects::VersionControlContract;
-use abstract_sdk::{Execution, Resolve, Verification};
 use cosmwasm_std::{
     to_binary, Coin, CosmosMsg, DepsMut, Env, IbcMsg, MessageInfo, Response, StdError, StdResult,
     Storage,
@@ -79,7 +84,7 @@ pub fn execute_send_packet(
         .assert_proxy(&info.sender)?;
     // Can only call non-internal actions
     if let HostAction::Internal(_) = action {
-        return Err(ClientError::ForbiddenInternalCall {});
+        return Err(IbcClientError::ForbiddenInternalCall {});
     }
     // Set max retries
     retries = retries.min(MAX_RETRIES);
@@ -206,4 +211,153 @@ pub fn execute_send_funds(
 fn clear_accounts(store: &mut dyn Storage) {
     ACCOUNTS.clear(store);
     LATEST_QUERIES.clear(store);
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::contract;
+    use abstract_os::ibc_client::state::*;
+    use abstract_os::ibc_client::*;
+    use abstract_testing::{TEST_ADMIN, TEST_ANS_HOST, TEST_VERSION_CONTROL};
+    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
+    use cosmwasm_std::Addr;
+    use speculoos::prelude::*;
+
+    const TEST_CHAIN: &str = "test-chain";
+
+    type IbcClientTestResult = Result<(), IbcClientError>;
+
+    fn execute_as(deps: DepsMut, sender: &str, msg: ExecuteMsg) -> IbcClientResult {
+        contract::execute(deps, mock_env(), mock_info(sender, &[]), msg)
+    }
+
+    fn execute_as_admin(deps: DepsMut, msg: ExecuteMsg) -> IbcClientResult {
+        execute_as(deps, TEST_ADMIN, msg)
+    }
+
+    fn mock_init(deps: DepsMut) -> StdResult<Response> {
+        let msg = InstantiateMsg {
+            ans_host_address: TEST_ANS_HOST.to_string(),
+            version_control_address: TEST_VERSION_CONTROL.to_string(),
+            chain: TEST_CHAIN.to_string(),
+        };
+        contract::instantiate(deps, mock_env(), mock_info(TEST_ADMIN, &[]), msg)
+    }
+
+    fn test_only_admin(msg: ExecuteMsg) -> IbcClientTestResult {
+        let mut deps = mock_dependencies();
+        mock_init(deps.as_mut())?;
+
+        let res = execute_as(deps.as_mut(), "not_admin", msg);
+        assert_that!(&res)
+            .is_err()
+            .matches(|e| matches!(e, IbcClientError::Admin { .. }));
+
+        Ok(())
+    }
+
+    mod update_config {
+        use super::*;
+        use abstract_os::abstract_ica::StdAck;
+        use abstract_os::ibc_client::state::Config;
+        use abstract_testing::TEST_VERSION_CONTROL;
+        use cosmwasm_std::{Empty, Timestamp};
+
+        #[test]
+        fn only_admin() -> IbcClientTestResult {
+            test_only_admin(ExecuteMsg::UpdateConfig {
+                version_control: None,
+                ans_host: None,
+            })
+        }
+
+        #[test]
+        fn update_ans_host() -> IbcClientTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+            let cfg = Config {
+                chain: "chain".to_string(),
+                version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
+            };
+            CONFIG.save(deps.as_mut().storage, &cfg)?;
+
+            let new_ans_host = "new_ans_host".to_string();
+
+            let msg = ExecuteMsg::UpdateConfig {
+                ans_host: Some(new_ans_host.clone()),
+                version_control: None,
+            };
+
+            let res = execute_as_admin(deps.as_mut(), msg)?;
+            assert_that!(res.messages).is_empty();
+
+            let actual = ANS_HOST.load(deps.as_ref().storage)?;
+            assert_that!(actual.address).is_equal_to(Addr::unchecked(new_ans_host));
+
+            Ok(())
+        }
+
+        #[test]
+        pub fn update_version_control() -> IbcClientTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let new_version_control = "new_version_control".to_string();
+
+            let msg = ExecuteMsg::UpdateConfig {
+                ans_host: None,
+                version_control: Some(new_version_control.clone()),
+            };
+
+            let res = execute_as_admin(deps.as_mut(), msg)?;
+            assert_that!(res.messages).is_empty();
+
+            let cfg = CONFIG.load(deps.as_ref().storage)?;
+            assert_that!(cfg.version_control_address)
+                .is_equal_to(Addr::unchecked(new_version_control));
+
+            Ok(())
+        }
+
+        #[test]
+        fn update_version_control_should_clear_accounts() -> IbcClientTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            ACCOUNTS.save(
+                deps.as_mut().storage,
+                ("channel", 5u32),
+                &AccountData {
+                    last_update_time: Timestamp::from_nanos(5u64),
+                    remote_addr: None,
+                    remote_balance: vec![],
+                },
+            )?;
+
+            LATEST_QUERIES.save(
+                deps.as_mut().storage,
+                ("channel", 5u32),
+                &LatestQueryResponse {
+                    last_update_time: Timestamp::from_nanos(5u64),
+                    response: StdAck::Result(to_binary(&Empty {})?),
+                },
+            )?;
+
+            let new_version_control = "new_version_control".to_string();
+
+            let msg = ExecuteMsg::UpdateConfig {
+                ans_host: None,
+                version_control: Some(new_version_control.clone()),
+            };
+
+            let res = execute_as_admin(deps.as_mut(), msg)?;
+            assert_that!(res.messages).is_empty();
+
+            assert_that!(ACCOUNTS.is_empty(&deps.storage)).is_true();
+            assert_that!(LATEST_QUERIES.is_empty(&deps.storage)).is_true();
+
+            Ok(())
+        }
+    }
 }
