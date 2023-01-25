@@ -13,6 +13,7 @@ use abstract_sdk::{
         ibc_host::{HostAction, InternalAction, PacketMsg},
         objects::ans_host::AnsHost,
         objects::ChannelEntry,
+        version_control::Core,
         ICS20,
     },
     Execution, Resolve, Verification,
@@ -73,15 +74,14 @@ pub fn execute_send_packet(
     callback_info: Option<CallbackInfo>,
     mut retries: u8,
 ) -> IbcClientResult {
-    // auth check
     let cfg = CONFIG.load(deps.storage)?;
-    let version_control = VersionControlContract {
-        address: cfg.version_control_address,
-    };
+    let version_control = VersionControlContract::new(cfg.version_control_address);
+
     // Verify that the sender is a proxy contract
     let core = version_control
         .os_register(deps.as_ref())
         .assert_proxy(&info.sender)?;
+
     // Can only call non-internal actions
     if let HostAction::Internal(_) = action {
         return Err(IbcClientError::ForbiddenInternalCall {});
@@ -118,12 +118,13 @@ pub fn execute_register_os(
     // auth check
     let cfg = CONFIG.load(deps.storage)?;
     // Verify that the sender is a proxy contract
-    let version_control = VersionControlContract {
-        address: cfg.version_control_address,
-    };
+
+    let version_control = VersionControlContract::new(cfg.version_control_address);
+
     let core = version_control
         .os_register(deps.as_ref())
         .assert_proxy(&info.sender)?;
+
     // ensure the channel exists (not found if not registered)
     let channel_id = CHANNELS.load(deps.storage, &host_chain)?;
     let os_id = core.os_id(deps.as_ref())?;
@@ -162,18 +163,19 @@ pub fn execute_send_funds(
     let cfg = CONFIG.load(deps.storage)?;
     let mem = ANS_HOST.load(deps.storage)?;
     // Verify that the sender is a proxy contract
-    let version_control = VersionControlContract {
-        address: cfg.version_control_address,
-    };
+    let version_control = VersionControlContract::new(cfg.version_control_address);
+
     let core = version_control
         .os_register(deps.as_ref())
         .assert_proxy(&info.sender)?;
+
     // get os_id of OS
     let os_id = core.os_id(deps.as_ref())?;
     // get channel used to communicate to host chain
     let channel = CHANNELS.load(deps.storage, &host_chain)?;
     // load remote account
     let data = ACCOUNTS.load(deps.storage, (&channel, os_id))?;
+
     let remote_addr = match data.remote_addr {
         Some(addr) => addr,
         None => {
@@ -202,6 +204,7 @@ pub fn execute_send_funds(
             .into(),
         );
     }
+
     // let these messages be executed by proxy
     let proxy_msg = core.executor(deps.as_ref()).execute(transfers)?;
 
@@ -372,7 +375,7 @@ mod test {
         }
 
         #[test]
-        fn remove_host() -> IbcClientTestResult {
+        fn remove_existing_host() -> IbcClientTestResult {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
@@ -386,6 +389,21 @@ mod test {
             assert_that!(res.messages).is_empty();
 
             assert_that!(CHANNELS.is_empty(&deps.storage)).is_true();
+
+            Ok(())
+        }
+
+        #[test]
+        fn remove_host_nonexistent_should_not_throw() -> IbcClientTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let msg = ExecuteMsg::RemoveHost {
+                host_chain: TEST_CHAIN.to_string(),
+            };
+
+            let res = execute_as_admin(deps.as_mut(), msg)?;
+            assert_that!(res.messages).is_empty();
 
             Ok(())
         }
