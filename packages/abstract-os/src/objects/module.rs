@@ -1,6 +1,7 @@
 use super::module_reference::ModuleReference;
 use cosmwasm_std::{to_binary, Binary, StdError, StdResult};
 use cw2::ContractVersion;
+use cw_semver::Version;
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 use std::fmt::{self, Display};
 
@@ -175,6 +176,23 @@ impl fmt::Display for ModuleInfo {
             "{} provided by {} with version {}",
             self.name, self.provider, self.version,
         )
+    }
+}
+
+impl TryInto<Version> for ModuleVersion {
+    type Error = StdError;
+
+    fn try_into(self) -> StdResult<Version> {
+        match self {
+            ModuleVersion::Latest => Err(StdError::generic_err(
+                "Module version must be set for this action.",
+            )),
+            ModuleVersion::Version(ver) => {
+                let version =
+                    Version::parse(&ver).map_err(|e| StdError::generic_err(e.to_string()))?;
+                Ok(version)
+            }
+        }
     }
 }
 
@@ -433,5 +451,33 @@ mod test {
         let expected = "provider:name:1.0.0".to_string();
 
         assert_that!(info.id_with_version()).is_equal_to(expected);
+    }
+
+    #[test]
+    fn try_into_version_happy_path() {
+        let info = ModuleInfo {
+            name: "name".to_string(),
+            provider: "provider".to_string(),
+            version: ModuleVersion::Version("1.0.0".into()),
+        };
+
+        let expected: Version = "1.0.0".to_string().parse().unwrap();
+
+        let actual: Version = info.version.try_into().unwrap();
+
+        assert_that!(actual).is_equal_to(expected);
+    }
+
+    #[test]
+    fn try_into_version_with_latest() {
+        let info = ModuleInfo {
+            name: "name".to_string(),
+            provider: "provider".to_string(),
+            version: ModuleVersion::Latest,
+        };
+
+        let actual: Result<Version, _> = info.version.try_into();
+
+        assert_that!(actual).is_err();
     }
 }

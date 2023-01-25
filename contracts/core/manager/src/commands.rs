@@ -293,7 +293,7 @@ pub fn set_migrate_msgs_and_context(
             versioning::assert_migrate_requirements(
                 deps.as_ref(),
                 &id,
-                module.info.version.to_string().parse().unwrap(),
+                module.info.version.try_into()?,
             )?;
             let old_deps = versioning::load_module_dependencies(deps.as_ref(), &id)?;
             // Update the address of the api internally
@@ -316,7 +316,7 @@ pub fn set_migrate_msgs_and_context(
             versioning::assert_migrate_requirements(
                 deps.as_ref(),
                 &module.info.id(),
-                module.info.version.to_string().parse().unwrap(),
+                module.info.version.try_into()?,
             )?;
             let old_deps = versioning::load_module_dependencies(deps.as_ref(), &id)?;
 
