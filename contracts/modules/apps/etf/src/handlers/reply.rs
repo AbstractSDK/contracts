@@ -2,7 +2,7 @@ use crate::contract::{EtfApp, EtfResult};
 use crate::response::MsgInstantiateContractResponse;
 use abstract_sdk::base::features::AbstractResponse;
 use abstract_sdk::os::etf::state::STATE;
-use cosmwasm_std::{DepsMut, Env, Reply, StdError, StdResult};
+use cosmwasm_std::{DepsMut, Env, Reply, Response, StdError, StdResult};
 use protobuf::Message;
 
 pub fn instantiate_reply(deps: DepsMut, _env: Env, etf: EtfApp, reply: Reply) -> EtfResult {
@@ -19,7 +19,8 @@ pub fn instantiate_reply(deps: DepsMut, _env: Env, etf: EtfApp, reply: Reply) ->
         Ok(meta)
     })?;
 
-    Ok(etf.response_with(
+    Ok(etf.custom_tag_response(
+        Response::default(),
         "instantiate_reply",
         vec![("liquidity_token_addr", liquidity_token)],
     ))
