@@ -360,4 +360,34 @@ mod test {
             Ok(())
         }
     }
+
+    mod remove_host {
+        use super::*;
+
+        #[test]
+        fn only_admin() -> IbcClientTestResult {
+            test_only_admin(ExecuteMsg::RemoveHost {
+                host_chain: "host_chain".to_string(),
+            })
+        }
+
+        #[test]
+        fn remove_host() -> IbcClientTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            CHANNELS.save(deps.as_mut().storage, TEST_CHAIN, &"test_channel".into())?;
+
+            let msg = ExecuteMsg::RemoveHost {
+                host_chain: TEST_CHAIN.to_string(),
+            };
+
+            let res = execute_as_admin(deps.as_mut(), msg)?;
+            assert_that!(res.messages).is_empty();
+
+            assert_that!(CHANNELS.is_empty(&deps.storage)).is_true();
+
+            Ok(())
+        }
+    }
 }
