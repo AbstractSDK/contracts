@@ -128,7 +128,6 @@ mod test {
 
     use crate::apis::test_common::*;
 
-    #[cfg(feature = "sdk")]
     mod transfer_coins {
         use super::*;
         use os::proxy::ExecuteMsg::ModuleAction;
@@ -166,7 +165,6 @@ mod test {
 
     // transfer must be tested via integration test
 
-    #[cfg(feature = "sdk")]
     mod deposit_coins {
         use super::*;
 
