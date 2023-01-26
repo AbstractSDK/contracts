@@ -348,8 +348,8 @@ mod test {
                 },
                 ModuleInfo {
                     provider: "astroport".to_string(),
-                    name: "liquidity_pool".to_string(),
-                    version: ModuleVersion::Latest,
+                    name: "liquidity-pool".to_string(),
+                    version: ModuleVersion::Version("10.5.7".into()),
                 },
             )
         }
