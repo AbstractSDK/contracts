@@ -16,3 +16,6 @@ refresh:
 
 check-codecov:
   cat codecov.yml | curl --data-binary @- https://codecov.io/validate
+
+publish:
+  ./publish/publish.sh
