@@ -240,7 +240,7 @@ mod tests {
         let env = mock_env();
         let info = mock_info(TEST_MANAGER, &vec![]);
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::querier();
+        deps.querier = abstract_testing::mock_querier();
 
         mock_init(deps.as_mut())?;
 

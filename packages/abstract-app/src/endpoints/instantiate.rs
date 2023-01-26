@@ -53,13 +53,10 @@ impl<
             &FactoryQuery::Context {},
         )?)?;
 
-        let core = match resp.core {
-            Some(core) => core,
-            None => {
-                return Err(
-                    StdError::generic_err("context of module factory not properly set.").into(),
-                )
-            }
+        let Some(core) = resp.core else {
+            return Err(
+                StdError::generic_err("context of module factory not properly set.").into(),
+            );
         };
 
         // Base state
@@ -77,5 +74,48 @@ impl<
             return Ok(Response::new())
         };
         handler(deps, env, info, self, msg.app)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::test_common::*;
+    use abstract_os::version_control::Core;
+    use abstract_testing::{TEST_ADMIN, TEST_ANS_HOST, TEST_OS_FACTORY, TEST_PROXY};
+    use cosmwasm_std::{to_binary, Addr};
+
+    #[test]
+    fn test_instantiate() {
+        let mut deps = mock_dependencies();
+        let info = mock_info(TEST_OS_FACTORY, &[]);
+        let mock_querier =
+            abstract_testing::mock_querier_with_smart_handler(|contract| match contract {
+                TEST_OS_FACTORY => {
+                    let resp = ContextResponse {
+                        core: Some(Core {
+                            manager: Addr::unchecked(TEST_ADMIN),
+                            proxy: Addr::unchecked(TEST_PROXY),
+                        }),
+                        module: None,
+                    };
+                    Ok(to_binary(&resp).unwrap())
+                }
+                _ => panic!("unexpected contract"),
+            });
+
+        deps.querier = mock_querier;
+
+        let msg = InstantiateMsg {
+            base: BaseInstantiateMsg {
+                ans_host_address: TEST_ANS_HOST.to_string(),
+            },
+            app: MockInitMsg {},
+        };
+
+        let res = MOCK_APP
+            .instantiate(deps.as_mut(), mock_env(), info, msg)
+            .unwrap();
+        assert_that!(res.messages).is_empty();
     }
 }

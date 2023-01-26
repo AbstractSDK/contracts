@@ -189,7 +189,7 @@ mod test {
         fake_module: ModuleId,
     ) {
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::querier();
+        deps.querier = abstract_testing::mock_querier();
         let app = MockModule::new();
 
         let _mods = app.modules(deps.as_ref());
@@ -220,7 +220,7 @@ mod test {
         #[test]
         fn expected_api_request() {
             let mut deps = mock_dependencies();
-            deps.querier = abstract_testing::querier();
+            deps.querier = abstract_testing::mock_querier();
             let app = MockModule::new();
 
             let mods = app.modules(deps.as_ref());
@@ -259,7 +259,7 @@ mod test {
         #[test]
         fn expected_app_request() {
             let mut deps = mock_dependencies();
-            deps.querier = abstract_testing::querier();
+            deps.querier = abstract_testing::mock_querier();
             let app = MockModule::new();
 
             let mods = app.modules(deps.as_ref());
@@ -301,7 +301,7 @@ mod test {
         #[test]
         fn expected_configure_msg() {
             let mut deps = mock_dependencies();
-            deps.querier = abstract_testing::querier();
+            deps.querier = abstract_testing::mock_querier();
             let app = MockModule::new();
 
             let mods = app.modules(deps.as_ref());
@@ -346,7 +346,7 @@ mod test {
         #[test]
         fn expected_api_query() {
             let mut deps = mock_dependencies();
-            deps.querier = abstract_testing::querier();
+            deps.querier = abstract_testing::mock_querier();
             let app = MockModule::new();
 
             let mods = app.modules(deps.as_ref());
@@ -382,7 +382,7 @@ mod test {
         #[test]
         fn expected_app_query() {
             let mut deps = mock_dependencies();
-            deps.querier = abstract_testing::querier();
+            deps.querier = abstract_testing::mock_querier();
             let app = MockModule::new();
 
             let mods = app.modules(deps.as_ref());

@@ -76,59 +76,17 @@ mod test {
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use cosmwasm_std::{StdError, SubMsgResult};
 
-    #[cosmwasm_schema::cw_serde]
-    pub struct MockInitMsg;
-
-    #[cosmwasm_schema::cw_serde]
-    pub struct MockExecMsg;
-
-    impl app::AppExecuteMsg for MockExecMsg {}
-
-    #[cosmwasm_schema::cw_serde]
-    pub struct MockQueryMsg;
-
-    impl app::AppQueryMsg for MockQueryMsg {}
-
-    #[cosmwasm_schema::cw_serde]
-    pub struct MockMigrateMsg;
-
-    #[cosmwasm_schema::cw_serde]
-    pub struct MockReceiveMsg;
-
-    use crate::{AppContract, AppError};
-    use abstract_os::app;
-    use thiserror::Error;
-
-    #[derive(Error, Debug, PartialEq)]
-    pub enum MockError {
-        #[error("{0}")]
-        Std(#[from] StdError),
-
-        #[error("{0}")]
-        DappError(#[from] AppError),
-    }
-
-    type MockAppContract = AppContract<
-        // MockModule,
-        MockError,
-        MockExecMsg,
-        MockInitMsg,
-        MockQueryMsg,
-        MockMigrateMsg,
-        MockReceiveMsg,
-    >;
-
     use abstract_sdk::base::{
         ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint, ReplyEndpoint,
     };
     use abstract_testing::{TEST_ADMIN, TEST_ANS_HOST};
     use speculoos::prelude::*;
 
+    use crate::test_common::*;
+
     #[test]
     fn exports_endpoints() {
-        const CONTRACT: MockAppContract = MockAppContract::new("test_contract", "0.1.0", None);
-
-        export_endpoints!(CONTRACT, MockAppContract);
+        export_endpoints!(MOCK_APP, MockAppContract);
 
         let mut deps = mock_dependencies();
 
@@ -145,7 +103,7 @@ mod test {
             init_msg.clone(),
         );
 
-        let expected_init = CONTRACT.instantiate(
+        let expected_init = MOCK_APP.instantiate(
             deps.as_mut(),
             mock_env(),
             mock_info(TEST_ADMIN, &[]),
@@ -163,7 +121,7 @@ mod test {
             exec_msg.clone(),
         );
 
-        let expected_exec = CONTRACT.execute(
+        let expected_exec = MOCK_APP.execute(
             deps.as_mut(),
             mock_env(),
             mock_info(TEST_ADMIN, &[]),
@@ -176,7 +134,7 @@ mod test {
 
         let actual_query = query(deps.as_ref(), mock_env(), query_msg.clone());
 
-        let expected_query = CONTRACT.query(deps.as_ref(), mock_env(), query_msg);
+        let expected_query = MOCK_APP.query(deps.as_ref(), mock_env(), query_msg);
 
         assert_that!(actual_query).is_equal_to(expected_query);
 
@@ -187,7 +145,7 @@ mod test {
 
         let actual_migrate = migrate(deps.as_mut(), mock_env(), migrate_msg.clone());
 
-        let expected_migrate = CONTRACT.migrate(deps.as_mut(), mock_env(), migrate_msg);
+        let expected_migrate = MOCK_APP.migrate(deps.as_mut(), mock_env(), migrate_msg);
 
         assert_that!(actual_migrate).is_equal_to(expected_migrate);
 
@@ -198,7 +156,7 @@ mod test {
 
         let actual_reply = reply(deps.as_mut(), mock_env(), reply_msg.clone());
 
-        let expected_reply = CONTRACT.reply(deps.as_mut(), mock_env(), reply_msg);
+        let expected_reply = MOCK_APP.reply(deps.as_mut(), mock_env(), reply_msg);
 
         assert_that!(actual_reply).is_equal_to(expected_reply);
     }

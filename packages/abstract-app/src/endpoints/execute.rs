@@ -1,9 +1,8 @@
 use crate::{state::AppContract, AppError, AppResult};
 use crate::{ExecuteEndpoint, Handler, IbcCallbackEndpoint};
-use abstract_os::app::AppExecuteMsg;
 use abstract_sdk::{
     base::ReceiveEndpoint,
-    os::app::{BaseExecuteMsg, ExecuteMsg},
+    os::app::{AppExecuteMsg, BaseExecuteMsg, ExecuteMsg},
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
 use schemars::JsonSchema;
@@ -34,7 +33,6 @@ impl<
         env: Env,
         info: MessageInfo,
         msg: Self::ExecuteMsg,
-        // request_handler: impl FnOnce(DepsMut, Env, MessageInfo, Self, T) -> Result<Response, E>,
     ) -> Result<Response, Error> {
         match msg {
             ExecuteMsg::App(request) => self.execute_handler()?(deps, env, info, self, request),
@@ -42,9 +40,7 @@ impl<
                 .base_execute(deps, env, info, exec_msg)
                 .map_err(From::from),
             ExecuteMsg::IbcCallback(msg) => self.handle_ibc_callback(deps, env, info, msg),
-            abstract_os::base::ExecuteMsg::Receive(msg) => {
-                self.handle_receive(deps, env, info, msg)
-            }
+            ExecuteMsg::Receive(msg) => self.handle_receive(deps, env, info, msg),
             #[allow(unreachable_patterns)]
             _ => Err(StdError::generic_err("Unsupported App execute message variant").into()),
         }
@@ -94,5 +90,53 @@ impl<
         self.base_state.save(deps.storage, &state)?;
 
         Ok(Response::default().add_attribute("action", "update_config"))
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::test_common::*;
+    use abstract_testing::TEST_ADMIN;
+
+    type AppExecuteMsg = ExecuteMsg<MockExecMsg, MockReceiveMsg>;
+
+    fn execute_as(deps: DepsMut, sender: &str, msg: AppExecuteMsg) -> Result<Response, MockError> {
+        let info = mock_info(sender, &[]);
+        MOCK_APP.execute(deps, mock_env(), info, msg)
+    }
+
+    fn execute_as_admin(deps: DepsMut, msg: AppExecuteMsg) -> Result<Response, MockError> {
+        execute_as(deps, TEST_ADMIN, msg)
+    }
+
+    mod update_config {
+        use super::*;
+        use cosmwasm_std::testing::{mock_dependencies, mock_info};
+
+        // #[test]
+        // fn should_update_config() {
+        //     let mut deps = mock_dependencies();
+        //     let mut state = mock_base_state();
+        //     state.ans_host.address = deps.api.addr_validate("ans_host").unwrap();
+        //     state.save(deps.as_mut().storage).unwrap();
+        //
+        //     let msg = BaseExecuteMsg::UpdateConfig {
+        //         ans_host_address: Some("new_ans_host".to_string()),
+        //     };
+        //
+        //     let res = execute(deps.as_mut(), mock_env(), info, msg).unwrap();
+        //     assert_eq!(0, res.messages.len());
+        //     assert_eq!(0, res.attributes.len());
+        //     assert_eq!(0, res.data.len());
+        //     assert_eq!(0, res.events.len());
+        //     assert_eq!(0, res.log.len());
+        //
+        //     let state = BaseState::load(deps.as_ref().storage).unwrap();
+        //     assert_eq!(
+        //         deps.api.addr_validate("new_ans_host").unwrap(),
+        //         state.ans_host.address
+        //     );
+        // }
     }
 }
