@@ -82,16 +82,21 @@ mod test {
     use super::*;
     use crate::test_common::*;
     use abstract_os::version_control::Core;
-    use abstract_testing::{TEST_ADMIN, TEST_ANS_HOST, TEST_OS_FACTORY, TEST_PROXY};
-    use cosmwasm_std::{to_binary, Addr};
+    use abstract_testing::{
+        wrap_querier, AbstractQuerier, TEST_ADMIN, TEST_ANS_HOST, TEST_MODULE_FACTORY,
+        TEST_OS_FACTORY, TEST_PROXY,
+    };
+    use cosmwasm_std::{from_binary, to_binary, Addr, Empty, QuerierWrapper};
+    use std::ops::Deref;
 
     #[test]
     fn test_instantiate() {
         let mut deps = mock_dependencies();
-        let info = mock_info(TEST_OS_FACTORY, &[]);
-        let mock_querier =
-            abstract_testing::mock_querier_with_smart_handler(|contract| match contract {
-                TEST_OS_FACTORY => {
+        let info = mock_info(TEST_MODULE_FACTORY, &[]);
+
+        deps.querier = AbstractQuerier::builder()
+            .with_smart_handler(TEST_MODULE_FACTORY, |msg| match from_binary(msg).unwrap() {
+                abstract_os::module_factory::QueryMsg::Context {} => {
                     let resp = ContextResponse {
                         core: Some(Core {
                             manager: Addr::unchecked(TEST_ADMIN),
@@ -101,10 +106,9 @@ mod test {
                     };
                     Ok(to_binary(&resp).unwrap())
                 }
-                _ => panic!("unexpected contract"),
-            });
-
-        deps.querier = mock_querier;
+                _ => panic!("unexpected message"),
+            })
+            .build();
 
         let msg = InstantiateMsg {
             base: BaseInstantiateMsg {

@@ -5,30 +5,110 @@ use crate::{
 use abstract_os::version_control::Core;
 use cosmwasm_std::testing::MockQuerier;
 use cosmwasm_std::{
-    from_binary, to_binary, Addr, Binary, ContractResult, Empty, QuerierWrapper, SystemResult,
-    WasmQuery,
+    from_binary, to_binary, Addr, Binary, ContractResult, Empty, QuerierResult, QuerierWrapper,
+    QueryRequest, SystemResult, WasmQuery,
 };
 use std::collections::HashMap;
+use std::ops::{Deref, DerefMut};
 
-pub type AbstractQuerier = MockQuerier<Empty>;
+pub type EmptyMockQuerier = MockQuerier<Empty>;
 
-/// A default mock querier that returns the following responses for the following **RAW** contract -> queries:
-/// - TEST_PROXY
-///   - "admin" -> TEST_MANAGER
-/// - TEST_MANAGER
-///   - "os_modules:TEST_MODULE_ID" -> TEST_MODULE_ADDRESS
-///   - "os_id" -> TEST_OS_ID
-/// - TEST_VERSION_CONTROL
-///   - "os_core" -> { TEST_PROXY, TEST_MANAGER }
-pub fn mock_querier() -> AbstractQuerier {
-    mock_querier_with_smart_handler(|_| Err("unexpected contract"))
+type BinaryQueryResult = Result<Binary, String>;
+type ContractAddr = String;
+type SmartHandler = dyn for<'a> Fn(&'a Binary) -> BinaryQueryResult;
+type RawHandler = dyn for<'a> Fn(&'a str) -> BinaryQueryResult;
+
+pub struct AbstractQuerier {
+    base: EmptyMockQuerier,
+    fallback_raw_handler: Box<dyn for<'a> Fn(&'a str, &'a Binary) -> BinaryQueryResult>,
+    fallback_smart_handler: Box<dyn for<'a> Fn(&'a str, &'a Binary) -> BinaryQueryResult>,
+    smart_handlers: HashMap<ContractAddr, Box<SmartHandler>>,
+    raw_handlers: HashMap<ContractAddr, Box<RawHandler>>,
 }
 
-pub fn mock_querier_with_smart_handler<SH: 'static>(smart_handler: SH) -> AbstractQuerier
-where
-    SH: Fn(&str) -> Result<Binary, &str>,
-{
-    mock_querier_with_handlers(|_| panic!("No mock querier for this query"), smart_handler)
+impl AbstractQuerier {
+    pub fn builder() -> Self {
+        const raw_fallback: fn(&str, &Binary) -> BinaryQueryResult =
+            |_, _| panic!("No mock querier for this query");
+        let smart_fallback: fn(&str, &Binary) -> BinaryQueryResult =
+            |_, _| Err("unexpected contract".into());
+
+        Self {
+            base: MockQuerier::default(),
+            fallback_raw_handler: Box::from(raw_fallback),
+            fallback_smart_handler: Box::from(smart_fallback),
+            smart_handlers: HashMap::default(),
+            raw_handlers: HashMap::default(),
+        }
+    }
+
+    pub fn with_fallback_smart_handler<SH: 'static>(mut self, handler: SH) -> Self
+    where
+        SH: Fn(&str, &Binary) -> BinaryQueryResult,
+    {
+        self.fallback_smart_handler = Box::new(handler);
+        self
+    }
+
+    pub fn with_fallback_raw_handler<RH: 'static>(mut self, handler: RH) -> Self
+    where
+        RH: Fn(&str, &Binary) -> BinaryQueryResult,
+    {
+        self.fallback_raw_handler = Box::new(handler);
+        self
+    }
+
+    pub fn with_smart_handler<SH: 'static>(mut self, contract: &str, handler: SH) -> Self
+    where
+        SH: Fn(&Binary) -> BinaryQueryResult,
+    {
+        self.smart_handlers
+            .insert(contract.to_string(), Box::new(handler));
+        self
+    }
+
+    pub fn with_raw_handler<RH: 'static>(mut self, contract: &str, handler: RH) -> Self
+    where
+        RH: Fn(&str) -> BinaryQueryResult,
+    {
+        self.raw_handlers
+            .insert(contract.to_string(), Box::new(handler));
+        self
+    }
+
+    pub fn build(mut self) -> EmptyMockQuerier {
+        self.base.update_wasm(move |wasm| {
+            let res = match wasm {
+                WasmQuery::Raw { contract_addr, key } => {
+                    let str_key = std::str::from_utf8(&key.0).unwrap();
+
+                    let raw_handler = self.raw_handlers.get(contract_addr.as_str());
+
+                    match raw_handler {
+                        Some(handler) => (*handler)(str_key),
+                        None => (*self.fallback_raw_handler)(contract_addr.as_str(), key),
+                    }
+                }
+                WasmQuery::Smart { contract_addr, msg } => {
+                    let contract_handler = self.smart_handlers.get(contract_addr.as_str());
+
+                    let res = match contract_handler {
+                        Some(handler) => (*handler)(msg),
+                        None => (*self.fallback_smart_handler)(contract_addr.as_str(), msg),
+                    };
+                    res
+                }
+                // TODO: contract info
+                unexpected => panic!("Unexpected query: {:?}", unexpected),
+            };
+
+            match res {
+                Ok(res) => SystemResult::Ok(ContractResult::Ok(res)),
+                Err(e) => SystemResult::Ok(ContractResult::Err(e)),
+            }
+        });
+        self.base
+    }
 }
 
 /// A mock querier that returns the following responses for the following **RAW** contract -> queries:
@@ -39,88 +119,59 @@ where
 ///   - "os_id" -> TEST_OS_ID
 /// - TEST_VERSION_CONTROL
 ///   - "os_core" -> { TEST_PROXY, TEST_MANAGER }
-pub fn mock_querier_with_handlers<RH: 'static, SH: 'static>(
-    raw_handler: RH,
-    smart_handler: SH,
-) -> AbstractQuerier
-where
-    RH: Fn(&str) -> Result<Binary, String>,
-    SH: Fn(&str) -> Result<Binary, &str>,
-{
-    let mut querier = AbstractQuerier::default();
-    querier.update_wasm(move |wasm| {
-        match wasm {
-            WasmQuery::Raw { contract_addr, key } => {
-                let str_key = std::str::from_utf8(&key.0).unwrap();
+pub fn mock_querier() -> EmptyMockQuerier {
+    let raw_handler = |contract: &str, key: &Binary| {
+        let str_key = std::str::from_utf8(&key.0).unwrap();
+        match contract {
+            TEST_PROXY => match str_key {
+                "admin" => Ok(to_binary(&TEST_MANAGER).unwrap()),
+                _ => Err("unexpected key".to_string()),
+            },
+            TEST_MANAGER => {
+                // add module
+                let map_key = map_key("os_modules", TEST_MODULE_ID);
+                let mut modules = HashMap::<Binary, Addr>::default();
+                modules.insert(
+                    Binary(map_key.as_bytes().to_vec()),
+                    Addr::unchecked(TEST_MODULE_ADDRESS),
+                );
 
-                let res = match contract_addr.as_str() {
-                    TEST_PROXY => match str_key {
-                        "admin" => Ok(to_binary(&TEST_MANAGER).unwrap()),
-                        _ => Err("unexpected key".to_string()),
-                    },
-                    TEST_MANAGER => {
-                        // add module
-                        let map_key = map_key("os_modules", TEST_MODULE_ID);
-                        let mut modules = HashMap::<Binary, Addr>::default();
-                        modules.insert(
-                            Binary(map_key.as_bytes().to_vec()),
-                            Addr::unchecked(TEST_MODULE_ADDRESS),
-                        );
-
-                        if let Some(value) = modules.get(key) {
-                            Ok(to_binary(&value.clone()).unwrap())
-                        } else if str_key == "\u{0}{5}os_id" {
-                            Ok(to_binary(&TEST_OS_ID).unwrap())
-                        } else {
-                            // Return the default value
-                            Ok(Binary(vec![]))
-                        }
-                    }
-                    TEST_VERSION_CONTROL => {
-                        if str_key == "\0\u{7}os_core\0\0\0\0" {
-                            Ok(to_binary(&Core {
-                                manager: Addr::unchecked(TEST_MANAGER),
-                                proxy: Addr::unchecked(TEST_PROXY),
-                            })
-                            .unwrap())
-                        } else {
-                            // Default value
-                            Ok(Binary(vec![]))
-                        }
-                    }
-                    unhandled_contract => *Box::from(raw_handler(unhandled_contract)),
-                };
-
-                match res {
-                    Ok(res) => SystemResult::Ok(ContractResult::Ok(res)),
-                    Err(e) => SystemResult::Ok(ContractResult::Err(e)),
+                if let Some(value) = modules.get(key) {
+                    Ok(to_binary(&value.clone()).unwrap())
+                } else if str_key == "\u{0}{5}os_id" {
+                    Ok(to_binary(&TEST_OS_ID).unwrap())
+                } else {
+                    // Return the default value
+                    Ok(Binary(vec![]))
                 }
             }
-            WasmQuery::Smart { contract_addr, msg } => {
-                // Mock existing module
-                let res = match contract_addr.as_str() {
-                    TEST_MODULE_ADDRESS => {
-                        let Empty {} = from_binary(msg).unwrap();
-                        Ok(to_binary(TEST_MODULE_RESPONSE).unwrap())
-                    }
-                    unhandled_contract => {
-                        let result = smart_handler(unhandled_contract);
-                        *Box::from(result)
-                    }
-                };
-
-                match res {
-                    Ok(res) => SystemResult::Ok(ContractResult::Ok(res)),
-                    Err(e) => SystemResult::Ok(ContractResult::Err(e.to_string())),
+            TEST_VERSION_CONTROL => {
+                if str_key == "\0\u{7}os_core\0\0\0\0" {
+                    Ok(to_binary(&Core {
+                        manager: Addr::unchecked(TEST_MANAGER),
+                        proxy: Addr::unchecked(TEST_PROXY),
+                    })
+                    .unwrap())
+                } else {
+                    // Default value
+                    Ok(Binary(vec![]))
                 }
             }
-            unexpected => panic!("Unexpected query: {:?}", unexpected),
+            _ => Err("unexpected contract".to_string()),
         }
-    });
+    };
+
+    let mut querier = AbstractQuerier::builder()
+        .with_fallback_raw_handler(raw_handler)
+        .with_smart_handler(TEST_MODULE_ADDRESS, |msg| {
+            let Empty {} = from_binary(msg).unwrap();
+            Ok(to_binary(TEST_MODULE_RESPONSE).unwrap())
+        })
+        .build();
     querier
 }
 
-pub fn wrap_querier(querier: &AbstractQuerier) -> QuerierWrapper<'_, Empty> {
+pub fn wrap_querier(querier: &EmptyMockQuerier) -> QuerierWrapper<'_, Empty> {
     QuerierWrapper::<Empty>::new(querier)
 }
 
