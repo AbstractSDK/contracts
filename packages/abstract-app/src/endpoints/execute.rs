@@ -130,7 +130,7 @@ mod test {
         Ok(())
     }
 
-    mod update_config {
+    mod base {
         use super::*;
         use abstract_testing::TEST_ANS_HOST;
 
@@ -144,7 +144,7 @@ mod test {
         }
 
         #[test]
-        fn should_update_ans_host() -> AppTestResult {
+        fn update_config_should_update_ans_host() -> AppTestResult {
             let mut deps = mock_init();
 
             let new_ans_host = "new_ans_host";
@@ -167,7 +167,7 @@ mod test {
         }
 
         #[test]
-        fn none_should_leave_existing_host() -> AppTestResult {
+        fn update_config_with_none_host_should_leave_existing_host() -> AppTestResult {
             let mut deps = mock_init();
 
             let update_ans = AppExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {

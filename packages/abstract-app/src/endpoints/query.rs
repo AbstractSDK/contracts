@@ -64,3 +64,37 @@ impl<
         self.admin.query_admin(deps)
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::test_common::*;
+
+    type AppQueryMsg = QueryMsg<MockQueryMsg>;
+
+    fn query_helper(deps: Deps, msg: AppQueryMsg) -> Result<Binary, StdError> {
+        MOCK_APP.query(deps, mock_env(), msg)
+    }
+
+    mod base_query {
+        use super::*;
+        use abstract_testing::{TEST_ANS_HOST, TEST_MANAGER, TEST_PROXY};
+        use cosmwasm_std::{from_binary, Addr};
+
+        #[test]
+        fn config() -> AppTestResult {
+            let mut deps = mock_init();
+
+            let config_query = QueryMsg::Base(BaseQueryMsg::Config {});
+            let res = query_helper(deps.as_ref(), config_query)?;
+
+            assert_that!(from_binary(&res).unwrap()).is_equal_to(AppConfigResponse {
+                proxy_address: Addr::unchecked(TEST_PROXY),
+                ans_host_address: Addr::unchecked(TEST_ANS_HOST),
+                manager_address: Addr::unchecked(TEST_MANAGER),
+            });
+
+            Ok(())
+        }
+    }
+}
