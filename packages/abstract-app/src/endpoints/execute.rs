@@ -99,8 +99,8 @@ impl<
 mod test {
     use super::*;
     use crate::test_common::*;
-    use abstract_testing::TEST_ADMIN;
-    use cosmwasm_std::{Addr};
+    use abstract_testing::{TEST_ADMIN, TEST_MANAGER};
+    use cosmwasm_std::Addr;
     use cw_controllers::AdminError;
 
     type AppExecuteMsg = ExecuteMsg<MockExecMsg, MockReceiveMsg>;
@@ -110,11 +110,11 @@ mod test {
         MOCK_APP.execute(deps, mock_env(), info, msg)
     }
 
-    fn execute_as_admin(deps: DepsMut, msg: AppExecuteMsg) -> Result<Response, MockError> {
-        execute_as(deps, TEST_ADMIN, msg)
+    fn execute_as_manager(deps: DepsMut, msg: AppExecuteMsg) -> Result<Response, MockError> {
+        execute_as(deps, TEST_MANAGER, msg)
     }
 
-    fn test_only_admin(_msg: AppExecuteMsg) -> AppTestResult {
+    fn test_only_manager(_msg: AppExecuteMsg) -> AppTestResult {
         let mut deps = mock_init();
         let msg = AppExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
             ans_host_address: None,
@@ -135,12 +135,12 @@ mod test {
         use abstract_testing::TEST_ANS_HOST;
 
         #[test]
-        fn only_admin() -> AppTestResult {
+        fn only_manager() -> AppTestResult {
             let msg = AppExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
                 ans_host_address: None,
             });
 
-            test_only_admin(msg)
+            test_only_manager(msg)
         }
 
         #[test]
@@ -152,7 +152,7 @@ mod test {
                 ans_host_address: Some(new_ans_host.to_string()),
             });
 
-            let res = execute_as_admin(deps.as_mut(), update_ans);
+            let res = execute_as_manager(deps.as_mut(), update_ans);
 
             assert_that!(res).is_ok().map(|res| {
                 assert_that!(res.messages).is_empty();
@@ -174,7 +174,7 @@ mod test {
                 ans_host_address: None,
             });
 
-            let res = execute_as_admin(deps.as_mut(), update_ans);
+            let res = execute_as_manager(deps.as_mut(), update_ans);
 
             assert_that!(res).is_ok().map(|res| {
                 assert_that!(res.messages).is_empty();

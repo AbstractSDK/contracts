@@ -18,6 +18,7 @@ type FallbackHandler = dyn for<'a> Fn(&'a str, &'a Binary) -> BinaryQueryResult;
 type SmartHandler = dyn for<'a> Fn(&'a Binary) -> BinaryQueryResult;
 type RawHandler = dyn for<'a> Fn(&'a str) -> BinaryQueryResult;
 
+/// [`MockQuerierBuilder`] is a helper to build a [`MockQuerier`].
 pub struct MockQuerierBuilder {
     base: EmptyMockQuerier,
     fallback_raw_handler: Box<FallbackHandler>,
@@ -27,6 +28,7 @@ pub struct MockQuerierBuilder {
 }
 
 impl Default for MockQuerierBuilder {
+    /// Create a default
     fn default() -> Self {
         let raw_fallback: fn(&str, &Binary) -> BinaryQueryResult =
             |_, _| panic!("No mock querier for this query");
@@ -43,6 +45,23 @@ impl Default for MockQuerierBuilder {
     }
 }
 
+/// Helper to build a MockQuerier.
+/// Usage:
+/// ```rust
+/// use cosmwasm_std::{from_binary, to_binary};
+/// use abstract_testing::MockQuerierBuilder;
+/// use cosmwasm_std::testing::MockQuerier;
+///
+/// let querier = MockQuerierBuilder::default().with_smart_handler("contract_address", |msg| {
+///    // handle the message
+///     let res = match from_binary(msg).unwrap() {
+///         // handle the message
+///        _ => panic!("unexpected message"),
+///    };
+///
+///   Ok(to_binary(&msg).unwrap())
+/// }).build();
+/// ```
 impl MockQuerierBuilder {
     pub fn with_fallback_smart_handler<SH: 'static>(mut self, handler: SH) -> Self
     where
@@ -60,6 +79,24 @@ impl MockQuerierBuilder {
         self
     }
 
+    /// Add a smart contract handler to the mock querier. The handler will be called when the
+    /// contract address is queried with the given message.
+    /// Usage:
+    /// ```rust
+    /// use cosmwasm_std::{from_binary, to_binary};
+    /// use abstract_testing::MockQuerierBuilder;
+    /// use cosmwasm_std::testing::MockQuerier;
+    ///
+    /// let querier = MockQuerierBuilder::default().with_smart_handler("contract_address", |msg| {
+    ///    // handle the message
+    ///     let res = match from_binary(msg).unwrap() {
+    ///         // handle the message
+    ///        _ => panic!("unexpected message"),
+    ///    };
+    ///
+    ///   Ok(to_binary(&msg).unwrap())
+    /// }).build();
+    /// ```
     pub fn with_smart_handler<SH: 'static>(mut self, contract: &str, handler: SH) -> Self
     where
         SH: Fn(&Binary) -> BinaryQueryResult,
@@ -78,6 +115,7 @@ impl MockQuerierBuilder {
         self
     }
 
+    /// Build the [`MockQuerier`].
     pub fn build(mut self) -> EmptyMockQuerier {
         self.base.update_wasm(move |wasm| {
             let res = match wasm {

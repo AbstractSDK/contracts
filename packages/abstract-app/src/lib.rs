@@ -52,7 +52,8 @@ mod test_common {
     use abstract_os::version_control::Core;
     use abstract_sdk::base::InstantiateEndpoint;
     use abstract_testing::{
-        MockDeps, MockQuerierBuilder, TEST_ADMIN, TEST_ANS_HOST, TEST_MODULE_FACTORY, TEST_PROXY,
+        MockDeps, MockQuerierBuilder, TEST_ADMIN, TEST_ANS_HOST, TEST_MANAGER, TEST_MODULE_FACTORY,
+        TEST_PROXY,
     };
     use thiserror::Error;
 
@@ -83,7 +84,7 @@ mod test_common {
                 abstract_os::module_factory::QueryMsg::Context {} => {
                     let resp = ContextResponse {
                         core: Some(Core {
-                            manager: Addr::unchecked(TEST_ADMIN),
+                            manager: Addr::unchecked(TEST_MANAGER),
                             proxy: Addr::unchecked(TEST_PROXY),
                         }),
                         module: None,
@@ -95,6 +96,8 @@ mod test_common {
         })
     }
 
+    /// Instantiate the contract with the default [`TEST_MODULE_FACTORY`].
+    /// This will set the [`TEST_MANAGER`] as the admin.
     pub fn mock_init() -> MockDeps {
         let mut deps = mock_dependencies();
         let info = mock_info(TEST_MODULE_FACTORY, &[]);
