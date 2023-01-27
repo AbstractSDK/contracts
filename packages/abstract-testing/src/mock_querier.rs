@@ -5,30 +5,30 @@ use crate::{
 use abstract_os::version_control::Core;
 use cosmwasm_std::testing::MockQuerier;
 use cosmwasm_std::{
-    from_binary, to_binary, Addr, Binary, ContractResult, Empty, QuerierResult, QuerierWrapper,
-    QueryRequest, SystemResult, WasmQuery,
+    from_binary, to_binary, Addr, Binary, ContractResult, Empty, QuerierWrapper, SystemResult,
+    WasmQuery,
 };
 use std::collections::HashMap;
-use std::ops::{Deref, DerefMut};
 
 pub type EmptyMockQuerier = MockQuerier<Empty>;
 
 type BinaryQueryResult = Result<Binary, String>;
 type ContractAddr = String;
+type FallbackHandler = dyn for<'a> Fn(&'a str, &'a Binary) -> BinaryQueryResult;
 type SmartHandler = dyn for<'a> Fn(&'a Binary) -> BinaryQueryResult;
 type RawHandler = dyn for<'a> Fn(&'a str) -> BinaryQueryResult;
 
-pub struct AbstractQuerier {
+pub struct MockQuerierBuilder {
     base: EmptyMockQuerier,
-    fallback_raw_handler: Box<dyn for<'a> Fn(&'a str, &'a Binary) -> BinaryQueryResult>,
-    fallback_smart_handler: Box<dyn for<'a> Fn(&'a str, &'a Binary) -> BinaryQueryResult>,
+    fallback_raw_handler: Box<FallbackHandler>,
+    fallback_smart_handler: Box<FallbackHandler>,
     smart_handlers: HashMap<ContractAddr, Box<SmartHandler>>,
     raw_handlers: HashMap<ContractAddr, Box<RawHandler>>,
 }
 
-impl AbstractQuerier {
-    pub fn builder() -> Self {
-        const raw_fallback: fn(&str, &Binary) -> BinaryQueryResult =
+impl Default for MockQuerierBuilder {
+    fn default() -> Self {
+        let raw_fallback: fn(&str, &Binary) -> BinaryQueryResult =
             |_, _| panic!("No mock querier for this query");
         let smart_fallback: fn(&str, &Binary) -> BinaryQueryResult =
             |_, _| Err("unexpected contract".into());
@@ -41,7 +41,9 @@ impl AbstractQuerier {
             raw_handlers: HashMap::default(),
         }
     }
+}
 
+impl MockQuerierBuilder {
     pub fn with_fallback_smart_handler<SH: 'static>(mut self, handler: SH) -> Self
     where
         SH: Fn(&str, &Binary) -> BinaryQueryResult,
@@ -161,14 +163,13 @@ pub fn mock_querier() -> EmptyMockQuerier {
         }
     };
 
-    let mut querier = AbstractQuerier::builder()
+    MockQuerierBuilder::default()
         .with_fallback_raw_handler(raw_handler)
         .with_smart_handler(TEST_MODULE_ADDRESS, |msg| {
             let Empty {} = from_binary(msg).unwrap();
             Ok(to_binary(TEST_MODULE_RESPONSE).unwrap())
         })
-        .build();
-    querier
+        .build()
 }
 
 pub fn wrap_querier(querier: &EmptyMockQuerier) -> QuerierWrapper<'_, Empty> {

@@ -72,9 +72,9 @@ macro_rules! export_endpoints {
 
 #[cfg(test)]
 mod test {
-    use super::*;
+    
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-    use cosmwasm_std::{StdError, SubMsgResult};
+    use cosmwasm_std::{SubMsgResult};
 
     use abstract_sdk::base::{
         ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint, ReplyEndpoint,

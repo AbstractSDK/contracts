@@ -23,8 +23,10 @@ pub type AppResult<C = Empty> = Result<Response<C>, AppError>;
 mod test_common {
     pub use abstract_os::app;
     pub use cosmwasm_std::testing::*;
-    use cosmwasm_std::StdError;
+    use cosmwasm_std::{from_binary, to_binary, Addr, StdError};
     pub use speculoos::prelude::*;
+
+    pub type AppTestResult = Result<(), MockError>;
 
     #[cosmwasm_schema::cw_serde]
     pub struct MockInitMsg;
@@ -46,6 +48,12 @@ mod test_common {
     pub struct MockReceiveMsg;
 
     use crate::{AppContract, AppError};
+    use abstract_os::module_factory::ContextResponse;
+    use abstract_os::version_control::Core;
+    use abstract_sdk::base::InstantiateEndpoint;
+    use abstract_testing::{
+        MockDeps, MockQuerierBuilder, TEST_ADMIN, TEST_ANS_HOST, TEST_MODULE_FACTORY, TEST_PROXY,
+    };
     use thiserror::Error;
 
     #[derive(Error, Debug, PartialEq)]
@@ -68,4 +76,42 @@ mod test_common {
     >;
 
     pub const MOCK_APP: MockAppContract = MockAppContract::new("test_contract", "0.1.0", None);
+
+    pub fn app_base_mock_querier() -> MockQuerierBuilder {
+        MockQuerierBuilder::default().with_smart_handler(TEST_MODULE_FACTORY, |msg| {
+            match from_binary(msg).unwrap() {
+                abstract_os::module_factory::QueryMsg::Context {} => {
+                    let resp = ContextResponse {
+                        core: Some(Core {
+                            manager: Addr::unchecked(TEST_ADMIN),
+                            proxy: Addr::unchecked(TEST_PROXY),
+                        }),
+                        module: None,
+                    };
+                    Ok(to_binary(&resp).unwrap())
+                }
+                _ => panic!("unexpected message"),
+            }
+        })
+    }
+
+    pub fn mock_init() -> MockDeps {
+        let mut deps = mock_dependencies();
+        let info = mock_info(TEST_MODULE_FACTORY, &[]);
+
+        deps.querier = app_base_mock_querier().build();
+
+        let msg = app::InstantiateMsg {
+            base: app::BaseInstantiateMsg {
+                ans_host_address: TEST_ANS_HOST.to_string(),
+            },
+            app: MockInitMsg {},
+        };
+
+        MOCK_APP
+            .instantiate(deps.as_mut(), mock_env(), info, msg)
+            .unwrap();
+
+        deps
+    }
 }

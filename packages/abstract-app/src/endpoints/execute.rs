@@ -1,5 +1,7 @@
 use crate::{state::AppContract, AppError, AppResult};
 use crate::{ExecuteEndpoint, Handler, IbcCallbackEndpoint};
+use abstract_sdk::base::features::AbstractResponse;
+
 use abstract_sdk::{
     base::ReceiveEndpoint,
     os::app::{AppExecuteMsg, BaseExecuteMsg, ExecuteMsg},
@@ -89,7 +91,7 @@ impl<
 
         self.base_state.save(deps.storage, &state)?;
 
-        Ok(Response::default().add_attribute("action", "update_config"))
+        Ok(self.tag_response(Response::default(), "update_config"))
     }
 }
 
@@ -98,6 +100,8 @@ mod test {
     use super::*;
     use crate::test_common::*;
     use abstract_testing::TEST_ADMIN;
+    use cosmwasm_std::{Addr};
+    use cw_controllers::AdminError;
 
     type AppExecuteMsg = ExecuteMsg<MockExecMsg, MockReceiveMsg>;
 
@@ -110,33 +114,78 @@ mod test {
         execute_as(deps, TEST_ADMIN, msg)
     }
 
+    fn test_only_admin(_msg: AppExecuteMsg) -> AppTestResult {
+        let mut deps = mock_init();
+        let msg = AppExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
+            ans_host_address: None,
+        });
+
+        let res = execute_as(deps.as_mut(), "not_admin", msg);
+        assert_that!(res).is_err().matches(|e| {
+            matches!(
+                e,
+                MockError::DappError(AppError::Admin(AdminError::NotAdmin {}))
+            )
+        });
+        Ok(())
+    }
+
     mod update_config {
         use super::*;
-        use cosmwasm_std::testing::{mock_dependencies, mock_info};
+        use abstract_testing::TEST_ANS_HOST;
 
-        // #[test]
-        // fn should_update_config() {
-        //     let mut deps = mock_dependencies();
-        //     let mut state = mock_base_state();
-        //     state.ans_host.address = deps.api.addr_validate("ans_host").unwrap();
-        //     state.save(deps.as_mut().storage).unwrap();
-        //
-        //     let msg = BaseExecuteMsg::UpdateConfig {
-        //         ans_host_address: Some("new_ans_host".to_string()),
-        //     };
-        //
-        //     let res = execute(deps.as_mut(), mock_env(), info, msg).unwrap();
-        //     assert_eq!(0, res.messages.len());
-        //     assert_eq!(0, res.attributes.len());
-        //     assert_eq!(0, res.data.len());
-        //     assert_eq!(0, res.events.len());
-        //     assert_eq!(0, res.log.len());
-        //
-        //     let state = BaseState::load(deps.as_ref().storage).unwrap();
-        //     assert_eq!(
-        //         deps.api.addr_validate("new_ans_host").unwrap(),
-        //         state.ans_host.address
-        //     );
-        // }
+        #[test]
+        fn only_admin() -> AppTestResult {
+            let msg = AppExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
+                ans_host_address: None,
+            });
+
+            test_only_admin(msg)
+        }
+
+        #[test]
+        fn should_update_ans_host() -> AppTestResult {
+            let mut deps = mock_init();
+
+            let new_ans_host = "new_ans_host";
+            let update_ans = AppExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
+                ans_host_address: Some(new_ans_host.to_string()),
+            });
+
+            let res = execute_as_admin(deps.as_mut(), update_ans);
+
+            assert_that!(res).is_ok().map(|res| {
+                assert_that!(res.messages).is_empty();
+                res
+            });
+
+            let state = MOCK_APP.base_state.load(deps.as_ref().storage)?;
+
+            assert_that!(state.ans_host.address).is_equal_to(Addr::unchecked(new_ans_host));
+
+            Ok(())
+        }
+
+        #[test]
+        fn none_should_leave_existing_host() -> AppTestResult {
+            let mut deps = mock_init();
+
+            let update_ans = AppExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
+                ans_host_address: None,
+            });
+
+            let res = execute_as_admin(deps.as_mut(), update_ans);
+
+            assert_that!(res).is_ok().map(|res| {
+                assert_that!(res.messages).is_empty();
+                res
+            });
+
+            let state = MOCK_APP.base_state.load(deps.as_ref().storage)?;
+
+            assert_that!(state.ans_host.address).is_equal_to(Addr::unchecked(TEST_ANS_HOST));
+
+            Ok(())
+        }
     }
 }

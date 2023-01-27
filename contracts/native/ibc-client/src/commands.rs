@@ -13,7 +13,6 @@ use abstract_sdk::{
         ibc_host::{HostAction, InternalAction, PacketMsg},
         objects::ans_host::AnsHost,
         objects::ChannelEntry,
-        version_control::Core,
         ICS20,
     },
     Execution, Resolve, Verification,
@@ -220,7 +219,7 @@ fn clear_accounts(store: &mut dyn Storage) {
 mod test {
     use super::*;
     use crate::contract;
-    use abstract_os::ibc_client::state::*;
+    
     use abstract_os::ibc_client::*;
     use abstract_testing::{TEST_ADMIN, TEST_ANS_HOST, TEST_VERSION_CONTROL};
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
@@ -351,7 +350,7 @@ mod test {
 
             let msg = ExecuteMsg::UpdateConfig {
                 ans_host: None,
-                version_control: Some(new_version_control.clone()),
+                version_control: Some(new_version_control),
             };
 
             let res = execute_as_admin(deps.as_mut(), msg)?;
