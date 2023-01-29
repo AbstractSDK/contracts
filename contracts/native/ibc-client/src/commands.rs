@@ -13,7 +13,6 @@ use abstract_sdk::{
         ibc_host::{HostAction, InternalAction, PacketMsg},
         objects::ans_host::AnsHost,
         objects::ChannelEntry,
-        version_control::Core,
         ICS20,
     },
     Execution, Resolve, Verification,
