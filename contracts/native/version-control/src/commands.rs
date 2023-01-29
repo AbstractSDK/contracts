@@ -87,7 +87,7 @@ pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> VCResult {
 #[cfg(test)]
 mod test {
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-    use cosmwasm_std::{Addr, StdError, Storage};
+    use cosmwasm_std::{Addr, StdError};
 
     use abstract_os::version_control::*;
 
@@ -346,7 +346,7 @@ mod test {
                 };
                 let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
                 assert_that!(&res)
-                    .named(&format!("ModuleInfo validation failed for {}", bad_module))
+                    .named(&format!("ModuleInfo validation failed for {bad_module}"))
                     .is_err()
                     .matches(|e| matches!(e, &VCError::Std(StdError::GenericErr { .. })));
             }

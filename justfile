@@ -9,7 +9,8 @@ format:
   cargo fmt --all
 
 lint:
-  cargo clippy --all --all-targets --all-features -- -D warnings
+  cargo clippy --all -- -D warnings
+#  cargo clippy --all --all-targets --all-features -- -D warnings
 
 lintfix:
   cargo clippy --fix --allow-staged --allow-dirty

@@ -82,7 +82,7 @@ mod test {
 
     #[test]
     fn test_ans_host() -> AppTestResult {
-        let mut deps = mock_init();
+        let deps = mock_init();
 
         let ans_host = MOCK_APP.ans_host(deps.as_ref())?;
 
@@ -93,7 +93,7 @@ mod test {
 
     #[test]
     fn test_proxy_address() -> AppTestResult {
-        let mut deps = mock_init();
+        let deps = mock_init();
 
         let proxy_address = MOCK_APP.proxy_address(deps.as_ref())?;
 
@@ -104,8 +104,6 @@ mod test {
 
     #[test]
     fn test_module_id() -> AppTestResult {
-        let mut deps = mock_init();
-
         let module_id = MOCK_APP.module_id();
 
         assert_that!(module_id).is_equal_to(TEST_MODULE_ID);

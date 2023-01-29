@@ -139,7 +139,7 @@ impl MockQuerierBuilder {
                     res
                 }
                 // TODO: contract info
-                unexpected => panic!("Unexpected query: {:?}", unexpected),
+                unexpected => panic!("Unexpected query: {unexpected:?}"),
             };
 
             match res {
