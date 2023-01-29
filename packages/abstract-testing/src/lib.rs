@@ -19,6 +19,6 @@ pub const TEST_VERSION_CONTROL: &str = "version_control_address";
 pub const TEST_OS_FACTORY: &str = "os_factory_address";
 pub const TEST_MODULE_FACTORY: &str = "module_factory_address";
 pub const TEST_MODULE_ADDRESS: &str = "test_module_address";
-pub const TEST_MODULE_ID: &str = "test_module_id";
+pub const TEST_MODULE_ID: &str = "test-module-id";
 
 pub const TEST_MODULE_RESPONSE: &str = "test_module_response";
