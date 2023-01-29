@@ -53,7 +53,7 @@ mod test_common {
     use abstract_sdk::base::InstantiateEndpoint;
     use abstract_testing::{
         MockDeps, MockQuerierBuilder, TEST_ADMIN, TEST_ANS_HOST, TEST_MANAGER, TEST_MODULE_FACTORY,
-        TEST_PROXY,
+        TEST_MODULE_ID, TEST_PROXY, TEST_VERSION,
     };
     use thiserror::Error;
 
@@ -76,7 +76,7 @@ mod test_common {
         MockReceiveMsg,
     >;
 
-    pub const MOCK_APP: MockAppContract = MockAppContract::new("test_contract", "0.1.0", None);
+    pub const MOCK_APP: MockAppContract = MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None);
 
     pub fn app_base_mock_querier() -> MockQuerierBuilder {
         MockQuerierBuilder::default().with_smart_handler(TEST_MODULE_FACTORY, |msg| {
