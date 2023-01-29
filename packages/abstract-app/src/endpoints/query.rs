@@ -76,8 +76,47 @@ mod test {
         MOCK_APP.query(deps, mock_env(), msg)
     }
 
+    mod app_query {
+        use super::*;
+
+        #[test]
+        fn without_handler() {
+            let mut deps = mock_init();
+            let msg = AppQueryMsg::App(MockQueryMsg);
+
+            let res = query_helper(deps.as_ref(), msg);
+
+            assert_that!(res)
+                .is_err()
+                .matches(|e| e.to_string().contains("expected query handler"));
+        }
+
+        fn mock_query_handler(
+            deps: Deps,
+            _env: Env,
+            _contract: &MockAppContract,
+            msg: MockQueryMsg,
+        ) -> Result<Binary, StdError> {
+            // simply return the message as binary
+            to_binary(&msg)
+        }
+
+        #[test]
+        fn with_handler() {
+            let mut deps = mock_init();
+            let msg = AppQueryMsg::App(MockQueryMsg);
+
+            let with_mocked_query = MOCK_APP.with_query(mock_query_handler);
+            let res = with_mocked_query.query(deps.as_ref(), mock_env(), msg);
+
+            let expected = to_binary(&MockQueryMsg).unwrap();
+            assert_that!(res).is_ok().is_equal_to(expected);
+        }
+    }
+
     mod base_query {
         use super::*;
+        use abstract_sdk::unwrap_binary;
         use abstract_testing::{TEST_ANS_HOST, TEST_MANAGER, TEST_PROXY};
         use cosmwasm_std::{from_binary, Addr};
 
@@ -88,10 +127,24 @@ mod test {
             let config_query = QueryMsg::Base(BaseQueryMsg::Config {});
             let res = query_helper(deps.as_ref(), config_query)?;
 
-            assert_that!(from_binary(&res).unwrap()).is_equal_to(AppConfigResponse {
+            assert_that!(unwrap_binary!(res)).is_equal_to(AppConfigResponse {
                 proxy_address: Addr::unchecked(TEST_PROXY),
                 ans_host_address: Addr::unchecked(TEST_ANS_HOST),
                 manager_address: Addr::unchecked(TEST_MANAGER),
+            });
+
+            Ok(())
+        }
+
+        #[test]
+        fn admin() -> AppTestResult {
+            let mut deps = mock_init();
+
+            let admin_query = QueryMsg::Base(BaseQueryMsg::Admin {});
+            let res = query_helper(deps.as_ref(), admin_query)?;
+
+            assert_that!(unwrap_binary!(res)).is_equal_to(AdminResponse {
+                admin: Some(TEST_MANAGER.to_string()),
             });
 
             Ok(())
