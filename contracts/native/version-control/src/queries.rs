@@ -1,16 +1,15 @@
 use crate::error::VCError;
-use abstract_sdk::os::objects::module::Module;
-use abstract_sdk::os::objects::module::ModuleInfo;
-use abstract_sdk::os::objects::module::ModuleVersion;
-use abstract_sdk::os::objects::module_reference::ModuleReference;
-use abstract_sdk::os::version_control::state::MODULE_LIBRARY;
-use abstract_sdk::os::version_control::state::OS_ADDRESSES;
-use abstract_sdk::os::version_control::ModuleResponse;
-use abstract_sdk::os::version_control::ModulesResponse;
-use abstract_sdk::os::version_control::OsCoreResponse;
-use cosmwasm_std::Order;
-use cosmwasm_std::StdError;
-use cosmwasm_std::{to_binary, Binary, Deps, StdResult};
+use abstract_sdk::os::{
+    objects::{
+        module::{Module, ModuleInfo, ModuleVersion},
+        module_reference::ModuleReference,
+    },
+    version_control::{
+        state::MODULE_LIBRARY, state::OS_ADDRESSES, ModulesListResponse, ModulesResponse,
+        OsCoreResponse,
+    },
+};
+use cosmwasm_std::{to_binary, Binary, Deps, Order, StdError, StdResult};
 use cw_storage_plus::Bound;
 
 const DEFAULT_LIMIT: u8 = 10;
@@ -26,7 +25,7 @@ pub fn handle_os_address_query(deps: Deps, os_id: u32) -> StdResult<Binary> {
     }
 }
 
-pub fn handle_module_query(deps: Deps, mut module: ModuleInfo) -> StdResult<Binary> {
+pub fn handle_modules_query(deps: Deps, mut module: ModuleInfo) -> StdResult<Binary> {
     let maybe_module = if let ModuleVersion::Version(_) = module.version {
         MODULE_LIBRARY.load(deps.storage, module.clone())
     } else {
@@ -50,16 +49,16 @@ pub fn handle_module_query(deps: Deps, mut module: ModuleInfo) -> StdResult<Bina
         Err(_) => Err(StdError::generic_err(
             VCError::ModuleNotInstalled(module).to_string(),
         )),
-        Ok(mod_ref) => to_binary(&ModuleResponse {
-            module: Module {
+        Ok(mod_ref) => to_binary(&ModulesResponse {
+            modules: vec![Module {
                 info: module,
                 reference: mod_ref,
-            },
+            }],
         }),
     }
 }
 
-pub fn handle_modules_query(
+pub fn handle_module_list_query(
     deps: Deps,
     page_token: Option<ModuleInfo>,
     limit: Option<u8>,
@@ -72,7 +71,7 @@ pub fn handle_modules_query(
         .take(limit)
         .collect();
 
-    to_binary(&ModulesResponse { modules: res? })
+    to_binary(&ModulesListResponse { modules: res? })
 }
 
 #[cfg(test)]
@@ -132,16 +131,17 @@ mod test {
 
             add_module(deps.as_mut(), new_module_info.clone());
 
-            let query_msg = QueryMsg::Module {
-                module: ModuleInfo {
+            let query_msg = QueryMsg::Modules {
+                infos: vec![ModuleInfo {
                     provider,
                     name,
                     version: Latest {},
-                },
+                }],
             };
 
-            let module: ModuleResponse = from_binary(&query_helper(deps.as_ref(), query_msg)?)?;
-            assert_that!(module.module.info).is_equal_to(&new_module_info);
+            let ModulesResponse { mut modules } =
+                from_binary(&query_helper(deps.as_ref(), query_msg)?)?;
+            assert_that!(modules.swap_remove(0).info).is_equal_to(&new_module_info);
             Ok(())
         }
 
@@ -156,12 +156,12 @@ mod test {
 
             add_module(deps.as_mut(), new_module_info);
 
-            let query_msg = QueryMsg::Module {
-                module: ModuleInfo {
+            let query_msg = QueryMsg::Modules {
+                infos: vec![ModuleInfo {
                     provider,
                     name,
                     version: ModuleVersion::Version("024209.902.902".to_string()),
-                },
+                }],
             };
 
             let res = query_helper(deps.as_ref(), query_msg);
@@ -189,16 +189,17 @@ mod test {
                 ModuleInfo::from_id(module_id, ModuleVersion::Version("1.1.2".into())).unwrap();
             add_module(deps.as_mut(), another_version);
 
-            let query_msg = QueryMsg::Module {
-                module: ModuleInfo {
+            let query_msg = QueryMsg::Modules {
+                infos: vec![ModuleInfo {
                     provider: "test".to_string(),
                     name: "module".to_string(),
                     version: Latest {},
-                },
+                }],
             };
 
-            let module: ModuleResponse = from_binary(&query_helper(deps.as_ref(), query_msg)?)?;
-            assert_that!(module.module.info).is_equal_to(&newest_version);
+            let ModulesResponse { mut modules } =
+                from_binary(&query_helper(deps.as_ref(), query_msg)?)?;
+            assert_that!(modules.swap_remove(0).info).is_equal_to(&newest_version);
             Ok(())
         }
     }
