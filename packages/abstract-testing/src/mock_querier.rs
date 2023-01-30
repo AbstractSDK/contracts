@@ -51,7 +51,7 @@ impl Default for MockQuerierBuilder {
     }
 }
 
-fn map_key<'a, K, V>(map: &Map<'a, K, V>, key: K) -> String
+pub fn map_key<'a, K, V>(map: &Map<'a, K, V>, key: K) -> String
 where
     V: Serialize + DeserializeOwned,
     K: PrimaryKey<'a>,
@@ -59,7 +59,7 @@ where
     String::from_utf8(raw_map_key(map, key)).unwrap()
 }
 
-fn raw_map_key<'a, K, V>(map: &Map<'a, K, V>, key: K) -> Vec<u8>
+pub fn raw_map_key<'a, K, V>(map: &Map<'a, K, V>, key: K) -> Vec<u8>
 where
     V: Serialize + DeserializeOwned,
     K: PrimaryKey<'a>,
