@@ -13,17 +13,6 @@ pub fn wasm_smart_query<C>(
     }))
 }
 
-/// Shortcut helper for using [`from_binary`] on serializeable data that unwraps it.
-#[macro_export]
-macro_rules! unwrap_binary {
-    (&$subject:tt) => {
-        unwrap_binary!($subject)
-    };
-    ($subject:tt) => {{
-        cosmwasm_std::from_binary(&$subject).unwrap()
-    }};
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
@@ -41,24 +30,6 @@ mod test {
                 assert_eq!(msg, to_binary(&query_msg).unwrap());
             }
             _ => panic!("Unexpected query"),
-        }
-    }
-
-    mod from_binary {
-        use super::*;
-
-        #[test]
-        fn test_from_binary() {
-            let binary = to_binary(&BaseQueryMsg::Admin {}).unwrap();
-            let query_msg: BaseQueryMsg = unwrap_binary!(binary);
-            assert_eq!(query_msg, BaseQueryMsg::Admin {});
-        }
-
-        #[test]
-        fn test_from_binary_ref() {
-            let binary = to_binary(&BaseQueryMsg::Admin {}).unwrap();
-            let query_msg: BaseQueryMsg = unwrap_binary!(&binary);
-            assert_eq!(query_msg, BaseQueryMsg::Admin {});
         }
     }
 }
