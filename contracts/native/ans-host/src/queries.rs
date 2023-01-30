@@ -256,14 +256,14 @@ mod test {
     use abstract_os::ans_host::*;
     use abstract_os::objects::PoolType;
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info, MockApi};
-    use cosmwasm_std::{from_binary, DepsMut};
+    use cosmwasm_std::{from_binary, Addr, DepsMut};
 
     use crate::contract;
     use crate::contract::{instantiate, AnsHostResult};
     use crate::error::AnsHostError;
 
     use abstract_os::objects::pool_id::PoolAddressBase;
-    use cw_asset::{AssetInfoBase, AssetInfoUnchecked};
+    use cw_asset::{AssetInfo, AssetInfoBase, AssetInfoUnchecked};
     use speculoos::prelude::*;
 
     use super::*;
@@ -290,11 +290,8 @@ mod test {
         }
     }
 
-    fn create_test_assets(
-        input: Vec<(&str, &str)>,
-        api: MockApi,
-    ) -> Vec<(String, AssetInfoBase<Addr>)> {
-        let test_assets: Vec<(String, AssetInfoBase<Addr>)> = input
+    fn create_test_assets(input: Vec<(&str, &str)>, api: MockApi) -> Vec<(String, AssetInfo)> {
+        let test_assets: Vec<(String, AssetInfo)> = input
             .into_iter()
             .map(|input| {
                 (
@@ -308,7 +305,7 @@ mod test {
         test_assets
     }
 
-    fn create_asset_response(test_assets: Vec<(String, AssetInfoBase<Addr>)>) -> AssetsResponse {
+    fn create_asset_response(test_assets: Vec<(String, AssetInfo)>) -> AssetsResponse {
         let expected = AssetsResponse {
             assets: test_assets
                 .iter()
@@ -318,9 +315,7 @@ mod test {
         expected
     }
 
-    fn create_asset_list_response(
-        test_assets: Vec<(String, AssetInfoBase<Addr>)>,
-    ) -> AssetListResponse {
+    fn create_asset_list_response(test_assets: Vec<(String, AssetInfo)>) -> AssetListResponse {
         let expected = AssetListResponse {
             assets: test_assets
                 .iter()
@@ -394,7 +389,7 @@ mod test {
 
     fn update_asset_addresses(
         deps: DepsMut<'_>,
-        to_add: Vec<(String, AssetInfoBase<Addr>)>,
+        to_add: Vec<(String, AssetInfo)>,
     ) -> Result<(), cosmwasm_std::StdError> {
         for (test_asset_name, test_asset_info) in to_add.into_iter() {
             let insert = |_| -> StdResult<AssetInfo> { Ok(test_asset_info) };
@@ -675,7 +670,7 @@ mod test {
             }
             vector
         };
-        let test_assets_large: Vec<(String, AssetInfoBase<Addr>)> = generate_test_assets_large(30)
+        let test_assets_large: Vec<(String, AssetInfo)> = generate_test_assets_large(30)
             .into_iter()
             .map(|input| {
                 (

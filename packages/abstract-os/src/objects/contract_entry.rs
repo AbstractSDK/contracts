@@ -135,6 +135,7 @@ mod test {
 
     mod key {
         use super::*;
+        use crate::ans_host::ContractMapEntry;
 
         fn mock_key() -> ContractEntry {
             ContractEntry {
