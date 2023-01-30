@@ -116,7 +116,6 @@ mod test {
 
     mod base_query {
         use super::*;
-        use abstract_sdk::unwrap_binary;
         use abstract_testing::{TEST_ANS_HOST, TEST_MANAGER, TEST_PROXY};
         use cosmwasm_std::{from_binary, Addr};
 
@@ -127,7 +126,7 @@ mod test {
             let config_query = QueryMsg::Base(BaseQueryMsg::Config {});
             let res = query_helper(deps.as_ref(), config_query)?;
 
-            assert_that!(unwrap_binary!(res)).is_equal_to(AppConfigResponse {
+            assert_that!(from_binary(res).unwrap()).is_equal_to(AppConfigResponse {
                 proxy_address: Addr::unchecked(TEST_PROXY),
                 ans_host_address: Addr::unchecked(TEST_ANS_HOST),
                 manager_address: Addr::unchecked(TEST_MANAGER),
@@ -143,7 +142,7 @@ mod test {
             let admin_query = QueryMsg::Base(BaseQueryMsg::Admin {});
             let res = query_helper(deps.as_ref(), admin_query)?;
 
-            assert_that!(unwrap_binary!(res)).is_equal_to(AdminResponse {
+            assert_that!(from_binary(res).unwrap()).is_equal_to(AdminResponse {
                 admin: Some(TEST_MANAGER.to_string()),
             });
 
