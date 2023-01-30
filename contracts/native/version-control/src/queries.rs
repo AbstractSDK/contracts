@@ -11,7 +11,7 @@ use abstract_sdk::os::{
     },
 };
 use cosmwasm_std::{to_binary, Binary, Deps, Order, StdError, StdResult};
-use cw_storage_plus::{Bound, Prefixer};
+use cw_storage_plus::Bound;
 
 const DEFAULT_LIMIT: u8 = 10;
 const MAX_LIMIT: u8 = 20;
@@ -302,11 +302,8 @@ mod test {
 
     mod list_modules {
         use super::*;
-        
-        
 
         fn filtered_list_msg(filter: ModuleFilter) -> QueryMsg {
-            
             QueryMsg::ModuleList {
                 filter: Some(filter),
                 page_token: None,
