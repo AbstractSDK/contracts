@@ -90,7 +90,7 @@ impl crate::base::features::AbstractNameService for AnsHost {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use abstract_testing::{TEST_MANAGER, TEST_PROXY};
+    use abstract_testing::{TEST_MANAGER, TEST_PROXY, TEST_VERSION_CONTROL};
     use speculoos::prelude::*;
 
     mod version_control {
@@ -118,7 +118,6 @@ mod tests {
         fn test_proxy_address() {
             let address = Addr::unchecked(TEST_PROXY);
             let proxy = ProxyContract::new(address.clone());
-
             let deps = mock_dependencies();
 
             assert_that!(proxy.proxy_address(deps.as_ref()))
