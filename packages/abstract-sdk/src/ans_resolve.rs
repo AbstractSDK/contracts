@@ -221,7 +221,7 @@ mod tests {
                 ),
             ];
             let querier = MockQuerierBuilder::default()
-                .with_contract_map_entrys(
+                .with_contract_map_entries(
                     TEST_ANS_HOST,
                     ASSET_ADDRESSES,
                     expected_entries
@@ -366,6 +366,43 @@ mod tests {
 
             test_dne(&not_exist_contract);
         }
+
+        #[test]
+        fn array() {
+            let expected_addr = Addr::unchecked("result");
+            let expected_entries = vec![
+                (
+                    ContractEntry {
+                        protocol: "junoswap".to_string(),
+                        contract: "something".to_string(),
+                    },
+                    expected_addr.clone(),
+                ),
+                (
+                    ContractEntry {
+                        protocol: "astroport".to_string(),
+                        contract: "something".to_string(),
+                    },
+                    expected_addr.clone(),
+                ),
+            ];
+            let querier = MockQuerierBuilder::default()
+                .with_contract_map_entries(
+                    TEST_ANS_HOST,
+                    CONTRACT_ADDRESSES,
+                    expected_entries
+                        .iter()
+                        .map(|(k, v)| (k.clone(), v))
+                        .collect(),
+                )
+                .build();
+
+            let (keys, values): (Vec<_>, Vec<_>) = expected_entries.into_iter().unzip();
+
+            let res = keys.resolve(&wrap_querier(&querier), &mock_ans_host());
+
+            assert_that!(res).is_ok().is_equal_to(values);
+        }
     }
 
     mod channel_entry {
@@ -438,6 +475,36 @@ mod tests {
             let not_exist_asset_info = AssetInfo::cw20(Addr::unchecked("address"));
 
             test_dne(&not_exist_asset_info);
+        }
+
+        #[test]
+        fn array() {
+            let expected_entries = vec![
+                (
+                    AssetInfo::cw20(Addr::unchecked("boop").clone()),
+                    AssetEntry::new("beepboop"),
+                ),
+                (
+                    AssetInfo::cw20(Addr::unchecked("iloveabstract").clone()),
+                    AssetEntry::new("robinrocks!"),
+                ),
+            ];
+            let querier = MockQuerierBuilder::default()
+                .with_contract_map_entries(
+                    TEST_ANS_HOST,
+                    REV_ASSET_ADDRESSES,
+                    expected_entries
+                        .iter()
+                        .map(|(k, v)| (k.clone(), v))
+                        .collect(),
+                )
+                .build();
+
+            let (keys, values): (Vec<_>, Vec<_>) = expected_entries.into_iter().unzip();
+
+            let res = keys.resolve(&wrap_querier(&querier), &mock_ans_host());
+
+            assert_that!(res).is_ok().is_equal_to(values);
         }
     }
 }

@@ -151,10 +151,10 @@ impl MockQuerierBuilder {
         K: PrimaryKey<'a>,
         V: Serialize + DeserializeOwned,
     {
-        self.with_contract_map_entrys(contract, cw_map, vec![(key, value)])
+        self.with_contract_map_entries(contract, cw_map, vec![(key, value)])
     }
 
-    pub fn with_contract_map_entrys<'a, K, V>(
+    pub fn with_contract_map_entries<'a, K, V>(
         mut self,
         contract: &str,
         cw_map: Map<'a, K, V>,
