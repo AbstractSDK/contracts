@@ -26,37 +26,43 @@ pub fn handle_os_address_query(deps: Deps, os_id: u32) -> StdResult<Binary> {
     }
 }
 
-pub fn handle_modules_query(deps: Deps, mut module: ModuleInfo) -> StdResult<Binary> {
-    let maybe_module = if let ModuleVersion::Version(_) = module.version {
-        MODULE_LIBRARY.load(deps.storage, module.clone())
-    } else {
-        // get latest
-        let versions: StdResult<Vec<(String, ModuleReference)>> = MODULE_LIBRARY
-            .prefix((module.provider.clone(), module.name.clone()))
-            .range(deps.storage, None, None, Order::Descending)
-            .take(1)
-            .collect();
-        let (latest_version, id) = versions?
-            .first()
-            .ok_or_else(|| StdError::GenericErr {
-                msg: VCError::ModuleNotInstalled(module.clone()).to_string(),
-            })?
-            .clone();
-        module.version = ModuleVersion::Version(latest_version);
-        Ok(id)
-    };
+pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<Binary> {
+    let mut modules_response = ModulesResponse { modules: vec![] };
+    for mut module in modules {
+        let maybe_module_ref = if let ModuleVersion::Version(_) = module.version {
+            MODULE_LIBRARY.load(deps.storage, module.clone())
+        } else {
+            // get latest
+            let versions: StdResult<Vec<(String, ModuleReference)>> = MODULE_LIBRARY
+                .prefix((module.provider.clone(), module.name.clone()))
+                .range(deps.storage, None, None, Order::Descending)
+                .take(1)
+                .collect();
+            let (latest_version, id) = versions?
+                .first()
+                .ok_or_else(|| StdError::GenericErr {
+                    msg: VCError::ModuleNotFound(module.clone()).to_string(),
+                })?
+                .clone();
+            module.version = ModuleVersion::Version(latest_version);
+            Ok(id)
+        };
 
-    match maybe_module {
-        Err(_) => Err(StdError::generic_err(
-            VCError::ModuleNotInstalled(module).to_string(),
-        )),
-        Ok(mod_ref) => to_binary(&ModulesResponse {
-            modules: vec![Module {
-                info: module,
-                reference: mod_ref,
-            }],
-        }),
+        match maybe_module_ref {
+            Err(_) => Err(StdError::generic_err(
+                VCError::ModuleNotFound(module).to_string(),
+            )),
+            Ok(mod_ref) => {
+                modules_response.modules.push(Module {
+                    info: module,
+                    reference: mod_ref,
+                });
+                Ok(())
+            }
+        }?;
     }
+
+    to_binary(&modules_response)
 }
 
 pub fn handle_module_list_query(
@@ -300,6 +306,97 @@ mod test {
 
     use cosmwasm_std::from_binary;
 
+    /// Add the provided modules to the version control
+    fn add_modules(deps: DepsMut, new_module_infos: Vec<ModuleInfo>) {
+        let modules = new_module_infos
+            .into_iter()
+            .map(|info| (info, ModuleReference::App(0)))
+            .collect();
+        let add_msg = ExecuteMsg::AddModules { modules };
+        let res = execute_as_admin(deps, add_msg);
+        assert_that!(&res).is_ok();
+    }
+
+    /// Init verison control with some test modules.
+    fn init_with_mods(mut deps: DepsMut) {
+        mock_init(deps.branch()).unwrap();
+        let cw_mods = vec![
+            ModuleInfo::from_id("cw-plus:module1", ModuleVersion::Version("0.1.2".into())).unwrap(),
+            ModuleInfo::from_id("cw-plus:module2", ModuleVersion::Version("0.1.2".into())).unwrap(),
+            ModuleInfo::from_id("cw-plus:module3", ModuleVersion::Version("0.1.2".into())).unwrap(),
+        ];
+        add_modules(deps.branch(), cw_mods);
+
+        let fortytwo_mods = vec![
+            ModuleInfo::from_id("4t2:module1", ModuleVersion::Version("0.1.2".into())).unwrap(),
+            ModuleInfo::from_id("4t2:module2", ModuleVersion::Version("0.1.2".into())).unwrap(),
+            ModuleInfo::from_id("4t2:module3", ModuleVersion::Version("0.1.2".into())).unwrap(),
+        ];
+        add_modules(deps, fortytwo_mods);
+    }
+
+    mod modules {
+        use super::*;
+
+        #[test]
+        fn get_cw_plus_modules() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            init_with_mods(deps.as_mut());
+
+            let provider = "cw-plus".to_string();
+
+            let query_msg = QueryMsg::Modules {
+                infos: vec![
+                    ModuleInfo {
+                        provider: provider.clone(),
+                        name: "module1".to_string(),
+                        version: ModuleVersion::Latest {},
+                    },
+                    ModuleInfo {
+                        provider: provider.clone(),
+                        name: "module2".to_string(),
+                        version: ModuleVersion::Latest {},
+                    },
+                    ModuleInfo {
+                        provider: provider.clone(),
+                        name: "module3".to_string(),
+                        version: ModuleVersion::Latest {},
+                    },
+                ],
+            };
+
+            let ModulesResponse { modules } =
+                from_binary(&query_helper(deps.as_ref(), query_msg)?)?;
+            assert_that!(modules).has_length(3);
+            for module in modules {
+                assert_that!(module.info.provider).is_equal_to(provider.clone());
+                assert_that!(module.info.version)
+                    .is_equal_to(&ModuleVersion::Version("0.1.2".into()));
+            }
+            Ok(())
+        }
+
+        #[test]
+        fn get_modules_not_found() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            init_with_mods(deps.as_mut());
+
+            let query_msg = QueryMsg::Modules {
+                infos: vec![ModuleInfo {
+                    provider: "not".to_string(),
+                    name: "found".to_string(),
+                    version: ModuleVersion::Latest {},
+                }],
+            };
+
+            let res = query_helper(deps.as_ref(), query_msg);
+            assert_that!(res)
+                .is_err()
+                .matches(|e| matches!(e, StdError::GenericErr { .. }));
+            Ok(())
+        }
+    }
+
     mod list_modules {
         use super::*;
 
@@ -309,36 +406,6 @@ mod test {
                 page_token: None,
                 page_size: None,
             }
-        }
-
-        fn add_modules(deps: DepsMut, new_module_infos: Vec<ModuleInfo>) {
-            let modules = new_module_infos
-                .into_iter()
-                .map(|info| (info, ModuleReference::App(0)))
-                .collect();
-            let add_msg = ExecuteMsg::AddModules { modules };
-            let res = execute_as_admin(deps, add_msg);
-            assert_that!(&res).is_ok();
-        }
-
-        fn init_with_mods(mut deps: DepsMut) {
-            mock_init(deps.branch()).unwrap();
-            let cw_mods = vec![
-                ModuleInfo::from_id("cw-plus:module1", ModuleVersion::Version("0.1.2".into()))
-                    .unwrap(),
-                ModuleInfo::from_id("cw-plus:module2", ModuleVersion::Version("0.1.2".into()))
-                    .unwrap(),
-                ModuleInfo::from_id("cw-plus:module3", ModuleVersion::Version("0.1.2".into()))
-                    .unwrap(),
-            ];
-            add_modules(deps.branch(), cw_mods);
-
-            let fortytwo_mods = vec![
-                ModuleInfo::from_id("4t2:module1", ModuleVersion::Version("0.1.2".into())).unwrap(),
-                ModuleInfo::from_id("4t2:module2", ModuleVersion::Version("0.1.2".into())).unwrap(),
-                ModuleInfo::from_id("4t2:module3", ModuleVersion::Version("0.1.2".into())).unwrap(),
-            ];
-            add_modules(deps, fortytwo_mods);
         }
 
         #[test]
