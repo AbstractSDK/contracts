@@ -140,7 +140,7 @@ impl MockQuerierBuilder {
     }
 
     /// Add a map entry to the querier for the given contract.
-    pub fn with_raw_mapping<'a, K, V>(
+    pub fn with_contract_map_entry<'a, K, V>(
         self,
         contract: &str,
         cw_map: Map<'a, K, V>,
@@ -151,10 +151,10 @@ impl MockQuerierBuilder {
         K: PrimaryKey<'a>,
         V: Serialize + DeserializeOwned,
     {
-        self.with_raw_mappings(contract, cw_map, vec![(key, value)])
+        self.with_contract_map_entrys(contract, cw_map, vec![(key, value)])
     }
 
-    pub fn with_raw_mappings<'a, K, V>(
+    pub fn with_contract_map_entrys<'a, K, V>(
         mut self,
         contract: &str,
         cw_map: Map<'a, K, V>,

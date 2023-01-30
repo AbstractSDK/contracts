@@ -104,18 +104,17 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use cosmwasm_std::{Binary};
+    use cosmwasm_std::Binary;
 
     use abstract_os::ans_host::state::ASSET_ADDRESSES;
     use abstract_testing::{wrap_querier, MockDeps, MockQuerierBuilder, TEST_ANS_HOST};
     use cosmwasm_std::testing::{mock_dependencies, MockQuerier};
-    use cosmwasm_std::{Empty};
+    use cosmwasm_std::Empty;
     use cw_storage_plus::{Map, PrimaryKey};
     use serde::de::DeserializeOwned;
     use serde::Serialize;
     use speculoos::prelude::*;
 
-    
     use std::fmt::Debug;
 
     fn mock_map_key<'a, K, V>(map: Map<'a, K, V>, key: K) -> String
@@ -126,8 +125,6 @@ mod tests {
         String::from_utf8(map.key(key).deref().to_vec()).unwrap()
     }
 
-    
-    
     use std::ops::Deref;
 
     fn assert_not_found<T: Debug>(res: StdResult<T>) {
@@ -181,7 +178,7 @@ mod tests {
             let test_asset_entry = AssetEntry::new("aoeu");
             let expected_value = AssetInfo::cw20(expected_addr.clone());
             let querier = MockQuerierBuilder::default()
-                .with_raw_mapping(
+                .with_contract_map_entry(
                     TEST_ANS_HOST,
                     ASSET_ADDRESSES,
                     test_asset_entry.clone(),
@@ -192,9 +189,7 @@ mod tests {
             let _ans_host = mock_ans_host();
 
             let res = test_resolve(&querier, &test_asset_entry);
-            assert_that!(res)
-                .is_ok()
-                .is_equal_to(expected_value);
+            assert_that!(res).is_ok().is_equal_to(expected_value);
 
             let ans_asset_res = test_resolve(&querier, &AnsAsset::new("aoeu", 52256u128));
             assert_that!(ans_asset_res)
@@ -226,7 +221,7 @@ mod tests {
                 ),
             ];
             let querier = MockQuerierBuilder::default()
-                .with_raw_mappings(
+                .with_contract_map_entrys(
                     TEST_ANS_HOST,
                     ASSET_ADDRESSES,
                     expected_entries
@@ -248,7 +243,6 @@ mod tests {
 
     mod lp_token {
         use super::*;
-        
 
         #[test]
         fn exists() {
@@ -258,7 +252,7 @@ mod tests {
             let test_lp_token = LpToken::new("junoswap", assets);
             let expected_value = AssetInfo::cw20(lp_token_address);
             let querier = MockQuerierBuilder::default()
-                .with_raw_mapping(
+                .with_contract_map_entry(
                     TEST_ANS_HOST,
                     ASSET_ADDRESSES,
                     test_lp_token.clone().into(),
@@ -269,9 +263,7 @@ mod tests {
             let _ans_host = mock_ans_host();
 
             let res = test_resolve(&querier, &test_lp_token);
-            assert_that!(res)
-                .is_ok()
-                .is_equal_to(expected_value);
+            assert_that!(res).is_ok().is_equal_to(expected_value);
         }
 
         #[test]
@@ -307,13 +299,18 @@ mod tests {
                 PoolMetadata::new(dex.clone(), PoolType::ConstantProduct, assets.clone());
 
             let querier = MockQuerierBuilder::default()
-                .with_raw_mapping(
+                .with_contract_map_entry(
                     TEST_ANS_HOST,
                     ASSET_PAIRINGS,
                     pairing,
                     &vec![pool_reference],
                 )
-                .with_raw_mapping(TEST_ANS_HOST, POOL_METADATA, unique_pool_id, &pool_metadata)
+                .with_contract_map_entry(
+                    TEST_ANS_HOST,
+                    POOL_METADATA,
+                    unique_pool_id,
+                    &pool_metadata,
+                )
                 .build();
 
             let _ans_host = mock_ans_host();
@@ -347,7 +344,7 @@ mod tests {
 
             let expected_value = Addr::unchecked("address");
             let querier = MockQuerierBuilder::default()
-                .with_raw_mapping(
+                .with_contract_map_entry(
                     TEST_ANS_HOST,
                     CONTRACT_ADDRESSES,
                     test_contract_entry.clone(),
@@ -384,7 +381,7 @@ mod tests {
 
             let expected_value = "channel-id".to_string();
             let querier = MockQuerierBuilder::default()
-                .with_raw_mapping(
+                .with_contract_map_entry(
                     TEST_ANS_HOST,
                     CHANNELS,
                     test_channel_entry.clone(),
@@ -419,7 +416,7 @@ mod tests {
 
             let expected_value = AssetEntry::new("chinachinachina");
             let querier = MockQuerierBuilder::default()
-                .with_raw_mapping(
+                .with_contract_map_entry(
                     TEST_ANS_HOST,
                     REV_ASSET_ADDRESSES,
                     test_asset_info.clone(),
