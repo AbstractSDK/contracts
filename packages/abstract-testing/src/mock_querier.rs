@@ -51,10 +51,11 @@ impl Default for MockQuerierBuilder {
 /// use cosmwasm_std::{from_binary, to_binary};
 /// use abstract_testing::MockQuerierBuilder;
 /// use cosmwasm_std::testing::MockQuerier;
+/// use abstract_testing::mock_module::MockModuleExecuteMsg;
 ///
 /// let querier = MockQuerierBuilder::default().with_smart_handler("contract_address", |msg| {
 ///    // handle the message
-///     let res = match from_binary(msg).unwrap() {
+///     let res = match from_binary::<MockModuleExecuteMsg>(msg).unwrap() {
 ///         // handle the message
 ///        _ => panic!("unexpected message"),
 ///    };
@@ -86,10 +87,11 @@ impl MockQuerierBuilder {
     /// use cosmwasm_std::{from_binary, to_binary};
     /// use abstract_testing::MockQuerierBuilder;
     /// use cosmwasm_std::testing::MockQuerier;
+    /// use abstract_testing::mock_module::MockModuleExecuteMsg;
     ///
     /// let querier = MockQuerierBuilder::default().with_smart_handler("contract_address", |msg| {
     ///    // handle the message
-    ///     let res = match from_binary(msg).unwrap() {
+    ///     let res = match from_binary::<MockModuleExecuteMsg>(msg).unwrap() {
     ///         // handle the message
     ///        _ => panic!("unexpected message"),
     ///    };
