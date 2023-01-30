@@ -1,20 +1,21 @@
-use abstract_os::ans_host::state::{Config, ADMIN, ASSET_PAIRINGS, CONFIG, POOL_METADATA};
-use abstract_os::ans_host::{
-    AssetPairingFilter, AssetPairingMapEntry, ConfigResponse, PoolAddressListResponse,
-    PoolMetadataFilter, PoolMetadataListResponse, PoolMetadataMapEntry, PoolMetadatasResponse,
-    PoolsResponse, RegisteredDexesResponse,
-};
-use abstract_os::dex::DexName;
-use abstract_os::objects::pool_metadata::PoolMetadata;
-use abstract_os::objects::pool_reference::PoolReference;
-use abstract_os::objects::{DexAssetPairing, UniquePoolId};
+use abstract_os::ans_host::{AssetMapEntry, ContractMapEntry};
 use abstract_os::{
+    ans_host::state::{Config, ADMIN, ASSET_PAIRINGS, CONFIG, POOL_METADATA},
     ans_host::{
         state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES, REGISTERED_DEXES},
         AssetListResponse, AssetsResponse, ChannelListResponse, ChannelsResponse,
         ContractListResponse, ContractsResponse,
     },
-    objects::{AssetEntry, ChannelEntry, ContractEntry},
+    ans_host::{
+        AssetPairingFilter, AssetPairingMapEntry, ChannelMapEntry, ConfigResponse,
+        PoolAddressListResponse, PoolMetadataFilter, PoolMetadataListResponse,
+        PoolMetadataMapEntry, PoolMetadatasResponse, PoolsResponse, RegisteredDexesResponse,
+    },
+    dex::DexName,
+    objects::{
+        AssetEntry, ChannelEntry, ContractEntry, DexAssetPairing, PoolMetadata, PoolReference,
+        UniquePoolId,
+    },
 };
 use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, StdResult, Storage};
 use cw_asset::AssetInfo;
@@ -43,7 +44,7 @@ pub fn query_assets(deps: Deps, _env: Env, asset_names: Vec<String>) -> StdResul
         .iter()
         .map(|name| name.as_str().into())
         .collect();
-    let res: Result<Vec<(AssetEntry, AssetInfo)>, _> = ASSET_ADDRESSES
+    let res: Result<Vec<AssetMapEntry>, _> = ASSET_ADDRESSES
         .range(deps.storage, None, None, Order::Ascending)
         .filter(|e| assets.contains(&e.as_ref().unwrap().0))
         .collect();
@@ -51,7 +52,7 @@ pub fn query_assets(deps: Deps, _env: Env, asset_names: Vec<String>) -> StdResul
 }
 
 pub fn query_contract(deps: Deps, _env: Env, names: Vec<ContractEntry>) -> StdResult<Binary> {
-    let res: Result<Vec<(ContractEntry, Addr)>, _> = CONTRACT_ADDRESSES
+    let res: Result<Vec<ContractMapEntry>, _> = CONTRACT_ADDRESSES
         .range(deps.storage, None, None, Order::Ascending)
         .filter(|e| names.contains(&e.as_ref().unwrap().0))
         .collect();
@@ -61,8 +62,9 @@ pub fn query_contract(deps: Deps, _env: Env, names: Vec<ContractEntry>) -> StdRe
     })
 }
 
-pub fn query_channel(deps: Deps, _env: Env, names: Vec<ChannelEntry>) -> StdResult<Binary> {
-    let res: Result<Vec<(ChannelEntry, String)>, _> = CHANNELS
+pub fn query_channels(deps: Deps, _env: Env, names: Vec<ChannelEntry>) -> StdResult<Binary> {
+    let res: Result<Vec<ChannelMapEntry>, _> = CHANNELS
+        .prefix()
         .range(deps.storage, None, None, Order::Ascending)
         .filter(|e| names.contains(&e.as_ref().unwrap().0))
         .collect();
@@ -78,7 +80,7 @@ pub fn query_asset_list(
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
     let start_bound = last_asset_name.as_deref().map(Bound::exclusive);
 
-    let res: Result<Vec<(AssetEntry, AssetInfo)>, _> = ASSET_ADDRESSES
+    let res: Result<Vec<AssetMapEntry>, _> = ASSET_ADDRESSES
         .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
         .collect();
@@ -94,10 +96,11 @@ pub fn query_contract_list(
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
     let start_bound = last_contract.map(Bound::exclusive);
 
-    let res: Result<Vec<(ContractEntry, Addr)>, _> = CONTRACT_ADDRESSES
+    let res: Result<Vec<ContractMapEntry>, _> = CONTRACT_ADDRESSES
         .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
         .collect();
+
     to_binary(&ContractListResponse {
         contracts: res?.into_iter().map(|(x, a)| (x, a.to_string())).collect(),
     })
@@ -111,10 +114,11 @@ pub fn query_channel_list(
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
     let start_bound = last_channel.map(Bound::exclusive);
 
-    let res: Result<Vec<(ChannelEntry, String)>, _> = CHANNELS
+    let res: Result<Vec<ChannelMapEntry>, _> = CHANNELS
         .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
         .collect();
+
     to_binary(&ChannelListResponse { channels: res? })
 }
 
@@ -363,10 +367,8 @@ mod test {
         contract_entry
     }
 
-    fn create_channel_entry_and_string(
-        input: Vec<(&str, &str, &str)>,
-    ) -> Vec<(ChannelEntry, String)> {
-        let channel_entry: Vec<(ChannelEntry, String)> = input
+    fn create_channel_entry_and_string(input: Vec<(&str, &str, &str)>) -> Vec<ChannelMapEntry> {
+        let channel_entry: Vec<ChannelMapEntry> = input
             .into_iter()
             .map(|input| {
                 (
@@ -423,7 +425,7 @@ mod test {
 
     fn update_channels(
         deps: DepsMut<'_>,
-        to_add: Vec<(ChannelEntry, String)>,
+        to_add: Vec<ChannelMapEntry>,
     ) -> Result<(), cosmwasm_std::StdError> {
         for (key, new_channel) in to_add.into_iter() {
             // Update function for new or existing keys
@@ -530,7 +532,7 @@ mod test {
     fn create_pool_metadata(dex: &str, asset_x: &str, asset_y: &str) -> PoolMetadata {
         PoolMetadata::new(
             dex,
-            abstract_os::objects::PoolType::Stable,
+            PoolType::Stable,
             vec![asset_x.to_string(), asset_y.to_string()],
         )
     }
@@ -992,7 +994,7 @@ mod test {
                 UniquePoolId::new(42),
                 PoolMetadata::new(
                     "bar",
-                    abstract_os::objects::PoolType::Stable,
+                    PoolType::Stable,
                     vec!["btc".to_string(), "eth".to_string()],
                 ),
             )],
@@ -1002,7 +1004,7 @@ mod test {
                 UniquePoolId::new(69),
                 PoolMetadata::new(
                     "foo",
-                    abstract_os::objects::PoolType::Stable,
+                    PoolType::Stable,
                     vec!["juno".to_string(), "atom".to_string()],
                 ),
             )],
