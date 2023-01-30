@@ -17,7 +17,7 @@ use abstract_os::{
         UniquePoolId,
     },
 };
-use abstract_sdk::helpers::cw_storage_plus::load_batch;
+use abstract_sdk::helpers::cw_storage_plus::load_many;
 use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult, Storage};
 use cw_storage_plus::Bound;
 
@@ -42,13 +42,13 @@ pub fn query_config(deps: Deps) -> StdResult<Binary> {
 pub fn query_assets(deps: Deps, _env: Env, keys: Vec<String>) -> StdResult<Binary> {
     let keys: Vec<AssetEntry> = keys.iter().map(|name| name.as_str().into()).collect();
 
-    let assets = load_batch(ASSET_ADDRESSES, deps.storage, keys)?;
+    let assets = load_many(ASSET_ADDRESSES, deps.storage, keys)?;
 
     to_binary(&AssetsResponse { assets })
 }
 
 pub fn query_contract(deps: Deps, _env: Env, keys: Vec<ContractEntry>) -> StdResult<Binary> {
-    let contracts = load_batch(CONTRACT_ADDRESSES, deps.storage, keys)?;
+    let contracts = load_many(CONTRACT_ADDRESSES, deps.storage, keys)?;
 
     to_binary(&ContractsResponse {
         contracts: contracts
@@ -59,7 +59,7 @@ pub fn query_contract(deps: Deps, _env: Env, keys: Vec<ContractEntry>) -> StdRes
 }
 
 pub fn query_channels(deps: Deps, _env: Env, keys: Vec<ChannelEntry>) -> StdResult<Binary> {
-    let channels = load_batch(CHANNELS, deps.storage, keys)?;
+    let channels = load_many(CHANNELS, deps.storage, keys)?;
 
     to_binary(&ChannelsResponse { channels })
 }

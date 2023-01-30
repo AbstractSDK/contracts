@@ -4,7 +4,7 @@ use serde::de::DeserializeOwned;
 use serde::Serialize;
 
 /// Load a batch of values by their keys from a [`Map`].
-pub fn load_batch<'a, K, V>(
+pub fn load_many<'a, K, V>(
     map: Map<'a, K, V>,
     storage: &dyn Storage,
     keys: Vec<K>,
@@ -48,13 +48,13 @@ mod test {
     }
 
     #[test]
-    fn load_batch_works() {
+    fn load_many_works() {
         let deps = setup();
         let keys = EXISTING_KEYS
             .iter()
             .map(|key| key.to_string())
             .collect::<Vec<String>>();
-        let res = load_batch(TEST_MAP, deps.as_ref().storage, keys).unwrap();
+        let res = load_many(TEST_MAP, deps.as_ref().storage, keys).unwrap();
 
         assert_that!(res).has_length(EXISTING_KEYS.len());
 
@@ -64,14 +64,14 @@ mod test {
     }
 
     #[test]
-    fn load_batch_with_not_existing() {
+    fn load_many_with_not_existing() {
         let deps = setup();
         let with_non_existing = EXISTING_KEYS
             .iter()
             .map(|key| key.to_string())
             .chain(vec!["e".to_string()])
             .collect::<Vec<String>>();
-        let res = load_batch(TEST_MAP, deps.as_ref().storage, with_non_existing);
+        let res = load_many(TEST_MAP, deps.as_ref().storage, with_non_existing);
 
         assert_that!(res).is_err();
     }
