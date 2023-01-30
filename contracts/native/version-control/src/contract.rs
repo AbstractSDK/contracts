@@ -69,9 +69,10 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             to_binary(&ConfigResponse { admin, factory })
         }
         QueryMsg::ModuleList {
+            filter,
             page_token,
             page_size,
-        } => queries::handle_module_list_query(deps, page_token, page_size),
+        } => queries::handle_module_list_query(deps, page_token, page_size, filter),
     }
 }
 

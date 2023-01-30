@@ -62,6 +62,15 @@ pub enum ExecuteMsg {
     SetFactory { new_factory: String },
 }
 
+/// A ModuleFilter that mirrors the [`ModuleInfo`] struct.
+#[derive(Default)]
+#[cosmwasm_schema::cw_serde]
+pub struct ModuleFilter {
+    pub provider: Option<String>,
+    pub name: Option<String>,
+    pub version: Option<String>,
+}
+
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
 #[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
@@ -80,6 +89,7 @@ pub enum QueryMsg {
     /// Returns [`ModulesListResponse`]
     #[returns(ModulesListResponse)]
     ModuleList {
+        filter: Option<ModuleFilter>,
         page_token: Option<ModuleInfo>,
         page_size: Option<u8>,
     },
