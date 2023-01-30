@@ -17,8 +17,8 @@ use abstract_os::{
         UniquePoolId,
     },
 };
-use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, StdResult, Storage};
-use cw_asset::AssetInfo;
+use abstract_sdk::helpers::cw_storage_plus::load_batch;
+use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult, Storage};
 use cw_storage_plus::Bound;
 
 pub(crate) const DEFAULT_LIMIT: u8 = 15;
@@ -39,37 +39,29 @@ pub fn query_config(deps: Deps) -> StdResult<Binary> {
     to_binary(&res)
 }
 
-pub fn query_assets(deps: Deps, _env: Env, asset_names: Vec<String>) -> StdResult<Binary> {
-    let assets: Vec<AssetEntry> = asset_names
-        .iter()
-        .map(|name| name.as_str().into())
-        .collect();
-    let res: Result<Vec<AssetMapEntry>, _> = ASSET_ADDRESSES
-        .range(deps.storage, None, None, Order::Ascending)
-        .filter(|e| assets.contains(&e.as_ref().unwrap().0))
-        .collect();
-    to_binary(&AssetsResponse { assets: res? })
+pub fn query_assets(deps: Deps, _env: Env, keys: Vec<String>) -> StdResult<Binary> {
+    let keys: Vec<AssetEntry> = keys.iter().map(|name| name.as_str().into()).collect();
+
+    let assets = load_batch(ASSET_ADDRESSES, deps.storage, keys)?;
+
+    to_binary(&AssetsResponse { assets })
 }
 
-pub fn query_contract(deps: Deps, _env: Env, names: Vec<ContractEntry>) -> StdResult<Binary> {
-    let res: Result<Vec<ContractMapEntry>, _> = CONTRACT_ADDRESSES
-        .range(deps.storage, None, None, Order::Ascending)
-        .filter(|e| names.contains(&e.as_ref().unwrap().0))
-        .collect();
+pub fn query_contract(deps: Deps, _env: Env, keys: Vec<ContractEntry>) -> StdResult<Binary> {
+    let contracts = load_batch(CONTRACT_ADDRESSES, deps.storage, keys)?;
 
     to_binary(&ContractsResponse {
-        contracts: res?.into_iter().map(|(x, a)| (x, a.to_string())).collect(),
+        contracts: contracts
+            .into_iter()
+            .map(|(x, a)| (x, a.to_string()))
+            .collect(),
     })
 }
 
-pub fn query_channels(deps: Deps, _env: Env, names: Vec<ChannelEntry>) -> StdResult<Binary> {
-    let res: Result<Vec<ChannelMapEntry>, _> = CHANNELS
-        .prefix()
-        .range(deps.storage, None, None, Order::Ascending)
-        .filter(|e| names.contains(&e.as_ref().unwrap().0))
-        .collect();
+pub fn query_channels(deps: Deps, _env: Env, keys: Vec<ChannelEntry>) -> StdResult<Binary> {
+    let channels = load_batch(CHANNELS, deps.storage, keys)?;
 
-    to_binary(&ChannelsResponse { channels: res? })
+    to_binary(&ChannelsResponse { channels })
 }
 
 pub fn query_asset_list(

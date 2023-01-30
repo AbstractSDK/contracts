@@ -559,7 +559,7 @@ mod test {
     }
 
     mod update_contract_addresses {
-
+        use abstract_os::ans_host::ContractMapEntry;
         use abstract_os::objects::ContractEntry;
         use abstract_testing::map_tester::CwMapTesterBuilder;
 
