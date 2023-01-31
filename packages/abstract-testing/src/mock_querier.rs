@@ -3,10 +3,7 @@ use crate::{
     TEST_PROXY, TEST_VERSION_CONTROL,
 };
 use abstract_os::manager::state::OS_ID;
-use abstract_os::{
-    manager::state::OS_MODULES, version_control::state::OS_ADDRESSES, version_control::Core,
-    MANAGER,
-};
+use abstract_os::{manager::state::OS_MODULES, version_control::state::OS_ADDRESSES};
 use cosmwasm_std::{
     from_binary, testing::MockQuerier, to_binary, Addr, Binary, ContractResult, Empty,
     QuerierWrapper, SystemResult, WasmQuery,
@@ -296,7 +293,7 @@ impl MockQuerierBuilder {
 ///   - "os_core" -> { TEST_PROXY, TEST_MANAGER }
 pub fn mock_querier() -> EmptyMockQuerier {
     let raw_handler = |contract: &str, key: &Binary| {
-        let str_key = std::str::from_utf8(&key.0).unwrap();
+        let _str_key = std::str::from_utf8(&key.0).unwrap();
         match contract {
             TEST_PROXY => Err("unexpected key".to_string()),
             TEST_MANAGER => {
@@ -363,6 +360,7 @@ mod tests {
 
     mod os_core {
         use super::*;
+        use abstract_os::version_control::Core;
 
         #[test]
         fn should_return_os_address() {

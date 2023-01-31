@@ -1,5 +1,5 @@
 use abstract_os::{api, app};
-use cosmwasm_std::testing::MockQuerier;
+
 use cosmwasm_std::{Addr, Deps, StdError, StdResult};
 use cw_storage_plus::Item;
 
@@ -10,7 +10,7 @@ use crate::{
 use abstract_os::objects::common_namespace::ADMIN_NAMESPACE;
 use abstract_os::objects::core::OS_ID;
 use abstract_os::version_control::state::OS_ADDRESSES;
-use abstract_os::version_control::Core;
+
 #[cfg(feature = "sdk")]
 use ::{
     abstract_os::objects::ans_host::AnsHost,

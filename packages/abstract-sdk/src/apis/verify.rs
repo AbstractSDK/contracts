@@ -102,7 +102,7 @@ mod test {
 
             let binding = MockBinding;
 
-            let res = registry
+            let res = binding
                 .os_registry(deps.as_ref())
                 .assert_proxy(&Addr::unchecked("not_proxy"));
 
@@ -123,7 +123,7 @@ mod test {
 
             let binding = MockBinding;
 
-            let res = registry
+            let res = binding
                 .os_registry(deps.as_ref())
                 .assert_proxy(&Addr::unchecked(TEST_PROXY));
 
@@ -148,7 +148,7 @@ mod test {
 
             let binding = MockBinding;
 
-            let res = registry
+            let res = binding
                 .os_registry(deps.as_ref())
                 .assert_proxy(&Addr::unchecked(TEST_PROXY));
 
@@ -176,7 +176,7 @@ mod test {
 
             let binding = MockBinding;
 
-            let res = registry
+            let res = binding
                 .os_registry(deps.as_ref())
                 .assert_proxy(&Addr::unchecked(TEST_PROXY));
 
@@ -197,7 +197,7 @@ mod test {
 
             let binding = MockBinding;
 
-            let res = registry
+            let res = binding
                 .os_registry(deps.as_ref())
                 .assert_manager(&Addr::unchecked("not_manager"));
 
@@ -218,7 +218,7 @@ mod test {
 
             let binding = MockBinding;
 
-            let res = registry
+            let res = binding
                 .os_registry(deps.as_ref())
                 .assert_manager(&Addr::unchecked(TEST_MANAGER));
 
@@ -243,7 +243,7 @@ mod test {
 
             let binding = MockBinding;
 
-            let res = registry
+            let res = binding
                 .os_registry(deps.as_ref())
                 .assert_manager(&Addr::unchecked(TEST_MANAGER));
 
@@ -271,7 +271,7 @@ mod test {
 
             let binding = MockBinding;
 
-            let res = registry
+            let res = binding
                 .os_registry(deps.as_ref())
                 .assert_manager(&Addr::unchecked(TEST_MANAGER));
 

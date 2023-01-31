@@ -183,14 +183,12 @@ mod tests {
     use abstract_sdk::base::InstantiateEndpoint;
     use abstract_testing::*;
     use cosmwasm_std::{
-        testing::MockStorage,
-        testing::{mock_dependencies, mock_env, mock_info},
-        wasm_execute, Addr, Empty, Order, OwnedDeps, StdError, StdResult, Storage,
+        testing::{mock_dependencies, mock_env, mock_info}, Addr, Empty, StdError, Storage,
     };
     use std::collections::HashSet;
 
-    use abstract_testing::mock_module::MockModuleExecuteMsg;
-    use cosmwasm_schema::cw_serde;
+    
+    
     use speculoos::prelude::*;
     use thiserror::Error;
 
@@ -252,11 +250,11 @@ mod tests {
         use super::*;
 
         fn load_test_proxy_traders(storage: &dyn Storage) -> HashSet<Addr> {
-            let traders = mock_api()
+            
+            mock_api()
                 .traders
                 .load(storage, Addr::unchecked(TEST_PROXY))
-                .unwrap();
-            traders
+                .unwrap()
         }
 
         #[test]
@@ -266,7 +264,7 @@ mod tests {
 
             mock_init(deps.as_mut())?;
 
-            let mut api = mock_api();
+            let _api = mock_api();
             let msg = BaseExecuteMsg::UpdateTraders {
                 to_add: vec![TEST_TRADER.into()],
                 to_remove: vec![],
@@ -291,7 +289,7 @@ mod tests {
 
             mock_init(deps.as_mut())?;
 
-            let mut api = mock_api();
+            let _api = mock_api();
             let msg = BaseExecuteMsg::UpdateTraders {
                 to_add: vec![TEST_TRADER.into()],
                 to_remove: vec![],
@@ -320,7 +318,7 @@ mod tests {
 
             mock_init(deps.as_mut())?;
 
-            let mut api = mock_api();
+            let _api = mock_api();
             let msg = BaseExecuteMsg::UpdateTraders {
                 to_add: vec![TEST_TRADER.into()],
                 to_remove: vec![],
@@ -335,12 +333,12 @@ mod tests {
 
             let res = base_execute_as(deps.as_mut(), TEST_MANAGER, msg);
 
-            let test_trader_string = TEST_TRADER.to_string();
+            let _test_trader_string = TEST_TRADER.to_string();
             assert_that!(res).is_err().matches(|e| {
                 matches!(
                     e,
                     MockError::Api(ApiError::TraderAlreadyPresent {
-                        trader: test_trader_string
+                        trader: _test_trader_string
                     })
                 )
             });
@@ -355,7 +353,7 @@ mod tests {
 
             mock_init(deps.as_mut())?;
 
-            let mut api = mock_api();
+            let _api = mock_api();
             let msg = BaseExecuteMsg::UpdateTraders {
                 to_add: vec![],
                 to_remove: vec![TEST_TRADER.into()],
@@ -363,12 +361,12 @@ mod tests {
 
             let res = base_execute_as(deps.as_mut(), TEST_MANAGER, msg);
 
-            let test_trader_string = TEST_TRADER.to_string();
+            let _test_trader_string = TEST_TRADER.to_string();
             assert_that!(res).is_err().matches(|e| {
                 matches!(
                     e,
                     MockError::Api(ApiError::TraderNotPresent {
-                        trader: test_trader_string
+                        trader: _test_trader_string
                     })
                 )
             });
@@ -378,7 +376,7 @@ mod tests {
     }
 
     mod execute_app {
-        use super::*;
+        
 
         #[test]
         fn not_traders_are_unauthorized() {}
