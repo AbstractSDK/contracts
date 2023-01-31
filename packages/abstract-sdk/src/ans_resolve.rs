@@ -383,7 +383,7 @@ mod tests {
                         protocol: "astroport".to_string(),
                         contract: "something".to_string(),
                     },
-                    expected_addr.clone(),
+                    expected_addr,
                 ),
             ];
             let querier = MockQuerierBuilder::default()
@@ -481,11 +481,11 @@ mod tests {
         fn array() {
             let expected_entries = vec![
                 (
-                    AssetInfo::cw20(Addr::unchecked("boop").clone()),
+                    AssetInfo::cw20(Addr::unchecked("boop")),
                     AssetEntry::new("beepboop"),
                 ),
                 (
-                    AssetInfo::cw20(Addr::unchecked("iloveabstract").clone()),
+                    AssetInfo::cw20(Addr::unchecked("iloveabstract")),
                     AssetEntry::new("robinrocks!"),
                 ),
             ];

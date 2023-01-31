@@ -2,6 +2,7 @@ pub mod map_tester;
 pub mod mock_module;
 pub(crate) mod mock_querier;
 
+use abstract_os::objects::OsId;
 use cosmwasm_std::testing::{MockApi, MockQuerier, MockStorage};
 use cosmwasm_std::OwnedDeps;
 pub use mock_querier::{map_key, mock_querier, raw_map_key, wrap_querier, MockQuerierBuilder};
@@ -9,7 +10,7 @@ pub use mock_querier::{map_key, mock_querier, raw_map_key, wrap_querier, MockQue
 pub type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 
 pub const TEST_ADMIN: &str = "admin";
-pub const TEST_OS_ID: u32 = 0;
+pub const TEST_OS_ID: OsId = 0;
 pub const TEST_VERSION: &str = "1.0.0";
 
 pub const TEST_PROXY: &str = "proxy_address";
