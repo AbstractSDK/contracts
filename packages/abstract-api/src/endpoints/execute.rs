@@ -1,12 +1,11 @@
 use crate::{error::ApiError, state::ApiContract, ApiResult};
-use abstract_os::api::ApiExecuteMsg;
 use abstract_sdk::{
     base::{
         endpoints::{ExecuteEndpoint, IbcCallbackEndpoint, ReceiveEndpoint},
         Handler,
     },
-    os::api::{BaseExecuteMsg, ExecuteMsg},
-    Execution, ModuleInterface, Verification,
+    os::api::{ApiExecuteMsg, BaseExecuteMsg, ExecuteMsg},
+    Execution, ModuleInterface, OsVerification,
 };
 use cosmwasm_std::{
     to_binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdError, WasmMsg,
@@ -35,30 +34,28 @@ impl<
         let sender = &info.sender;
         match msg {
             ExecuteMsg::App(request) => {
+                let register = self.os_registry(deps.as_ref());
+
                 let core = match request.proxy_address {
-                    Some(addr) => {
-                        let proxy_addr = deps.api.addr_validate(&addr)?;
+                    Some(proxy_addr) => {
+                        let proxy_address = deps.api.addr_validate(&proxy_addr)?;
                         let traders =
-                            self.traders.load(deps.storage, proxy_addr).map_err(|_| {
-                                ApiError::UnauthorizedTraderApiRequest(info.sender.to_string())
-                            })?;
-                        if traders.contains(sender) {
-                            self.os_register(deps.as_ref())
-                                .assert_proxy(&deps.api.addr_validate(&addr)?)?
-                        } else {
-                            self.os_register(deps.as_ref())
-                                .assert_manager(sender)
+                            self.traders
+                                .load(deps.storage, proxy_address)
                                 .map_err(|_| {
-                                    ApiError::UnauthorizedTraderApiRequest(info.sender.to_string())
-                                })?
+                                    ApiError::UnauthorizedTraderApiRequest(sender.to_string())
+                                })?;
+                        if traders.contains(sender) {
+                            register.assert_proxy(&deps.api.addr_validate(&proxy_addr)?)?
+                        } else {
+                            register.assert_manager(sender).map_err(|_| {
+                                ApiError::UnauthorizedTraderApiRequest(sender.to_string())
+                            })?
                         }
                     }
-                    None => self
-                        .os_register(deps.as_ref())
+                    None => register
                         .assert_manager(sender)
-                        .map_err(|_| {
-                            ApiError::UnauthorizedTraderApiRequest(info.sender.to_string())
-                        })?,
+                        .map_err(|_| ApiError::UnauthorizedTraderApiRequest(sender.to_string()))?,
                 };
                 self.target_os = Some(core);
                 self.execute_handler()?(deps, env, info, self, request.request)
@@ -106,7 +103,7 @@ impl<
         info: MessageInfo,
     ) -> Result<Response, ApiError> {
         let core = self
-            .os_register(deps)
+            .os_registry(deps)
             .assert_manager(&info.sender)
             .map_err(|_| ApiError::UnauthorizedApiRequest {})?;
         self.target_os = Some(core);
@@ -144,7 +141,7 @@ impl<
         // Either manager or proxy can add/remove traders.
         // This allows other apis to automatically add themselves, allowing for api-cross-calling.
         let core = self
-            .os_register(deps.as_ref())
+            .os_registry(deps.as_ref())
             .assert_manager(&info.sender)?;
 
         // Manager can only change traders for associated proxy
@@ -180,20 +177,31 @@ impl<
 mod tests {
     use super::*;
     use abstract_os::{
+        api,
         api::{BaseInstantiateMsg, InstantiateMsg},
     };
     use abstract_sdk::base::InstantiateEndpoint;
     use abstract_testing::*;
     use cosmwasm_std::{
+        testing::MockStorage,
         testing::{mock_dependencies, mock_env, mock_info},
-        Addr, Empty, StdError,
+        wasm_execute, Addr, Empty, Order, OwnedDeps, StdError, StdResult, Storage,
     };
-    
+    use std::collections::HashSet;
+
+    use abstract_testing::mock_module::MockModuleExecuteMsg;
+    use cosmwasm_schema::cw_serde;
     use speculoos::prelude::*;
     use thiserror::Error;
 
-    type MockApi = ApiContract<MockError, Empty, Empty, Empty, Empty>;
+    #[cosmwasm_schema::cw_serde]
+    struct MockApiExecMsg;
+
+    impl api::ApiExecuteMsg for MockApiExecMsg {}
+
+    type MockApi = ApiContract<MockError, MockApiExecMsg, Empty, Empty, Empty>;
     type ApiMockResult = Result<(), MockError>;
+
     const TEST_METADATA: &str = "test_metadata";
     const TEST_TRADER: &str = "test_trader";
 
@@ -219,48 +227,163 @@ mod tests {
         api.instantiate(deps, mock_env(), info, init_msg)
     }
 
-    fn mock_exec_handler(
-        _deps: DepsMut,
-        _env: Env,
-        _info: MessageInfo,
-        _api: MockApi,
-        _msg: Empty,
-    ) -> Result<Response, MockError> {
-        Ok(Response::new().set_data("mock_response".as_bytes()))
-    }
-
     fn mock_api() -> MockApi {
         MockApi::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
-            .with_execute(mock_exec_handler)
+            .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_response".as_bytes())))
     }
 
-    #[test]
-    fn add_trader() -> ApiMockResult {
-        let env = mock_env();
-        let info = mock_info(TEST_MANAGER, &[]);
-        let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
+    fn execute_as(
+        deps: DepsMut,
+        sender: &str,
+        msg: ExecuteMsg<MockApiExecMsg>,
+    ) -> Result<Response, MockError> {
+        mock_api().execute(deps, mock_env(), mock_info(sender, &[]), msg)
+    }
 
-        mock_init(deps.as_mut())?;
+    fn base_execute_as(
+        deps: DepsMut,
+        sender: &str,
+        msg: BaseExecuteMsg,
+    ) -> Result<Response, MockError> {
+        execute_as(deps, sender, api::ExecuteMsg::Base(msg))
+    }
 
-        let mut api = mock_api();
-        let msg = BaseExecuteMsg::UpdateTraders {
-            to_add: vec![TEST_TRADER.into()],
-            to_remove: vec![],
-        };
-        // consumes api
-        api.base_execute(deps.as_mut(), env, info, msg)?;
+    mod update_traders {
+        use super::*;
 
-        let api = mock_api();
-        let no_traders_registered = api.traders.is_empty(&deps.storage);
-        assert_that!(no_traders_registered).is_false();
+        fn load_test_proxy_traders(storage: &dyn Storage) -> HashSet<Addr> {
+            let traders = mock_api()
+                .traders
+                .load(storage, Addr::unchecked(TEST_PROXY))
+                .unwrap();
+            traders
+        }
 
-        let test_proxy_traders = api
-            .traders
-            .load(&deps.storage, Addr::unchecked(TEST_PROXY))?;
+        #[test]
+        fn add_trader() -> ApiMockResult {
+            let mut deps = mock_dependencies();
+            deps.querier = mock_querier();
 
-        assert_that!(test_proxy_traders).has_length(1);
-        assert_that!(test_proxy_traders).contains(Addr::unchecked(TEST_TRADER));
-        Ok(())
+            mock_init(deps.as_mut())?;
+
+            let mut api = mock_api();
+            let msg = BaseExecuteMsg::UpdateTraders {
+                to_add: vec![TEST_TRADER.into()],
+                to_remove: vec![],
+            };
+
+            base_execute_as(deps.as_mut(), TEST_MANAGER, msg)?;
+
+            let api = mock_api();
+            assert_that!(api.traders.is_empty(&deps.storage)).is_false();
+
+            let test_proxy_traders = load_test_proxy_traders(&deps.storage);
+
+            assert_that!(test_proxy_traders).has_length(1);
+            assert_that!(test_proxy_traders).contains(Addr::unchecked(TEST_TRADER));
+            Ok(())
+        }
+
+        #[test]
+        fn remove_trader() -> ApiMockResult {
+            let mut deps = mock_dependencies();
+            deps.querier = mock_querier();
+
+            mock_init(deps.as_mut())?;
+
+            let mut api = mock_api();
+            let msg = BaseExecuteMsg::UpdateTraders {
+                to_add: vec![TEST_TRADER.into()],
+                to_remove: vec![],
+            };
+
+            base_execute_as(deps.as_mut(), TEST_MANAGER, msg)?;
+
+            let traders = load_test_proxy_traders(&deps.storage);
+            assert_that!(traders).has_length(1);
+
+            let msg = BaseExecuteMsg::UpdateTraders {
+                to_add: vec![],
+                to_remove: vec![TEST_TRADER.into()],
+            };
+
+            base_execute_as(deps.as_mut(), TEST_MANAGER, msg)?;
+            let traders = load_test_proxy_traders(&deps.storage);
+            assert_that!(traders).is_empty();
+            Ok(())
+        }
+
+        #[test]
+        fn add_existing_trader() -> ApiMockResult {
+            let mut deps = mock_dependencies();
+            deps.querier = mock_querier();
+
+            mock_init(deps.as_mut())?;
+
+            let mut api = mock_api();
+            let msg = BaseExecuteMsg::UpdateTraders {
+                to_add: vec![TEST_TRADER.into()],
+                to_remove: vec![],
+            };
+
+            base_execute_as(deps.as_mut(), TEST_MANAGER, msg)?;
+
+            let msg = BaseExecuteMsg::UpdateTraders {
+                to_add: vec![TEST_TRADER.into()],
+                to_remove: vec![],
+            };
+
+            let res = base_execute_as(deps.as_mut(), TEST_MANAGER, msg);
+
+            let test_trader_string = TEST_TRADER.to_string();
+            assert_that!(res).is_err().matches(|e| {
+                matches!(
+                    e,
+                    MockError::Api(ApiError::TraderAlreadyPresent {
+                        trader: test_trader_string
+                    })
+                )
+            });
+
+            Ok(())
+        }
+
+        #[test]
+        fn remove_trader_dne() -> ApiMockResult {
+            let mut deps = mock_dependencies();
+            deps.querier = mock_querier();
+
+            mock_init(deps.as_mut())?;
+
+            let mut api = mock_api();
+            let msg = BaseExecuteMsg::UpdateTraders {
+                to_add: vec![],
+                to_remove: vec![TEST_TRADER.into()],
+            };
+
+            let res = base_execute_as(deps.as_mut(), TEST_MANAGER, msg);
+
+            let test_trader_string = TEST_TRADER.to_string();
+            assert_that!(res).is_err().matches(|e| {
+                matches!(
+                    e,
+                    MockError::Api(ApiError::TraderNotPresent {
+                        trader: test_trader_string
+                    })
+                )
+            });
+
+            Ok(())
+        }
+    }
+
+    mod execute_app {
+        use super::*;
+
+        #[test]
+        fn not_traders_are_unauthorized() {}
+
+        #[test]
+        fn executing_as_os_proxy_succeeds() {}
     }
 }

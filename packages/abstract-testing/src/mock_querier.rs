@@ -2,13 +2,14 @@ use crate::{
     TEST_MANAGER, TEST_MODULE_ADDRESS, TEST_MODULE_ID, TEST_MODULE_RESPONSE, TEST_OS_ID,
     TEST_PROXY, TEST_VERSION_CONTROL,
 };
+use abstract_os::manager::state::OS_MODULES;
 use abstract_os::version_control::Core;
 use cosmwasm_std::testing::MockQuerier;
 use cosmwasm_std::{
     from_binary, to_binary, Addr, Binary, ContractResult, Empty, QuerierWrapper, SystemResult,
     WasmQuery,
 };
-use cw_storage_plus::{Map, PrimaryKey};
+use cw_storage_plus::{Item, Map, PrimaryKey};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use std::collections::HashMap;
@@ -36,7 +37,7 @@ impl Default for MockQuerierBuilder {
     /// Create a default
     fn default() -> Self {
         let raw_fallback: fn(&str, &Binary) -> BinaryQueryResult =
-            |_, _| panic!("No mock querier for this query");
+            |addr, bin| panic!("No mock querier for this query: {addr:?} {bin:?}");
         let smart_fallback: fn(&str, &Binary) -> BinaryQueryResult =
             |_, _| Err("unexpected contract".into());
 
@@ -172,12 +173,28 @@ impl MockQuerierBuilder {
         self
     }
 
+    pub fn with_contract_item<T>(mut self, contract: &str, cw_item: Item<T>, value: &T) -> Self
+    where
+        T: Serialize + DeserializeOwned,
+    {
+        let raw_map = self.raw_mappings.entry(contract.to_string()).or_default();
+
+        raw_map.insert(
+            Binary(cw_item.as_slice().to_vec()),
+            to_binary(value).unwrap(),
+        );
+
+        self
+    }
+
     /// Build the [`MockQuerier`].
     pub fn build(mut self) -> EmptyMockQuerier {
         self.base.update_wasm(move |wasm| {
             let res = match wasm {
                 WasmQuery::Raw { contract_addr, key } => {
                     let str_key = std::str::from_utf8(&key.0).unwrap();
+
+                    // panic!("{:?} {:?}", contract_addr, str_key);
 
                     // First check for raw mappings
                     if let Some(raw_map) = self.raw_mappings.get(contract_addr.as_str()) {
@@ -233,17 +250,7 @@ pub fn mock_querier() -> EmptyMockQuerier {
                 _ => Err("unexpected key".to_string()),
             },
             TEST_MANAGER => {
-                // add module
-                let map_key = broken_map_key("os_modules", TEST_MODULE_ID);
-                let mut modules = HashMap::<Binary, Addr>::default();
-                modules.insert(
-                    Binary(map_key.as_bytes().to_vec()),
-                    Addr::unchecked(TEST_MODULE_ADDRESS),
-                );
-
-                if let Some(value) = modules.get(key) {
-                    Ok(to_binary(&value.clone()).unwrap())
-                } else if str_key == "\u{0}{5}os_id" {
+                if str_key == "\u{0}{5}os_id" {
                     Ok(to_binary(&TEST_OS_ID).unwrap())
                 } else {
                     // Return the default value
@@ -272,6 +279,12 @@ pub fn mock_querier() -> EmptyMockQuerier {
             let Empty {} = from_binary(msg).unwrap();
             Ok(to_binary(TEST_MODULE_RESPONSE).unwrap())
         })
+        .with_contract_map_entry(
+            TEST_MANAGER,
+            OS_MODULES,
+            TEST_MODULE_ID,
+            &Addr::unchecked(TEST_MODULE_ADDRESS),
+        )
         .build()
 }
 

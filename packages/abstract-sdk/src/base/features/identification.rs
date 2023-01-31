@@ -6,6 +6,8 @@ use cw_storage_plus::Item;
 
 const MANAGER: Item<'_, Option<Addr>> = Item::new(ADMIN_NAMESPACE);
 
+/// A trait that enables the identification of an OS.
+/// This includes the manager, porxy, core (manager/proxy) and osId.
 pub trait Identification: Sized {
     fn proxy_address(&self, deps: Deps) -> StdResult<Addr>;
     fn manager_address(&self, deps: Deps) -> StdResult<Addr> {

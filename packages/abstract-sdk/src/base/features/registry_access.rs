@@ -1,7 +1,9 @@
 use cosmwasm_std::{Addr, Deps, StdResult};
 
-pub trait RegisterAccess: Sized {
-    fn registry(&self, deps: Deps) -> StdResult<Addr>;
+/// Trait that enables access to a registry, like a version control contract.
+pub trait AbstractRegistryAccess: Sized {
+    /// Get the address of the registry.
+    fn abstract_registry(&self, deps: Deps) -> StdResult<Addr>;
 }
 
 // / Query module information
