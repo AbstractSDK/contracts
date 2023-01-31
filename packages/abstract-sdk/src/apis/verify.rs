@@ -75,6 +75,7 @@ impl<'a, T: OsVerification> OsRegistry<'a, T> {
 #[cfg(test)]
 mod test {
     use super::*;
+    use abstract_testing::*;
     use cosmwasm_std::testing::*;
 
     use crate::ModuleRegistryInterface;
@@ -83,15 +84,15 @@ mod test {
     };
     use speculoos::prelude::*;
 
-    struct MockRegistry;
+    struct MockBinding;
 
-    impl AbstractRegistryAccess for MockRegistry {
+    impl AbstractRegistryAccess for MockBinding {
         fn abstract_registry(&self, _deps: Deps) -> StdResult<Addr> {
             Ok(Addr::unchecked(TEST_VERSION_CONTROL))
         }
     }
 
-    mod assert_manager {
+    mod assert_proxy {
         use super::*;
 
         #[test]
@@ -99,7 +100,7 @@ mod test {
             let mut deps = mock_dependencies();
             deps.querier = mock_querier();
 
-            let registry = MockRegistry;
+            let binding = MockBinding;
 
             let res = registry
                 .os_registry(deps.as_ref())
@@ -114,12 +115,13 @@ mod test {
         #[test]
         fn inactive_os_fails() {
             let mut deps = mock_dependencies();
+
             deps.querier = MockQuerierBuilder::default()
-                // .with_raw_handler(TEST_VERSION_CONTROL, |msg| {})
                 .with_contract_item(TEST_PROXY, OS_ID, &TEST_OS_ID)
+                .with_contract_map_key(TEST_VERSION_CONTROL, OS_ADDRESSES, TEST_OS_ID)
                 .build();
 
-            let registry = MockRegistry;
+            let binding = MockBinding;
 
             let res = registry
                 .os_registry(deps.as_ref())
@@ -129,6 +131,154 @@ mod test {
                 .is_err()
                 .matches(|e| matches!(e, StdError::GenericErr { .. }))
                 .matches(|e| e.to_string().contains("OS with id 0 is not active"));
+        }
+
+        #[test]
+        fn returns_core() {
+            let mut deps = mock_dependencies();
+
+            deps.querier = MockQuerierBuilder::default()
+                .with_contract_item(TEST_PROXY, OS_ID, &TEST_OS_ID)
+                .with_contract_map_entry(
+                    TEST_VERSION_CONTROL,
+                    OS_ADDRESSES,
+                    (TEST_OS_ID, &test_core()),
+                )
+                .build();
+
+            let binding = MockBinding;
+
+            let res = registry
+                .os_registry(deps.as_ref())
+                .assert_proxy(&Addr::unchecked(TEST_PROXY));
+
+            assert_that!(res).is_ok().is_equal_to(test_core());
+        }
+
+        #[test]
+        fn errors_when_not_manager_of_returned_os() {
+            let mut deps = mock_dependencies();
+
+            deps.querier = MockQuerierBuilder::default()
+                .with_contract_item(TEST_PROXY, OS_ID, &TEST_OS_ID)
+                .with_contract_map_entry(
+                    TEST_VERSION_CONTROL,
+                    OS_ADDRESSES,
+                    (
+                        TEST_OS_ID,
+                        &Core {
+                            manager: Addr::unchecked(TEST_MANAGER),
+                            proxy: Addr::unchecked("not_poxry"),
+                        },
+                    ),
+                )
+                .build();
+
+            let binding = MockBinding;
+
+            let res = registry
+                .os_registry(deps.as_ref())
+                .assert_proxy(&Addr::unchecked(TEST_PROXY));
+
+            assert_that!(res)
+                .is_err()
+                .matches(|e| matches!(e, StdError::GenericErr { .. }))
+                .matches(|e| e.to_string().contains("not the proxy"));
+        }
+    }
+
+    mod assert_manager {
+        use super::*;
+
+        #[test]
+        fn not_manager_fails() {
+            let mut deps = mock_dependencies();
+            deps.querier = mock_querier();
+
+            let binding = MockBinding;
+
+            let res = registry
+                .os_registry(deps.as_ref())
+                .assert_manager(&Addr::unchecked("not_manager"));
+
+            assert_that!(res)
+                .is_err()
+                .matches(|e| matches!(e, StdError::GenericErr { .. }))
+                .matches(|e| e.to_string().contains("OS manager"));
+        }
+
+        #[test]
+        fn inactive_os_fails() {
+            let mut deps = mock_dependencies();
+
+            deps.querier = MockQuerierBuilder::default()
+                .with_contract_item(TEST_MANAGER, OS_ID, &TEST_OS_ID)
+                .with_contract_map_key(TEST_VERSION_CONTROL, OS_ADDRESSES, TEST_OS_ID)
+                .build();
+
+            let binding = MockBinding;
+
+            let res = registry
+                .os_registry(deps.as_ref())
+                .assert_manager(&Addr::unchecked(TEST_MANAGER));
+
+            assert_that!(res)
+                .is_err()
+                .matches(|e| matches!(e, StdError::GenericErr { .. }))
+                .matches(|e| e.to_string().contains("OS with id 0 is not active"));
+        }
+
+        #[test]
+        fn returns_core() {
+            let mut deps = mock_dependencies();
+
+            deps.querier = MockQuerierBuilder::default()
+                .with_contract_item(TEST_MANAGER, OS_ID, &TEST_OS_ID)
+                .with_contract_map_entry(
+                    TEST_VERSION_CONTROL,
+                    OS_ADDRESSES,
+                    (TEST_OS_ID, &test_core()),
+                )
+                .build();
+
+            let binding = MockBinding;
+
+            let res = registry
+                .os_registry(deps.as_ref())
+                .assert_manager(&Addr::unchecked(TEST_MANAGER));
+
+            assert_that!(res).is_ok().is_equal_to(test_core());
+        }
+
+        #[test]
+        fn errors_when_not_manager_of_returned_os() {
+            let mut deps = mock_dependencies();
+
+            deps.querier = MockQuerierBuilder::default()
+                .with_contract_item(TEST_MANAGER, OS_ID, &TEST_OS_ID)
+                .with_contract_map_entry(
+                    TEST_VERSION_CONTROL,
+                    OS_ADDRESSES,
+                    (
+                        TEST_OS_ID,
+                        &Core {
+                            manager: Addr::unchecked("not_manager"),
+                            proxy: Addr::unchecked(TEST_PROXY),
+                        },
+                    ),
+                )
+                .build();
+
+            let binding = MockBinding;
+
+            let res = registry
+                .os_registry(deps.as_ref())
+                .assert_manager(&Addr::unchecked(TEST_MANAGER));
+
+            assert_that!(res)
+                .is_err()
+                .matches(|e| matches!(e, StdError::GenericErr { .. }))
+                .matches(|e| e.to_string().contains("not the manager"));
         }
     }
 }
