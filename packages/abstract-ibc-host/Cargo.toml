@@ -30,3 +30,7 @@ cw2 = { workspace = true }
 semver = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-os = { workspace = true }
+
+[dev-dependencies]
+abstract-testing = { workspace = true }
+speculoos = { workspace = true }

@@ -124,3 +124,13 @@ impl<
         Ok(wasm_msg)
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::test_common::*;
+
+    mod receive_balances {
+        use super::*;
+    }
+}

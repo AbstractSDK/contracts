@@ -11,6 +11,7 @@ pub type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 pub const TEST_ADMIN: &str = "admin";
 pub const TEST_OS_ID: u32 = 0;
 pub const TEST_VERSION: &str = "1.0.0";
+pub const TEST_CHAIN: &str = "chain-1";
 
 pub const TEST_PROXY: &str = "proxy_address";
 pub const TEST_MANAGER: &str = "manager_address";
