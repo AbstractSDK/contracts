@@ -350,16 +350,6 @@ pub fn wrap_querier(querier: &EmptyMockQuerier) -> QuerierWrapper<'_, Empty> {
     QuerierWrapper::<Empty>::new(querier)
 }
 
-// TODO: Fix to actually make this work!
-fn broken_map_key<'a>(namespace: &'a str, key: &'a str) -> String {
-    let line_feed_char = b"\x0a";
-    let mut res = vec![0u8];
-    res.extend_from_slice(line_feed_char);
-    res.extend_from_slice(namespace.as_bytes());
-    res.extend_from_slice(key.as_bytes());
-    std::str::from_utf8(&res).unwrap().to_string()
-}
-
 #[cfg(test)]
 mod tests {
     use crate::{TEST_MODULE_ID, TEST_OS_ID};
