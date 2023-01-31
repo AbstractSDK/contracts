@@ -1,16 +1,17 @@
 use abstract_os::{api, app};
 
 use cosmwasm_std::{Addr, Deps, StdError, StdResult};
-use cw_storage_plus::Item;
+
 
 use crate::{
-    test_core, MockQuerierBuilder, TEST_ANS_HOST, TEST_MANAGER, TEST_MODULE_ID, TEST_OS_ID,
-    TEST_PROXY, TEST_VERSION_CONTROL,
+    TEST_ANS_HOST, TEST_MANAGER, TEST_MODULE_ID, TEST_OS_ID,
+    TEST_PROXY,
 };
-use abstract_os::objects::common_namespace::ADMIN_NAMESPACE;
-use abstract_os::objects::core::OS_ID;
-use abstract_os::version_control::state::OS_ADDRESSES;
 
+
+
+
+use crate::abstract_mock_querier::AbstractMockQuerierBuilder;
 #[cfg(feature = "sdk")]
 use ::{
     abstract_os::objects::ans_host::AnsHost,
@@ -28,19 +29,8 @@ impl MockModule {
 }
 
 /// A mock module querier setup with the proper responses for proxy/manager/osId.
-pub fn mock_module_querier_builder() -> MockQuerierBuilder {
-    MockQuerierBuilder::default()
-        .with_contract_item(
-            TEST_PROXY,
-            Item::new(ADMIN_NAMESPACE),
-            &Some(Addr::unchecked(TEST_MANAGER)),
-        )
-        .with_contract_item(TEST_PROXY, OS_ID, &TEST_OS_ID)
-        .with_contract_map_entry(
-            TEST_VERSION_CONTROL,
-            OS_ADDRESSES,
-            (TEST_OS_ID, &test_core()),
-        )
+pub fn mocked_os_querier_builder() -> AbstractMockQuerierBuilder {
+    AbstractMockQuerierBuilder::default().os(TEST_MANAGER, TEST_PROXY, TEST_OS_ID)
 }
 
 #[cfg(feature = "sdk")]

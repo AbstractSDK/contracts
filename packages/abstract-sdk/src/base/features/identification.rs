@@ -41,7 +41,7 @@ mod test {
         }
     }
 
-    use speculoos::*;
+    
 
     mod core {
         use super::*;

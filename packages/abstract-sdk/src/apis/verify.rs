@@ -78,7 +78,7 @@ mod test {
     use abstract_testing::*;
     use cosmwasm_std::testing::*;
 
-    use crate::ModuleRegistryInterface;
+    
     use abstract_testing::{
         mock_querier, MockQuerierBuilder, TEST_OS_ID, TEST_PROXY, TEST_VERSION_CONTROL,
     };

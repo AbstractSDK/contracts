@@ -1,3 +1,4 @@
+pub(crate) mod abstract_mock_querier;
 pub mod map_tester;
 pub mod mock_module;
 pub(crate) mod mock_querier;

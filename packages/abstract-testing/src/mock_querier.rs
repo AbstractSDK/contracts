@@ -37,7 +37,9 @@ impl Default for MockQuerierBuilder {
     fn default() -> Self {
         let raw_fallback: fn(&str, &Binary) -> BinaryQueryResult = |addr, key| {
             let str_key = std::str::from_utf8(&key.0).unwrap();
-            panic!("No mock querier for this query: {addr:?} {str_key:?}");
+            Err(format!(
+                "No mock querier for this query: {addr:?} {str_key:?}"
+            ))
         };
         let smart_fallback: fn(&str, &Binary) -> BinaryQueryResult = |addr, key| {
             let str_key = std::str::from_utf8(&key.0).unwrap();
@@ -208,6 +210,17 @@ impl MockQuerierBuilder {
         V: Serialize + DeserializeOwned,
     {
         self.insert_contract_key_value(contract, raw_map_key(&cw_map, key), Binary(vec![]));
+
+        self
+    }
+
+    /// Add an empty item key to the querier for the given contract.
+    /// This is useful when you want the item to exist, but not have a value.
+    pub fn with_empty_contract_item<T>(mut self, contract: &str, cw_item: Item<T>) -> Self
+    where
+        T: Serialize + DeserializeOwned,
+    {
+        self.insert_contract_key_value(contract, cw_item.as_slice().to_vec(), Binary(vec![]));
 
         self
     }
