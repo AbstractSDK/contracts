@@ -15,6 +15,10 @@ impl UsageFee {
         let fee = Fee::new(share)?;
         Ok(UsageFee { fee, recipient })
     }
+    pub fn set_share(&mut self, share: Decimal) -> StdResult<()> {
+        self.fee = Fee::new(share)?;
+        Ok(())
+    }
     pub fn share(&self) -> Decimal {
         self.fee.share()
     }
@@ -23,6 +27,10 @@ impl UsageFee {
     }
     pub fn recipient(&self) -> Addr {
         self.recipient.clone()
+    }
+    pub fn set_recipient(&mut self, api: &dyn Api, recipient: impl Into<String>) -> StdResult<()> {
+        self.recipient = api.addr_validate(&recipient.into())?;
+        Ok(())
     }
 }
 
@@ -142,6 +150,23 @@ mod tests {
             assert!(fee.is_err());
             let fee = UsageFee::new(&api, Decimal::percent(101u64), "recipient");
             assert!(fee.is_err());
+        }
+
+        #[test]
+        fn test_transfer_fee_set_recipient() {
+            let api = MockApi::default();
+            let mut fee = UsageFee::new(&api, Decimal::percent(20u64), "recipient").unwrap();
+            let new_recipient = "new_recipient";
+            fee.set_recipient(&api, new_recipient).unwrap();
+            assert_eq!(fee.recipient(), Addr::unchecked(new_recipient));
+        }
+        #[test]
+        fn test_transfer_fee_set_share() {
+            let api = MockApi::default();
+            let mut fee = UsageFee::new(&api, Decimal::percent(20u64), "recipient").unwrap();
+            let new_share = Decimal::percent(10u64);
+            fee.set_share(new_share).unwrap();
+            assert_eq!(fee.share(), new_share);
         }
     }
 }

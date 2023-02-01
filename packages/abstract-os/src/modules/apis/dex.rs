@@ -24,16 +24,34 @@ pub mod state {
 
 pub const IBC_DEX_ID: u32 = 11335;
 
-pub type ExecuteMsg = api::ExecuteMsg<DexExecuteMsg>;
+pub type ExecuteMsg = api::ExecuteMsg<DexApiExecuteMsg>;
 pub type QueryMsg = api::QueryMsg<DexQueryMsg>;
+pub type InstantiateMsg = api::InstantiateMsg<DexInstantiateMsg>;
 
-impl api::ApiExecuteMsg for DexExecuteMsg {}
+impl api::ApiExecuteMsg for DexApiExecuteMsg {}
 impl api::ApiQueryMsg for DexQueryMsg {}
 
 #[cosmwasm_schema::cw_serde]
 pub struct DexInstantiateMsg {
     pub swap_fee: Decimal,
     pub recipient_os: u32,
+}
+
+/// Dex Execute msg
+#[cosmwasm_schema::cw_serde]
+// Struct messages not yet supported by BOOT
+pub enum DexApiExecuteMsg {
+    Action(DexExecuteMsg),
+    UpdateFee {
+        swap_fee: Option<Decimal>,
+        recipient_os_id: Option<u32>,
+    },
+}
+
+impl From<DexExecuteMsg> for DexApiExecuteMsg {
+    fn from(action: DexExecuteMsg) -> Self {
+        DexApiExecuteMsg::Action(action)
+    }
 }
 
 /// Dex Execute msg
