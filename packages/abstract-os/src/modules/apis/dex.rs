@@ -17,9 +17,9 @@ pub type AskAsset = AnsAsset;
 pub mod state {
     use cw_storage_plus::Item;
 
-    use crate::objects::fee::Fee;
+    use crate::objects::fee::UsageFee;
 
-    pub const SWAP_FEE: Item<Fee> = Item::new("swap_fee");
+    pub const SWAP_FEE: Item<UsageFee> = Item::new("swap_fee");
 }
 
 pub const IBC_DEX_ID: u32 = 11335;
