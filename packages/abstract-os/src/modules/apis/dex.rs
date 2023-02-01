@@ -14,14 +14,27 @@ pub type DexName = String;
 pub type OfferAsset = AnsAsset;
 pub type AskAsset = AnsAsset;
 
+pub mod state {
+    use cw_storage_plus::Item;
+
+    use crate::objects::fee::Fee;
+
+    pub const SWAP_FEE: Item<Fee> = Item::new("swap_fee");
+}
+
 pub const IBC_DEX_ID: u32 = 11335;
 
 pub type ExecuteMsg = api::ExecuteMsg<DexExecuteMsg>;
 pub type QueryMsg = api::QueryMsg<DexQueryMsg>;
 
 impl api::ApiExecuteMsg for DexExecuteMsg {}
-
 impl api::ApiQueryMsg for DexQueryMsg {}
+
+#[cosmwasm_schema::cw_serde]
+// Struct messages not yet supported by BOOT
+pub struct DexInstantiateMsg {
+    pub swap_fee: Decimal,
+}
 
 /// Dex Execute msg
 #[cosmwasm_schema::cw_serde]
