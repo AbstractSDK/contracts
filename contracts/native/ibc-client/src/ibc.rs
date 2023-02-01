@@ -312,7 +312,6 @@ mod tests {
     use crate::contract::{execute, instantiate, query, IbcClientResult};
     use abstract_sdk::os::ibc_client::{ExecuteMsg, InstantiateMsg, QueryMsg};
 
-    
     use abstract_sdk::os::abstract_ica::{APP_ORDER, BAD_APP_ORDER, IBC_APP_VERSION};
     use abstract_testing::{TEST_ADMIN, TEST_ANS_HOST, TEST_VERSION_CONTROL};
     use cosmwasm_std::testing::{
@@ -320,9 +319,7 @@ mod tests {
         mock_ibc_channel_open_try, mock_ibc_packet_ack, mock_info, MockApi, MockQuerier,
         MockStorage,
     };
-    use cosmwasm_std::{
-        CosmosMsg, Deps, IbcAcknowledgement, OwnedDeps, QueryResponse,
-    };
+    use cosmwasm_std::{CosmosMsg, Deps, IbcAcknowledgement, OwnedDeps, QueryResponse};
 
     type IbcClientTestResult = Result<(), IbcClientError>;
 

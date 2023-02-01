@@ -31,9 +31,9 @@ impl api::ApiExecuteMsg for DexExecuteMsg {}
 impl api::ApiQueryMsg for DexQueryMsg {}
 
 #[cosmwasm_schema::cw_serde]
-// Struct messages not yet supported by BOOT
 pub struct DexInstantiateMsg {
     pub swap_fee: Decimal,
+    pub recipient_os: u32,
 }
 
 /// Dex Execute msg
@@ -114,4 +114,6 @@ pub struct SimulateSwapResponse {
     pub spread_amount: Uint128,
     /// Commission charged for the swap
     pub commission: (AssetEntry, Uint128),
+    /// API fee charged for the swap (paid in offer asset)
+    pub api_fee: Uint128,
 }

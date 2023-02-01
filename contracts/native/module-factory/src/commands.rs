@@ -292,9 +292,7 @@ mod test {
                 code_id: expected_code_id,
                 funds: vec![],
                 admin: None,
-                label: format!(
-                    "Module: {expected_module_info}, Height {some_block_height}"
-                ),
+                label: format!("Module: {expected_module_info}, Height {some_block_height}"),
                 msg: expected_module_init_msg,
             };
 

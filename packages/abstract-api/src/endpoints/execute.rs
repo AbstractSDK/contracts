@@ -179,16 +179,14 @@ impl<
 #[cfg(test)]
 mod tests {
     use super::*;
-    use abstract_os::{
-        api::{BaseInstantiateMsg, InstantiateMsg},
-    };
+    use abstract_os::api::{BaseInstantiateMsg, InstantiateMsg};
     use abstract_sdk::base::InstantiateEndpoint;
     use abstract_testing::*;
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
         Addr, Empty, StdError,
     };
-    
+
     use speculoos::prelude::*;
     use thiserror::Error;
 

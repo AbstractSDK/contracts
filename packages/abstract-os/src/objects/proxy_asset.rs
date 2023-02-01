@@ -335,9 +335,7 @@ pub fn other_asset_name<'a>(asset: &'a str, composite: &'a str) -> StdResult<&'a
         .split('_')
         .find(|component| *component != asset)
         .ok_or_else(|| {
-            StdError::generic_err(format!(
-                "composite {composite} is not structured correctly"
-            ))
+            StdError::generic_err(format!("composite {composite} is not structured correctly"))
         })
 }
 
