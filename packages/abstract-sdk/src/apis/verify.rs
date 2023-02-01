@@ -30,21 +30,13 @@ impl<'a, T: Verification> OsRegister<'a, T> {
         let os_id = OS_ID
             .query(&self.deps.querier, maybe_manager.clone())
             .map_err(|_| StdError::generic_err("Caller must be an OS manager."))?;
-        let maybe_os =
-            OS_ADDRESSES.query(&self.deps.querier, self.base.registry(self.deps)?, os_id)?;
-        match maybe_os {
-            None => Err(StdError::generic_err(format!(
-                "OS with id {os_id} is not active."
-            ))),
-            Some(core) => {
-                if &core.manager != maybe_manager {
-                    Err(StdError::generic_err(
-                        "Proposed manager is not the manager of this OS.",
-                    ))
-                } else {
-                    Ok(core)
-                }
-            }
+        let core = self.core(os_id)?;
+        if &core.manager != maybe_manager {
+            Err(StdError::generic_err(
+                "Proposed manager is not the manager of this OS.",
+            ))
+        } else {
+            Ok(core)
         }
     }
 
@@ -53,21 +45,32 @@ impl<'a, T: Verification> OsRegister<'a, T> {
         let os_id = OS_ID
             .query(&self.deps.querier, maybe_proxy.clone())
             .map_err(|_| StdError::generic_err("Caller must be an OS proxy."))?;
+        let core = self.core(os_id)?;
+        if &core.proxy != maybe_proxy {
+            Err(StdError::generic_err(
+                "Proposed proxy is not the proxy of this OS.",
+            ))
+        } else {
+            Ok(core)
+        }
+    }
+
+    pub fn proxy_address(&self, os_id: u32) -> StdResult<Addr> {
+        self.core(os_id).map(|core| core.proxy)
+    }
+
+    pub fn manager_address(&self, os_id: u32) -> StdResult<Addr> {
+        self.core(os_id).map(|core| core.manager)
+    }
+
+    pub fn core(&self, os_id: u32) -> StdResult<Core> {
         let maybe_os =
             OS_ADDRESSES.query(&self.deps.querier, self.base.registry(self.deps)?, os_id)?;
         match maybe_os {
             None => Err(StdError::generic_err(format!(
-                "OS with id {os_id} is not active."
+                "OS with id {os_id} is not registered."
             ))),
-            Some(core) => {
-                if &core.proxy != maybe_proxy {
-                    Err(StdError::generic_err(
-                        "Proposed proxy is not the proxy of this OS.",
-                    ))
-                } else {
-                    Ok(core)
-                }
-            }
+            Some(core) => Ok(core),
         }
     }
 }
