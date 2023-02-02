@@ -1,4 +1,7 @@
-use abstract_os::ans_host::{AssetMapEntry, ContractMapEntry};
+use abstract_os::ans_host::state::REV_ASSET_ADDRESSES;
+use abstract_os::ans_host::{
+    AssetInfoListResponse, AssetInfoMapEntry, AssetInfosResponse, AssetMapEntry, ContractMapEntry,
+};
 use abstract_os::{
     ans_host::state::{Config, ADMIN, ASSET_PAIRINGS, CONFIG, POOL_METADATA},
     ans_host::{
@@ -19,6 +22,7 @@ use abstract_os::{
 };
 use abstract_sdk::helpers::cw_storage_plus::load_many;
 use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult, Storage};
+use cw_asset::{AssetInfo, AssetInfoUnchecked};
 use cw_storage_plus::Bound;
 
 pub(crate) const DEFAULT_LIMIT: u8 = 15;
@@ -45,6 +49,40 @@ pub fn query_assets(deps: Deps, _env: Env, keys: Vec<String>) -> StdResult<Binar
     let assets = load_many(ASSET_ADDRESSES, deps.storage, keys)?;
 
     to_binary(&AssetsResponse { assets })
+}
+
+pub fn query_asset_infos(
+    deps: Deps,
+    _env: Env,
+    keys: Vec<AssetInfoUnchecked>,
+) -> StdResult<Binary> {
+    let keys = keys
+        .into_iter()
+        .map(|info| info.check(deps.api, None))
+        .collect::<StdResult<Vec<_>>>()?;
+
+    let infos = load_many(REV_ASSET_ADDRESSES, deps.storage, keys)?;
+
+    to_binary(&AssetInfosResponse { infos })
+}
+
+pub fn query_asset_info_list(
+    deps: Deps,
+    last_asset_info: Option<AssetInfoUnchecked>,
+    limit: Option<u8>,
+) -> StdResult<Binary> {
+    let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
+    let start_bound = last_asset_info
+        .map(|info| info.check(deps.api, None))
+        .transpose()?
+        .map(Bound::exclusive);
+
+    let res: Result<Vec<AssetInfoMapEntry>, _> = REV_ASSET_ADDRESSES
+        .range(deps.storage, start_bound, None, Order::Ascending)
+        .take(limit)
+        .collect();
+
+    to_binary(&AssetInfoListResponse { infos: res? })
 }
 
 pub fn query_contract(deps: Deps, _env: Env, keys: Vec<ContractEntry>) -> StdResult<Binary> {

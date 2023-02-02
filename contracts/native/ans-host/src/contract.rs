@@ -51,6 +51,11 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             page_token,
             page_size,
         } => queries::query_asset_list(deps, page_token, page_size),
+        QueryMsg::AssetInfos { infos } => queries::query_asset_infos(deps, env, infos),
+        QueryMsg::AssetInfoList {
+            page_token,
+            page_size,
+        } => queries::query_asset_info_list(deps, page_token, page_size),
         QueryMsg::Contracts { names } => queries::query_contract(deps, env, names),
         QueryMsg::ContractList {
             page_token,
