@@ -1,3 +1,4 @@
+use abstract_os::api;
 use abstract_os::manager::*;
 pub use abstract_os::manager::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns};
 use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
@@ -103,6 +104,23 @@ impl<Chain: BootEnvironment> Manager<Chain> {
             },
             None,
         )?;
+        Ok(())
+    }
+
+    pub fn update_api_traders(
+        &self,
+        module_id: &str,
+        to_add: Vec<String>,
+        to_remove: Vec<String>,
+    ) -> Result<(), BootError> {
+        self.execute_on_module(
+            module_id,
+            api::ExecuteMsg::<Empty, Empty>::Base(api::BaseExecuteMsg::UpdateTraders {
+                to_add,
+                to_remove,
+            }),
+        )?;
+
         Ok(())
     }
 }
