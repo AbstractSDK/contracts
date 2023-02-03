@@ -123,6 +123,13 @@ impl<Chain: BootEnvironment> Manager<Chain> {
 
         Ok(())
     }
+
+    pub fn is_module_installed(&self, module_id: &str) -> Result<bool, BootError> {
+        let module_infos = self.module_infos(None, None)?.module_infos;
+        Ok(module_infos
+            .iter()
+            .any(|module_info| module_info.id == module_id))
+    }
 }
 
 // pub fn get_module_kind(name: &str) -> anyhow::Result<ModuleKind> {
