@@ -23,3 +23,6 @@ check-codecov:
 
 publish:
   ./publish/publish.sh
+
+watch:
+  cargo watch -x lcheck
