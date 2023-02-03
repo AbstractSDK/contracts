@@ -104,7 +104,7 @@ impl AnsHost {
         asset: &AssetInfo,
     ) -> StdResult<AssetEntry> {
         let result = REV_ASSET_ADDRESSES
-            .query(querier, self.address.clone(), asset.clone())?
+            .query(querier, self.address.clone(), asset)?
             .ok_or_else(|| {
                 StdError::generic_err(format!("cw-asset {} not found in ans_host", &asset))
             })?;

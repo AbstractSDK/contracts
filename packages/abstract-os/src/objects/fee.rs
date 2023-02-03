@@ -22,7 +22,7 @@ impl Fee {
     }
 
     pub fn msg(&self, asset: Asset, recipient: Addr) -> StdResult<CosmosMsg> {
-        asset.transfer_msg(recipient)
+        asset.transfer_msg(recipient).map_err(Into::into)
     }
     pub fn share(&self) -> Decimal {
         self.share
