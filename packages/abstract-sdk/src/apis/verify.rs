@@ -1,11 +1,13 @@
 //! # Verification
 //! The `Verify` struct provides helper functions that enable the contract to verify if the sender is an OS, OS admin, etc.
+use crate::{SdkError, SdkResult};
+
 use super::AbstractRegistryAccess;
 use abstract_os::{
     manager::state::OS_ID,
     version_control::{state::OS_ADDRESSES, Core},
 };
-use cosmwasm_std::{Addr, Deps, StdError, StdResult};
+use cosmwasm_std::{Addr, Deps};
 
 /// A trait enabling the verification of addresses associated with an OS.
 pub trait OsVerification: AbstractRegistryAccess {
@@ -25,21 +27,22 @@ pub struct OsRegistry<'a, T: OsVerification> {
 
 impl<'a, T: OsVerification> OsRegistry<'a, T> {
     /// Verify if the provided manager address is indeed a user.
-    pub fn assert_manager(&self, maybe_manager: &Addr) -> StdResult<Core> {
+    pub fn assert_manager(&self, maybe_manager: &Addr) -> SdkResult<Core> {
         let os_id = OS_ID
             .query(&self.deps.querier, maybe_manager.clone())
-            .map_err(|_| StdError::generic_err("Caller must be an OS manager."))?;
+            .map_err(|_| SdkError::FailedToQueryOsId {
+                contract_addr: maybe_manager.clone(),
+            })?;
         let vc_address = self.base.abstract_registry(self.deps)?;
-        let maybe_os = OS_ADDRESSES.query(&self.deps.querier, vc_address, os_id)?;
+        let maybe_os = OS_ADDRESSES.query(&self.deps.querier, vc_address.clone(), os_id)?;
         match maybe_os {
-            None => Err(StdError::generic_err(format!(
-                "OS with id {os_id} is not active."
-            ))),
+            None => Err(SdkError::UnknownOsId {
+                os_id,
+                version_control_addr: vc_address,
+            }),
             Some(core) => {
                 if &core.manager != maybe_manager {
-                    Err(StdError::generic_err(
-                        "Proposed manager is not the manager of this OS.",
-                    ))
+                    Err(SdkError::NotManager(maybe_manager.clone(), os_id))
                 } else {
                     Ok(core)
                 }
@@ -48,22 +51,23 @@ impl<'a, T: OsVerification> OsRegistry<'a, T> {
     }
 
     /// Verify if the provided proxy address is indeed a user.
-    pub fn assert_proxy(&self, maybe_proxy: &Addr) -> StdResult<Core> {
+    pub fn assert_proxy(&self, maybe_proxy: &Addr) -> SdkResult<Core> {
         let os_id = OS_ID
             .query(&self.deps.querier, maybe_proxy.clone())
-            .map_err(|_| StdError::generic_err("Caller must be an OS proxy."))?;
+            .map_err(|_| SdkError::FailedToQueryOsId {
+                contract_addr: maybe_proxy.clone(),
+            })?;
 
         let vc_address = self.base.abstract_registry(self.deps)?;
-        let maybe_os = OS_ADDRESSES.query(&self.deps.querier, vc_address, os_id)?;
+        let maybe_os = OS_ADDRESSES.query(&self.deps.querier, vc_address.clone(), os_id)?;
         match maybe_os {
-            None => Err(StdError::generic_err(format!(
-                "OS with id {os_id} is not active."
-            ))),
+            None => Err(SdkError::UnknownOsId {
+                os_id,
+                version_control_addr: vc_address,
+            }),
             Some(core) => {
                 if &core.proxy != maybe_proxy {
-                    Err(StdError::generic_err(
-                        "Proposed proxy is not the proxy of this OS.",
-                    ))
+                    Err(SdkError::NotProxy(maybe_proxy.clone(), os_id))
                 } else {
                     Ok(core)
                 }
@@ -78,7 +82,6 @@ mod test {
     use abstract_testing::*;
     use cosmwasm_std::testing::*;
 
-    
     use abstract_testing::{
         mock_querier, MockQuerierBuilder, TEST_OS_ID, TEST_PROXY, TEST_VERSION_CONTROL,
     };
@@ -87,7 +90,7 @@ mod test {
     struct MockBinding;
 
     impl AbstractRegistryAccess for MockBinding {
-        fn abstract_registry(&self, _deps: Deps) -> StdResult<Addr> {
+        fn abstract_registry(&self, _deps: Deps) -> SdkResult<Addr> {
             Ok(Addr::unchecked(TEST_VERSION_CONTROL))
         }
     }

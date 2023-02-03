@@ -22,7 +22,7 @@ mod test_common {
 
     // We implement the following traits here for the mock module (in this package) to avoid a circular dependency
     impl Identification for MockModule {
-        fn proxy_address(&self, _deps: Deps) -> Result<Addr, StdError> {
+        fn proxy_address(&self, _deps: Deps) -> SdkResult<Addr> {
             Ok(Addr::unchecked(TEST_PROXY))
         }
     }
@@ -34,7 +34,7 @@ mod test_common {
     }
 
     impl AbstractNameService for MockModule {
-        fn ans_host(&self, _deps: Deps) -> StdResult<AnsHost> {
+        fn ans_host(&self, _deps: Deps) -> SdkResult<AnsHost> {
             Ok(AnsHost {
                 address: Addr::unchecked("ans"),
             })

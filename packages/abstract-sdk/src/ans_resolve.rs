@@ -1,23 +1,25 @@
 //! # AnsHost Entry
 //! An entry (value) in the ans_host key-value store.
 
-use cosmwasm_std::{Addr, QuerierWrapper, StdResult};
+use cosmwasm_std::{Addr, QuerierWrapper};
 use cw_asset::{Asset, AssetInfo};
 use os::objects::{
     ans_host::AnsHost, AnsAsset, AssetEntry, ChannelEntry, ContractEntry, DexAssetPairing, LpToken,
     PoolMetadata, PoolReference, UniquePoolId,
 };
 
+use crate::SdkResult;
+
 /// Resolve an [`AbstractNameService`](crate::base::features::AbstractNameService) entry into its value.
 pub trait Resolve {
     type Output;
-    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> StdResult<Self::Output>;
+    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> SdkResult<Self::Output>;
 }
 
 impl Resolve for AssetEntry {
     type Output = AssetInfo;
-    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> StdResult<Self::Output> {
-        ans_host.query_asset(querier, self)
+    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> SdkResult<Self::Output> {
+        ans_host.query_asset(querier, self).map_err(Into::into)
     }
 }
 
@@ -25,43 +27,49 @@ impl Resolve for AssetEntry {
 impl Resolve for LpToken {
     type Output = AssetInfo;
 
-    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> StdResult<Self::Output> {
-        ans_host.query_asset(querier, &self.to_owned().into())
+    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> SdkResult<Self::Output> {
+        ans_host
+            .query_asset(querier, &self.to_owned().into())
+            .map_err(Into::into)
     }
 }
 
 impl Resolve for ContractEntry {
     type Output = Addr;
-    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> StdResult<Self::Output> {
-        ans_host.query_contract(querier, self)
+    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> SdkResult<Self::Output> {
+        ans_host.query_contract(querier, self).map_err(Into::into)
     }
 }
 
 impl Resolve for ChannelEntry {
     type Output = String;
-    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> StdResult<Self::Output> {
-        ans_host.query_channel(querier, self)
+    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> SdkResult<Self::Output> {
+        ans_host.query_channel(querier, self).map_err(Into::into)
     }
 }
 
 impl Resolve for DexAssetPairing {
     type Output = Vec<PoolReference>;
-    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> StdResult<Self::Output> {
-        ans_host.query_asset_pairing(querier, self)
+    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> SdkResult<Self::Output> {
+        ans_host
+            .query_asset_pairing(querier, self)
+            .map_err(Into::into)
     }
 }
 
 impl Resolve for UniquePoolId {
     type Output = PoolMetadata;
-    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> StdResult<Self::Output> {
-        ans_host.query_pool_metadata(querier, self)
+    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> SdkResult<Self::Output> {
+        ans_host
+            .query_pool_metadata(querier, self)
+            .map_err(Into::into)
     }
 }
 
 impl Resolve for AnsAsset {
     type Output = Asset;
 
-    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> StdResult<Self::Output> {
+    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> SdkResult<Self::Output> {
         Ok(Asset::new(
             ans_host.query_asset(querier, &self.name)?,
             self.amount,
@@ -72,15 +80,17 @@ impl Resolve for AnsAsset {
 impl Resolve for AssetInfo {
     type Output = AssetEntry;
 
-    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> StdResult<Self::Output> {
-        ans_host.query_asset_reverse(querier, self)
+    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> SdkResult<Self::Output> {
+        ans_host
+            .query_asset_reverse(querier, self)
+            .map_err(Into::into)
     }
 }
 
 impl Resolve for Asset {
     type Output = AnsAsset;
 
-    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> StdResult<Self::Output> {
+    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> SdkResult<Self::Output> {
         Ok(AnsAsset {
             name: self.info.resolve(querier, ans_host)?,
             amount: self.amount,
@@ -94,7 +104,7 @@ where
 {
     type Output = Vec<T::Output>;
 
-    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> StdResult<Self::Output> {
+    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> SdkResult<Self::Output> {
         self.iter()
             .map(|entry| entry.resolve(querier, ans_host))
             .collect()
@@ -127,7 +137,7 @@ mod tests {
 
     use std::ops::Deref;
 
-    fn assert_not_found<T: Debug>(res: StdResult<T>) {
+    fn assert_not_found<T: Debug>(res: SdkResult<T>) {
         assert_that!(res)
             .is_err()
             .matches(|e| e.to_string().contains("not found"));
@@ -156,7 +166,7 @@ mod tests {
     pub fn test_resolve<R: Resolve>(
         querier: &MockQuerier<Empty>,
         entry: &R,
-    ) -> StdResult<R::Output> {
+    ) -> SdkResult<R::Output> {
         entry.resolve(&wrap_querier(querier), &mock_ans_host())
     }
 
@@ -181,7 +191,7 @@ mod tests {
                 .with_contract_map_entry(
                     TEST_ANS_HOST,
                     ASSET_ADDRESSES,
-                    (test_asset_entry.clone(), &expected_value),
+                    (&test_asset_entry, &expected_value),
                 )
                 .build();
 
@@ -300,7 +310,7 @@ mod tests {
                 .with_contract_map_entry(
                     TEST_ANS_HOST,
                     ASSET_PAIRINGS,
-                    (pairing, &vec![pool_reference]),
+                    (&pairing, &vec![pool_reference]),
                 )
                 .with_contract_map_entry(
                     TEST_ANS_HOST,
@@ -343,7 +353,7 @@ mod tests {
                 .with_contract_map_entry(
                     TEST_ANS_HOST,
                     CONTRACT_ADDRESSES,
-                    (test_contract_entry.clone(), &expected_value),
+                    (&test_contract_entry, &expected_value),
                 )
                 .build();
 
@@ -416,7 +426,7 @@ mod tests {
                 .with_contract_map_entry(
                     TEST_ANS_HOST,
                     CHANNELS,
-                    (test_channel_entry.clone(), &expected_value),
+                    (&test_channel_entry, &expected_value),
                 )
                 .build();
 
@@ -450,7 +460,7 @@ mod tests {
                 .with_contract_map_entry(
                     TEST_ANS_HOST,
                     REV_ASSET_ADDRESSES,
-                    (test_asset_info.clone(), &expected_value),
+                    (&test_asset_info, &expected_value),
                 )
                 .build();
 

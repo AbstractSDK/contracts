@@ -24,7 +24,7 @@
 //!   # }
 //!   #
 //!   # impl Identification for MyContract {
-//!   #     fn proxy_address(&self, _deps: Deps) -> cosmwasm_std::StdResult<Addr> {
+//!   #     fn proxy_address(&self, _deps: Deps) -> SdkResult<Addr> {
 //!   #         Ok(Addr::unchecked("just_an_example"))
 //!   #     }
 //!   # }
@@ -33,7 +33,7 @@
 //!   # }
 //!
 //!   # impl AbstractNameService for MyContract {
-//!   #     fn ans_host(&self, _deps: Deps) -> cosmwasm_std::StdResult<AnsHost> {
+//!   #     fn ans_host(&self, _deps: Deps) -> SdkResult<AnsHost> {
 //!   #         Ok(AnsHost{address: Addr::unchecked("just_an_example")})
 //!   #     }
 //!   # }
@@ -47,14 +47,19 @@
 //!   # fn main() {}
 //!   ```
 
+pub type SdkResult<T> = Result<T, crate::error::SdkError>;
+
 pub extern crate abstract_macros as macros;
 pub extern crate abstract_os as os;
 
 mod ans_resolve;
 pub mod apis;
 pub mod base;
+mod error;
 pub mod feature_objects;
 pub mod helpers;
+
+pub use error::SdkError;
 
 pub use crate::apis::{
     bank::TransferInterface, execution::Execution, ibc::IbcInterface, modules::ModuleInterface,

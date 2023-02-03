@@ -16,6 +16,7 @@ use crate::abstract_mock_querier::AbstractMockQuerierBuilder;
 use ::{
     abstract_os::objects::ans_host::AnsHost,
     abstract_sdk::base::features::{AbstractNameService, Identification, ModuleIdentification},
+    abstract_sdk::SdkResult,
 };
 
 /// A mock module that can be used for testing.
@@ -35,7 +36,7 @@ pub fn mocked_os_querier_builder() -> AbstractMockQuerierBuilder {
 
 #[cfg(feature = "sdk")]
 impl Identification for MockModule {
-    fn proxy_address(&self, _deps: Deps) -> Result<Addr, StdError> {
+    fn proxy_address(&self, _deps: Deps) -> SdkResult<Addr> {
         Ok(Addr::unchecked(TEST_PROXY))
     }
 }
@@ -49,7 +50,7 @@ impl ModuleIdentification for MockModule {
 
 #[cfg(feature = "sdk")]
 impl AbstractNameService for MockModule {
-    fn ans_host(&self, _deps: Deps) -> StdResult<AnsHost> {
+    fn ans_host(&self, _deps: Deps) -> SdkResult<AnsHost> {
         Ok(AnsHost {
             address: Addr::unchecked(TEST_ANS_HOST),
         })

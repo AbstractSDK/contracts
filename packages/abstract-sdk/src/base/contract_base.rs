@@ -1,7 +1,9 @@
+use crate::{SdkError, SdkResult};
+
 use super::handler::Handler;
 use abstract_os::abstract_ica::StdAck;
 use cosmwasm_std::{
-    Binary, Deps, DepsMut, Empty, Env, MessageInfo, Reply, Response, StdError, StdResult, Storage,
+    Binary, Deps, DepsMut, Empty, Env, MessageInfo, Reply, Response, StdError, Storage,
 };
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Item;
@@ -36,7 +38,7 @@ const MAX_REPLY_COUNT: usize = 2;
 /// State variables for a generic contract
 pub struct AbstractContract<
     Module: Handler + 'static,
-    Error: From<cosmwasm_std::StdError> + 'static,
+    Error: From<SdkError> + 'static,
     CustomExecMsg = Empty,
     CustomInitMsg = Empty,
     CustomQueryMsg = Empty,
@@ -68,7 +70,7 @@ pub struct AbstractContract<
 
 impl<
         Module,
-        Error: From<cosmwasm_std::StdError>,
+        Error: From<SdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,
@@ -106,8 +108,8 @@ where
         }
     }
 
-    pub fn version(&self, store: &dyn Storage) -> StdResult<ContractVersion> {
-        self.version.load(store)
+    pub fn version(&self, store: &dyn Storage) -> SdkResult<ContractVersion> {
+        self.version.load(store).map_err(Into::into)
     }
     pub fn info(&self) -> (ContractName, VersionString, ContractMetadata) {
         self.info
@@ -202,7 +204,7 @@ mod test {
     #[derive(Error, Debug, PartialEq)]
     pub enum MockError {
         #[error("{0}")]
-        Std(#[from] StdError),
+        Sdk(#[from] SdkError),
     }
 
     struct MockModule;

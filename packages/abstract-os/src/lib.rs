@@ -44,7 +44,6 @@ pub type AbstractResult<T> = Result<T, error::AbstractError>;
 
 pub extern crate abstract_ica;
 pub mod base;
-pub mod error;
 pub mod ibc_host;
 
 pub use registry::*;
@@ -53,6 +52,9 @@ pub mod api;
 pub mod app;
 pub mod objects;
 pub mod registry;
+
+mod error;
+pub use error::AbstractError;
 
 mod core;
 pub use crate::core::*;
