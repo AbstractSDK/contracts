@@ -51,6 +51,22 @@ pub fn query_assets(deps: Deps, _env: Env, keys: Vec<String>) -> StdResult<Binar
     to_binary(&AssetsResponse { assets })
 }
 
+pub fn query_asset_list(
+    deps: Deps,
+    last_asset_name: Option<String>,
+    limit: Option<u8>,
+) -> StdResult<Binary> {
+    let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
+    let start_bound = last_asset_name.as_deref().map(Bound::exclusive);
+
+    let res: Result<Vec<AssetMapEntry>, _> = ASSET_ADDRESSES
+        .range(deps.storage, start_bound, None, Order::Ascending)
+        .take(limit)
+        .collect();
+
+    to_binary(&AssetListResponse { assets: res? })
+}
+
 pub fn query_asset_infos(
     deps: Deps,
     _env: Env,
@@ -100,22 +116,6 @@ pub fn query_channels(deps: Deps, _env: Env, keys: Vec<ChannelEntry>) -> StdResu
     let channels = load_many(CHANNELS, deps.storage, keys)?;
 
     to_binary(&ChannelsResponse { channels })
-}
-
-pub fn query_asset_list(
-    deps: Deps,
-    last_asset_name: Option<String>,
-    limit: Option<u8>,
-) -> StdResult<Binary> {
-    let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
-    let start_bound = last_asset_name.as_deref().map(Bound::exclusive);
-
-    let res: Result<Vec<AssetMapEntry>, _> = ASSET_ADDRESSES
-        .range(deps.storage, start_bound, None, Order::Ascending)
-        .take(limit)
-        .collect();
-
-    to_binary(&AssetListResponse { assets: res? })
 }
 
 pub fn query_contract_list(
