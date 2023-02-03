@@ -1,8 +1,8 @@
-use cosmwasm_std::{StdError, OverflowError};
+use cosmwasm_std::{OverflowError, StdError};
+use cw_asset::AssetError;
 use cw_semver::Error as CwSemverError;
 use semver::Error as SemverError;
 use thiserror::Error;
-use cw_asset::AssetError;
 
 #[derive(Error, Debug)]
 pub enum AbstractError {
@@ -22,16 +22,13 @@ pub enum AbstractError {
     CwSemver(#[from] CwSemverError),
 
     #[error("Entry {actual} should be formatted as {expected}")]
-    EntryFormattingError{
-        actual: String, 
-        expected: String
-    },
+    EntryFormattingError { actual: String, expected: String },
 
     #[error("Object {object} should be formatted {expected} but is {actual}")]
-    FormattingError{
+    FormattingError {
         object: String,
         expected: String,
-        actual: String
+        actual: String,
     },
 
     #[error("API {0} not installed on OS")]
@@ -44,7 +41,7 @@ pub enum AbstractError {
     MissingVersion(String),
 
     #[error("Abstract storage object {object} errors with {msg}")]
-    Storage{object: String, msg: String},
+    Storage { object: String, msg: String },
 
     #[error("assertion: {0}")]
     Assert(String),

@@ -78,7 +78,9 @@ pub fn query_module_data<Q: Querier, T: Into<String>>(
         contract_addr: contract_addr.into(),
         key: MODULE.as_slice().into(),
     });
-    QuerierWrapper::<Empty>::new(querier).query(&req).map_err(Into::into)
+    QuerierWrapper::<Empty>::new(querier)
+        .query(&req)
+        .map_err(Into::into)
 }
 
 #[cfg(test)]

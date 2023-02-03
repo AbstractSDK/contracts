@@ -1,5 +1,5 @@
-use crate::{AbstractResult, error::AbstractError};
 use super::module_reference::ModuleReference;
+use crate::{error::AbstractError, AbstractResult};
 use cosmwasm_std::{to_binary, Binary, StdError, StdResult};
 use cw2::ContractVersion;
 use cw_semver::Version;
@@ -24,18 +24,33 @@ const MAX_LENGTH: usize = 64;
 /// See https://github.com/rust-lang/api-guidelines/discussions/29
 fn validate_name(name: &str) -> AbstractResult<()> {
     if name.is_empty() {
-        return Err(AbstractError::FormattingError { object: "module name".into(), expected: "with content".into(), actual: "empty".to_string() });
+        return Err(AbstractError::FormattingError {
+            object: "module name".into(),
+            expected: "with content".into(),
+            actual: "empty".to_string(),
+        });
     }
     if name.len() > MAX_LENGTH {
-        return Err(AbstractError::FormattingError { object: "module name".into(), expected: "at most 64 characters".into(), actual: name.len().to_string() });
-
+        return Err(AbstractError::FormattingError {
+            object: "module name".into(),
+            expected: "at most 64 characters".into(),
+            actual: name.len().to_string(),
+        });
     }
     if name.contains(|c: char| !c.is_ascii_alphanumeric() && c != '-') {
-        return Err(AbstractError::FormattingError { object: "module name".into(), expected: "alphanumeric characters and hyphens".into(), actual: name.to_string() });
+        return Err(AbstractError::FormattingError {
+            object: "module name".into(),
+            expected: "alphanumeric characters and hyphens".into(),
+            actual: name.to_string(),
+        });
     }
 
     if name != name.to_lowercase() {
-        return Err(AbstractError::FormattingError { object: "module name".into(), expected: name.to_ascii_lowercase(), actual: name.to_string() });
+        return Err(AbstractError::FormattingError {
+            object: "module name".into(),
+            expected: name.to_ascii_lowercase(),
+            actual: name.to_string(),
+        });
     }
     Ok(())
 }
@@ -44,7 +59,11 @@ impl ModuleInfo {
     pub fn from_id(id: &str, version: ModuleVersion) -> AbstractResult<Self> {
         let split: Vec<&str> = id.split(':').collect();
         if split.len() != 2 {
-            return Err(AbstractError::FormattingError { object: "contract id".into(), expected: "provider:contract_name".to_string(), actual: id.to_string() });
+            return Err(AbstractError::FormattingError {
+                object: "contract id".into(),
+                expected: "provider:contract_name".to_string(),
+                actual: id.to_string(),
+            });
         }
         Ok(ModuleInfo {
             provider: split[0].to_lowercase(),
@@ -76,7 +95,7 @@ impl ModuleInfo {
     pub fn assert_version_variant(&self) -> AbstractResult<()> {
         match &self.version {
             ModuleVersion::Latest => Err(AbstractError::Assert(
-                "module version must be set to a specific version".into()
+                "module version must be set to a specific version".into(),
             )),
             ModuleVersion::Version(ver) => {
                 // assert version parses correctly
@@ -229,8 +248,7 @@ impl TryInto<Version> for ModuleVersion {
         match self {
             ModuleVersion::Latest => Err(AbstractError::MissingVersion("module".to_string())),
             ModuleVersion::Version(ver) => {
-                let version =
-                    Version::parse(&ver)?;
+                let version = Version::parse(&ver)?;
                 Ok(version)
             }
         }
@@ -243,10 +261,11 @@ impl TryFrom<ContractVersion> for ModuleInfo {
     fn try_from(value: ContractVersion) -> Result<Self, Self::Error> {
         let split: Vec<&str> = value.contract.split(':').collect();
         if split.len() != 2 {
-            return Err(AbstractError::FormattingError{
-                object: "contract id".to_string(), expected: "provider:contract_name".into(),
-                actual: value.contract
-        });
+            return Err(AbstractError::FormattingError {
+                object: "contract id".to_string(),
+                expected: "provider:contract_name".into(),
+                actual: value.contract,
+            });
         }
         Ok(ModuleInfo {
             provider: split[0].to_lowercase(),
@@ -302,7 +321,8 @@ impl ModuleInitMsg {
                 fixed_init: None,
                 root_init: None,
             } => Err(StdError::generic_err("No init msg set for this module")),
-        }.map_err(Into::into)
+        }
+        .map_err(Into::into)
     }
 }
 

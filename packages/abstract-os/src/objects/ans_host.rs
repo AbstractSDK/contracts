@@ -1,10 +1,10 @@
 use super::{asset_entry::AssetEntry, contract_entry::ContractEntry, ChannelEntry};
-use crate::AbstractResult;
 use crate::ans_host::state::{
     ASSET_ADDRESSES, ASSET_PAIRINGS, CHANNELS, CONTRACT_ADDRESSES, POOL_METADATA,
     REV_ASSET_ADDRESSES,
 };
 use crate::objects::{DexAssetPairing, PoolMetadata, PoolReference, UniquePoolId};
+use crate::AbstractResult;
 use cosmwasm_std::{Addr, QuerierWrapper, StdError};
 use cw_asset::AssetInfo;
 use std::collections::BTreeMap;
@@ -45,7 +45,7 @@ impl AnsHost {
         contract: &ContractEntry,
     ) -> AbstractResult<Addr> {
         let result: Addr = CONTRACT_ADDRESSES
-            .query(querier, self.address.clone(), contract.clone())?
+            .query(querier, self.address.clone(), contract)?
             .ok_or_else(|| {
                 StdError::generic_err(format!("contract {contract} not found in ans_host"))
             })?;
@@ -75,7 +75,7 @@ impl AnsHost {
         asset: &AssetEntry,
     ) -> AbstractResult<AssetInfo> {
         let result = ASSET_ADDRESSES
-            .query(querier, self.address.clone(), asset.clone())?
+            .query(querier, self.address.clone(), asset)?
             .ok_or_else(|| {
                 StdError::generic_err(format!("asset {} not found in ans_host", &asset))
             })?;
@@ -119,7 +119,7 @@ impl AnsHost {
         channel: &ChannelEntry,
     ) -> AbstractResult<String> {
         let result: String = CHANNELS
-            .query(querier, self.address.clone(), channel.clone())?
+            .query(querier, self.address.clone(), channel)?
             .ok_or_else(|| {
                 StdError::generic_err(format!("channel {channel} not found in ans_host"))
             })?;
@@ -134,7 +134,7 @@ impl AnsHost {
         dex_asset_pairing: &DexAssetPairing,
     ) -> AbstractResult<Vec<PoolReference>> {
         let result: Vec<PoolReference> = ASSET_PAIRINGS
-            .query(querier, self.address.clone(), dex_asset_pairing.clone())?
+            .query(querier, self.address.clone(), dex_asset_pairing)?
             .ok_or_else(|| {
                 StdError::generic_err(format!(
                     "asset pairing {dex_asset_pairing} not found in ans_host"

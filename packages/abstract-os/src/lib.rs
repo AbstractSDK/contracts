@@ -44,8 +44,8 @@ pub type AbstractResult<T> = Result<T, error::AbstractError>;
 
 pub extern crate abstract_ica;
 pub mod base;
-pub mod ibc_host;
 pub mod error;
+pub mod ibc_host;
 
 pub use registry::*;
 pub mod abstract_token;

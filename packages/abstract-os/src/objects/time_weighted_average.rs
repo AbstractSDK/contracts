@@ -1,9 +1,9 @@
+use crate::AbstractResult;
 use cosmwasm_std::{Decimal, Env, Storage, Uint128};
 use cw_storage_plus::Item;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::ops::Mul;
-use crate::AbstractResult;
 
 pub const DEFAULT_PRECISION: u8 = 6;
 

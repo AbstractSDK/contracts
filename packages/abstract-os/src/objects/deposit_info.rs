@@ -1,9 +1,8 @@
-use cosmwasm_std::{StdError};
 use cw_asset::AssetInfo;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{AbstractResult, error::AbstractError};
+use crate::{error::AbstractError, AbstractResult};
 
 /// Helper for handling deposit assets.
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -27,7 +26,7 @@ impl DepositInfo {
         match self.asset_info {
             AssetInfo::Native(denom) => Ok(denom),
             AssetInfo::Cw20(..) => Err(AbstractError::Assert(
-                "'denom' only exists for native tokens.".into()
+                "'denom' only exists for native tokens.".into(),
             )),
             _ => panic!("asset not supported"),
         }

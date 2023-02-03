@@ -15,15 +15,16 @@ use super::{
     contract_entry::{ContractEntry, UncheckedContractEntry},
 };
 use crate::{
+    error::AbstractError,
     manager::state::OS_MODULES,
     proxy::{
         state::{ADMIN, VAULT_ASSETS},
         ExternalValueResponse, ValueQueryMsg,
-    }, AbstractResult, error::AbstractError,
+    },
+    AbstractResult,
 };
 use cosmwasm_std::{
-    to_binary, Addr, Decimal, Deps, Env, QuerierWrapper, QueryRequest, StdError,
-    Uint128, WasmQuery,
+    to_binary, Addr, Decimal, Deps, Env, QuerierWrapper, QueryRequest, StdError, Uint128, WasmQuery,
 };
 use cw_asset::{Asset, AssetInfo};
 use schemars::JsonSchema;
@@ -89,15 +90,22 @@ pub enum UncheckedValueRef {
 }
 
 impl UncheckedValueRef {
-    pub fn check(self, deps: Deps, ans_host: &AnsHost, entry: &AssetEntry) -> AbstractResult<ValueRef> {
+    pub fn check(
+        self,
+        deps: Deps,
+        ans_host: &AnsHost,
+        entry: &AssetEntry,
+    ) -> AbstractResult<ValueRef> {
         match self {
             UncheckedValueRef::Pool { pair, exchange } => {
                 let lowercase = pair.to_ascii_lowercase();
                 let mut composite: Vec<&str> = lowercase.split('_').collect();
                 if composite.len() != 2 {
-                    return Err(AbstractError::EntryFormattingError(entry.to_string(),"asset1_asset2".to_string()),
-                    );
-                }
+                    return Err(AbstractError::EntryFormattingError {
+                        actual: entry.to_string(),
+                        expected: "asset1_asset2".to_string(),
+                    });
+                };
                 composite.sort();
                 let pair_name = format!("{}_{}", composite[0], composite[1]);
                 // verify pair is available
@@ -247,7 +255,7 @@ impl ProxyAsset {
         let ratio = Decimal::from_ratio(pool_info.0.u128(), pool_info.1.u128());
 
         // Get the value of the current asset in the denom of the other asset
-        let mut recursive_vault_asset = VAULT_ASSETS.load(deps.storage, other_pool_asset)?;
+        let mut recursive_vault_asset = VAULT_ASSETS.load(deps.storage, &other_pool_asset)?;
 
         // #other = #this * (pool_other/pool_this)
         let amount_in_other_denom = valued_asset.amount * ratio;
@@ -269,7 +277,7 @@ impl ProxyAsset {
         if let AssetInfo::Cw20(addr) = &lp_asset.info {
             supply = query_cw20_supply(&deps.querier, addr)?;
         } else {
-            return Err(StdError::generic_err("Can't have a native LP token"));
+            return Err(StdError::generic_err("Can't have a native LP token").into());
         }
 
         // Get total supply of LP tokens and calculate share
@@ -278,9 +286,11 @@ impl ProxyAsset {
         let other_pool_asset_names = get_pair_asset_names(pair.contract.as_str());
 
         if other_pool_asset_names.len() != 2 {
-            return Err(StdError::generic_err(format!(
-                "lp pair contract {pair} must be composed of two assets."
-            )));
+            return Err(AbstractError::FormattingError {
+                object: "lp asset entry".into(),
+                expected: "with two '_' seperated asset names".into(),
+                actual: pair.to_string(),
+            });
         }
 
         let pair_address = ans_host.query_contract(&deps.querier, &pair)?;
@@ -295,9 +305,9 @@ impl ProxyAsset {
 
         // load the assets
         let mut vault_asset_1: ProxyAsset =
-            VAULT_ASSETS.load(deps.storage, other_pool_asset_names[0].into())?;
+            VAULT_ASSETS.load(deps.storage, &other_pool_asset_names[0].into())?;
         let mut vault_asset_2: ProxyAsset =
-            VAULT_ASSETS.load(deps.storage, other_pool_asset_names[1].into())?;
+            VAULT_ASSETS.load(deps.storage, &other_pool_asset_names[1].into())?;
 
         // set the amounts to the LP holdings
         let vault_asset_1_amount = share * Uint128::new(amount1.u128());
@@ -320,7 +330,7 @@ pub fn value_as_value(
 ) -> AbstractResult<Uint128> {
     // Get the proxy asset
     let mut replacement_vault_asset: ProxyAsset =
-        VAULT_ASSETS.load(deps.storage, replacement_asset)?;
+        VAULT_ASSETS.load(deps.storage, &replacement_asset)?;
     // call value on proxy asset with adjusted multiplier.
     replacement_vault_asset.value(deps, env, ans_host, Some(holding * multiplier))
 }
@@ -331,10 +341,10 @@ pub fn other_asset_name<'a>(asset: &'a str, composite: &'a str) -> AbstractResul
     composite
         .split('_')
         .find(|component| *component != asset)
-        .ok_or_else(|| {
-            StdError::generic_err(format!(
-                "composite {composite} is not structured correctly"
-            ))
+        .ok_or_else(|| AbstractError::FormattingError {
+            object: "lp asset key".to_string(),
+            expected: "with '_' as asset separator".to_string(),
+            actual: composite.to_string(),
         })
 }
 

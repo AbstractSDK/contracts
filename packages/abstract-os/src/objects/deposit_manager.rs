@@ -1,9 +1,9 @@
-use cosmwasm_std::{StdError, Storage, Uint64};
+use cosmwasm_std::{Storage, Uint64};
 use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{AbstractResult, error::AbstractError};
+use crate::{error::AbstractError, AbstractResult};
 
 #[derive(Default, Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct Deposit {
@@ -50,14 +50,24 @@ impl UserDeposit<'_> {
         }
     }
 
-    pub fn increase(&self, storage: &mut dyn Storage, key: &[u8], amount: Uint64) -> AbstractResult<()> {
+    pub fn increase(
+        &self,
+        storage: &mut dyn Storage,
+        key: &[u8],
+        amount: Uint64,
+    ) -> AbstractResult<()> {
         let user_deposit = &mut self.map.may_load(storage, key)?.unwrap_or_default();
         self.map
             .save(storage, key, &user_deposit.increase(amount))?;
         Ok(())
     }
 
-    pub fn decrease(&self, storage: &mut dyn Storage, key: &[u8], amount: Uint64) -> AbstractResult<()> {
+    pub fn decrease(
+        &self,
+        storage: &mut dyn Storage,
+        key: &[u8],
+        amount: Uint64,
+    ) -> AbstractResult<()> {
         let mut user_deposit: Deposit = self.map.may_load(storage, key)?.unwrap_or_default();
         self.map
             .save(storage, key, &user_deposit.decrease(amount)?)?;
@@ -86,7 +96,12 @@ impl DepositManager {
         }
     }
 
-    pub fn increase(&self, storage: &mut dyn Storage, key: &[u8], amount: Uint64) -> AbstractResult<()> {
+    pub fn increase(
+        &self,
+        storage: &mut dyn Storage,
+        key: &[u8],
+        amount: Uint64,
+    ) -> AbstractResult<()> {
         let deposit = self.total_deposits.load(storage);
         if deposit.is_err() {
             self.total_deposits.save(storage, &Deposit::new())?;
@@ -97,7 +112,12 @@ impl DepositManager {
         self.user_deposits.increase(storage, key, amount)
     }
 
-    pub fn decrease(&self, storage: &mut dyn Storage, key: &[u8], amount: Uint64) -> AbstractResult<()> {
+    pub fn decrease(
+        &self,
+        storage: &mut dyn Storage,
+        key: &[u8],
+        amount: Uint64,
+    ) -> AbstractResult<()> {
         self.user_deposits.decrease(storage, key, amount)?;
         let mut total_deposits = self.total_deposits.load(storage)?;
         self.total_deposits

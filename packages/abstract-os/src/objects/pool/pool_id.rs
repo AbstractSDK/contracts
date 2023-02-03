@@ -2,8 +2,8 @@ use cosmwasm_std::{Addr, Api, StdError};
 use std::fmt;
 use std::str::FromStr;
 
-use crate::AbstractResult;
 use crate::error::AbstractError;
+use crate::AbstractResult;
 
 #[cosmwasm_schema::cw_serde]
 #[non_exhaustive]
@@ -28,14 +28,18 @@ impl PoolAddress {
     pub fn expect_contract(&self) -> AbstractResult<Addr> {
         match self {
             PoolAddress::Contract(addr) => Ok(addr.clone()),
-            _ => Err(AbstractError::Assert("Pool address not a contract address pool ID.".into())),
+            _ => Err(AbstractError::Assert(
+                "Pool address not a contract address pool ID.".into(),
+            )),
         }
     }
 
     pub fn expect_id(&self) -> AbstractResult<u64> {
         match self {
             PoolAddress::Id(id) => Ok(*id),
-            _ => Err(AbstractError::Assert("Pool address not an numerical pool ID.".into())),
+            _ => Err(AbstractError::Assert(
+                "Pool address not an numerical pool ID.".into(),
+            )),
         }
     }
 }
@@ -51,16 +55,22 @@ impl FromStr for UncheckedPoolAddress {
         match words[0] {
             "contract" => {
                 if words.len() != 2 {
-                    return Err(AbstractError::FormattingError { object: "unchecked pool address".to_string(), expected: "contract:{{contract_addr}}".to_string(), actual: s.to_string() }
-                    );
+                    return Err(AbstractError::FormattingError {
+                        object: "unchecked pool address".to_string(),
+                        expected: "contract:{{contract_addr}}".to_string(),
+                        actual: s.to_string(),
+                    });
                 }
-                
+
                 Ok(UncheckedPoolAddress::Contract(String::from(words[1])))
             }
             "id" => {
                 if words.len() != 2 {
-                    return Err(AbstractError::FormattingError { object: "unchecked pool address".to_string(), expected: "id:{{pool_id}}".to_string(), actual: s.to_string() }
-                    );
+                    return Err(AbstractError::FormattingError {
+                        object: "unchecked pool address".to_string(),
+                        expected: "id:{{pool_id}}".to_string(),
+                        actual: s.to_string(),
+                    });
                 }
                 let parsed_id_res = words[1].parse::<u64>();
                 match parsed_id_res {
@@ -68,8 +78,11 @@ impl FromStr for UncheckedPoolAddress {
                     Err(err) => Err(StdError::generic_err(err.to_string()).into()),
                 }
             }
-            unknown => Err(AbstractError::FormattingError { object: "unchecked pool address".to_string(), expected: "'contract' or 'id'".to_string(), actual: s.to_string() }
-            ),
+            _unknown => Err(AbstractError::FormattingError {
+                object: "unchecked pool address".to_string(),
+                expected: "'contract' or 'id'".to_string(),
+                actual: s.to_string(),
+            }),
         }
     }
 }
