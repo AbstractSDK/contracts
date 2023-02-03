@@ -22,7 +22,7 @@ use crate::{
     },
 };
 use cosmwasm_std::{
-    to_binary, Addr, Decimal, Deps, Env, QuerierWrapper, QueryRequest, StdError, StdResult,
+    to_binary, Addr, Decimal, Deps, Env, QuerierWrapper, QueryRequest, StdError, AbstractResult,
     Uint128, WasmQuery,
 };
 use cw_asset::{Asset, AssetInfo};
@@ -51,7 +51,7 @@ impl UncheckedProxyAsset {
     }
 
     /// Perform checks on the proxy asset to ensure it can be resolved by the AnsHost
-    pub fn check(self, deps: Deps, ans_host: &AnsHost) -> StdResult<ProxyAsset> {
+    pub fn check(self, deps: Deps, ans_host: &AnsHost) -> AbstractResult<ProxyAsset> {
         let entry: AssetEntry = self.asset.into();
         ans_host.query_asset(&deps.querier, &entry)?;
         let value_reference = self
@@ -89,7 +89,7 @@ pub enum UncheckedValueRef {
 }
 
 impl UncheckedValueRef {
-    pub fn check(self, deps: Deps, ans_host: &AnsHost, entry: &AssetEntry) -> StdResult<ValueRef> {
+    pub fn check(self, deps: Deps, ans_host: &AnsHost, entry: &AssetEntry) -> AbstractResult<ValueRef> {
         match self {
             UncheckedValueRef::Pool { pair, exchange } => {
                 let lowercase = pair.to_ascii_lowercase();
@@ -168,7 +168,7 @@ impl ProxyAsset {
         env: &Env,
         ans_host: &AnsHost,
         set_holding: Option<Uint128>,
-    ) -> StdResult<Uint128> {
+    ) -> AbstractResult<Uint128> {
         // Query how many of these tokens are held in the contract if not set.
         let asset_info = ans_host.query_asset(&deps.querier, &self.asset)?;
         let holding: Uint128 = match set_holding {
@@ -231,7 +231,7 @@ impl ProxyAsset {
         ans_host: &AnsHost,
         valued_asset: Asset,
         pair: ContractEntry,
-    ) -> StdResult<Uint128> {
+    ) -> AbstractResult<Uint128> {
         let other_pool_asset: AssetEntry =
             other_asset_name(self.asset.as_str(), &pair.contract)?.into();
 
@@ -267,7 +267,7 @@ impl ProxyAsset {
         ans_host: &AnsHost,
         lp_asset: Asset,
         pair: ContractEntry,
-    ) -> StdResult<Uint128> {
+    ) -> AbstractResult<Uint128> {
         let supply: Uint128;
         if let AssetInfo::Cw20(addr) = &lp_asset.info {
             supply = query_cw20_supply(&deps.querier, addr)?;
@@ -320,7 +320,7 @@ pub fn value_as_value(
     replacement_asset: AssetEntry,
     multiplier: Decimal,
     holding: Uint128,
-) -> StdResult<Uint128> {
+) -> AbstractResult<Uint128> {
     // Get the proxy asset
     let mut replacement_vault_asset: ProxyAsset =
         VAULT_ASSETS.load(deps.storage, replacement_asset)?;
@@ -330,7 +330,7 @@ pub fn value_as_value(
 /// Get the other asset's name from a composite name
 /// ex: asset= "btc" composite = "btc_eth"
 /// returns "eth"
-pub fn other_asset_name<'a>(asset: &'a str, composite: &'a str) -> StdResult<&'a str> {
+pub fn other_asset_name<'a>(asset: &'a str, composite: &'a str) -> AbstractResult<&'a str> {
     composite
         .split('_')
         .find(|component| *component != asset)
@@ -346,7 +346,7 @@ pub fn get_pair_asset_names(composite: &str) -> Vec<&str> {
     composite.split('_').collect()
 }
 
-fn query_cw20_supply(querier: &QuerierWrapper, contract_addr: &Addr) -> StdResult<Uint128> {
+fn query_cw20_supply(querier: &QuerierWrapper, contract_addr: &Addr) -> AbstractResult<Uint128> {
     let response: cw20::TokenInfoResponse =
         querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: contract_addr.into(),

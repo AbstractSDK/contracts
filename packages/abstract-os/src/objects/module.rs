@@ -21,7 +21,7 @@ const MAX_LENGTH: usize = 64;
 /// Validate attributes of a [`ModuleInfo`].
 /// We use the same conventions as Rust package names.
 /// See https://github.com/rust-lang/api-guidelines/discussions/29
-fn validate_name(name: &str) -> StdResult<()> {
+fn validate_name(name: &str) -> AbstractResult<()> {
     if name.is_empty() {
         return Err(StdError::generic_err("Name cannot be empty"));
     }
@@ -43,7 +43,7 @@ fn validate_name(name: &str) -> StdResult<()> {
 }
 
 impl ModuleInfo {
-    pub fn from_id(id: &str, version: ModuleVersion) -> StdResult<Self> {
+    pub fn from_id(id: &str, version: ModuleVersion) -> AbstractResult<Self> {
         let split: Vec<&str> = id.split(':').collect();
         if split.len() != 2 {
             return Err(StdError::generic_err(format!(
@@ -56,11 +56,11 @@ impl ModuleInfo {
             version,
         })
     }
-    pub fn from_id_latest(id: &str) -> StdResult<Self> {
+    pub fn from_id_latest(id: &str) -> AbstractResult<Self> {
         Self::from_id(id, ModuleVersion::Latest)
     }
 
-    pub fn validate(&self) -> StdResult<()> {
+    pub fn validate(&self) -> AbstractResult<()> {
         validate_name(&self.provider)?;
         validate_name(&self.name)?;
         self.version.validate().map_err(|e| {
@@ -77,7 +77,7 @@ impl ModuleInfo {
         format!("{}:{}", self.id(), self.version)
     }
 
-    pub fn assert_version_variant(&self) -> StdResult<()> {
+    pub fn assert_version_variant(&self) -> AbstractResult<()> {
         match &self.version {
             ModuleVersion::Latest => Err(StdError::generic_err(
                 "Module version must be set for this action.",
@@ -184,7 +184,7 @@ pub enum ModuleVersion {
 }
 
 impl ModuleVersion {
-    pub fn validate(&self) -> StdResult<()> {
+    pub fn validate(&self) -> AbstractResult<()> {
         match &self {
             ModuleVersion::Latest => Ok(()),
             ModuleVersion::Version(ver) => {
@@ -229,7 +229,7 @@ impl fmt::Display for ModuleInfo {
 impl TryInto<Version> for ModuleVersion {
     type Error = StdError;
 
-    fn try_into(self) -> StdResult<Version> {
+    fn try_into(self) -> AbstractResult<Version> {
         match self {
             ModuleVersion::Latest => Err(StdError::generic_err(
                 "Module version must be set for this action.",
@@ -288,7 +288,7 @@ pub struct ModuleInitMsg {
 }
 
 impl ModuleInitMsg {
-    pub fn format(self) -> StdResult<Binary> {
+    pub fn format(self) -> AbstractResult<Binary> {
         match self {
             // If both set, receiving contract must handle it using the ModuleInitMsg
             ModuleInitMsg {

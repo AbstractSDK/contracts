@@ -1,4 +1,4 @@
-use cosmwasm_std::{DepsMut, Order, StdError, StdResult, Storage};
+use cosmwasm_std::{DepsMut, Order, StdError, AbstractResult, Storage};
 use cw_storage_plus::{Bound, Item, Map, Path};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
@@ -6,11 +6,11 @@ const DEFAULT_LIMIT: u32 = 10;
 const MAX_LIMIT: u32 = 30;
 const MAX_MSG_LIMIT: u32 = 15;
 
-pub type PaginationResult<Acum, PageResult> = StdResult<(Option<Acum>, PageResult)>;
+pub type PaginationResult<Acum, PageResult> = AbstractResult<(Option<Acum>, PageResult)>;
 pub type PaginationAccumulatorFunction<T, Acum, C, FuncResult> =
-    fn(&[u8], &mut dyn Storage, T, &mut Acum, &C) -> StdResult<Option<FuncResult>>;
+    fn(&[u8], &mut dyn Storage, T, &mut Acum, &C) -> AbstractResult<Option<FuncResult>>;
 pub type PaginationFunction<T, C, FuncResult> =
-    fn(&[u8], &mut dyn Storage, T, &C) -> StdResult<Option<FuncResult>>;
+    fn(&[u8], &mut dyn Storage, T, &C) -> AbstractResult<Option<FuncResult>>;
 /// Allows for multi-transaction computation on a dataset. Required for large datasets due to gas constraints.
 pub struct PagedMap<'a, T, Acum> {
     /// Actual data store
@@ -52,7 +52,7 @@ impl<'a, T, Acum> PagedMap<'a, T, Acum> {
         )
     }
 
-    pub fn save(&self, store: &mut dyn Storage, key: &[u8], data: &T) -> StdResult<()>
+    pub fn save(&self, store: &mut dyn Storage, key: &[u8], data: &T) -> AbstractResult<()>
     where
         T: Serialize + DeserializeOwned,
         Acum: Serialize + DeserializeOwned + Default + Clone,
@@ -66,7 +66,7 @@ impl<'a, T, Acum> PagedMap<'a, T, Acum> {
     }
 
     /// **Warning**: This function circumvents the storage lock. You should only use this in a pagination function.
-    pub fn unsafe_save(&self, store: &mut dyn Storage, key: &[u8], data: &T) -> StdResult<()>
+    pub fn unsafe_save(&self, store: &mut dyn Storage, key: &[u8], data: &T) -> AbstractResult<()>
     where
         T: Serialize + DeserializeOwned,
         Acum: Serialize + DeserializeOwned + Default + Clone,
@@ -75,7 +75,7 @@ impl<'a, T, Acum> PagedMap<'a, T, Acum> {
     }
 
     // Returns the removed item after deleting it
-    pub fn remove(&self, store: &mut dyn Storage, key: &[u8]) -> StdResult<T>
+    pub fn remove(&self, store: &mut dyn Storage, key: &[u8]) -> AbstractResult<T>
     where
         T: Serialize + DeserializeOwned,
         Acum: Serialize + DeserializeOwned + Default + Clone,
@@ -93,7 +93,7 @@ impl<'a, T, Acum> PagedMap<'a, T, Acum> {
 
     /// **Warning**: This function circumvents the storage lock. You should only use this in a pagination function.
     /// Returns the removed item after deleting it
-    pub fn unsafe_remove(&self, store: &mut dyn Storage, key: &[u8]) -> StdResult<T>
+    pub fn unsafe_remove(&self, store: &mut dyn Storage, key: &[u8]) -> AbstractResult<T>
     where
         T: Serialize + DeserializeOwned,
         Acum: Serialize + DeserializeOwned + Default + Clone,
@@ -104,7 +104,7 @@ impl<'a, T, Acum> PagedMap<'a, T, Acum> {
         Ok(old_item)
     }
 
-    pub fn load(&self, store: &dyn Storage, key: &[u8]) -> StdResult<T>
+    pub fn load(&self, store: &dyn Storage, key: &[u8]) -> AbstractResult<T>
     where
         T: Serialize + DeserializeOwned,
         Acum: Serialize + DeserializeOwned + Default + Clone,
@@ -120,7 +120,7 @@ impl<'a, T, Acum> PagedMap<'a, T, Acum> {
         self.data.has(store, key)
     }
 
-    pub fn may_load(&self, store: &dyn Storage, key: &[u8]) -> StdResult<Option<T>>
+    pub fn may_load(&self, store: &dyn Storage, key: &[u8]) -> AbstractResult<Option<T>>
     where
         T: Serialize + DeserializeOwned,
         Acum: Serialize + DeserializeOwned + Default + Clone,
@@ -128,7 +128,7 @@ impl<'a, T, Acum> PagedMap<'a, T, Acum> {
         self.data.may_load(store, key)
     }
 
-    pub fn load_status(&self, store: &dyn Storage) -> StdResult<PaginationInfo<Acum>>
+    pub fn load_status(&self, store: &dyn Storage) -> AbstractResult<PaginationInfo<Acum>>
     where
         T: Serialize + DeserializeOwned,
         Acum: Serialize + DeserializeOwned + Default + Clone,
@@ -172,7 +172,7 @@ impl<'a, T, Acum> PagedMap<'a, T, Acum> {
             .data
             .range(deps.storage, start, None, Order::Ascending)
             .take(limit)
-            .collect::<StdResult<Vec<(Vec<u8>, T)>>>()?;
+            .collect::<AbstractResult<Vec<(Vec<u8>, T)>>>()?;
 
         // If not all items processed, update last item
         let return_accumulator = if !result.is_empty() {
@@ -218,7 +218,7 @@ impl<'a, T, Acum> PagedMap<'a, T, Acum> {
         limit: Option<u32>,
         context: &C,
         f: PaginationFunction<T, C, FuncResult>,
-    ) -> StdResult<Vec<FuncResult>>
+    ) -> AbstractResult<Vec<FuncResult>>
     where
         T: Serialize + DeserializeOwned,
         Acum: Serialize + DeserializeOwned + Default + Clone,
@@ -231,7 +231,7 @@ impl<'a, T, Acum> PagedMap<'a, T, Acum> {
             .data
             .range(deps.storage, start, None, Order::Ascending)
             .take(limit)
-            .collect::<StdResult<Vec<(Vec<u8>, T)>>>()?;
+            .collect::<AbstractResult<Vec<(Vec<u8>, T)>>>()?;
 
         // If not all items processed, update last item
         if !result.is_empty() {
@@ -309,7 +309,7 @@ mod tests {
             mut value: Data,
             acc: &mut IncomeAcc,
             _context: &String,
-        ) -> StdResult<Option<u32>> {
+        ) -> AbstractResult<Option<u32>> {
             let balance = value.balance;
             value.balance = 0;
             acc.total += balance;
@@ -402,7 +402,7 @@ mod tests {
             store: &mut dyn Storage,
             mut value: Data,
             _context: &String,
-        ) -> StdResult<Option<u32>> {
+        ) -> AbstractResult<Option<u32>> {
             let balance = value.balance;
             value.balance = 0;
             USERS.unsafe_save(store, key, &value)?;

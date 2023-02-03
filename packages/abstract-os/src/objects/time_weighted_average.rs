@@ -1,4 +1,4 @@
-use cosmwasm_std::{Decimal, Env, StdResult, Storage, Uint128};
+use cosmwasm_std::{Decimal, Env, AbstractResult, Storage, Uint128};
 use cw_storage_plus::Item;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -19,7 +19,7 @@ impl<'a> TimeWeightedAverage<'a> {
         env: &Env,
         precision: Option<u8>,
         averaging_period: u64,
-    ) -> StdResult<()> {
+    ) -> AbstractResult<()> {
         let block_time = env.block.time.seconds();
 
         let twa = TimeWeightedAverageData {
@@ -39,7 +39,7 @@ impl<'a> TimeWeightedAverage<'a> {
         env: &Env,
         store: &mut dyn Storage,
         current_value: Decimal,
-    ) -> StdResult<Option<(u128, u64)>> {
+    ) -> AbstractResult<Option<(u128, u64)>> {
         let mut twa = self.0.load(store)?;
         let block_time = env.block.time.seconds();
         if block_time <= twa.last_block_time {
@@ -58,11 +58,11 @@ impl<'a> TimeWeightedAverage<'a> {
         Ok(Some((twa.cumulative_value, block_time)))
     }
 
-    pub fn get_value(&self, store: &dyn Storage) -> StdResult<Decimal> {
+    pub fn get_value(&self, store: &dyn Storage) -> AbstractResult<Decimal> {
         Ok(self.0.load(store)?.average_value)
     }
 
-    pub fn load(&self, store: &dyn Storage) -> StdResult<TimeWeightedAverageData> {
+    pub fn load(&self, store: &dyn Storage) -> AbstractResult<TimeWeightedAverageData> {
         self.0.load(store)
     }
 
@@ -71,7 +71,7 @@ impl<'a> TimeWeightedAverage<'a> {
         &self,
         env: &Env,
         store: &mut dyn Storage,
-    ) -> StdResult<Option<Decimal>> {
+    ) -> AbstractResult<Option<Decimal>> {
         let mut twa = self.0.load(store)?;
 
         let block_time = env.block.time.seconds();
@@ -105,7 +105,7 @@ impl<'a> TimeWeightedAverage<'a> {
         _env: &Env,
         store: &mut dyn Storage,
         averaging_period: u64,
-    ) -> StdResult<()> {
+    ) -> AbstractResult<()> {
         let mut twa = self.0.load(store)?;
         twa.averaging_period = averaging_period;
         self.0.save(store, &twa)

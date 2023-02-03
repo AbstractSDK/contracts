@@ -1,4 +1,4 @@
-use cosmwasm_std::{StdError, StdResult, Storage, Uint64};
+use cosmwasm_std::{StdError, AbstractResult, Storage, Uint64};
 use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -20,7 +20,7 @@ impl Deposit {
         self.clone()
     }
 
-    pub fn decrease(&mut self, amount: Uint64) -> StdResult<Self> {
+    pub fn decrease(&mut self, amount: Uint64) -> AbstractResult<Self> {
         if amount > self.value {
             return Err(StdError::generic_err(format!(
                 "Cannot decrease {} by {}",
@@ -48,14 +48,14 @@ impl UserDeposit<'_> {
         }
     }
 
-    pub fn increase(&self, storage: &mut dyn Storage, key: &[u8], amount: Uint64) -> StdResult<()> {
+    pub fn increase(&self, storage: &mut dyn Storage, key: &[u8], amount: Uint64) -> AbstractResult<()> {
         let user_deposit = &mut self.map.may_load(storage, key)?.unwrap_or_default();
         self.map
             .save(storage, key, &user_deposit.increase(amount))?;
         Ok(())
     }
 
-    pub fn decrease(&self, storage: &mut dyn Storage, key: &[u8], amount: Uint64) -> StdResult<()> {
+    pub fn decrease(&self, storage: &mut dyn Storage, key: &[u8], amount: Uint64) -> AbstractResult<()> {
         let mut user_deposit: Deposit = self.map.may_load(storage, key)?.unwrap_or_default();
         self.map
             .save(storage, key, &user_deposit.decrease(amount)?)?;
@@ -66,7 +66,7 @@ impl UserDeposit<'_> {
         Ok(())
     }
 
-    pub fn get(&self, storage: &dyn Storage, key: &[u8]) -> StdResult<Uint64> {
+    pub fn get(&self, storage: &dyn Storage, key: &[u8]) -> AbstractResult<Uint64> {
         Ok(self.map.may_load(storage, key)?.unwrap_or_default().get())
     }
 }
@@ -84,7 +84,7 @@ impl DepositManager {
         }
     }
 
-    pub fn increase(&self, storage: &mut dyn Storage, key: &[u8], amount: Uint64) -> StdResult<()> {
+    pub fn increase(&self, storage: &mut dyn Storage, key: &[u8], amount: Uint64) -> AbstractResult<()> {
         let deposit = self.total_deposits.load(storage);
         if deposit.is_err() {
             self.total_deposits.save(storage, &Deposit::new())?;
@@ -95,7 +95,7 @@ impl DepositManager {
         self.user_deposits.increase(storage, key, amount)
     }
 
-    pub fn decrease(&self, storage: &mut dyn Storage, key: &[u8], amount: Uint64) -> StdResult<()> {
+    pub fn decrease(&self, storage: &mut dyn Storage, key: &[u8], amount: Uint64) -> AbstractResult<()> {
         self.user_deposits.decrease(storage, key, amount)?;
         let mut total_deposits = self.total_deposits.load(storage)?;
         self.total_deposits
@@ -103,11 +103,11 @@ impl DepositManager {
         Ok(())
     }
 
-    pub fn get(&self, storage: &dyn Storage, key: &[u8]) -> StdResult<Uint64> {
+    pub fn get(&self, storage: &dyn Storage, key: &[u8]) -> AbstractResult<Uint64> {
         self.user_deposits.get(storage, key)
     }
 
-    pub fn get_total_deposits(&self, storage: &dyn Storage) -> StdResult<Uint64> {
+    pub fn get_total_deposits(&self, storage: &dyn Storage) -> AbstractResult<Uint64> {
         Ok(self.total_deposits.load(storage)?.get())
     }
 }

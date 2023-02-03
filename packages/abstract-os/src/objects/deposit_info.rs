@@ -1,4 +1,4 @@
-use cosmwasm_std::{StdError, StdResult};
+use cosmwasm_std::{StdError, AbstractResult};
 use cw_asset::AssetInfo;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -10,7 +10,7 @@ pub struct DepositInfo {
 }
 
 impl DepositInfo {
-    pub fn assert(&self, asset_info: &AssetInfo) -> StdResult<()> {
+    pub fn assert(&self, asset_info: &AssetInfo) -> AbstractResult<()> {
         if asset_info == &self.asset_info {
             return Ok(());
         }
@@ -21,7 +21,7 @@ impl DepositInfo {
         )))
     }
 
-    pub fn get_denom(self) -> StdResult<String> {
+    pub fn get_denom(self) -> AbstractResult<String> {
         match self.asset_info {
             AssetInfo::Native(denom) => Ok(denom),
             AssetInfo::Cw20(..) => Err(StdError::generic_err(

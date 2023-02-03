@@ -18,7 +18,7 @@ For more information on this specification, please check out the
 */
 
 use super::dependency::{Dependency, StaticDependency};
-use cosmwasm_std::{Empty, Querier, QuerierWrapper, QueryRequest, StdResult, Storage, WasmQuery};
+use cosmwasm_std::{Empty, Querier, QuerierWrapper, QueryRequest, AbstractResult, Storage, WasmQuery};
 use cw_storage_plus::Item;
 use serde::{Deserialize, Serialize};
 
@@ -41,7 +41,7 @@ pub struct ModuleData {
 }
 
 /// get_module_version can be use in migrate to read the previous version of this module
-pub fn get_module_data(store: &dyn Storage) -> StdResult<ModuleData> {
+pub fn get_module_data(store: &dyn Storage) -> AbstractResult<ModuleData> {
     MODULE.load(store)
 }
 
@@ -53,7 +53,7 @@ pub fn set_module_data<T: Into<String>, U: Into<String>, M: Into<String>>(
     version: U,
     dependencies: &[StaticDependency],
     metadata: Option<M>,
-) -> StdResult<()> {
+) -> AbstractResult<()> {
     let val = ModuleData {
         module: name.into(),
         version: version.into(),
@@ -71,7 +71,7 @@ pub fn set_module_data<T: Into<String>, U: Into<String>, M: Into<String>>(
 pub fn query_module_data<Q: Querier, T: Into<String>>(
     querier: &Q,
     contract_addr: T,
-) -> StdResult<ModuleData> {
+) -> AbstractResult<ModuleData> {
     let req = QueryRequest::Wasm(WasmQuery::Raw {
         contract_addr: contract_addr.into(),
         key: MODULE.as_slice().into(),

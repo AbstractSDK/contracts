@@ -36,9 +36,16 @@
 //! ```no_run
 //! use abstract_os::PROXY;
 //! ```
+//! ## Errors
+//! An `AbstractError` wraps error throws by `StdError` or `AssetError`. It is also use in the objects to throw errors.
+
+/// Result type for Abstract OS objects
+pub type AbstractResult<T> = Result<T, error::AbstractError>;
+
 pub extern crate abstract_ica;
 pub mod base;
 pub mod ibc_host;
+pub mod error;
 
 pub use registry::*;
 pub mod abstract_token;

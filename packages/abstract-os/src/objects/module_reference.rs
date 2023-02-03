@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, Deps, StdError, StdResult};
+use cosmwasm_std::{Addr, Deps, StdError, AbstractResult};
 
 #[cosmwasm_schema::cw_serde]
 #[non_exhaustive]
@@ -17,7 +17,7 @@ pub enum ModuleReference {
 
 impl ModuleReference {
     /// Validates that addresses are valid
-    pub fn validate(&self, deps: Deps) -> StdResult<()> {
+    pub fn validate(&self, deps: Deps) -> AbstractResult<()> {
         match self {
             ModuleReference::Core(_) => Ok(()),
             ModuleReference::App(_) => Ok(()),
@@ -27,35 +27,35 @@ impl ModuleReference {
         }
     }
 
-    pub fn unwrap_core(&self) -> StdResult<u64> {
+    pub fn unwrap_core(&self) -> AbstractResult<u64> {
         match self {
             ModuleReference::Core(v) => Ok(*v),
             _ => Err(StdError::generic_err("Not a core module.")),
         }
     }
 
-    pub fn unwrap_native(&self) -> StdResult<Addr> {
+    pub fn unwrap_native(&self) -> AbstractResult<Addr> {
         match self {
             ModuleReference::Native(addr) => Ok(addr.clone()),
             _ => Err(StdError::generic_err("Not a native module.")),
         }
     }
 
-    pub fn unwrap_api(&self) -> StdResult<Addr> {
+    pub fn unwrap_api(&self) -> AbstractResult<Addr> {
         match self {
             ModuleReference::Api(addr) => Ok(addr.clone()),
             _ => Err(StdError::generic_err("Not an api module.")),
         }
     }
 
-    pub fn unwrap_app(&self) -> StdResult<u64> {
+    pub fn unwrap_app(&self) -> AbstractResult<u64> {
         match self {
             ModuleReference::App(v) => Ok(*v),
             _ => Err(StdError::generic_err("Not an app module.")),
         }
     }
 
-    pub fn unwrap_standalone(&self) -> StdResult<u64> {
+    pub fn unwrap_standalone(&self) -> AbstractResult<u64> {
         match self {
             ModuleReference::Standalone(v) => Ok(*v),
             _ => Err(StdError::generic_err("Not a standalone module.")),
@@ -64,7 +64,7 @@ impl ModuleReference {
 
     /// Unwraps the module reference and returns the address of the module.
     /// Throws an error if the module reference is not an address.
-    pub fn unwrap_addr(&self) -> StdResult<Addr> {
+    pub fn unwrap_addr(&self) -> AbstractResult<Addr> {
         match self {
             ModuleReference::Native(addr) => Ok(addr.clone()),
             ModuleReference::Api(addr) => Ok(addr.clone()),
