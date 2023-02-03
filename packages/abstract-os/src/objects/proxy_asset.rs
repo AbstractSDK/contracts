@@ -19,10 +19,10 @@ use crate::{
     proxy::{
         state::{ADMIN, VAULT_ASSETS},
         ExternalValueResponse, ValueQueryMsg,
-    },
+    }, AbstractResult, error::AbstractError,
 };
 use cosmwasm_std::{
-    to_binary, Addr, Decimal, Deps, Env, QuerierWrapper, QueryRequest, StdError, AbstractResult,
+    to_binary, Addr, Decimal, Deps, Env, QuerierWrapper, QueryRequest, StdError,
     Uint128, WasmQuery,
 };
 use cw_asset::{Asset, AssetInfo};
@@ -95,9 +95,8 @@ impl UncheckedValueRef {
                 let lowercase = pair.to_ascii_lowercase();
                 let mut composite: Vec<&str> = lowercase.split('_').collect();
                 if composite.len() != 2 {
-                    return Err(StdError::generic_err(
-                        "trading pair should be formatted as \"asset1_asset2\".",
-                    ));
+                    return Err(AbstractError::EntryFormattingError(entry.to_string(),"asset1_asset2".to_string()),
+                    );
                 }
                 composite.sort();
                 let pair_name = format!("{}_{}", composite[0], composite[1]);
@@ -212,9 +211,7 @@ impl ProxyAsset {
                             }))?;
                         return Ok(response.value);
                     } else {
-                        return Err(StdError::generic_err(format!(
-                            "external contract api {api_name} must be enabled on OS"
-                        )));
+                        return Err(AbstractError::ApiNotInstalled(api_name));
                     }
                 }
             }

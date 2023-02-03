@@ -1,7 +1,9 @@
-use cosmwasm_std::{Addr, CosmosMsg, Decimal, StdError, AbstractResult, Uint128};
+use cosmwasm_std::{Addr, CosmosMsg, Decimal, Uint128};
 use cw_asset::Asset;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+
+use crate::{AbstractResult, error::AbstractError};
 
 /// A wrapper around Decimal to help handle fractional fees.
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
@@ -13,7 +15,7 @@ pub struct Fee {
 impl Fee {
     pub fn new(share: Decimal) -> AbstractResult<Self> {
         if share >= Decimal::percent(100) {
-            return Err(StdError::generic_err("fee share must be lesser than 100%"));
+            return Err(AbstractError::Fee("fee share must be lesser than 100%".to_string()));
         }
         Ok(Fee { share })
     }

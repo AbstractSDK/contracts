@@ -1,8 +1,9 @@
-use cosmwasm_std::{Decimal, Env, AbstractResult, Storage, Uint128};
+use cosmwasm_std::{Decimal, Env, Storage, Uint128};
 use cw_storage_plus::Item;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::ops::Mul;
+use crate::AbstractResult;
 
 pub const DEFAULT_PRECISION: u8 = 6;
 
@@ -32,7 +33,7 @@ impl<'a> TimeWeightedAverage<'a> {
             last_averaging_block_time: block_time,
             last_averaging_block_height: env.block.height,
         };
-        self.0.save(store, &twa)
+        self.0.save(store, &twa).map_err(Into::into)
     }
     pub fn accumulate(
         &self,
@@ -63,7 +64,7 @@ impl<'a> TimeWeightedAverage<'a> {
     }
 
     pub fn load(&self, store: &dyn Storage) -> AbstractResult<TimeWeightedAverageData> {
-        self.0.load(store)
+        self.0.load(store).map_err(Into::into)
     }
 
     /// Get average value, updates when possible
@@ -108,7 +109,7 @@ impl<'a> TimeWeightedAverage<'a> {
     ) -> AbstractResult<()> {
         let mut twa = self.0.load(store)?;
         twa.averaging_period = averaging_period;
-        self.0.save(store, &twa)
+        self.0.save(store, &twa).map_err(Into::into)
     }
 }
 

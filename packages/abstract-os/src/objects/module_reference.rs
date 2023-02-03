@@ -1,4 +1,6 @@
-use cosmwasm_std::{Addr, Deps, StdError, AbstractResult};
+use cosmwasm_std::{Addr, Deps, StdError};
+
+use crate::{AbstractResult, error::AbstractError};
 
 #[cosmwasm_schema::cw_serde]
 #[non_exhaustive]
@@ -19,46 +21,45 @@ impl ModuleReference {
     /// Validates that addresses are valid
     pub fn validate(&self, deps: Deps) -> AbstractResult<()> {
         match self {
-            ModuleReference::Core(_) => Ok(()),
-            ModuleReference::App(_) => Ok(()),
-            ModuleReference::Standalone(_) => Ok(()),
-            ModuleReference::Native(addr) => deps.api.addr_validate(addr.as_str()).map(|_| ()),
-            ModuleReference::Api(addr) => deps.api.addr_validate(addr.as_str()).map(|_| ()),
-        }
+            ModuleReference::Native(addr) => {deps.api.addr_validate(addr.as_str())?;},
+            ModuleReference::Api(addr) => {deps.api.addr_validate(addr.as_str())?;},
+            _ => (),
+        };
+        Ok(())
     }
 
     pub fn unwrap_core(&self) -> AbstractResult<u64> {
         match self {
             ModuleReference::Core(v) => Ok(*v),
-            _ => Err(StdError::generic_err("Not a core module.")),
+            _ => Err(AbstractError::Assert("module reference not a core module.".to_string())),
         }
     }
 
     pub fn unwrap_native(&self) -> AbstractResult<Addr> {
         match self {
             ModuleReference::Native(addr) => Ok(addr.clone()),
-            _ => Err(StdError::generic_err("Not a native module.")),
+            _ => Err(AbstractError::Assert("module reference not a native module.".to_string())),
         }
     }
 
     pub fn unwrap_api(&self) -> AbstractResult<Addr> {
         match self {
             ModuleReference::Api(addr) => Ok(addr.clone()),
-            _ => Err(StdError::generic_err("Not an api module.")),
+            _ => Err(AbstractError::Assert("module reference not an api module.".to_string())),
         }
     }
 
     pub fn unwrap_app(&self) -> AbstractResult<u64> {
         match self {
             ModuleReference::App(v) => Ok(*v),
-            _ => Err(StdError::generic_err("Not an app module.")),
+            _ => Err(AbstractError::Assert("module reference not an app module.".to_string())),
         }
     }
 
     pub fn unwrap_standalone(&self) -> AbstractResult<u64> {
         match self {
             ModuleReference::Standalone(v) => Ok(*v),
-            _ => Err(StdError::generic_err("Not a standalone module.")),
+            _ => Err(AbstractError::Assert("module reference not a standalone module.".to_string())),
         }
     }
 
@@ -68,7 +69,7 @@ impl ModuleReference {
         match self {
             ModuleReference::Native(addr) => Ok(addr.clone()),
             ModuleReference::Api(addr) => Ok(addr.clone()),
-            _ => Err(StdError::generic_err("Not a native or api module.")),
+            _ => Err(AbstractError::Assert("module reference not a native or api module.".to_string())),
         }
     }
 }

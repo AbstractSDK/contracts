@@ -1,10 +1,12 @@
-use cosmwasm_std::{DepsMut, Order, StdError, AbstractResult, Storage};
+use cosmwasm_std::{DepsMut, Order, StdError, Storage, StdResult};
 use cw_storage_plus::{Bound, Item, Map, Path};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use crate::{AbstractResult, error::AbstractError};
 
 const DEFAULT_LIMIT: u32 = 10;
 const MAX_LIMIT: u32 = 30;
 const MAX_MSG_LIMIT: u32 = 15;
+const PAGED_MAP: &str = "paged_map";
 
 pub type PaginationResult<Acum, PageResult> = AbstractResult<(Option<Acum>, PageResult)>;
 pub type PaginationAccumulatorFunction<T, Acum, C, FuncResult> =
@@ -58,11 +60,12 @@ impl<'a, T, Acum> PagedMap<'a, T, Acum> {
         Acum: Serialize + DeserializeOwned + Default + Clone,
     {
         if self.status.load(store)?.is_locked {
-            return Err(StdError::GenericErr {
+            return Err(AbstractError::Storage {
+                object: PAGED_MAP.into(),
                 msg: "Can not save to map while locked. Proceed with operation first.".into(),
             });
         }
-        self.data.save(store, key, data)
+        self.data.save(store, key, data).map_err(Into::into)
     }
 
     /// **Warning**: This function circumvents the storage lock. You should only use this in a pagination function.
@@ -71,7 +74,7 @@ impl<'a, T, Acum> PagedMap<'a, T, Acum> {
         T: Serialize + DeserializeOwned,
         Acum: Serialize + DeserializeOwned + Default + Clone,
     {
-        self.data.save(store, key, data)
+        self.data.save(store, key, data).map_err(Into::into)
     }
 
     // Returns the removed item after deleting it
@@ -81,7 +84,8 @@ impl<'a, T, Acum> PagedMap<'a, T, Acum> {
         Acum: Serialize + DeserializeOwned + Default + Clone,
     {
         if self.status.load(store)?.is_locked {
-            return Err(StdError::GenericErr {
+            return Err(AbstractError::Storage {
+                object: PAGED_MAP.into(),
                 msg: "Can not save to map while locked. Proceed with operation first.".into(),
             });
         }
@@ -109,7 +113,7 @@ impl<'a, T, Acum> PagedMap<'a, T, Acum> {
         T: Serialize + DeserializeOwned,
         Acum: Serialize + DeserializeOwned + Default + Clone,
     {
-        self.data.load(store, key)
+        self.data.load(store, key).map_err(Into::into)
     }
 
     pub fn has(&self, store: &dyn Storage, key: &[u8]) -> bool
@@ -125,7 +129,7 @@ impl<'a, T, Acum> PagedMap<'a, T, Acum> {
         T: Serialize + DeserializeOwned,
         Acum: Serialize + DeserializeOwned + Default + Clone,
     {
-        self.data.may_load(store, key)
+        self.data.may_load(store, key).map_err(Into::into)
     }
 
     pub fn load_status(&self, store: &dyn Storage) -> AbstractResult<PaginationInfo<Acum>>
@@ -133,7 +137,7 @@ impl<'a, T, Acum> PagedMap<'a, T, Acum> {
         T: Serialize + DeserializeOwned,
         Acum: Serialize + DeserializeOwned + Default + Clone,
     {
-        self.status.load(store)
+        self.status.load(store).map_err(Into::into)
     }
 
     pub fn key(&self, key: &[u8]) -> Path<T>
@@ -172,7 +176,7 @@ impl<'a, T, Acum> PagedMap<'a, T, Acum> {
             .data
             .range(deps.storage, start, None, Order::Ascending)
             .take(limit)
-            .collect::<AbstractResult<Vec<(Vec<u8>, T)>>>()?;
+            .collect::<StdResult<Vec<(Vec<u8>, T)>>>()?;
 
         // If not all items processed, update last item
         let return_accumulator = if !result.is_empty() {
@@ -231,7 +235,7 @@ impl<'a, T, Acum> PagedMap<'a, T, Acum> {
             .data
             .range(deps.storage, start, None, Order::Ascending)
             .take(limit)
-            .collect::<AbstractResult<Vec<(Vec<u8>, T)>>>()?;
+            .collect::<StdResult<Vec<(Vec<u8>, T)>>>()?;
 
         // If not all items processed, update last item
         if !result.is_empty() {
