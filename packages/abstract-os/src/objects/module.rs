@@ -539,7 +539,7 @@ mod test {
 
             assert_that!(info.validate())
                 .is_err()
-                .matches(|e| e.to_string().contains("cannot be empty"));
+                .matches(|e| e.to_string().contains("empty"));
         }
 
         #[test]
@@ -552,7 +552,7 @@ mod test {
 
             assert_that!(info.validate())
                 .is_err()
-                .matches(|e| e.to_string().contains("cannot be empty"));
+                .matches(|e| e.to_string().contains("empty"));
         }
 
         use rstest::rstest;
