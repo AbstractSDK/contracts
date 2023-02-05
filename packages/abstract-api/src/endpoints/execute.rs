@@ -441,11 +441,11 @@ mod tests {
             assert_unauthorized(res, not_trader);
         }
 
-        fn assert_unauthorized(res: Result<Response, MockError>, trader: String) {
+        fn assert_unauthorized(res: Result<Response, MockError>, _trader: String) {
             assert_that!(res).is_err().matches(|e| {
                 matches!(
                     e,
-                    MockError::Api(ApiError::UnauthorizedTraderApiRequest { sender: trader, .. })
+                    MockError::Api(ApiError::UnauthorizedTraderApiRequest { sender: _trader, .. })
                 )
             });
         }

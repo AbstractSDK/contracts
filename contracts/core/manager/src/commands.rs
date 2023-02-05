@@ -1118,7 +1118,7 @@ mod test {
     mod upgrade {
         use super::*;
         use abstract_os::version_control::state::MODULE_LIBRARY;
-        use abstract_testing::{MockQuerierBuilder, TEST_MODULE_ADDRESS, TEST_MODULE_ID};
+        use abstract_testing::{MockQuerierBuilder, TEST_MODULE_ADDRESS};
 
         #[test]
         fn only_root() -> ManagerTestResult {

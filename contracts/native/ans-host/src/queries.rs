@@ -22,7 +22,7 @@ use abstract_os::{
 };
 use abstract_sdk::helpers::cw_storage_plus::load_many;
 use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult, Storage};
-use cw_asset::{AssetInfo, AssetInfoUnchecked};
+use cw_asset::AssetInfoUnchecked;
 use cw_storage_plus::Bound;
 
 pub(crate) const DEFAULT_LIMIT: u8 = 15;
@@ -301,7 +301,7 @@ mod test {
     use crate::error::AnsHostError;
 
     use abstract_os::objects::pool_id::PoolAddressBase;
-    use cw_asset::{AssetInfo, AssetInfoBase, AssetInfoUnchecked};
+    use cw_asset::{AssetInfo, AssetInfoUnchecked};
     use speculoos::prelude::*;
 
     use super::*;

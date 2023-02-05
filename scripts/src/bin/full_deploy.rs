@@ -5,7 +5,7 @@ use semver::Version;
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 
-use abstract_boot::{Abstract, DexApi, OS};
+use abstract_boot::{Abstract, OS};
 
 const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -16,9 +16,9 @@ fn full_deploy(network: NetworkInfo) -> anyhow::Result<()> {
     let options = DaemonOptionsBuilder::default().network(network).build();
     let (_sender, chain) = instantiate_daemon_env(&rt, options?)?;
 
-    let mut os_core = OS::new(chain.clone(), None);
+    let _os_core = OS::new(chain.clone(), None);
 
-    let mut deployment = Abstract::new(chain.clone(), abstract_os_version);
+    let deployment = Abstract::new(chain, abstract_os_version);
 
     // deployment.deploy(&mut os_core)?;
     //
