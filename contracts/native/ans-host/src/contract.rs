@@ -54,21 +54,25 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::AssetList {
             page_token,
             page_size,
+            filter: _filter, // TODO: Implement filtering
         } => queries::query_asset_list(deps, page_token, page_size),
         QueryMsg::AssetInfos { infos } => queries::query_asset_infos(deps, env, infos),
         QueryMsg::AssetInfoList {
             page_token,
             page_size,
+            filter: _filter, // TODO: Implement filtering
         } => queries::query_asset_info_list(deps, page_token, page_size),
         QueryMsg::Contracts { names } => queries::query_contract(deps, env, names),
         QueryMsg::ContractList {
             page_token,
             page_size,
+            filter: _filter, // TODO: Implement filtering
         } => queries::query_contract_list(deps, page_token, page_size),
         QueryMsg::Channels { names } => queries::query_channels(deps, env, names),
         QueryMsg::ChannelList {
             page_token,
             page_size,
+            filter: _filter, // TODO: Implement filtering
         } => queries::query_channel_list(deps, page_token, page_size),
         QueryMsg::RegisteredDexes {} => queries::query_registered_dexes(deps, env),
         QueryMsg::PoolList {

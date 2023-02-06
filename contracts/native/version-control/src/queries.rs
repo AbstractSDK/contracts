@@ -112,6 +112,11 @@ pub fn handle_module_list_query(
         modules.retain(|(info, _)| info.version == version);
     }
 
+    let modules = modules
+        .into_iter()
+        .map(Module::from)
+        .collect();
+
     to_binary(&ModulesListResponse { modules })
 }
 
@@ -429,7 +434,7 @@ mod test {
                 assert_that!(modules).has_length(3);
 
                 for entry in modules {
-                    assert_that!(entry.0.provider).is_equal_to(filtered_provider.clone());
+                    assert_that!(entry.info.provider).is_equal_to(filtered_provider.clone());
                 }
 
                 res

@@ -325,6 +325,7 @@ mod test {
         QueryMsg::AssetList {
             page_token: (Some(token)),
             page_size: (Some(size as u8)),
+            filter: None,
         }
     }
 
@@ -751,6 +752,7 @@ mod test {
         let msg = QueryMsg::ContractList {
             page_token: None,
             page_size: Some(42_u8),
+            filter: None,
         };
         let res: ContractListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
@@ -760,6 +762,7 @@ mod test {
                 contract: "bar1".to_string().to_ascii_lowercase(),
             }),
             page_size: Some(42_u8),
+            filter: None,
         };
         let res_expect_foo: ContractListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
@@ -804,6 +807,7 @@ mod test {
         let msg = QueryMsg::ChannelList {
             page_token: None,
             page_size: Some(42_u8),
+            filter: None,
         };
         let res_all = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
@@ -814,6 +818,7 @@ mod test {
                 protocol: "foo1".to_string(),
             }),
             page_size: Some(42_u8),
+            filter: None,
         };
         let res_foobar = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
@@ -821,6 +826,7 @@ mod test {
         let msg = QueryMsg::ChannelList {
             page_token: None,
             page_size: Some(1_u8),
+            filter: None,
         };
         let res_bar = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 

@@ -146,10 +146,10 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
 
         // ########### Upload ##############
 
-        self.ans_host.upload()?;
-        self.version_control.upload()?;
-        self.os_factory.upload()?;
-        self.module_factory.upload()?;
+        // self.ans_host.upload()?;
+        // self.version_control.upload()?;
+        // self.os_factory.upload()?;
+        // self.module_factory.upload()?;
 
         os_core.upload()?;
 
@@ -272,7 +272,7 @@ impl<Chain: BootEnvironment> OS<Chain> {
     }
 
     pub fn upload(&mut self) -> Result<(), BootError> {
-        self.manager.upload()?;
+        // self.manager.upload()?;
         self.proxy.upload()?;
         Ok(())
     }

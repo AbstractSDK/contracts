@@ -4,6 +4,8 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
+pub const CHAIN_DELIMITER: char = '>';
+
 /// May key to retrieve information on an asset
 #[derive(
     Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord, Default,
@@ -20,6 +22,11 @@ impl AssetEntry {
     pub fn format(&mut self) {
         self.0 = self.0.to_ascii_lowercase();
     }
+
+    // /// Retrieve the source chain of the asset
+    // pub fn src_chain(&self) -> &str {
+    //     self.0.split(CHAIN_DELIMITER).next().unwrap_or("")
+    // }
 }
 
 impl From<&str> for AssetEntry {
@@ -47,7 +54,7 @@ impl Display for AssetEntry {
 }
 
 impl<'a> PrimaryKey<'a> for AssetEntry {
-    type Prefix = ();
+    type Prefix = String;
 
     type SubPrefix = ();
 

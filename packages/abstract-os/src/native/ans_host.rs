@@ -135,6 +135,22 @@ pub struct AssetPairingFilter {
     pub dex: Option<String>,
 }
 
+/// UNUSED - stub for future use
+#[cosmwasm_schema::cw_serde]
+pub struct ContractFilter {}
+
+/// UNUSED - stub for future use
+#[cosmwasm_schema::cw_serde]
+pub struct ChannelFilter {}
+
+/// UNUSED - stub for future use
+#[cosmwasm_schema::cw_serde]
+pub struct AssetFilter {}
+
+/// UNUSED - stub for future use
+#[cosmwasm_schema::cw_serde]
+pub struct AssetInfoFilter {}
+
 /// Filter on the pool metadatas
 #[cosmwasm_schema::cw_serde]
 pub struct PoolMetadataFilter {
@@ -164,6 +180,7 @@ pub enum QueryMsg {
     /// returns [`AssetListResponse`]
     #[returns(AssetListResponse)]
     AssetList {
+        filter: Option<AssetFilter>,
         page_token: Option<String>,
         page_size: Option<u8>,
     },
@@ -178,6 +195,7 @@ pub enum QueryMsg {
     /// returns [`AssetInfoListResponse`]
     #[returns(AssetInfoListResponse)]
     AssetInfoList {
+        filter: Option<AssetInfoFilter>,
         page_token: Option<AssetInfoUnchecked>,
         page_size: Option<u8>,
     },
@@ -192,6 +210,7 @@ pub enum QueryMsg {
     /// returns [`ContractListResponse`]
     #[returns(ContractListResponse)]
     ContractList {
+        filter: Option<ContractFilter>,
         page_token: Option<ContractEntry>,
         page_size: Option<u8>,
     },
@@ -206,6 +225,7 @@ pub enum QueryMsg {
     /// returns [`ChannelListResponse`]
     #[returns(ChannelListResponse)]
     ChannelList {
+        filter: Option<ChannelFilter>,
         page_token: Option<ChannelEntry>,
         page_size: Option<u8>,
     },

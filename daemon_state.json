@@ -25,6 +25,26 @@
       }
     }
   },
+  "kujira": {
+    "harpoon-4": {
+      "code_ids": {
+        "abstract:ans-host": 1334,
+        "abstract:manager": 1338,
+        "abstract:module-factory": 1337,
+        "abstract:os-factory": 1336,
+        "abstract:proxy": 1339,
+        "abstract:version-control": 1335
+      },
+      "default": {
+        "abstract:ans-host": "kujira1qzp4jjm2gl7ya6wxpgeup3p35j7nms6zfv83gna7amryxs3xwkfs69pquu",
+        "abstract:manager": "kujira19cegflc3lwmd3xvlxn4t6yzlz7mn7xx3zg8yr7d6fmunzmx49ltsv2m7rx",
+        "abstract:module-factory": "kujira1v8g650vw3v6sldj7sh2x2n24naz87c5yept6qtsf4yjw47c59a2qnlmry3",
+        "abstract:os-factory": "kujira1k484q3hqcezqs462vez27jf9mecwqhkd4w4a7ulshntq9l7lxr0qkf9rz4",
+        "abstract:proxy": "kujira1ax7hep3c0mnqznmjjwszs9lnhhx5mrg62hg7erqtf9syglgxrg7qphc0yd",
+        "abstract:version-control": "kujira1eu7wy7lpf4yk9kes9pswp86sxg3uspz7a3dt3pt5xzlwxv2qqnas6lkwz8"
+      }
+    }
+  },
   "terra": {
     "pisco-1": {
       "code_ids": {
