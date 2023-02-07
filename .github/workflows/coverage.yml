@@ -17,7 +17,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          fetch-depth: 1
+          fetch-depth: 0
+      - name: Fix git ownership
+        run: |
+          git config --global --add safe.directory /__w/contracts/contracts
       - name: Check if any rust files have changed
         id: changes
         uses: tj-actions/changed-files@v35
