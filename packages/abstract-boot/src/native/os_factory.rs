@@ -31,7 +31,7 @@ impl<Chain: BootEnvironment> OSFactory<Chain> {
         Self(contract)
     }
 
-    pub fn create_os(
+    pub fn create_new_os(
         &self,
         os_details: OsDetails,
         governance_details: GovernanceDetails,
@@ -70,7 +70,7 @@ impl<Chain: BootEnvironment> OSFactory<Chain> {
         &self,
         governance_details: GovernanceDetails,
     ) -> Result<OS<Chain>, BootError> {
-        self.create_os(
+        self.create_new_os(
             OsDetails {
                 name: "Default Abstract OS".into(),
                 ..Default::default()

@@ -112,10 +112,7 @@ pub fn handle_module_list_query(
         modules.retain(|(info, _)| info.version == version);
     }
 
-    let modules = modules
-        .into_iter()
-        .map(Module::from)
-        .collect();
+    let modules = modules.into_iter().map(Module::from).collect();
 
     to_binary(&ModulesListResponse { modules })
 }
@@ -498,8 +495,8 @@ mod test {
                 assert_that!(modules).has_length(1);
 
                 let module = modules[0].clone();
-                assert_that!(module.0.provider).is_equal_to(filtered_provider.clone());
-                assert_that!(module.0.name).is_equal_to(filtered_name.clone());
+                assert_that!(module.info.provider).is_equal_to(filtered_provider.clone());
+                assert_that!(module.info.name).is_equal_to(filtered_name.clone());
                 res
             });
         }
@@ -537,8 +534,8 @@ mod test {
                 assert_that!(modules).has_length(2);
 
                 for module in modules {
-                    assert_that!(module.0.provider).is_equal_to(filtered_provider.clone());
-                    assert_that!(module.0.name).is_equal_to(filtered_name.clone());
+                    assert_that!(module.info.provider).is_equal_to(filtered_provider.clone());
+                    assert_that!(module.info.name).is_equal_to(filtered_name.clone());
                 }
                 res
             });
@@ -566,7 +563,7 @@ mod test {
                 assert_that!(modules).has_length(6);
 
                 for module in modules {
-                    assert_that!(module.0.version.to_string())
+                    assert_that!(module.info.version.to_string())
                         .is_equal_to(filtered_version.clone());
                 }
                 res
@@ -623,8 +620,8 @@ mod test {
                 assert_that!(modules).has_length(2);
 
                 for module in modules {
-                    assert_that!(module.0.name).is_equal_to(filtered_name.clone());
-                    assert_that!(module.0.version.to_string())
+                    assert_that!(module.info.name).is_equal_to(filtered_name.clone());
+                    assert_that!(module.info.version.to_string())
                         .is_equal_to(filtered_version.clone());
                 }
                 res
@@ -655,8 +652,8 @@ mod test {
                 assert_that!(modules).has_length(3);
 
                 for module in modules {
-                    assert_that!(module.0.provider).is_equal_to(filtered_provider.clone());
-                    assert_that!(module.0.version.to_string())
+                    assert_that!(module.info.provider).is_equal_to(filtered_provider.clone());
+                    assert_that!(module.info.version.to_string())
                         .is_equal_to(filtered_version.clone());
                 }
 
