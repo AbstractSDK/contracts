@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use boot_core::networks::{ChainInfo, NetworkInfo, NetworkKind, UNI_5};
+use boot_core::networks::{ChainInfo, NetworkInfo, NetworkKind};
 use boot_core::prelude::*;
 
 use semver::Version;

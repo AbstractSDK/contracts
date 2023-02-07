@@ -1,4 +1,4 @@
-use boot_core::networks::{parse_network, ChainInfo, NetworkInfo, NetworkKind};
+use boot_core::networks::{parse_network, NetworkInfo};
 use boot_core::prelude::*;
 use clap::Parser;
 use semver::Version;

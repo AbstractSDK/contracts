@@ -55,9 +55,8 @@ clap = { version = "4.0.32", features = ["derive"] }
 
 semver = "1.0"
 cw-semver = { version = "1.0", git = "https://github.com/Abstract-OS/cw-semver.git" }
-boot-core = { version = "0.6.0", path = "../BOOT-private/boot-core" }
-#boot-core = { version = "0.6.0", git = "https://github.com/Abstract-OS/BOOT.git" }
-boot-cw-plus = { version = "0.6.0", git = "https://github.com/Abstract-OS/BOOT.git" }
+boot-core = { version = "0.6.0", git = "https://github.com/Abstract-OS/BOOT-private.git" }
+boot-cw-plus = { version = "0.6.0", git = "https://github.com/Abstract-OS/BOOT-private.git" }
 
 abstract-sdk = { version = "0.7.0", path = "packages/abstract-sdk" }
 abstract-os = { version = "0.7.0", path = "packages/abstract-os" }
