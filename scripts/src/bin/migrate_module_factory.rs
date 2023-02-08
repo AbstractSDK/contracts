@@ -1,12 +1,12 @@
-use abstract_boot::{ModuleFactory, OSFactory, VersionControl, OS};
-use abstract_os::{MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL};
+use abstract_boot::{ModuleFactory, VersionControl};
+use abstract_os::{MODULE_FACTORY, VERSION_CONTROL};
 
 use boot_core::networks::{parse_network, NetworkInfo};
 use boot_core::prelude::*;
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 
-use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
+
 use clap::Parser;
 use semver::Version;
 
@@ -19,9 +19,9 @@ pub fn migrate(network: NetworkInfo) -> anyhow::Result<()> {
 
     let abstract_os_version = Version::parse(VERSION)?;
 
-    let mut vc = VersionControl::new(VERSION_CONTROL, chain.clone());
+    let vc = VersionControl::new(VERSION_CONTROL, chain.clone());
 
-    let mut module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
+    let mut module_factory = ModuleFactory::new(MODULE_FACTORY, chain);
 
     module_factory.upload()?;
     module_factory.migrate(

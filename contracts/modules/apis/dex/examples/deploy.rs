@@ -3,7 +3,7 @@ use abstract_os::VERSION_CONTROL;
 use boot_core::prelude::*;
 
 use boot_core::networks::{parse_network, NetworkInfo};
-use cosmwasm_std::{Addr, Empty};
+use cosmwasm_std::{Empty};
 use semver::Version;
 use std::sync::Arc;
 use tokio::runtime::Runtime;

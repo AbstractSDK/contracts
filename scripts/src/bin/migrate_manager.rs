@@ -1,13 +1,12 @@
-use abstract_boot::{Manager, OSFactory, VersionControl, OS};
-use abstract_os::{MANAGER, OS_FACTORY, VERSION_CONTROL};
+use abstract_boot::{Manager, VersionControl};
+use abstract_os::{MANAGER, VERSION_CONTROL};
 
 use boot_core::networks::{parse_network, NetworkInfo};
 use boot_core::prelude::*;
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 
-use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
-use abstract_os::version_control::ExecuteMsgFns;
+use abstract_os::objects::module::ModuleVersion;
 use clap::Parser;
 use semver::Version;
 
@@ -20,24 +19,12 @@ pub fn migrate(network: NetworkInfo) -> anyhow::Result<()> {
 
     let abstract_os_version = Version::parse(VERSION)?;
 
-    let mut vc = VersionControl::new(VERSION_CONTROL, chain.clone());
+    let vc = VersionControl::new(VERSION_CONTROL, chain.clone());
 
-    let old_manager_info =
-        ModuleInfo::from_id(MANAGER, ModuleVersion::Version("0.8.3".to_string()))?;
-
-    // Remove the old module
-    let old_manager_mod = vc.module(old_manager_info)?;
-    vc.remove_module(old_manager_mod.info)?;
-    // // register it under 0.8.0
-    // vc.add_modules(vec![(
-    //     ModuleInfo::from_id(MANAGER, ModuleVersion::Version("0.8.0".to_string()))?,
-    //     old_manager_mod.reference,
-    // )])?;
-
-    let mut manager = Manager::new(MANAGER, chain.clone());
+    let mut manager = Manager::new(MANAGER, chain);
     manager.upload()?;
 
-    /// Register the new one
+    // Register the new manager
     vc.register_cores(vec![manager.as_instance()], &abstract_os_version)?;
 
     Ok(())
