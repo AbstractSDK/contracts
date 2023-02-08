@@ -1,14 +1,12 @@
 use crate::commands::*;
 use crate::error::ProxyError;
 use crate::queries::*;
+use abstract_os::objects::module_version::migrate_module_data;
 use abstract_sdk::{
     feature_objects::AnsHost,
     os::{
         objects::{
-            core::OS_ID,
-            module_version::{get_module_data, set_module_data},
-            proxy_asset::ProxyAsset,
-            AssetEntry,
+            core::OS_ID, module_version::set_module_data, proxy_asset::ProxyAsset, AssetEntry,
         },
         proxy::{
             state::{State, ADMIN, ANS_HOST, STATE, VAULT_ASSETS},
@@ -79,9 +77,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ProxyResult {
 
     if storage_version < version {
         set_contract_version(deps.storage, PROXY, CONTRACT_VERSION)?;
-        let old_module_data = get_module_data(deps.storage);
-        let metadata = old_module_data.map_or(None::<String>, |data| data.metadata);
-        set_module_data(deps.storage, PROXY, CONTRACT_VERSION, &[], metadata)?;
+        migrate_module_data(deps.storage, PROXY, CONTRACT_VERSION, None::<String>)?;
     }
     Ok(Response::default())
 }

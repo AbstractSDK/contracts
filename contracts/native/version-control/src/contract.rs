@@ -1,11 +1,11 @@
 use crate::error::VCError;
-use abstract_sdk::{
-    os::version_control::state::{ADMIN, FACTORY},
-    os::version_control::{ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
-    os::{
-        objects::module_version::{get_module_data, set_module_data},
-        VERSION_CONTROL,
+use abstract_sdk::os::{
+    objects::{module_version::migrate_module_data, module_version::set_module_data},
+    version_control::{
+        state::{ADMIN, FACTORY},
+        ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     },
+    VERSION_CONTROL,
 };
 use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::{get_contract_version, set_contract_version};
@@ -28,14 +28,11 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VCResult {
 
     if storage_version < version {
         set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
-        let old_module_data = get_module_data(deps.storage);
-        let metadata = old_module_data.map_or(None::<String>, |data| data.metadata);
-        set_module_data(
+        migrate_module_data(
             deps.storage,
             VERSION_CONTROL,
             CONTRACT_VERSION,
-            &[],
-            metadata,
+            None::<String>,
         )?;
     }
     Ok(Response::default())
@@ -49,6 +46,13 @@ pub fn instantiate(
     _msg: InstantiateMsg,
 ) -> VCResult {
     set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
+    set_module_data(
+        deps.storage,
+        VERSION_CONTROL,
+        CONTRACT_VERSION,
+        &[],
+        None::<String>,
+    )?;
     // Setup the admin as the creator of the contract
     ADMIN.set(deps.branch(), Some(info.sender))?;
     FACTORY.set(deps, None)?;

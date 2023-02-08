@@ -1,8 +1,10 @@
 use crate::error::OsFactoryError;
 use crate::{commands, state::*};
-use abstract_os::objects::module_version::{get_module_data, set_module_data};
-use abstract_sdk::os::os_factory::*;
-use abstract_sdk::os::OS_FACTORY;
+use abstract_sdk::os::{
+    objects::module_version::{migrate_module_data, set_module_data},
+    os_factory::*,
+    OS_FACTORY,
+};
 use cosmwasm_std::{
     to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
@@ -30,6 +32,13 @@ pub fn instantiate(
     };
 
     set_contract_version(deps.storage, OS_FACTORY, CONTRACT_VERSION)?;
+    set_module_data(
+        deps.storage,
+        OS_FACTORY,
+        CONTRACT_VERSION,
+        &[],
+        None::<String>,
+    )?;
 
     CONFIG.save(deps.storage, &config)?;
     ADMIN.set(deps, Some(info.sender))?;
@@ -121,9 +130,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response
 
     if storage_version < version {
         set_contract_version(deps.storage, OS_FACTORY, CONTRACT_VERSION)?;
-        let old_module_data = get_module_data(deps.storage);
-        let metadata = old_module_data.map_or(None::<String>, |data| data.metadata);
-        set_module_data(deps.storage, OS_FACTORY, CONTRACT_VERSION, &[], metadata)?;
+        migrate_module_data(deps.storage, OS_FACTORY, CONTRACT_VERSION, None::<String>)?;
     }
     Ok(Response::default())
 }
