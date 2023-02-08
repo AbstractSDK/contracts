@@ -1,8 +1,8 @@
 use abstract_boot::{
-    AnsHost, Manager, OSFactory, OsFactoryQueryFns, Proxy, VCExecFns, VersionControl, OS,
+    OSFactory, OsFactoryQueryFns, VersionControl, OS,
 };
 use abstract_os::{
-    manager, os_factory, proxy, ANS_HOST, MANAGER, OS_FACTORY, PROXY, VERSION_CONTROL,
+    manager, os_factory, proxy, MANAGER, OS_FACTORY, PROXY, VERSION_CONTROL,
 };
 
 use boot_core::networks::{parse_network, NetworkInfo};
@@ -15,22 +15,19 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub fn migrate(network: NetworkInfo) -> anyhow::Result<()> {
     let rt = Arc::new(Runtime::new()?);
     let options = DaemonOptionsBuilder::default().network(network).build();
-    let (sender, chain) = instantiate_daemon_env(&rt, options?)?;
+    let (_sender, chain) = instantiate_daemon_env(&rt, options?)?;
 
-    let abstract_os_version: Version = VERSION.parse().unwrap();
+    let _abstract_os_version: Version = VERSION.parse().unwrap();
 
-    let version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
+    let _version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
 
     // Upload the new core contracts
-    let mut os_core = OS::new(chain.clone(), None);
+    let _os_core = OS::new(chain.clone(), None);
     // os_core.upload()?;
-    // os_core.manager.upload()?;
+    // os_core.register(&version_control, VERSION)?;
 
     // Register the cores
-    version_control.register_cores(vec![os_core.proxy.as_instance()], &abstract_os_version)?;
-
-    // Register manager as app because of an invalid configuration
-    // version_control.register_apps(vec![os_core.manager.as_instance()], &abstract_os_version)?;
+    // version_control.register_cores(vec![os_core.proxy.as_instance()], &abstract_os_version)?;
 
     let os_factory = OSFactory::new(OS_FACTORY, chain.clone());
     let os_factory::ConfigResponse { next_os_id, .. } = OsFactoryQueryFns::config(&os_factory)?;
@@ -41,10 +38,10 @@ pub fn migrate(network: NetworkInfo) -> anyhow::Result<()> {
         // todo: check admin
 
         // Upgrade manager first
-        // os.manager.upgrade(vec![(
-        //     ModuleInfo::from_id_latest(MANAGER)?,
-        //     Some(to_binary(&manager::MigrateMsg {}).unwrap()),
-        // )])?;
+        os.manager.upgrade(vec![(
+            ModuleInfo::from_id_latest(MANAGER)?,
+            Some(to_binary(&manager::MigrateMsg {}).unwrap()),
+        )])?;
 
         // Then upgrade proxy
         os.manager.upgrade(vec![(
@@ -86,8 +83,8 @@ struct Arguments {
 }
 
 use abstract_os::manager::ExecuteMsgFns;
-use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
-use abstract_os::version_control::state::FACTORY;
+use abstract_os::objects::module::{ModuleInfo};
+
 use clap::Parser;
 use cosmwasm_std::to_binary;
 use semver::Version;

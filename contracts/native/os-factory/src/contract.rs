@@ -1,5 +1,6 @@
 use crate::error::OsFactoryError;
 use crate::{commands, state::*};
+use abstract_os::objects::module_version::{get_module_data, set_module_data};
 use abstract_sdk::os::os_factory::*;
 use abstract_sdk::os::OS_FACTORY;
 use cosmwasm_std::{
@@ -117,8 +118,12 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
+
     if storage_version < version {
         set_contract_version(deps.storage, OS_FACTORY, CONTRACT_VERSION)?;
+        let old_module_data = get_module_data(deps.storage);
+        let metadata = old_module_data.map_or(None::<String>, |data| data.metadata);
+        set_module_data(deps.storage, OS_FACTORY, CONTRACT_VERSION, &[], metadata)?;
     }
     Ok(Response::default())
 }

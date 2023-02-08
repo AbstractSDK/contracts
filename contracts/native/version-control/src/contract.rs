@@ -1,19 +1,21 @@
 use crate::error::VCError;
-use abstract_sdk::os::VERSION_CONTROL;
-use cosmwasm_std::to_binary;
-use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
-use cw2::get_contract_version;
-use cw2::set_contract_version;
+use abstract_sdk::{
+    os::version_control::state::{ADMIN, FACTORY},
+    os::version_control::{ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
+    os::{
+        objects::module_version::{get_module_data, set_module_data},
+        VERSION_CONTROL,
+    },
+};
+use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cw2::{get_contract_version, set_contract_version};
 use cw_controllers::{Admin, AdminError};
 use cw_semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+
 use crate::commands::*;
 use crate::queries;
-use abstract_sdk::os::version_control::state::{ADMIN, FACTORY};
-use abstract_sdk::os::version_control::{
-    ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
-};
 
 pub type VCResult = Result<Response, VCError>;
 
@@ -26,6 +28,15 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VCResult {
 
     if storage_version < version {
         set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
+        let old_module_data = get_module_data(deps.storage);
+        let metadata = old_module_data.map_or(None::<String>, |data| data.metadata);
+        set_module_data(
+            deps.storage,
+            VERSION_CONTROL,
+            CONTRACT_VERSION,
+            &[],
+            metadata,
+        )?;
     }
     Ok(Response::default())
 }
