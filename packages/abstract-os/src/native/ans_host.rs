@@ -204,7 +204,7 @@ pub enum QueryMsg {
     #[returns(ContractsResponse)]
     Contracts {
         // Project and contract names of contracts to query
-        names: Vec<ContractEntry>,
+        entries: Vec<ContractEntry>,
     },
     /// Page over contracts
     /// returns [`ContractListResponse`]
@@ -219,7 +219,7 @@ pub enum QueryMsg {
     #[returns(ChannelsResponse)]
     Channels {
         // Project and contract names of contracts to query
-        names: Vec<ChannelEntry>,
+        entries: Vec<ChannelEntry>,
     },
     /// Page over contracts
     /// returns [`ChannelListResponse`]
@@ -237,7 +237,7 @@ pub enum QueryMsg {
     /// returns [`PoolsResponse`]
     /// TODO: this may need to take a page_token and page_size for the return
     #[returns(PoolsResponse)]
-    Pools { keys: Vec<DexAssetPairing> },
+    Pools { pairings: Vec<DexAssetPairing> },
     /// Retrieve the (optionally-filtered) list of pools.
     /// returns [`PoolAddressListResponse`]
     #[returns(PoolAddressListResponse)]
@@ -249,7 +249,7 @@ pub enum QueryMsg {
     /// Get the pool metadatas for given pool ids
     /// returns [`PoolMetadatasResponse`]
     #[returns(PoolMetadatasResponse)]
-    PoolMetadatas { keys: Vec<UniquePoolId> },
+    PoolMetadatas { ids: Vec<UniquePoolId> },
     /// Retrieve the (optionally-filtered) list of pool metadatas
     /// returns [`PoolMetadataListResponse`]
     #[returns(PoolMetadataListResponse)]

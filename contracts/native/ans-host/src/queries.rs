@@ -422,7 +422,7 @@ mod test {
 
     fn create_channel_msg(input: Vec<(&str, &str)>) -> QueryMsg {
         QueryMsg::Channels {
-            names: create_channel_entry(input),
+            entries: create_channel_entry(input),
         }
     }
 
@@ -602,7 +602,7 @@ mod test {
         update_contract_addresses(deps.as_mut(), to_add)?;
         // create, send and deserialise msg
         let msg = QueryMsg::Contracts {
-            names: create_contract_entry(vec![("foo", "foo")]),
+            entries: create_contract_entry(vec![("foo", "foo")]),
         };
         let res: ContractsResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
@@ -898,7 +898,7 @@ mod test {
 
         // create msg
         let msg = QueryMsg::Pools {
-            keys: vec![create_dex_asset_pairing("btc", "eth", "foo")],
+            pairings: vec![create_dex_asset_pairing("btc", "eth", "foo")],
         };
         let res: PoolsResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
         //comparisons
@@ -1010,12 +1010,12 @@ mod test {
 
         // create msgs
         let msg_bar = QueryMsg::PoolMetadatas {
-            keys: vec![UniquePoolId::new(42)],
+            ids: vec![UniquePoolId::new(42)],
         };
         let res_bar: PoolMetadatasResponse = from_binary(&query_helper(deps.as_ref(), msg_bar)?)?;
 
         let msg_foo = QueryMsg::PoolMetadatas {
-            keys: vec![UniquePoolId::new(69)],
+            ids: vec![UniquePoolId::new(69)],
         };
         let res_foo: PoolMetadatasResponse = from_binary(&query_helper(deps.as_ref(), msg_foo)?)?;
 

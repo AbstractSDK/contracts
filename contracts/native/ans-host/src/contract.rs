@@ -62,13 +62,13 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             page_size,
             filter: _filter, // TODO: Implement filtering
         } => queries::query_asset_info_list(deps, page_token, page_size),
-        QueryMsg::Contracts { names } => queries::query_contract(deps, env, names),
+        QueryMsg::Contracts { entries: names } => queries::query_contract(deps, env, names),
         QueryMsg::ContractList {
             page_token,
             page_size,
             filter: _filter, // TODO: Implement filtering
         } => queries::query_contract_list(deps, page_token, page_size),
-        QueryMsg::Channels { names } => queries::query_channels(deps, env, names),
+        QueryMsg::Channels { entries: names } => queries::query_channels(deps, env, names),
         QueryMsg::ChannelList {
             page_token,
             page_size,
@@ -81,8 +81,8 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             page_size,
         } => queries::list_pool_entries(deps, filter, page_token, page_size),
 
-        QueryMsg::Pools { keys } => queries::query_pool_entries(deps, keys),
-        QueryMsg::PoolMetadatas { keys } => queries::query_pool_metadatas(deps, keys),
+        QueryMsg::Pools { pairings: keys } => queries::query_pool_entries(deps, keys),
+        QueryMsg::PoolMetadatas { ids: keys } => queries::query_pool_metadatas(deps, keys),
         QueryMsg::PoolMetadataList {
             filter,
             page_token,
