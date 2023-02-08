@@ -68,7 +68,7 @@ pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<B
 
 pub fn handle_module_list_query(
     deps: Deps,
-    page_token: Option<ModuleInfo>,
+    start_after: Option<ModuleInfo>,
     limit: Option<u8>,
     filter: Option<ModuleFilter>,
 ) -> StdResult<Binary> {
@@ -85,13 +85,13 @@ pub fn handle_module_list_query(
     if let Some(provider_filter) = provider_filter {
         modules.extend(filter_modules_by_provider(
             deps,
-            page_token,
+            start_after,
             limit,
             provider_filter,
             name_filter,
         )?);
     } else {
-        let start_bound: Option<Bound<ModuleInfo>> = page_token.map(Bound::exclusive);
+        let start_bound: Option<Bound<ModuleInfo>> = start_after.map(Bound::exclusive);
 
         // Load all modules
         modules.extend(
@@ -120,7 +120,7 @@ pub fn handle_module_list_query(
 /// Filter the modules with their primary key prefix (provider)
 fn filter_modules_by_provider(
     deps: Deps,
-    page_token: Option<ModuleInfo>,
+    start_after: Option<ModuleInfo>,
     limit: usize,
     provider: &str,
     name: &Option<String>,
@@ -130,7 +130,7 @@ fn filter_modules_by_provider(
     // Filter by name using full prefix
     if let Some(name) = name {
         let start_bound: Option<Bound<String>> =
-            page_token.map(|token| Bound::exclusive(token.provider));
+            start_after.map(|token| Bound::exclusive(token.provider));
 
         modules.extend(
             MODULE_LIBRARY
@@ -153,7 +153,7 @@ fn filter_modules_by_provider(
     } else {
         // Filter by just provider using sub prefix
         let start_bound: Option<Bound<(String, String)>> =
-            page_token.map(|token| Bound::exclusive((token.provider, token.name)));
+            start_after.map(|token| Bound::exclusive((token.provider, token.name)));
 
         modules.extend(
             MODULE_LIBRARY
@@ -406,8 +406,8 @@ mod test {
         fn filtered_list_msg(filter: ModuleFilter) -> QueryMsg {
             QueryMsg::ModuleList {
                 filter: Some(filter),
-                page_token: None,
-                page_size: None,
+                start_after: None,
+                limit: None,
             }
         }
 

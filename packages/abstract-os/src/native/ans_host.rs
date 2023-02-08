@@ -181,8 +181,8 @@ pub enum QueryMsg {
     #[returns(AssetListResponse)]
     AssetList {
         filter: Option<AssetFilter>,
-        page_token: Option<String>,
-        page_size: Option<u8>,
+        start_after: Option<String>,
+        limit: Option<u8>,
     },
     /// Queries assets based on address
     /// returns [`AssetsResponse`]
@@ -196,8 +196,8 @@ pub enum QueryMsg {
     #[returns(AssetInfoListResponse)]
     AssetInfoList {
         filter: Option<AssetInfoFilter>,
-        page_token: Option<AssetInfoUnchecked>,
-        page_size: Option<u8>,
+        start_after: Option<AssetInfoUnchecked>,
+        limit: Option<u8>,
     },
     /// Queries contracts based on name
     /// returns [`ContractsResponse`]
@@ -211,8 +211,8 @@ pub enum QueryMsg {
     #[returns(ContractListResponse)]
     ContractList {
         filter: Option<ContractFilter>,
-        page_token: Option<ContractEntry>,
-        page_size: Option<u8>,
+        start_after: Option<ContractEntry>,
+        limit: Option<u8>,
     },
     /// Queries contracts based on name
     /// returns [`ChannelsResponse`]
@@ -226,8 +226,8 @@ pub enum QueryMsg {
     #[returns(ChannelListResponse)]
     ChannelList {
         filter: Option<ChannelFilter>,
-        page_token: Option<ChannelEntry>,
-        page_size: Option<u8>,
+        start_after: Option<ChannelEntry>,
+        limit: Option<u8>,
     },
     /// Retrieve the registered dexes
     /// returns [`RegisteredDexesResponse`]
@@ -235,7 +235,7 @@ pub enum QueryMsg {
     RegisteredDexes {},
     /// Retrieve the pools with the specified keys
     /// returns [`PoolsResponse`]
-    /// TODO: this may need to take a page_token and page_size for the return
+    /// TODO: this may need to take a start_after and limit for the return
     #[returns(PoolsResponse)]
     Pools { pairings: Vec<DexAssetPairing> },
     /// Retrieve the (optionally-filtered) list of pools.
@@ -243,8 +243,8 @@ pub enum QueryMsg {
     #[returns(PoolAddressListResponse)]
     PoolList {
         filter: Option<AssetPairingFilter>,
-        page_token: Option<DexAssetPairing>,
-        page_size: Option<u8>,
+        start_after: Option<DexAssetPairing>,
+        limit: Option<u8>,
     },
     /// Get the pool metadatas for given pool ids
     /// returns [`PoolMetadatasResponse`]
@@ -255,8 +255,8 @@ pub enum QueryMsg {
     #[returns(PoolMetadataListResponse)]
     PoolMetadataList {
         filter: Option<PoolMetadataFilter>,
-        page_token: Option<UniquePoolId>,
-        page_size: Option<u8>,
+        start_after: Option<UniquePoolId>,
+        limit: Option<u8>,
     },
 }
 

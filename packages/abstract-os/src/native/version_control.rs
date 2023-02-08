@@ -92,8 +92,8 @@ pub enum QueryMsg {
     #[returns(ModulesListResponse)]
     ModuleList {
         filter: Option<ModuleFilter>,
-        page_token: Option<ModuleInfo>,
-        page_size: Option<u8>,
+        start_after: Option<ModuleInfo>,
+        limit: Option<u8>,
     },
 }
 

@@ -457,7 +457,7 @@
                   }
                 ]
               },
-              "page_size": {
+              "limit": {
                 "type": [
                   "integer",
                   "null"
@@ -465,7 +465,7 @@
                 "format": "uint8",
                 "minimum": 0.0
               },
-              "page_token": {
+              "start_after": {
                 "type": [
                   "string",
                   "null"
@@ -522,7 +522,7 @@
                   }
                 ]
               },
-              "page_size": {
+              "limit": {
                 "type": [
                   "integer",
                   "null"
@@ -530,7 +530,7 @@
                 "format": "uint8",
                 "minimum": 0.0
               },
-              "page_token": {
+              "start_after": {
                 "anyOf": [
                   {
                     "$ref": "#/definitions/AssetInfoBase_for_String"
@@ -591,7 +591,7 @@
                   }
                 ]
               },
-              "page_size": {
+              "limit": {
                 "type": [
                   "integer",
                   "null"
@@ -599,7 +599,7 @@
                 "format": "uint8",
                 "minimum": 0.0
               },
-              "page_token": {
+              "start_after": {
                 "anyOf": [
                   {
                     "$ref": "#/definitions/ContractEntry"
@@ -660,7 +660,7 @@
                   }
                 ]
               },
-              "page_size": {
+              "limit": {
                 "type": [
                   "integer",
                   "null"
@@ -668,7 +668,7 @@
                 "format": "uint8",
                 "minimum": 0.0
               },
-              "page_token": {
+              "start_after": {
                 "anyOf": [
                   {
                     "$ref": "#/definitions/ChannelEntry"
@@ -699,7 +699,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Retrieve the pools with the specified keys returns [`PoolsResponse`] TODO: this may need to take a page_token and page_size for the return",
+        "description": "Retrieve the pools with the specified keys returns [`PoolsResponse`] TODO: this may need to take a start_after and limit for the return",
         "type": "object",
         "required": [
           "pools"
@@ -743,7 +743,7 @@
                   }
                 ]
               },
-              "page_size": {
+              "limit": {
                 "type": [
                   "integer",
                   "null"
@@ -751,7 +751,7 @@
                 "format": "uint8",
                 "minimum": 0.0
               },
-              "page_token": {
+              "start_after": {
                 "anyOf": [
                   {
                     "$ref": "#/definitions/DexAssetPairing"
@@ -812,7 +812,7 @@
                   }
                 ]
               },
-              "page_size": {
+              "limit": {
                 "type": [
                   "integer",
                   "null"
@@ -820,7 +820,7 @@
                 "format": "uint8",
                 "minimum": 0.0
               },
-              "page_token": {
+              "start_after": {
                 "anyOf": [
                   {
                     "$ref": "#/definitions/UniquePoolId"
