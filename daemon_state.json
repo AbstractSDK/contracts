@@ -34,12 +34,12 @@
   "kujira": {
     "harpoon-4": {
       "code_ids": {
-        "abstract:ans-host": 1334,
+        "abstract:ans-host": 1341,
         "abstract:manager": 1338,
         "abstract:module-factory": 1337,
         "abstract:os-factory": 1336,
         "abstract:proxy": 1339,
-        "abstract:version-control": 1335
+        "abstract:version-control": 1342
       },
       "default": {
         "abstract:ans-host": "kujira1qzp4jjm2gl7ya6wxpgeup3p35j7nms6zfv83gna7amryxs3xwkfs69pquu",
@@ -72,7 +72,7 @@
   "terra": {
     "pisco-1": {
       "code_ids": {
-        "abstract:ans-host": 7437,
+        "abstract:ans-host": 7484,
         "abstract:ans_host": 6733,
         "abstract:dex": 7354,
         "abstract:etf": 7356,

@@ -18,9 +18,9 @@ fn full_deploy(network: NetworkInfo) -> anyhow::Result<()> {
 
     // log::info!("Your balance is: {}", );
 
-    let mut os_core = OS::new(chain.clone(), None);
+    let _os_core = OS::new(chain.clone(), None);
 
-    let mut deployment = Abstract::new(chain, abstract_os_version);
+    let deployment = Abstract::new(chain, abstract_os_version);
 
     // deployment.deploy(&mut os_core)?;
     //

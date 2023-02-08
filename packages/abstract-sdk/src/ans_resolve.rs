@@ -291,7 +291,7 @@ mod tests {
 
     mod pool_metadata {
         use super::*;
-        use cw_asset::AssetInfoUnchecked;
+        
         use os::objects::PoolType;
 
         #[test]
