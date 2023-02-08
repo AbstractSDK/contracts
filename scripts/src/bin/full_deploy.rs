@@ -22,10 +22,10 @@ fn full_deploy(network: NetworkInfo) -> anyhow::Result<()> {
 
     let mut deployment = Abstract::new(chain, abstract_os_version);
 
-    deployment.deploy(&mut os_core)?;
+    // deployment.deploy(&mut os_core)?;
     //
     // let _dex = DexApi::new("dex", chain);
-    //
+
     // deployment.deploy_modules()?;
 
     let ans_host = deployment.ans_host;

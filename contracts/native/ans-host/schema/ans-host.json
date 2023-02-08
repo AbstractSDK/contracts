@@ -1,6 +1,6 @@
 {
   "contract_name": "ans-host",
-  "contract_version": "0.7.0",
+  "contract_version": "0.8.0",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -447,6 +447,16 @@
           "asset_list": {
             "type": "object",
             "properties": {
+              "filter": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/AssetFilter"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
               "page_size": {
                 "type": [
                   "integer",
@@ -459,6 +469,75 @@
                 "type": [
                   "string",
                   "null"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Queries assets based on address returns [`AssetsResponse`]",
+        "type": "object",
+        "required": [
+          "asset_infos"
+        ],
+        "properties": {
+          "asset_infos": {
+            "type": "object",
+            "required": [
+              "infos"
+            ],
+            "properties": {
+              "infos": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/AssetInfoBase_for_String"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Page over asset infos returns [`AssetInfoListResponse`]",
+        "type": "object",
+        "required": [
+          "asset_info_list"
+        ],
+        "properties": {
+          "asset_info_list": {
+            "type": "object",
+            "properties": {
+              "filter": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/AssetInfoFilter"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "page_size": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "format": "uint8",
+                "minimum": 0.0
+              },
+              "page_token": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/AssetInfoBase_for_String"
+                  },
+                  {
+                    "type": "null"
+                  }
                 ]
               }
             },
@@ -502,6 +581,16 @@
           "contract_list": {
             "type": "object",
             "properties": {
+              "filter": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/ContractFilter"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
               "page_size": {
                 "type": [
                   "integer",
@@ -561,6 +650,16 @@
           "channel_list": {
             "type": "object",
             "properties": {
+              "filter": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/ChannelFilter"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
               "page_size": {
                 "type": [
                   "integer",
@@ -743,6 +842,67 @@
         "description": "May key to retrieve information on an asset",
         "type": "string"
       },
+      "AssetFilter": {
+        "description": "UNUSED - stub for future use",
+        "type": "object",
+        "additionalProperties": false
+      },
+      "AssetInfoBase_for_String": {
+        "description": "Represents the type of an fungible asset\n\nEach **asset info** instance can be one of three variants:\n\n- Native SDK coins. To create an **asset info** instance of this type, provide the denomination. - CW20 tokens. To create an **asset info** instance of this type, provide the contract address. - CW1155 tokens. To create an **asset info** instance of this type, provide the contract address and token ID.",
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "native"
+            ],
+            "properties": {
+              "native": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "cw20"
+            ],
+            "properties": {
+              "cw20": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "cw1155"
+            ],
+            "properties": {
+              "cw1155": {
+                "type": "array",
+                "items": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "maxItems": 2,
+                "minItems": 2
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "AssetInfoFilter": {
+        "description": "UNUSED - stub for future use",
+        "type": "object",
+        "additionalProperties": false
+      },
       "AssetPairingFilter": {
         "type": "object",
         "properties": {
@@ -789,6 +949,11 @@
           }
         }
       },
+      "ChannelFilter": {
+        "description": "UNUSED - stub for future use",
+        "type": "object",
+        "additionalProperties": false
+      },
       "ContractEntry": {
         "description": "Key to get the Address of a contract Use [`UncheckedContractEntry`] to construct this type.",
         "type": "object",
@@ -804,6 +969,11 @@
             "type": "string"
           }
         }
+      },
+      "ContractFilter": {
+        "description": "UNUSED - stub for future use",
+        "type": "object",
+        "additionalProperties": false
       },
       "DexAssetPairing": {
         "description": "The key for an asset pairing Consists of the two assets and the dex name TODO: what if we made keys equal based on the two assets either way?",
@@ -864,6 +1034,185 @@
   },
   "sudo": null,
   "responses": {
+    "asset_info_list": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AssetInfoListResponse",
+      "type": "object",
+      "required": [
+        "infos"
+      ],
+      "properties": {
+        "infos": {
+          "description": "Assets (assetinfo, name)",
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": [
+              {
+                "$ref": "#/definitions/AssetInfoBase_for_Addr"
+              },
+              {
+                "$ref": "#/definitions/AssetEntry"
+              }
+            ],
+            "maxItems": 2,
+            "minItems": 2
+          }
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "AssetEntry": {
+          "description": "May key to retrieve information on an asset",
+          "type": "string"
+        },
+        "AssetInfoBase_for_Addr": {
+          "description": "Represents the type of an fungible asset\n\nEach **asset info** instance can be one of three variants:\n\n- Native SDK coins. To create an **asset info** instance of this type, provide the denomination. - CW20 tokens. To create an **asset info** instance of this type, provide the contract address. - CW1155 tokens. To create an **asset info** instance of this type, provide the contract address and token ID.",
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "native"
+              ],
+              "properties": {
+                "native": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "cw20"
+              ],
+              "properties": {
+                "cw20": {
+                  "$ref": "#/definitions/Addr"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "cw1155"
+              ],
+              "properties": {
+                "cw1155": {
+                  "type": "array",
+                  "items": [
+                    {
+                      "$ref": "#/definitions/Addr"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "maxItems": 2,
+                  "minItems": 2
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        }
+      }
+    },
+    "asset_infos": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AssetsResponse",
+      "description": "Query response",
+      "type": "object",
+      "required": [
+        "assets"
+      ],
+      "properties": {
+        "assets": {
+          "description": "Assets (name, assetinfo)",
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": [
+              {
+                "$ref": "#/definitions/AssetEntry"
+              },
+              {
+                "$ref": "#/definitions/AssetInfoBase_for_Addr"
+              }
+            ],
+            "maxItems": 2,
+            "minItems": 2
+          }
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "AssetEntry": {
+          "description": "May key to retrieve information on an asset",
+          "type": "string"
+        },
+        "AssetInfoBase_for_Addr": {
+          "description": "Represents the type of an fungible asset\n\nEach **asset info** instance can be one of three variants:\n\n- Native SDK coins. To create an **asset info** instance of this type, provide the denomination. - CW20 tokens. To create an **asset info** instance of this type, provide the contract address. - CW1155 tokens. To create an **asset info** instance of this type, provide the contract address and token ID.",
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "native"
+              ],
+              "properties": {
+                "native": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "cw20"
+              ],
+              "properties": {
+                "cw20": {
+                  "$ref": "#/definitions/Addr"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "cw1155"
+              ],
+              "properties": {
+                "cw1155": {
+                  "type": "array",
+                  "items": [
+                    {
+                      "$ref": "#/definitions/Addr"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "maxItems": 2,
+                  "minItems": 2
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        }
+      }
+    },
     "asset_list": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "AssetListResponse",
