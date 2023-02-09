@@ -6,7 +6,6 @@ use boot_core::prelude::*;
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 
-use abstract_os::objects::module::ModuleVersion;
 use clap::Parser;
 use semver::Version;
 
