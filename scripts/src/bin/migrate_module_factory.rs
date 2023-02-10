@@ -1,39 +1,40 @@
+use abstract_boot::{ModuleFactory, VersionControl};
+use abstract_os::{MODULE_FACTORY, VERSION_CONTROL};
+
 use boot_core::networks::{parse_network, NetworkInfo};
 use boot_core::prelude::*;
-use clap::Parser;
-use semver::Version;
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 
-use abstract_boot::{Abstract, OS};
 
-pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+use clap::Parser;
+use semver::Version;
 
-fn full_deploy(network: NetworkInfo) -> anyhow::Result<()> {
-    let abstract_os_version: Version = ABSTRACT_VERSION.parse().unwrap();
+const VERSION: &str = env!("CARGO_PKG_VERSION");
 
+pub fn migrate(network: NetworkInfo) -> anyhow::Result<()> {
     let rt = Arc::new(Runtime::new()?);
     let options = DaemonOptionsBuilder::default().network(network).build();
     let (_sender, chain) = instantiate_daemon_env(&rt, options?)?;
 
-    // log::info!("Your balance is: {}", );
+    let abstract_os_version = Version::parse(VERSION)?;
 
-    let _os_core = OS::new(chain.clone(), None);
+    let vc = VersionControl::new(VERSION_CONTROL, chain.clone());
 
-    let deployment = Abstract::new(chain, abstract_os_version);
+    let mut module_factory = ModuleFactory::new(MODULE_FACTORY, chain);
 
-    // deployment.deploy(&mut os_core)?;
-    //
-    // let _dex = DexApi::new("dex", chain);
+    module_factory.upload()?;
+    module_factory.migrate(
+        &abstract_os::module_factory::MigrateMsg {},
+        module_factory.code_id()?,
+    )?;
 
-    // deployment.deploy_modules()?;
-
-    let ans_host = deployment.ans_host;
-    ans_host.update_all()?;
+    vc.register_natives(vec![module_factory.as_instance()], &abstract_os_version)?;
 
     Ok(())
 }
 
+// TODO: base arguments
 #[derive(Parser, Default, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Arguments {
@@ -42,6 +43,7 @@ struct Arguments {
     network_id: String,
 }
 
+//
 fn main() {
     dotenv().ok();
     env_logger::init();
@@ -52,7 +54,7 @@ fn main() {
 
     let network = parse_network(&args.network_id);
 
-    if let Err(ref err) = full_deploy(network) {
+    if let Err(ref err) = migrate(network) {
         log::error!("{}", err);
         err.chain()
             .skip(1)

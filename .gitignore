@@ -24,3 +24,6 @@ docker*
 .dockerignore
 
 .DS_Store
+
+packages/**/schema
+contracts/**/schema

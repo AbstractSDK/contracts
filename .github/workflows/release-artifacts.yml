@@ -20,13 +20,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.ABSTRACT_SSH_PRIVATE_KEY }}
       - name: Install latest stable
         uses: ATiltedTree/setup-rust@v1
         with:
           rust-version: stable
           # components: rustfmt, clippy
+      # https://docs.docker.com/build/ci/github-actions/configure-builder/#ssh-authentication
+      - name: Print ssh thing
+        run: |
+          echo ${{ env.SSH_AUTH_SOCK }}
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v2
+        with:
+          endpoint: ${{ env.SSH_AUTH_SOCK }}
       - name: Generate Cargo.lock
         run: |
           cargo fetch --verbose
@@ -58,6 +67,9 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.ABSTRACT_SSH_PRIVATE_KEY }}
       - name: Install latest stable
         uses: ATiltedTree/setup-rust@v1
         with:

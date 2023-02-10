@@ -1,10 +1,11 @@
 use crate::deployment::{self, OS};
-use abstract_os::objects::module::Module;
 pub use abstract_os::version_control::{ExecuteMsgFns as VCExecFns, QueryMsgFns as VCQueryFns};
 use abstract_os::{
     objects::{
+        module::Module,
         module::{ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
+        OsId,
     },
     version_control::*,
     VERSION_CONTROL,
@@ -64,6 +65,32 @@ where
         Ok(())
     }
 
+    /// Register core modules
+    pub fn register_cores(
+        &self,
+        apps: Vec<&Contract<Chain>>,
+        version: &Version,
+    ) -> Result<(), BootError> {
+        let to_register = self.contracts_into_module_entries(apps, version, |c| {
+            ModuleReference::Core(c.code_id().unwrap())
+        })?;
+        self.add_modules(to_register)?;
+        Ok(())
+    }
+
+    /// Register native modules
+    pub fn register_natives(
+        &self,
+        natives: Vec<&Contract<Chain>>,
+        version: &Version,
+    ) -> Result<(), BootError> {
+        let to_register = self.contracts_into_module_entries(natives, version, |c| {
+            ModuleReference::Native(c.address().unwrap())
+        })?;
+        self.add_modules(to_register)?;
+        Ok(())
+    }
+
     pub fn register_apps(
         &self,
         apps: Vec<&Contract<Chain>>,
@@ -100,15 +127,11 @@ where
         Ok(())
     }
 
-    pub fn register_native(
+    pub fn register_deployment(
         &self,
         deployment: &deployment::Abstract<Chain>,
     ) -> Result<(), BootError> {
-        let to_register =
-            self.contracts_into_module_entries(deployment.contracts(), &deployment.version, |c| {
-                ModuleReference::Native(c.address().unwrap())
-            })?;
-        self.add_modules(to_register)?;
+        self.register_natives(deployment.contracts(), &deployment.version)?;
         Ok(())
     }
 
@@ -133,7 +156,7 @@ where
         modules_to_register
     }
 
-    pub fn get_os_core(&self, os_id: u32) -> Result<Core, BootError> {
+    pub fn get_os_core(&self, os_id: OsId) -> Result<Core, BootError> {
         let resp: OsCoreResponse = self.query(&QueryMsg::OsCore { os_id })?;
         Ok(resp.os_core)
     }

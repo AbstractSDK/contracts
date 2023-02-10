@@ -24,6 +24,7 @@ pub struct Abstract<Chain: BootEnvironment> {
 
 use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, PROXY, VERSION_CONTROL};
 
+use abstract_os::objects::OsId;
 #[cfg(feature = "integration")]
 use cw_multi_test::ContractWrapper;
 
@@ -198,7 +199,7 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
         self.version_control
             .register_core(os_core, &self.version.to_string())?;
 
-        self.version_control.register_native(self)?;
+        self.version_control.register_deployment(self)?;
 
         Ok(())
     }
@@ -265,7 +266,7 @@ pub struct OS<Chain: BootEnvironment> {
 }
 
 impl<Chain: BootEnvironment> OS<Chain> {
-    pub fn new(chain: Chain, os_id: Option<u32>) -> Self {
+    pub fn new(chain: Chain, os_id: Option<OsId>) -> Self {
         let (manager, proxy) = get_os_core_contracts(chain, os_id);
         Self { manager, proxy }
     }
@@ -274,6 +275,15 @@ impl<Chain: BootEnvironment> OS<Chain> {
         self.manager.upload()?;
         self.proxy.upload()?;
         Ok(())
+    }
+
+    /// Register the os core contracts in the version control
+    pub fn register(
+        &self,
+        version_control: &VersionControl<Chain>,
+        version: &str,
+    ) -> Result<(), BootError> {
+        version_control.register_core(self, version)
     }
 
     pub fn install_module<TInitMsg: Serialize>(

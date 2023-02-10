@@ -1,22 +1,22 @@
 use std::sync::Arc;
 
-use boot_core::networks::{NetworkInfo, UNI_5};
+use boot_core::networks::terra::PISCO_1;
+use boot_core::networks::NetworkInfo;
 use boot_core::prelude::*;
 
 use semver::Version;
 use tokio::runtime::Runtime;
 
 use abstract_boot::Abstract;
-use abstract_os::objects::module::{Module, ModuleInfo, ModuleVersion};
-use abstract_os::version_control::{ExecuteMsgFns, ModuleFilter, ModulesListResponse, QueryMsgFns};
+use abstract_os::objects::module::{Module, ModuleInfo};
+use abstract_os::version_control::{ExecuteMsgFns, ModulesListResponse, QueryMsgFns};
 
-const NETWORK: NetworkInfo = UNI_5;
-const WRONG_VERSION: &str = "0.1.0-rc.3";
+const NETWORK: NetworkInfo = PISCO_1;
 const NEW_VERSION: &str = env!("CARGO_PKG_VERSION");
 const PROVIDER: &str = "abstract";
 
 /// Script that takes existing versions in Version control, removes them, and swaps them wit ha new version
-pub fn fix_versions() -> anyhow::Result<()> {
+pub fn fix_names() -> anyhow::Result<()> {
     let abstract_os_version: Version = NEW_VERSION.parse().unwrap();
     let rt = Arc::new(Runtime::new()?);
     let options = DaemonOptionsBuilder::default().network(NETWORK).build();
@@ -24,15 +24,8 @@ pub fn fix_versions() -> anyhow::Result<()> {
 
     let deployment = Abstract::new(chain, abstract_os_version);
 
-    let ModulesListResponse { modules } = deployment.version_control.module_list(
-        Some(ModuleFilter {
-            provider: Some(PROVIDER.to_string()),
-            version: Some(WRONG_VERSION.to_string()),
-            ..Default::default()
-        }),
-        None,
-        None,
-    )?;
+    let ModulesListResponse { modules } =
+        deployment.version_control.module_list(None, None, None)?;
 
     for Module { info, reference } in modules {
         let ModuleInfo {
@@ -40,13 +33,13 @@ pub fn fix_versions() -> anyhow::Result<()> {
             name,
             provider,
         } = info.clone();
-        if version.to_string() == *WRONG_VERSION && provider == *PROVIDER {
+        if provider == PROVIDER && name.to_string().contains('_') {
             deployment.version_control.remove_module(info)?;
             deployment.version_control.add_modules(vec![(
                 ModuleInfo {
-                    name,
+                    name: name.replace('_', "-"),
                     provider,
-                    version: ModuleVersion::from(NEW_VERSION),
+                    version,
                 },
                 reference,
             )])?;
@@ -62,7 +55,7 @@ fn main() {
 
     use dotenv::dotenv;
 
-    if let Err(ref err) = fix_versions() {
+    if let Err(ref err) = fix_names() {
         log::error!("{}", err);
         err.chain()
             .skip(1)

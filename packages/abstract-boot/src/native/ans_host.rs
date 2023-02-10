@@ -8,6 +8,7 @@ use boot_core::{
 };
 use cosmwasm_std::Addr;
 use cw_asset::AssetInfoUnchecked;
+use log::info;
 use serde_json::from_reader;
 use std::collections::HashSet;
 use std::{cmp::min, env, fs::File};
@@ -33,6 +34,7 @@ where
 /// Implementation for the daemon, which maintains actual state
 #[cfg(feature = "daemon")]
 use boot_core::Daemon;
+
 #[cfg(feature = "daemon")]
 impl AnsHost<Daemon> {
     pub fn update_all(&self) -> Result<(), BootError> {
@@ -48,6 +50,7 @@ impl AnsHost<Daemon> {
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
         let chain_id = self.get_chain().state.chain.chain_id.clone();
+        info!("{}", chain_id);
         let network_id = self.get_chain().state.id.clone();
         let maybe_assets = json
             .get(chain_id)
@@ -214,14 +217,14 @@ impl AnsHost<Daemon> {
         Ok(())
     }
 
-    fn execute_chunked<T, F>(
+    fn execute_chunked<T, MsgBuilder>(
         &self,
         items: &[T],
         chunk_size: usize,
-        mut msg_builder: F,
+        mut msg_builder: MsgBuilder,
     ) -> Result<(), BootError>
     where
-        F: FnMut(&[T]) -> ExecuteMsg,
+        MsgBuilder: FnMut(&[T]) -> ExecuteMsg,
     {
         let mut i = 0;
         while i < items.len() {

@@ -3,6 +3,7 @@ use abstract_os::{
 };
 use cosmwasm_std::{Addr, Deps};
 use cw_storage_plus::Item;
+use os::objects::OsId;
 
 use crate::{SdkError, SdkResult};
 
@@ -26,7 +27,7 @@ pub trait Identification: Sized {
         })
     }
     /// Get the OS id for the current context.
-    fn os_id(&self, deps: Deps) -> SdkResult<u32> {
+    fn os_id(&self, deps: Deps) -> SdkResult<OsId> {
         OS_ID
             .query(&deps.querier, self.proxy_address(deps)?)
             .map_err(Into::into)

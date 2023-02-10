@@ -17,7 +17,7 @@ testing = ["terra"]
 library = []
 backtraces = ["cosmwasm-std/backtraces"]
 juno = ["dep:wasmswap", "dep:cw20_junoswap", "dep:wyndex"]
-terra = ["dep:terraswap", "dep:astroport"]
+terra = ["dep:terraswap", "dep:astroport", "dep:cw20_junoswap"]
 osmosis = ["library", "dep:osmosis-std"]
 all = ["terra", "juno", "osmosis"]
 
@@ -54,9 +54,10 @@ osmosis-std = { version = "0.13.2", optional = true }
 [dev-dependencies]
 abstract-boot = { workspace = true }
 boot-core = { workspace = true }
-tokio = { version = "1.4", features = ["full"] }
+tokio = { workspace = true }
 semver = { workspace = true }
 anyhow = { workspace = true }
 dotenv = "0.15.0"
 env_logger = "0.10.0"
 abstract-api = { workspace = true, features = ["schema"] }
+clap = { workspace = true }
