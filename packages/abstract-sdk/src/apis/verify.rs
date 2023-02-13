@@ -1,11 +1,12 @@
 //! # Verification
 //! The `Verify` struct provides helper functions that enable the contract to verify if the sender is an OS, OS admin, etc.
-use super::AbstractRegistryAccess;
 use abstract_os::{
     manager::state::OS_ID,
     version_control::{state::OS_ADDRESSES, Core},
 };
 use cosmwasm_std::{Addr, Deps, StdError, StdResult};
+
+use crate::base::features::AbstractRegistryAccess;
 
 /// A trait enabling the verification of addresses associated with an OS.
 pub trait OsVerification: AbstractRegistryAccess {
@@ -78,7 +79,6 @@ mod test {
     use abstract_testing::*;
     use cosmwasm_std::testing::*;
 
-    
     use abstract_testing::{
         mock_querier, MockQuerierBuilder, TEST_OS_ID, TEST_PROXY, TEST_VERSION_CONTROL,
     };

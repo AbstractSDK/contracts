@@ -5,11 +5,12 @@ use cosmwasm_std::{Addr, Deps, StdError, StdResult};
 use cw_storage_plus::Item;
 use os::objects::OsId;
 
+// see os::proxy::state::ADMIN
 const MANAGER: Item<'_, Option<Addr>> = Item::new(ADMIN_NAMESPACE);
 
-/// A trait that enables the identification of an OS.
-/// This includes the manager, porxy, core (manager/proxy) and osId.
-/// TODO: rename OsIdentification
+// TODO: rename OsIdentification
+/// A trait that enables retrieving identifying information about an OS.
+/// This includes the manager, proxy, core and os_id.
 pub trait Identification: Sized {
     fn proxy_address(&self, deps: Deps) -> StdResult<Addr>;
     fn manager_address(&self, deps: Deps) -> StdResult<Addr> {

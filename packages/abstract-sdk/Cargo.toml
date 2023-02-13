@@ -31,3 +31,4 @@ abstract-macros = { workspace = true }
 speculoos = { workspace = true }
 cosmwasm-schema = { workspace = true }
 abstract-testing = { workspace = true, default-features = false }
+doc-comment = "0.3.3"

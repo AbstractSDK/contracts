@@ -1,8 +1,8 @@
 //! # Bank
 //! The Bank object handles asset transfers to and from the OS.
 
-use super::{execution::Execution, AbstractNameService};
-use crate::ans_resolve::Resolve;
+use super::execution::Execution;
+use crate::{ans_resolve::Resolve, base::features::AbstractNameService};
 use abstract_os::objects::AnsAsset;
 use cosmwasm_std::{Addr, BankMsg, Coin, CosmosMsg, Deps, StdResult};
 use cw_asset::Asset;
@@ -57,20 +57,20 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     /// #       unimplemented!("Not needed for this example")
     /// #   }
     /// # }
-    ///
+    /// #
     /// # impl ModuleIdentification for MockModule {
     /// #   fn module_id(&self) -> &'static str {
     /// #      "mock_module"
     /// #  }
     /// # }
-    ///
+    /// #
     /// # impl AbstractNameService for MockModule {
     /// #   fn ans_host(&self, _deps: Deps) -> StdResult<AnsHost> {
     /// #     unimplemented!("Not needed for this example")
     /// #  }
     /// # }
     ///
-    /// fn transfer_asset_to_sender(app: MockModule, deps: DepsMut, info: MessageInfo, requested_asset: AnsAsset) -> StdResult<Response> {
+    /// fn _transfer_asset_to_sender(app: MockModule, deps: DepsMut, info: MessageInfo, requested_asset: AnsAsset) -> StdResult<Response> {
     ///     // check that the caller has the rights to the asset
     ///     // ...
     ///     let bank = app.bank(deps.as_ref());

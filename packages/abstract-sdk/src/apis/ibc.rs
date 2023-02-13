@@ -2,7 +2,7 @@
 //! The IbcClient object provides helper function for ibc-related queries or actions.
 //!
 
-use super::Identification;
+use crate::base::features::Identification;
 use abstract_os::{
     ibc_client::{CallbackInfo, ExecuteMsg as IbcClientMsg},
     ibc_host::HostAction,

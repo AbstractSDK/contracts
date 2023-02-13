@@ -8,8 +8,6 @@ pub mod vault;
 pub mod verify;
 pub mod version_registry;
 
-pub(crate) use crate::base::features::*;
-
 #[cfg(test)]
 mod test_common {
     use crate::apis::{AbstractNameService, Identification, ModuleIdentification};

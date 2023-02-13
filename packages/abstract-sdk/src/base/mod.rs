@@ -1,3 +1,7 @@
+//! Base of an Abstract Module and its features.  
+//!
+//! Is used by the `abstract-api`, `abstract-ibc-host` and `abstract-app` crates.
+
 mod contract_base;
 pub mod endpoints;
 pub mod features;
