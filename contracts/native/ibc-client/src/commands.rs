@@ -2,6 +2,7 @@ use crate::contract::{IbcClientResponse, IbcClientResult, MAX_RETRIES};
 use crate::error::IbcClientError;
 use crate::ibc::PACKET_LIFETIME;
 
+use abstract_os::AbstractResult;
 use abstract_sdk::{
     base::features::Identification,
     feature_objects::VersionControlContract,
@@ -158,7 +159,7 @@ pub fn execute_send_funds(
     info: MessageInfo,
     host_chain: String,
     funds: Vec<Coin>,
-) -> StdResult<Response> {
+) -> IbcClientResult {
     let cfg = CONFIG.load(deps.storage)?;
     let mem = ANS_HOST.load(deps.storage)?;
     // Verify that the sender is a proxy contract
@@ -180,7 +181,8 @@ pub fn execute_send_funds(
         None => {
             return Err(StdError::generic_err(
                 "We don't have the remote address for this channel or OS",
-            ))
+            )
+            .into())
         }
     };
 
@@ -220,7 +222,6 @@ mod test {
     use super::*;
     use crate::contract;
 
-    
     use abstract_os::ibc_client::*;
     use abstract_testing::{TEST_ADMIN, TEST_ANS_HOST, TEST_VERSION_CONTROL};
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
@@ -239,7 +240,7 @@ mod test {
         execute_as(deps, TEST_ADMIN, msg)
     }
 
-    fn mock_init(deps: DepsMut) -> StdResult<Response> {
+    fn mock_init(deps: DepsMut) -> AbstractResult<Response> {
         let msg = InstantiateMsg {
             ans_host_address: TEST_ANS_HOST.to_string(),
             version_control_address: TEST_VERSION_CONTROL.to_string(),

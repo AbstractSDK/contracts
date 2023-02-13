@@ -11,6 +11,12 @@ pub enum ManagerError {
     Std(#[from] StdError),
 
     #[error("{0}")]
+    Abstract(#[from] AbstractError),
+
+    #[error("{0}")]
+    AbstractSdk(#[from] SdkError),
+
+    #[error("{0}")]
     Admin(#[from] AdminError),
 
     #[error("Module with id: {0} is already installed")]

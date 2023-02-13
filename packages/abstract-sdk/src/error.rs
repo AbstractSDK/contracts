@@ -1,7 +1,21 @@
 use cosmwasm_std::Addr;
 use cw_asset::AssetError;
 use os::{objects::AssetEntry, AbstractError};
+use std::fmt::{Display, Formatter};
 use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub struct EndpointError {
+    #[source]
+    error: SdkError,
+    module_id: String,
+}
+
+impl Display for EndpointError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Error in {} - {}", self.module_id, self.error)
+    }
+}
 
 #[derive(Error, Debug)]
 pub enum SdkError {

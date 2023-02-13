@@ -21,8 +21,8 @@ use abstract_os::{
     },
 };
 use abstract_sdk::helpers::cw_storage_plus::load_many;
-use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult, Storage};
-use cw_asset::AssetInfoUnchecked;
+use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdError, StdResult, Storage};
+use cw_asset::{AssetError, AssetInfoUnchecked};
 use cw_storage_plus::Bound;
 
 pub(crate) const DEFAULT_LIMIT: u8 = 15;
@@ -74,12 +74,14 @@ pub fn query_asset_infos(
 ) -> StdResult<Binary> {
     let keys = keys
         .into_iter()
-        .map(|info| info.check(deps.api, None))
-        .collect::<StdResult<Vec<_>>>()?;
+        .map(|info| (info.check(deps.api, None)).as_ref())
+        .collect::<Result<Vec<_>, AssetError>>()?;
 
     let infos = load_many(REV_ASSET_ADDRESSES, deps.storage, keys)?;
 
-    to_binary(&AssetInfosResponse { infos })
+    to_binary(&AssetInfosResponse {
+        infos: infos.into_iter().map(|(k, v)| (k.to_owned(), v)).collect(),
+    })
 }
 
 pub fn query_asset_info_list(
@@ -89,8 +91,12 @@ pub fn query_asset_info_list(
 ) -> StdResult<Binary> {
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
     let start_bound = last_asset_info
-        .map(|info| info.check(deps.api, None))
+        .map(|info| {
+            info.check(deps.api, None)
+                .map_err(|e| StdError::generic_err(e.to_string()))
+        })
         .transpose()?
+        .as_ref()
         .map(Bound::exclusive);
 
     let res: Result<Vec<AssetInfoMapEntry>, _> = REV_ASSET_ADDRESSES
@@ -101,21 +107,26 @@ pub fn query_asset_info_list(
     to_binary(&AssetInfoListResponse { infos: res? })
 }
 
-pub fn query_contract(deps: Deps, _env: Env, keys: Vec<ContractEntry>) -> StdResult<Binary> {
+pub fn query_contract(deps: Deps, _env: Env, keys: Vec<&ContractEntry>) -> StdResult<Binary> {
     let contracts = load_many(CONTRACT_ADDRESSES, deps.storage, keys)?;
 
     to_binary(&ContractsResponse {
         contracts: contracts
             .into_iter()
-            .map(|(x, a)| (x, a.to_string()))
+            .map(|(x, a)| (x.to_owned(), a.to_string()))
             .collect(),
     })
 }
 
-pub fn query_channels(deps: Deps, _env: Env, keys: Vec<ChannelEntry>) -> StdResult<Binary> {
+pub fn query_channels(deps: Deps, _env: Env, keys: Vec<&ChannelEntry>) -> StdResult<Binary> {
     let channels = load_many(CHANNELS, deps.storage, keys)?;
 
-    to_binary(&ChannelsResponse { channels })
+    to_binary(&ChannelsResponse {
+        channels: channels
+            .into_iter()
+            .map(|(k, v)| (k.to_owned(), v))
+            .collect(),
+    })
 }
 
 pub fn query_contract_list(
@@ -124,7 +135,7 @@ pub fn query_contract_list(
     limit: Option<u8>,
 ) -> StdResult<Binary> {
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
-    let start_bound = last_contract.map(Bound::exclusive);
+    let start_bound = last_contract.as_ref().map(Bound::exclusive);
 
     let res: Result<Vec<ContractMapEntry>, _> = CONTRACT_ADDRESSES
         .range(deps.storage, start_bound, None, Order::Ascending)
@@ -203,7 +214,7 @@ pub fn list_pool_entries(
 
         matched
     } else {
-        let start_bound: Option<Bound<DexAssetPairing>> =
+        let start_bound: Option<Bound<&DexAssetPairing>> =
             start_after.as_ref().map(Bound::exclusive);
 
         // We have no filter, so load all the entries

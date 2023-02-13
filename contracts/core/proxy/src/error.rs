@@ -1,10 +1,18 @@
 use cosmwasm_std::{StdError, Uint128};
 use thiserror::Error;
+use abstract_os::AbstractError;
+use abstract_sdk::SdkError;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum ProxyError {
     #[error("{0}")]
     Std(#[from] StdError),
+
+    #[error("{0}")]
+    Abstract(#[from] AbstractError),
+
+    #[error("{0}")]
+    AbstractSdk(#[from] SdkError),
 
     #[error(transparent)]
     Admin(#[from] ::cw_controllers::AdminError),

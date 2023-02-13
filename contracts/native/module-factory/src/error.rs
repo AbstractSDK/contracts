@@ -1,3 +1,4 @@
+use abstract_os::AbstractError;
 use cosmwasm_std::StdError;
 use cw_controllers::AdminError;
 use thiserror::Error;
@@ -6,6 +7,9 @@ use thiserror::Error;
 pub enum ModuleFactoryError {
     #[error("{0}")]
     Std(#[from] StdError),
+
+    #[error("{0}")]
+    Abstract(#[from] AbstractError),
 
     #[error("{0}")]
     Admin(#[from] AdminError),
