@@ -5,7 +5,7 @@ use abstract_app::state::AppState;
 use abstract_os::etf::EtfExecuteMsg;
 use abstract_sdk::base::features::AbstractNameService;
 use abstract_sdk::base::features::AbstractResponse;
-use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
+use abstract_sdk::cw_helpers::cosmwasm_std::wasm_smart_query;
 use abstract_sdk::os::objects::deposit_info::DepositInfo;
 use abstract_sdk::os::objects::fee::Fee;
 use abstract_sdk::*;

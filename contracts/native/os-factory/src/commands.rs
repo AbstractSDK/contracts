@@ -5,7 +5,7 @@ use abstract_macros::abstract_response;
 use abstract_os::objects::module::Module;
 use abstract_os::version_control::ModulesResponse;
 use abstract_os::{app, OS_FACTORY};
-use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
+use abstract_sdk::cw_helpers::cosmwasm_std::wasm_smart_query;
 use abstract_sdk::os::version_control::{ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery};
 use abstract_sdk::os::{
     manager::{ExecuteMsg::UpdateModuleAddresses, InstantiateMsg as ManagerInstantiateMsg},
