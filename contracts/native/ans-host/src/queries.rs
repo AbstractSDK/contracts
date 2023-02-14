@@ -44,11 +44,13 @@ pub fn query_config(deps: Deps) -> StdResult<Binary> {
 }
 
 pub fn query_assets(deps: Deps, _env: Env, keys: Vec<String>) -> StdResult<Binary> {
-    let keys: Vec<AssetEntry> = keys.iter().map(|name| name.as_str().into()).collect();
+    let keys: Vec<AssetEntry> = keys.into_iter().map(|name| name.as_str().into()).collect();
 
-    let assets = load_many(ASSET_ADDRESSES, deps.storage, keys)?;
+    let assets = load_many(ASSET_ADDRESSES, deps.storage, keys.iter().collect())?;
 
-    to_binary(&AssetsResponse { assets })
+    to_binary(&AssetsResponse {
+        assets: assets.into_iter().map(|(k, v)| (k.to_owned(), v)).collect(),
+    })
 }
 
 pub fn query_asset_list(
@@ -57,7 +59,8 @@ pub fn query_asset_list(
     limit: Option<u8>,
 ) -> StdResult<Binary> {
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
-    let start_bound = last_asset_name.as_deref().map(Bound::exclusive);
+    let entry = last_asset_name.map(AssetEntry::from);
+    let start_bound = entry.as_ref().map(Bound::exclusive);
 
     let res: Result<Vec<AssetMapEntry>, _> = ASSET_ADDRESSES
         .range(deps.storage, start_bound, None, Order::Ascending)
@@ -74,10 +77,13 @@ pub fn query_asset_infos(
 ) -> StdResult<Binary> {
     let keys = keys
         .into_iter()
-        .map(|info| (info.check(deps.api, None)).as_ref())
-        .collect::<Result<Vec<_>, AssetError>>()?;
+        .map(|info| {
+            info.check(deps.api, None)
+                .map_err(|e| StdError::generic_err(e.to_string()))
+        })
+        .collect::<StdResult<Vec<_>>>()?;
 
-    let infos = load_many(REV_ASSET_ADDRESSES, deps.storage, keys)?;
+    let infos = load_many(REV_ASSET_ADDRESSES, deps.storage, keys.iter().collect())?;
 
     to_binary(&AssetInfosResponse {
         infos: infos.into_iter().map(|(k, v)| (k.to_owned(), v)).collect(),
@@ -90,14 +96,13 @@ pub fn query_asset_info_list(
     limit: Option<u8>,
 ) -> StdResult<Binary> {
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
-    let start_bound = last_asset_info
+    let asset_info = last_asset_info
         .map(|info| {
             info.check(deps.api, None)
                 .map_err(|e| StdError::generic_err(e.to_string()))
         })
-        .transpose()?
-        .as_ref()
-        .map(Bound::exclusive);
+        .transpose()?;
+    let start_bound = asset_info.as_ref().map(Bound::exclusive);
 
     let res: Result<Vec<AssetInfoMapEntry>, _> = REV_ASSET_ADDRESSES
         .range(deps.storage, start_bound, None, Order::Ascending)

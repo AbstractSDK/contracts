@@ -71,12 +71,12 @@ pub fn update_contract_addresses(
 
         // Update function for new or existing keys
         let insert = |_| -> StdResult<Addr> { Ok(addr) };
-        CONTRACT_ADDRESSES.update(deps.storage, key, insert)?;
+        CONTRACT_ADDRESSES.update(deps.storage, &key, insert)?;
     }
 
     for key in to_remove {
         let key = key.check();
-        CONTRACT_ADDRESSES.remove(deps.storage, key);
+        CONTRACT_ADDRESSES.remove(deps.storage, &key);
     }
 
     Ok(AnsHostResponse::action("update_contract_addresses"))
@@ -96,15 +96,18 @@ pub fn update_asset_addresses(
         // validate asset
         let asset = new_asset.check(deps.as_ref().api, None)?;
 
-        ASSET_ADDRESSES.save(deps.storage, name.clone().into(), &asset)?;
-        REV_ASSET_ADDRESSES.save(deps.storage, asset, &name.into())?;
+        let entry = AssetEntry::from(name);
+
+        ASSET_ADDRESSES.save(deps.storage, &entry, &asset)?;
+        REV_ASSET_ADDRESSES.save(deps.storage, &asset, &entry)?;
     }
 
     for name in to_remove {
-        let maybe_asset = ASSET_ADDRESSES.may_load(deps.storage, name.clone().into())?;
+        let entry = AssetEntry::from(name);
+        let maybe_asset = ASSET_ADDRESSES.may_load(deps.storage, &entry)?;
         if let Some(asset) = maybe_asset {
-            ASSET_ADDRESSES.remove(deps.storage, name.into());
-            REV_ASSET_ADDRESSES.remove(deps.storage, asset);
+            ASSET_ADDRESSES.remove(deps.storage, &entry);
+            REV_ASSET_ADDRESSES.remove(deps.storage, &asset);
         }
     }
 
@@ -125,12 +128,12 @@ pub fn update_channels(
         let key = key.check();
         // Update function for new or existing keys
         let insert = |_| -> StdResult<String> { Ok(new_channel) };
-        CHANNELS.update(deps.storage, key, insert)?;
+        CHANNELS.update(deps.storage, &key, insert)?;
     }
 
     for key in to_remove {
         let key = key.check();
-        CHANNELS.remove(deps.storage, key);
+        CHANNELS.remove(deps.storage, &key);
     }
 
     Ok(AnsHostResponse::action("update_channels"))
@@ -298,7 +301,7 @@ fn register_asset_pairing(
         Ok(ids)
     };
 
-    ASSET_PAIRINGS.update(storage, pair, insert)
+    ASSET_PAIRINGS.update(storage, &pair, insert)
 }
 
 /// Remove the unique_pool_id (which is getting removed) from the list of pool ids for each asset pairing
@@ -318,11 +321,11 @@ fn remove_pool_pairings(
             Ok(ids)
         };
 
-        let remaining_ids = ASSET_PAIRINGS.update(storage, key.clone(), remove_pool_id_action)?;
+        let remaining_ids = ASSET_PAIRINGS.update(storage, &key, remove_pool_id_action)?;
 
         // If there are no remaining pools, remove the asset pair from the map
         if remaining_ids.is_empty() {
-            ASSET_PAIRINGS.remove(storage, key);
+            ASSET_PAIRINGS.remove(storage, &key);
         }
         Ok(())
     };
@@ -350,7 +353,7 @@ fn validate_pool_assets(
 
     // Validate that each exists in the asset registry
     for asset in assets.iter() {
-        if ASSET_ADDRESSES.may_load(storage, asset.clone())?.is_none() {
+        if ASSET_ADDRESSES.may_load(storage, asset)?.is_none() {
             return Err(AnsHostError::UnregisteredAsset {
                 asset: asset.to_string(),
             });

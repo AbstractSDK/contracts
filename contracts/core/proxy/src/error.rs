@@ -1,9 +1,10 @@
-use cosmwasm_std::{StdError, Uint128};
-use thiserror::Error;
 use abstract_os::AbstractError;
 use abstract_sdk::SdkError;
+use cosmwasm_std::{StdError, Uint128};
+use cw_asset::AssetError;
+use thiserror::Error;
 
-#[derive(Error, Debug, PartialEq)]
+#[derive(Error, Debug)]
 pub enum ProxyError {
     #[error("{0}")]
     Std(#[from] StdError),
@@ -13,6 +14,9 @@ pub enum ProxyError {
 
     #[error("{0}")]
     AbstractSdk(#[from] SdkError),
+
+    #[error("Asset error encountered while handling assets: {0}")]
+    CwAsset(#[from] AssetError),
 
     #[error(transparent)]
     Admin(#[from] ::cw_controllers::AdminError),
@@ -44,4 +48,10 @@ pub enum ProxyError {
         balance: Uint128,
         requested: Uint128,
     },
+}
+
+impl From<ProxyError> for StdError {
+    fn from(e: ProxyError) -> Self {
+        StdError::generic_err(e.to_string())
+    }
 }

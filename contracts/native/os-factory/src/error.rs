@@ -1,11 +1,19 @@
+use abstract_os::AbstractError;
+use abstract_sdk::SdkError;
 use cosmwasm_std::StdError;
 use cw_controllers::AdminError;
 use thiserror::Error;
 
-#[derive(Error, Debug, PartialEq)]
+#[derive(Error, Debug)]
 pub enum OsFactoryError {
     #[error("{0}")]
     Std(#[from] StdError),
+
+    #[error("{0}")]
+    Abstract(#[from] AbstractError),
+
+    #[error("{0}")]
+    AbstractSdk(#[from] SdkError),
 
     #[error("{0}")]
     Admin(#[from] AdminError),
