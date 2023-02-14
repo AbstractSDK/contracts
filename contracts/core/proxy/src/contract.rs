@@ -6,24 +6,20 @@ use abstract_os::objects::module_version::migrate_module_data;
 use abstract_sdk::{
     feature_objects::AnsHost,
     os::{
-        objects::{
-            core::OS_ID, module_version::set_module_data, AssetEntry,
-        },
+        objects::{core::OS_ID, module_version::set_module_data, AssetEntry},
         proxy::{
             state::{State, ADMIN, ANS_HOST, STATE, VAULT_ASSETS},
-            AssetConfigResponse, ExecuteMsg,
-            HoldingValueResponse, InstantiateMsg, MigrateMsg, QueryMsg,
+            AssetConfigResponse, ExecuteMsg, HoldingValueResponse, InstantiateMsg, MigrateMsg,
+            QueryMsg,
         },
         PROXY,
     },
 };
-use cosmwasm_std::{
-    to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
-};
+use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response};
 use cw2::{get_contract_version, set_contract_version};
 use semver::Version;
 
-pub type ProxyResult<T> = Result<T, ProxyError>;
+pub type ProxyResult<T = Response> = Result<T, ProxyError>;
 /*
     The proxy is the bank account of the protocol. It owns the liquidity and acts as a proxy contract.
     Whitelisted dApps construct messages for this contract. The dApps are controlled by Governance.
@@ -37,7 +33,7 @@ pub fn instantiate(
     _env: Env,
     info: MessageInfo,
     msg: InstantiateMsg,
-) -> ProxyResult<Response> {
+) -> ProxyResult {
     // Use CW2 to set the contract version, this is needed for migrations
     set_contract_version(deps.storage, PROXY, CONTRACT_VERSION)?;
     set_module_data(deps.storage, PROXY, CONTRACT_VERSION, &[], None::<String>)?;
@@ -55,12 +51,7 @@ pub fn instantiate(
 }
 
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
-pub fn execute(
-    deps: DepsMut,
-    _env: Env,
-    info: MessageInfo,
-    msg: ExecuteMsg,
-) -> ProxyResult<Response> {
+pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> ProxyResult {
     match msg {
         ExecuteMsg::ModuleAction { msgs } => execute_module_action(deps, info, msgs),
         ExecuteMsg::IbcAction { msgs } => execute_ibc_action(deps, info, msgs),
@@ -74,7 +65,7 @@ pub fn execute(
 }
 
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ProxyResult<Response> {
+pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ProxyResult {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
 
@@ -85,7 +76,8 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ProxyResult<Respon
     Ok(Response::default())
 }
 
-pub fn handle_query(deps: Deps, env: Env, msg: QueryMsg) -> ProxyResult<Binary> {
+#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> ProxyResult<Binary> {
     match msg {
         QueryMsg::Config {} => to_binary(&query_config(deps)?),
         QueryMsg::TotalValue {} => to_binary(&query_total_value(deps, env)?),
@@ -108,9 +100,4 @@ pub fn handle_query(deps: Deps, env: Env, msg: QueryMsg) -> ProxyResult<Binary> 
         QueryMsg::BaseAsset {} => to_binary(&query_base_asset(deps)?),
     }
     .map_err(Into::into)
-}
-
-#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
-pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
-    handle_query(deps, env, msg).map_err(|e| StdError::generic_err(e.to_string()))
 }

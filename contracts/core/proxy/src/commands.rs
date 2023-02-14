@@ -8,9 +8,7 @@ use abstract_sdk::os::{
     proxy::state::{ADMIN, ANS_HOST, STATE, VAULT_ASSETS},
     IBC_CLIENT, PROXY,
 };
-use cosmwasm_std::{
-    wasm_execute, CosmosMsg, DepsMut, Empty, MessageInfo, Order, Response, StdError,
-};
+use cosmwasm_std::{wasm_execute, CosmosMsg, DepsMut, Empty, MessageInfo, Order, StdError};
 
 const LIST_SIZE_LIMIT: usize = 15;
 
@@ -23,7 +21,7 @@ pub fn execute_module_action(
     deps: DepsMut,
     msg_info: MessageInfo,
     msgs: Vec<CosmosMsg<Empty>>,
-) -> ProxyResult<Response> {
+) -> ProxyResult {
     let state = STATE.load(deps.storage)?;
     if !state
         .modules
@@ -41,7 +39,7 @@ pub fn execute_ibc_action(
     deps: DepsMut,
     msg_info: MessageInfo,
     msgs: Vec<IbcClientMsg>,
-) -> ProxyResult<Response> {
+) -> ProxyResult {
     let state = STATE.load(deps.storage)?;
     if !state
         .modules
@@ -71,7 +69,7 @@ pub fn update_assets(
     msg_info: MessageInfo,
     to_add: Vec<UncheckedProxyAsset>,
     to_remove: Vec<String>,
-) -> ProxyResult<Response> {
+) -> ProxyResult {
     // Only Admin can call this method
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
     let ans_host = &ANS_HOST.load(deps.storage)?;
@@ -106,7 +104,7 @@ pub fn update_assets(
 }
 
 /// Add a contract to the whitelist
-pub fn add_module(deps: DepsMut, msg_info: MessageInfo, module: String) -> ProxyResult<Response> {
+pub fn add_module(deps: DepsMut, msg_info: MessageInfo, module: String) -> ProxyResult {
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
     let mut state = STATE.load(deps.storage)?;
@@ -131,11 +129,7 @@ pub fn add_module(deps: DepsMut, msg_info: MessageInfo, module: String) -> Proxy
 }
 
 /// Remove a contract from the whitelist
-pub fn remove_module(
-    deps: DepsMut,
-    msg_info: MessageInfo,
-    module: String,
-) -> ProxyResult<Response> {
+pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module: String) -> ProxyResult {
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
     STATE.update(deps.storage, |mut state| {
@@ -156,7 +150,7 @@ pub fn remove_module(
     ))
 }
 
-pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: &String) -> ProxyResult<Response> {
+pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: &String) -> ProxyResult {
     let admin_addr = deps.api.addr_validate(admin)?;
     let previous_admin = ADMIN.get(deps.as_ref())?.unwrap();
     ADMIN.execute_update_admin::<Empty, Empty>(deps, info, Some(admin_addr))?;
@@ -198,7 +192,7 @@ mod test {
         let _res = instantiate(deps, mock_env(), info, msg).unwrap();
     }
 
-    pub fn execute_as_admin(deps: &mut MockDeps, msg: ExecuteMsg) -> ProxyResult<Response> {
+    pub fn execute_as_admin(deps: &mut MockDeps, msg: ExecuteMsg) -> ProxyResult {
         let info = mock_info(TEST_CREATOR, &[]);
         execute(deps.as_mut(), mock_env(), info, msg)
     }
