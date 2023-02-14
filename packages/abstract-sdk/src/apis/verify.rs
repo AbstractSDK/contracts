@@ -83,7 +83,7 @@ mod test {
     use cosmwasm_std::testing::*;
 
     use abstract_testing::prelude::*;
-    use cosmwasm_std::StdError;
+    
     use speculoos::prelude::*;
 
     struct MockBinding;

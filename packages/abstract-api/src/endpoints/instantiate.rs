@@ -66,7 +66,7 @@ mod tests {
     };
     use cw2::{ContractVersion, CONTRACT};
     use speculoos::prelude::*;
-    use thiserror::Error;
+    
 
     use super::*;
     use crate::test_common::MockError;

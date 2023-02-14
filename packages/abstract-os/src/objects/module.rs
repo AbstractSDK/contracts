@@ -379,11 +379,11 @@ mod test {
             let key = mock_key();
             let map: Map<&ModuleInfo, u64> = Map::new("map");
 
-            map.save(deps.as_mut().storage, &key.clone(), &42069)
+            map.save(deps.as_mut().storage, &key, &42069)
                 .unwrap();
 
             assert_eq!(
-                map.load(deps.as_ref().storage, &key.clone()).unwrap(),
+                map.load(deps.as_ref().storage, &key).unwrap(),
                 42069
             );
 
@@ -434,14 +434,14 @@ mod test {
 
             map.save(
                 deps.as_mut().storage,
-                (&key.clone(), Addr::unchecked("larry")),
+                (&key, Addr::unchecked("larry")),
                 &42069,
             )
             .unwrap();
 
             map.save(
                 deps.as_mut().storage,
-                (&key.clone(), Addr::unchecked("jake")),
+                (&key, Addr::unchecked("jake")),
                 &69420,
             )
             .unwrap();

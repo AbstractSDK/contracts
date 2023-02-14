@@ -31,7 +31,7 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
     ) -> AbstractSdkResult<ModuleReference> {
         let registry_addr = self.base.abstract_registry(self.deps)?;
         MODULE_LIBRARY
-            .query(&self.deps.querier, registry_addr.clone(), &module_info)?
+            .query(&self.deps.querier, registry_addr.clone(), module_info)?
             .ok_or_else(|| AbstractSdkError::ModuleNotFound {
                 module: module_info.to_string(),
                 registry_addr,

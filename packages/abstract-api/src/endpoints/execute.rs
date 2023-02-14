@@ -212,13 +212,13 @@ mod tests {
     use abstract_testing::*;
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
-        Addr, Empty, StdError, Storage,
+        Addr, Empty, Storage,
     };
     use std::collections::HashSet;
 
     use crate::test_common::{MockApiExecMsg, MockError};
     use speculoos::prelude::*;
-    use thiserror::Error;
+    
 
     type MockApi = ApiContract<MockError, MockApiExecMsg, Empty, Empty, Empty>;
     type ApiMockResult = Result<(), MockError>;

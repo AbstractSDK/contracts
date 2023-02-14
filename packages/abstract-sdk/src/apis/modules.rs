@@ -146,7 +146,7 @@ mod test {
     use std::fmt::Debug;
 
     use crate::apis::test_common::*;
-    use crate::AbstractSdkError;
+    
     use abstract_testing::TEST_MODULE_ID;
 
     /// Nonexistent module
