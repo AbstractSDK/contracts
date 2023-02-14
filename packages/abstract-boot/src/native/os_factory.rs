@@ -13,7 +13,7 @@ use abstract_os::{MANAGER, PROXY};
 use boot_core::interface::BootExecute;
 use boot_core::interface::ContractInstance;
 
-/// A helper struct that omits fields from [`abstract_os::manager::OsInfo`]
+/// A helper struct that contains fields from [`abstract_os::manager::state::OsInfo`]
 #[derive(Default)]
 pub struct OsDetails {
     name: String,

@@ -297,7 +297,7 @@ impl<Chain: BootEnvironment> OS<Chain> {
     /// Assert that the OS has the expected modules with the provided **expected_module_addrs** installed.
     /// Also checks that the proxy's configuration includes the expected module addresses.
     /// Note that the proxy is automatically included in the assertions and *should not* (but can) be included in the expected list.
-    /// Returns the Vec<ManagerModuleInfo> from the manager
+    /// Returns the `Vec<ManagerModuleInfo>` from the manager
     pub fn expect_modules(
         &self,
         module_addrs: Vec<String>,

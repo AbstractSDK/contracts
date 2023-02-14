@@ -1,5 +1,5 @@
 use crate::{AppContract, AppError};
-use abstract_sdk::base::features::ModuleIdentification;
+use abstract_sdk::features::ModuleIdentification;
 use abstract_sdk::base::ContractName;
 use abstract_sdk::{
     base::features::{AbstractNameService, Identification},

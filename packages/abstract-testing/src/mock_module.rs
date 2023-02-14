@@ -8,7 +8,7 @@ use crate::abstract_mock_querier::AbstractMockQuerierBuilder;
 #[cfg(feature = "sdk")]
 use ::{
     abstract_os::objects::ans_host::AnsHost,
-    abstract_sdk::base::features::{AbstractNameService, Identification, ModuleIdentification},
+    abstract_sdk::features::{AbstractNameService, Identification, ModuleIdentification},
 };
 
 /// A mock module that can be used for testing.

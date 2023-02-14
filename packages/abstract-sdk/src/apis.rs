@@ -4,13 +4,14 @@ pub mod execution;
 pub mod ibc;
 pub mod modules;
 pub mod respond;
+mod splitter;
 pub mod vault;
 pub mod verify;
 pub mod version_registry;
 
 #[cfg(test)]
 mod test_common {
-    use crate::apis::{AbstractNameService, Identification, ModuleIdentification};
+    use crate::features::{AbstractNameService, Identification, ModuleIdentification};
     pub use abstract_testing::mock_module::*;
     pub use abstract_testing::*;
     pub use cosmwasm_std::testing::*;

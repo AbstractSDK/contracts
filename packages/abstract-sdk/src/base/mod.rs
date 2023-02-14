@@ -4,7 +4,7 @@
 
 mod contract_base;
 pub mod endpoints;
-pub mod features;
+pub(crate) mod features;
 mod handler;
 
 pub use contract_base::ContractName;

@@ -21,6 +21,10 @@ pub use crate::apis::{
     modules::ModuleInterface, respond::AbstractResponse, vault::VaultInterface,
     verify::OsVerification, version_registry::ModuleRegistryInterface,
 };
+pub mod features {
+    pub use crate::base::features::*;
+}
+
 pub use ans_resolve::Resolve;
 
 /// Common state-store namespaces.

@@ -1,6 +1,6 @@
 use crate::{state::AppContract, AppError, AppResult};
 use crate::{ExecuteEndpoint, Handler, IbcCallbackEndpoint};
-use abstract_sdk::base::features::AbstractResponse;
+use abstract_sdk::features::AbstractResponse;
 
 use abstract_sdk::{
     base::ReceiveEndpoint,

@@ -18,18 +18,16 @@ Abstract features are traits that can be implemented on a struct. Depending on t
 
 ### APIs
 
-The APIs are objects that can only be retrieved if a contract or feature-object implements the required features/api traits. If the trait constraints for the API is met it is automatically implemented on the object and allows you to retrieve the API object.  
+The Abstract APIs are objects that can only be retrieved if a contract or feature-object implements the required features/api traits. If the trait constraints for the API is met it is automatically implemented on the object and allows you to retrieve the API object.  
 
 #### Example
 
 The [`Bank`](https://docs.rs/abstract-sdk/latest/abstract_sdk/apis/bank) API allows developers to transfer assets from and to the OS through their module object. We now want to use this API to create a `Splitter` API that splits the transfer of some amount of funds between a set of receivers.
 
-```rust
-use super::{execution::Execution};
-use crate::{ans_resolve::Resolve, base::features::AbstractNameService};
+```rust,no_run
+use crate::TransferInterface;
 use abstract_os::objects::AnsAsset;
-use cosmwasm_std::{Addr, CosmosMsg, Deps, StdResult};
-use os::objects::AssetEntry;
+use cosmwasm_std::{Addr, CosmosMsg, Deps, StdResult, Uint128};
 
 // Trait to retrieve the Splitter object
 // Depends on the ability to transfer funds
@@ -49,16 +47,32 @@ pub struct Splitter<'a, T: SplitterInterface> {
 }
 
 impl<'a, T: SplitterInterface> Splitter<'a, T> {
-    /// Get the balances of the provided **assets**.
-    pub fn split(&self, assets: &[AnsAsset], receivers: &[Addr]) -> StdResult<Vec<CosmosMsg>> {
-        let bank = self.base.bank(self.deps.clone());
-        let transfer_msgs = assets.
+    /// Split an asset to multiple users
+    pub fn split(&self, asset: AnsAsset, receivers: &[Addr]) -> StdResult<Vec<CosmosMsg>> {
+        // split the asset between all receivers
+        let receives_each = AnsAsset {
+            amount: asset
+                .amount
+                .multiply_ratio(Uint128::one(), Uint128::from(receivers.len() as u128)),
+            ..asset
+        };
 
-        Ok(transfer_msgs)
+        // Retrieve the bank API
+        let bank = self.base.bank(self.deps.clone());
+        let transfer_msgs: StdResult<_> = receivers
+            .iter()
+            .map(|receiver| {
+                // Construct the transfer message
+                bank.transfer(vec![receives_each.clone()], receiver)
+            })
+            .collect();
+
+        Ok(transfer_msgs?)
     }
 }
 
 ```
+
 ### Abstract Base
 
 To use an API either construct a [`feature object`](https://docs.rs/abstract-sdk/latest/abstract_sdk/feature_objects/index.html) or use an Abstract base contract as the starting-point of your application.  

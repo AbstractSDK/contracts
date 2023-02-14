@@ -1,6 +1,6 @@
 use crate::{error::ApiError, state::ApiContract, ApiResult};
 use abstract_os::{api::ApiRequestMsg, version_control::Core};
-use abstract_sdk::base::features::ModuleIdentification;
+use abstract_sdk::features::ModuleIdentification;
 use abstract_sdk::{
     base::{
         endpoints::{ExecuteEndpoint, IbcCallbackEndpoint, ReceiveEndpoint},
