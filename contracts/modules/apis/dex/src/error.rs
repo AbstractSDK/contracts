@@ -1,12 +1,24 @@
 use abstract_api::ApiError;
 use abstract_os::objects::DexAssetPairing;
+use abstract_os::AbstractError;
+use abstract_sdk::SdkError;
 use cosmwasm_std::StdError;
+use cw_asset::AssetError;
 use thiserror::Error;
 
-#[derive(Error, Debug, PartialEq)]
+#[derive(Error, Debug)]
 pub enum DexError {
     #[error("{0}")]
     Std(#[from] StdError),
+
+    #[error("{0}")]
+    Abstract(#[from] AbstractError),
+
+    #[error("{0}")]
+    AbstractSdk(#[from] SdkError),
+
+    #[error("Asset error encountered while handling assets: {0}")]
+    CwAsset(#[from] AssetError),
 
     #[error("{0}")]
     ApiError(#[from] ApiError),
@@ -17,8 +29,8 @@ pub enum DexError {
     #[error("DEX {0} is not local to this network.")]
     ForeignDex(String),
 
-    #[error("Cw1155 is unsupported.")]
-    Cw1155Unsupported,
+    #[error("Asset: {0} is unsupported.")]
+    UnsupportedAsset(String),
 
     #[error("Can't provide liquidity with less than two assets")]
     TooFewAssets {},

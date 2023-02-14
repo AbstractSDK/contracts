@@ -1,4 +1,5 @@
-use crate::contract::{DexApi, DexResult};
+use crate::contract::{DexApi, DexResponse, DexResult};
+use crate::error::DexError;
 use crate::exchanges::exchange_resolver;
 use crate::LocalDex;
 use abstract_os::dex::{DexAction, DexExecuteMsg, DexName, IBC_DEX_ID};
@@ -19,7 +20,7 @@ pub fn execute_handler(
     info: MessageInfo,
     api: DexApi,
     msg: DexExecuteMsg,
-) -> DexResult {
+) -> DexResponse {
     let DexExecuteMsg {
         dex: dex_name,
         action,
@@ -42,7 +43,7 @@ fn handle_local_api_request(
     api: DexApi,
     action: DexAction,
     exchange: String,
-) -> DexResult {
+) -> DexResponse {
     let exchange = exchange_resolver::resolve_exchange(&exchange)?;
     Ok(Response::new().add_submessage(api.resolve_dex_action(deps, action, exchange, false)?))
 }
@@ -53,7 +54,7 @@ fn handle_ibc_api_request(
     api: &DexApi,
     dex_name: DexName,
     action: &DexAction,
-) -> DexResult {
+) -> DexResponse {
     let host_chain = dex_name;
     let ans = api.name_service(deps.as_ref());
     let ibc_client = api.ibc_client(deps.as_ref());
@@ -84,18 +85,23 @@ pub(crate) fn resolve_assets_to_transfer(
     deps: Deps,
     dex_action: &DexAction,
     ans_host: &AnsHost,
-) -> StdResult<Vec<Coin>> {
+) -> DexResult<Vec<Coin>> {
     // resolve asset to native asset
-    let offer_to_coin = |offer: &AnsAsset| offer.resolve(&deps.querier, ans_host)?.try_into();
+    let offer_to_coin = |offer: &AnsAsset| {
+        offer
+            .resolve(&deps.querier, ans_host)?
+            .try_into()
+            .map_err(DexError::from)
+    };
 
     match dex_action {
         DexAction::ProvideLiquidity { assets, .. } => {
             let coins: Result<Vec<Coin>, _> = assets.iter().map(offer_to_coin).collect();
             coins
         }
-        DexAction::ProvideLiquiditySymmetric { .. } => Err(StdError::generic_err(
+        DexAction::ProvideLiquiditySymmetric { .. } => Err(DexError::Std(StdError::generic_err(
             "Cross-chain symmetric provide liquidity not supported.",
-        )),
+        ))),
         DexAction::WithdrawLiquidity { lp_token, amount } => Ok(vec![offer_to_coin(&AnsAsset {
             name: lp_token.to_owned(),
             amount: amount.to_owned(),
@@ -106,4 +112,5 @@ pub(crate) fn resolve_assets_to_transfer(
             coins
         }
     }
+    .map_err(Into::into)
 }
