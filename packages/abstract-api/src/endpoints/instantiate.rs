@@ -69,20 +69,12 @@ mod tests {
     use thiserror::Error;
 
     use super::*;
+    use crate::test_common::MockError;
     use abstract_testing::*;
 
     type MockApi = ApiContract<MockError, Empty, Empty, Empty, Empty>;
     type ApiMockResult = Result<(), MockError>;
     const TEST_METADATA: &str = "test_metadata";
-
-    #[derive(Error, Debug, PartialEq)]
-    enum MockError {
-        #[error("{0}")]
-        Std(#[from] StdError),
-
-        #[error(transparent)]
-        Api(#[from] ApiError),
-    }
 
     fn mock_init_handler(
         _deps: DepsMut,

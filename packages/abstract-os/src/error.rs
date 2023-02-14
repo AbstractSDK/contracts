@@ -4,8 +4,8 @@ use cw_semver::Error as CwSemverError;
 use semver::Error as SemverError;
 use thiserror::Error;
 
+/// Wrapper error for the Abstract-OS framework.
 #[derive(Error, Debug, PartialEq)]
-// #[derive(Error, Debug, PartialEq)]
 pub enum AbstractOsError {
     #[error("Std error encountered while handling os object: {0}")]
     Std(#[from] StdError),

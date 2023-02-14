@@ -2,7 +2,6 @@ use crate::contract::{IbcClientResponse, IbcClientResult, MAX_RETRIES};
 use crate::error::IbcClientError;
 use crate::ibc::PACKET_LIFETIME;
 
-
 use abstract_sdk::{
     base::features::Identification,
     feature_objects::VersionControlContract,
@@ -19,8 +18,7 @@ use abstract_sdk::{
     Execution, OsVerification, Resolve,
 };
 use cosmwasm_std::{
-    to_binary, Coin, CosmosMsg, DepsMut, Env, IbcMsg, MessageInfo, StdError,
-    Storage,
+    to_binary, Coin, CosmosMsg, DepsMut, Env, IbcMsg, MessageInfo, StdError, Storage,
 };
 
 pub fn execute_update_config(
@@ -223,9 +221,10 @@ mod test {
     use crate::contract;
 
     use abstract_os::ibc_client::*;
+    use abstract_os::AbstractResult;
     use abstract_testing::{TEST_ADMIN, TEST_ANS_HOST, TEST_VERSION_CONTROL};
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-    use cosmwasm_std::Addr;
+    use cosmwasm_std::{Addr, Response};
     use speculoos::prelude::*;
 
     const TEST_CHAIN: &str = "test-chain";

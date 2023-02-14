@@ -185,7 +185,7 @@ mod test {
 
             assert_that!(res)
                 .is_err()
-                .matches(|e| matches!(e, StdError::GenericErr { .. }))
+                .matches(|e| matches!(e, AbstractSdkError::Std(StdError::GenericErr { .. })))
                 .matches(|e| e.to_string().contains("not the proxy"));
         }
     }

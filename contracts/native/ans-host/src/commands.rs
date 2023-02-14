@@ -607,7 +607,7 @@ mod test {
             'a,
             ExecuteMsg,
             AnsHostError,
-            ContractEntry,
+            &'a ContractEntry,
             Addr,
             UncheckedContractEntry,
             String,
@@ -791,7 +791,7 @@ mod test {
             'a,
             ExecuteMsg,
             AnsHostError,
-            AssetEntry,
+            &'a AssetEntry,
             AssetInfo,
             String,
             AssetInfoUnchecked,
@@ -818,9 +818,9 @@ mod test {
 
             let mut map_tester = setup_map_tester();
             map_tester.test_add_one(&mut deps)?;
-            let reverse_map = Map::<AssetInfo, AssetEntry>::new("rev_assets");
+            let reverse_map = Map::<&AssetInfo, AssetEntry>::new("rev_assets");
             let test_entry =
-                reverse_map.load(&deps.storage, AssetInfoBase::Native("utest".into()))?;
+                reverse_map.load(&deps.storage, &AssetInfoBase::Native("utest".into()))?;
             assert_that!(test_entry).is_equal_to(AssetEntry::from("test"));
             Ok(())
         }
@@ -850,9 +850,9 @@ mod test {
 
             let mut map_tester = setup_map_tester();
             map_tester.test_add_and_remove_same(&mut deps)?;
-            let reverse_map = Map::<AssetInfo, AssetEntry>::new("rev_assets");
+            let reverse_map = Map::<&AssetInfo, AssetEntry>::new("rev_assets");
             let test_entry =
-                reverse_map.may_load(&deps.storage, AssetInfoBase::Native("utest".into()))?;
+                reverse_map.may_load(&deps.storage, &AssetInfoBase::Native("utest".into()))?;
             assert_that!(test_entry).is_equal_to(None);
             Ok(())
         }
@@ -878,9 +878,9 @@ mod test {
                 (vec![new_entry_1, new_entry_2, new_entry_3.clone()], vec![]),
             )?;
 
-            let reverse_map = Map::<AssetInfo, AssetEntry>::new("rev_assets");
+            let reverse_map = Map::<&AssetInfo, AssetEntry>::new("rev_assets");
             let test_entry =
-                reverse_map.load(&deps.storage, new_entry_3.1.check(&deps.api, None)?)?;
+                reverse_map.load(&deps.storage, &new_entry_3.1.check(&deps.api, None)?)?;
             assert_that!(test_entry.to_string()).is_equal_to(new_entry_3.0);
             Ok(())
         }
@@ -988,7 +988,7 @@ mod test {
             'a,
             ExecuteMsg,
             AnsHostError,
-            ChannelEntry,
+            &'a ChannelEntry,
             String,
             UncheckedChannelEntry,
             String,
@@ -1098,7 +1098,7 @@ mod test {
             mock_init(deps.as_mut()).unwrap();
             let mut map_tester = setup_map_tester();
 
-            let upper_entry = unchecked_channel_map_entry("UP_CHAIN", "UP_PROTOCOL", "channel_id");
+            let upper_entry = unchecked_channel_map_entry(&"UP_CHAIN", "UP_PROTOCOL", "channel_id");
 
             map_tester.execute_update(deps.as_mut(), (vec![upper_entry], vec![]))?;
 
@@ -1115,6 +1115,7 @@ mod test {
         use abstract_os::ans_host::{AssetPairingMapEntry, PoolMetadataMapEntry};
         use abstract_os::objects::PoolType;
 
+        use abstract_os::AbstractResult;
         use cosmwasm_std::{Api, Order};
         use speculoos::assert_that;
 
@@ -1197,7 +1198,7 @@ mod test {
             dex: &str,
             (asset_x, asset_y): (AssetEntry, AssetEntry),
             unchecked_pool_id: &UncheckedPoolAddress,
-        ) -> Result<(DexAssetPairing, Vec<PoolReference>), StdError> {
+        ) -> AbstractResult<(DexAssetPairing, Vec<PoolReference>)> {
             Ok((
                 DexAssetPairing::new(asset_x, asset_y, dex),
                 vec![PoolReference::new(

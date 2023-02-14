@@ -72,7 +72,7 @@ mod test {
 
     type AppQueryMsg = QueryMsg<MockQueryMsg>;
 
-    fn query_helper(deps: Deps, msg: AppQueryMsg) -> Result<Binary, StdError> {
+    fn query_helper(deps: Deps, msg: AppQueryMsg) -> Result<Binary, MockError> {
         MOCK_APP.query(deps, mock_env(), msg)
     }
 
@@ -96,9 +96,9 @@ mod test {
             _env: Env,
             _contract: &MockAppContract,
             msg: MockQueryMsg,
-        ) -> Result<Binary, StdError> {
+        ) -> Result<Binary, MockError> {
             // simply return the message as binary
-            to_binary(&msg)
+            to_binary(&msg).map_err(Into::into)
         }
 
         #[test]

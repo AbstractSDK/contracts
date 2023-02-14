@@ -246,10 +246,7 @@ mod tests {
                 .with_contract_map_entries(
                     TEST_ANS_HOST,
                     ASSET_ADDRESSES,
-                    expected_entries
-                        .iter()
-                        .map(|(k, v)| (k.clone(), v))
-                        .collect(),
+                    expected_entries.iter().map(|(k, v)| (k, v)).collect(),
                 )
                 .build();
 
@@ -277,7 +274,7 @@ mod tests {
                 .with_contract_map_entry(
                     TEST_ANS_HOST,
                     ASSET_ADDRESSES,
-                    (test_lp_token.clone().into(), &expected_value),
+                    (&test_lp_token.into(), &expected_value),
                 )
                 .build();
 
@@ -319,7 +316,7 @@ mod tests {
             let pool_type = PoolType::ConstantProduct;
             let test_pool_metadata = PoolMetadata::new(dex.clone(), pool_type.clone(), assets);
             let querier = AbstractMockQuerierBuilder::default()
-                .assets(resolved_assets.clone())
+                .assets(resolved_assets.into_iter().map(|(k, v)| (&k, v)).collect())
                 .build();
 
             let expected_value = ResolvedPoolMetadata {
@@ -462,10 +459,7 @@ mod tests {
                 .with_contract_map_entries(
                     TEST_ANS_HOST,
                     CONTRACT_ADDRESSES,
-                    expected_entries
-                        .iter()
-                        .map(|(k, v)| (k.clone(), v))
-                        .collect(),
+                    expected_entries.iter().map(|(k, v)| (k, v)).collect(),
                 )
                 .build();
 
@@ -563,10 +557,7 @@ mod tests {
                 .with_contract_map_entries(
                     TEST_ANS_HOST,
                     REV_ASSET_ADDRESSES,
-                    expected_entries
-                        .iter()
-                        .map(|(k, v)| (k.clone(), v))
-                        .collect(),
+                    expected_entries.iter().map(|(k, v)| (k, v)).collect(),
                 )
                 .build();
 

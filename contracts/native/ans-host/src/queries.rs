@@ -22,7 +22,7 @@ use abstract_os::{
 };
 use abstract_sdk::helpers::cw_storage_plus::load_many;
 use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdError, StdResult, Storage};
-use cw_asset::{AssetInfoUnchecked};
+use cw_asset::AssetInfoUnchecked;
 use cw_storage_plus::Bound;
 
 pub(crate) const DEFAULT_LIMIT: u8 = 15;
@@ -449,7 +449,7 @@ mod test {
     ) -> Result<(), cosmwasm_std::StdError> {
         for (test_asset_name, test_asset_info) in to_add.into_iter() {
             let insert = |_| -> StdResult<AssetInfo> { Ok(test_asset_info) };
-            ASSET_ADDRESSES.update(deps.storage, test_asset_name.into(), insert)?;
+            ASSET_ADDRESSES.update(deps.storage, &test_asset_name.into(), insert)?;
         }
         Ok(())
     }
@@ -461,7 +461,7 @@ mod test {
         for (key, new_address) in to_add.into_iter() {
             let addr = deps.as_ref().api.addr_validate(&new_address)?;
             let insert = |_| -> StdResult<Addr> { Ok(addr) };
-            CONTRACT_ADDRESSES.update(deps.storage, key, insert)?;
+            CONTRACT_ADDRESSES.update(deps.storage, &key, insert)?;
         }
         Ok(())
     }
@@ -473,7 +473,7 @@ mod test {
         for (key, new_channel) in to_add.into_iter() {
             // Update function for new or existing keys
             let insert = |_| -> StdResult<String> { Ok(new_channel) };
-            CHANNELS.update(deps.storage, key, insert)?;
+            CHANNELS.update(deps.storage, &key, insert)?;
         }
         Ok(())
     }
@@ -511,7 +511,7 @@ mod test {
             let _pool_ref = pool_ref.unwrap_or_default();
             Ok(_pool_ref)
         };
-        ASSET_PAIRINGS.update(deps.storage, dex_asset_pairing, insert)?;
+        ASSET_PAIRINGS.update(deps.storage, &dex_asset_pairing, insert)?;
         Ok(())
     }
 
@@ -553,7 +553,7 @@ mod test {
         let asset_pairing = ASSET_PAIRINGS
             .load(
                 deps.storage,
-                create_dex_asset_pairing(asset_x, asset_y, dex),
+                &create_dex_asset_pairing(asset_x, asset_y, dex),
             )
             .unwrap();
         let asset_pairing = PoolsResponse {
@@ -920,7 +920,10 @@ mod test {
         let res: PoolsResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
         //comparisons
         let expected = ASSET_PAIRINGS
-            .load(&deps.storage, create_dex_asset_pairing("btc", "eth", "foo"))
+            .load(
+                &deps.storage,
+                &create_dex_asset_pairing("btc", "eth", "foo"),
+            )
             .unwrap();
         let expected = PoolsResponse {
             pools: vec![(create_dex_asset_pairing("btc", "eth", "foo"), expected)],
@@ -978,12 +981,15 @@ mod test {
         let expected_foo =
             load_asset_pairing_into_pools_response("juno", "atom", "foo", deps.as_mut())?;
         let expected_all_bar = ASSET_PAIRINGS
-            .load(&deps.storage, create_dex_asset_pairing("btc", "eth", "bar"))
+            .load(
+                &deps.storage,
+                &create_dex_asset_pairing("btc", "eth", "bar"),
+            )
             .unwrap();
         let expected_all_foo = ASSET_PAIRINGS
             .load(
                 &deps.storage,
-                create_dex_asset_pairing("juno", "atom", "foo"),
+                &create_dex_asset_pairing("juno", "atom", "foo"),
             )
             .unwrap();
         let expected_all = PoolsResponse {

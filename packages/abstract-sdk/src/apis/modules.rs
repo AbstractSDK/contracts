@@ -146,6 +146,7 @@ mod test {
     use std::fmt::Debug;
 
     use crate::apis::test_common::*;
+    use crate::AbstractSdkError;
     use abstract_testing::TEST_MODULE_ID;
 
     /// Nonexistent module
@@ -204,10 +205,8 @@ mod test {
 
         let res = modules_fn(&app, deps.as_ref());
 
-        assert_that!(res).is_err().matches(|e| match e {
-            StdError::GenericErr { msg, .. } => msg.contains(&fake_module.to_string()),
-            _ => false,
-        });
+        assert_that!(res).is_err().matches(|e| matches!(e,
+            AbstractSdkError::Std(StdError::GenericErr { msg, .. } => msg.contains(&fake_module.to_string()))));
     }
 
     mod api_request {

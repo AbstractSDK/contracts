@@ -216,28 +216,15 @@ mod tests {
     };
     use std::collections::HashSet;
 
+    use crate::test_common::{MockApiExecMsg, MockError};
     use speculoos::prelude::*;
     use thiserror::Error;
-
-    #[cosmwasm_schema::cw_serde]
-    struct MockApiExecMsg;
-
-    impl api::ApiExecuteMsg for MockApiExecMsg {}
 
     type MockApi = ApiContract<MockError, MockApiExecMsg, Empty, Empty, Empty>;
     type ApiMockResult = Result<(), MockError>;
 
     const TEST_METADATA: &str = "test_metadata";
     const TEST_TRADER: &str = "test_trader";
-
-    #[derive(Error, Debug, PartialEq)]
-    enum MockError {
-        #[error("{0}")]
-        Std(#[from] StdError),
-
-        #[error(transparent)]
-        Api(#[from] ApiError),
-    }
 
     fn mock_init(deps: DepsMut) -> Result<Response, MockError> {
         let api = MockApi::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA));
