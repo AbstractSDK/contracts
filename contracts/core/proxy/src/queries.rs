@@ -4,7 +4,6 @@ use crate::error::ProxyError;
 use abstract_os::proxy::{
     BaseAssetResponse, HoldingAmountResponse, TokenValueResponse, TotalValueResponse,
 };
-use abstract_os::AbstractResult;
 use abstract_sdk::os::objects::proxy_asset::{
     get_pair_asset_names, other_asset_name, ProxyAsset, ValueRef,
 };
@@ -53,11 +52,7 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
 }
 
 /// Returns the value of a specified asset.
-pub fn compute_holding_value(
-    deps: Deps,
-    env: &Env,
-    asset_entry: String,
-) -> AbstractResult<Uint128> {
+pub fn compute_holding_value(deps: Deps, env: &Env, asset_entry: String) -> ProxyResult<Uint128> {
     compute_token_value(deps, env, asset_entry, None)
 }
 
@@ -68,7 +63,7 @@ pub fn compute_token_value(
     env: &Env,
     asset_entry: String,
     amount: Option<Uint128>,
-) -> AbstractResult<Uint128> {
+) -> ProxyResult<Uint128> {
     let mut vault_asset: ProxyAsset =
         VAULT_ASSETS.load(deps.storage, &AssetEntry::from(asset_entry))?;
     let ans_host = ANS_HOST.load(deps.storage)?;
@@ -77,7 +72,7 @@ pub fn compute_token_value(
 }
 
 /// Computes the total value locked in this contract
-pub fn compute_total_value(deps: Deps, env: Env) -> AbstractResult<Uint128> {
+pub fn compute_total_value(deps: Deps, env: Env) -> ProxyResult<Uint128> {
     // Get all assets from storage
     let mut all_assets = VAULT_ASSETS
         .range(deps.storage, None, None, Order::Ascending)
