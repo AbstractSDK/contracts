@@ -4,9 +4,10 @@ use super::contract_base::{
 };
 use crate::base::contract_base::{ContractMetadata, ContractName, VersionString};
 use crate::base::ReplyHandlerFn;
+use crate::error::EndpointError;
 use crate::{SdkError, SdkResult};
 use abstract_os::objects::dependency::StaticDependency;
-use cosmwasm_std::{Storage};
+use cosmwasm_std::Storage;
 use cw2::ContractVersion;
 
 pub trait Handler
@@ -79,11 +80,13 @@ where
     }
 
     // Query
-    fn maybe_query_handler(&self) -> Option<QueryHandlerFn<Self, Self::CustomQueryMsg>> {
+    fn maybe_query_handler(
+        &self,
+    ) -> Option<QueryHandlerFn<Self, Self::CustomQueryMsg, Self::Error>> {
         let contract = self.contract();
         contract.query_handler
     }
-    fn query_handler(&self) -> SdkResult<QueryHandlerFn<Self, Self::CustomQueryMsg>> {
+    fn query_handler(&self) -> SdkResult<QueryHandlerFn<Self, Self::CustomQueryMsg, Self::Error>> {
         let Some(handler) = self.maybe_query_handler() else {
             return Err(SdkError::MissingHandler{ endpoint: "query".to_string()})
         };

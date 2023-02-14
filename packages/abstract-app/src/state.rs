@@ -128,7 +128,10 @@ impl<
         self
     }
 
-    pub const fn with_query(mut self, query_handler: QueryHandlerFn<Self, CustomQueryMsg>) -> Self {
+    pub const fn with_query(
+        mut self,
+        query_handler: QueryHandlerFn<Self, CustomQueryMsg, Error>,
+    ) -> Self {
         self.contract = self.contract.with_query(query_handler);
         self
     }

@@ -7,13 +7,13 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub struct EndpointError {
     #[source]
-    error: SdkError,
+    source: SdkError,
     module_id: String,
 }
 
 impl Display for EndpointError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Error in {} - {}", self.module_id, self.error)
+        write!(f, "Error in {} - {}", self.module_id, self.source)
     }
 }
 

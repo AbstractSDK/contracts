@@ -8,14 +8,14 @@ use abstract_sdk::{
         Handler,
     },
     os::api::{ApiExecuteMsg, BaseExecuteMsg, ExecuteMsg},
-    Execution, ModuleInterface, OsVerification,
+    Execution, ModuleInterface, OsVerification, SdkError,
 };
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdError};
 use schemars::JsonSchema;
 use serde::Serialize;
 
 impl<
-        Error: From<StdError> + From<ApiError>,
+        Error: From<StdError> + From<ApiError> + From<SdkError>,
         CustomExecMsg: Serialize + JsonSchema + ApiExecuteMsg,
         CustomInitMsg,
         CustomQueryMsg,
@@ -47,7 +47,7 @@ impl<
 
 /// The api-contract base implementation.
 impl<
-        Error: From<StdError> + From<ApiError>,
+        Error: From<StdError> + From<ApiError> + From<SdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,
@@ -95,6 +95,7 @@ impl<
                 let traders = self
                     .traders
                     .load(deps.storage, proxy_address)
+                    .map_err(Into::into)
                     .map_err(unauthorized_sender)?;
 
                 if traders.contains(sender) {
@@ -445,7 +446,10 @@ mod tests {
             assert_that!(res).is_err().matches(|e| {
                 matches!(
                     e,
-                    MockError::Api(ApiError::UnauthorizedTraderApiRequest { sender: _trader, .. })
+                    MockError::Api(ApiError::UnauthorizedTraderApiRequest {
+                        sender: _trader,
+                        ..
+                    })
                 )
             });
         }

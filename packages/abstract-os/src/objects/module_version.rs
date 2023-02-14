@@ -43,7 +43,7 @@ pub struct ModuleData {
 }
 
 /// get_module_version can be use in migrate to read the previous version of this module
-pub fn get_module_data(store: &dyn Storage) -> AbstractResult<ModuleData> {
+pub fn get_module_data(store: &dyn Storage) -> StdResult<ModuleData> {
     MODULE.load(store).map_err(Into::into)
 }
 
@@ -55,7 +55,7 @@ pub fn set_module_data<T: Into<String>, U: Into<String>, M: Into<String>>(
     version: U,
     dependencies: &[StaticDependency],
     metadata: Option<M>,
-) -> AbstractResult<()> {
+) -> StdResult<()> {
     let val = ModuleData {
         module: name.into(),
         version: version.into(),
@@ -91,7 +91,7 @@ pub fn migrate_module_data(
         },
     );
 
-    MODULE.save(store, &val)
+    MODULE.save(store, &val).map_err(Into::into)
 }
 
 /// This will make a raw_query to another module to determine the current version it
@@ -102,7 +102,7 @@ pub fn migrate_module_data(
 pub fn query_module_data<Q: Querier, T: Into<String>>(
     querier: &Q,
     contract_addr: T,
-) -> AbstractResult<ModuleData> {
+) -> StdResult<ModuleData> {
     let req = QueryRequest::Wasm(WasmQuery::Raw {
         contract_addr: contract_addr.into(),
         key: MODULE.as_slice().into(),

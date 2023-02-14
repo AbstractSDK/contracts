@@ -1,6 +1,14 @@
 [workspace]
 members = [
-    "packages/*",
+    #    "packages/*",
+    "packages/abstract-api",
+    #    "packages/abstract-boot",
+    "packages/abstract-ibc-host",
+    "packages/abstract-ica",
+    "packages/abstract-macros",
+    "packages/abstract-os",
+    "packages/abstract-sdk",
+    "packages/abstract-testing",
     "contracts/native/*",
     "contracts/core/*",
     # "contracts/testing",

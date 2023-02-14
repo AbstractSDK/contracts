@@ -59,6 +59,7 @@ mod error;
 pub mod feature_objects;
 pub mod helpers;
 
+pub use error::EndpointError;
 pub use error::SdkError;
 
 pub use crate::apis::{

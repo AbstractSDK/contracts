@@ -7,6 +7,7 @@ use abstract_sdk::os::api::InstantiateMsg;
 use abstract_sdk::{
     base::{endpoints::InstantiateEndpoint, Handler},
     feature_objects::AnsHost,
+    EndpointError, SdkError,
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;
@@ -14,7 +15,7 @@ use schemars::JsonSchema;
 use serde::Serialize;
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<ApiError>,
+        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<SdkError>,
         CustomExecMsg,
         CustomInitMsg: Serialize + JsonSchema,
         CustomQueryMsg,
