@@ -29,7 +29,6 @@
 //! $ cargo add abstract-sdk
 //! ```
 
-
 pub type AbstractSdkResult<T> = Result<T, crate::error::AbstractSdkError>;
 
 pub extern crate abstract_macros as macros;
