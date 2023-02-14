@@ -65,7 +65,7 @@
 //! 
 //! 
 //! ```rust
-//! use abstract_sdk::os::app::{BaseExecuteMsg, ExecuteMsg}};
+//! use abstract_sdk::os::app::{BaseExecuteMsg, ExecuteMsg};
 //! 
 //! impl <Error: From<cosmwasm_std::StdError> + From<AppError> + 'static, CustomExecMsg: Serialize + JsonSchema + AppExecuteMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg: Serialize + JsonSchema > 
 //! ExecuteEndpoint for AppContract <Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg > {
