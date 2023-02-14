@@ -41,12 +41,12 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     /// The caller must be a whitelisted module or trader.
     ///
     /// ```rust
-    /// use cosmwasm_std::{Addr, Response, AbstractSdkResult, Deps, DepsMut, Env, MessageInfo};
-    /// use abstract_os::objects::AnsAsset;
+    /// # use cosmwasm_std::{Addr, Response, Deps, DepsMut, MessageInfo};
+    /// # use abstract_os::objects::AnsAsset;
     /// # use abstract_os::objects::ans_host::AnsHost;
-    /// use abstract_sdk::{
-    ///  #   features::{Identification, AbstractNameService, ModuleIdentification},
-    ///     TransferInterface
+    /// # use abstract_sdk::{
+    ///     features::{Identification, AbstractNameService, ModuleIdentification},
+    ///     TransferInterface, AbstractSdkResult,
     /// };
     /// #
     /// # struct MockModule;

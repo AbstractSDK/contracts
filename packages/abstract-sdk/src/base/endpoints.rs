@@ -64,9 +64,14 @@
 //! Here's the implementation for the App contract:
 //!
 //!
-//! ```rust
-//! use abstract_sdk::os::app::{BaseExecuteMsg, ExecuteMsg};
-//!
+//! ```rust,ignore
+//! use abstract_sdk::os::app::{ExecuteMsg, AppExecuteMsg};
+//! use abstract_app::{AppContract, AppError};
+//! # use abstract_sdk::base::ExecuteEndpoint;
+//! # use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
+//! # use schemars::JsonSchema;
+//! # use serde::Serialize;
+//! 
 //! impl <Error: From<cosmwasm_std::StdError> + From<AppError> + 'static, CustomExecMsg: Serialize + JsonSchema + AppExecuteMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg: Serialize + JsonSchema >
 //! ExecuteEndpoint for AppContract <Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg > {
 //!     
