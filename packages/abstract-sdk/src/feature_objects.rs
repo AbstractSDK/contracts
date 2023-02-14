@@ -1,7 +1,8 @@
-//! # Feature Objects
-//! Feature objects are objects that store sufficient data to unlock a set of APIs.
+//! # Structs that implement a feature trait 
+//! 
+//! Feature objects are objects that store sufficient data to unlock some functionality.
 //! These objects are mostly used internally to easy re-use application code without
-//! requiring the usage of a base contract.  
+//! requiring the usage of a base contract.
 
 use crate::base::features::{AbstractRegistryAccess, Identification, ModuleIdentification};
 pub use abstract_os::objects::ans_host::AnsHost;

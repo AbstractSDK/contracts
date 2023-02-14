@@ -8,7 +8,7 @@ use cosmwasm_std::{Addr, BankMsg, Coin, CosmosMsg, Deps, StdResult};
 use cw_asset::Asset;
 use os::objects::AssetEntry;
 
-/// Bank assets from and to the Abstract OS.
+/// Query and Transfer assets from and to the Abstract OS.
 pub trait TransferInterface: AbstractNameService + Execution {
     fn bank<'a>(&'a self, deps: Deps<'a>) -> Bank<Self> {
         Bank { base: self, deps }

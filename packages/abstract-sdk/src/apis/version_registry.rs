@@ -9,7 +9,7 @@ use abstract_os::{
 use cosmwasm_std::StdResult;
 use cosmwasm_std::{Deps, StdError};
 
-/// Access the Abstract Version Control and access the modules.
+/// Access the Abstract Version Control and access module information.
 pub trait ModuleRegistryInterface: AbstractRegistryAccess {
     fn module_registry<'a>(&'a self, deps: Deps<'a>) -> ModuleRegistry<Self> {
         ModuleRegistry { base: self, deps }

@@ -9,7 +9,7 @@ use os::objects::OsId;
 const MANAGER: Item<'_, Option<Addr>> = Item::new(ADMIN_NAMESPACE);
 
 // TODO: rename OsIdentification
-/// A trait that enables retrieving identifying information about an OS.
+/// Retrieve identifying information about an OS.
 /// This includes the manager, proxy, core and os_id.
 pub trait Identification: Sized {
     fn proxy_address(&self, deps: Deps) -> StdResult<Addr>;

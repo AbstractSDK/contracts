@@ -8,7 +8,7 @@ use cosmwasm_std::{Addr, Deps, StdError, StdResult};
 
 use crate::base::features::AbstractRegistryAccess;
 
-/// A trait enabling the verification of addresses associated with an OS.
+/// Verify if an addresses is associated with an OS.
 pub trait OsVerification: AbstractRegistryAccess {
     fn os_registry<'a>(&'a self, deps: Deps<'a>) -> OsRegistry<Self> {
         OsRegistry { base: self, deps }
