@@ -6,7 +6,7 @@ use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError, StdResult};
 use cw_controllers::AdminResponse;
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<AppError>,
+        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::SdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg: AppQueryMsg,
@@ -24,9 +24,9 @@ impl<
 {
     type QueryMsg = QueryMsg<CustomQueryMsg>;
 
-    fn query(&self, deps: Deps, env: Env, msg: Self::QueryMsg) -> Result<Binary, StdError> {
+    fn query(&self, deps: Deps, env: Env, msg: Self::QueryMsg) -> Result<Binary, Error> {
         match msg {
-            QueryMsg::Base(msg) => self.base_query(deps, env, msg),
+            QueryMsg::Base(msg) => self.base_query(deps, env, msg).map_err(Into::into),
             QueryMsg::App(msg) => self.query_handler()?(deps, env, self, msg),
         }
     }
@@ -34,7 +34,7 @@ impl<
 /// Where we dispatch the queries for the AppContract
 /// These BaseQueryMsg declarations can be found in `abstract_sdk::os::common_module::app_msg`
 impl<
-        Error: From<cosmwasm_std::StdError> + From<AppError>,
+        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::SdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,
