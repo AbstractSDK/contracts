@@ -85,3 +85,9 @@ pub enum SdkError {
     #[error("Admin of proxy {proxy_addr} is not set.")]
     AdminNotSet { proxy_addr: Addr },
 }
+
+impl SdkError {
+    pub fn generic_err(msg: impl Into<String>) -> Self {
+        SdkError::Std(cosmwasm_std::StdError::generic_err(msg))
+    }
+}

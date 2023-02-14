@@ -18,6 +18,7 @@
 //!   # use abstract_sdk::{feature_objects::VersionControlContract, base::features::{Identification, AbstractNameService, ModuleIdentification}};
 //!   # use cosmwasm_std::{StdResult, Deps, MessageInfo, CosmosMsg, Addr};
 //!   # use abstract_sdk::feature_objects::AnsHost;
+//!   # use abstract_sdk::SdkResult;
 //!
 //!   # pub struct MyContract {
 //!   #     

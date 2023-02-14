@@ -12,7 +12,7 @@ use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdError, StdResult};
 /// Where we dispatch the queries for the Host
 /// These ApiQueryMsg declarations can be found in `abstract_sdk::os::common_module::app_msg`
 impl<
-        Error: From<cosmwasm_std::StdError> + From<HostError>,
+        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::SdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,
@@ -32,7 +32,7 @@ impl<
     }
 }
 impl<
-        Error: From<cosmwasm_std::StdError> + From<HostError>,
+        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::SdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,
