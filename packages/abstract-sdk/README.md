@@ -8,7 +8,7 @@ This crate provides a set of modular APIs for developers to use in their [CosmWa
 
 ## Getting started
 
-To get started with the Abstract SDK you first need to understand the basic features that we provide and how you can use those features to create composable smart-contract APIs with our SDK.  
+To get started with the Abstract SDK you first need to understand the basic features that we provide and how you can use those features to create composable smart-contract APIs.  
 
 ### Features
 
