@@ -20,6 +20,9 @@ pub enum EtfError {
     #[error("Asset error encountered while handling assets: {0}")]
     CwAsset(#[from] AssetError),
 
+    #[error("Asset type: {0} is unsupported.")]
+    UnsupportedAssetType(String),
+
     #[error("{0}")]
     Admin(#[from] AdminError),
 

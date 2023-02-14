@@ -29,8 +29,8 @@ pub enum DexError {
     #[error("DEX {0} is not local to this network.")]
     ForeignDex(String),
 
-    #[error("Asset: {0} is unsupported.")]
-    UnsupportedAsset(String),
+    #[error("Asset type: {0} is unsupported.")]
+    UnsupportedAssetType(String),
 
     #[error("Can't provide liquidity with less than two assets")]
     TooFewAssets {},

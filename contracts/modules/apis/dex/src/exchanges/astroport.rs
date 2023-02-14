@@ -285,7 +285,7 @@ fn cw_asset_to_astroport(asset: &Asset) -> Result<astroport::asset::Asset, DexEr
                 contract_addr: contract_addr.clone(),
             },
         }),
-        _ => Err(DexError::UnsupportedAsset(asset.info.to_string())),
+        _ => Err(DexError::UnsupportedAssetType(asset.info.to_string())),
     }
 }
 

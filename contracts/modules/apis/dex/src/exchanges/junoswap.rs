@@ -96,7 +96,7 @@ impl DEX for JunoSwap {
                 vec![Coin::new(offer_asset.amount.u128(), denom)],
             )?
             .into()]),
-            _ => Err(DexError::UnsupportedAsset(offer_asset.info.to_string())),
+            _ => Err(DexError::UnsupportedAssetType(offer_asset.info.to_string())),
         }?;
         Ok(msgs)
     }
@@ -299,12 +299,12 @@ fn denom_and_asset_match(denom: &Denom, asset: &AssetInfo) -> Result<bool, DexEr
         Denom::Native(denom_name) => match asset {
             cw_asset::AssetInfoBase::Native(asset_name) => Ok(denom_name == asset_name),
             cw_asset::AssetInfoBase::Cw20(_asset_addr) => Ok(false),
-            _ => Err(DexError::UnsupportedAsset(asset.to_string())),
+            _ => Err(DexError::UnsupportedAssetType(asset.to_string())),
         },
         Denom::Cw20(denom_addr) => match asset {
             cw_asset::AssetInfoBase::Native(_asset_name) => Ok(false),
             cw_asset::AssetInfoBase::Cw20(asset_addr) => Ok(denom_addr == asset_addr),
-            _ => Err(DexError::UnsupportedAsset(asset.to_string())),
+            _ => Err(DexError::UnsupportedAssetType(asset.to_string())),
         },
     }
 }

@@ -76,7 +76,7 @@ impl DEX for WynDex {
                 vec![],
             )?
             .into()]),
-            _ => Err(DexError::UnsupportedAsset(offer_asset.info.to_string())),
+            _ => Err(DexError::UnsupportedAssetType(offer_asset.info.to_string())),
         }?;
         Ok(swap_msg)
     }
@@ -282,7 +282,7 @@ fn cw_asset_to_wyndex(asset: &Asset) -> Result<wyndex::asset::Asset, DexError> {
             amount: asset.amount,
             info: wyndex::asset::AssetInfo::Token(contract_addr.to_string()),
         }),
-        _ => Err(DexError::UnsupportedAsset(asset.to_string())),
+        _ => Err(DexError::UnsupportedAssetType(asset.to_string())),
     }
 }
 
@@ -296,7 +296,7 @@ fn cw_asset_to_wyndex_valid(asset: &Asset) -> Result<wyndex::asset::AssetValidat
             amount: asset.amount,
             info: wyndex::asset::AssetInfoValidated::Token(contract_addr.clone()),
         }),
-        _ => Err(DexError::UnsupportedAsset(asset.to_string())),
+        _ => Err(DexError::UnsupportedAssetType(asset.to_string())),
     }
 }
 

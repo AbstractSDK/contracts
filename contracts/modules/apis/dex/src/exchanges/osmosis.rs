@@ -59,7 +59,7 @@ impl DEX for Osmosis {
         let token_out_denom = match ask_asset {
             AssetInfo::Native(denom) => Ok(denom),
             // TODO: cw20? on osmosis?
-            _ => Err(DexError::UnsupportedAsset(ask_asset.to_string())),
+            _ => Err(DexError::UnsupportedAssetType(ask_asset.to_string())),
         }?;
 
         let routes: Vec<SwapAmountInRoute> = vec![SwapAmountInRoute {
@@ -200,7 +200,7 @@ impl DEX for Osmosis {
             pool_id: pool_id.to_string().parse::<u64>().unwrap(),
             token_out_denom: match ask_asset {
                 AssetInfo::Native(denom) => Ok(denom),
-                _ => Err(DexError::UnsupportedAsset(ask_asset.to_string())),
+                _ => Err(DexError::UnsupportedAssetType(ask_asset.to_string())),
             }?,
         }];
 
