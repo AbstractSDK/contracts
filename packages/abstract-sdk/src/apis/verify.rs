@@ -6,7 +6,7 @@ use abstract_os::{
 };
 use cosmwasm_std::{Addr, Deps, StdError, StdResult};
 
-use crate::base::features::AbstractRegistryAccess;
+use crate::features::AbstractRegistryAccess;
 
 /// Verify if an addresses is associated with an OS.
 pub trait OsVerification: AbstractRegistryAccess {

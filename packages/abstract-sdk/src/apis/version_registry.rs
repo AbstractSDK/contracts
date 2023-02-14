@@ -1,4 +1,4 @@
-use crate::{base::features::AbstractRegistryAccess, cw_helpers::cosmwasm_std::wasm_smart_query};
+use crate::{cw_helpers::cosmwasm_std::wasm_smart_query, features::AbstractRegistryAccess};
 use abstract_os::{
     objects::{
         module::{Module, ModuleInfo},

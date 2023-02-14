@@ -1,4 +1,4 @@
-use crate::base::features::ModuleIdentification;
+use crate::features::ModuleIdentification;
 use abstract_macros::with_abstract_event;
 use cosmwasm_std::{Attribute, Response};
 

@@ -2,7 +2,7 @@
 //! The Bank object handles asset transfers to and from the OS.
 
 use super::execution::Execution;
-use crate::{ans_resolve::Resolve, base::features::AbstractNameService};
+use crate::{ans_resolve::Resolve, features::AbstractNameService};
 use abstract_os::objects::AnsAsset;
 use cosmwasm_std::{Addr, BankMsg, Coin, CosmosMsg, Deps, StdResult};
 use cw_asset::Asset;
@@ -47,7 +47,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     /// use abstract_os::objects::AnsAsset;
     /// # use abstract_os::objects::ans_host::AnsHost;
     /// use abstract_sdk::{
-    ///  #   base::features::{Identification, AbstractNameService, ModuleIdentification},
+    ///  #   features::{Identification, AbstractNameService, ModuleIdentification},
     ///     TransferInterface
     /// };
     /// #

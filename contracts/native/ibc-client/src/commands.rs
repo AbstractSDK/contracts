@@ -3,8 +3,8 @@ use crate::error::IbcClientError;
 use crate::ibc::PACKET_LIFETIME;
 
 use abstract_sdk::{
-    base::features::Identification,
     feature_objects::VersionControlContract,
+    features::Identification,
     os::{
         ibc_client::state::{
             AccountData, ACCOUNTS, ADMIN, ANS_HOST, CHANNELS, CONFIG, LATEST_QUERIES,

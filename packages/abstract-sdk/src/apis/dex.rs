@@ -1,6 +1,6 @@
 // TODO: this should be moved to the public dex package
 // It cannot be in abstract-os because it does not have a dependency on sdk (as it shouldn't)
-use crate::base::features::{Dependencies, Identification};
+use crate::features::{Dependencies, Identification};
 use crate::ModuleInterface;
 use abstract_os::dex::{
     AskAsset, DexAction, DexExecuteMsg, DexName, DexQueryMsg, OfferAsset, SimulateSwapResponse,

@@ -8,13 +8,12 @@ This crate provides a set of modular APIs for developers to use in their [CosmWa
 
 ## Getting started
 
-To get started with the Abstract SDK you first need to understand the basic features that we provide and how we use those features to create composable smart-contract APIs in our SDK.  
+To get started with the Abstract SDK you first need to understand the basic features that we provide and how you can use those features to create composable smart-contract APIs with our SDK.  
 
 ### Features
 
-Abstract features are traits that can be implemented on a struct. Depending on the use-case that struct can represent a smart-contract or it can be a simple struct that just implements a single feature.  
-
-> [These are all the available features and their functions.](https://docs.rs/abstract-sdk/latest/abstract_sdk/base/features)
+Abstract features are traits that can be implemented on a struct. Depending on the use-case that struct can represent a smart-contract or it can be a simple struct that just implements a single feature. Each feature unlocks a function on the object
+which allows you to retrieve some information. By composing these features it is possible to write advanced APIs that are automatically implemented on objects that support its required features.
 
 ### APIs
 
