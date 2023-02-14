@@ -57,7 +57,7 @@ impl<'a, T: SplitterInterface> Splitter<'a, T> {
         };
 
         // Retrieve the bank API
-        let bank = self.base.bank(self.deps.clone());
+        let bank = self.base.bank(self.deps);
         let transfer_msgs: StdResult<_> = receivers
             .iter()
             .map(|receiver| {
@@ -66,7 +66,7 @@ impl<'a, T: SplitterInterface> Splitter<'a, T> {
             })
             .collect();
 
-        Ok(transfer_msgs?)
+        transfer_msgs
     }
 }
 
