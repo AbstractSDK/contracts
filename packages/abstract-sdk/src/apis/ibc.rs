@@ -2,7 +2,7 @@
 //! The IbcClient object provides helper function for ibc-related queries or actions.
 //!
 
-use crate::SdkResult;
+use crate::AbstractSdkResult;
 
 use super::Identification;
 use abstract_os::{
@@ -35,7 +35,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         action: HostAction,
         callback: Option<CallbackInfo>,
         retries: u8,
-    ) -> SdkResult<CosmosMsg> {
+    ) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
             self.base.proxy_address(self.deps)?.to_string(),
             &ExecuteMsg::IbcAction {
@@ -55,7 +55,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         &self,
         receiving_chain: String,
         funds: Vec<Coin>,
-    ) -> SdkResult<CosmosMsg> {
+    ) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
             self.base.proxy_address(self.deps)?.to_string(),
             &ExecuteMsg::IbcAction {

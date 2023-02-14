@@ -743,7 +743,7 @@ mod test {
         use super::*;
         use abstract_os::objects::AssetEntry;
         use abstract_testing::map_tester::CwMapTesterBuilder;
-        use cw_asset::{AssetInfo, AssetInfoBase};
+        use cw_asset::{AssetError, AssetInfo, AssetInfoBase};
         use cw_storage_plus::Map;
 
         fn unchecked_asset_map_entry(
@@ -922,12 +922,14 @@ mod test {
                 .execute_update(deps.as_mut(), (vec![bad_asset_address], vec![]))
                 .unwrap_err();
 
-            assert!(matches!(
-                err,
-                AnsHostError::Std(StdError::GenericErr { .. })
-            ));
-
-            assert!(err.to_string().contains("address not normalized"));
+            assert_that!(err)
+                .matches(|e| {
+                    matches!(
+                        e,
+                        AnsHostError::CwAsset(AssetError::Std(StdError::GenericErr { .. }))
+                    )
+                })
+                .matches(|e| e.to_string().contains("address not normalized"));
 
             Ok(())
         }

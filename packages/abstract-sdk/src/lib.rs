@@ -18,14 +18,14 @@
 //!   # use abstract_sdk::{feature_objects::VersionControlContract, base::features::{Identification, AbstractNameService, ModuleIdentification}};
 //!   # use cosmwasm_std::{StdResult, Deps, MessageInfo, CosmosMsg, Addr};
 //!   # use abstract_sdk::feature_objects::AnsHost;
-//!   # use abstract_sdk::SdkResult;
+//!   # use abstract_sdk::AbstractSdkResult;
 //!
 //!   # pub struct MyContract {
 //!   #     
 //!   # }
 //!   #
 //!   # impl Identification for MyContract {
-//!   #     fn proxy_address(&self, _deps: Deps) -> SdkResult<Addr> {
+//!   #     fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
 //!   #         Ok(Addr::unchecked("just_an_example"))
 //!   #     }
 //!   # }
@@ -34,7 +34,7 @@
 //!   # }
 //!
 //!   # impl AbstractNameService for MyContract {
-//!   #     fn ans_host(&self, _deps: Deps) -> SdkResult<AnsHost> {
+//!   #     fn ans_host(&self, _deps: Deps) -> AbstractSdkResult<AnsHost> {
 //!   #         Ok(AnsHost{address: Addr::unchecked("just_an_example")})
 //!   #     }
 //!   # }
@@ -48,7 +48,7 @@
 //!   # fn main() {}
 //!   ```
 
-pub type SdkResult<T> = Result<T, crate::error::AbstractSdkError>;
+pub type AbstractSdkResult<T> = Result<T, crate::error::AbstractSdkError>;
 
 pub extern crate abstract_macros as macros;
 pub extern crate abstract_os as os;

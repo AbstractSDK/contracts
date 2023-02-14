@@ -1,7 +1,7 @@
 use crate::{Host, HostError};
 use abstract_os::objects::OsId;
 use abstract_sdk::base::features::{AbstractNameService, Identification, ModuleIdentification};
-use abstract_sdk::{AbstractSdkError, SdkResult};
+use abstract_sdk::{AbstractSdkError, AbstractSdkResult};
 use cosmwasm_std::Deps;
 
 impl<
@@ -14,7 +14,7 @@ impl<
     > AbstractNameService
     for Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
-    fn ans_host(&self, deps: Deps) -> SdkResult<abstract_sdk::feature_objects::AnsHost> {
+    fn ans_host(&self, deps: Deps) -> AbstractSdkResult<abstract_sdk::feature_objects::AnsHost> {
         Ok(self.base_state.load(deps.storage)?.ans_host)
     }
 }
@@ -29,24 +29,24 @@ impl<
     > Identification
     for Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
-    fn proxy_address(&self, _deps: Deps) -> SdkResult<cosmwasm_std::Addr> {
+    fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<cosmwasm_std::Addr> {
         self.target()
             .map_err(|e| AbstractSdkError::generic_err(e.to_string()))
             .map(ToOwned::to_owned)
     }
-    fn manager_address(&self, _deps: Deps) -> SdkResult<cosmwasm_std::Addr> {
+    fn manager_address(&self, _deps: Deps) -> AbstractSdkResult<cosmwasm_std::Addr> {
         Err(AbstractSdkError::generic_err(
             "manager address not available on stateless ibc deployment",
         ))
     }
 
-    fn os_core(&self, _deps: Deps) -> SdkResult<abstract_sdk::os::version_control::Core> {
+    fn os_core(&self, _deps: Deps) -> AbstractSdkResult<abstract_sdk::os::version_control::Core> {
         Err(AbstractSdkError::generic_err(
             "OS core not available on stateless ibc deployment",
         ))
     }
 
-    fn os_id(&self, _deps: Deps) -> SdkResult<OsId> {
+    fn os_id(&self, _deps: Deps) -> AbstractSdkResult<OsId> {
         Err(AbstractSdkError::generic_err(
             "os_id not available on stateless ibc deployment",
         ))

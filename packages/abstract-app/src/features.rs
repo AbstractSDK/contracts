@@ -5,7 +5,7 @@ use abstract_sdk::base::ContractName;
 use abstract_sdk::{
     base::features::{AbstractNameService, Identification},
     feature_objects::AnsHost,
-    SdkResult,
+    AbstractSdkResult,
 };
 use cosmwasm_std::{Addr, Deps};
 
@@ -26,7 +26,7 @@ impl<
         ReceiveMsg,
     >
 {
-    fn ans_host(&self, deps: Deps) -> SdkResult<AnsHost> {
+    fn ans_host(&self, deps: Deps) -> AbstractSdkResult<AnsHost> {
         Ok(self.base_state.load(deps.storage)?.ans_host)
     }
 }
@@ -48,7 +48,7 @@ impl<
         ReceiveMsg,
     >
 {
-    fn proxy_address(&self, deps: Deps) -> SdkResult<Addr> {
+    fn proxy_address(&self, deps: Deps) -> AbstractSdkResult<Addr> {
         Ok(self.base_state.load(deps.storage)?.proxy_address)
     }
 }

@@ -9,17 +9,25 @@ use os::objects::{
     PoolMetadata, PoolReference, UniquePoolId,
 };
 
-use crate::SdkResult;
+use crate::AbstractSdkResult;
 
 /// Resolve an [`AbstractNameService`](crate::base::features::AbstractNameService) entry into its value.
 pub trait Resolve {
     type Output;
-    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> SdkResult<Self::Output>;
+    fn resolve(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+    ) -> AbstractSdkResult<Self::Output>;
 }
 
 impl Resolve for AssetEntry {
     type Output = AssetInfo;
-    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> SdkResult<Self::Output> {
+    fn resolve(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+    ) -> AbstractSdkResult<Self::Output> {
         ans_host.query_asset(querier, self).map_err(Into::into)
     }
 }
@@ -28,7 +36,11 @@ impl Resolve for AssetEntry {
 impl Resolve for LpToken {
     type Output = AssetInfo;
 
-    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> SdkResult<Self::Output> {
+    fn resolve(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+    ) -> AbstractSdkResult<Self::Output> {
         ans_host
             .query_asset(querier, &self.to_owned().into())
             .map_err(Into::into)
@@ -37,21 +49,33 @@ impl Resolve for LpToken {
 
 impl Resolve for ContractEntry {
     type Output = Addr;
-    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> SdkResult<Self::Output> {
+    fn resolve(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+    ) -> AbstractSdkResult<Self::Output> {
         ans_host.query_contract(querier, self).map_err(Into::into)
     }
 }
 
 impl Resolve for ChannelEntry {
     type Output = String;
-    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> SdkResult<Self::Output> {
+    fn resolve(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+    ) -> AbstractSdkResult<Self::Output> {
         ans_host.query_channel(querier, self).map_err(Into::into)
     }
 }
 
 impl Resolve for DexAssetPairing {
     type Output = Vec<PoolReference>;
-    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> SdkResult<Self::Output> {
+    fn resolve(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+    ) -> AbstractSdkResult<Self::Output> {
         ans_host
             .query_asset_pairing(querier, self)
             .map_err(Into::into)
@@ -60,7 +84,11 @@ impl Resolve for DexAssetPairing {
 
 impl Resolve for UniquePoolId {
     type Output = PoolMetadata;
-    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> SdkResult<Self::Output> {
+    fn resolve(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+    ) -> AbstractSdkResult<Self::Output> {
         ans_host
             .query_pool_metadata(querier, self)
             .map_err(Into::into)
@@ -70,7 +98,11 @@ impl Resolve for UniquePoolId {
 impl Resolve for AnsAsset {
     type Output = Asset;
 
-    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> SdkResult<Self::Output> {
+    fn resolve(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+    ) -> AbstractSdkResult<Self::Output> {
         Ok(Asset::new(
             ans_host.query_asset(querier, &self.name)?,
             self.amount,
@@ -81,7 +113,11 @@ impl Resolve for AnsAsset {
 impl Resolve for AssetInfo {
     type Output = AssetEntry;
 
-    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> SdkResult<Self::Output> {
+    fn resolve(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+    ) -> AbstractSdkResult<Self::Output> {
         ans_host
             .query_asset_reverse(querier, self)
             .map_err(Into::into)
@@ -91,7 +127,11 @@ impl Resolve for AssetInfo {
 impl Resolve for Asset {
     type Output = AnsAsset;
 
-    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> SdkResult<Self::Output> {
+    fn resolve(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+    ) -> AbstractSdkResult<Self::Output> {
         Ok(AnsAsset {
             name: self.info.resolve(querier, ans_host)?,
             amount: self.amount,
@@ -102,7 +142,11 @@ impl Resolve for Asset {
 impl Resolve for PoolMetadata {
     type Output = ResolvedPoolMetadata;
 
-    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> SdkResult<Self::Output> {
+    fn resolve(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+    ) -> AbstractSdkResult<Self::Output> {
         Ok(ResolvedPoolMetadata {
             assets: self.assets.resolve(querier, ans_host)?,
             dex: self.dex.clone(),
@@ -117,7 +161,11 @@ where
 {
     type Output = Vec<T::Output>;
 
-    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> SdkResult<Self::Output> {
+    fn resolve(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+    ) -> AbstractSdkResult<Self::Output> {
         self.iter()
             .map(|entry| entry.resolve(querier, ans_host))
             .collect()
@@ -150,7 +198,7 @@ mod tests {
 
     use std::ops::Deref;
 
-    fn assert_not_found<T: Debug>(res: SdkResult<T>) {
+    fn assert_not_found<T: Debug>(res: AbstractSdkResult<T>) {
         assert_that!(res)
             .is_err()
             .matches(|e| e.to_string().contains("not found"));
@@ -179,7 +227,7 @@ mod tests {
     pub fn test_resolve<R: Resolve>(
         querier: &MockQuerier<Empty>,
         entry: &R,
-    ) -> SdkResult<R::Output> {
+    ) -> AbstractSdkResult<R::Output> {
         entry.resolve(&wrap_querier(querier), &mock_ans_host())
     }
 
@@ -274,7 +322,7 @@ mod tests {
                 .with_contract_map_entry(
                     TEST_ANS_HOST,
                     ASSET_ADDRESSES,
-                    (&test_lp_token.into(), &expected_value),
+                    (&test_lp_token.clone().into(), &expected_value),
                 )
                 .build();
 
@@ -316,7 +364,12 @@ mod tests {
             let pool_type = PoolType::ConstantProduct;
             let test_pool_metadata = PoolMetadata::new(dex.clone(), pool_type.clone(), assets);
             let querier = AbstractMockQuerierBuilder::default()
-                .assets(resolved_assets.into_iter().map(|(k, v)| (&k, v)).collect())
+                .assets(
+                    resolved_assets
+                        .iter()
+                        .map(|(k, v)| (k, v.clone()))
+                        .collect(),
+                )
                 .build();
 
             let expected_value = ResolvedPoolMetadata {

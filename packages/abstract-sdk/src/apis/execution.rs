@@ -1,7 +1,7 @@
 //! # Executor
 //! The executor provides function for executing commands on the OS.
 //!
-use crate::SdkResult;
+use crate::AbstractSdkResult;
 
 use super::{Identification, ModuleIdentification};
 use abstract_macros::with_abstract_event;
@@ -26,7 +26,7 @@ pub struct Executor<'a, T: Execution> {
 impl<'a, T: Execution> Executor<'a, T> {
     /// Execute the msgs on the OS.
     /// These messages will be executed on the proxy contract and the sending module must be whitelisted.
-    pub fn execute(&self, msgs: Vec<CosmosMsg>) -> SdkResult<CosmosMsg> {
+    pub fn execute(&self, msgs: Vec<CosmosMsg>) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
             self.base.proxy_address(self.deps)?.to_string(),
             &ExecuteMsg::ModuleAction { msgs },
@@ -43,7 +43,7 @@ impl<'a, T: Execution> Executor<'a, T> {
         msgs: Vec<CosmosMsg>,
         reply_on: ReplyOn,
         id: u64,
-    ) -> SdkResult<SubMsg> {
+    ) -> AbstractSdkResult<SubMsg> {
         let msg = self.execute(msgs)?;
         let sub_msg = SubMsg {
             id,
@@ -57,7 +57,11 @@ impl<'a, T: Execution> Executor<'a, T> {
     /// Execute the msgs on the OS.
     /// These messages will be executed on the proxy contract and the sending module must be whitelisted.
     /// Return a "standard" response for the executed messages. (with the provided action).
-    pub fn execute_with_response(&self, msgs: Vec<CosmosMsg>, action: &str) -> SdkResult<Response> {
+    pub fn execute_with_response(
+        &self,
+        msgs: Vec<CosmosMsg>,
+        action: &str,
+    ) -> AbstractSdkResult<Response> {
         let msg = self.execute(msgs)?;
         let resp = Response::default();
 

@@ -5,7 +5,7 @@ use super::contract_base::{
 use crate::base::contract_base::{ContractMetadata, ContractName, VersionString};
 use crate::base::ReplyHandlerFn;
 
-use crate::{AbstractSdkError, SdkResult};
+use crate::{AbstractSdkError, AbstractSdkResult};
 use abstract_os::objects::dependency::StaticDependency;
 use cosmwasm_std::Storage;
 use cw2::ContractVersion;
@@ -33,7 +33,7 @@ where
         Self::ReceiveMsg,
     >;
 
-    fn stored_version(&self, store: &dyn Storage) -> SdkResult<ContractVersion> {
+    fn stored_version(&self, store: &dyn Storage) -> AbstractSdkResult<ContractVersion> {
         let contract = self.contract();
         contract.version.load(store).map_err(Into::into)
     }
@@ -56,9 +56,9 @@ where
     }
     fn execute_handler(
         &self,
-    ) -> SdkResult<ExecuteHandlerFn<Self, Self::CustomExecMsg, Self::Error>> {
+    ) -> AbstractSdkResult<ExecuteHandlerFn<Self, Self::CustomExecMsg, Self::Error>> {
         let Some(handler) = self.maybe_execute_handler() else {
-            return Err(AbstractSdkError::MissingHandler{ endpoint: "execution handler".to_string()})
+            return Err(AbstractSdkError::MissingHandler { endpoint: "execution handler".to_string() })
         };
         Ok(handler)
     }
@@ -72,9 +72,9 @@ where
     }
     fn instantiate_handler(
         &self,
-    ) -> SdkResult<InstantiateHandlerFn<Self, Self::CustomInitMsg, Self::Error>> {
+    ) -> AbstractSdkResult<InstantiateHandlerFn<Self, Self::CustomInitMsg, Self::Error>> {
         let Some(handler) = self.maybe_instantiate_handler() else {
-            return Err(AbstractSdkError::MissingHandler{ endpoint: "instantiate".to_string()})
+            return Err(AbstractSdkError::MissingHandler { endpoint: "instantiate".to_string() })
         };
         Ok(handler)
     }
@@ -86,9 +86,11 @@ where
         let contract = self.contract();
         contract.query_handler
     }
-    fn query_handler(&self) -> SdkResult<QueryHandlerFn<Self, Self::CustomQueryMsg, Self::Error>> {
+    fn query_handler(
+        &self,
+    ) -> AbstractSdkResult<QueryHandlerFn<Self, Self::CustomQueryMsg, Self::Error>> {
         let Some(handler) = self.maybe_query_handler() else {
-            return Err(AbstractSdkError::MissingHandler{ endpoint: "query".to_string()})
+            return Err(AbstractSdkError::MissingHandler { endpoint: "query".to_string() })
         };
         Ok(handler)
     }
@@ -102,9 +104,9 @@ where
     }
     fn migrate_handler(
         &self,
-    ) -> SdkResult<MigrateHandlerFn<Self, Self::CustomMigrateMsg, Self::Error>> {
+    ) -> AbstractSdkResult<MigrateHandlerFn<Self, Self::CustomMigrateMsg, Self::Error>> {
         let Some(handler) = self.maybe_migrate_handler() else {
-            return Err(AbstractSdkError::MissingHandler{ endpoint: "migrate".to_string()})
+            return Err(AbstractSdkError::MissingHandler { endpoint: "migrate".to_string() })
         };
         Ok(handler)
     }
@@ -116,9 +118,11 @@ where
         let contract = self.contract();
         contract.receive_handler
     }
-    fn receive_handler(&self) -> SdkResult<ReceiveHandlerFn<Self, Self::ReceiveMsg, Self::Error>> {
+    fn receive_handler(
+        &self,
+    ) -> AbstractSdkResult<ReceiveHandlerFn<Self, Self::ReceiveMsg, Self::Error>> {
         let Some(handler) = self.maybe_receive_handler() else {
-            return Err(AbstractSdkError::MissingHandler{ endpoint: "receive".to_string()})
+            return Err(AbstractSdkError::MissingHandler { endpoint: "receive".to_string() })
         };
         Ok(handler)
     }
@@ -147,9 +151,9 @@ where
         None
     }
 
-    fn reply_handler(&self, id: u64) -> SdkResult<ReplyHandlerFn<Self, Self::Error>> {
+    fn reply_handler(&self, id: u64) -> AbstractSdkResult<ReplyHandlerFn<Self, Self::Error>> {
         let Some(handler) = self.maybe_reply_handler(id) else {
-            return Err(AbstractSdkError::MissingHandler{ endpoint: format! {"reply with id {id}"}})
+            return Err(AbstractSdkError::MissingHandler { endpoint: format! {"reply with id {id}"} })
         };
         Ok(handler)
     }

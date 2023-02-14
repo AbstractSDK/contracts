@@ -3,7 +3,7 @@ use abstract_sdk::base::features::ModuleIdentification;
 use abstract_sdk::{
     base::features::{AbstractNameService, AbstractRegistryAccess, Identification},
     feature_objects::AnsHost,
-    AbstractSdkError, SdkResult,
+    AbstractSdkError, AbstractSdkResult,
 };
 use cosmwasm_std::{Addr, Deps, StdError};
 
@@ -16,7 +16,7 @@ impl<
     > AbstractNameService
     for ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
 {
-    fn ans_host(&self, deps: Deps) -> SdkResult<AnsHost> {
+    fn ans_host(&self, deps: Deps) -> AbstractSdkResult<AnsHost> {
         Ok(self.base_state.load(deps.storage)?.ans_host)
     }
 }
@@ -31,7 +31,7 @@ impl<
     > Identification
     for ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
 {
-    fn proxy_address(&self, _deps: Deps) -> SdkResult<Addr> {
+    fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
         if let Some(target) = &self.target_os {
             Ok(target.proxy.clone())
         } else {
@@ -39,7 +39,7 @@ impl<
         }
     }
 
-    fn manager_address(&self, _deps: Deps) -> SdkResult<Addr> {
+    fn manager_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
         if let Some(target) = &self.target_os {
             Ok(target.manager.clone())
         } else {
@@ -47,7 +47,7 @@ impl<
         }
     }
 
-    fn os_core(&self, _deps: Deps) -> SdkResult<abstract_sdk::os::version_control::Core> {
+    fn os_core(&self, _deps: Deps) -> AbstractSdkResult<abstract_sdk::os::version_control::Core> {
         if let Some(target) = &self.target_os {
             Ok(target.clone())
         } else {
@@ -80,7 +80,7 @@ impl<
     > AbstractRegistryAccess
     for ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
 {
-    fn abstract_registry(&self, deps: Deps) -> SdkResult<Addr> {
+    fn abstract_registry(&self, deps: Deps) -> AbstractSdkResult<Addr> {
         Ok(self.state(deps.storage)?.version_control)
     }
 }

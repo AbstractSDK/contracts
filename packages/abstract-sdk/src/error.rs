@@ -66,7 +66,7 @@ pub enum AbstractSdkError {
     },
 
     // failed to query os id
-    #[error("Failed to query OS id on contract {contract_addr}. Please ensure that the contract is a manager or proxy contract.")]
+    #[error("Failed to query OS id on contract {contract_addr}. Please ensure that the contract is a Manager or Proxy contract.")]
     FailedToQueryOsId { contract_addr: Addr },
 
     // module not found in version registry

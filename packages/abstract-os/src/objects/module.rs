@@ -95,7 +95,7 @@ impl ModuleInfo {
     pub fn assert_version_variant(&self) -> AbstractResult<()> {
         match &self.version {
             ModuleVersion::Latest => Err(AbstractOsError::Assert(
-                "module version must be set to a specific version".into(),
+                "Module version must be set to a specific version".into(),
             )),
             ModuleVersion::Version(ver) => {
                 // assert version parses correctly
@@ -106,7 +106,7 @@ impl ModuleInfo {
     }
 }
 
-impl<'a> PrimaryKey<'a> for ModuleInfo {
+impl<'a> PrimaryKey<'a> for &ModuleInfo {
     type Prefix = (String, String);
 
     type SubPrefix = String;
@@ -128,7 +128,7 @@ impl<'a> PrimaryKey<'a> for ModuleInfo {
     }
 }
 
-impl<'a> Prefixer<'a> for ModuleInfo {
+impl<'a> Prefixer<'a> for &ModuleInfo {
     fn prefix(&self) -> Vec<Key> {
         let mut res = self.provider.prefix();
         res.extend(self.name.prefix().into_iter());
@@ -147,8 +147,8 @@ impl<'a> Prefixer<'a> for ModuleVersion {
     }
 }
 
-impl KeyDeserialize for ModuleInfo {
-    type Output = Self;
+impl KeyDeserialize for &ModuleInfo {
+    type Output = ModuleInfo;
 
     #[inline(always)]
     fn from_vec(mut value: Vec<u8>) -> StdResult<Self::Output> {
@@ -160,7 +160,7 @@ impl KeyDeserialize for ModuleInfo {
         let ver_len = parse_length(&len_name_ver)?;
         let ver = name_ver.split_off(ver_len);
 
-        Ok(Self {
+        Ok(ModuleInfo {
             provider: String::from_vec(prov_name_ver)?,
             name: String::from_vec(name_ver)?,
             version: ModuleVersion::from_vec(ver)?,
@@ -169,7 +169,7 @@ impl KeyDeserialize for ModuleInfo {
 }
 
 impl KeyDeserialize for ModuleVersion {
-    type Output = Self;
+    type Output = ModuleVersion;
 
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
@@ -377,12 +377,15 @@ mod test {
         fn storage_key_works() {
             let mut deps = mock_dependencies();
             let key = mock_key();
-            let map: Map<ModuleInfo, u64> = Map::new("map");
+            let map: Map<&ModuleInfo, u64> = Map::new("map");
 
-            map.save(deps.as_mut().storage, key.clone(), &42069)
+            map.save(deps.as_mut().storage, &key.clone(), &42069)
                 .unwrap();
 
-            assert_eq!(map.load(deps.as_ref().storage, key.clone()).unwrap(), 42069);
+            assert_eq!(
+                map.load(deps.as_ref().storage, &key.clone()).unwrap(),
+                42069
+            );
 
             let items = map
                 .range(deps.as_ref().storage, None, None, Order::Ascending)
@@ -402,7 +405,7 @@ mod test {
                 version: ModuleVersion::Version("1.9.9".into()),
             };
 
-            let _key1 = info1.joined_key();
+            let _key1 = (&info1).joined_key();
 
             let info2 = ModuleInfo {
                 provider: "abs".to_string(),
@@ -410,12 +413,12 @@ mod test {
                 version: ModuleVersion::Version("1.9.9".into()),
             };
 
-            let _key2 = info2.joined_key();
+            let _key2 = (&info2).joined_key();
 
-            let map: Map<ModuleInfo, u64> = Map::new("map");
+            let map: Map<&ModuleInfo, u64> = Map::new("map");
 
-            map.save(deps.as_mut().storage, info1, &42069).unwrap();
-            map.save(deps.as_mut().storage, info2, &69420).unwrap();
+            map.save(deps.as_mut().storage, &info1, &42069).unwrap();
+            map.save(deps.as_mut().storage, &info2, &69420).unwrap();
 
             assert_that!(map
                 .keys_raw(&deps.storage, None, None, Order::Ascending)
@@ -427,24 +430,24 @@ mod test {
         fn composite_key_works() {
             let mut deps = mock_dependencies();
             let key = mock_key();
-            let map: Map<(ModuleInfo, Addr), u64> = Map::new("map");
+            let map: Map<(&ModuleInfo, Addr), u64> = Map::new("map");
 
             map.save(
                 deps.as_mut().storage,
-                (key.clone(), Addr::unchecked("larry")),
+                (&key.clone(), Addr::unchecked("larry")),
                 &42069,
             )
             .unwrap();
 
             map.save(
                 deps.as_mut().storage,
-                (key.clone(), Addr::unchecked("jake")),
+                (&key.clone(), Addr::unchecked("jake")),
                 &69420,
             )
             .unwrap();
 
             let items = map
-                .prefix(key)
+                .prefix(&key)
                 .range(deps.as_ref().storage, None, None, Order::Ascending)
                 .map(|item| item.unwrap())
                 .collect::<Vec<_>>();
@@ -458,15 +461,15 @@ mod test {
         fn partial_key_works() {
             let mut deps = mock_dependencies();
             let (key1, key2, key3, key4) = mock_keys();
-            let map: Map<ModuleInfo, u64> = Map::new("map");
+            let map: Map<&ModuleInfo, u64> = Map::new("map");
 
-            map.save(deps.as_mut().storage, key1, &42069).unwrap();
+            map.save(deps.as_mut().storage, &key1, &42069).unwrap();
 
-            map.save(deps.as_mut().storage, key2, &69420).unwrap();
+            map.save(deps.as_mut().storage, &key2, &69420).unwrap();
 
-            map.save(deps.as_mut().storage, key3, &999).unwrap();
+            map.save(deps.as_mut().storage, &key3, &999).unwrap();
 
-            map.save(deps.as_mut().storage, key4, &13).unwrap();
+            map.save(deps.as_mut().storage, &key4, &13).unwrap();
 
             let items = map
                 .sub_prefix("abstract".to_string())
@@ -503,15 +506,15 @@ mod test {
         fn partial_key_versions_works() {
             let mut deps = mock_dependencies();
             let (key1, key2, key3, key4) = mock_keys();
-            let map: Map<ModuleInfo, u64> = Map::new("map");
+            let map: Map<&ModuleInfo, u64> = Map::new("map");
 
-            map.save(deps.as_mut().storage, key1, &42069).unwrap();
+            map.save(deps.as_mut().storage, &key1, &42069).unwrap();
 
-            map.save(deps.as_mut().storage, key2, &69420).unwrap();
+            map.save(deps.as_mut().storage, &key2, &69420).unwrap();
 
-            map.save(deps.as_mut().storage, key3, &999).unwrap();
+            map.save(deps.as_mut().storage, &key3, &999).unwrap();
 
-            map.save(deps.as_mut().storage, key4, &13).unwrap();
+            map.save(deps.as_mut().storage, &key4, &13).unwrap();
 
             let items = map
                 .prefix(("abstract".to_string(), "rocket-ship".to_string()))

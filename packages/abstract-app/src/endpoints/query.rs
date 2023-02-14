@@ -78,6 +78,7 @@ mod test {
 
     mod app_query {
         use super::*;
+        use abstract_sdk::AbstractSdkError;
 
         #[test]
         fn without_handler() {
@@ -88,7 +89,13 @@ mod test {
 
             assert_that!(res)
                 .is_err()
-                .matches(|e| e.to_string().contains("expected query handler"));
+                .matches(|e| {
+                    matches!(
+                        e,
+                        MockError::AbstractSdk(AbstractSdkError::MissingHandler { .. })
+                    )
+                })
+                .matches(|e| e.to_string().contains("query"));
         }
 
         fn mock_query_handler(

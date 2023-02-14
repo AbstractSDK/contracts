@@ -2,7 +2,7 @@
 //! The Bank object handles asset transfers to and from the OS.
 
 use super::{execution::Execution, AbstractNameService};
-use crate::{ans_resolve::Resolve, SdkResult};
+use crate::{ans_resolve::Resolve, AbstractSdkResult};
 use abstract_os::objects::AnsAsset;
 use cosmwasm_std::{Addr, BankMsg, Coin, CosmosMsg, Deps};
 use cw_asset::Asset;
@@ -25,14 +25,14 @@ pub struct Bank<'a, T: TransferInterface> {
 
 impl<'a, T: TransferInterface> Bank<'a, T> {
     /// Get the balances of the provided **assets**.
-    pub fn balances(&self, assets: &[AssetEntry]) -> SdkResult<Vec<Asset>> {
+    pub fn balances(&self, assets: &[AssetEntry]) -> AbstractSdkResult<Vec<Asset>> {
         assets
             .iter()
             .map(|asset| self.balance(asset))
-            .collect::<SdkResult<Vec<Asset>>>()
+            .collect::<AbstractSdkResult<Vec<Asset>>>()
     }
     /// Get the balance of the provided **asset**.
-    pub fn balance(&self, asset: &AssetEntry) -> SdkResult<Asset> {
+    pub fn balance(&self, asset: &AssetEntry) -> AbstractSdkResult<Asset> {
         let resolved_info = asset.resolve(&self.deps.querier, &self.base.ans_host(self.deps)?)?;
         let balance =
             resolved_info.query_balance(&self.deps.querier, self.base.proxy_address(self.deps)?)?;
@@ -43,7 +43,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     /// The caller must be a whitelisted module or trader.
     ///
     /// ```rust
-    /// use cosmwasm_std::{Addr, Response, SdkResult, Deps, DepsMut, Env, MessageInfo};
+    /// use cosmwasm_std::{Addr, Response, AbstractSdkResult, Deps, DepsMut, Env, MessageInfo};
     /// use abstract_os::objects::AnsAsset;
     /// # use abstract_os::objects::ans_host::AnsHost;
     /// use abstract_sdk::{
@@ -53,7 +53,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     /// #
     /// # struct MockModule;
     /// # impl Identification for MockModule {
-    /// #    fn proxy_address(&self, _deps: Deps) -> SdkResult<Addr> {
+    /// #    fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
     /// #       unimplemented!("Not needed for this example")
     /// #   }
     /// # }
@@ -65,12 +65,12 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     /// # }
     ///
     /// # impl AbstractNameService for MockModule {
-    /// #   fn ans_host(&self, _deps: Deps) -> SdkResult<AnsHost> {
+    /// #   fn ans_host(&self, _deps: Deps) -> AbstractSdkResult<AnsHost> {
     /// #     unimplemented!("Not needed for this example")
     /// #  }
     /// # }
     ///
-    /// fn transfer_asset_to_sender(app: MockModule, deps: DepsMut, info: MessageInfo, requested_asset: AnsAsset) -> SdkResult<Response> {
+    /// fn transfer_asset_to_sender(app: MockModule, deps: DepsMut, info: MessageInfo, requested_asset: AnsAsset) -> AbstractSdkResult<Response> {
     ///     // check that the caller has the rights to the asset
     ///     // ...
     ///     let bank = app.bank(deps.as_ref());
@@ -83,7 +83,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     ///         .add_attribute("asset_sent", requested_asset.to_string()))
     /// }
     /// ```
-    pub fn transfer(&self, funds: Vec<AnsAsset>, recipient: &Addr) -> SdkResult<CosmosMsg> {
+    pub fn transfer(&self, funds: Vec<AnsAsset>, recipient: &Addr) -> AbstractSdkResult<CosmosMsg> {
         let resolved_funds = funds.resolve(&self.deps.querier, &self.base.ans_host(self.deps)?)?;
         let transfer_msgs = resolved_funds
             .iter()
@@ -94,7 +94,11 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
 
     /// Transfer **coins** from the OS' vault to the **recipient**.
     /// The caller must be a whitelisted module or trader.
-    pub fn transfer_coins(&self, coins: Vec<Coin>, recipient: &Addr) -> SdkResult<CosmosMsg> {
+    pub fn transfer_coins(
+        &self,
+        coins: Vec<Coin>,
+        recipient: &Addr,
+    ) -> AbstractSdkResult<CosmosMsg> {
         let send_msg = CosmosMsg::Bank(BankMsg::Send {
             to_address: recipient.to_string(),
             amount: coins,
@@ -103,7 +107,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     }
 
     /// Transfer the **funds** (deposit) into the OS from the current contract.
-    pub fn deposit(&self, funds: Vec<AnsAsset>) -> SdkResult<Vec<CosmosMsg>> {
+    pub fn deposit(&self, funds: Vec<AnsAsset>) -> AbstractSdkResult<Vec<CosmosMsg>> {
         let recipient = self.base.proxy_address(self.deps)?;
         let resolved_funds = funds.resolve(&self.deps.querier, &self.base.ans_host(self.deps)?)?;
         resolved_funds
@@ -114,7 +118,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     }
 
     /// Deposit coins into the OS
-    pub fn deposit_coins(&self, coins: Vec<Coin>) -> SdkResult<CosmosMsg> {
+    pub fn deposit_coins(&self, coins: Vec<Coin>) -> AbstractSdkResult<CosmosMsg> {
         let recipient = self.base.proxy_address(self.deps)?.into_string();
         Ok(CosmosMsg::Bank(BankMsg::Send {
             to_address: recipient,

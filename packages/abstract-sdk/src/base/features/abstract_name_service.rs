@@ -1,10 +1,10 @@
-use crate::{ans_resolve::Resolve, SdkResult};
+use crate::{ans_resolve::Resolve, AbstractSdkResult};
 use abstract_os::objects::ans_host::AnsHost;
 use cosmwasm_std::Deps;
 
 /// Trait that enables APIs that depend on the Abstract Name Service.
 pub trait AbstractNameService: Sized {
-    fn ans_host(&self, deps: Deps) -> SdkResult<AnsHost>;
+    fn ans_host(&self, deps: Deps) -> AbstractSdkResult<AnsHost>;
 
     fn name_service<'a>(&'a self, deps: Deps<'a>) -> AbstractNameServiceClient<Self> {
         AbstractNameServiceClient {
@@ -23,7 +23,7 @@ pub struct AbstractNameServiceClient<'a, T: AbstractNameService> {
 }
 
 impl<'a, T: AbstractNameService> AbstractNameServiceClient<'a, T> {
-    pub fn query<R: Resolve>(&self, entry: &R) -> SdkResult<R::Output> {
+    pub fn query<R: Resolve>(&self, entry: &R) -> AbstractSdkResult<R::Output> {
         entry.resolve(&self.deps.querier, &self.host)
     }
     pub fn host(&self) -> &AnsHost {

@@ -2,7 +2,7 @@
 //! The Vault object provides function for querying balances and asset values for the OS.
 
 use super::{AbstractNameService, Identification};
-use crate::{helpers::cosmwasm_std::wasm_smart_query, SdkResult};
+use crate::{helpers::cosmwasm_std::wasm_smart_query, AbstractSdkResult};
 use abstract_os::{
     objects::{proxy_asset::ProxyAsset, AssetEntry},
     proxy::{
@@ -30,7 +30,7 @@ pub struct Vault<'a, T: VaultInterface> {
 impl<'a, T: VaultInterface> Vault<'a, T> {
     /// Query the total value denominated in the base asset
     /// The provided address must implement the TotalValue Query
-    pub fn query_total_value(&self) -> SdkResult<Uint128> {
+    pub fn query_total_value(&self) -> AbstractSdkResult<Uint128> {
         let querier = self.deps.querier;
         let proxy_address = self.base.proxy_address(self.deps)?;
         let response: TotalValueResponse = querier.query(&wasm_smart_query(
@@ -42,7 +42,7 @@ impl<'a, T: VaultInterface> Vault<'a, T> {
     }
 
     /// RawQuery the proxy for a ProxyAsset
-    pub fn asset(&self, asset: &AssetEntry) -> SdkResult<ProxyAsset> {
+    pub fn asset(&self, asset: &AssetEntry) -> AbstractSdkResult<ProxyAsset> {
         let querier = self.deps.querier;
         let proxy_address = self.base.proxy_address(self.deps)?;
         let response = VAULT_ASSETS.query(&querier, proxy_address, asset)?;
@@ -53,7 +53,7 @@ impl<'a, T: VaultInterface> Vault<'a, T> {
 
     /// Query the holding value denominated in the base asset
     /// The provided address must implement the HoldingValue Query
-    pub fn balance_value(&self, asset_entry: &AssetEntry) -> SdkResult<Uint128> {
+    pub fn balance_value(&self, asset_entry: &AssetEntry) -> AbstractSdkResult<Uint128> {
         let querier = self.deps.querier;
         let proxy_address = self.base.proxy_address(self.deps)?;
         let response: HoldingValueResponse = querier.query(&wasm_smart_query(
@@ -72,7 +72,7 @@ impl<'a, T: VaultInterface> Vault<'a, T> {
         &self,
         asset_entry: &AssetEntry,
         amount: Option<Uint128>,
-    ) -> SdkResult<Uint128> {
+    ) -> AbstractSdkResult<Uint128> {
         let querier = self.deps.querier;
         let proxy_address = self.base.proxy_address(self.deps)?;
 
@@ -88,7 +88,7 @@ impl<'a, T: VaultInterface> Vault<'a, T> {
     }
 
     /// List ProxyAssets raw
-    pub fn enabled_assets_list(&self) -> SdkResult<(Vec<AssetEntry>, AssetEntry)> {
+    pub fn enabled_assets_list(&self) -> AbstractSdkResult<(Vec<AssetEntry>, AssetEntry)> {
         let querier = self.deps.querier;
         let proxy_address = self.base.proxy_address(self.deps)?;
 
@@ -119,7 +119,7 @@ impl<'a, T: VaultInterface> Vault<'a, T> {
     }
 
     /// List ProxyAssets raw
-    pub fn proxy_assets_list(&self) -> SdkResult<Vec<(AssetEntry, ProxyAsset)>> {
+    pub fn proxy_assets_list(&self) -> AbstractSdkResult<Vec<(AssetEntry, ProxyAsset)>> {
         let querier = self.deps.querier;
         let proxy_address = self.base.proxy_address(self.deps)?;
 

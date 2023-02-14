@@ -1,4 +1,4 @@
-use crate::{AbstractSdkError, SdkResult};
+use crate::{AbstractSdkError, AbstractSdkResult};
 
 use super::handler::Handler;
 
@@ -107,7 +107,7 @@ where
         }
     }
 
-    pub fn version(&self, store: &dyn Storage) -> SdkResult<ContractVersion> {
+    pub fn version(&self, store: &dyn Storage) -> AbstractSdkResult<ContractVersion> {
         self.version.load(store).map_err(Into::into)
     }
     pub fn info(&self) -> (ContractName, VersionString, ContractMetadata) {
