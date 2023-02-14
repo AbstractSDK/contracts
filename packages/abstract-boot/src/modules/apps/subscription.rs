@@ -52,7 +52,7 @@ impl<Chain: BootEnvironment> Subscription<Chain> {
         }
     }
 
-    // pub  fn pay_subscription(&self, os_id: OsId, manager: Manager<'_>) -> Result<CosmTxResponse, BootError> {
+    // pub  fn pay_subscription(&self, os_id: OsId, manager: Manager<'_>) -> Result<CosmTxResponse, crate::AbstractBootError> {
     //     let result: SubscriptionFeeResponse = self.query(QueryMsg::Fee {  })?;
 
     //     let asset = result.fee;
@@ -62,7 +62,7 @@ impl<Chain: BootEnvironment> Subscription<Chain> {
     //     self.execute(&ExecuteMsg::Pay {  os_id: os_id }, Some(&[Coin::create("uusd", asset.amount.u128().into())]))
     // }
 
-    pub fn claim_contribution(&self, os_id: OsId) -> Result<(), BootError> {
+    pub fn claim_contribution(&self, os_id: OsId) -> Result<(), crate::AbstractBootError> {
         self.claim_compensation(os_id)?;
         self.execute(
             &SubscriptionExecuteMsg::ClaimCompensation { os_id }.into(),
@@ -71,7 +71,7 @@ impl<Chain: BootEnvironment> Subscription<Chain> {
         Ok(())
     }
 
-    pub fn claim_emissions(&self, os_id: OsId) -> Result<(), BootError> {
+    pub fn claim_emissions(&self, os_id: OsId) -> Result<(), crate::AbstractBootError> {
         self.execute(
             &SubscriptionExecuteMsg::ClaimEmissions { os_id }.into(),
             None,

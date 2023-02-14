@@ -26,14 +26,14 @@ impl<Chain: BootEnvironment> Idea<Chain> {
         msg: Binary,
         amount: u128,
         contract: String,
-    ) -> Result<TxResponse<Chain>, BootError> {
+    ) -> Result<TxResponse<Chain>, crate::AbstractBootError> {
         let msg = ExecuteMsg::Send {
             contract,
             amount: Uint128::new(amount),
             msg,
         };
 
-        self.execute(&msg, None)
+        self.execute(&msg, None).map_err(Into::into)
     }
 
     /// Instantiate a new token instance with some initial balance given to the minter
@@ -43,7 +43,7 @@ impl<Chain: BootEnvironment> Idea<Chain> {
         balance: T,
         version_control_address: String,
         symbol: &str,
-    ) -> Result<TxResponse<Chain>, BootError> {
+    ) -> Result<TxResponse<Chain>, crate::AbstractBootError> {
         let msg = InstantiateMsg {
             decimals: 6,
             mint: Some(MinterResponse {
@@ -60,5 +60,6 @@ impl<Chain: BootEnvironment> Idea<Chain> {
         };
 
         self.instantiate(&msg, Some(minter), None)
+            .map_err(Into::into)
     }
 }

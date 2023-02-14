@@ -33,7 +33,7 @@ impl<Chain: BootEnvironment> DexApi<Chain> {
         offer_asset: (&str, u128),
         ask_asset: &str,
         dex: String,
-    ) -> Result<(), BootError> {
+    ) -> Result<(), crate::AbstractBootError> {
         let manager = Manager::new(MANAGER, self.get_chain().clone());
         let asset = AssetEntry::new(offer_asset.0);
         let ask_asset = AssetEntry::new(ask_asset);

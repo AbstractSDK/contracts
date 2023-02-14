@@ -1,15 +1,23 @@
 use abstract_ibc_host::HostError;
+use abstract_os::AbstractError;
+use abstract_sdk::SdkError;
 use cosmwasm_std::StdError;
 use dex::error::DexError;
 use thiserror::Error;
 
-#[derive(Error, Debug, PartialEq)]
+#[derive(Error, Debug)]
 pub enum OsmoError {
     #[error("{0}")]
     Std(#[from] StdError),
 
     #[error("{0}")]
     DexError(#[from] DexError),
+
+    #[error("{0}")]
+    Abstract(#[from] AbstractError),
+
+    #[error("{0}")]
+    AbstractSdk(#[from] SdkError),
 
     #[error("{0}")]
     HostError(#[from] HostError),
