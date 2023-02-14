@@ -7,7 +7,7 @@ use cw_asset::{AssetError, AssetInfo};
 use cw_controllers::AdminError;
 use thiserror::Error;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, PartialEq)]
 pub enum SubscriptionError {
     #[error("{0}")]
     Std(#[from] StdError),

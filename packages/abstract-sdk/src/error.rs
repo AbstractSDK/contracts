@@ -4,7 +4,7 @@ use os::{objects::AssetEntry, AbstractOsError};
 use std::fmt::{Display, Formatter};
 use thiserror::Error;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, PartialEq)]
 pub struct EndpointError {
     #[source]
     source: AbstractSdkError,
@@ -17,7 +17,7 @@ impl Display for EndpointError {
     }
 }
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, PartialEq)]
 pub enum AbstractSdkError {
     #[error("Abstract OS error in the sdk: {0}")]
     AbstractOs(#[from] AbstractOsError),

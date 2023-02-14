@@ -4,7 +4,7 @@ use cosmwasm_std::{StdError, Uint128};
 use cw_asset::AssetError;
 use thiserror::Error;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, PartialEq)]
 pub enum ProxyError {
     #[error("{0}")]
     Std(#[from] StdError),

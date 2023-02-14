@@ -4,7 +4,7 @@ use cw_semver::Error as CwSemverError;
 use semver::Error as SemverError;
 use thiserror::Error;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, PartialEq)]
 // #[derive(Error, Debug, PartialEq)]
 pub enum AbstractOsError {
     #[error("Std error encountered while handling os object: {0}")]
@@ -17,10 +17,7 @@ pub enum AbstractOsError {
     Overflow(#[from] OverflowError),
 
     #[error("Semver error encountered while handling os object: {0}")]
-    Semver(#[from] SemverError),
-
-    #[error("Semver error encountered while handling os object: {0}")]
-    CwSemver(#[from] CwSemverError),
+    Semver(String),
 
     #[error("Entry {actual} should be formatted as {expected}")]
     EntryFormattingError { actual: String, expected: String },
@@ -54,4 +51,16 @@ pub enum AbstractOsError {
     // deposit error
     #[error("deposit error: {0}")]
     Deposit(String),
+}
+
+impl From<SemverError> for AbstractOsError {
+    fn from(err: SemverError) -> Self {
+        AbstractOsError::Semver(err.to_string())
+    }
+}
+
+impl From<CwSemverError> for AbstractOsError {
+    fn from(err: CwSemverError) -> Self {
+        AbstractOsError::Semver(err.to_string())
+    }
 }

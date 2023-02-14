@@ -5,7 +5,7 @@ use cosmwasm_std::StdError;
 use dex::error::DexError;
 use thiserror::Error;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, PartialEq)]
 pub enum OsmoError {
     #[error("{0}")]
     Std(#[from] StdError),

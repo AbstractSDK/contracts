@@ -6,7 +6,7 @@ use cw_asset::AssetError;
 use cw_controllers::AdminError;
 use thiserror::Error;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, PartialEq)]
 pub enum EtfError {
     #[error("{0}")]
     Std(#[from] StdError),

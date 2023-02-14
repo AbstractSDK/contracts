@@ -6,7 +6,7 @@ use cosmwasm_std::StdError;
 use cw_asset::AssetError;
 use thiserror::Error;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, PartialEq)]
 pub enum DexError {
     #[error("{0}")]
     Std(#[from] StdError),
