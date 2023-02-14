@@ -4,12 +4,13 @@
 //! These objects are mostly used internally to easy re-use application code without
 //! requiring the usage of a base contract.
 
-use crate::features::{AbstractRegistryAccess, Identification, ModuleIdentification};
+use crate::{
+    features::{AbstractRegistryAccess, Identification, ModuleIdentification},
+    AbstractSdkResult,
+};
 pub use abstract_os::objects::ans_host::AnsHost;
 use abstract_os::version_control::Core;
 use cosmwasm_std::{Addr, Deps};
-
-use crate::AbstractSdkResult;
 use os::PROXY;
 
 /// Store the Version Control contract.

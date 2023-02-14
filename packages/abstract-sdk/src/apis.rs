@@ -11,12 +11,12 @@ pub mod version_registry;
 
 #[cfg(test)]
 mod test_common {
-    use crate::features::{AbstractNameService, Identification, ModuleIdentification};
-    use crate::AbstractSdkResult;
-    pub use abstract_testing::mock_module::*;
-    pub use abstract_testing::*;
-    pub use cosmwasm_std::testing::*;
-    pub use cosmwasm_std::*;
+    use crate::{
+        features::{AbstractNameService, Identification, ModuleIdentification},
+        AbstractSdkResult,
+    };
+    pub use abstract_testing::{mock_module::*, *};
+    pub use cosmwasm_std::{testing::*, *};
     use os::objects::ans_host::AnsHost;
     pub use speculoos::prelude::*;
 

@@ -1,7 +1,5 @@
 use self::state::AccountData;
-use crate::abstract_ica::StdAck;
-use crate::ibc_host::HostAction;
-use crate::objects::core::OsId;
+use crate::{abstract_ica::StdAck, ibc_host::HostAction, objects::core::OsId};
 use abstract_ica::IbcResponseMsg;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{from_slice, Binary, Coin, CosmosMsg, StdResult, Timestamp};
@@ -9,9 +7,8 @@ use cosmwasm_std::{from_slice, Binary, Coin, CosmosMsg, StdResult, Timestamp};
 pub mod state {
 
     use super::LatestQueryResponse;
-    use crate::objects::core::OsId;
     use crate::{
-        objects::{ans_host::AnsHost, common_namespace::ADMIN_NAMESPACE},
+        objects::{ans_host::AnsHost, common_namespace::ADMIN_NAMESPACE, core::OsId},
         ANS_HOST as ANS_HOST_KEY,
     };
     use cosmwasm_std::{Addr, Coin, Timestamp};

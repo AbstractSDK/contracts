@@ -1,7 +1,6 @@
 //! # Verification
 //! The `Verify` struct provides helper functions that enable the contract to verify if the sender is an OS, OS admin, etc.
-use crate::features::AbstractRegistryAccess;
-use crate::{AbstractSdkError, AbstractSdkResult};
+use crate::{features::AbstractRegistryAccess, AbstractSdkError, AbstractSdkResult};
 use abstract_os::{
     manager::state::OS_ID,
     version_control::{state::OS_ADDRESSES, Core},
@@ -81,8 +80,9 @@ mod test {
     use abstract_testing::*;
     use cosmwasm_std::testing::*;
 
-    use abstract_testing::prelude::*;
-    use abstract_testing::{MockQuerierBuilder, TEST_OS_ID, TEST_PROXY, TEST_VERSION_CONTROL};
+    use abstract_testing::{
+        prelude::*, MockQuerierBuilder, TEST_OS_ID, TEST_PROXY, TEST_VERSION_CONTROL,
+    };
 
     use speculoos::prelude::*;
 

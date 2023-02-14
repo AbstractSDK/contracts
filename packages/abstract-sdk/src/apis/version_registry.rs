@@ -1,5 +1,7 @@
-use crate::{cw_helpers::cosmwasm_std::wasm_smart_query, features::AbstractRegistryAccess};
-use crate::{AbstractSdkError, AbstractSdkResult};
+use crate::{
+    cw_helpers::cosmwasm_std::wasm_smart_query, features::AbstractRegistryAccess, AbstractSdkError,
+    AbstractSdkResult,
+};
 use abstract_os::{
     objects::{
         module::{Module, ModuleInfo},

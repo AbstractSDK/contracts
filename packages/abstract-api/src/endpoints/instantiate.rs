@@ -3,10 +3,10 @@ use crate::{
     ApiError,
 };
 use abstract_os::objects::module_version::set_module_data;
-use abstract_sdk::os::api::InstantiateMsg;
 use abstract_sdk::{
     base::{endpoints::InstantiateEndpoint, Handler},
     feature_objects::AnsHost,
+    os::api::InstantiateMsg,
     AbstractSdkError,
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};

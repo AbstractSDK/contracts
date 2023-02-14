@@ -7,12 +7,14 @@
 //! It is not migratable and its functionality is shared between users, meaning that all users call the same contract address to perform operations on the OS.
 //! The api structure is well-suited for implementing standard interfaces to external services like dexes, lending platforms, etc.
 
-use crate::base::{
-    ExecuteMsg as MiddlewareExecMsg, InstantiateMsg as MiddlewareInstantiateMsg,
-    MigrateMsg as MiddlewareMigrateMsg, QueryMsg as MiddlewareQueryMsg,
+use crate::{
+    base::{
+        ExecuteMsg as MiddlewareExecMsg, InstantiateMsg as MiddlewareInstantiateMsg,
+        MigrateMsg as MiddlewareMigrateMsg, QueryMsg as MiddlewareQueryMsg,
+    },
+    ibc_client::CallbackInfo,
+    objects::core::OsId,
 };
-use crate::ibc_client::CallbackInfo;
-use crate::objects::core::OsId;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Binary, CosmosMsg, Empty, QueryRequest};
 

@@ -1,6 +1,6 @@
-use abstract_os::objects::OsId;
 use abstract_os::{
     app::{BaseInstantiateMsg, InstantiateMsg as AppInitMsg},
+    objects::OsId,
     subscription::*,
 };
 use boot_core::{interface::BootExecute, prelude::boot_contract, BootEnvironment, Contract};

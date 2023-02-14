@@ -1,17 +1,17 @@
-use boot_core::{
-    prelude::boot_contract, state::StateInterface, BootEnvironment, Contract, IndexResponse,
-    TxResponse,
-};
-use cosmwasm_std::Addr;
-
 use crate::{Manager, Proxy, OS};
 pub use abstract_os::os_factory::{
     ExecuteMsgFns as OsFactoryExecFns, QueryMsgFns as OsFactoryQueryFns,
 };
-use abstract_os::{objects::gov_type::GovernanceDetails, os_factory::*, ABSTRACT_EVENT_NAME};
-use abstract_os::{MANAGER, PROXY};
-use boot_core::interface::BootExecute;
-use boot_core::interface::ContractInstance;
+use abstract_os::{
+    objects::gov_type::GovernanceDetails, os_factory::*, ABSTRACT_EVENT_NAME, MANAGER, PROXY,
+};
+use boot_core::{
+    interface::{BootExecute, ContractInstance},
+    prelude::boot_contract,
+    state::StateInterface,
+    BootEnvironment, Contract, IndexResponse, TxResponse,
+};
+use cosmwasm_std::Addr;
 
 /// A helper struct that contains fields from [`abstract_os::manager::state::OsInfo`]
 #[derive(Default)]

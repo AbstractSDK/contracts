@@ -1,8 +1,7 @@
 //! # Bank
 //! The Bank object handles asset transfers to and from the OS.
 
-use crate::{ans_resolve::Resolve, features::AbstractNameService};
-use crate::{AbstractSdkResult, Execution};
+use crate::{ans_resolve::Resolve, features::AbstractNameService, AbstractSdkResult, Execution};
 use cosmwasm_std::{Addr, BankMsg, Coin, CosmosMsg, Deps};
 use cw_asset::Asset;
 use os::objects::{AnsAsset, AssetEntry};

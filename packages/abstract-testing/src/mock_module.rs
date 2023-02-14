@@ -1,10 +1,9 @@
+use crate::{
+    abstract_mock_querier::AbstractMockQuerierBuilder, TEST_ANS_HOST, TEST_MANAGER, TEST_MODULE_ID,
+    TEST_OS_ID, TEST_PROXY,
+};
 use abstract_os::{api, app};
-
 use cosmwasm_std::{Addr, Deps};
-
-use crate::{TEST_ANS_HOST, TEST_MANAGER, TEST_MODULE_ID, TEST_OS_ID, TEST_PROXY};
-
-use crate::abstract_mock_querier::AbstractMockQuerierBuilder;
 #[cfg(feature = "sdk")]
 use ::{
     abstract_os::objects::ans_host::AnsHost,

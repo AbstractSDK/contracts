@@ -74,8 +74,7 @@ pub mod cw_helpers;
 mod error;
 pub mod feature_objects;
 
-pub use error::AbstractSdkError;
-pub use error::EndpointError;
+pub use error::{AbstractSdkError, EndpointError};
 
 pub use crate::apis::{
     bank::TransferInterface, dex::DexInterface, execution::Execution, ibc::IbcInterface,
