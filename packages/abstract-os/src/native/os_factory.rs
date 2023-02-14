@@ -36,10 +36,10 @@ pub mod state {
     pub const CONTEXT: Item<Context> = Item::new("\u{0}{6}context");
 }
 
+use crate::objects::core::OsId;
 use crate::objects::gov_type::GovernanceDetails;
 use cosmwasm_schema::QueryResponses;
 use cw20::Cw20ReceiveMsg;
-use crate::objects::core::OsId;
 
 /// Msg used on instantiation
 #[cosmwasm_schema::cw_serde]

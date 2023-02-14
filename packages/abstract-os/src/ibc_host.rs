@@ -12,9 +12,9 @@ use crate::base::{
     MigrateMsg as MiddlewareMigrateMsg, QueryMsg as MiddlewareQueryMsg,
 };
 use crate::ibc_client::CallbackInfo;
+use crate::objects::core::OsId;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Binary, CosmosMsg, Empty, QueryRequest};
-use crate::objects::core::OsId;
 
 pub type ExecuteMsg<T, R = Empty> = MiddlewareExecMsg<BaseExecuteMsg, T, R>;
 pub type QueryMsg<T = Empty> = MiddlewareQueryMsg<BaseQueryMsg, T>;

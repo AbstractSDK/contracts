@@ -1,9 +1,5 @@
-use abstract_boot::{
-    OSFactory, OsFactoryQueryFns, VersionControl, OS,
-};
-use abstract_os::{
-    manager, os_factory, proxy, MANAGER, OS_FACTORY, PROXY, VERSION_CONTROL,
-};
+use abstract_boot::{OSFactory, OsFactoryQueryFns, VersionControl, OS};
+use abstract_os::{manager, os_factory, proxy, MANAGER, OS_FACTORY, PROXY, VERSION_CONTROL};
 
 use boot_core::networks::{parse_network, NetworkInfo};
 use boot_core::prelude::*;
@@ -83,7 +79,7 @@ struct Arguments {
 }
 
 use abstract_os::manager::ExecuteMsgFns;
-use abstract_os::objects::module::{ModuleInfo};
+use abstract_os::objects::module::ModuleInfo;
 
 use clap::Parser;
 use cosmwasm_std::to_binary;

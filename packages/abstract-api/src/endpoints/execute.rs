@@ -2,13 +2,12 @@ use crate::{error::ApiError, state::ApiContract, ApiResult};
 use abstract_os::{api::ApiRequestMsg, version_control::Core};
 use abstract_sdk::base::features::ModuleIdentification;
 use abstract_sdk::{
-    apis::respond::AbstractResponse,
     base::{
         endpoints::{ExecuteEndpoint, IbcCallbackEndpoint, ReceiveEndpoint},
         Handler,
     },
     os::api::{ApiExecuteMsg, BaseExecuteMsg, ExecuteMsg},
-    Execution, ModuleInterface, OsVerification,
+    AbstractResponse, Execution, ModuleInterface, OsVerification,
 };
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdError};
 use schemars::JsonSchema;
@@ -445,7 +444,10 @@ mod tests {
             assert_that!(res).is_err().matches(|e| {
                 matches!(
                     e,
-                    MockError::Api(ApiError::UnauthorizedTraderApiRequest { sender: _trader, .. })
+                    MockError::Api(ApiError::UnauthorizedTraderApiRequest {
+                        sender: _trader,
+                        ..
+                    })
                 )
             });
         }

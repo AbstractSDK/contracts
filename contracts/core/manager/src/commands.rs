@@ -6,8 +6,8 @@ use crate::{
 use crate::{validation, versioning};
 use abstract_macros::abstract_response;
 use abstract_sdk::{
-    feature_objects::VersionControlContract,
     cw_helpers::cosmwasm_std::wasm_smart_query,
+    feature_objects::VersionControlContract,
     os::{
         api::{
             BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as ApiExecMsg, QueryMsg as ApiQuery,

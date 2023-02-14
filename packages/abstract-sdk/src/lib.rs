@@ -17,8 +17,9 @@ pub mod cw_helpers;
 pub mod feature_objects;
 
 pub use crate::apis::{
-    bank::TransferInterface, execution::Execution, ibc::IbcInterface, modules::ModuleInterface,
-    vault::VaultInterface, verify::OsVerification, version_registry::ModuleRegistryInterface,
+    bank::TransferInterface, dex::DexInterface, execution::Execution, ibc::IbcInterface,
+    modules::ModuleInterface, respond::AbstractResponse, vault::VaultInterface,
+    verify::OsVerification, version_registry::ModuleRegistryInterface,
 };
 pub use ans_resolve::Resolve;
 
