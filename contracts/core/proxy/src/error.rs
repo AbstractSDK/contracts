@@ -36,6 +36,9 @@ pub enum ProxyError {
     #[error("Max amount of modules registered")]
     ModuleLimitReached,
 
+    #[error("no base asset registered on proxy")]
+    MissingBaseAsset,
+
     #[error("The proposed update resulted in a bad configuration: {0}")]
     BadUpdate(String),
 

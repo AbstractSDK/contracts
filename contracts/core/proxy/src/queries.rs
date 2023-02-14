@@ -1,5 +1,6 @@
 use crate::contract::ProxyResult;
 
+use crate::error::ProxyError;
 use abstract_os::proxy::{
     BaseAssetResponse, HoldingAmountResponse, TokenValueResponse, TotalValueResponse,
 };
@@ -254,7 +255,7 @@ pub fn get_value_ref_dependencies(value_reference: &ValueRef, entry: String) -> 
     }
 }
 
-pub fn query_base_asset(deps: Deps) -> StdResult<BaseAssetResponse> {
+pub fn query_base_asset(deps: Deps) -> ProxyResult<BaseAssetResponse> {
     let res: Result<Vec<(AssetEntry, ProxyAsset)>, _> = VAULT_ASSETS
         .range(deps.storage, None, None, Order::Ascending)
         .collect();
@@ -264,7 +265,7 @@ pub fn query_base_asset(deps: Deps) -> StdResult<BaseAssetResponse> {
         .filter(|(_, p)| p.value_reference.is_none())
         .collect();
     if maybe_base_asset.len() != 1 {
-        Err(StdError::generic_err("No base asset configured."))
+        Err(ProxyError::MissingBaseAsset)
     } else {
         Ok(BaseAssetResponse {
             base_asset: maybe_base_asset[0].1.to_owned(),
