@@ -1,7 +1,7 @@
 use abstract_os::objects::OsId;
-use abstract_os::AbstractError;
+use abstract_os::AbstractOsError;
 use abstract_sdk::os::objects::module::ModuleInfo;
-use abstract_sdk::SdkError;
+use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use cw_controllers::AdminError;
 use thiserror::Error;
@@ -12,10 +12,10 @@ pub enum VCError {
     Std(#[from] StdError),
 
     #[error("{0}")]
-    Abstract(#[from] AbstractError),
+    AbstractOs(#[from] AbstractOsError),
 
     #[error("{0}")]
-    AbstractSdk(#[from] SdkError),
+    AbstractSdk(#[from] AbstractSdkError),
 
     #[error("{0}")]
     Admin(#[from] AdminError),

@@ -48,7 +48,7 @@
 //!   # fn main() {}
 //!   ```
 
-pub type SdkResult<T> = Result<T, crate::error::SdkError>;
+pub type SdkResult<T> = Result<T, crate::error::AbstractSdkError>;
 
 pub extern crate abstract_macros as macros;
 pub extern crate abstract_os as os;
@@ -60,8 +60,8 @@ mod error;
 pub mod feature_objects;
 pub mod helpers;
 
+pub use error::AbstractSdkError;
 pub use error::EndpointError;
-pub use error::SdkError;
 
 pub use crate::apis::{
     bank::TransferInterface, execution::Execution, ibc::IbcInterface, modules::ModuleInterface,

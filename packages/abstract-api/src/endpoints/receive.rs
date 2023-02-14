@@ -1,9 +1,9 @@
 use crate::{error::ApiError, state::ApiContract};
 use abstract_sdk::base::endpoints::ReceiveEndpoint;
-use abstract_sdk::{EndpointError, SdkError};
+use abstract_sdk::AbstractSdkError;
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<SdkError>,
+        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,

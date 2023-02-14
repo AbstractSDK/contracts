@@ -1,13 +1,13 @@
 use cosmwasm_std::Addr;
 use cw_asset::AssetError;
-use os::{objects::AssetEntry, AbstractError};
+use os::{objects::AssetEntry, AbstractOsError};
 use std::fmt::{Display, Formatter};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub struct EndpointError {
     #[source]
-    source: SdkError,
+    source: AbstractSdkError,
     module_id: String,
 }
 
@@ -18,9 +18,9 @@ impl Display for EndpointError {
 }
 
 #[derive(Error, Debug)]
-pub enum SdkError {
-    #[error("abstract error in the sdk: {0}")]
-    Abstract(#[from] AbstractError),
+pub enum AbstractSdkError {
+    #[error("Abstract OS error in the sdk: {0}")]
+    AbstractOs(#[from] AbstractOsError),
 
     #[error("Std error encountered in sdk: {0}")]
     Std(#[from] cosmwasm_std::StdError),
@@ -86,8 +86,8 @@ pub enum SdkError {
     AdminNotSet { proxy_addr: Addr },
 }
 
-impl SdkError {
+impl AbstractSdkError {
     pub fn generic_err(msg: impl Into<String>) -> Self {
-        SdkError::Std(cosmwasm_std::StdError::generic_err(msg))
+        AbstractSdkError::Std(cosmwasm_std::StdError::generic_err(msg))
     }
 }

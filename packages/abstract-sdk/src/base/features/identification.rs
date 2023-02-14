@@ -5,7 +5,7 @@ use cosmwasm_std::{Addr, Deps};
 use cw_storage_plus::Item;
 use os::objects::OsId;
 
-use crate::{SdkError, SdkResult};
+use crate::{AbstractSdkError, SdkResult};
 
 const MANAGER: Item<'_, Option<Addr>> = Item::new(ADMIN_NAMESPACE);
 
@@ -16,7 +16,7 @@ pub trait Identification: Sized {
     fn proxy_address(&self, deps: Deps) -> SdkResult<Addr>;
     fn manager_address(&self, deps: Deps) -> SdkResult<Addr> {
         let maybe_proxy_manager = MANAGER.query(&deps.querier, self.proxy_address(deps)?)?;
-        maybe_proxy_manager.ok_or_else(|| SdkError::AdminNotSet {
+        maybe_proxy_manager.ok_or_else(|| AbstractSdkError::AdminNotSet {
             proxy_addr: self.proxy_address(deps).unwrap(),
         })
     }

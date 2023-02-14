@@ -1,4 +1,4 @@
-use abstract_sdk::SdkError;
+use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use cw_controllers::AdminError;
 use thiserror::Error;
@@ -9,7 +9,7 @@ pub enum AppError {
     Std(#[from] StdError),
 
     #[error(transparent)]
-    Abstract(#[from] SdkError),
+    AbstractSdk(#[from] AbstractSdkError),
 
     #[error("{0}")]
     Admin(#[from] AdminError),

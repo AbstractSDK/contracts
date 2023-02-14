@@ -1,5 +1,5 @@
 use crate::base::Handler;
-use cosmwasm_std::{Binary, Deps, Env, StdError};
+use cosmwasm_std::{Binary, Deps, Env};
 
 pub trait QueryEndpoint: Handler {
     type QueryMsg;

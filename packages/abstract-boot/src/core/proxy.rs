@@ -2,7 +2,7 @@ use crate::Manager;
 pub use abstract_os::proxy::{ExecuteMsgFns as ProxyExecFns, QueryMsgFns as ProxyQueryFns};
 use abstract_os::{objects::proxy_asset::UncheckedProxyAsset, proxy::*, MANAGER, PROXY};
 use boot_core::{
-    interface::ContractInstance, prelude::boot_contract, BootEnvironment, BootError, Contract,
+    interface::ContractInstance, prelude::boot_contract, BootEnvironment, Contract,
 };
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]

@@ -1,6 +1,6 @@
 use cosmwasm_std::{Addr, Deps};
 
-use crate::{error::AbstractError, AbstractResult};
+use crate::{error::AbstractOsError, AbstractResult};
 
 #[cosmwasm_schema::cw_serde]
 #[non_exhaustive]
@@ -35,7 +35,7 @@ impl ModuleReference {
     pub fn unwrap_core(&self) -> AbstractResult<u64> {
         match self {
             ModuleReference::Core(v) => Ok(*v),
-            _ => Err(AbstractError::Assert(
+            _ => Err(AbstractOsError::Assert(
                 "module reference not a core module.".to_string(),
             )),
         }
@@ -44,7 +44,7 @@ impl ModuleReference {
     pub fn unwrap_native(&self) -> AbstractResult<Addr> {
         match self {
             ModuleReference::Native(addr) => Ok(addr.clone()),
-            _ => Err(AbstractError::Assert(
+            _ => Err(AbstractOsError::Assert(
                 "module reference not a native module.".to_string(),
             )),
         }
@@ -53,7 +53,7 @@ impl ModuleReference {
     pub fn unwrap_api(&self) -> AbstractResult<Addr> {
         match self {
             ModuleReference::Api(addr) => Ok(addr.clone()),
-            _ => Err(AbstractError::Assert(
+            _ => Err(AbstractOsError::Assert(
                 "module reference not an api module.".to_string(),
             )),
         }
@@ -62,7 +62,7 @@ impl ModuleReference {
     pub fn unwrap_app(&self) -> AbstractResult<u64> {
         match self {
             ModuleReference::App(v) => Ok(*v),
-            _ => Err(AbstractError::Assert(
+            _ => Err(AbstractOsError::Assert(
                 "module reference not an app module.".to_string(),
             )),
         }
@@ -71,7 +71,7 @@ impl ModuleReference {
     pub fn unwrap_standalone(&self) -> AbstractResult<u64> {
         match self {
             ModuleReference::Standalone(v) => Ok(*v),
-            _ => Err(AbstractError::Assert(
+            _ => Err(AbstractOsError::Assert(
                 "module reference not a standalone module.".to_string(),
             )),
         }
@@ -83,7 +83,7 @@ impl ModuleReference {
         match self {
             ModuleReference::Native(addr) => Ok(addr.clone()),
             ModuleReference::Api(addr) => Ok(addr.clone()),
-            _ => Err(AbstractError::Assert(
+            _ => Err(AbstractOsError::Assert(
                 "module reference not a native or api module.".to_string(),
             )),
         }

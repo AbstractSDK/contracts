@@ -3,7 +3,7 @@ use boot_core::{
     interface::{BootExecute, BootInstantiate, ContractInstance},
     prelude::boot_contract,
 };
-use boot_core::{BootEnvironment, BootError, Contract, TxResponse};
+use boot_core::{BootEnvironment, Contract, TxResponse};
 use cosmwasm_std::{Addr, Binary, Uint128};
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]

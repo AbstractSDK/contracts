@@ -1,10 +1,10 @@
 use crate::{ApiContract, ApiError};
 use abstract_sdk::base::{AbstractContract, Handler};
-use abstract_sdk::{EndpointError, SdkError};
+use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::Empty;
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<SdkError>,
+        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
         ExecMsg,
         InitMsg,
         QueryMsg,

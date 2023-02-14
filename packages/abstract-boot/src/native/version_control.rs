@@ -15,7 +15,7 @@ use boot_core::Daemon;
 use boot_core::{
     interface::{BootQuery, ContractInstance},
     prelude::boot_contract,
-    BootEnvironment, BootError, Contract, IndexResponse, TxResponse,
+    BootEnvironment, Contract, IndexResponse, TxResponse,
 };
 use cosmwasm_std::Addr;
 use semver::Version;

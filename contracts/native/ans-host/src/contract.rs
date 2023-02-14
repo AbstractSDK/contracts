@@ -69,7 +69,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             filter: _filter, // TODO: Implement filtering
         } => queries::query_asset_info_list(deps, start_after, limit),
         QueryMsg::Contracts { entries } => {
-            queries::query_contract(deps, env, entries.iter().map(|x| x).collect())
+            queries::query_contract(deps, env, entries.iter().collect())
         }
         QueryMsg::ContractList {
             start_after,
@@ -77,7 +77,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             filter: _filter, // TODO: Implement filtering
         } => queries::query_contract_list(deps, start_after, limit),
         QueryMsg::Channels { entries: names } => {
-            queries::query_channels(deps, env, names.iter().map(|x| x).collect())
+            queries::query_channels(deps, env, names.iter().collect())
         }
         QueryMsg::ChannelList {
             start_after,

@@ -1,6 +1,6 @@
 //! # Verification
 //! The `Verify` struct provides helper functions that enable the contract to verify if the sender is an OS, OS admin, etc.
-use crate::{SdkError, SdkResult};
+use crate::{AbstractSdkError, SdkResult};
 
 use super::AbstractRegistryAccess;
 use abstract_os::{
@@ -30,19 +30,19 @@ impl<'a, T: OsVerification> OsRegistry<'a, T> {
     pub fn assert_manager(&self, maybe_manager: &Addr) -> SdkResult<Core> {
         let os_id = OS_ID
             .query(&self.deps.querier, maybe_manager.clone())
-            .map_err(|_| SdkError::FailedToQueryOsId {
+            .map_err(|_| AbstractSdkError::FailedToQueryOsId {
                 contract_addr: maybe_manager.clone(),
             })?;
         let vc_address = self.base.abstract_registry(self.deps)?;
         let maybe_os = OS_ADDRESSES.query(&self.deps.querier, vc_address.clone(), os_id)?;
         match maybe_os {
-            None => Err(SdkError::UnknownOsId {
+            None => Err(AbstractSdkError::UnknownOsId {
                 os_id,
                 version_control_addr: vc_address,
             }),
             Some(core) => {
                 if &core.manager != maybe_manager {
-                    Err(SdkError::NotManager(maybe_manager.clone(), os_id))
+                    Err(AbstractSdkError::NotManager(maybe_manager.clone(), os_id))
                 } else {
                     Ok(core)
                 }
@@ -54,20 +54,20 @@ impl<'a, T: OsVerification> OsRegistry<'a, T> {
     pub fn assert_proxy(&self, maybe_proxy: &Addr) -> SdkResult<Core> {
         let os_id = OS_ID
             .query(&self.deps.querier, maybe_proxy.clone())
-            .map_err(|_| SdkError::FailedToQueryOsId {
+            .map_err(|_| AbstractSdkError::FailedToQueryOsId {
                 contract_addr: maybe_proxy.clone(),
             })?;
 
         let vc_address = self.base.abstract_registry(self.deps)?;
         let maybe_os = OS_ADDRESSES.query(&self.deps.querier, vc_address.clone(), os_id)?;
         match maybe_os {
-            None => Err(SdkError::UnknownOsId {
+            None => Err(AbstractSdkError::UnknownOsId {
                 os_id,
                 version_control_addr: vc_address,
             }),
             Some(core) => {
                 if &core.proxy != maybe_proxy {
-                    Err(SdkError::NotProxy(maybe_proxy.clone(), os_id))
+                    Err(AbstractSdkError::NotProxy(maybe_proxy.clone(), os_id))
                 } else {
                     Ok(core)
                 }

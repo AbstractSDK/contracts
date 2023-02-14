@@ -4,7 +4,7 @@ use abstract_os::{
     subscription::*,
 };
 use boot_core::{
-    interface::BootExecute, prelude::boot_contract, BootEnvironment, BootError, Contract,
+    interface::BootExecute, prelude::boot_contract, BootEnvironment, Contract,
 };
 use cosmwasm_std::{Decimal, Uint128};
 use cw_asset::AssetInfoUnchecked;

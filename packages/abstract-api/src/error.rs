@@ -1,4 +1,4 @@
-use abstract_sdk::SdkError;
+use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use thiserror::Error;
 
@@ -8,7 +8,7 @@ pub enum ApiError {
     Std(#[from] StdError),
 
     #[error(transparent)]
-    Abstract(#[from] SdkError),
+    AbstractSdk(#[from] AbstractSdkError),
 
     #[error("Sender: {sender} of request to {api} is not a Manager")]
     UnauthorizedApiRequest { api: String, sender: String },
@@ -29,8 +29,8 @@ pub enum ApiError {
     MissingIbcReceiveHandler,
 }
 
-impl Into<StdError> for ApiError {
-    fn into(self) -> StdError {
-        StdError::generic_err(self.to_string())
+impl From<ApiError> for StdError {
+    fn from(val: ApiError) -> Self {
+        StdError::generic_err(val.to_string())
     }
 }

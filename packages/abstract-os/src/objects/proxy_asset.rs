@@ -15,7 +15,7 @@ use super::{
     contract_entry::{ContractEntry, UncheckedContractEntry},
 };
 use crate::{
-    error::AbstractError,
+    error::AbstractOsError,
     manager::state::OS_MODULES,
     proxy::{
         state::{ADMIN, VAULT_ASSETS},
@@ -101,7 +101,7 @@ impl UncheckedValueRef {
                 let lowercase = pair.to_ascii_lowercase();
                 let mut composite: Vec<&str> = lowercase.split('_').collect();
                 if composite.len() != 2 {
-                    return Err(AbstractError::EntryFormattingError {
+                    return Err(AbstractOsError::EntryFormattingError {
                         actual: entry.to_string(),
                         expected: "asset1_asset2".to_string(),
                     });
@@ -219,7 +219,7 @@ impl ProxyAsset {
                             }))?;
                         return Ok(response.value);
                     } else {
-                        return Err(AbstractError::ApiNotInstalled(api_name));
+                        return Err(AbstractOsError::ApiNotInstalled(api_name));
                     }
                 }
             }
@@ -286,7 +286,7 @@ impl ProxyAsset {
         let other_pool_asset_names = get_pair_asset_names(pair.contract.as_str());
 
         if other_pool_asset_names.len() != 2 {
-            return Err(AbstractError::FormattingError {
+            return Err(AbstractOsError::FormattingError {
                 object: "lp asset entry".into(),
                 expected: "with two '_' seperated asset names".into(),
                 actual: pair.to_string(),
@@ -341,7 +341,7 @@ pub fn other_asset_name<'a>(asset: &'a str, composite: &'a str) -> AbstractResul
     composite
         .split('_')
         .find(|component| *component != asset)
-        .ok_or_else(|| AbstractError::FormattingError {
+        .ok_or_else(|| AbstractOsError::FormattingError {
             object: "lp asset key".to_string(),
             expected: "with '_' as asset separator".to_string(),
             actual: composite.to_string(),

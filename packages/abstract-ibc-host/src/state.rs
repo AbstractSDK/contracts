@@ -38,7 +38,7 @@ pub const RESULTS: Item<Vec<Binary>> = Item::new("results");
 
 /// The state variables for our host contract.
 pub struct Host<
-    Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::SdkError> + 'static,
+    Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError> + 'static,
     CustomExecMsg: 'static = Empty,
     CustomInitMsg: 'static = Empty,
     CustomQueryMsg: 'static = Empty,
@@ -64,7 +64,7 @@ pub struct Host<
 
 // Constructor
 impl<
-        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::SdkError>,
+        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,

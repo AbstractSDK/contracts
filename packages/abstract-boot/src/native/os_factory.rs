@@ -1,5 +1,5 @@
 use boot_core::{
-    prelude::boot_contract, state::StateInterface, BootEnvironment, BootError, Contract,
+    prelude::boot_contract, state::StateInterface, BootEnvironment, Contract,
     IndexResponse, TxResponse,
 };
 use cosmwasm_std::Addr;

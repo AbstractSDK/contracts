@@ -1,11 +1,9 @@
-use crate::{SdkError, SdkResult};
+use crate::{AbstractSdkError, SdkResult};
 
 use super::handler::Handler;
-use crate::error::EndpointError;
+
 use abstract_os::abstract_ica::StdAck;
-use cosmwasm_std::{
-    Binary, Deps, DepsMut, Empty, Env, MessageInfo, Reply, Response, StdError, Storage,
-};
+use cosmwasm_std::{Binary, Deps, DepsMut, Empty, Env, MessageInfo, Reply, Response, Storage};
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Item;
 use os::objects::dependency::StaticDependency;
@@ -39,7 +37,7 @@ const MAX_REPLY_COUNT: usize = 2;
 /// State variables for a generic contract
 pub struct AbstractContract<
     Module: Handler + 'static,
-    Error: From<SdkError> + 'static,
+    Error: From<AbstractSdkError> + 'static,
     CustomExecMsg = Empty,
     CustomInitMsg = Empty,
     CustomQueryMsg = Empty,
@@ -71,7 +69,7 @@ pub struct AbstractContract<
 
 impl<
         Module,
-        Error: From<SdkError>,
+        Error: From<AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,
@@ -205,7 +203,7 @@ mod test {
     #[derive(Error, Debug, PartialEq)]
     pub enum MockError {
         #[error("{0}")]
-        Sdk(#[from] SdkError),
+        Sdk(#[from] AbstractSdkError),
     }
 
     struct MockModule;

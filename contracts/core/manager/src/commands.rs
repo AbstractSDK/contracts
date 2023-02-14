@@ -1470,7 +1470,7 @@ mod test {
             let res = execute_as(deps.as_mut(), "not subscsription", msg);
             assert_that(&res)
                 .is_err()
-                .is_equal_to(ManagerError::CallerNotSubscriptionContract {});
+                .matches(|e| matches!(e, ManagerError::CallerNotSubscriptionContract {}));
 
             Ok(())
         }

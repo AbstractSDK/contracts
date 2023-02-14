@@ -24,7 +24,7 @@ pub struct AppState {
 }
 /// The state variables for our AppContract.
 pub struct AppContract<
-    Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::SdkError> + 'static,
+    Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError> + 'static,
     CustomExecMsg: 'static = Empty,
     CustomInitMsg: 'static = Empty,
     CustomQueryMsg: 'static = Empty,
@@ -48,7 +48,7 @@ pub struct AppContract<
 
 /// Constructor
 impl<
-        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::SdkError>,
+        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,

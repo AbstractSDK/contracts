@@ -1,6 +1,6 @@
 use abstract_os::{api, app};
 
-use cosmwasm_std::{Addr, Deps, StdError, StdResult};
+use cosmwasm_std::{Addr, Deps};
 
 
 use crate::{

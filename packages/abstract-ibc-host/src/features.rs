@@ -1,11 +1,11 @@
 use crate::{Host, HostError};
 use abstract_os::objects::OsId;
 use abstract_sdk::base::features::{AbstractNameService, Identification, ModuleIdentification};
-use abstract_sdk::{SdkError, SdkResult};
-use cosmwasm_std::{Deps, StdError, StdResult};
+use abstract_sdk::{AbstractSdkError, SdkResult};
+use cosmwasm_std::Deps;
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::SdkError>,
+        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,
@@ -20,7 +20,7 @@ impl<
 }
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::SdkError>,
+        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,
@@ -31,30 +31,30 @@ impl<
 {
     fn proxy_address(&self, _deps: Deps) -> SdkResult<cosmwasm_std::Addr> {
         self.target()
-            .map_err(|e| SdkError::generic_err(e.to_string()))
+            .map_err(|e| AbstractSdkError::generic_err(e.to_string()))
             .map(ToOwned::to_owned)
     }
     fn manager_address(&self, _deps: Deps) -> SdkResult<cosmwasm_std::Addr> {
-        Err(SdkError::generic_err(
+        Err(AbstractSdkError::generic_err(
             "manager address not available on stateless ibc deployment",
         ))
     }
 
     fn os_core(&self, _deps: Deps) -> SdkResult<abstract_sdk::os::version_control::Core> {
-        Err(SdkError::generic_err(
+        Err(AbstractSdkError::generic_err(
             "OS core not available on stateless ibc deployment",
         ))
     }
 
     fn os_id(&self, _deps: Deps) -> SdkResult<OsId> {
-        Err(SdkError::generic_err(
+        Err(AbstractSdkError::generic_err(
             "os_id not available on stateless ibc deployment",
         ))
     }
 }
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::SdkError>,
+        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,

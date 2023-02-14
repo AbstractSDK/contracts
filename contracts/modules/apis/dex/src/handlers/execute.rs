@@ -9,7 +9,7 @@ use abstract_os::objects::AnsAsset;
 use abstract_sdk::base::features::AbstractNameService;
 use abstract_sdk::{IbcInterface, Resolve};
 use cosmwasm_std::{
-    to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
+    to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError,
 };
 
 const ACTION_RETRIES: u8 = 3;

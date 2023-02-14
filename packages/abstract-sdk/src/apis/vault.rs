@@ -46,7 +46,7 @@ impl<'a, T: VaultInterface> Vault<'a, T> {
         let querier = self.deps.querier;
         let proxy_address = self.base.proxy_address(self.deps)?;
         let response = VAULT_ASSETS.query(&querier, proxy_address, asset)?;
-        response.ok_or_else(|| crate::SdkError::MissingAsset {
+        response.ok_or_else(|| crate::AbstractSdkError::MissingAsset {
             asset: asset.clone(),
         })
     }

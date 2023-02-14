@@ -8,14 +8,14 @@ use abstract_sdk::{
         Handler,
     },
     os::api::{ApiExecuteMsg, BaseExecuteMsg, ExecuteMsg},
-    Execution, ModuleInterface, OsVerification, SdkError,
+    AbstractSdkError, Execution, ModuleInterface, OsVerification,
 };
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdError};
 use schemars::JsonSchema;
 use serde::Serialize;
 
 impl<
-        Error: From<StdError> + From<ApiError> + From<SdkError>,
+        Error: From<StdError> + From<ApiError> + From<AbstractSdkError>,
         CustomExecMsg: Serialize + JsonSchema + ApiExecuteMsg,
         CustomInitMsg,
         CustomQueryMsg,
@@ -47,7 +47,7 @@ impl<
 
 /// The api-contract base implementation.
 impl<
-        Error: From<StdError> + From<ApiError> + From<SdkError>,
+        Error: From<StdError> + From<ApiError> + From<AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,

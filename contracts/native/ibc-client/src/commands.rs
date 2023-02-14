@@ -2,7 +2,7 @@ use crate::contract::{IbcClientResponse, IbcClientResult, MAX_RETRIES};
 use crate::error::IbcClientError;
 use crate::ibc::PACKET_LIFETIME;
 
-use abstract_os::AbstractResult;
+
 use abstract_sdk::{
     base::features::Identification,
     feature_objects::VersionControlContract,
@@ -19,7 +19,7 @@ use abstract_sdk::{
     Execution, OsVerification, Resolve,
 };
 use cosmwasm_std::{
-    to_binary, Coin, CosmosMsg, DepsMut, Env, IbcMsg, MessageInfo, Response, StdError, StdResult,
+    to_binary, Coin, CosmosMsg, DepsMut, Env, IbcMsg, MessageInfo, StdError,
     Storage,
 };
 

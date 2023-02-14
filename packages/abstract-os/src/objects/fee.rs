@@ -3,7 +3,7 @@ use cw_asset::Asset;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{error::AbstractError, AbstractResult};
+use crate::{error::AbstractOsError, AbstractResult};
 
 /// A wrapper around Decimal to help handle fractional fees.
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
@@ -15,7 +15,7 @@ pub struct Fee {
 impl Fee {
     pub fn new(share: Decimal) -> AbstractResult<Self> {
         if share >= Decimal::percent(100) {
-            return Err(AbstractError::Fee(
+            return Err(AbstractOsError::Fee(
                 "fee share must be lesser than 100%".to_string(),
             ));
         }

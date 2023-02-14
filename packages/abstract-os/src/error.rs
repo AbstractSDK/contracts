@@ -6,7 +6,7 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 // #[derive(Error, Debug, PartialEq)]
-pub enum AbstractError {
+pub enum AbstractOsError {
     #[error("Std error encountered while handling os object: {0}")]
     Std(#[from] StdError),
 

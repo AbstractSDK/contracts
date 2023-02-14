@@ -14,7 +14,7 @@ use abstract_sdk::{
 };
 use cosmwasm_std::{
     entry_point, Binary, Deps, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo,
-    Reply, Response, StdResult,
+    Reply, Response,
 };
 use dex::host_exchange::Osmosis;
 use dex::LocalDex;

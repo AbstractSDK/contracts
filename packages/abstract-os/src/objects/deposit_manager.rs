@@ -3,7 +3,7 @@ use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{error::AbstractError, AbstractResult};
+use crate::{error::AbstractOsError, AbstractResult};
 
 #[derive(Default, Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct Deposit {
@@ -24,7 +24,7 @@ impl Deposit {
 
     pub fn decrease(&mut self, amount: Uint64) -> AbstractResult<Self> {
         if amount > self.value {
-            return Err(AbstractError::Deposit(format!(
+            return Err(AbstractOsError::Deposit(format!(
                 "Cannot decrease {} by {}",
                 self.value, amount
             )));

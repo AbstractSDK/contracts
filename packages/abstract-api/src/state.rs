@@ -8,7 +8,7 @@ use abstract_sdk::{
     feature_objects::AnsHost,
     namespaces::BASE_STATE,
     os::version_control::Core,
-    EndpointError, SdkError,
+    AbstractSdkError,
 };
 use cosmwasm_std::{Addr, Empty, StdError, StdResult, Storage};
 use cw_storage_plus::{Item, Map};
@@ -30,7 +30,7 @@ pub struct ApiState {
 
 /// The state variables for our ApiContract.
 pub struct ApiContract<
-    Error: From<cosmwasm_std::StdError> + From<ApiError> + From<SdkError> + 'static,
+    Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError> + 'static,
     CustomExecMsg: 'static = Empty,
     CustomInitMsg: 'static = Empty,
     CustomQueryMsg: 'static = Empty,
@@ -47,7 +47,7 @@ pub struct ApiContract<
 
 /// Constructor
 impl<
-        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<SdkError>,
+        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,

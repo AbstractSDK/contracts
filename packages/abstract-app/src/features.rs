@@ -1,5 +1,5 @@
 use crate::{AppContract, AppError};
-use abstract_os::AbstractResult;
+
 use abstract_sdk::base::features::ModuleIdentification;
 use abstract_sdk::base::ContractName;
 use abstract_sdk::{
@@ -7,10 +7,10 @@ use abstract_sdk::{
     feature_objects::AnsHost,
     SdkResult,
 };
-use cosmwasm_std::{Addr, Deps, StdResult};
+use cosmwasm_std::{Addr, Deps};
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::SdkError>,
+        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,
@@ -32,7 +32,7 @@ impl<
 }
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::SdkError>,
+        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,
@@ -54,7 +54,7 @@ impl<
 }
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::SdkError>,
+        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,

@@ -36,7 +36,7 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
         let manager_addr = self.base.manager_address(self.deps)?;
         let maybe_module_addr = OS_MODULES.query(&self.deps.querier, manager_addr, module_id)?;
         let Some(module_addr) = maybe_module_addr else {
-            return Err(crate::SdkError::MissingModule { module: module_id.to_string() });
+            return Err(crate::AbstractSdkError::MissingModule { module: module_id.to_string() });
         };
         Ok(module_addr)
     }
@@ -64,7 +64,7 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
 
         match is_dependency {
             true => Ok(()),
-            false => Err(crate::SdkError::MissingDependency {
+            false => Err(crate::AbstractSdkError::MissingDependency {
                 module: module_id.to_string(),
             }),
         }

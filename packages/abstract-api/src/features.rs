@@ -3,12 +3,12 @@ use abstract_sdk::base::features::ModuleIdentification;
 use abstract_sdk::{
     base::features::{AbstractNameService, AbstractRegistryAccess, Identification},
     feature_objects::AnsHost,
-    EndpointError, SdkError, SdkResult,
+    AbstractSdkError, SdkResult,
 };
 use cosmwasm_std::{Addr, Deps, StdError};
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<SdkError>,
+        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,
@@ -23,7 +23,7 @@ impl<
 
 /// Retrieve identifying information about the calling OS
 impl<
-        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<SdkError>,
+        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,
@@ -57,7 +57,7 @@ impl<
 }
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<SdkError>,
+        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,
@@ -72,7 +72,7 @@ impl<
 
 /// Get the version control contract
 impl<
-        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<SdkError>,
+        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,

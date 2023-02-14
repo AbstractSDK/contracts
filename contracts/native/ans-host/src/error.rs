@@ -1,5 +1,5 @@
-use abstract_os::AbstractError;
-use abstract_sdk::SdkError;
+use abstract_os::AbstractOsError;
+use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use cw_asset::AssetError;
 use cw_controllers::AdminError;
@@ -11,10 +11,10 @@ pub enum AnsHostError {
     Std(#[from] StdError),
 
     #[error("{0}")]
-    Abstract(#[from] AbstractError),
+    AbstractOs(#[from] AbstractOsError),
 
     #[error("{0}")]
-    AbstractSdk(#[from] SdkError),
+    AbstractSdk(#[from] AbstractSdkError),
 
     #[error("Asset error encountered while handling assets: {0}")]
     CwAsset(#[from] AssetError),

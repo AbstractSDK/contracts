@@ -1,4 +1,4 @@
-use crate::{base::Handler, SdkError};
+use crate::{base::Handler, AbstractSdkError};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 pub trait ReceiveEndpoint: Handler {
@@ -12,7 +12,7 @@ pub trait ReceiveEndpoint: Handler {
         let maybe_handler = self.maybe_receive_handler();
         maybe_handler.map_or_else(
             || {
-                Err(Self::Error::from(SdkError::MissingHandler {
+                Err(Self::Error::from(AbstractSdkError::MissingHandler {
                     endpoint: "receive".to_string(),
                 }))
             },

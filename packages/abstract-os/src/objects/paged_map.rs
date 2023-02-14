@@ -1,4 +1,4 @@
-use crate::{error::AbstractError, AbstractResult};
+use crate::{error::AbstractOsError, AbstractResult};
 use cosmwasm_std::{DepsMut, Order, StdError, StdResult, Storage};
 use cw_storage_plus::{Bound, Item, Map, Path};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -60,7 +60,7 @@ impl<'a, T, Acum> PagedMap<'a, T, Acum> {
         Acum: Serialize + DeserializeOwned + Default + Clone,
     {
         if self.status.load(store)?.is_locked {
-            return Err(AbstractError::Storage {
+            return Err(AbstractOsError::Storage {
                 object: PAGED_MAP.into(),
                 msg: "Can not save to map while locked. Proceed with operation first.".into(),
             });
@@ -84,7 +84,7 @@ impl<'a, T, Acum> PagedMap<'a, T, Acum> {
         Acum: Serialize + DeserializeOwned + Default + Clone,
     {
         if self.status.load(store)?.is_locked {
-            return Err(AbstractError::Storage {
+            return Err(AbstractOsError::Storage {
                 object: PAGED_MAP.into(),
                 msg: "Can not save to map while locked. Proceed with operation first.".into(),
             });

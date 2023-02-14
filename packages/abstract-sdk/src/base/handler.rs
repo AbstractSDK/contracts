@@ -4,8 +4,8 @@ use super::contract_base::{
 };
 use crate::base::contract_base::{ContractMetadata, ContractName, VersionString};
 use crate::base::ReplyHandlerFn;
-use crate::error::EndpointError;
-use crate::{SdkError, SdkResult};
+
+use crate::{AbstractSdkError, SdkResult};
 use abstract_os::objects::dependency::StaticDependency;
 use cosmwasm_std::Storage;
 use cw2::ContractVersion;
@@ -14,7 +14,7 @@ pub trait Handler
 where
     Self: Sized + 'static,
 {
-    type Error: From<SdkError>;
+    type Error: From<AbstractSdkError>;
     type CustomExecMsg;
     type CustomInitMsg;
     type CustomQueryMsg;
@@ -58,7 +58,7 @@ where
         &self,
     ) -> SdkResult<ExecuteHandlerFn<Self, Self::CustomExecMsg, Self::Error>> {
         let Some(handler) = self.maybe_execute_handler() else {
-            return Err(SdkError::MissingHandler{ endpoint: "execution handler".to_string()})
+            return Err(AbstractSdkError::MissingHandler{ endpoint: "execution handler".to_string()})
         };
         Ok(handler)
     }
@@ -74,7 +74,7 @@ where
         &self,
     ) -> SdkResult<InstantiateHandlerFn<Self, Self::CustomInitMsg, Self::Error>> {
         let Some(handler) = self.maybe_instantiate_handler() else {
-            return Err(SdkError::MissingHandler{ endpoint: "instantiate".to_string()})
+            return Err(AbstractSdkError::MissingHandler{ endpoint: "instantiate".to_string()})
         };
         Ok(handler)
     }
@@ -88,7 +88,7 @@ where
     }
     fn query_handler(&self) -> SdkResult<QueryHandlerFn<Self, Self::CustomQueryMsg, Self::Error>> {
         let Some(handler) = self.maybe_query_handler() else {
-            return Err(SdkError::MissingHandler{ endpoint: "query".to_string()})
+            return Err(AbstractSdkError::MissingHandler{ endpoint: "query".to_string()})
         };
         Ok(handler)
     }
@@ -104,7 +104,7 @@ where
         &self,
     ) -> SdkResult<MigrateHandlerFn<Self, Self::CustomMigrateMsg, Self::Error>> {
         let Some(handler) = self.maybe_migrate_handler() else {
-            return Err(SdkError::MissingHandler{ endpoint: "migrate".to_string()})
+            return Err(AbstractSdkError::MissingHandler{ endpoint: "migrate".to_string()})
         };
         Ok(handler)
     }
@@ -118,7 +118,7 @@ where
     }
     fn receive_handler(&self) -> SdkResult<ReceiveHandlerFn<Self, Self::ReceiveMsg, Self::Error>> {
         let Some(handler) = self.maybe_receive_handler() else {
-            return Err(SdkError::MissingHandler{ endpoint: "receive".to_string()})
+            return Err(AbstractSdkError::MissingHandler{ endpoint: "receive".to_string()})
         };
         Ok(handler)
     }
@@ -149,7 +149,7 @@ where
 
     fn reply_handler(&self, id: u64) -> SdkResult<ReplyHandlerFn<Self, Self::Error>> {
         let Some(handler) = self.maybe_reply_handler(id) else {
-            return Err(SdkError::MissingHandler{ endpoint: format! {"reply with id {id}"}})
+            return Err(AbstractSdkError::MissingHandler{ endpoint: format! {"reply with id {id}"}})
         };
         Ok(handler)
     }

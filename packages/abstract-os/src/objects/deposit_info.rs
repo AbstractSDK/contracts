@@ -2,7 +2,7 @@ use cw_asset::AssetInfo;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{error::AbstractError, AbstractResult};
+use crate::{error::AbstractOsError, AbstractResult};
 
 /// Helper for handling deposit assets.
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -16,7 +16,7 @@ impl DepositInfo {
             return Ok(());
         }
 
-        Err(AbstractError::Assert(format!(
+        Err(AbstractOsError::Assert(format!(
             "Invalid deposit asset. Expected {}, got {}.",
             self.asset_info, asset_info
         )))
@@ -25,7 +25,7 @@ impl DepositInfo {
     pub fn get_denom(self) -> AbstractResult<String> {
         match self.asset_info {
             AssetInfo::Native(denom) => Ok(denom),
-            AssetInfo::Cw20(..) => Err(AbstractError::Assert(
+            AssetInfo::Cw20(..) => Err(AbstractOsError::Assert(
                 "'denom' only exists for native tokens.".into(),
             )),
             _ => panic!("asset not supported"),

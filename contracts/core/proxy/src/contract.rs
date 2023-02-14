@@ -2,26 +2,23 @@ use crate::commands::*;
 use crate::error::ProxyError;
 use crate::queries::*;
 use abstract_os::objects::module_version::migrate_module_data;
-use abstract_os::AbstractResult;
+
 use abstract_sdk::{
     feature_objects::AnsHost,
     os::{
         objects::{
-            core::OS_ID, module_version::set_module_data, proxy_asset::ProxyAsset, AssetEntry,
+            core::OS_ID, module_version::set_module_data, AssetEntry,
         },
         proxy::{
             state::{State, ADMIN, ANS_HOST, STATE, VAULT_ASSETS},
-            AssetConfigResponse, BaseAssetResponse, ExecuteMsg, HoldingAmountResponse,
-            HoldingValueResponse, InstantiateMsg, MigrateMsg, QueryMsg, TokenValueResponse,
-            TotalValueResponse,
+            AssetConfigResponse, ExecuteMsg,
+            HoldingValueResponse, InstantiateMsg, MigrateMsg, QueryMsg,
         },
         PROXY,
     },
-    Resolve,
 };
 use cosmwasm_std::{
-    to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Order, Response, StdError, StdResult,
-    Uint128,
+    to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
 };
 use cw2::{get_contract_version, set_contract_version};
 use semver::Version;

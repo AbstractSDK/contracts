@@ -22,7 +22,7 @@ use abstract_os::{
 };
 use abstract_sdk::helpers::cw_storage_plus::load_many;
 use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdError, StdResult, Storage};
-use cw_asset::{AssetError, AssetInfoUnchecked};
+use cw_asset::{AssetInfoUnchecked};
 use cw_storage_plus::Bound;
 
 pub(crate) const DEFAULT_LIMIT: u8 = 15;
@@ -255,7 +255,7 @@ fn load_asset_pairing_entry(
     storage: &dyn Storage,
     key: DexAssetPairing,
 ) -> StdResult<AssetPairingMapEntry> {
-    let value = ASSET_PAIRINGS.load(storage, &key.clone())?;
+    let value = ASSET_PAIRINGS.load(storage, &key)?;
     Ok((key, value))
 }
 

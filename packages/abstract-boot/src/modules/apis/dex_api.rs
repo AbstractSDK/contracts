@@ -6,7 +6,7 @@ use abstract_os::{
     EXCHANGE, MANAGER,
 };
 use boot_core::interface::ContractInstance;
-use boot_core::{prelude::boot_contract, BootEnvironment, BootError, Contract};
+use boot_core::{prelude::boot_contract, BootEnvironment, Contract};
 use cosmwasm_std::Empty;
 use log::info;
 
