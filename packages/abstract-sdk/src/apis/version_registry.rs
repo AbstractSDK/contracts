@@ -1,4 +1,5 @@
 use crate::{cw_helpers::cosmwasm_std::wasm_smart_query, features::AbstractRegistryAccess};
+use crate::{AbstractSdkError, AbstractSdkResult};
 use abstract_os::{
     objects::{
         module::{Module, ModuleInfo},
@@ -6,8 +7,7 @@ use abstract_os::{
     },
     version_control::{state::MODULE_LIBRARY, ModulesResponse, QueryMsg},
 };
-use cosmwasm_std::StdResult;
-use cosmwasm_std::{Deps, StdError};
+use cosmwasm_std::Deps;
 
 /// Access the Abstract Version Control and access module information.
 pub trait ModuleRegistryInterface: AbstractRegistryAccess {
@@ -27,24 +27,19 @@ pub struct ModuleRegistry<'a, T: ModuleRegistryInterface> {
 impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
     pub fn query_module_reference_raw(
         &self,
-        module_info: ModuleInfo,
-    ) -> StdResult<ModuleReference> {
+        module_info: &ModuleInfo,
+    ) -> AbstractSdkResult<ModuleReference> {
         let registry_addr = self.base.abstract_registry(self.deps)?;
         MODULE_LIBRARY
-            .query(
-                &self.deps.querier,
-                registry_addr.clone(),
-                module_info.clone(),
-            )?
-            .ok_or_else(|| {
-                StdError::generic_err(format!(
-                    "Module {module_info} can not be found in registry {registry_addr}."
-                ))
+            .query(&self.deps.querier, registry_addr.clone(), module_info)?
+            .ok_or_else(|| AbstractSdkError::ModuleNotFound {
+                module: module_info.to_string(),
+                registry_addr,
             })
     }
 
     /// Smart query for a module
-    pub fn query_module(&self, module_info: ModuleInfo) -> StdResult<Module> {
+    pub fn query_module(&self, module_info: ModuleInfo) -> AbstractSdkResult<Module> {
         let registry_addr = self.base.abstract_registry(self.deps)?;
         let ModulesResponse { mut modules } = self.deps.querier.query(&wasm_smart_query(
             registry_addr.into_string(),

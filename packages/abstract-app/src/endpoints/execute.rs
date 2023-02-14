@@ -11,7 +11,10 @@ use schemars::JsonSchema;
 use serde::Serialize;
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<AppError> + 'static,
+        Error: From<cosmwasm_std::StdError>
+            + From<AppError>
+            + From<abstract_sdk::AbstractSdkError>
+            + 'static,
         CustomExecMsg: Serialize + JsonSchema + AppExecuteMsg,
         CustomInitMsg,
         CustomQueryMsg,
@@ -50,7 +53,7 @@ impl<
 }
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<AppError>,
+        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,

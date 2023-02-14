@@ -1,6 +1,7 @@
 //! # Vault
 //! The Vault object provides function for querying balances and asset values for the OS.
 
+use crate::AbstractSdkResult;
 use crate::{
     cw_helpers::cosmwasm_std::wasm_smart_query,
     features::{AbstractNameService, Identification},
@@ -11,7 +12,7 @@ use abstract_os::{
         state::VAULT_ASSETS, AssetsResponse, HoldingValueResponse, QueryMsg, TotalValueResponse,
     },
 };
-use cosmwasm_std::{Deps, StdError, StdResult, Uint128};
+use cosmwasm_std::{Deps, Uint128};
 
 /// Retrieve asset-registration information from the OS.
 /// Query asset values and balances.
@@ -32,7 +33,7 @@ pub struct Vault<'a, T: VaultInterface> {
 impl<'a, T: VaultInterface> Vault<'a, T> {
     /// Query the total value denominated in the base asset
     /// The provided address must implement the TotalValue Query
-    pub fn query_total_value(&self) -> StdResult<Uint128> {
+    pub fn query_total_value(&self) -> AbstractSdkResult<Uint128> {
         let querier = self.deps.querier;
         let proxy_address = self.base.proxy_address(self.deps)?;
         let response: TotalValueResponse = querier.query(&wasm_smart_query(
@@ -44,20 +45,18 @@ impl<'a, T: VaultInterface> Vault<'a, T> {
     }
 
     /// RawQuery the proxy for a ProxyAsset
-    pub fn asset(&self, asset: &AssetEntry) -> StdResult<ProxyAsset> {
+    pub fn asset(&self, asset: &AssetEntry) -> AbstractSdkResult<ProxyAsset> {
         let querier = self.deps.querier;
         let proxy_address = self.base.proxy_address(self.deps)?;
-        let response = VAULT_ASSETS.query(&querier, proxy_address, asset.clone())?;
-        response.ok_or_else(|| {
-            StdError::generic_err(format!(
-                "Asset {asset} is not registered as an asset on your proxy contract."
-            ))
+        let response = VAULT_ASSETS.query(&querier, proxy_address, asset)?;
+        response.ok_or_else(|| crate::AbstractSdkError::MissingAsset {
+            asset: asset.clone(),
         })
     }
 
     /// Query the holding value denominated in the base asset
     /// The provided address must implement the HoldingValue Query
-    pub fn balance_value(&self, asset_entry: &AssetEntry) -> StdResult<Uint128> {
+    pub fn balance_value(&self, asset_entry: &AssetEntry) -> AbstractSdkResult<Uint128> {
         let querier = self.deps.querier;
         let proxy_address = self.base.proxy_address(self.deps)?;
         let response: HoldingValueResponse = querier.query(&wasm_smart_query(
@@ -76,7 +75,7 @@ impl<'a, T: VaultInterface> Vault<'a, T> {
         &self,
         asset_entry: &AssetEntry,
         amount: Option<Uint128>,
-    ) -> StdResult<Uint128> {
+    ) -> AbstractSdkResult<Uint128> {
         let querier = self.deps.querier;
         let proxy_address = self.base.proxy_address(self.deps)?;
 
@@ -92,7 +91,7 @@ impl<'a, T: VaultInterface> Vault<'a, T> {
     }
 
     /// List ProxyAssets raw
-    pub fn enabled_assets_list(&self) -> StdResult<(Vec<AssetEntry>, AssetEntry)> {
+    pub fn enabled_assets_list(&self) -> AbstractSdkResult<(Vec<AssetEntry>, AssetEntry)> {
         let querier = self.deps.querier;
         let proxy_address = self.base.proxy_address(self.deps)?;
 
@@ -123,7 +122,7 @@ impl<'a, T: VaultInterface> Vault<'a, T> {
     }
 
     /// List ProxyAssets raw
-    pub fn proxy_assets_list(&self) -> StdResult<Vec<(AssetEntry, ProxyAsset)>> {
+    pub fn proxy_assets_list(&self) -> AbstractSdkResult<Vec<(AssetEntry, ProxyAsset)>> {
         let querier = self.deps.querier;
         let proxy_address = self.base.proxy_address(self.deps)?;
 

@@ -1,20 +1,21 @@
 use crate::{error::ApiError, state::ApiContract, ApiResult};
 use abstract_os::{api::ApiRequestMsg, version_control::Core};
 use abstract_sdk::features::ModuleIdentification;
+use abstract_sdk::AbstractResponse;
 use abstract_sdk::{
     base::{
         endpoints::{ExecuteEndpoint, IbcCallbackEndpoint, ReceiveEndpoint},
         Handler,
     },
     os::api::{ApiExecuteMsg, BaseExecuteMsg, ExecuteMsg},
-    AbstractResponse, Execution, ModuleInterface, OsVerification,
+    AbstractSdkError, Execution, ModuleInterface, OsVerification,
 };
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdError};
 use schemars::JsonSchema;
 use serde::Serialize;
 
 impl<
-        Error: From<StdError> + From<ApiError>,
+        Error: From<StdError> + From<ApiError> + From<AbstractSdkError>,
         CustomExecMsg: Serialize + JsonSchema + ApiExecuteMsg,
         CustomInitMsg,
         CustomQueryMsg,
@@ -46,7 +47,7 @@ impl<
 
 /// The api-contract base implementation.
 impl<
-        Error: From<StdError> + From<ApiError>,
+        Error: From<StdError> + From<ApiError> + From<AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,
@@ -94,6 +95,7 @@ impl<
                 let traders = self
                     .traders
                     .load(deps.storage, proxy_address)
+                    .map_err(Into::into)
                     .map_err(unauthorized_sender)?;
 
                 if traders.contains(sender) {
@@ -210,32 +212,18 @@ mod tests {
     use abstract_testing::*;
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
-        Addr, Empty, StdError, Storage,
+        Addr, Empty, Storage,
     };
     use std::collections::HashSet;
 
+    use crate::test_common::{MockApiExecMsg, MockError};
     use speculoos::prelude::*;
-    use thiserror::Error;
-
-    #[cosmwasm_schema::cw_serde]
-    struct MockApiExecMsg;
-
-    impl api::ApiExecuteMsg for MockApiExecMsg {}
 
     type MockApi = ApiContract<MockError, MockApiExecMsg, Empty, Empty, Empty>;
     type ApiMockResult = Result<(), MockError>;
 
     const TEST_METADATA: &str = "test_metadata";
     const TEST_TRADER: &str = "test_trader";
-
-    #[derive(Error, Debug, PartialEq)]
-    enum MockError {
-        #[error("{0}")]
-        Std(#[from] StdError),
-
-        #[error(transparent)]
-        Api(#[from] ApiError),
-    }
 
     fn mock_init(deps: DepsMut) -> Result<Response, MockError> {
         let api = MockApi::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA));

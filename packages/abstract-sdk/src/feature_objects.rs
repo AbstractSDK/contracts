@@ -8,6 +8,8 @@ use crate::features::{AbstractRegistryAccess, Identification, ModuleIdentificati
 pub use abstract_os::objects::ans_host::AnsHost;
 use abstract_os::version_control::Core;
 use cosmwasm_std::{Addr, Deps};
+
+use crate::AbstractSdkResult;
 use os::PROXY;
 
 /// Store the Version Control contract.
@@ -24,7 +26,7 @@ impl VersionControlContract {
 }
 
 impl AbstractRegistryAccess for VersionControlContract {
-    fn abstract_registry(&self, _deps: Deps) -> cosmwasm_std::StdResult<Addr> {
+    fn abstract_registry(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
         Ok(self.address.clone())
     }
 }
@@ -45,7 +47,7 @@ impl ProxyContract {
 }
 
 impl Identification for ProxyContract {
-    fn proxy_address(&self, _deps: Deps) -> cosmwasm_std::StdResult<Addr> {
+    fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
         Ok(self.contract_address.clone())
     }
 }
@@ -57,15 +59,15 @@ impl ModuleIdentification for ProxyContract {
 }
 
 impl Identification for Core {
-    fn proxy_address(&self, _deps: Deps) -> cosmwasm_std::StdResult<Addr> {
+    fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
         Ok(self.proxy.clone())
     }
 
-    fn manager_address(&self, _deps: Deps) -> cosmwasm_std::StdResult<Addr> {
+    fn manager_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
         Ok(self.manager.clone())
     }
 
-    fn os_core(&self, _deps: Deps) -> cosmwasm_std::StdResult<Core> {
+    fn os_core(&self, _deps: Deps) -> AbstractSdkResult<Core> {
         Ok(self.clone())
     }
 }
@@ -78,10 +80,7 @@ impl ModuleIdentification for Core {
 }
 
 impl crate::features::AbstractNameService for AnsHost {
-    fn ans_host(
-        &self,
-        _deps: Deps,
-    ) -> cosmwasm_std::StdResult<abstract_os::objects::ans_host::AnsHost> {
+    fn ans_host(&self, _deps: Deps) -> AbstractSdkResult<abstract_os::objects::ans_host::AnsHost> {
         Ok(self.clone())
     }
 }

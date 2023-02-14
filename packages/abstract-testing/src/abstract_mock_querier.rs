@@ -52,7 +52,7 @@ impl AbstractMockQuerierBuilder {
     }
 
     /// Add mock assets into ANS
-    pub fn assets(mut self, assets: Vec<(AssetEntry, &AssetInfo)>) -> Self {
+    pub fn assets(mut self, assets: Vec<(&AssetEntry, &AssetInfo)>) -> Self {
         self.builder =
             self.builder
                 .with_contract_map_entries(TEST_ANS_HOST, ASSET_ADDRESSES, assets);
