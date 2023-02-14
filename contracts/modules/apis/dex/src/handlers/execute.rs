@@ -1,4 +1,4 @@
-use crate::contract::{DexApi, DexResponse, DexResult};
+use crate::contract::{DexApi, DexResult};
 use crate::error::DexError;
 use crate::exchanges::exchange_resolver;
 use crate::LocalDex;
@@ -8,9 +8,7 @@ use abstract_os::objects::ans_host::AnsHost;
 use abstract_os::objects::AnsAsset;
 use abstract_sdk::base::features::AbstractNameService;
 use abstract_sdk::{IbcInterface, Resolve};
-use cosmwasm_std::{
-    to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError,
-};
+use cosmwasm_std::{to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError};
 
 const ACTION_RETRIES: u8 = 3;
 
@@ -20,7 +18,7 @@ pub fn execute_handler(
     info: MessageInfo,
     api: DexApi,
     msg: DexExecuteMsg,
-) -> DexResponse {
+) -> DexResult {
     let DexExecuteMsg {
         dex: dex_name,
         action,
@@ -43,7 +41,7 @@ fn handle_local_api_request(
     api: DexApi,
     action: DexAction,
     exchange: String,
-) -> DexResponse {
+) -> DexResult {
     let exchange = exchange_resolver::resolve_exchange(&exchange)?;
     Ok(Response::new().add_submessage(api.resolve_dex_action(deps, action, exchange, false)?))
 }
@@ -54,7 +52,7 @@ fn handle_ibc_api_request(
     api: &DexApi,
     dex_name: DexName,
     action: &DexAction,
-) -> DexResponse {
+) -> DexResult {
     let host_chain = dex_name;
     let ans = api.name_service(deps.as_ref());
     let ibc_client = api.ibc_client(deps.as_ref());
