@@ -10,8 +10,8 @@ pub enum AbstractOsError {
     #[error("Std error encountered while handling os object: {0}")]
     Std(#[from] StdError),
 
-    #[error("Asset error encountered while handling assets: {0}")]
-    CwAsset(#[from] AssetError),
+    #[error("{0}")]
+    Asset(#[from] AssetError),
 
     #[error("cw math overflow error: {0}")]
     Overflow(#[from] OverflowError),

@@ -26,7 +26,7 @@ pub enum AbstractSdkError {
     Std(#[from] cosmwasm_std::StdError),
 
     #[error("Asset error encountered in sdk while handling assets: {0}")]
-    CwAsset(#[from] AssetError),
+    Asset(#[from] AssetError),
 
     // #[error("cw math overflow error: {0}")]
     // Overflow(#[from] OverflowError),

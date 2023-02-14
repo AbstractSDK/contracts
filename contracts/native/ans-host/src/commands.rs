@@ -926,7 +926,7 @@ mod test {
                 .matches(|e| {
                     matches!(
                         e,
-                        AnsHostError::CwAsset(AssetError::Std(StdError::GenericErr { .. }))
+                        AnsHostError::Asset(AssetError::Std(StdError::GenericErr { .. }))
                     )
                 })
                 .matches(|e| e.to_string().contains("address not normalized"));

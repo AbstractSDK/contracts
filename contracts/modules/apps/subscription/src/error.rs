@@ -18,8 +18,8 @@ pub enum SubscriptionError {
     #[error("{0}")]
     AbstractSdk(#[from] AbstractSdkError),
 
-    #[error("Asset error encountered while handling assets: {0}")]
-    CwAsset(#[from] AssetError),
+    #[error("{0}")]
+    Asset(#[from] AssetError),
 
     #[error("{0}")]
     AdminError(#[from] AdminError),
