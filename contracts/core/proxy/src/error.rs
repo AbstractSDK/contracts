@@ -52,9 +52,3 @@ pub enum ProxyError {
         requested: Uint128,
     },
 }
-
-impl From<ProxyError> for StdError {
-    fn from(e: ProxyError) -> Self {
-        StdError::generic_err(e.to_string())
-    }
-}

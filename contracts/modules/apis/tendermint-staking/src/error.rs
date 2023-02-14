@@ -7,9 +7,7 @@ use thiserror::Error;
 pub enum TendermintStakeError {
     #[error("{0}")]
     Std(#[from] StdError),
-    //
-    // #[error("{0}")]
-    // AbstractSdk(#[from] AbstractError),
+
     #[error("{0}")]
     AbstractSdk(#[from] AbstractSdkError),
 
