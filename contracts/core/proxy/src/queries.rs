@@ -1,4 +1,4 @@
-use crate::contract::ProxyQueryResult;
+use crate::contract::ProxyResult;
 use crate::error::ProxyError;
 use abstract_os::proxy::{
     BaseAssetResponse, HoldingAmountResponse, TokenValueResponse, TotalValueResponse,
@@ -91,7 +91,7 @@ pub fn compute_total_value(deps: Deps, env: Env) -> AbstractResult<Uint128> {
     Ok(total_value)
 }
 
-pub fn query_total_value(deps: Deps, env: Env) -> ProxyQueryResult<TotalValueResponse> {
+pub fn query_total_value(deps: Deps, env: Env) -> ProxyResult<TotalValueResponse> {
     let value = compute_total_value(deps, env)?;
     Ok(TotalValueResponse { value })
 }
@@ -276,7 +276,7 @@ pub fn query_holding_amount(
     deps: Deps,
     env: Env,
     identifier: String,
-) -> ProxyQueryResult<HoldingAmountResponse> {
+) -> ProxyResult<HoldingAmountResponse> {
     let vault_asset: AssetEntry = identifier.into();
     let ans_host = ANS_HOST.load(deps.storage)?;
     let asset_info = vault_asset.resolve(&deps.querier, &ans_host)?;
@@ -290,7 +290,7 @@ pub fn query_token_value(
     env: Env,
     identifier: String,
     amount: Option<Uint128>,
-) -> ProxyQueryResult<TokenValueResponse> {
+) -> ProxyResult<TokenValueResponse> {
     Ok(TokenValueResponse {
         // Default the value calculation to one so that the caller doesn't need to provide a default
         value: compute_token_value(deps, &env, identifier, amount.or(Some(Uint128::one())))?,

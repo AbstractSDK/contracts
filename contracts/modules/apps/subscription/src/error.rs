@@ -1,14 +1,25 @@
 use abstract_app::AppError;
 use abstract_os::objects::OsId;
+use abstract_os::AbstractError;
+use abstract_sdk::SdkError;
 use cosmwasm_std::{DecimalRangeExceeded, OverflowError, StdError};
-use cw_asset::AssetInfo;
+use cw_asset::{AssetError, AssetInfo};
 use cw_controllers::AdminError;
 use thiserror::Error;
 
-#[derive(Error, Debug, PartialEq)]
+#[derive(Error, Debug)]
 pub enum SubscriptionError {
     #[error("{0}")]
     Std(#[from] StdError),
+
+    #[error("{0}")]
+    Abstract(#[from] AbstractError),
+
+    #[error("{0}")]
+    AbstractSdk(#[from] SdkError),
+
+    #[error("Asset error encountered while handling assets: {0}")]
+    CwAsset(#[from] AssetError),
 
     #[error("{0}")]
     AdminError(#[from] AdminError),

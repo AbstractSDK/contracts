@@ -26,8 +26,7 @@ use cosmwasm_std::{
 use cw2::{get_contract_version, set_contract_version};
 use semver::Version;
 
-pub type ProxyResult = Result<Response, ProxyError>;
-pub type ProxyQueryResult<T> = Result<T, ProxyError>;
+pub type ProxyResult<T> = Result<T, ProxyError>;
 /*
     The proxy is the bank account of the protocol. It owns the liquidity and acts as a proxy contract.
     Whitelisted dApps construct messages for this contract. The dApps are controlled by Governance.
@@ -41,7 +40,7 @@ pub fn instantiate(
     _env: Env,
     info: MessageInfo,
     msg: InstantiateMsg,
-) -> ProxyResult {
+) -> ProxyResult<Response> {
     // Use CW2 to set the contract version, this is needed for migrations
     set_contract_version(deps.storage, PROXY, CONTRACT_VERSION)?;
     set_module_data(deps.storage, PROXY, CONTRACT_VERSION, &[], None::<String>)?;
@@ -59,7 +58,12 @@ pub fn instantiate(
 }
 
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
-pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> ProxyResult {
+pub fn execute(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    msg: ExecuteMsg,
+) -> ProxyResult<Response> {
     match msg {
         ExecuteMsg::ModuleAction { msgs } => execute_module_action(deps, info, msgs),
         ExecuteMsg::IbcAction { msgs } => execute_ibc_action(deps, info, msgs),
@@ -73,7 +77,7 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
 }
 
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ProxyResult {
+pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ProxyResult<Response> {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
 
@@ -84,7 +88,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ProxyResult {
     Ok(Response::default())
 }
 
-pub fn handle_query(deps: Deps, env: Env, msg: QueryMsg) -> ProxyQueryResult<Binary> {
+pub fn handle_query(deps: Deps, env: Env, msg: QueryMsg) -> ProxyResult<Binary> {
     match msg {
         QueryMsg::Config {} => to_binary(&query_config(deps)?),
         QueryMsg::TotalValue {} => to_binary(&query_total_value(deps, env)?),
