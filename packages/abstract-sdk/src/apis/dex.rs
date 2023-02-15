@@ -150,8 +150,8 @@ mod test {
     use super::*;
 
     use crate::apis::test_common::*;
-    use os::dex::ExecuteMsg;
     use os::api::ApiRequestMsg;
+    use os::dex::ExecuteMsg;
 
     fn expected_request_with_test_proxy(request: DexExecuteMsg) -> ExecuteMsg {
         ApiRequestMsg {
