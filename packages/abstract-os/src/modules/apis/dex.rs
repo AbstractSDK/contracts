@@ -38,7 +38,6 @@ pub struct DexInstantiateMsg {
 
 /// Dex Execute msg
 #[cosmwasm_schema::cw_serde]
-// Struct messages not yet supported by BOOT
 pub enum DexApiExecuteMsg {
     Action(DexExecuteMsg),
     UpdateFee {
@@ -55,7 +54,6 @@ impl From<DexExecuteMsg> for DexApiExecuteMsg {
 
 /// Dex Execute msg
 #[cosmwasm_schema::cw_serde]
-// Struct messages not yet supported by BOOT
 pub struct DexExecuteMsg {
     pub dex: DexName,
     pub action: DexAction,
