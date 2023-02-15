@@ -101,3 +101,25 @@ The API can then be used by any contract that implements its required traits, in
       Ok(send_deposit_to_vault_msg)
   }
 ```
+
+### Abstract Base
+
+To use an API either construct a [`feature object`](crate::feature_objects) or use an Abstract base contract as the starting-point of your application.  
+The available base contracts are:
+
+|  Kind          | Migratable | Installable  |
+|----------------|---------------|---------------|
+| [App](https://crates.io/crates/abstract-app) | ✅  | ✅ |
+| [API](https://crates.io/crates/abstract-api)   | ❌ | ✅ |
+| [IBC-host](https://crates.io/crates/abstract-ibc-host)   | ✅ | ❌ |
+
+Each base supports a set of endpoints that can accept custom handlers. These handlers can be added to the base using a static builder pattern.
+All the available endpoints are discussed [here](crate::base::endpoints).
+
+## Usage
+
+Add `abstract-sdk` to your `Cargo.toml` by running:
+
+```bash
+cargo add abstract-sdk
+```
