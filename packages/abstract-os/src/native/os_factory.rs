@@ -14,7 +14,7 @@ pub mod state {
 
     use serde::{Deserialize, Serialize};
 
-    use crate::objects::common_namespace::ADMIN_NAMESPACE;
+    use crate::objects::{common_namespace::ADMIN_NAMESPACE, core::OsId};
 
     #[cosmwasm_schema::cw_serde]
     pub struct Config {
@@ -22,7 +22,7 @@ pub mod state {
         pub ans_host_contract: Addr,
         pub module_factory_address: Addr,
         pub subscription_address: Option<Addr>,
-        pub next_os_id: u32,
+        pub next_os_id: OsId,
     }
 
     #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -35,7 +35,7 @@ pub mod state {
     pub const CONTEXT: Item<Context> = Item::new("\u{0}{6}context");
 }
 
-use crate::objects::gov_type::GovernanceDetails;
+use crate::objects::{core::OsId, gov_type::GovernanceDetails};
 use cosmwasm_schema::QueryResponses;
 use cw20::Cw20ReceiveMsg;
 
@@ -98,7 +98,7 @@ pub struct ConfigResponse {
     pub version_control_contract: String,
     pub module_factory_address: String,
     pub subscription_address: Option<String>,
-    pub next_os_id: u32,
+    pub next_os_id: OsId,
 }
 
 /// We currently take no arguments for migrations

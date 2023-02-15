@@ -2,16 +2,20 @@ use crate::{
     state::{Host, ACCOUNTS},
     HostError,
 };
-use abstract_sdk::base::{Handler, QueryEndpoint};
-use abstract_sdk::os::ibc_host::{
-    AccountInfo, AccountResponse, BaseQueryMsg, HostConfigResponse, ListAccountsResponse, QueryMsg,
+use abstract_os::objects::OsId;
+use abstract_sdk::{
+    base::{Handler, QueryEndpoint},
+    os::ibc_host::{
+        AccountInfo, AccountResponse, BaseQueryMsg, HostConfigResponse, ListAccountsResponse,
+        QueryMsg,
+    },
 };
-use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdError, StdResult};
+use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult};
 
 /// Where we dispatch the queries for the Host
 /// These ApiQueryMsg declarations can be found in `abstract_sdk::os::common_module::app_msg`
 impl<
-        Error: From<cosmwasm_std::StdError> + From<HostError>,
+        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,
@@ -21,7 +25,7 @@ impl<
     for Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     type QueryMsg = QueryMsg<Self::CustomQueryMsg>;
-    fn query(&self, deps: Deps, env: Env, msg: Self::QueryMsg) -> Result<Binary, StdError> {
+    fn query(&self, deps: Deps, env: Env, msg: Self::QueryMsg) -> Result<Binary, Error> {
         match msg {
             QueryMsg::App(api_query) => self.query_handler()?(deps, env, self, api_query),
             QueryMsg::Base(base_query) => {
@@ -31,7 +35,7 @@ impl<
     }
 }
 impl<
-        Error: From<cosmwasm_std::StdError> + From<HostError>,
+        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,
@@ -56,7 +60,8 @@ impl<
         })
     }
 }
-pub fn query_account(deps: Deps, channel_id: String, os_id: u32) -> StdResult<AccountResponse> {
+
+pub fn query_account(deps: Deps, channel_id: String, os_id: OsId) -> StdResult<AccountResponse> {
     let account = ACCOUNTS.may_load(deps.storage, (&channel_id, os_id))?;
     Ok(AccountResponse {
         account: account.map(Into::into),

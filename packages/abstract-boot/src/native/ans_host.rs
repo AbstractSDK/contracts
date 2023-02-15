@@ -1,16 +1,19 @@
-use abstract_os::ans_host::*;
-use abstract_os::objects::pool_id::UncheckedPoolAddress;
-use abstract_os::objects::{PoolMetadata, UncheckedChannelEntry, UncheckedContractEntry};
-use abstract_os::ANS_HOST;
-use boot_core::prelude::ContractInstance;
+use abstract_os::{
+    ans_host::*,
+    objects::{
+        pool_id::UncheckedPoolAddress, PoolMetadata, UncheckedChannelEntry, UncheckedContractEntry,
+    },
+    ANS_HOST,
+};
 use boot_core::{
-    prelude::boot_contract, BootEnvironment, BootError, Contract, IndexResponse, TxResponse,
+    prelude::{boot_contract, ContractInstance},
+    BootEnvironment, BootError, Contract, IndexResponse, TxResponse,
 };
 use cosmwasm_std::Addr;
 use cw_asset::AssetInfoUnchecked;
+use log::info;
 use serde_json::from_reader;
-use std::collections::HashSet;
-use std::{cmp::min, env, fs::File};
+use std::{cmp::min, collections::HashSet, env, fs::File};
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct AnsHost<Chain>;
@@ -33,21 +36,23 @@ where
 /// Implementation for the daemon, which maintains actual state
 #[cfg(feature = "daemon")]
 use boot_core::Daemon;
+
 #[cfg(feature = "daemon")]
 impl AnsHost<Daemon> {
-    pub fn update_all(&self) -> Result<(), BootError> {
+    pub fn update_all(&self) -> Result<(), crate::AbstractBootError> {
         self.update_assets()?;
         self.update_contracts()?;
         self.update_pools()?;
         Ok(())
     }
 
-    pub fn update_assets(&self) -> Result<(), BootError> {
+    pub fn update_assets(&self) -> Result<(), crate::AbstractBootError> {
         let path = env::var("ANS_HOST_ASSETS").unwrap();
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
         let chain_id = self.get_chain().state.chain.chain_id.clone();
+        info!("{}", chain_id);
         let network_id = self.get_chain().state.id.clone();
         let maybe_assets = json
             .get(chain_id)
@@ -92,7 +97,7 @@ impl AnsHost<Daemon> {
         Ok(())
     }
 
-    pub fn update_channels(&self) -> Result<(), BootError> {
+    pub fn update_channels(&self) -> Result<(), crate::AbstractBootError> {
         let path = env::var("ANS_HOST_CHANNELS").unwrap();
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
@@ -123,7 +128,7 @@ impl AnsHost<Daemon> {
         Ok(())
     }
 
-    pub fn update_contracts(&self) -> Result<(), BootError> {
+    pub fn update_contracts(&self) -> Result<(), crate::AbstractBootError> {
         let path = env::var("ANS_HOST_CONTRACTS").unwrap();
 
         let file =
@@ -169,7 +174,7 @@ impl AnsHost<Daemon> {
         Ok(())
     }
 
-    pub fn update_pools(&self) -> Result<(), BootError> {
+    pub fn update_pools(&self) -> Result<(), crate::AbstractBootError> {
         let path = env::var("ANS_HOST_POOLS").unwrap();
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
@@ -214,14 +219,14 @@ impl AnsHost<Daemon> {
         Ok(())
     }
 
-    fn execute_chunked<T, F>(
+    fn execute_chunked<T, MsgBuilder>(
         &self,
         items: &[T],
         chunk_size: usize,
-        mut msg_builder: F,
-    ) -> Result<(), BootError>
+        mut msg_builder: MsgBuilder,
+    ) -> Result<(), crate::AbstractBootError>
     where
-        F: FnMut(&[T]) -> ExecuteMsg,
+        MsgBuilder: FnMut(&[T]) -> ExecuteMsg,
     {
         let mut i = 0;
         while i < items.len() {

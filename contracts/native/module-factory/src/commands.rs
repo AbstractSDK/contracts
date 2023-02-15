@@ -1,5 +1,7 @@
-use crate::{contract::ModuleFactoryResult, error::ModuleFactoryError};
-use crate::{response::MsgInstantiateContractResponse, state::*};
+use crate::{
+    contract::ModuleFactoryResult, error::ModuleFactoryError,
+    response::MsgInstantiateContractResponse, state::*,
+};
 use abstract_macros::abstract_response;
 use abstract_sdk::{
     feature_objects::VersionControlContract,
@@ -33,11 +35,10 @@ pub fn execute_create_module(
     let config = CONFIG.load(deps.storage)?;
     // Verify sender is active OS manager
     // Construct feature object to access registry functions
-    let binding = VersionControlContract {
-        address: config.version_control_address,
-    };
-    let version_registry = binding.version_register(deps.as_ref());
-    let os_registry = binding.os_register(deps.as_ref());
+    let binding = VersionControlContract::new(config.version_control_address);
+
+    let version_registry = binding.module_registry(deps.as_ref());
+    let os_registry = binding.os_registry(deps.as_ref());
     // assert that sender is manager
     let core = os_registry.assert_manager(&info.sender)?;
 
@@ -199,12 +200,12 @@ pub fn update_factory_binaries(
         // Update function for new or existing keys
         key.assert_version_variant()?;
         let insert = |_| -> StdResult<Binary> { Ok(binary) };
-        MODULE_INIT_BINARIES.update(deps.storage, key, insert)?;
+        MODULE_INIT_BINARIES.update(deps.storage, &key, insert)?;
     }
 
     for key in to_remove {
         key.assert_version_variant()?;
-        MODULE_INIT_BINARIES.remove(deps.storage, key);
+        MODULE_INIT_BINARIES.remove(deps.storage, &key);
     }
     Ok(ModuleFactoryResponse::action("update_factory_binaries"))
 }
@@ -320,9 +321,11 @@ mod test {
 
     mod update_factory_binaries {
         use super::*;
-        use abstract_os::objects::module::ModuleVersion;
-        use abstract_testing::map_tester::{CwMapTester, CwMapTesterBuilder};
-        use abstract_testing::TEST_ADMIN;
+        use abstract_os::{objects::module::ModuleVersion, AbstractOsError};
+        use abstract_testing::{
+            map_tester::{CwMapTester, CwMapTesterBuilder},
+            TEST_ADMIN,
+        };
 
         fn update_module_msgs_builder(
             to_add: Vec<(ModuleInfo, Binary)>,
@@ -339,9 +342,15 @@ mod test {
             )
         }
 
-        fn setup_map_tester<'a>(
-        ) -> CwMapTester<'a, ExecuteMsg, ModuleFactoryError, ModuleInfo, Binary, ModuleInfo, Binary>
-        {
+        fn setup_map_tester<'a>() -> CwMapTester<
+            'a,
+            ExecuteMsg,
+            ModuleFactoryError,
+            &'a ModuleInfo,
+            Binary,
+            ModuleInfo,
+            Binary,
+        > {
             let info = mock_info(TEST_ADMIN, &[]);
 
             let tester = CwMapTesterBuilder::default()
@@ -393,7 +402,9 @@ mod test {
 
             assert_that!(res)
                 .is_err()
-                .matches(|err| matches!(err, ModuleFactoryError::Std(StdError::GenericErr { .. })));
+                .is_equal_to(ModuleFactoryError::AbstractOs(AbstractOsError::Assert(
+                    "Module version must be set to a specific version".into(),
+                )));
 
             Ok(())
         }

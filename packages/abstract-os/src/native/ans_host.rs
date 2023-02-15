@@ -5,12 +5,12 @@
 //! ## Description
 //! Contract and asset addresses are stored on the ans_host contract and are retrievable trough smart or raw queries.
 
-use crate::objects::pool_id::UncheckedPoolAddress;
-use crate::objects::pool_reference::PoolReference;
 use crate::objects::{
     asset_entry::AssetEntry,
     contract_entry::{ContractEntry, UncheckedContractEntry},
     dex_asset_pairing::DexAssetPairing,
+    pool_id::UncheckedPoolAddress,
+    pool_reference::PoolReference,
     ChannelEntry, PoolMetadata, PoolType, UncheckedChannelEntry, UniquePoolId,
 };
 use cosmwasm_schema::QueryResponses;
@@ -22,6 +22,14 @@ type DexName = String;
 
 /// A map entry of ((asset_x, asset_y, dex) -> compound_pool_id)
 pub type AssetPairingMapEntry = (DexAssetPairing, Vec<PoolReference>);
+/// Map entry for assets (asset_name -> info)
+pub type AssetMapEntry = (AssetEntry, AssetInfo);
+/// Map entry for assets (info -> asset_name)
+pub type AssetInfoMapEntry = (AssetInfo, AssetEntry);
+/// Map entry for channels
+pub type ChannelMapEntry = (ChannelEntry, String);
+/// Map entry for contracts (contract -> address)
+pub type ContractMapEntry = (ContractEntry, Addr);
 /// A map entry of (unique_pool_id -> pool_metadata)
 pub type PoolMetadataMapEntry = (UniquePoolId, PoolMetadata);
 
@@ -33,10 +41,9 @@ pub mod state {
     use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
 
-    use crate::objects::pool_reference::PoolReference;
     use crate::objects::{
         asset_entry::AssetEntry, common_namespace::ADMIN_NAMESPACE, contract_entry::ContractEntry,
-        pool_metadata::PoolMetadata, ChannelEntry,
+        pool_metadata::PoolMetadata, pool_reference::PoolReference, ChannelEntry,
     };
 
     /// Ans host configuration
@@ -52,21 +59,21 @@ pub mod state {
 
     /// Stores name and address of tokens and pairs
     /// LP token pairs are stored alphabetically
-    pub const ASSET_ADDRESSES: Map<AssetEntry, AssetInfo> = Map::new("assets");
-    pub const REV_ASSET_ADDRESSES: Map<AssetInfo, AssetEntry> = Map::new("rev_assets");
+    pub const ASSET_ADDRESSES: Map<&AssetEntry, AssetInfo> = Map::new("assets");
+    pub const REV_ASSET_ADDRESSES: Map<&AssetInfo, AssetEntry> = Map::new("rev_assets");
 
     /// Stores contract addresses
-    pub const CONTRACT_ADDRESSES: Map<ContractEntry, Addr> = Map::new("contracts");
+    pub const CONTRACT_ADDRESSES: Map<&ContractEntry, Addr> = Map::new("contracts");
 
     /// stores channel-ids
-    pub const CHANNELS: Map<ChannelEntry, String> = Map::new("channels");
+    pub const CHANNELS: Map<&ChannelEntry, String> = Map::new("channels");
 
     /// Stores the registered dex names
     pub const REGISTERED_DEXES: Item<Vec<DexName>> = Item::new("registered_dexes");
 
     /// Stores the asset pairing entries to their pool ids
     /// (asset1, asset2, dex_name) -> {id: uniqueId, pool_id: poolId}
-    pub const ASSET_PAIRINGS: Map<DexAssetPairing, Vec<PoolReference>> = Map::new("pool_ids");
+    pub const ASSET_PAIRINGS: Map<&DexAssetPairing, Vec<PoolReference>> = Map::new("pool_ids");
 
     /// Stores the metadata for the pools using the unique pool id as the key
     pub const POOL_METADATA: Map<UniquePoolId, PoolMetadata> = Map::new("pools");
@@ -127,6 +134,22 @@ pub struct AssetPairingFilter {
     pub dex: Option<String>,
 }
 
+/// UNUSED - stub for future use
+#[cosmwasm_schema::cw_serde]
+pub struct ContractFilter {}
+
+/// UNUSED - stub for future use
+#[cosmwasm_schema::cw_serde]
+pub struct ChannelFilter {}
+
+/// UNUSED - stub for future use
+#[cosmwasm_schema::cw_serde]
+pub struct AssetFilter {}
+
+/// UNUSED - stub for future use
+#[cosmwasm_schema::cw_serde]
+pub struct AssetInfoFilter {}
+
 /// Filter on the pool metadatas
 #[cosmwasm_schema::cw_serde]
 pub struct PoolMetadataFilter {
@@ -156,36 +179,54 @@ pub enum QueryMsg {
     /// returns [`AssetListResponse`]
     #[returns(AssetListResponse)]
     AssetList {
-        page_token: Option<String>,
-        page_size: Option<u8>,
+        filter: Option<AssetFilter>,
+        start_after: Option<String>,
+        limit: Option<u8>,
+    },
+    /// Queries assets based on address
+    /// returns [`AssetsResponse`]
+    #[returns(AssetsResponse)]
+    AssetInfos {
+        // Addresses of assets to query
+        infos: Vec<AssetInfoUnchecked>,
+    },
+    /// Page over asset infos
+    /// returns [`AssetInfoListResponse`]
+    #[returns(AssetInfoListResponse)]
+    AssetInfoList {
+        filter: Option<AssetInfoFilter>,
+        start_after: Option<AssetInfoUnchecked>,
+        limit: Option<u8>,
     },
     /// Queries contracts based on name
     /// returns [`ContractsResponse`]
     #[returns(ContractsResponse)]
     Contracts {
         // Project and contract names of contracts to query
-        names: Vec<ContractEntry>,
+        entries: Vec<ContractEntry>,
     },
     /// Page over contracts
     /// returns [`ContractListResponse`]
     #[returns(ContractListResponse)]
     ContractList {
-        page_token: Option<ContractEntry>,
-        page_size: Option<u8>,
+        filter: Option<ContractFilter>,
+        start_after: Option<ContractEntry>,
+        limit: Option<u8>,
     },
     /// Queries contracts based on name
     /// returns [`ChannelsResponse`]
     #[returns(ChannelsResponse)]
     Channels {
         // Project and contract names of contracts to query
-        names: Vec<ChannelEntry>,
+        entries: Vec<ChannelEntry>,
     },
     /// Page over contracts
     /// returns [`ChannelListResponse`]
     #[returns(ChannelListResponse)]
     ChannelList {
-        page_token: Option<ChannelEntry>,
-        page_size: Option<u8>,
+        filter: Option<ChannelFilter>,
+        start_after: Option<ChannelEntry>,
+        limit: Option<u8>,
     },
     /// Retrieve the registered dexes
     /// returns [`RegisteredDexesResponse`]
@@ -193,28 +234,28 @@ pub enum QueryMsg {
     RegisteredDexes {},
     /// Retrieve the pools with the specified keys
     /// returns [`PoolsResponse`]
-    /// TODO: this may need to take a page_token and page_size for the return
+    /// TODO: this may need to take a start_after and limit for the return
     #[returns(PoolsResponse)]
-    Pools { keys: Vec<DexAssetPairing> },
+    Pools { pairings: Vec<DexAssetPairing> },
     /// Retrieve the (optionally-filtered) list of pools.
     /// returns [`PoolAddressListResponse`]
     #[returns(PoolAddressListResponse)]
     PoolList {
         filter: Option<AssetPairingFilter>,
-        page_token: Option<DexAssetPairing>,
-        page_size: Option<u8>,
+        start_after: Option<DexAssetPairing>,
+        limit: Option<u8>,
     },
     /// Get the pool metadatas for given pool ids
     /// returns [`PoolMetadatasResponse`]
     #[returns(PoolMetadatasResponse)]
-    PoolMetadatas { keys: Vec<UniquePoolId> },
+    PoolMetadatas { ids: Vec<UniquePoolId> },
     /// Retrieve the (optionally-filtered) list of pool metadatas
     /// returns [`PoolMetadataListResponse`]
     #[returns(PoolMetadataListResponse)]
     PoolMetadataList {
         filter: Option<PoolMetadataFilter>,
-        page_token: Option<UniquePoolId>,
-        page_size: Option<u8>,
+        start_after: Option<UniquePoolId>,
+        limit: Option<u8>,
     },
 }
 
@@ -230,14 +271,26 @@ pub struct ConfigResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct AssetsResponse {
     /// Assets (name, assetinfo)
-    pub assets: Vec<(AssetEntry, AssetInfo)>,
+    pub assets: Vec<AssetMapEntry>,
 }
 
 /// Query response
 #[cosmwasm_schema::cw_serde]
 pub struct AssetListResponse {
     /// Assets (name, assetinfo)
-    pub assets: Vec<(AssetEntry, AssetInfo)>,
+    pub assets: Vec<AssetMapEntry>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct AssetInfosResponse {
+    /// Assets (assetinfo, name)
+    pub infos: Vec<AssetInfoMapEntry>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct AssetInfoListResponse {
+    /// Assets (assetinfo, name)
+    pub infos: Vec<AssetInfoMapEntry>,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -254,12 +307,12 @@ pub struct ContractListResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ChannelsResponse {
-    pub channels: Vec<(ChannelEntry, String)>,
+    pub channels: Vec<ChannelMapEntry>,
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct ChannelListResponse {
-    pub channels: Vec<(ChannelEntry, String)>,
+    pub channels: Vec<ChannelMapEntry>,
 }
 
 #[cosmwasm_schema::cw_serde]

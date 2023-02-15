@@ -1,10 +1,13 @@
 use super::{asset_entry::AssetEntry, contract_entry::ContractEntry, ChannelEntry};
-use crate::ans_host::state::{
-    ASSET_ADDRESSES, ASSET_PAIRINGS, CHANNELS, CONTRACT_ADDRESSES, POOL_METADATA,
-    REV_ASSET_ADDRESSES,
+use crate::{
+    ans_host::state::{
+        ASSET_ADDRESSES, ASSET_PAIRINGS, CHANNELS, CONTRACT_ADDRESSES, POOL_METADATA,
+        REV_ASSET_ADDRESSES,
+    },
+    objects::{DexAssetPairing, PoolMetadata, PoolReference, UniquePoolId},
+    AbstractResult,
 };
-use crate::objects::{DexAssetPairing, PoolMetadata, PoolReference, UniquePoolId};
-use cosmwasm_std::{Addr, QuerierWrapper, StdError, StdResult};
+use cosmwasm_std::{Addr, QuerierWrapper, StdError};
 use cw_asset::AssetInfo;
 use std::collections::BTreeMap;
 
@@ -26,7 +29,7 @@ impl AnsHost {
         &self,
         querier: &QuerierWrapper,
         contracts: Vec<ContractEntry>,
-    ) -> StdResult<BTreeMap<ContractEntry, Addr>> {
+    ) -> AbstractResult<BTreeMap<ContractEntry, Addr>> {
         let mut resolved_contracts: BTreeMap<ContractEntry, Addr> = BTreeMap::new();
 
         // Query over keys
@@ -42,9 +45,9 @@ impl AnsHost {
         &self,
         querier: &QuerierWrapper,
         contract: &ContractEntry,
-    ) -> StdResult<Addr> {
+    ) -> AbstractResult<Addr> {
         let result: Addr = CONTRACT_ADDRESSES
-            .query(querier, self.address.clone(), contract.clone())?
+            .query(querier, self.address.clone(), contract)?
             .ok_or_else(|| {
                 StdError::generic_err(format!("contract {contract} not found in ans_host"))
             })?;
@@ -57,7 +60,7 @@ impl AnsHost {
         &self,
         querier: &QuerierWrapper,
         assets: Vec<AssetEntry>,
-    ) -> StdResult<BTreeMap<AssetEntry, AssetInfo>> {
+    ) -> AbstractResult<BTreeMap<AssetEntry, AssetInfo>> {
         let mut resolved_assets: BTreeMap<AssetEntry, AssetInfo> = BTreeMap::new();
 
         for asset in assets.into_iter() {
@@ -72,9 +75,9 @@ impl AnsHost {
         &self,
         querier: &QuerierWrapper,
         asset: &AssetEntry,
-    ) -> StdResult<AssetInfo> {
+    ) -> AbstractResult<AssetInfo> {
         let result = ASSET_ADDRESSES
-            .query(querier, self.address.clone(), asset.clone())?
+            .query(querier, self.address.clone(), asset)?
             .ok_or_else(|| {
                 StdError::generic_err(format!("asset {} not found in ans_host", &asset))
             })?;
@@ -86,7 +89,7 @@ impl AnsHost {
         &self,
         querier: &QuerierWrapper,
         assets: Vec<AssetInfo>,
-    ) -> StdResult<Vec<AssetEntry>> {
+    ) -> AbstractResult<Vec<AssetEntry>> {
         // AssetInfo does not implement PartialEq, so we can't use a BTreeMap
         let mut resolved_assets = vec![];
 
@@ -102,9 +105,9 @@ impl AnsHost {
         &self,
         querier: &QuerierWrapper,
         asset: &AssetInfo,
-    ) -> StdResult<AssetEntry> {
+    ) -> AbstractResult<AssetEntry> {
         let result = REV_ASSET_ADDRESSES
-            .query(querier, self.address.clone(), asset.clone())?
+            .query(querier, self.address.clone(), asset)?
             .ok_or_else(|| {
                 StdError::generic_err(format!("cw-asset {} not found in ans_host", &asset))
             })?;
@@ -116,9 +119,9 @@ impl AnsHost {
         &self,
         querier: &QuerierWrapper,
         channel: &ChannelEntry,
-    ) -> StdResult<String> {
+    ) -> AbstractResult<String> {
         let result: String = CHANNELS
-            .query(querier, self.address.clone(), channel.clone())?
+            .query(querier, self.address.clone(), channel)?
             .ok_or_else(|| {
                 StdError::generic_err(format!("channel {channel} not found in ans_host"))
             })?;
@@ -131,9 +134,9 @@ impl AnsHost {
         &self,
         querier: &QuerierWrapper,
         dex_asset_pairing: &DexAssetPairing,
-    ) -> StdResult<Vec<PoolReference>> {
+    ) -> AbstractResult<Vec<PoolReference>> {
         let result: Vec<PoolReference> = ASSET_PAIRINGS
-            .query(querier, self.address.clone(), dex_asset_pairing.clone())?
+            .query(querier, self.address.clone(), dex_asset_pairing)?
             .ok_or_else(|| {
                 StdError::generic_err(format!(
                     "asset pairing {dex_asset_pairing} not found in ans_host"
@@ -146,7 +149,7 @@ impl AnsHost {
         &self,
         querier: &QuerierWrapper,
         pool_id: &UniquePoolId,
-    ) -> StdResult<PoolMetadata> {
+    ) -> AbstractResult<PoolMetadata> {
         let result: PoolMetadata = POOL_METADATA
             .query(querier, self.address.clone(), *pool_id)?
             .ok_or_else(|| {

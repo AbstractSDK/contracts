@@ -1,25 +1,24 @@
-use crate::contract::{IbcClientResponse, IbcClientResult, MAX_RETRIES};
-use crate::error::IbcClientError;
-use crate::ibc::PACKET_LIFETIME;
-
+use crate::{
+    contract::{IbcClientResponse, IbcClientResult, MAX_RETRIES},
+    error::IbcClientError,
+    ibc::PACKET_LIFETIME,
+};
 use abstract_sdk::{
-    base::features::Identification,
     feature_objects::VersionControlContract,
+    features::Identification,
     os::{
-        ibc_client::state::{
-            AccountData, ACCOUNTS, ADMIN, ANS_HOST, CHANNELS, CONFIG, LATEST_QUERIES,
+        ibc_client::{
+            state::{AccountData, ACCOUNTS, ADMIN, ANS_HOST, CHANNELS, CONFIG, LATEST_QUERIES},
+            CallbackInfo,
         },
-        ibc_client::CallbackInfo,
         ibc_host::{HostAction, InternalAction, PacketMsg},
-        objects::ans_host::AnsHost,
-        objects::ChannelEntry,
+        objects::{ans_host::AnsHost, ChannelEntry},
         ICS20,
     },
-    Execution, Resolve, Verification,
+    Execution, OsVerification, Resolve,
 };
 use cosmwasm_std::{
-    to_binary, Coin, CosmosMsg, DepsMut, Env, IbcMsg, MessageInfo, Response, StdError, StdResult,
-    Storage,
+    to_binary, Coin, CosmosMsg, DepsMut, Env, IbcMsg, MessageInfo, StdError, Storage,
 };
 
 pub fn execute_update_config(
@@ -78,7 +77,7 @@ pub fn execute_send_packet(
 
     // Verify that the sender is a proxy contract
     let core = version_control
-        .os_register(deps.as_ref())
+        .os_registry(deps.as_ref())
         .assert_proxy(&info.sender)?;
 
     // Can only call non-internal actions
@@ -121,7 +120,7 @@ pub fn execute_register_os(
     let version_control = VersionControlContract::new(cfg.version_control_address);
 
     let core = version_control
-        .os_register(deps.as_ref())
+        .os_registry(deps.as_ref())
         .assert_proxy(&info.sender)?;
 
     // ensure the channel exists (not found if not registered)
@@ -158,14 +157,14 @@ pub fn execute_send_funds(
     info: MessageInfo,
     host_chain: String,
     funds: Vec<Coin>,
-) -> StdResult<Response> {
+) -> IbcClientResult {
     let cfg = CONFIG.load(deps.storage)?;
     let mem = ANS_HOST.load(deps.storage)?;
     // Verify that the sender is a proxy contract
     let version_control = VersionControlContract::new(cfg.version_control_address);
 
     let core = version_control
-        .os_register(deps.as_ref())
+        .os_registry(deps.as_ref())
         .assert_proxy(&info.sender)?;
 
     // get os_id of OS
@@ -180,7 +179,8 @@ pub fn execute_send_funds(
         None => {
             return Err(StdError::generic_err(
                 "We don't have the remote address for this channel or OS",
-            ))
+            )
+            .into())
         }
     };
 
@@ -219,11 +219,12 @@ fn clear_accounts(store: &mut dyn Storage) {
 mod test {
     use super::*;
     use crate::contract;
-
-    use abstract_os::ibc_client::*;
+    use abstract_os::{ibc_client::*, AbstractResult};
     use abstract_testing::{TEST_ADMIN, TEST_ANS_HOST, TEST_VERSION_CONTROL};
-    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-    use cosmwasm_std::Addr;
+    use cosmwasm_std::{
+        testing::{mock_dependencies, mock_env, mock_info},
+        Addr, Response,
+    };
     use speculoos::prelude::*;
 
     const TEST_CHAIN: &str = "test-chain";
@@ -238,7 +239,7 @@ mod test {
         execute_as(deps, TEST_ADMIN, msg)
     }
 
-    fn mock_init(deps: DepsMut) -> StdResult<Response> {
+    fn mock_init(deps: DepsMut) -> AbstractResult<Response> {
         let msg = InstantiateMsg {
             ans_host_address: TEST_ANS_HOST.to_string(),
             version_control_address: TEST_VERSION_CONTROL.to_string(),
@@ -261,8 +262,7 @@ mod test {
 
     mod update_config {
         use super::*;
-        use abstract_os::abstract_ica::StdAck;
-        use abstract_os::ibc_client::state::Config;
+        use abstract_os::{abstract_ica::StdAck, ibc_client::state::Config};
         use abstract_testing::TEST_VERSION_CONTROL;
         use cosmwasm_std::{Empty, Timestamp};
 

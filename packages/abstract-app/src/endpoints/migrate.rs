@@ -1,5 +1,4 @@
-use crate::{AppContract, AppError};
-use crate::{Handler, MigrateEndpoint};
+use crate::{AppContract, AppError, Handler, MigrateEndpoint};
 use abstract_os::objects::module_version::{get_module_data, set_module_data};
 use abstract_sdk::os::app::MigrateMsg;
 use cosmwasm_std::{Response, StdError};
@@ -9,7 +8,7 @@ use semver::Version;
 use serde::Serialize;
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<AppError>,
+        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,

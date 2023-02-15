@@ -7,7 +7,7 @@ use cosmwasm_std::Response;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub type DexApi = ApiContract<DexError, DexApiExecuteMsg, DexInstantiateMsg, DexQueryMsg>;
-pub type DexResult = Result<Response, DexError>;
+pub type DexResult<T = Response> = Result<T, DexError>;
 
 pub const DEX_API: DexApi = DexApi::new(EXCHANGE, CONTRACT_VERSION, None)
     .with_instantiate(handlers::instantiate_handler)

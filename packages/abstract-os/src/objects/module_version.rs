@@ -42,7 +42,7 @@ pub struct ModuleData {
 
 /// get_module_version can be use in migrate to read the previous version of this module
 pub fn get_module_data(store: &dyn Storage) -> StdResult<ModuleData> {
-    MODULE.load(store)
+    MODULE.load(store).map_err(Into::into)
 }
 
 /// set_module_version should be used in instantiate to store the original version, and after a successful
@@ -60,7 +60,36 @@ pub fn set_module_data<T: Into<String>, U: Into<String>, M: Into<String>>(
         dependencies: dependencies.iter().map(Into::into).collect(),
         metadata: metadata.map(Into::into),
     };
-    MODULE.save(store, &val)
+    MODULE.save(store, &val).map_err(Into::into)
+}
+
+/// Migrate the module data to the new state.
+/// If there was no moduleData stored, it will be set to the given values with an empty dependency array.
+/// If the metadata is None, the old metadata will be kept.
+/// If the metadata is Some, the old metadata will be overwritten.
+pub fn migrate_module_data(
+    store: &mut dyn Storage,
+    name: &str,
+    version: &str,
+    metadata: Option<String>,
+) -> StdResult<()> {
+    let old_module_data = MODULE.may_load(store)?;
+    let val = old_module_data.map_or(
+        ModuleData {
+            module: name.into(),
+            version: version.into(),
+            dependencies: vec![],
+            metadata: None,
+        },
+        |data| ModuleData {
+            module: name.into(),
+            version: version.into(),
+            dependencies: data.dependencies,
+            metadata: metadata.or(data.metadata),
+        },
+    );
+
+    MODULE.save(store, &val).map_err(Into::into)
 }
 
 /// This will make a raw_query to another module to determine the current version it
@@ -76,7 +105,9 @@ pub fn query_module_data<Q: Querier, T: Into<String>>(
         contract_addr: contract_addr.into(),
         key: MODULE.as_slice().into(),
     });
-    QuerierWrapper::<Empty>::new(querier).query(&req)
+    QuerierWrapper::<Empty>::new(querier)
+        .query(&req)
+        .map_err(Into::into)
 }
 
 #[cfg(test)]

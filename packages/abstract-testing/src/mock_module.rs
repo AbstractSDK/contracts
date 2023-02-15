@@ -1,14 +1,18 @@
+use crate::{
+    abstract_mock_querier::AbstractMockQuerierBuilder, TEST_ANS_HOST, TEST_MANAGER, TEST_MODULE_ID,
+    TEST_OS_ID, TEST_PROXY,
+};
 use abstract_os::{api, app};
-use cosmwasm_std::{Deps, StdError, StdResult};
-
-use crate::{TEST_ANS_HOST, TEST_PROXY};
+use cosmwasm_std::{Addr, Deps};
 #[cfg(feature = "sdk")]
 use ::{
     abstract_os::objects::ans_host::AnsHost,
-    abstract_sdk::base::features::{AbstractNameService, Identification, ModuleIdentification},
-    cosmwasm_std::Addr,
+    abstract_sdk::features::{AbstractNameService, Identification, ModuleIdentification},
+    abstract_sdk::AbstractSdkResult,
 };
 
+/// A mock module that can be used for testing.
+/// Identifies itself as [`TEST_MODULE_ID`].
 pub struct MockModule {}
 
 impl MockModule {
@@ -17,9 +21,14 @@ impl MockModule {
     }
 }
 
+/// A mock module querier setup with the proper responses for proxy/manager/osId.
+pub fn mocked_os_querier_builder() -> AbstractMockQuerierBuilder {
+    AbstractMockQuerierBuilder::default().os(TEST_MANAGER, TEST_PROXY, TEST_OS_ID)
+}
+
 #[cfg(feature = "sdk")]
 impl Identification for MockModule {
-    fn proxy_address(&self, _deps: Deps) -> Result<Addr, StdError> {
+    fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
         Ok(Addr::unchecked(TEST_PROXY))
     }
 }
@@ -27,13 +36,13 @@ impl Identification for MockModule {
 #[cfg(feature = "sdk")]
 impl ModuleIdentification for MockModule {
     fn module_id(&self) -> &'static str {
-        "mock_module"
+        TEST_MODULE_ID
     }
 }
 
 #[cfg(feature = "sdk")]
 impl AbstractNameService for MockModule {
-    fn ans_host(&self, _deps: Deps) -> StdResult<AnsHost> {
+    fn ans_host(&self, _deps: Deps) -> AbstractSdkResult<AnsHost> {
         Ok(AnsHost {
             address: Addr::unchecked(TEST_ANS_HOST),
         })

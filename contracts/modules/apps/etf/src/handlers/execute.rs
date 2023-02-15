@@ -3,9 +3,9 @@ use crate::error::EtfError;
 use crate::state::{State, FEE, STATE};
 use abstract_app::state::AppState;
 use abstract_os::etf::EtfExecuteMsg;
-use abstract_sdk::base::features::AbstractNameService;
-use abstract_sdk::base::features::AbstractResponse;
-use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
+use abstract_sdk::cw_helpers::cosmwasm_std::wasm_smart_query;
+use abstract_sdk::features::AbstractNameService;
+use abstract_sdk::features::AbstractResponse;
 use abstract_sdk::os::objects::deposit_info::DepositInfo;
 use abstract_sdk::os::objects::fee::Fee;
 use abstract_sdk::*;
@@ -67,8 +67,7 @@ pub fn try_provide_liquidity(
                     msg_info.sender
                 }
                 AssetInfo::Cw20(_) => return Err(EtfError::NotUsingCW20Hook {}),
-                AssetInfo::Cw1155(_, _) => return Err(EtfError::NotUsingCW20Hook {}),
-                _ => panic!("unsupported asset"),
+                _ => return Err(EtfError::UnsupportedAssetType(asset.info.to_string())),
             }
         }
     };

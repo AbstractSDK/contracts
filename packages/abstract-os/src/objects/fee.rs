@@ -1,4 +1,5 @@
-use cosmwasm_std::{Addr, Api, CosmosMsg, Decimal, StdError, StdResult, Uint128};
+use crate::{error::AbstractOsError, AbstractResult};
+use cosmwasm_std::{Addr, Api, CosmosMsg, Decimal, Uint128};
 use cw_asset::Asset;
 
 /// A wrapper around Fee to help handle fee logic.
@@ -10,12 +11,16 @@ pub struct UsageFee {
 }
 
 impl UsageFee {
-    pub fn new(api: &dyn Api, share: Decimal, recipient: impl Into<String>) -> StdResult<Self> {
+    pub fn new(
+        api: &dyn Api,
+        share: Decimal,
+        recipient: impl Into<String>,
+    ) -> AbstractResult<Self> {
         let recipient = api.addr_validate(&recipient.into())?;
         let fee = Fee::new(share)?;
         Ok(UsageFee { fee, recipient })
     }
-    pub fn set_share(&mut self, share: Decimal) -> StdResult<()> {
+    pub fn set_share(&mut self, share: Decimal) -> AbstractResult<()> {
         self.fee = Fee::new(share)?;
         Ok(())
     }
@@ -28,7 +33,11 @@ impl UsageFee {
     pub fn recipient(&self) -> Addr {
         self.recipient.clone()
     }
-    pub fn set_recipient(&mut self, api: &dyn Api, recipient: impl Into<String>) -> StdResult<()> {
+    pub fn set_recipient(
+        &mut self,
+        api: &dyn Api,
+        recipient: impl Into<String>,
+    ) -> AbstractResult<()> {
         self.recipient = api.addr_validate(&recipient.into())?;
         Ok(())
     }
@@ -42,9 +51,11 @@ pub struct Fee {
 }
 
 impl Fee {
-    pub fn new(share: Decimal) -> StdResult<Self> {
+    pub fn new(share: Decimal) -> AbstractResult<Self> {
         if share >= Decimal::percent(100) {
-            return Err(StdError::generic_err("fee share must be lesser than 100%"));
+            return Err(AbstractOsError::Fee(
+                "fee share must be lesser than 100%".to_string(),
+            ));
         }
         Ok(Fee { share })
     }
@@ -52,8 +63,8 @@ impl Fee {
         amount * self.share
     }
 
-    pub fn msg(&self, asset: Asset, recipient: Addr) -> StdResult<CosmosMsg> {
-        asset.transfer_msg(recipient)
+    pub fn msg(&self, asset: Asset, recipient: Addr) -> AbstractResult<CosmosMsg> {
+        asset.transfer_msg(recipient).map_err(Into::into)
     }
     pub fn share(&self) -> Decimal {
         self.share

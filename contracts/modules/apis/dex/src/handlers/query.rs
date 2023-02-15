@@ -1,12 +1,12 @@
-use crate::contract::DexApi;
+use crate::contract::{DexApi, DexResult};
 use crate::exchanges::exchange_resolver::resolve_exchange;
 use abstract_os::dex::state::SWAP_FEE;
 use abstract_os::dex::{DexQueryMsg, OfferAsset, SimulateSwapResponse};
 use abstract_os::objects::{AssetEntry, DexAssetPairing};
-use abstract_sdk::base::features::AbstractNameService;
-use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError, StdResult};
+use abstract_sdk::features::AbstractNameService;
+use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError};
 
-pub fn query_handler(deps: Deps, env: Env, api: &DexApi, msg: DexQueryMsg) -> StdResult<Binary> {
+pub fn query_handler(deps: Deps, env: Env, api: &DexApi, msg: DexQueryMsg) -> DexResult<Binary> {
     match msg {
         DexQueryMsg::SimulateSwap {
             offer_asset,
@@ -25,7 +25,7 @@ pub fn simulate_swap(
     mut offer_asset: OfferAsset,
     mut ask_asset: AssetEntry,
     dex: String,
-) -> StdResult<Binary> {
+) -> DexResult<Binary> {
     let exchange = resolve_exchange(&dex).map_err(|e| StdError::generic_err(e.to_string()))?;
     let ans = api.name_service(deps);
     let fee = SWAP_FEE.load(deps.storage)?;

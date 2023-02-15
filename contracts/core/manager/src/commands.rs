@@ -1,13 +1,13 @@
 use crate::validation::{validate_description, validate_link};
 use crate::{
-    contract::ManagerResult, error::ManagerError, queries::query_module_version,
+    contract::ManagerResult, error::ManagerError, queries::query_module_cw2,
     validation::validate_name_or_gov_type,
 };
 use crate::{validation, versioning};
 use abstract_macros::abstract_response;
 use abstract_sdk::{
+    cw_helpers::cosmwasm_std::wasm_smart_query,
     feature_objects::VersionControlContract,
-    helpers::cosmwasm_std::wasm_smart_query,
     os::{
         api::{
             BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as ApiExecMsg, QueryMsg as ApiQuery,
@@ -25,7 +25,7 @@ use abstract_sdk::{
         proxy::ExecuteMsg as ProxyMsg,
         IBC_CLIENT, MANAGER, PROXY,
     },
-    VersionRegisterInterface,
+    ModuleRegistryInterface,
 };
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo,
@@ -262,7 +262,7 @@ pub fn upgrade_modules(
     let mut upgrade_msgs = vec![];
     for (module_info, migrate_msg) in modules {
         if module_info.id() == MANAGER {
-            return upgrade_self(deps, env, module_info, migrate_msg.unwrap());
+            return upgrade_self(deps, env, module_info, migrate_msg.unwrap_or_default());
         }
         set_migrate_msgs_and_context(deps.branch(), module_info, migrate_msg, &mut upgrade_msgs)?;
     }
@@ -283,8 +283,8 @@ pub fn set_migrate_msgs_and_context(
     msgs: &mut Vec<CosmosMsg>,
 ) -> Result<(), ManagerError> {
     let old_module_addr = load_module_addr(deps.storage, &module_info.id())?;
-    let contract = query_module_version(&deps.as_ref(), old_module_addr.clone())?;
-    let module = query_module(deps.as_ref(), module_info.clone(), Some(contract))?;
+    let old_module_cw2 = query_module_cw2(&deps.as_ref(), old_module_addr.clone())?;
+    let module = query_module(deps.as_ref(), module_info.clone(), Some(old_module_cw2))?;
     let id = module_info.id();
 
     match module.reference {
@@ -333,11 +333,9 @@ pub fn set_migrate_msgs_and_context(
                 migrate_msg.unwrap_or_else(|| to_binary(&Empty {}).unwrap()),
             ));
         }
-        ModuleReference::Standalone(code_id) => msgs.push(get_migrate_msg(
-            old_module_addr,
-            code_id,
-            migrate_msg.unwrap(),
-        )),
+        ModuleReference::Core(code_id) | ModuleReference::Standalone(code_id) => msgs.push(
+            get_migrate_msg(old_module_addr, code_id, migrate_msg.unwrap()),
+        ),
         _ => return Err(ManagerError::NotUpgradeable(module_info)),
     };
     Ok(())
@@ -363,17 +361,14 @@ pub fn replace_api(
     let mut msgs = vec![];
     // Makes sure we already have the api installed
     let proxy_addr = OS_MODULES.load(deps.storage, PROXY)?;
-    let traders: TradersResponse = deps.querier.query(&wasm_smart_query(
+    let TradersResponse { traders } = deps.querier.query(&wasm_smart_query(
         old_api_addr.to_string(),
         &<ApiQuery<Empty>>::Base(BaseQueryMsg::Traders {
             proxy_address: proxy_addr.to_string(),
         }),
     )?)?;
-    let traders_to_migrate: Vec<String> = traders
-        .traders
-        .into_iter()
-        .map(|addr| addr.into_string())
-        .collect();
+    let traders_to_migrate: Vec<String> =
+        traders.into_iter().map(|addr| addr.into_string()).collect();
     // Remove traders from old
     msgs.push(configure_api(
         &old_api_addr,
@@ -503,19 +498,16 @@ fn uninstall_ibc_client(deps: DepsMut, proxy: Addr, ibc_client: Addr) -> StdResu
 fn query_module(
     deps: Deps,
     module_info: ModuleInfo,
-    old_contract: Option<ContractVersion>,
+    old_contract_cw2: Option<ContractVersion>,
 ) -> Result<Module, ManagerError> {
     let config = CONFIG.load(deps.storage)?;
     // Construct feature object to access registry functions
-    let binding = VersionControlContract {
-        address: config.version_control_address,
-    };
-
-    let version_registry = binding.version_register(deps);
+    let version_control = VersionControlContract::new(config.version_control_address);
+    let version_registry = version_control.module_registry(deps);
 
     match &module_info.version {
         ModuleVersion::Version(new_version) => {
-            let old_contract = old_contract.unwrap();
+            let old_contract = old_contract_cw2.unwrap();
 
             let new_version = new_version.parse::<Version>().unwrap();
             let old_version = old_contract.version.parse::<Version>().unwrap();
@@ -529,7 +521,7 @@ fn query_module(
 
             Ok(Module {
                 info: module_info.clone(),
-                reference: version_registry.query_module_reference_raw(module_info)?,
+                reference: version_registry.query_module_reference_raw(&module_info)?,
             })
         }
         ModuleVersion::Latest => {
@@ -549,7 +541,7 @@ fn upgrade_self(
 ) -> ManagerResult {
     let contract = get_contract_version(deps.storage)?;
     let module = query_module(deps.as_ref(), module_info.clone(), Some(contract))?;
-    if let ModuleReference::App(manager_code_id) = module.reference {
+    if let ModuleReference::Core(manager_code_id) = module.reference {
         let migration_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Migrate {
             contract_addr: env.contract.address.into_string(),
             new_code_id: manager_code_id,
@@ -1028,7 +1020,7 @@ mod test {
             Ok(())
         }
 
-        // integration tests
+        // rest should be in integration tests
     }
 
     mod register_module {
@@ -1123,12 +1115,62 @@ mod test {
 
     mod upgrade {
         use super::*;
+        use abstract_os::version_control::state::MODULE_LIBRARY;
+        use abstract_testing::{MockQuerierBuilder, TEST_MODULE_ADDRESS};
 
         #[test]
         fn only_root() -> ManagerTestResult {
             let msg = ExecuteMsg::Upgrade { modules: vec![] };
 
             test_only_root(msg)
+        }
+
+        // TODO: this test is not fully implemented
+        #[test]
+        fn upgrade_to_latest_with_v1_and_v10() {
+            let mut deps = mock_dependencies();
+
+            const TEST_MODULE_ID: &str = "test:test";
+
+            let initial_version = "0.1.0";
+            let new_version = "0.10.0";
+            deps.querier = MockQuerierBuilder::default()
+                // old version
+                .with_contract_version(TEST_MODULE_ADDRESS, initial_version)
+                // new version
+                .with_contract_map_entry(
+                    TEST_VERSION_CONTROL,
+                    MODULE_LIBRARY,
+                    (
+                        &ModuleInfo {
+                            provider: "test".to_string(),
+                            name: "test".to_string(),
+                            version: ModuleVersion::Version(new_version.to_string()),
+                        },
+                        &ModuleReference::App(1),
+                    ),
+                )
+                // old module data
+                .with_contract_item(
+                    TEST_MODULE_ADDRESS,
+                    abstract_os::objects::module_version::MODULE,
+                    &abstract_os::objects::module_version::ModuleData {
+                        module: TEST_MODULE_ID.to_string(),
+                        version: initial_version.to_string(),
+                        dependencies: vec![],
+                        metadata: None,
+                    },
+                )
+                .build();
+
+            // manual installation
+            OS_MODULES
+                .save(
+                    &mut deps.storage,
+                    TEST_MODULE_ID,
+                    &Addr::unchecked(TEST_MODULE_ADDRESS),
+                )
+                .unwrap();
         }
 
         // integration tests

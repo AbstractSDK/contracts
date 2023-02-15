@@ -1,24 +1,26 @@
-use crate::contract::OsFactoryResult;
-use crate::state::*;
-use crate::{error::OsFactoryError, response::MsgInstantiateContractResponse};
-use abstract_macros::abstract_response;
-use abstract_os::objects::module::Module;
-use abstract_os::version_control::ModulesResponse;
-use abstract_os::{app, OS_FACTORY};
-use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
-use abstract_sdk::os::version_control::{ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery};
-use abstract_sdk::os::{
-    manager::{ExecuteMsg::UpdateModuleAddresses, InstantiateMsg as ManagerInstantiateMsg},
-    proxy::{ExecuteMsg as ProxyExecMsg, InstantiateMsg as ProxyInstantiateMsg},
+use crate::{
+    contract::OsFactoryResult, error::OsFactoryError, response::MsgInstantiateContractResponse,
+    state::*,
 };
-use abstract_sdk::os::{
-    objects::{gov_type::GovernanceDetails, module::ModuleInfo, module_reference::ModuleReference},
-    os_factory::ExecuteMsg,
-    subscription::{
-        DepositHookMsg as SubDepositHook, SubscriptionExecuteMsg, SubscriptionFeeResponse,
-        SubscriptionQueryMsg,
+use abstract_macros::abstract_response;
+use abstract_os::{
+    app, objects::module::Module, version_control::ModulesResponse, AbstractResult, OS_FACTORY,
+};
+use abstract_sdk::{
+    cw_helpers::cosmwasm_std::wasm_smart_query,
+    os::{
+        manager::{ExecuteMsg::UpdateModuleAddresses, InstantiateMsg as ManagerInstantiateMsg},
+        objects::{
+            gov_type::GovernanceDetails, module::ModuleInfo, module_reference::ModuleReference,
+        },
+        os_factory::ExecuteMsg,
+        proxy::{ExecuteMsg as ProxyExecMsg, InstantiateMsg as ProxyInstantiateMsg},
+        subscription::{
+            DepositHookMsg as SubDepositHook, SubscriptionExecuteMsg, SubscriptionFeeResponse,
+            SubscriptionQueryMsg,
+        },
+        version_control::{Core, ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery},
     },
-    version_control::Core,
 };
 use cosmwasm_std::{
     from_binary, to_binary, wasm_execute, Addr, Coin, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
@@ -30,7 +32,6 @@ use protobuf::Message;
 
 pub const CREATE_OS_MANAGER_MSG_ID: u64 = 1u64;
 pub const CREATE_OS_PROXY_MSG_ID: u64 = 2u64;
-
 use abstract_sdk::os::{MANAGER, PROXY};
 
 #[abstract_response(OS_FACTORY)]
@@ -128,7 +129,7 @@ pub fn execute_create_os(
     } else {
         Err(OsFactoryError::WrongModuleKind(
             module.info.to_string(),
-            "app".to_string(),
+            "core".to_string(),
         ))
     }
 }
@@ -188,7 +189,7 @@ fn query_module(
     querier: &QuerierWrapper,
     version_control_addr: &Addr,
     module_id: &str,
-) -> StdResult<Module> {
+) -> AbstractResult<Module> {
     let ModulesResponse { mut modules } = querier.query(&wasm_smart_query(
         version_control_addr.to_string(),
         &VCQuery::Modules {
@@ -357,11 +358,6 @@ fn forward_payment(
                 ))?,
                 funds: vec![Coin::new(received_payment.amount.u128(), denom)],
             }),
-            AssetInfoBase::Cw1155(_, _) => {
-                return Err(OsFactoryError::Std(StdError::generic_err(
-                    "Cw1155 not supported.",
-                )))
-            }
             _ => panic!("unsupported asset"),
         };
 

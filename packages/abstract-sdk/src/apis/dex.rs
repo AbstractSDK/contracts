@@ -1,16 +1,19 @@
 // TODO: this should be moved to the public dex package
 // It cannot be in abstract-os because it does not have a dependency on sdk (as it shouldn't)
-use crate::base::features::{Dependencies, Identification};
-use crate::ModuleInterface;
-use abstract_os::dex::{
-    AskAsset, DexAction, DexExecuteMsg, DexName, DexQueryMsg, OfferAsset, SimulateSwapResponse,
-    SwapRouter,
+use crate::{
+    features::{Dependencies, Identification},
+    AbstractSdkResult, ModuleInterface,
 };
-use abstract_os::objects::AssetEntry;
-use abstract_os::EXCHANGE;
-use cosmwasm_std::{CosmosMsg, Decimal, Deps, StdResult, Uint128};
-use os::dex::DexApiExecuteMsg;
-use os::manager::state::ModuleId;
+use abstract_os::{
+    dex::{
+        AskAsset, DexAction, DexExecuteMsg, DexName, DexQueryMsg, OfferAsset, SimulateSwapResponse,
+        SwapRouter,
+    },
+    objects::AssetEntry,
+    EXCHANGE,
+};
+use cosmwasm_std::{CosmosMsg, Decimal, Deps, Uint128};
+use os::{dex::DexApiExecuteMsg, manager::state::ModuleId};
 use serde::de::DeserializeOwned;
 
 /// Interact with the dex api in your module.
@@ -53,7 +56,7 @@ impl<'a, T: DexInterface> Dex<'a, T> {
     fn dex_module_id(&self) -> ModuleId {
         self.dex_module_id
     }
-    fn request(&self, action: DexAction) -> StdResult<CosmosMsg> {
+    fn request(&self, action: DexAction) -> AbstractSdkResult<CosmosMsg> {
         let modules = self.base.modules(self.deps);
 
         modules.api_request(
@@ -71,7 +74,7 @@ impl<'a, T: DexInterface> Dex<'a, T> {
         ask_asset: AssetEntry,
         max_spread: Option<Decimal>,
         belief_price: Option<Decimal>,
-    ) -> StdResult<CosmosMsg> {
+    ) -> AbstractSdkResult<CosmosMsg> {
         self.request(DexAction::Swap {
             offer_asset,
             ask_asset,
@@ -86,7 +89,7 @@ impl<'a, T: DexInterface> Dex<'a, T> {
         ask_assets: Vec<AskAsset>,
         max_spread: Option<Decimal>,
         router: Option<SwapRouter>,
-    ) -> StdResult<CosmosMsg> {
+    ) -> AbstractSdkResult<CosmosMsg> {
         self.request(DexAction::CustomSwap {
             offer_assets,
             ask_assets,
@@ -99,7 +102,7 @@ impl<'a, T: DexInterface> Dex<'a, T> {
         &self,
         assets: Vec<OfferAsset>,
         max_spread: Option<Decimal>,
-    ) -> StdResult<CosmosMsg> {
+    ) -> AbstractSdkResult<CosmosMsg> {
         self.request(DexAction::ProvideLiquidity { assets, max_spread })
     }
 
@@ -107,7 +110,7 @@ impl<'a, T: DexInterface> Dex<'a, T> {
         &self,
         offer_asset: OfferAsset,
         paired_assets: Vec<AssetEntry>,
-    ) -> StdResult<CosmosMsg> {
+    ) -> AbstractSdkResult<CosmosMsg> {
         self.request(DexAction::ProvideLiquiditySymmetric {
             offer_asset,
             paired_assets,
@@ -118,13 +121,13 @@ impl<'a, T: DexInterface> Dex<'a, T> {
         &self,
         lp_token: AssetEntry,
         amount: Uint128,
-    ) -> StdResult<CosmosMsg> {
+    ) -> AbstractSdkResult<CosmosMsg> {
         self.request(DexAction::WithdrawLiquidity { lp_token, amount })
     }
 }
 
 impl<'a, T: DexInterface> Dex<'a, T> {
-    fn query<R: DeserializeOwned>(&self, query_msg: DexQueryMsg) -> StdResult<R> {
+    fn query<R: DeserializeOwned>(&self, query_msg: DexQueryMsg) -> AbstractSdkResult<R> {
         let modules = self.base.modules(self.deps);
         modules.query_api(EXCHANGE, query_msg)
     }
@@ -132,7 +135,7 @@ impl<'a, T: DexInterface> Dex<'a, T> {
         &self,
         offer_asset: OfferAsset,
         ask_asset: AssetEntry,
-    ) -> StdResult<SimulateSwapResponse> {
+    ) -> AbstractSdkResult<SimulateSwapResponse> {
         let response: SimulateSwapResponse = self.query(DexQueryMsg::SimulateSwap {
             dex: Some(self.dex_name()),
             offer_asset,
@@ -147,8 +150,8 @@ mod test {
     use super::*;
 
     use crate::apis::test_common::*;
-    use os::api::ApiRequestMsg;
     use os::dex::ExecuteMsg;
+    use os::api::ApiRequestMsg;
 
     fn expected_request_with_test_proxy(request: DexExecuteMsg) -> ExecuteMsg {
         ApiRequestMsg {

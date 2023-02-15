@@ -4,7 +4,7 @@ use crate::{
     DEX,
 };
 use abstract_os::objects::PoolAddress;
-use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
+use abstract_sdk::cw_helpers::cosmwasm_std::wasm_smart_query;
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, StdResult, WasmMsg,
 };
@@ -218,7 +218,7 @@ fn cw_asset_to_terraswap(asset: &Asset) -> Result<terraswap::asset::Asset, DexEr
                 contract_addr: contract_addr.to_string(),
             },
         }),
-        _ => Err(DexError::Cw1155Unsupported {}),
+        _ => Err(DexError::UnsupportedAssetType(asset.info.to_string())),
     }
 }
 

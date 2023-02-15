@@ -1,17 +1,25 @@
-use boot_core::{
-    prelude::boot_contract, state::StateInterface, BootEnvironment, BootError, Contract,
-    IndexResponse, TxResponse,
-};
-use cosmwasm_std::Addr;
-
 use crate::{Manager, Proxy, OS};
 pub use abstract_os::os_factory::{
     ExecuteMsgFns as OsFactoryExecFns, QueryMsgFns as OsFactoryQueryFns,
 };
-use abstract_os::{objects::gov_type::GovernanceDetails, os_factory::*, ABSTRACT_EVENT_NAME};
-use abstract_os::{MANAGER, PROXY};
-use boot_core::interface::BootExecute;
-use boot_core::interface::ContractInstance;
+use abstract_os::{
+    objects::gov_type::GovernanceDetails, os_factory::*, ABSTRACT_EVENT_NAME, MANAGER, PROXY,
+};
+use boot_core::{
+    interface::{BootExecute, ContractInstance},
+    prelude::boot_contract,
+    state::StateInterface,
+    BootEnvironment, Contract, IndexResponse, TxResponse,
+};
+use cosmwasm_std::Addr;
+
+/// A helper struct that contains fields from [`abstract_os::manager::state::OsInfo`]
+#[derive(Default)]
+pub struct OsDetails {
+    name: String,
+    description: Option<String>,
+    link: Option<String>,
+}
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct OSFactory<Chain>;
@@ -23,16 +31,23 @@ impl<Chain: BootEnvironment> OSFactory<Chain> {
         Self(contract)
     }
 
-    pub fn create_default_os(
+    pub fn create_new_os(
         &self,
+        os_details: OsDetails,
         governance_details: GovernanceDetails,
-    ) -> Result<OS<Chain>, BootError> {
+    ) -> Result<OS<Chain>, crate::AbstractBootError> {
+        let OsDetails {
+            name,
+            link,
+            description,
+        } = os_details;
+
         let result = self.execute(
             &ExecuteMsg::CreateOs {
                 governance: governance_details,
-                description: None,
-                link: None,
-                name: "Test".to_string(),
+                name,
+                link,
+                description,
             },
             None,
         )?;
@@ -51,7 +66,23 @@ impl<Chain: BootEnvironment> OSFactory<Chain> {
         })
     }
 
-    pub fn set_subscription_contract(&self, addr: String) -> Result<TxResponse<Chain>, BootError> {
+    pub fn create_default_os(
+        &self,
+        governance_details: GovernanceDetails,
+    ) -> Result<OS<Chain>, crate::AbstractBootError> {
+        self.create_new_os(
+            OsDetails {
+                name: "Default Abstract OS".into(),
+                ..Default::default()
+            },
+            governance_details,
+        )
+    }
+
+    pub fn set_subscription_contract(
+        &self,
+        addr: String,
+    ) -> Result<TxResponse<Chain>, crate::AbstractBootError> {
         self.execute(
             &ExecuteMsg::UpdateConfig {
                 admin: None,
@@ -62,5 +93,6 @@ impl<Chain: BootEnvironment> OSFactory<Chain> {
             },
             None,
         )
+        .map_err(Into::into)
     }
 }

@@ -1,76 +1,309 @@
 //! # Verification
 //! The `Verify` struct provides helper functions that enable the contract to verify if the sender is an OS, OS admin, etc.
-use super::RegisterAccess;
+use crate::{features::AbstractRegistryAccess, AbstractSdkError, AbstractSdkResult};
 use abstract_os::{
     manager::state::OS_ID,
     version_control::{state::OS_ADDRESSES, Core},
 };
-use cosmwasm_std::StdResult;
-use cosmwasm_std::{Addr, Deps, StdError};
+use cosmwasm_std::{Addr, Deps};
 
-/// Verify if a sender's address is associated with an OS.
-pub trait Verification: RegisterAccess {
-    fn os_register<'a>(&'a self, deps: Deps<'a>) -> OsRegister<Self> {
-        OsRegister { base: self, deps }
+/// Verify if an addresses is associated with an OS.
+pub trait OsVerification: AbstractRegistryAccess {
+    fn os_registry<'a>(&'a self, deps: Deps<'a>) -> OsRegistry<Self> {
+        OsRegistry { base: self, deps }
     }
 }
 
-impl<T> Verification for T where T: RegisterAccess {}
+impl<T> OsVerification for T where T: AbstractRegistryAccess {}
 
 /// Endpoint for OS address verification
 #[derive(Clone)]
-pub struct OsRegister<'a, T: Verification> {
+pub struct OsRegistry<'a, T: OsVerification> {
     base: &'a T,
     deps: Deps<'a>,
 }
 
-impl<'a, T: Verification> OsRegister<'a, T> {
+impl<'a, T: OsVerification> OsRegistry<'a, T> {
     /// Verify if the provided manager address is indeed a user.
-    pub fn assert_manager(&self, maybe_manager: &Addr) -> StdResult<Core> {
-        let os_id = OS_ID
-            .query(&self.deps.querier, maybe_manager.clone())
-            .map_err(|_| StdError::generic_err("Caller must be an OS manager."))?;
+    pub fn assert_manager(&self, maybe_manager: &Addr) -> AbstractSdkResult<Core> {
+        let os_id = self.os_id(maybe_manager)?;
         let core = self.core(os_id)?;
         if &core.manager != maybe_manager {
-            Err(StdError::generic_err(
-                "Proposed manager is not the manager of this OS.",
-            ))
+            Err(AbstractSdkError::NotManager(maybe_manager.clone(), os_id))
         } else {
             Ok(core)
         }
     }
 
     /// Verify if the provided proxy address is indeed a user.
-    pub fn assert_proxy(&self, maybe_proxy: &Addr) -> StdResult<Core> {
-        let os_id = OS_ID
-            .query(&self.deps.querier, maybe_proxy.clone())
-            .map_err(|_| StdError::generic_err("Caller must be an OS proxy."))?;
+    pub fn assert_proxy(&self, maybe_proxy: &Addr) -> AbstractSdkResult<Core> {
+        let os_id = self.os_id(maybe_proxy)?;
         let core = self.core(os_id)?;
         if &core.proxy != maybe_proxy {
-            Err(StdError::generic_err(
-                "Proposed proxy is not the proxy of this OS.",
-            ))
+            Err(AbstractSdkError::NotProxy(maybe_proxy.clone(), os_id))
         } else {
             Ok(core)
         }
     }
 
-    pub fn proxy_address(&self, os_id: u32) -> StdResult<Addr> {
+    pub fn proxy_address(&self, os_id: u32) -> AbstractSdkResult<Addr> {
         self.core(os_id).map(|core| core.proxy)
     }
 
-    pub fn manager_address(&self, os_id: u32) -> StdResult<Addr> {
+    pub fn manager_address(&self, os_id: u32) -> AbstractSdkResult<Addr> {
         self.core(os_id).map(|core| core.manager)
     }
 
-    pub fn core(&self, os_id: u32) -> StdResult<Core> {
-        let maybe_os =
-            OS_ADDRESSES.query(&self.deps.querier, self.base.registry(self.deps)?, os_id)?;
+    pub fn core(&self, os_id: u32) -> AbstractSdkResult<Core> {
+        let maybe_os = OS_ADDRESSES.query(
+            &self.deps.querier,
+            self.base.abstract_registry(self.deps)?,
+            os_id,
+        )?;
         match maybe_os {
-            None => Err(StdError::generic_err(format!(
-                "OS with id {os_id} is not registered."
-            ))),
+            None => Err(AbstractSdkError::UnknownOsId {
+                os_id,
+                version_control_addr: self.base.abstract_registry(self.deps)?,
+            }),
             Some(core) => Ok(core),
+        }
+    }
+
+    fn os_id(&self, maybe_core_contract_addr: &Addr) -> AbstractSdkResult<u32> {
+        OS_ID
+            .query(&self.deps.querier, maybe_core_contract_addr.clone())
+            .map_err(|_| AbstractSdkError::FailedToQueryOsId {
+                contract_addr: maybe_core_contract_addr.clone(),
+            })
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use abstract_testing::*;
+    use cosmwasm_std::testing::*;
+
+    use abstract_testing::{
+        prelude::*, MockQuerierBuilder, TEST_OS_ID, TEST_PROXY, TEST_VERSION_CONTROL,
+    };
+
+    use speculoos::prelude::*;
+
+    struct MockBinding;
+
+    impl AbstractRegistryAccess for MockBinding {
+        fn abstract_registry(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
+            Ok(Addr::unchecked(TEST_VERSION_CONTROL))
+        }
+    }
+
+    mod assert_proxy {
+        use super::*;
+
+        #[test]
+        fn not_proxy_fails() {
+            let mut deps = mock_dependencies();
+            deps.querier = mocked_os_querier_builder()
+                // Setup the addresses as if the OS was registered
+                .os("not_manager", "not_proxy", TEST_OS_ID)
+                // update the proxy to be proxy of a different OS
+                .os(TEST_MANAGER, TEST_PROXY, 1)
+                .builder()
+                .with_contract_item("not_proxy", OS_ID, &1)
+                .build();
+
+            let binding = MockBinding;
+
+            let res = binding
+                .os_registry(deps.as_ref())
+                .assert_proxy(&Addr::unchecked("not_proxy"));
+
+            assert_that!(res)
+                .is_err()
+                .matches(|e| matches!(e, AbstractSdkError::NotProxy(..)))
+                .matches(|e| e.to_string().contains("not_proxy"));
+        }
+
+        #[test]
+        fn inactive_os_fails() {
+            let mut deps = mock_dependencies();
+
+            deps.querier = MockQuerierBuilder::default()
+                .with_contract_item(TEST_PROXY, OS_ID, &TEST_OS_ID)
+                .with_contract_map_key(TEST_VERSION_CONTROL, OS_ADDRESSES, TEST_OS_ID)
+                .build();
+
+            let binding = MockBinding;
+
+            let res = binding
+                .os_registry(deps.as_ref())
+                .assert_proxy(&Addr::unchecked(TEST_PROXY));
+
+            assert_that!(res)
+                .is_err()
+                .matches(|e| matches!(e, AbstractSdkError::UnknownOsId { .. }))
+                .matches(|e| e.to_string().contains("Unknown OS id 0"));
+        }
+
+        #[test]
+        fn returns_core() {
+            let mut deps = mock_dependencies();
+
+            deps.querier = MockQuerierBuilder::default()
+                .with_contract_item(TEST_PROXY, OS_ID, &TEST_OS_ID)
+                .with_contract_map_entry(
+                    TEST_VERSION_CONTROL,
+                    OS_ADDRESSES,
+                    (TEST_OS_ID, &test_core()),
+                )
+                .build();
+
+            let binding = MockBinding;
+
+            let res = binding
+                .os_registry(deps.as_ref())
+                .assert_proxy(&Addr::unchecked(TEST_PROXY));
+
+            assert_that!(res).is_ok().is_equal_to(test_core());
+        }
+
+        #[test]
+        fn errors_when_not_manager_of_returned_os() {
+            let mut deps = mock_dependencies();
+
+            deps.querier = MockQuerierBuilder::default()
+                .with_contract_item(TEST_PROXY, OS_ID, &TEST_OS_ID)
+                .with_contract_map_entry(
+                    TEST_VERSION_CONTROL,
+                    OS_ADDRESSES,
+                    (
+                        TEST_OS_ID,
+                        &Core {
+                            manager: Addr::unchecked(TEST_MANAGER),
+                            proxy: Addr::unchecked("not_poxry"),
+                        },
+                    ),
+                )
+                .build();
+
+            let binding = MockBinding;
+
+            let res = binding
+                .os_registry(deps.as_ref())
+                .assert_proxy(&Addr::unchecked(TEST_PROXY));
+
+            assert_that!(res)
+                .is_err()
+                // .matches(|e| matches!(e, AbstractSdkError::Std(StdError::GenericErr { .. })))
+                .matches(|e| e.to_string().contains("not the Proxy"));
+        }
+    }
+
+    mod assert_manager {
+        use super::*;
+
+        #[test]
+        fn not_manager_fails() {
+            let mut deps = mock_dependencies();
+            deps.querier = mocked_os_querier_builder()
+                // Setup the addresses as if the OS was registered
+                .os("not_manager", "not_proxy", TEST_OS_ID)
+                // update the proxy to be proxy of a different OS
+                .os(TEST_MANAGER, TEST_PROXY, 1)
+                .builder()
+                .with_contract_item("not_manager", OS_ID, &1)
+                .build();
+
+            let binding = MockBinding;
+
+            let res = binding
+                .os_registry(deps.as_ref())
+                .assert_manager(&Addr::unchecked("not_manager"));
+
+            assert_that!(res)
+                .is_err()
+                .matches(|e| matches!(e, AbstractSdkError::NotManager(..)))
+                .matches(|e| e.to_string().contains("not_manager is not the Manager"));
+        }
+
+        #[test]
+        fn inactive_os_fails() {
+            let mut deps = mock_dependencies();
+
+            deps.querier = MockQuerierBuilder::default()
+                .with_contract_item(TEST_MANAGER, OS_ID, &TEST_OS_ID)
+                .with_contract_map_key(TEST_VERSION_CONTROL, OS_ADDRESSES, TEST_OS_ID)
+                .build();
+
+            let binding = MockBinding;
+
+            let res = binding
+                .os_registry(deps.as_ref())
+                .assert_manager(&Addr::unchecked(TEST_MANAGER));
+
+            assert_that!(res)
+                .is_err()
+                .matches(|e| matches!(e, AbstractSdkError::UnknownOsId { .. }))
+                .matches(|e| {
+                    e.to_string().contains(&format!(
+                        "Unknown OS id {TEST_OS_ID} on version control {TEST_VERSION_CONTROL}"
+                    ))
+                });
+        }
+
+        #[test]
+        fn returns_core() {
+            let mut deps = mock_dependencies();
+
+            deps.querier = MockQuerierBuilder::default()
+                .with_contract_item(TEST_MANAGER, OS_ID, &TEST_OS_ID)
+                .with_contract_map_entry(
+                    TEST_VERSION_CONTROL,
+                    OS_ADDRESSES,
+                    (TEST_OS_ID, &test_core()),
+                )
+                .build();
+
+            let binding = MockBinding;
+
+            let res = binding
+                .os_registry(deps.as_ref())
+                .assert_manager(&Addr::unchecked(TEST_MANAGER));
+
+            assert_that!(res).is_ok().is_equal_to(test_core());
+        }
+
+        #[test]
+        fn errors_when_not_manager_of_returned_os() {
+            let mut deps = mock_dependencies();
+
+            deps.querier = MockQuerierBuilder::default()
+                .with_contract_item(TEST_MANAGER, OS_ID, &TEST_OS_ID)
+                .with_contract_map_entry(
+                    TEST_VERSION_CONTROL,
+                    OS_ADDRESSES,
+                    (
+                        TEST_OS_ID,
+                        &Core {
+                            manager: Addr::unchecked("not_manager"),
+                            proxy: Addr::unchecked(TEST_PROXY),
+                        },
+                    ),
+                )
+                .build();
+
+            let binding = MockBinding;
+
+            let res = binding
+                .os_registry(deps.as_ref())
+                .assert_manager(&Addr::unchecked(TEST_MANAGER));
+
+            assert_that!(res)
+                .is_err()
+                .matches(|e| matches!(e, AbstractSdkError::NotManager(..)))
+                .matches(|e| e.to_string().contains("not the Manager"))
+                .matches(|e| e.to_string().contains(TEST_MANAGER));
         }
     }
 }

@@ -4,6 +4,8 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
+pub const CHAIN_DELIMITER: &str = ">";
+
 /// May key to retrieve information on an asset
 #[derive(
     Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord, Default,
@@ -19,6 +21,27 @@ impl AssetEntry {
     }
     pub fn format(&mut self) {
         self.0 = self.0.to_ascii_lowercase();
+    }
+
+    /// Retrieve the source chain of the asset
+    /// Example: osmosis>juno>crab returns osmosis
+    /// Returns string to remain consistent with [`Self::asset_name`]
+    pub fn src_chain(&self) -> String {
+        self.0
+            .split(CHAIN_DELIMITER)
+            .next()
+            .unwrap_or("")
+            .to_string()
+    }
+
+    /// Retrieve the asset name without the src chain
+    /// Example: osmosis>juno>crab returns juno>crab
+    pub fn asset_name(&self) -> String {
+        self.0
+            .split(CHAIN_DELIMITER)
+            .skip(1)
+            .collect::<Vec<&str>>()
+            .join(CHAIN_DELIMITER)
     }
 }
 
@@ -46,7 +69,7 @@ impl Display for AssetEntry {
     }
 }
 
-impl<'a> PrimaryKey<'a> for AssetEntry {
+impl<'a> PrimaryKey<'a> for &AssetEntry {
     type Prefix = ();
 
     type SubPrefix = ();
@@ -55,23 +78,24 @@ impl<'a> PrimaryKey<'a> for AssetEntry {
 
     type SuperSuffix = Self;
 
+    // TODO: make this key implementation use src_chain as prefix
     fn key(&self) -> Vec<cw_storage_plus::Key> {
         self.0.key()
     }
 }
 
-impl<'a> Prefixer<'a> for AssetEntry {
+impl<'a> Prefixer<'a> for &AssetEntry {
     fn prefix(&self) -> Vec<Key> {
         self.0.prefix()
     }
 }
 
-impl KeyDeserialize for AssetEntry {
-    type Output = Self;
+impl KeyDeserialize for &AssetEntry {
+    type Output = AssetEntry;
 
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
-        Ok(Self(String::from_vec(value)?))
+        Ok(AssetEntry(String::from_vec(value)?))
     }
 }
 
@@ -114,7 +138,7 @@ mod test {
 
     #[test]
     fn string_key_works() {
-        let k = AssetEntry::new("CRAB");
+        let k = &AssetEntry::new("CRAB");
         let path = k.key();
         assert_eq!(1, path.len());
         assert_eq!(b"crab", path[0].as_ref());

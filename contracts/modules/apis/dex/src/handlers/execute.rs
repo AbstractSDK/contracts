@@ -1,4 +1,5 @@
 use crate::contract::{DexApi, DexResult};
+use crate::error::DexError;
 use crate::exchanges::exchange_resolver;
 use crate::LocalDex;
 use abstract_os::dex::state::SWAP_FEE;
@@ -6,12 +7,9 @@ use abstract_os::dex::{DexAction, DexApiExecuteMsg, DexExecuteMsg, DexName, IBC_
 use abstract_os::ibc_client::CallbackInfo;
 use abstract_os::objects::ans_host::AnsHost;
 use abstract_os::objects::AnsAsset;
-
-use abstract_sdk::base::features::AbstractNameService;
-use abstract_sdk::{IbcInterface, Resolve, Verification};
-use cosmwasm_std::{
-    to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
-};
+use abstract_sdk::features::AbstractNameService;
+use abstract_sdk::{IbcInterface, OsVerification, Resolve};
+use cosmwasm_std::{to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError};
 
 const ACTION_RETRIES: u8 = 3;
 
@@ -42,7 +40,7 @@ pub fn execute_handler(
             recipient_os_id,
         } => {
             // only previous OS can change the owner
-            api.os_register(deps.as_ref()).assert_proxy(&info.sender)?;
+            api.os_registry(deps.as_ref()).assert_proxy(&info.sender)?;
             if let Some(swap_fee) = swap_fee {
                 let mut fee = SWAP_FEE.load(deps.storage)?;
                 fee.set_share(swap_fee)?;
@@ -51,7 +49,7 @@ pub fn execute_handler(
 
             if let Some(os_id) = recipient_os_id {
                 let mut fee = SWAP_FEE.load(deps.storage)?;
-                let recipient = api.os_register(deps.as_ref()).proxy_address(os_id)?;
+                let recipient = api.os_registry(deps.as_ref()).proxy_address(os_id)?;
                 fee.set_recipient(deps.api, recipient)?;
                 SWAP_FEE.save(deps.storage, &fee)?;
             }
@@ -110,18 +108,23 @@ pub(crate) fn resolve_assets_to_transfer(
     deps: Deps,
     dex_action: &DexAction,
     ans_host: &AnsHost,
-) -> StdResult<Vec<Coin>> {
+) -> DexResult<Vec<Coin>> {
     // resolve asset to native asset
-    let offer_to_coin = |offer: &AnsAsset| offer.resolve(&deps.querier, ans_host)?.try_into();
+    let offer_to_coin = |offer: &AnsAsset| {
+        offer
+            .resolve(&deps.querier, ans_host)?
+            .try_into()
+            .map_err(DexError::from)
+    };
 
     match dex_action {
         DexAction::ProvideLiquidity { assets, .. } => {
             let coins: Result<Vec<Coin>, _> = assets.iter().map(offer_to_coin).collect();
             coins
         }
-        DexAction::ProvideLiquiditySymmetric { .. } => Err(StdError::generic_err(
+        DexAction::ProvideLiquiditySymmetric { .. } => Err(DexError::Std(StdError::generic_err(
             "Cross-chain symmetric provide liquidity not supported.",
-        )),
+        ))),
         DexAction::WithdrawLiquidity { lp_token, amount } => Ok(vec![offer_to_coin(&AnsAsset {
             name: lp_token.to_owned(),
             amount: amount.to_owned(),
@@ -132,4 +135,5 @@ pub(crate) fn resolve_assets_to_transfer(
             coins
         }
     }
+    .map_err(Into::into)
 }

@@ -27,7 +27,10 @@
 //! * (optional) Token emissions to contributor (and users) are dynamically set based on the protocol's income. Meaning that the token emissions will rise if demand/income falls and vice-versa.
 
 pub mod state {
-    use crate::objects::time_weighted_average::TimeWeightedAverage;
+    use crate::{
+        objects::{core::OsId, time_weighted_average::TimeWeightedAverage},
+        AbstractResult,
+    };
     use cosmwasm_std::{Addr, Api, Decimal, StdError, StdResult, Uint128, Uint64};
     use cw_asset::{AssetInfo, AssetInfoUnchecked};
     use cw_storage_plus::{Item, Map};
@@ -54,7 +57,7 @@ pub mod state {
     }
 
     impl UncheckedEmissionType {
-        pub fn check(self, api: &dyn Api) -> StdResult<EmissionType> {
+        pub fn check(self, api: &dyn Api) -> AbstractResult<EmissionType> {
             match self {
                 UncheckedEmissionType::None => Ok(EmissionType::None),
                 UncheckedEmissionType::BlockShared(d, a) => {
@@ -121,8 +124,8 @@ pub mod state {
     pub const INCOME_TWA: TimeWeightedAverage = TimeWeightedAverage::new("\u{0}{7}sub_twa");
     pub const SUBSCRIPTION_CONFIG: Item<SubscriptionConfig> = Item::new("\u{0}{10}sub_config");
     pub const SUBSCRIPTION_STATE: Item<SubscriptionState> = Item::new("\u{0}{9}sub_state");
-    pub const SUBSCRIBERS: Map<u32, Subscriber> = Map::new("subscribed");
-    pub const DORMANT_SUBSCRIBERS: Map<u32, Subscriber> = Map::new("un-subscribed");
+    pub const SUBSCRIBERS: Map<OsId, Subscriber> = Map::new("subscribed");
+    pub const DORMANT_SUBSCRIBERS: Map<OsId, Subscriber> = Map::new("un-subscribed");
 
     // #### CONTRIBUTION SECTION ####
 
@@ -223,7 +226,10 @@ pub mod state {
 }
 
 use self::state::UncheckedEmissionType;
-use crate::app::{self};
+use crate::{
+    app::{self},
+    objects::core::OsId,
+};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Decimal, Uint128, Uint64};
 use cw_asset::{Asset, AssetInfoUnchecked};
@@ -271,26 +277,26 @@ pub struct ContributionInstantiateMsg {
 #[cfg_attr(feature = "boot", impl_into(ExecuteMsg))]
 pub enum SubscriptionExecuteMsg {
     Pay {
-        os_id: u32,
+        os_id: OsId,
     },
     Unsubscribe {
         os_ids: Vec<u32>,
     },
     ClaimCompensation {
         // os_id the OS
-        os_id: u32,
+        os_id: OsId,
     },
     ClaimEmissions {
-        os_id: u32,
+        os_id: OsId,
     },
     UpdateContributor {
-        contributor_os_id: u32,
+        contributor_os_id: OsId,
         base_per_block: Option<Decimal>,
         weight: Option<Uint64>,
         expiration_block: Option<Uint64>,
     },
     RemoveContributor {
-        os_id: u32,
+        os_id: OsId,
     },
     UpdateSubscriptionConfig {
         payment_asset: Option<AssetInfoUnchecked>,
@@ -320,14 +326,14 @@ pub enum SubscriptionQueryMsg {
     #[returns(SubscriptionFeeResponse)]
     Fee {},
     #[returns(SubscriberStateResponse)]
-    SubscriberState { os_id: u32 },
+    SubscriberState { os_id: OsId },
     #[returns(ContributorStateResponse)]
-    ContributorState { os_id: u32 },
+    ContributorState { os_id: OsId },
 }
 
 #[cosmwasm_schema::cw_serde]
 pub enum DepositHookMsg {
-    Pay { os_id: u32 },
+    Pay { os_id: OsId },
 }
 
 #[cosmwasm_schema::cw_serde]

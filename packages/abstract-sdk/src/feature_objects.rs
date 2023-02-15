@@ -1,19 +1,21 @@
-//! # Feature Objects
-//! Feature objects are objects that store sufficient data to unlock a set of APIs.
+//! # Structs that implement a feature trait
+//!
+//! Feature objects are objects that store sufficient data to unlock some functionality.
 //! These objects are mostly used internally to easy re-use application code without
-//! requiring the usage of a base contract.  
+//! requiring the usage of a base contract.
 
+use crate::{
+    features::{AbstractRegistryAccess, Identification, ModuleIdentification},
+    AbstractSdkResult,
+};
+pub use abstract_os::objects::ans_host::AnsHost;
 use abstract_os::version_control::Core;
 use cosmwasm_std::{Addr, Deps};
-
-use crate::apis::ModuleIdentification;
-use crate::base::features::{Identification, RegisterAccess};
-pub use abstract_os::objects::ans_host::AnsHost;
 use os::PROXY;
 
-#[derive(Clone)]
 /// Store the Version Control contract.
-/// Implements [`RegisterAccess`]
+/// Implements [`AbstractRegistryAccess`]
+#[derive(Clone)]
 pub struct VersionControlContract {
     pub address: Addr,
 }
@@ -24,15 +26,15 @@ impl VersionControlContract {
     }
 }
 
-impl RegisterAccess for VersionControlContract {
-    fn registry(&self, _deps: Deps) -> cosmwasm_std::StdResult<Addr> {
+impl AbstractRegistryAccess for VersionControlContract {
+    fn abstract_registry(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
         Ok(self.address.clone())
     }
 }
 
-#[derive(Clone)]
 /// Store a proxy contract address.
 /// Implements [`Identification`].
+#[derive(Clone)]
 pub struct ProxyContract {
     pub contract_address: Addr,
 }
@@ -46,7 +48,7 @@ impl ProxyContract {
 }
 
 impl Identification for ProxyContract {
-    fn proxy_address(&self, _deps: Deps) -> cosmwasm_std::StdResult<Addr> {
+    fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
         Ok(self.contract_address.clone())
     }
 }
@@ -58,15 +60,15 @@ impl ModuleIdentification for ProxyContract {
 }
 
 impl Identification for Core {
-    fn proxy_address(&self, _deps: Deps) -> cosmwasm_std::StdResult<Addr> {
+    fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
         Ok(self.proxy.clone())
     }
 
-    fn manager_address(&self, _deps: Deps) -> cosmwasm_std::StdResult<Addr> {
+    fn manager_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
         Ok(self.manager.clone())
     }
 
-    fn os_core(&self, _deps: Deps) -> cosmwasm_std::StdResult<Core> {
+    fn os_core(&self, _deps: Deps) -> AbstractSdkResult<Core> {
         Ok(self.clone())
     }
 }
@@ -78,11 +80,8 @@ impl ModuleIdentification for Core {
     }
 }
 
-impl crate::base::features::AbstractNameService for AnsHost {
-    fn ans_host(
-        &self,
-        _deps: Deps,
-    ) -> cosmwasm_std::StdResult<abstract_os::objects::ans_host::AnsHost> {
+impl crate::features::AbstractNameService for AnsHost {
+    fn ans_host(&self, _deps: Deps) -> AbstractSdkResult<abstract_os::objects::ans_host::AnsHost> {
         Ok(self.clone())
     }
 }
@@ -104,7 +103,7 @@ mod tests {
 
             let deps = mock_dependencies();
 
-            assert_that!(vc.registry(deps.as_ref()))
+            assert_that!(vc.abstract_registry(deps.as_ref()))
                 .is_ok()
                 .is_equal_to(address);
         }

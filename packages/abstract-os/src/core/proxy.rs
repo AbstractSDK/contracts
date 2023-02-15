@@ -10,10 +10,13 @@
 //! [Proxy assets](crate::objects::proxy_asset) are what allow the proxy contract to provide value queries for its assets. It needs to be configured using the [`ExecuteMsg::UpdateAssets`] endpoint.
 //! After configuring the proxy assets [`QueryMsg::TotalValue`] can be called to get the total holding value.
 
-use crate::ibc_client::ExecuteMsg as IbcClientMsg;
-use crate::objects::{
-    proxy_asset::{ProxyAsset, UncheckedProxyAsset},
-    AssetEntry,
+use crate::{
+    ibc_client::ExecuteMsg as IbcClientMsg,
+    objects::{
+        core::OsId,
+        proxy_asset::{ProxyAsset, UncheckedProxyAsset},
+        AssetEntry,
+    },
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{CosmosMsg, Empty, Uint128};
@@ -36,12 +39,12 @@ pub mod state {
     pub const ANS_HOST: Item<AnsHost> = Item::new("\u{0}{6}ans_host");
     pub const STATE: Item<State> = Item::new("\u{0}{5}state");
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
-    pub const VAULT_ASSETS: Map<AssetEntry, ProxyAsset> = Map::new("proxy_assets");
+    pub const VAULT_ASSETS: Map<&AssetEntry, ProxyAsset> = Map::new("proxy_assets");
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
-    pub os_id: u32,
+    pub os_id: OsId,
     pub ans_host_address: String,
 }
 
@@ -101,8 +104,8 @@ pub enum QueryMsg {
     /// Returns [`AssetsResponse`]
     #[returns(AssetsResponse)]
     Assets {
-        page_token: Option<String>,
-        page_size: Option<u8>,
+        start_after: Option<String>,
+        limit: Option<u8>,
     },
     /// Returns [`ValidityResponse`]
     #[returns(ValidityResponse)]

@@ -8,6 +8,7 @@ use abstract_sdk::{
     feature_objects::AnsHost,
     namespaces::BASE_STATE,
     os::version_control::Core,
+    AbstractSdkError,
 };
 use cosmwasm_std::{Addr, Empty, StdError, StdResult, Storage};
 use cw_storage_plus::{Item, Map};
@@ -18,6 +19,7 @@ use std::{collections::HashSet, fmt::Debug};
 pub const TRADER_NAMESPACE: &str = "traders";
 
 /// The BaseState contains the main addresses needed for sending and verifying messages
+/// Every DApp should use the provided **ans_host** contract for token/contract address resolution.
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ApiState {
     /// Used to verify requests
@@ -28,7 +30,7 @@ pub struct ApiState {
 
 /// The state variables for our ApiContract.
 pub struct ApiContract<
-    Error: From<cosmwasm_std::StdError> + From<ApiError> + 'static,
+    Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError> + 'static,
     CustomExecMsg: 'static = Empty,
     CustomInitMsg: 'static = Empty,
     CustomQueryMsg: 'static = Empty,
@@ -37,16 +39,15 @@ pub struct ApiContract<
     pub(crate) contract:
         AbstractContract<Self, Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, Empty, Receive>,
     pub(crate) base_state: Item<'static, ApiState>,
-    // Map ProxyAddr -> WhitelistedTraders
+    /// Map ProxyAddr -> WhitelistedTraders
     pub traders: Map<'static, Addr, HashSet<Addr>>,
-    // Every DApp should use the provided ans_host contract for token/contract address resolution
-    /// Stores the api version
+    /// The OS on which commands are executed. Set each time in the [`abstract_os::api::ExecuteMsg::Base`] handler.
     pub target_os: Option<Core>,
 }
 
 /// Constructor
 impl<
-        Error: From<cosmwasm_std::StdError> + From<ApiError>,
+        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,
@@ -112,7 +113,10 @@ impl<
         self
     }
 
-    pub const fn with_query(mut self, query_handler: QueryHandlerFn<Self, CustomQueryMsg>) -> Self {
+    pub const fn with_query(
+        mut self,
+        query_handler: QueryHandlerFn<Self, CustomQueryMsg, Error>,
+    ) -> Self {
         self.contract = self.contract.with_query(query_handler);
         self
     }
@@ -121,6 +125,8 @@ impl<
         self.base_state.load(store)
     }
 
+    /// Return the address of the proxy for the OS associated with this API.
+    /// Set each time in the [`abstract_os::api::ExecuteMsg::Base`] handler.
     pub fn target(&self) -> Result<&Addr, ApiError> {
         Ok(&self
             .target_os

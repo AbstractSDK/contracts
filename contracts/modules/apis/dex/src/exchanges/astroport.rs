@@ -4,7 +4,7 @@ use crate::{
     DEX,
 };
 use abstract_os::objects::PoolAddress;
-use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
+use abstract_sdk::cw_helpers::cosmwasm_std::wasm_smart_query;
 use astroport::pair::{PoolResponse, SimulationResponse};
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, StdResult, Uint128, WasmMsg,
@@ -72,7 +72,6 @@ impl DEX for Astroport {
                 vec![],
             )?
             .into()],
-            AssetInfo::Cw1155(..) => return Err(DexError::Cw1155Unsupported {}),
             _ => panic!("unsupported asset"),
         };
         Ok(swap_msg)
@@ -286,7 +285,7 @@ fn cw_asset_to_astroport(asset: &Asset) -> Result<astroport::asset::Asset, DexEr
                 contract_addr: contract_addr.clone(),
             },
         }),
-        _ => Err(DexError::Cw1155Unsupported {}),
+        _ => Err(DexError::UnsupportedAssetType(asset.info.to_string())),
     }
 }
 

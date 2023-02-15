@@ -1,5 +1,4 @@
-use crate::objects::lp_token::LpToken;
-use crate::objects::AssetEntry;
+use crate::objects::{lp_token::LpToken, AssetEntry};
 use cosmwasm_std::{StdError, StdResult};
 use cw_storage_plus::{KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
@@ -56,20 +55,26 @@ impl Display for DexAssetPairing {
     }
 }
 
-impl<'a> PrimaryKey<'a> for DexAssetPairing {
-    type Prefix = (AssetEntry, AssetEntry);
-    type SubPrefix = AssetEntry;
+impl<'a> PrimaryKey<'a> for &DexAssetPairing {
+    type Prefix = (&'a AssetEntry, &'a AssetEntry);
+    type SubPrefix = &'a AssetEntry;
     type Suffix = DexName;
-    type SuperSuffix = (AssetEntry, DexName);
+    type SuperSuffix = (&'a AssetEntry, DexName);
 
     fn key(&self) -> Vec<cw_storage_plus::Key> {
-        self.0.key()
+        let mut key = self.0 .0 .0.key();
+        key.extend(self.0 .1 .0.key());
+        key.extend(self.0 .2.key());
+        key
     }
 }
 
-impl<'a> Prefixer<'a> for DexAssetPairing {
+impl<'a> Prefixer<'a> for &DexAssetPairing {
     fn prefix(&self) -> Vec<cw_storage_plus::Key> {
-        self.0.prefix()
+        let mut res = self.0 .0 .0.prefix();
+        res.extend(self.0 .1 .0.prefix().into_iter());
+        res.extend(self.0 .2.prefix().into_iter());
+        res
     }
 }
 
@@ -83,7 +88,7 @@ fn parse_length(value: &[u8]) -> StdResult<usize> {
 }
 
 /// @todo: use existing method for triple tuple
-impl KeyDeserialize for DexAssetPairing {
+impl KeyDeserialize for &DexAssetPairing {
     type Output = DexAssetPairing;
 
     #[inline(always)]
@@ -134,12 +139,11 @@ mod test {
     fn storage_key_works() {
         let mut deps = mock_dependencies();
         let key = mock_key();
-        let map: Map<DexAssetPairing, u64> = Map::new("map");
+        let map: Map<&DexAssetPairing, u64> = Map::new("map");
 
-        map.save(deps.as_mut().storage, key.clone(), &42069)
-            .unwrap();
+        map.save(deps.as_mut().storage, &key, &42069).unwrap();
 
-        assert_eq!(map.load(deps.as_ref().storage, key.clone()).unwrap(), 42069);
+        assert_eq!(map.load(deps.as_ref().storage, &key).unwrap(), 42069);
 
         let items = map
             .range(deps.as_ref().storage, None, None, Order::Ascending)
@@ -154,27 +158,27 @@ mod test {
     fn composite_key_works() {
         let mut deps = mock_dependencies();
         let key = mock_key();
-        let map: Map<(DexAssetPairing, Addr), Vec<PoolReference>> = Map::new("map");
+        let map: Map<(&DexAssetPairing, Addr), Vec<PoolReference>> = Map::new("map");
 
         let ref_1 = mock_pool_ref(1, "larry0x");
         let ref_2 = mock_pool_ref(2, "stablechen");
 
         map.save(
             deps.as_mut().storage,
-            (key.clone(), Addr::unchecked("astroport")),
+            (&key, Addr::unchecked("astroport")),
             &vec![ref_1.clone()],
         )
         .unwrap();
 
         map.save(
             deps.as_mut().storage,
-            (key.clone(), Addr::unchecked("terraswap")),
+            (&key, Addr::unchecked("terraswap")),
             &vec![ref_2.clone()],
         )
         .unwrap();
 
         let items = map
-            .prefix(key)
+            .prefix(&key)
             .range(deps.as_ref().storage, None, None, Order::Ascending)
             .map(|item| item.unwrap())
             .collect::<Vec<_>>();
@@ -188,16 +192,16 @@ mod test {
     fn partial_key_works() {
         let mut deps = mock_dependencies();
         let (key1, key2, key3) = mock_keys();
-        let map: Map<DexAssetPairing, u64> = Map::new("map");
+        let map: Map<&DexAssetPairing, u64> = Map::new("map");
 
-        map.save(deps.as_mut().storage, key1, &42069).unwrap();
+        map.save(deps.as_mut().storage, &key1, &42069).unwrap();
 
-        map.save(deps.as_mut().storage, key2, &69420).unwrap();
+        map.save(deps.as_mut().storage, &key2, &69420).unwrap();
 
-        map.save(deps.as_mut().storage, key3, &999).unwrap();
+        map.save(deps.as_mut().storage, &key3, &999).unwrap();
 
         let items = map
-            .prefix(("juno".into(), "osmo".into()))
+            .prefix((&"juno".into(), &"osmo".into()))
             .range(deps.as_ref().storage, None, None, Order::Ascending)
             .map(|item| item.unwrap())
             .collect::<Vec<_>>();

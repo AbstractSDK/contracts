@@ -1,12 +1,15 @@
 use crate::error::IbcClientError;
-use abstract_sdk::os::abstract_ica::{
-    check_order, check_version, BalancesResponse, RegisterResponse, StdAck, WhoAmIResponse,
+use abstract_os::objects::OsId;
+use abstract_sdk::os::{
+    abstract_ica::{
+        check_order, check_version, BalancesResponse, RegisterResponse, StdAck, WhoAmIResponse,
+    },
+    ibc_client::{
+        state::{AccountData, ACCOUNTS, CHANNELS, CONFIG, LATEST_QUERIES},
+        CallbackInfo, LatestQueryResponse,
+    },
+    ibc_host::{HostAction, InternalAction, PacketMsg},
 };
-use abstract_sdk::os::ibc_client::{
-    state::{AccountData, ACCOUNTS, CHANNELS, CONFIG, LATEST_QUERIES},
-    CallbackInfo, LatestQueryResponse,
-};
-use abstract_sdk::os::ibc_host::{HostAction, InternalAction, PacketMsg};
 use cosmwasm_std::{
     from_slice, to_binary, DepsMut, Env, Ibc3ChannelOpenResponse, IbcBasicResponse,
     IbcChannelCloseMsg, IbcChannelConnectMsg, IbcChannelOpenMsg, IbcMsg, IbcPacketAckMsg,
@@ -181,7 +184,7 @@ fn acknowledge_query(
     deps: DepsMut,
     env: Env,
     channel_id: String,
-    os_id: u32,
+    os_id: OsId,
     callback_info: Option<CallbackInfo>,
     ack: IbcPacketAckMsg,
 ) -> Result<IbcBasicResponse, IbcClientError> {
@@ -230,7 +233,7 @@ fn acknowledge_who_am_i(
 fn acknowledge_register(
     deps: DepsMut,
     channel_id: String,
-    os_id: u32,
+    os_id: OsId,
     ack: StdAck,
 ) -> Result<IbcBasicResponse, IbcClientError> {
     // ignore errors (but mention in log)
@@ -264,7 +267,7 @@ fn acknowledge_balances(
     deps: DepsMut,
     env: Env,
     channel_id: String,
-    os_id: u32,
+    os_id: OsId,
     ack: StdAck,
 ) -> Result<IbcBasicResponse, IbcClientError> {
     // ignore errors (but mention in log)
@@ -314,12 +317,14 @@ mod tests {
 
     use abstract_sdk::os::abstract_ica::{APP_ORDER, BAD_APP_ORDER, IBC_APP_VERSION};
     use abstract_testing::{TEST_ADMIN, TEST_ANS_HOST, TEST_VERSION_CONTROL};
-    use cosmwasm_std::testing::{
-        mock_dependencies, mock_env, mock_ibc_channel_connect_ack, mock_ibc_channel_open_init,
-        mock_ibc_channel_open_try, mock_ibc_packet_ack, mock_info, MockApi, MockQuerier,
-        MockStorage,
+    use cosmwasm_std::{
+        testing::{
+            mock_dependencies, mock_env, mock_ibc_channel_connect_ack, mock_ibc_channel_open_init,
+            mock_ibc_channel_open_try, mock_ibc_packet_ack, mock_info, MockApi, MockQuerier,
+            MockStorage,
+        },
+        CosmosMsg, Deps, IbcAcknowledgement, OwnedDeps, QueryResponse,
     };
-    use cosmwasm_std::{CosmosMsg, Deps, IbcAcknowledgement, OwnedDeps, QueryResponse};
 
     type IbcClientTestResult = Result<(), IbcClientError>;
 

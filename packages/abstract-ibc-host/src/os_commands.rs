@@ -3,7 +3,7 @@ use crate::{
     HostError,
 };
 use abstract_sdk::{
-    base::features::AbstractNameService,
+    features::AbstractNameService,
     os::{
         abstract_ica::{BalancesResponse, DispatchResponse, SendAllBackResponse, StdAck},
         objects::ChannelEntry,
@@ -15,7 +15,7 @@ use cosmwasm_std::{
 };
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<HostError>,
+        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,

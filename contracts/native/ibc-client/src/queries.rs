@@ -1,14 +1,17 @@
-use abstract_os::ibc_client::state::{Config, ACCOUNTS, ADMIN, CHANNELS, CONFIG, LATEST_QUERIES};
-use abstract_os::ibc_client::{
-    AccountInfo, AccountResponse, ConfigResponse, LatestQueryResponse, ListAccountsResponse,
-    ListChannelsResponse,
+use abstract_os::{
+    ibc_client::{
+        state::{Config, ACCOUNTS, ADMIN, CHANNELS, CONFIG, LATEST_QUERIES},
+        AccountInfo, AccountResponse, ConfigResponse, LatestQueryResponse, ListAccountsResponse,
+        ListChannelsResponse,
+    },
+    objects::OsId,
 };
 use cosmwasm_std::{Deps, Order, StdResult};
 
 pub fn query_latest_ibc_query_result(
     deps: Deps,
     host_chain: String,
-    os_id: u32,
+    os_id: OsId,
 ) -> StdResult<LatestQueryResponse> {
     let channel = CHANNELS.load(deps.storage, &host_chain)?;
     LATEST_QUERIES.load(deps.storage, (&channel, os_id))
@@ -46,7 +49,7 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
     })
 }
 
-pub fn query_account(deps: Deps, host_chain: String, os_id: u32) -> StdResult<AccountResponse> {
+pub fn query_account(deps: Deps, host_chain: String, os_id: OsId) -> StdResult<AccountResponse> {
     let channel = CHANNELS.load(deps.storage, &host_chain)?;
     let account = ACCOUNTS.load(deps.storage, (&channel, os_id))?;
     Ok(account.into())

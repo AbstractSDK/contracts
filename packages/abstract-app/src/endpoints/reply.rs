@@ -1,8 +1,7 @@
-use crate::ReplyEndpoint;
-use crate::{AppContract, AppError};
+use crate::{AppContract, AppError, ReplyEndpoint};
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<AppError>,
+        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,

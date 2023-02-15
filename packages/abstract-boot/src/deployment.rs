@@ -2,9 +2,9 @@ use crate::{
     get_apis, get_apps, get_native_contracts, get_os_core_contracts, AnsHost, Manager,
     ModuleFactory, OSFactory, Proxy, VersionControl,
 };
-use abstract_os::manager::ManagerModuleInfo;
 use abstract_os::{
-    manager::QueryMsgFns as ManagerQueryMsgFns, proxy::QueryMsgFns as ProxyQueryMsgFns,
+    manager::{ManagerModuleInfo, QueryMsgFns as ManagerQueryMsgFns},
+    proxy::QueryMsgFns as ProxyQueryMsgFns,
 };
 use boot_core::{prelude::*, BootEnvironment, BootError};
 use cosmwasm_std::Empty;
@@ -22,8 +22,9 @@ pub struct Abstract<Chain: BootEnvironment> {
     pub module_factory: ModuleFactory<Chain>,
 }
 
-use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, PROXY, VERSION_CONTROL};
-
+use abstract_os::{
+    objects::OsId, ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, PROXY, VERSION_CONTROL,
+};
 #[cfg(feature = "integration")]
 use cw_multi_test::ContractWrapper;
 
@@ -32,6 +33,7 @@ impl<Chain: BootEnvironment> boot_core::deploy::Deploy<Chain> for Abstract<Chain
     type Error = BootError;
     type DeployData = semver::Version;
 
+    // TODO: From<BootError>
     fn deploy_on(chain: Chain, version: semver::Version) -> Result<Self, BootError> {
         let mut ans_host = AnsHost::new(ANS_HOST, chain.clone());
         let mut os_factory = OSFactory::new(OS_FACTORY, chain.clone());
@@ -102,7 +104,9 @@ impl<Chain: BootEnvironment> boot_core::deploy::Deploy<Chain> for Abstract<Chain
 
         let mut os_core = OS { manager, proxy };
 
-        deployment.deploy(&mut os_core)?;
+        deployment
+            .deploy(&mut os_core)
+            .map_err(|e| BootError::StdErr(e.to_string()))?;
         Ok(deployment)
     }
 
@@ -140,7 +144,7 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
         self.chain.clone()
     }
 
-    pub fn deploy(&mut self, os_core: &mut OS<Chain>) -> Result<(), BootError> {
+    pub fn deploy(&mut self, os_core: &mut OS<Chain>) -> Result<(), crate::AbstractBootError> {
         let sender = &self.chain.sender();
 
         // ########### Upload ##############
@@ -198,12 +202,12 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
         self.version_control
             .register_core(os_core, &self.version.to_string())?;
 
-        self.version_control.register_native(self)?;
+        self.version_control.register_deployment(self)?;
 
         Ok(())
     }
 
-    pub fn deploy_modules(&self) -> Result<(), BootError> {
+    pub fn deploy_modules(&self) -> Result<(), crate::AbstractBootError> {
         self.upload_modules()?;
         self.instantiate_apis()?;
         self.register_modules()?;
@@ -219,7 +223,7 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
         ]
     }
 
-    fn instantiate_apis(&self) -> Result<(), BootError> {
+    fn instantiate_apis(&self) -> Result<(), crate::AbstractBootError> {
         let (dex, staking) = get_apis(self.get_chain());
         let init_msg = abstract_os::api::InstantiateMsg {
             app: Empty {},
@@ -233,7 +237,7 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
         Ok(())
     }
 
-    fn upload_modules(&self) -> Result<(), BootError> {
+    fn upload_modules(&self) -> Result<(), crate::AbstractBootError> {
         let (mut dex, mut staking) = get_apis(self.get_chain());
         let (mut etf, mut subs) = get_apps(self.get_chain());
         let modules: Vec<&mut dyn BootUpload<Chain>> =
@@ -241,11 +245,11 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
         modules
             .into_iter()
             .map(BootUpload::upload)
-            .collect::<Result<Vec<_>, BootError>>()?;
+            .collect::<Result<Vec<_>, _>>()?;
         Ok(())
     }
 
-    fn register_modules(&self) -> Result<(), BootError> {
+    fn register_modules(&self) -> Result<(), crate::AbstractBootError> {
         let (dex, staking) = get_apis(self.get_chain());
         let (etf, subs) = get_apps(self.get_chain());
 
@@ -265,33 +269,42 @@ pub struct OS<Chain: BootEnvironment> {
 }
 
 impl<Chain: BootEnvironment> OS<Chain> {
-    pub fn new(chain: Chain, os_id: Option<u32>) -> Self {
+    pub fn new(chain: Chain, os_id: Option<OsId>) -> Self {
         let (manager, proxy) = get_os_core_contracts(chain, os_id);
         Self { manager, proxy }
     }
 
-    pub fn upload(&mut self) -> Result<(), BootError> {
+    pub fn upload(&mut self) -> Result<(), crate::AbstractBootError> {
         self.manager.upload()?;
         self.proxy.upload()?;
         Ok(())
+    }
+
+    /// Register the os core contracts in the version control
+    pub fn register(
+        &self,
+        version_control: &VersionControl<Chain>,
+        version: &str,
+    ) -> Result<(), crate::AbstractBootError> {
+        version_control.register_core(self, version)
     }
 
     pub fn install_module<TInitMsg: Serialize>(
         &mut self,
         module_id: &str,
         init_msg: &TInitMsg,
-    ) -> Result<(), BootError> {
+    ) -> Result<(), crate::AbstractBootError> {
         self.manager.install_module(module_id, init_msg)
     }
 
     /// Assert that the OS has the expected modules with the provided **expected_module_addrs** installed.
     /// Also checks that the proxy's configuration includes the expected module addresses.
     /// Note that the proxy is automatically included in the assertions and *should not* (but can) be included in the expected list.
-    /// Returns the Vec<ManagerModuleInfo> from the manager
+    /// Returns the `Vec<ManagerModuleInfo>` from the manager
     pub fn expect_modules(
         &self,
         module_addrs: Vec<String>,
-    ) -> Result<Vec<ManagerModuleInfo>, BootError> {
+    ) -> Result<Vec<ManagerModuleInfo>, crate::AbstractBootError> {
         let abstract_os::manager::ModuleInfosResponse {
             module_infos: manager_modules,
         } = self.manager.module_infos(None, None)?;

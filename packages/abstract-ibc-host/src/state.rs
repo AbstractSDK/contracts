@@ -4,6 +4,7 @@ use crate::{
     },
     HostError,
 };
+use abstract_os::objects::OsId;
 use abstract_sdk::{
     base::{
         AbstractContract, ExecuteHandlerFn, InstantiateHandlerFn, QueryHandlerFn, ReceiveHandlerFn,
@@ -22,13 +23,13 @@ use serde::{Deserialize, Serialize};
 pub const TRADER_NAMESPACE: &str = "traders";
 
 /// Store channel information for proxy contract creation reply
-pub const PENDING: Item<(String, u32)> = Item::new("pending");
+pub const PENDING: Item<(String, OsId)> = Item::new("pending");
 /// Store the processing packet information for processing in Reply along with the channel id it came from
 pub const PROCESSING_PACKET: Item<(PacketMsg, String)> = Item::new("processing");
 /// (channel-id,os_id) -> local_proxy_addr
-pub const ACCOUNTS: Map<(&str, u32), Addr> = Map::new("accounts");
+pub const ACCOUNTS: Map<(&str, OsId), Addr> = Map::new("accounts");
 /// (channel-id,os_id) -> client_proxy_addr
-pub const CLIENT_PROXY: Map<(&str, u32), String> = Map::new("client_proxy");
+pub const CLIENT_PROXY: Map<(&str, OsId), String> = Map::new("client_proxy");
 /// List of closed channels
 /// Allows for fund recovery
 pub const CLOSED_CHANNELS: Item<Vec<String>> = Item::new("closed");
@@ -37,7 +38,7 @@ pub const RESULTS: Item<Vec<Binary>> = Item::new("results");
 
 /// The state variables for our host contract.
 pub struct Host<
-    Error: From<cosmwasm_std::StdError> + From<HostError> + 'static,
+    Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError> + 'static,
     CustomExecMsg: 'static = Empty,
     CustomInitMsg: 'static = Empty,
     CustomQueryMsg: 'static = Empty,
@@ -63,7 +64,7 @@ pub struct Host<
 
 // Constructor
 impl<
-        Error: From<cosmwasm_std::StdError> + From<HostError>,
+        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,
@@ -138,7 +139,10 @@ impl<
         self
     }
 
-    pub const fn with_query(mut self, query_handler: QueryHandlerFn<Self, CustomQueryMsg>) -> Self {
+    pub const fn with_query(
+        mut self,
+        query_handler: QueryHandlerFn<Self, CustomQueryMsg, Error>,
+    ) -> Self {
         self.contract = self.contract.with_query(query_handler);
         self
     }

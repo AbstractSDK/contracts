@@ -1,10 +1,10 @@
 use crate::deployment::{self, OS};
-use abstract_os::objects::module::Module;
 pub use abstract_os::version_control::{ExecuteMsgFns as VCExecFns, QueryMsgFns as VCQueryFns};
 use abstract_os::{
     objects::{
-        module::{ModuleInfo, ModuleVersion},
+        module::{Module, ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
+        OsId,
     },
     version_control::*,
     VERSION_CONTROL,
@@ -14,7 +14,7 @@ use boot_core::Daemon;
 use boot_core::{
     interface::{BootQuery, ContractInstance},
     prelude::boot_contract,
-    BootEnvironment, BootError, Contract, IndexResponse, TxResponse,
+    BootEnvironment, Contract, IndexResponse, TxResponse,
 };
 use cosmwasm_std::Addr;
 use semver::Version;
@@ -37,13 +37,17 @@ where
     }
 
     /// Query a single module
-    pub fn module(&self, info: ModuleInfo) -> Result<Module, BootError> {
+    pub fn module(&self, info: ModuleInfo) -> Result<Module, crate::AbstractBootError> {
         let ModulesResponse { mut modules } = self.modules(vec![info])?;
 
         Ok(modules.swap_remove(0))
     }
 
-    pub fn register_core(&self, os: &OS<Chain>, version: &str) -> Result<(), BootError> {
+    pub fn register_core(
+        &self,
+        os: &OS<Chain>,
+        version: &str,
+    ) -> Result<(), crate::AbstractBootError> {
         let manager = os.manager.as_instance();
         let manager_module = (
             ModuleInfo::from_id(&manager.id, ModuleVersion::Version(version.to_string()))?,
@@ -64,11 +68,37 @@ where
         Ok(())
     }
 
+    /// Register core modules
+    pub fn register_cores(
+        &self,
+        apps: Vec<&Contract<Chain>>,
+        version: &Version,
+    ) -> Result<(), crate::AbstractBootError> {
+        let to_register = self.contracts_into_module_entries(apps, version, |c| {
+            ModuleReference::Core(c.code_id().unwrap())
+        })?;
+        self.add_modules(to_register)?;
+        Ok(())
+    }
+
+    /// Register native modules
+    pub fn register_natives(
+        &self,
+        natives: Vec<&Contract<Chain>>,
+        version: &Version,
+    ) -> Result<(), crate::AbstractBootError> {
+        let to_register = self.contracts_into_module_entries(natives, version, |c| {
+            ModuleReference::Native(c.address().unwrap())
+        })?;
+        self.add_modules(to_register)?;
+        Ok(())
+    }
+
     pub fn register_apps(
         &self,
         apps: Vec<&Contract<Chain>>,
         version: &Version,
-    ) -> Result<(), BootError> {
+    ) -> Result<(), crate::AbstractBootError> {
         let to_register = self.contracts_into_module_entries(apps, version, |c| {
             ModuleReference::App(c.code_id().unwrap())
         })?;
@@ -80,7 +110,7 @@ where
         &self,
         apis: Vec<&Contract<Chain>>,
         version: &Version,
-    ) -> Result<(), BootError> {
+    ) -> Result<(), crate::AbstractBootError> {
         let to_register = self.contracts_into_module_entries(apis, version, |c| {
             ModuleReference::Api(c.address().unwrap())
         })?;
@@ -92,7 +122,7 @@ where
         &self,
         standalones: Vec<&Contract<Chain>>,
         version: &Version,
-    ) -> Result<(), BootError> {
+    ) -> Result<(), crate::AbstractBootError> {
         let to_register = self.contracts_into_module_entries(standalones, version, |c| {
             ModuleReference::Standalone(c.code_id().unwrap())
         })?;
@@ -100,15 +130,11 @@ where
         Ok(())
     }
 
-    pub fn register_native(
+    pub fn register_deployment(
         &self,
         deployment: &deployment::Abstract<Chain>,
-    ) -> Result<(), BootError> {
-        let to_register =
-            self.contracts_into_module_entries(deployment.contracts(), &deployment.version, |c| {
-                ModuleReference::Native(c.address().unwrap())
-            })?;
-        self.add_modules(to_register)?;
+    ) -> Result<(), crate::AbstractBootError> {
+        self.register_natives(deployment.contracts(), &deployment.version)?;
         Ok(())
     }
 
@@ -117,11 +143,14 @@ where
         modules: Vec<&Contract<Chain>>,
         version: &Version,
         ref_fn: RefFn,
-    ) -> Result<Vec<(ModuleInfo, ModuleReference)>, BootError>
+    ) -> Result<Vec<(ModuleInfo, ModuleReference)>, crate::AbstractBootError>
     where
         RefFn: Fn(&&Contract<Chain>) -> ModuleReference,
     {
-        let modules_to_register: Result<Vec<(ModuleInfo, ModuleReference)>, BootError> = modules
+        let modules_to_register: Result<
+            Vec<(ModuleInfo, ModuleReference)>,
+            crate::AbstractBootError,
+        > = modules
             .iter()
             .map(|contract| {
                 Ok((
@@ -133,13 +162,17 @@ where
         modules_to_register
     }
 
-    pub fn get_os_core(&self, os_id: u32) -> Result<Core, BootError> {
+    pub fn get_os_core(&self, os_id: OsId) -> Result<Core, crate::AbstractBootError> {
         let resp: OsCoreResponse = self.query(&QueryMsg::OsCore { os_id })?;
         Ok(resp.os_core)
     }
 
     /// Retrieves an API's address from version control given the module **id** and **version**.
-    pub fn get_api_addr(&self, id: &str, version: ModuleVersion) -> Result<Addr, BootError> {
+    pub fn get_api_addr(
+        &self,
+        id: &str,
+        version: ModuleVersion,
+    ) -> Result<Addr, crate::AbstractBootError> {
         let module: Module = self.module(ModuleInfo::from_id(id, version)?)?;
 
         Ok(module.reference.unwrap_addr()?)
@@ -156,7 +189,7 @@ impl VersionControl<Daemon> {
     //         }
 
     //         // Get latest code id
-    //         let resp: Result<QueryCodeIdResponse, BootError> = self.query(&QueryMsg::CodeId {
+    //         let resp: Result<QueryCodeIdResponse, crate::AbstractBootError> = self.query(&QueryMsg::CodeId {
     //             module: ModuleInfo {
     //                 name: contract_id.clone(),
     //                 version: None,
@@ -203,7 +236,7 @@ impl VersionControl<Daemon> {
     //         let address: String = chain_state[contract_name].as_str().unwrap().into();
 
     //         // Get latest addr
-    //         let resp: Result<QueryApiAddressResponse, BootError> =
+    //         let resp: Result<QueryApiAddressResponse, crate::AbstractBootError> =
     //             self.query(&QueryMsg::ApiAddress {
     //                 module: ModuleInfo {
     //                     name: contract_name.clone(),

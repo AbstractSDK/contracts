@@ -1,23 +1,28 @@
-use abstract_os::ans_host::state::{Config, ADMIN, ASSET_PAIRINGS, CONFIG, POOL_METADATA};
+use abstract_os::ans_host::state::REV_ASSET_ADDRESSES;
 use abstract_os::ans_host::{
-    AssetPairingFilter, AssetPairingMapEntry, ConfigResponse, PoolAddressListResponse,
-    PoolMetadataFilter, PoolMetadataListResponse, PoolMetadataMapEntry, PoolMetadatasResponse,
-    PoolsResponse, RegisteredDexesResponse,
+    AssetInfoListResponse, AssetInfoMapEntry, AssetInfosResponse, AssetMapEntry, ContractMapEntry,
 };
-use abstract_os::dex::DexName;
-use abstract_os::objects::pool_metadata::PoolMetadata;
-use abstract_os::objects::pool_reference::PoolReference;
-use abstract_os::objects::{DexAssetPairing, UniquePoolId};
 use abstract_os::{
+    ans_host::state::{Config, ADMIN, ASSET_PAIRINGS, CONFIG, POOL_METADATA},
     ans_host::{
         state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES, REGISTERED_DEXES},
         AssetListResponse, AssetsResponse, ChannelListResponse, ChannelsResponse,
         ContractListResponse, ContractsResponse,
     },
-    objects::{AssetEntry, ChannelEntry, ContractEntry},
+    ans_host::{
+        AssetPairingFilter, AssetPairingMapEntry, ChannelMapEntry, ConfigResponse,
+        PoolAddressListResponse, PoolMetadataFilter, PoolMetadataListResponse,
+        PoolMetadataMapEntry, PoolMetadatasResponse, PoolsResponse, RegisteredDexesResponse,
+    },
+    dex::DexName,
+    objects::{
+        AssetEntry, ChannelEntry, ContractEntry, DexAssetPairing, PoolMetadata, PoolReference,
+        UniquePoolId,
+    },
 };
-use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, StdResult, Storage};
-use cw_asset::AssetInfo;
+use abstract_sdk::cw_helpers::cw_storage_plus::load_many;
+use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdError, StdResult, Storage};
+use cw_asset::AssetInfoUnchecked;
 use cw_storage_plus::Bound;
 
 pub(crate) const DEFAULT_LIMIT: u8 = 15;
@@ -38,36 +43,14 @@ pub fn query_config(deps: Deps) -> StdResult<Binary> {
     to_binary(&res)
 }
 
-pub fn query_assets(deps: Deps, _env: Env, asset_names: Vec<String>) -> StdResult<Binary> {
-    let assets: Vec<AssetEntry> = asset_names
-        .iter()
-        .map(|name| name.as_str().into())
-        .collect();
-    let res: Result<Vec<(AssetEntry, AssetInfo)>, _> = ASSET_ADDRESSES
-        .range(deps.storage, None, None, Order::Ascending)
-        .filter(|e| assets.contains(&e.as_ref().unwrap().0))
-        .collect();
-    to_binary(&AssetsResponse { assets: res? })
-}
+pub fn query_assets(deps: Deps, _env: Env, keys: Vec<String>) -> StdResult<Binary> {
+    let keys: Vec<AssetEntry> = keys.into_iter().map(|name| name.as_str().into()).collect();
 
-pub fn query_contract(deps: Deps, _env: Env, names: Vec<ContractEntry>) -> StdResult<Binary> {
-    let res: Result<Vec<(ContractEntry, Addr)>, _> = CONTRACT_ADDRESSES
-        .range(deps.storage, None, None, Order::Ascending)
-        .filter(|e| names.contains(&e.as_ref().unwrap().0))
-        .collect();
+    let assets = load_many(ASSET_ADDRESSES, deps.storage, keys.iter().collect())?;
 
-    to_binary(&ContractsResponse {
-        contracts: res?.into_iter().map(|(x, a)| (x, a.to_string())).collect(),
+    to_binary(&AssetsResponse {
+        assets: assets.into_iter().map(|(k, v)| (k.to_owned(), v)).collect(),
     })
-}
-
-pub fn query_channel(deps: Deps, _env: Env, names: Vec<ChannelEntry>) -> StdResult<Binary> {
-    let res: Result<Vec<(ChannelEntry, String)>, _> = CHANNELS
-        .range(deps.storage, None, None, Order::Ascending)
-        .filter(|e| names.contains(&e.as_ref().unwrap().0))
-        .collect();
-
-    to_binary(&ChannelsResponse { channels: res? })
 }
 
 pub fn query_asset_list(
@@ -76,14 +59,79 @@ pub fn query_asset_list(
     limit: Option<u8>,
 ) -> StdResult<Binary> {
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
-    let start_bound = last_asset_name.as_deref().map(Bound::exclusive);
+    let entry = last_asset_name.map(AssetEntry::from);
+    let start_bound = entry.as_ref().map(Bound::exclusive);
 
-    let res: Result<Vec<(AssetEntry, AssetInfo)>, _> = ASSET_ADDRESSES
+    let res: Result<Vec<AssetMapEntry>, _> = ASSET_ADDRESSES
         .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
         .collect();
 
     to_binary(&AssetListResponse { assets: res? })
+}
+
+pub fn query_asset_infos(
+    deps: Deps,
+    _env: Env,
+    keys: Vec<AssetInfoUnchecked>,
+) -> StdResult<Binary> {
+    let keys = keys
+        .into_iter()
+        .map(|info| {
+            info.check(deps.api, None)
+                .map_err(|e| StdError::generic_err(e.to_string()))
+        })
+        .collect::<StdResult<Vec<_>>>()?;
+
+    let infos = load_many(REV_ASSET_ADDRESSES, deps.storage, keys.iter().collect())?;
+
+    to_binary(&AssetInfosResponse {
+        infos: infos.into_iter().map(|(k, v)| (k.to_owned(), v)).collect(),
+    })
+}
+
+pub fn query_asset_info_list(
+    deps: Deps,
+    last_asset_info: Option<AssetInfoUnchecked>,
+    limit: Option<u8>,
+) -> StdResult<Binary> {
+    let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
+    let asset_info = last_asset_info
+        .map(|info| {
+            info.check(deps.api, None)
+                .map_err(|e| StdError::generic_err(e.to_string()))
+        })
+        .transpose()?;
+    let start_bound = asset_info.as_ref().map(Bound::exclusive);
+
+    let res: Result<Vec<AssetInfoMapEntry>, _> = REV_ASSET_ADDRESSES
+        .range(deps.storage, start_bound, None, Order::Ascending)
+        .take(limit)
+        .collect();
+
+    to_binary(&AssetInfoListResponse { infos: res? })
+}
+
+pub fn query_contract(deps: Deps, _env: Env, keys: Vec<&ContractEntry>) -> StdResult<Binary> {
+    let contracts = load_many(CONTRACT_ADDRESSES, deps.storage, keys)?;
+
+    to_binary(&ContractsResponse {
+        contracts: contracts
+            .into_iter()
+            .map(|(x, a)| (x.to_owned(), a.to_string()))
+            .collect(),
+    })
+}
+
+pub fn query_channels(deps: Deps, _env: Env, keys: Vec<&ChannelEntry>) -> StdResult<Binary> {
+    let channels = load_many(CHANNELS, deps.storage, keys)?;
+
+    to_binary(&ChannelsResponse {
+        channels: channels
+            .into_iter()
+            .map(|(k, v)| (k.to_owned(), v))
+            .collect(),
+    })
 }
 
 pub fn query_contract_list(
@@ -92,12 +140,13 @@ pub fn query_contract_list(
     limit: Option<u8>,
 ) -> StdResult<Binary> {
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
-    let start_bound = last_contract.map(Bound::exclusive);
+    let start_bound = last_contract.as_ref().map(Bound::exclusive);
 
-    let res: Result<Vec<(ContractEntry, Addr)>, _> = CONTRACT_ADDRESSES
+    let res: Result<Vec<ContractMapEntry>, _> = CONTRACT_ADDRESSES
         .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
         .collect();
+
     to_binary(&ContractListResponse {
         contracts: res?.into_iter().map(|(x, a)| (x, a.to_string())).collect(),
     })
@@ -109,12 +158,13 @@ pub fn query_channel_list(
     limit: Option<u8>,
 ) -> StdResult<Binary> {
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
-    let start_bound = last_channel.map(Bound::exclusive);
+    let start_bound = last_channel.as_ref().map(Bound::exclusive);
 
-    let res: Result<Vec<(ChannelEntry, String)>, _> = CHANNELS
+    let res: Result<Vec<ChannelMapEntry>, _> = CHANNELS
         .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
         .collect();
+
     to_binary(&ChannelListResponse { channels: res? })
 }
 
@@ -127,10 +177,10 @@ pub fn query_registered_dexes(deps: Deps, _env: Env) -> StdResult<Binary> {
 pub fn list_pool_entries(
     deps: Deps,
     filter: Option<AssetPairingFilter>,
-    page_token: Option<DexAssetPairing>,
-    page_size: Option<u8>,
+    start_after: Option<DexAssetPairing>,
+    limit: Option<u8>,
 ) -> StdResult<Binary> {
-    let page_size = page_size.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
+    let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
 
     let (asset_pair_filter, dex_filter) = match filter {
         Some(AssetPairingFilter { asset_pair, dex }) => (asset_pair, dex),
@@ -147,13 +197,13 @@ pub fn list_pool_entries(
         // Add the result to a vec
         vec![entry]
     } else if let Some((asset_x, asset_y)) = asset_pair_filter {
-        let start_bound = page_token.map(|pairing| Bound::exclusive(pairing.dex()));
+        let start_bound = start_after.map(|pairing| Bound::exclusive(pairing.dex()));
 
         // We can use the prefix to load all the entries for the asset pair
         let res: Result<Vec<(DexName, Vec<PoolReference>)>, _> = ASSET_PAIRINGS
-            .prefix((asset_x.clone(), asset_y.clone()))
+            .prefix((&asset_x, &asset_y))
             .range(deps.storage, start_bound, None, Order::Ascending)
-            .take(page_size)
+            .take(limit)
             .collect();
 
         // Re add the key prefix, since only the dex is returned as a key
@@ -169,7 +219,8 @@ pub fn list_pool_entries(
 
         matched
     } else {
-        let start_bound: Option<Bound<DexAssetPairing>> = page_token.map(Bound::exclusive);
+        let start_bound: Option<Bound<&DexAssetPairing>> =
+            start_after.as_ref().map(Bound::exclusive);
 
         // We have no filter, so load all the entries
         let res: Result<Vec<AssetPairingMapEntry>, _> = ASSET_PAIRINGS
@@ -204,7 +255,7 @@ fn load_asset_pairing_entry(
     storage: &dyn Storage,
     key: DexAssetPairing,
 ) -> StdResult<AssetPairingMapEntry> {
-    let value = ASSET_PAIRINGS.load(storage, key.clone())?;
+    let value = ASSET_PAIRINGS.load(storage, &key)?;
     Ok((key, value))
 }
 
@@ -222,11 +273,11 @@ pub fn query_pool_metadatas(deps: Deps, keys: Vec<UniquePoolId>) -> StdResult<Bi
 pub fn list_pool_metadata_entries(
     deps: Deps,
     filter: Option<PoolMetadataFilter>,
-    page_token: Option<UniquePoolId>,
-    page_size: Option<u8>,
+    start_after: Option<UniquePoolId>,
+    limit: Option<u8>,
 ) -> StdResult<Binary> {
-    let page_size = page_size.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
-    let start_bound = page_token.map(Bound::exclusive);
+    let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
+    let start_bound = start_after.map(Bound::exclusive);
 
     let pool_type_filter = match filter {
         Some(PoolMetadataFilter { pool_type }) => pool_type,
@@ -240,7 +291,7 @@ pub fn list_pool_metadata_entries(
             let pool_type = &e.as_ref().unwrap().1.pool_type;
             pool_type_filter.as_ref().map_or(true, |f| f == pool_type)
         })
-        .take(page_size)
+        .take(limit)
         .map(|e| e.map(|(k, v)| (k, v)))
         .collect();
 
@@ -260,14 +311,14 @@ mod test {
     use abstract_os::ans_host::*;
     use abstract_os::objects::PoolType;
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info, MockApi};
-    use cosmwasm_std::{from_binary, DepsMut};
+    use cosmwasm_std::{from_binary, Addr, DepsMut};
 
     use crate::contract;
     use crate::contract::{instantiate, AnsHostResult};
     use crate::error::AnsHostError;
 
     use abstract_os::objects::pool_id::PoolAddressBase;
-    use cw_asset::{AssetInfoBase, AssetInfoUnchecked};
+    use cw_asset::{AssetInfo, AssetInfoUnchecked};
     use speculoos::prelude::*;
 
     use super::*;
@@ -289,16 +340,14 @@ mod test {
 
     fn query_asset_list_msg(token: String, size: usize) -> QueryMsg {
         QueryMsg::AssetList {
-            page_token: (Some(token)),
-            page_size: (Some(size as u8)),
+            start_after: (Some(token)),
+            limit: (Some(size as u8)),
+            filter: None,
         }
     }
 
-    fn create_test_assets(
-        input: Vec<(&str, &str)>,
-        api: MockApi,
-    ) -> Vec<(String, AssetInfoBase<Addr>)> {
-        let test_assets: Vec<(String, AssetInfoBase<Addr>)> = input
+    fn create_test_assets(input: Vec<(&str, &str)>, api: MockApi) -> Vec<(String, AssetInfo)> {
+        let test_assets: Vec<(String, AssetInfo)> = input
             .into_iter()
             .map(|input| {
                 (
@@ -312,7 +361,7 @@ mod test {
         test_assets
     }
 
-    fn create_asset_response(test_assets: Vec<(String, AssetInfoBase<Addr>)>) -> AssetsResponse {
+    fn create_asset_response(test_assets: Vec<(String, AssetInfo)>) -> AssetsResponse {
         let expected = AssetsResponse {
             assets: test_assets
                 .iter()
@@ -322,9 +371,7 @@ mod test {
         expected
     }
 
-    fn create_asset_list_response(
-        test_assets: Vec<(String, AssetInfoBase<Addr>)>,
-    ) -> AssetListResponse {
+    fn create_asset_list_response(test_assets: Vec<(String, AssetInfo)>) -> AssetListResponse {
         let expected = AssetListResponse {
             assets: test_assets
                 .iter()
@@ -363,10 +410,8 @@ mod test {
         contract_entry
     }
 
-    fn create_channel_entry_and_string(
-        input: Vec<(&str, &str, &str)>,
-    ) -> Vec<(ChannelEntry, String)> {
-        let channel_entry: Vec<(ChannelEntry, String)> = input
+    fn create_channel_entry_and_string(input: Vec<(&str, &str, &str)>) -> Vec<ChannelMapEntry> {
+        let channel_entry: Vec<ChannelMapEntry> = input
             .into_iter()
             .map(|input| {
                 (
@@ -394,17 +439,17 @@ mod test {
 
     fn create_channel_msg(input: Vec<(&str, &str)>) -> QueryMsg {
         QueryMsg::Channels {
-            names: create_channel_entry(input),
+            entries: create_channel_entry(input),
         }
     }
 
     fn update_asset_addresses(
         deps: DepsMut<'_>,
-        to_add: Vec<(String, AssetInfoBase<Addr>)>,
+        to_add: Vec<(String, AssetInfo)>,
     ) -> Result<(), cosmwasm_std::StdError> {
         for (test_asset_name, test_asset_info) in to_add.into_iter() {
             let insert = |_| -> StdResult<AssetInfo> { Ok(test_asset_info) };
-            ASSET_ADDRESSES.update(deps.storage, test_asset_name.into(), insert)?;
+            ASSET_ADDRESSES.update(deps.storage, &test_asset_name.into(), insert)?;
         }
         Ok(())
     }
@@ -416,19 +461,19 @@ mod test {
         for (key, new_address) in to_add.into_iter() {
             let addr = deps.as_ref().api.addr_validate(&new_address)?;
             let insert = |_| -> StdResult<Addr> { Ok(addr) };
-            CONTRACT_ADDRESSES.update(deps.storage, key, insert)?;
+            CONTRACT_ADDRESSES.update(deps.storage, &key, insert)?;
         }
         Ok(())
     }
 
     fn update_channels(
         deps: DepsMut<'_>,
-        to_add: Vec<(ChannelEntry, String)>,
+        to_add: Vec<ChannelMapEntry>,
     ) -> Result<(), cosmwasm_std::StdError> {
         for (key, new_channel) in to_add.into_iter() {
             // Update function for new or existing keys
             let insert = |_| -> StdResult<String> { Ok(new_channel) };
-            CHANNELS.update(deps.storage, key, insert)?;
+            CHANNELS.update(deps.storage, &key, insert)?;
         }
         Ok(())
     }
@@ -466,7 +511,7 @@ mod test {
             let _pool_ref = pool_ref.unwrap_or_default();
             Ok(_pool_ref)
         };
-        ASSET_PAIRINGS.update(deps.storage, dex_asset_pairing, insert)?;
+        ASSET_PAIRINGS.update(deps.storage, &dex_asset_pairing, insert)?;
         Ok(())
     }
 
@@ -488,13 +533,13 @@ mod test {
 
     fn create_pool_list_msg(
         filter: Option<AssetPairingFilter>,
-        page_token: Option<DexAssetPairing>,
-        page_size: Option<u8>,
+        start_after: Option<DexAssetPairing>,
+        limit: Option<u8>,
     ) -> Result<QueryMsg, cosmwasm_std::StdError> {
         let msg = QueryMsg::PoolList {
             filter,
-            page_token,
-            page_size,
+            start_after,
+            limit,
         };
         Ok(msg)
     }
@@ -508,7 +553,7 @@ mod test {
         let asset_pairing = ASSET_PAIRINGS
             .load(
                 deps.storage,
-                create_dex_asset_pairing(asset_x, asset_y, dex),
+                &create_dex_asset_pairing(asset_x, asset_y, dex),
             )
             .unwrap();
         let asset_pairing = PoolsResponse {
@@ -530,7 +575,7 @@ mod test {
     fn create_pool_metadata(dex: &str, asset_x: &str, asset_y: &str) -> PoolMetadata {
         PoolMetadata::new(
             dex,
-            abstract_os::objects::PoolType::Stable,
+            PoolType::Stable,
             vec![asset_x.to_string(), asset_y.to_string()],
         )
     }
@@ -574,7 +619,7 @@ mod test {
         update_contract_addresses(deps.as_mut(), to_add)?;
         // create, send and deserialise msg
         let msg = QueryMsg::Contracts {
-            names: create_contract_entry(vec![("foo", "foo")]),
+            entries: create_contract_entry(vec![("foo", "foo")]),
         };
         let res: ContractsResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
@@ -681,7 +726,7 @@ mod test {
             }
             vector
         };
-        let test_assets_large: Vec<(String, AssetInfoBase<Addr>)> = generate_test_assets_large(30)
+        let test_assets_large: Vec<(String, AssetInfo)> = generate_test_assets_large(30)
             .into_iter()
             .map(|input| {
                 (
@@ -722,17 +767,19 @@ mod test {
 
         // create msgs
         let msg = QueryMsg::ContractList {
-            page_token: None,
-            page_size: Some(42_u8),
+            start_after: None,
+            limit: Some(42_u8),
+            filter: None,
         };
         let res: ContractListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
         let msg = QueryMsg::ContractList {
-            page_token: Some(ContractEntry {
+            start_after: Some(ContractEntry {
                 protocol: "bar".to_string().to_ascii_lowercase(),
                 contract: "bar1".to_string().to_ascii_lowercase(),
             }),
-            page_size: Some(42_u8),
+            limit: Some(42_u8),
+            filter: None,
         };
         let res_expect_foo: ContractListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
@@ -773,27 +820,30 @@ mod test {
         update_channels(deps.as_mut(), to_add1)?;
 
         // create msgs
-        // No token filter - should return up to `page_size` entries
+        // No token filter - should return up to `limit` entries
         let msg = QueryMsg::ChannelList {
-            page_token: None,
-            page_size: Some(42_u8),
+            start_after: None,
+            limit: Some(42_u8),
+            filter: None,
         };
         let res_all = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
         // Filter for entries after `Foo` - Alphabetically
         let msg = QueryMsg::ChannelList {
-            page_token: Some(ChannelEntry {
+            start_after: Some(ChannelEntry {
                 connected_chain: "foo".to_string(),
                 protocol: "foo1".to_string(),
             }),
-            page_size: Some(42_u8),
+            limit: Some(42_u8),
+            filter: None,
         };
         let res_foobar = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
         // Return first entry - Alphabetically
         let msg = QueryMsg::ChannelList {
-            page_token: None,
-            page_size: Some(1_u8),
+            start_after: None,
+            limit: Some(1_u8),
+            filter: None,
         };
         let res_bar = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
@@ -865,12 +915,15 @@ mod test {
 
         // create msg
         let msg = QueryMsg::Pools {
-            keys: vec![create_dex_asset_pairing("btc", "eth", "foo")],
+            pairings: vec![create_dex_asset_pairing("btc", "eth", "foo")],
         };
         let res: PoolsResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
         //comparisons
         let expected = ASSET_PAIRINGS
-            .load(&deps.storage, create_dex_asset_pairing("btc", "eth", "foo"))
+            .load(
+                &deps.storage,
+                &create_dex_asset_pairing("btc", "eth", "foo"),
+            )
             .unwrap();
         let expected = PoolsResponse {
             pools: vec![(create_dex_asset_pairing("btc", "eth", "foo"), expected)],
@@ -896,7 +949,7 @@ mod test {
         // create duplicate pool entry
         update_asset_pairing("juno", "atom", "foo", 69, deps.as_mut(), api)?;
 
-        // create msgs bar/ foo / foo using `page_token` as filter
+        // create msgs bar/ foo / foo using `start_after` as filter
         let msg_bar = create_pool_list_msg(
             Some(create_asset_pairing_filter("btc", "eth", None)?),
             None,
@@ -911,7 +964,7 @@ mod test {
         )?;
         let res_foo: PoolsResponse = from_binary(&query_helper(deps.as_ref(), msg_foo)?)?;
 
-        let msg_foo_using_page_token = create_pool_list_msg(
+        let msg_foo_using_start_after = create_pool_list_msg(
             Some(AssetPairingFilter {
                 asset_pair: None,
                 dex: None,
@@ -919,8 +972,8 @@ mod test {
             Some(create_dex_asset_pairing("btc", "eth", "bar")),
             Some(42),
         )?;
-        let res_foo_using_page_token: PoolsResponse =
-            from_binary(&query_helper(deps.as_ref(), msg_foo_using_page_token)?)?;
+        let res_foo_using_start_after: PoolsResponse =
+            from_binary(&query_helper(deps.as_ref(), msg_foo_using_start_after)?)?;
 
         // create comparisons - bar / foo / all
         let expected_bar =
@@ -928,12 +981,15 @@ mod test {
         let expected_foo =
             load_asset_pairing_into_pools_response("juno", "atom", "foo", deps.as_mut())?;
         let expected_all_bar = ASSET_PAIRINGS
-            .load(&deps.storage, create_dex_asset_pairing("btc", "eth", "bar"))
+            .load(
+                &deps.storage,
+                &create_dex_asset_pairing("btc", "eth", "bar"),
+            )
             .unwrap();
         let expected_all_foo = ASSET_PAIRINGS
             .load(
                 &deps.storage,
-                create_dex_asset_pairing("juno", "atom", "foo"),
+                &create_dex_asset_pairing("juno", "atom", "foo"),
             )
             .unwrap();
         let expected_all = PoolsResponse {
@@ -956,7 +1012,7 @@ mod test {
         assert_eq!(&res_bar, &expected_bar);
         assert_eq!(&res_foo, &expected_foo);
         assert!(&res_foo.pools.len() == &1usize);
-        assert_eq!(&res_foo_using_page_token, &expected_foo);
+        assert_eq!(&res_foo_using_start_after, &expected_foo);
         assert_eq!(&res_all, &expected_all);
         Ok(())
     }
@@ -977,12 +1033,12 @@ mod test {
 
         // create msgs
         let msg_bar = QueryMsg::PoolMetadatas {
-            keys: vec![UniquePoolId::new(42)],
+            ids: vec![UniquePoolId::new(42)],
         };
         let res_bar: PoolMetadatasResponse = from_binary(&query_helper(deps.as_ref(), msg_bar)?)?;
 
         let msg_foo = QueryMsg::PoolMetadatas {
-            keys: vec![UniquePoolId::new(69)],
+            ids: vec![UniquePoolId::new(69)],
         };
         let res_foo: PoolMetadatasResponse = from_binary(&query_helper(deps.as_ref(), msg_foo)?)?;
 
@@ -992,7 +1048,7 @@ mod test {
                 UniquePoolId::new(42),
                 PoolMetadata::new(
                     "bar",
-                    abstract_os::objects::PoolType::Stable,
+                    PoolType::Stable,
                     vec!["btc".to_string(), "eth".to_string()],
                 ),
             )],
@@ -1002,7 +1058,7 @@ mod test {
                 UniquePoolId::new(69),
                 PoolMetadata::new(
                     "foo",
-                    abstract_os::objects::PoolType::Stable,
+                    PoolType::Stable,
                     vec!["juno".to_string(), "atom".to_string()],
                 ),
             )],
@@ -1028,8 +1084,8 @@ mod test {
             filter: Some(PoolMetadataFilter {
                 pool_type: Some(PoolType::Stable),
             }),
-            page_token: None,
-            page_size: None,
+            start_after: None,
+            limit: None,
         };
         let res_bar: PoolMetadatasResponse = from_binary(&query_helper(deps.as_ref(), msg_bar)?)?;
         let expected_bar = PoolMetadatasResponse {
@@ -1046,8 +1102,8 @@ mod test {
             filter: Some(PoolMetadataFilter {
                 pool_type: Some(PoolType::Stable),
             }),
-            page_token: None,
-            page_size: Some(42),
+            start_after: None,
+            limit: Some(42),
         };
         let res_both: PoolMetadatasResponse = from_binary(&query_helper(deps.as_ref(), msg_both)?)?;
 
@@ -1064,8 +1120,8 @@ mod test {
             filter: Some(PoolMetadataFilter {
                 pool_type: Some(PoolType::Stable),
             }),
-            page_token: Some(bar_key),
-            page_size: Some(42),
+            start_after: Some(bar_key),
+            limit: Some(42),
         };
         let res_foo: PoolMetadatasResponse = from_binary(&query_helper(deps.as_ref(), msg_foo)?)?;
 

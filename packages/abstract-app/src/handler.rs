@@ -1,8 +1,7 @@
-use crate::{AbstractContract, Handler};
-use crate::{AppContract, AppError};
+use crate::{AbstractContract, AppContract, AppError, Handler};
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<AppError>,
+        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
         ExecMsg,
         InitMsg,
         QueryMsg,
