@@ -55,7 +55,7 @@ dao-cw-utils = {version = "0.13.4", package = "cw-utils" }
 # dao-cw20 = {version = "0.13.4", package = "cw20" }
 
 # Osmosis
-osmosis-std = { version = "0.12.0", optional = true }
+osmosis-std = { version = "0.14.0", optional = true }
 
 # Astroport
 astroport = {git = "https://github.com/astroport-fi/astroport-core.git" , optional = true}
