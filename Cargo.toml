@@ -7,8 +7,7 @@ members = [
     "contracts/token",
     "contracts/modules/apps/etf",
     "contracts/modules/apps/subscription",
-    "contracts/modules/apis/tendermint-staking",
-    "contracts/modules/apis/dex",
+    "contracts/modules/apis/*",
     "contracts/modules/perks/vesting",
     "contracts/ibc-hosts/osmosis",
     "scripts"
@@ -44,7 +43,8 @@ cw2 = { version = "1.0.1" }
 cw20 = { version = "1.0.1" }
 cw20-base = { version = "1.0.1", features = ["library"] }
 # wait for my pr to be merged
-cw-asset = { git = "https://github.com/mars-protocol/cw-asset.git", tag = "v3.0.0-rc1" }
+cw-asset = { version = "3.0" }
+# cw-asset = { git = "https://github.com/mars-protocol/cw-asset.git", tag = "v3.0.0-rc1" }
 schemars = "0.8"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0" }
