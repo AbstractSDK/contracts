@@ -1,7 +1,8 @@
 use crate::Manager;
+use abstract_os::dex::{DexAction, DexExecuteMsg};
 use abstract_os::{
-    api::{self, InstantiateMsg},
-    dex::*,
+    api::{self},
+    dex::{ExecuteMsg, InstantiateMsg, QueryMsg},
     objects::{AnsAsset, AssetEntry},
     EXCHANGE, MANAGER,
 };
