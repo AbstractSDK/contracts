@@ -21,7 +21,24 @@ type FallbackHandler = dyn for<'a> Fn(&'a str, &'a Binary) -> BinaryQueryResult;
 type SmartHandler = dyn for<'a> Fn(&'a Binary) -> BinaryQueryResult;
 type RawHandler = dyn for<'a> Fn(&'a str) -> BinaryQueryResult;
 
-/// [`MockQuerierBuilder`] is a helper to build a [`MockQuerier`].
+/// [`MockQuerierBuilder`] is a helper to build a [`MockQuerier`].  
+/// Usage:
+/// ```rust
+/// use cosmwasm_std::{from_binary, to_binary};
+/// use abstract_testing::MockQuerierBuilder;
+/// use cosmwasm_std::testing::MockQuerier;
+/// use abstract_testing::mock_module::MockModuleExecuteMsg;
+///
+/// let querier = MockQuerierBuilder::default().with_smart_handler("contract_address", |msg| {
+///    // handle the message
+///     let res = match from_binary::<MockModuleExecuteMsg>(msg).unwrap() {
+///         // handle the message
+///        _ => panic!("unexpected message"),
+///    };
+///
+///   Ok(to_binary(&msg).unwrap())
+/// }).build();
+/// ```
 pub struct MockQuerierBuilder {
     base: MockQuerier,
     fallback_raw_handler: Box<FallbackHandler>,
@@ -74,24 +91,6 @@ where
     map.key(key).deref().to_vec()
 }
 
-/// Helper to build a MockQuerier.
-/// Usage:
-/// ```rust
-/// use cosmwasm_std::{from_binary, to_binary};
-/// use abstract_testing::MockQuerierBuilder;
-/// use cosmwasm_std::testing::MockQuerier;
-/// use abstract_testing::mock_module::MockModuleExecuteMsg;
-///
-/// let querier = MockQuerierBuilder::default().with_smart_handler("contract_address", |msg| {
-///    // handle the message
-///     let res = match from_binary::<MockModuleExecuteMsg>(msg).unwrap() {
-///         // handle the message
-///        _ => panic!("unexpected message"),
-///    };
-///
-///   Ok(to_binary(&msg).unwrap())
-/// }).build();
-/// ```
 impl MockQuerierBuilder {
     pub fn with_fallback_smart_handler<SH: 'static>(mut self, handler: SH) -> Self
     where
