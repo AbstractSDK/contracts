@@ -64,8 +64,8 @@ impl AbstractMockQuerierBuilder {
         self
     }
 
-    pub fn builder(self) -> MockQuerierBuilder {
-        self.builder
+    pub fn builder(&mut self) -> &mut MockQuerierBuilder {
+        &mut self.builder
     }
 
     pub fn build(self) -> MockQuerier {
