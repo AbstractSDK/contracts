@@ -8,12 +8,12 @@ use cosmwasm_std::{Addr, Deps, StdError};
 
 impl<
         Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
-        CustomExecMsg,
         CustomInitMsg,
+        CustomExecMsg,
         CustomQueryMsg,
         ReceiveMsg,
     > AbstractNameService
-    for ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
+    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg>
 {
     fn ans_host(&self, deps: Deps) -> AbstractSdkResult<AnsHost> {
         Ok(self.base_state.load(deps.storage)?.ans_host)
@@ -23,12 +23,12 @@ impl<
 /// Retrieve identifying information about the calling OS
 impl<
         Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
-        CustomExecMsg,
         CustomInitMsg,
+        CustomExecMsg,
         CustomQueryMsg,
         ReceiveMsg,
     > Identification
-    for ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
+    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg>
 {
     fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
         if let Some(target) = &self.target_os {
@@ -57,12 +57,12 @@ impl<
 
 impl<
         Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
-        CustomExecMsg,
         CustomInitMsg,
+        CustomExecMsg,
         CustomQueryMsg,
         ReceiveMsg,
     > ModuleIdentification
-    for ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
+    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg>
 {
     fn module_id(&self) -> &'static str {
         self.contract.info().0
@@ -72,12 +72,12 @@ impl<
 /// Get the version control contract
 impl<
         Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
-        CustomExecMsg,
         CustomInitMsg,
+        CustomExecMsg,
         CustomQueryMsg,
         ReceiveMsg,
     > AbstractRegistryAccess
-    for ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
+    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg>
 {
     fn abstract_registry(&self, deps: Deps) -> AbstractSdkResult<Addr> {
         Ok(self.state(deps.storage)?.version_control)

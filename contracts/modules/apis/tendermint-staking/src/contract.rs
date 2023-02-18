@@ -10,8 +10,8 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub type TendermintStakeApi = ApiContract<
     TendermintStakeError,
-    TendermintStakingExecuteMsg,
     Empty,
+    TendermintStakingExecuteMsg,
     TendermintStakingQueryMsg,
 >;
 pub type TendermintStakeResult = Result<Response, TendermintStakeError>;

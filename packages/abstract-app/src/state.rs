@@ -24,8 +24,8 @@ pub struct AppState {
 /// The state variables for our AppContract.
 pub struct AppContract<
     Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError> + 'static,
-    CustomExecMsg: 'static = Empty,
     CustomInitMsg: 'static = Empty,
+    CustomExecMsg: 'static = Empty,
     CustomQueryMsg: 'static = Empty,
     CustomMigrateMsg: 'static = Empty,
     Receive: 'static = Empty,
@@ -34,8 +34,8 @@ pub struct AppContract<
     pub(crate) contract: AbstractContract<
         Self,
         Error,
-        CustomExecMsg,
         CustomInitMsg,
+        CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
         Receive,
@@ -48,13 +48,13 @@ pub struct AppContract<
 /// Constructor
 impl<
         Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
-        CustomExecMsg,
         CustomInitMsg,
+        CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
     >
-    AppContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+    AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     pub const fn new(
         name: &'static str,

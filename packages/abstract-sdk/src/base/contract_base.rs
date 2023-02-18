@@ -10,17 +10,15 @@ pub type ContractName = &'static str;
 pub type VersionString = &'static str;
 pub type ContractMetadata = Option<&'static str>;
 
+pub type InstantiateHandlerFn<Module, InitMsg, Error> =
+    fn(DepsMut, Env, MessageInfo, Module, InitMsg) -> Result<Response, Error>;
+pub type ExecuteHandlerFn<Module, RequestMsg, Error> =
+    fn(DepsMut, Env, MessageInfo, Module, RequestMsg) -> Result<Response, Error>;
 pub type IbcCallbackHandlerFn<Module, Error> =
     fn(DepsMut, Env, MessageInfo, Module, String, StdAck) -> Result<Response, Error>;
 
-pub type ExecuteHandlerFn<Module, RequestMsg, Error> =
-    fn(DepsMut, Env, MessageInfo, Module, RequestMsg) -> Result<Response, Error>;
-
 pub type MigrateHandlerFn<Module, MigrateMsg, Error> =
     fn(DepsMut, Env, Module, MigrateMsg) -> Result<Response, Error>;
-
-pub type InstantiateHandlerFn<Module, InitMsg, Error> =
-    fn(DepsMut, Env, MessageInfo, Module, InitMsg) -> Result<Response, Error>;
 
 pub type QueryHandlerFn<Module, QueryMsg, Error> =
     fn(Deps, Env, &Module, QueryMsg) -> Result<Binary, Error>;
@@ -32,12 +30,12 @@ pub type ReplyHandlerFn<Module, Error> = fn(DepsMut, Env, Module, Reply) -> Resu
 
 const MAX_REPLY_COUNT: usize = 2;
 
-/// State variables for a generic contract
+/// Abstract generic contract
 pub struct AbstractContract<
     Module: Handler + 'static,
     Error: From<AbstractSdkError> + 'static,
-    CustomExecMsg = Empty,
     CustomInitMsg = Empty,
+    CustomExecMsg = Empty,
     CustomQueryMsg = Empty,
     CustomMigrateMsg = Empty,
     ReceiveMsg = Empty,
@@ -48,28 +46,28 @@ pub struct AbstractContract<
     pub(crate) version: Item<'static, ContractVersion>,
     /// ID's that this contract depends on
     pub(crate) dependencies: &'static [StaticDependency],
-    /// Expected callbacks following an IBC action
-    pub(crate) ibc_callback_handlers:
-        &'static [(&'static str, IbcCallbackHandlerFn<Module, Error>)],
-    /// Expected replies
-    pub reply_handlers: [&'static [(u64, ReplyHandlerFn<Module, Error>)]; MAX_REPLY_COUNT],
-    /// Handler of execute messages
-    pub(crate) execute_handler: Option<ExecuteHandlerFn<Module, CustomExecMsg, Error>>,
     /// Handler of instantiate messages
     pub(crate) instantiate_handler: Option<InstantiateHandlerFn<Module, CustomInitMsg, Error>>,
+    /// Handler of execute messages
+    pub(crate) execute_handler: Option<ExecuteHandlerFn<Module, CustomExecMsg, Error>>,
     /// Handler of query messages
     pub(crate) query_handler: Option<QueryHandlerFn<Module, CustomQueryMsg, Error>>,
     /// Handler for migrations
     pub(crate) migrate_handler: Option<MigrateHandlerFn<Module, CustomMigrateMsg, Error>>,
+    /// Expected replies
+    pub reply_handlers: [&'static [(u64, ReplyHandlerFn<Module, Error>)]; MAX_REPLY_COUNT],
     /// Handler of `Receive variant Execute messages
     pub(crate) receive_handler: Option<ReceiveHandlerFn<Module, ReceiveMsg, Error>>,
+    /// Expected callbacks following an IBC action
+    pub(crate) ibc_callback_handlers:
+        &'static [(&'static str, IbcCallbackHandlerFn<Module, Error>)],
 }
 
 impl<
         Module,
         Error: From<AbstractSdkError>,
-        CustomExecMsg,
         CustomInitMsg,
+        CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
@@ -77,8 +75,8 @@ impl<
     AbstractContract<
         Module,
         Error,
-        CustomExecMsg,
         CustomInitMsg,
+        CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
@@ -209,8 +207,8 @@ mod test {
     type MockAppContract = AbstractContract<
         MockModule,
         MockError,
-        MockExecMsg,
         MockInitMsg,
+        MockExecMsg,
         MockQueryMsg,
         MockMigrateMsg,
         MockReceiveMsg,
@@ -218,8 +216,8 @@ mod test {
 
     impl Handler for MockModule {
         type Error = MockError;
-        type CustomExecMsg = MockExecMsg;
         type CustomInitMsg = MockInitMsg;
+        type CustomExecMsg = MockExecMsg;
         type CustomQueryMsg = MockQueryMsg;
         type CustomMigrateMsg = MockMigrateMsg;
         type ReceiveMsg = MockReceiveMsg;
@@ -229,8 +227,8 @@ mod test {
         ) -> &AbstractContract<
             Self,
             Self::Error,
-            Self::CustomExecMsg,
             Self::CustomInitMsg,
+            Self::CustomExecMsg,
             Self::CustomQueryMsg,
             Self::CustomMigrateMsg,
             Self::ReceiveMsg,

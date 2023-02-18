@@ -18,8 +18,8 @@ where
     Self: Sized + 'static,
 {
     type Error: From<AbstractSdkError>;
-    type CustomExecMsg;
     type CustomInitMsg;
+    type CustomExecMsg;
     type CustomQueryMsg;
     type CustomMigrateMsg;
     type ReceiveMsg;
@@ -29,8 +29,8 @@ where
     ) -> &AbstractContract<
         Self,
         Self::Error,
-        Self::CustomExecMsg,
         Self::CustomInitMsg,
+        Self::CustomExecMsg,
         Self::CustomQueryMsg,
         Self::CustomMigrateMsg,
         Self::ReceiveMsg,
