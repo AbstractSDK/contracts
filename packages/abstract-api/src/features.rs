@@ -1,7 +1,7 @@
 use crate::{ApiContract, ApiError};
 use abstract_sdk::{
     feature_objects::AnsHost,
-    features::{AbstractNameService, AbstractRegistryAccess, Identification, ModuleIdentification},
+    features::{AbstractNameService, AbstractRegistryAccess, Identification},
     AbstractSdkError, AbstractSdkResult,
 };
 use cosmwasm_std::{Addr, Deps, StdError};
@@ -52,20 +52,6 @@ impl<
         } else {
             Err(StdError::generic_err("No OS core specified.").into())
         }
-    }
-}
-
-impl<
-        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        ReceiveMsg,
-    > ModuleIdentification
-    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg>
-{
-    fn module_id(&self) -> &'static str {
-        self.contract.info().0
     }
 }
 

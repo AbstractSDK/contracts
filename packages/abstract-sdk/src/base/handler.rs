@@ -4,7 +4,7 @@ use super::contract_base::{
 };
 use crate::{
     base::{
-        contract_base::{ContractMetadata, ContractName, VersionString},
+        contract_base::{ModuleId, ModuleMetadata, VersionString},
         ReplyHandlerFn,
     },
     AbstractSdkError, AbstractSdkResult,
@@ -41,7 +41,7 @@ where
         contract.version.load(store).map_err(Into::into)
     }
 
-    fn info(&self) -> (ContractName, VersionString, ContractMetadata) {
+    fn info(&self) -> (ModuleId, VersionString, ModuleMetadata) {
         let contract = self.contract();
         contract.info
     }

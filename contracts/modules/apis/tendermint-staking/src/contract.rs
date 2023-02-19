@@ -14,11 +14,12 @@ pub type TendermintStakeApi = ApiContract<
     TendermintStakingExecuteMsg,
     TendermintStakingQueryMsg,
 >;
-pub type TendermintStakeResult = Result<Response, TendermintStakeError>;
 
 const STAKING_API: TendermintStakeApi =
     TendermintStakeApi::new(TENDERMINT_STAKING, CONTRACT_VERSION, None)
         .with_execute(handle_request);
+
+pub type TendermintStakeResult = Result<Response, TendermintStakeError>;
 
 // Export handlers
 #[cfg(not(feature = "library"))]

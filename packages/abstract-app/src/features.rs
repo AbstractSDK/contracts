@@ -1,8 +1,7 @@
 use crate::{AppContract, AppError};
 use abstract_sdk::{
-    base::ContractName,
     feature_objects::AnsHost,
-    features::{AbstractNameService, Identification, ModuleIdentification},
+    features::{AbstractNameService, Identification},
     AbstractSdkResult,
 };
 use cosmwasm_std::{Addr, Deps};
@@ -51,31 +50,10 @@ impl<
     }
 }
 
-impl<
-        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        ReceiveMsg,
-    > ModuleIdentification
-    for AppContract<
-        Error,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        ReceiveMsg,
-    >
-{
-    fn module_id(&self) -> ContractName {
-        self.contract.info().0
-    }
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
+    use abstract_sdk::features::ModuleIdentification;
     use abstract_testing::{TEST_ANS_HOST, TEST_MODULE_ID, TEST_PROXY};
 
     use crate::test_common::*;

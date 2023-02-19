@@ -1,7 +1,7 @@
 use crate::{Host, HostError};
 use abstract_os::objects::OsId;
 use abstract_sdk::{
-    features::{AbstractNameService, Identification, ModuleIdentification},
+    features::{AbstractNameService, Identification},
     AbstractSdkError, AbstractSdkResult,
 };
 use cosmwasm_std::Deps;
@@ -52,20 +52,5 @@ impl<
         Err(AbstractSdkError::generic_err(
             "os_id not available on stateless ibc deployment",
         ))
-    }
-}
-
-impl<
-        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        ReceiveMsg,
-    > ModuleIdentification
-    for Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
-{
-    fn module_id(&self) -> &'static str {
-        self.contract.info().0
     }
 }
