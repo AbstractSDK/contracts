@@ -68,7 +68,11 @@ impl<
         }
     }
 
-    /// Handle a custom execution message sent to this app.
+    /// Handle a custom execution message sent to this api.
+    /// Three scenarios are possible:
+    /// 1. The sender is a trader of the given proxy address and has provided the proxy address in the message.
+    /// 2. The sender is a manager of the given proxy address.
+    /// 3. The sender is a random address and wants to use the API without interacting with an OS.
     fn handle_app_msg(
         mut self,
         deps: DepsMut,
@@ -84,7 +88,7 @@ impl<
 
         let os_registry = self.os_registry(deps.as_ref());
 
-        let core = match request.proxy_address {
+        let maybe_core: Option<Core> = match request.proxy_address {
             // The sender must either be a trader or manager.
             Some(requested_proxy) => {
                 let proxy_address = deps.api.addr_validate(&requested_proxy)?;
@@ -99,19 +103,20 @@ impl<
 
                 if traders.contains(sender) {
                     // If the sender is a trader, return the core.
-                    requested_core
+                    Some(requested_core)
                 } else {
                     // If the sender is NOT a trader, check that it is a manager of some OS.
-                    os_registry
-                        .assert_manager(sender)
-                        .map_err(unauthorized_sender)?
+                    Some(
+                        os_registry
+                            .assert_manager(sender)
+                            .map_err(unauthorized_sender)?,
+                    )
                 }
-            }
+            },
             None => os_registry
-                .assert_manager(sender)
-                .map_err(unauthorized_sender)?,
+                .assert_manager(sender).ok()
         };
-        self.target_os = Some(core);
+        self.target_os = maybe_core;
         self.execute_handler()?(deps, env, info, self, request.request)
     }
 
