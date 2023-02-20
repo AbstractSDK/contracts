@@ -1,5 +1,5 @@
 [package]
-name = "version-control"
+name = "abstract-version-control"
 version = {workspace = true}
 authors = {workspace = true}
 edition = {workspace = true}
@@ -39,7 +39,7 @@ anyhow = { workspace = true }
 cw-multi-test = { workspace = true }
 module-factory = { workspace = true }
 ans-host = { workspace = true }
-os-factory = { workspace = true }
+version-control = { workspace = true }
 proxy = { workspace = true }
 manager = { workspace = true }
 

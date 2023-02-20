@@ -1,5 +1,5 @@
 [package]
-name = "os-factory"
+name = "abstract-os-factory"
 version = {workspace = true}
 authors = {workspace = true}
 edition = {workspace = true}
