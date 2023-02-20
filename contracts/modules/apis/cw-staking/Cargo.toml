@@ -38,7 +38,7 @@ abstract-api = { workspace = true }
 cw-asset = { workspace = true }
 
 # Juno dexes
-cw20-stake = { git = "https://github.com/DA0-DA0/dao-contracts.git", optional = true, features = ["library"], tag = "v1.0.0" }
+cw20-stake = { git = "https://github.com/DA0-DA0/dao-contracts.git", optional = true, features = ["library"], tag = "v2.0.3" }
 cw20_junoswap = { package = "cw20", version = "0.10.0", optional = true }
 wasmswap = { git = "https://github.com/Wasmswap/wasmswap-contracts", tag = "v1.1.2-beta", features = [
   "library",
