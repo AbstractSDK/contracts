@@ -10,8 +10,12 @@ use abstract_sdk::os::{
     objects::AssetEntry,
 };
 use abstract_sdk::Execution;
-use cosmwasm_std::{CosmosMsg, Decimal, Deps, DepsMut, ReplyOn, StdError, SubMsg};
-use cw_asset::Asset;
+use cosmwasm_std::{
+    to_binary, Addr, Coin, CosmosMsg, Decimal, Deps, DepsMut, ReplyOn, StdError, StdResult, SubMsg,
+    WasmMsg,
+};
+use cw20::Cw20ExecuteMsg;
+use cw_asset::{Asset, AssetInfo};
 
 pub const PROVIDE_LIQUIDITY: u64 = 7542;
 pub const PROVIDE_LIQUIDITY_SYM: u64 = 7543;
@@ -248,4 +252,32 @@ pub trait LocalDex: AbstractNameService + Execution {
         let PoolReference { pool_address, .. } = pool_ids.pop().unwrap();
         exchange.withdraw_liquidity(deps, pool_address, lp_asset)
     }
+}
+pub(crate) fn cw_approve_msgs(assets: &[Asset], spender: &Addr) -> StdResult<Vec<CosmosMsg>> {
+    let mut msgs = vec![];
+    for asset in assets {
+        if let AssetInfo::Cw20(addr) = &asset.info {
+            let msg = Cw20ExecuteMsg::IncreaseAllowance {
+                spender: spender.to_string(),
+                amount: asset.amount,
+                expires: None,
+            };
+            msgs.push(CosmosMsg::Wasm(WasmMsg::Execute {
+                contract_addr: addr.to_string(),
+                msg: to_binary(&msg)?,
+                funds: vec![],
+            }))
+        }
+    }
+    Ok(msgs)
+}
+
+pub(crate) fn coins_in_assets(assets: &[Asset]) -> Vec<Coin> {
+    let mut coins = vec![];
+    for asset in assets {
+        if let AssetInfo::Native(denom) = &asset.info {
+            coins.push(Coin::new(asset.amount.u128(), denom.clone()));
+        }
+    }
+    coins
 }

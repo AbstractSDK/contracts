@@ -1,13 +1,12 @@
 use crate::{
+    commands::{coins_in_assets, cw_approve_msgs},
     dex_trait::{Fee, FeeOnInput, Identify, Return, Spread},
     error::DexError,
-    DEX, commands::{coins_in_assets, cw_approve_msgs},
+    DEX,
 };
 use abstract_os::objects::PoolAddress;
 use abstract_sdk::cw_helpers::cosmwasm_std::wasm_smart_query;
-use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, StdResult, Uint128, WasmMsg,
-};
+use cosmwasm_std::{to_binary, wasm_execute, CosmosMsg, Decimal, Deps, Uint128};
 use cw20::Cw20ExecuteMsg;
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};
 use wyndex::pair::{PoolResponse, SimulationResponse};

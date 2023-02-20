@@ -112,9 +112,8 @@ impl<
                             .map_err(unauthorized_sender)?,
                     )
                 }
-            },
-            None => os_registry
-                .assert_manager(sender).ok()
+            }
+            None => os_registry.assert_manager(sender).ok(),
         };
         self.target_os = maybe_core;
         self.execute_handler()?(deps, env, info, self, request.request)
