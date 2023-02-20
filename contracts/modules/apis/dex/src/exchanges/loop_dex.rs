@@ -1,4 +1,4 @@
-use crate::dex_trait::{Fee, FeeOnInput, Return, Spread};
+use crate::{dex_trait::{Fee, FeeOnInput, Return, Spread}, commands::{coins_in_assets, cw_approve_msgs}};
 use crate::{dex_trait::Identify, error::DexError, DEX};
 use abstract_os::objects::PoolAddress;
 use abstract_sdk::cw_helpers::cosmwasm_std::wasm_smart_query;
@@ -215,33 +215,4 @@ fn cw_asset_to_terraswap(asset: &Asset) -> Result<terraswap::asset::Asset, DexEr
         }),
         _ => Err(DexError::UnsupportedAssetType(asset.info.to_string())),
     }
-}
-
-fn cw_approve_msgs(assets: &[Asset], spender: &Addr) -> StdResult<Vec<CosmosMsg>> {
-    let mut msgs = vec![];
-    for asset in assets {
-        if let AssetInfo::Cw20(addr) = &asset.info {
-            let msg = cw20_junoswap::Cw20ExecuteMsg::IncreaseAllowance {
-                spender: spender.to_string(),
-                amount: asset.amount,
-                expires: None,
-            };
-            msgs.push(CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: addr.to_string(),
-                msg: to_binary(&msg)?,
-                funds: vec![],
-            }))
-        }
-    }
-    Ok(msgs)
-}
-
-fn coins_in_assets(assets: &[Asset]) -> Vec<Coin> {
-    let mut coins = vec![];
-    for asset in assets {
-        if let AssetInfo::Native(denom) = &asset.info {
-            coins.push(Coin::new(asset.amount.u128(), denom.clone()));
-        }
-    }
-    coins
 }
