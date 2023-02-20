@@ -10,10 +10,7 @@ use abstract_sdk::os::{
     objects::AssetEntry,
 };
 use abstract_sdk::Execution;
-use cosmwasm_std::{
-    to_binary, Addr, Coin, CosmosMsg, Decimal, Deps, DepsMut, ReplyOn, StdError, StdResult, SubMsg,
-    WasmMsg,
-};
+use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Decimal, Deps, StdError, StdResult, WasmMsg};
 use cw20::Cw20ExecuteMsg;
 use cw_asset::{Asset, AssetInfo};
 
@@ -25,22 +22,23 @@ pub const CUSTOM_SWAP: u64 = 7545;
 
 impl<T> LocalDex for T where T: AbstractNameService + Execution {}
 
+pub(crate) type ReplyId = u64;
+
 pub trait LocalDex: AbstractNameService + Execution {
     /// resolve the provided dex action on a local dex
     fn resolve_dex_action(
         &self,
-        deps: DepsMut,
+        deps: Deps,
         action: DexAction,
         exchange: &dyn DEX,
-        with_reply: bool,
-    ) -> Result<SubMsg, DexError> {
-        let (msgs, reply_id) = match action {
+    ) -> Result<(Vec<CosmosMsg>, ReplyId), DexError> {
+        Ok(match action {
             DexAction::ProvideLiquidity { assets, max_spread } => {
                 if assets.len() < 2 {
                     return Err(DexError::TooFewAssets {});
                 }
                 (
-                    self.resolve_provide_liquidity(deps.as_ref(), assets, exchange, max_spread)?,
+                    self.resolve_provide_liquidity(deps, assets, exchange, max_spread)?,
                     PROVIDE_LIQUIDITY,
                 )
             }
@@ -53,7 +51,7 @@ pub trait LocalDex: AbstractNameService + Execution {
                 }
                 (
                     self.resolve_provide_liquidity_symmetric(
-                        deps.as_ref(),
+                        deps,
                         offer_asset,
                         paired_assets,
                         exchange,
@@ -62,11 +60,7 @@ pub trait LocalDex: AbstractNameService + Execution {
                 )
             }
             DexAction::WithdrawLiquidity { lp_token, amount } => (
-                self.resolve_withdraw_liquidity(
-                    deps.as_ref(),
-                    AnsAsset::new(lp_token, amount),
-                    exchange,
-                )?,
+                self.resolve_withdraw_liquidity(deps, AnsAsset::new(lp_token, amount), exchange)?,
                 WITHDRAW_LIQUIDITY,
             ),
             DexAction::Swap {
@@ -76,7 +70,7 @@ pub trait LocalDex: AbstractNameService + Execution {
                 belief_price,
             } => (
                 self.resolve_swap(
-                    deps.as_ref(),
+                    deps,
                     offer_asset,
                     ask_asset,
                     exchange,
@@ -92,7 +86,7 @@ pub trait LocalDex: AbstractNameService + Execution {
                 router,
             } => (
                 self.resolve_custom_swap(
-                    deps.as_ref(),
+                    deps,
                     offer_assets,
                     ask_assets,
                     exchange,
@@ -101,14 +95,7 @@ pub trait LocalDex: AbstractNameService + Execution {
                 )?,
                 CUSTOM_SWAP,
             ),
-        };
-        if with_reply {
-            self.executor(deps.as_ref())
-                .execute_with_reply(msgs, ReplyOn::Success, reply_id)
-        } else {
-            self.executor(deps.as_ref()).execute(msgs).map(SubMsg::new)
-        }
-        .map_err(Into::into)
+        })
     }
 
     #[allow(clippy::too_many_arguments)]
