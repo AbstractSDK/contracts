@@ -2,7 +2,10 @@ mod common;
 
 use abstract_boot::*;
 use abstract_os::PROXY;
-use boot_core::{prelude::{instantiate_default_mock_env, ContractInstance}, Deploy};
+use boot_core::{
+    prelude::{instantiate_default_mock_env, ContractInstance},
+    Deploy,
+};
 use common::{create_default_os, TEST_COIN};
 use cosmwasm_std::{Addr, Coin, CosmosMsg};
 use speculoos::prelude::*;

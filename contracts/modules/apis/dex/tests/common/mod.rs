@@ -29,13 +29,13 @@ pub fn init_dex_api(
     version: Option<String>,
 ) -> anyhow::Result<DexApi<Mock>> {
     let mut dex_api = DexApi::new(TENDERMINT_STAKING, chain);
-    dex_api.as_instance_mut().set_mock(Box::new(
-        cw_multi_test::ContractWrapper::new_with_empty(
+    dex_api
+        .as_instance_mut()
+        .set_mock(Box::new(cw_multi_test::ContractWrapper::new_with_empty(
             ::dex::contract::execute,
             ::dex::contract::instantiate,
             ::dex::contract::query,
-        ),
-    ));
+        )));
     dex_api.upload()?;
     dex_api.instantiate(
         &InstantiateMsg {
