@@ -10,7 +10,12 @@ exclude = ["contract.wasm", "hash.txt"]
 [lib]
 crate-type = ["cdylib", "rlib"]
 
+[[example]]
+name = "deploy"
+required-features = ["deploy"]
+
 [features]
+deploy = ["boot-core/daemon"]
 default = ["juno", "terra"]
 # feature flag that fixes the astroport liquidity msg for testing
 testing = ["terra"]
@@ -57,7 +62,11 @@ boot-core = { workspace = true }
 tokio = { workspace = true }
 semver = { workspace = true }
 anyhow = { workspace = true }
+speculoos = { workspace = true }
+cw-multi-test = { workspace = true }
 dotenv = "0.15.0"
 env_logger = "0.10.0"
 abstract-api = { workspace = true, features = ["schema"] }
-clap = { workspace = true }
+clap = { workspace = true}
+wyndex-bundle = { git = "https://github.com/Abstract-OS/integration-bundles.git"}
+abstract-testing = { workspace = true }
