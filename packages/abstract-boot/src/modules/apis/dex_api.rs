@@ -6,7 +6,7 @@ use abstract_os::{
     EXCHANGE, MANAGER,
 };
 use boot_core::{interface::ContractInstance, prelude::boot_contract, BootEnvironment, Contract};
-use cosmwasm_std::Empty;
+use cosmwasm_std::{Empty, Decimal};
 use log::info;
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
@@ -37,17 +37,17 @@ impl<Chain: BootEnvironment> DexApi<Chain> {
         let asset = AssetEntry::new(offer_asset.0);
         let ask_asset = AssetEntry::new(ask_asset);
 
-        let swap_msg = api::ExecuteMsg::<_>::App(api::ApiRequestMsg {
+        let swap_msg = abstract_os::dex::ExecuteMsg::App(api::ApiRequestMsg {
             proxy_address: None,
             request: DexExecuteMsg {
                 dex,
                 action: DexAction::Swap {
                     offer_asset: AnsAsset::new(asset, offer_asset.1),
                     ask_asset,
-                    max_spread: None,
+                    max_spread: Some(Decimal::percent(30)),
                     belief_price: None,
                 },
-            },
+            }.into(),
         });
 
         info!("Swap msg: {:?}", serde_json::to_string(&swap_msg)?);
