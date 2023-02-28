@@ -1,6 +1,6 @@
 use crate::Manager;
 use abstract_os::{
-    api::{self, InstantiateMsg},
+    api,
     dex::*,
     objects::{AnsAsset, AssetEntry},
     EXCHANGE, MANAGER,

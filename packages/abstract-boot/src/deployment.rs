@@ -7,7 +7,7 @@ use abstract_os::{
     proxy::QueryMsgFns as ProxyQueryMsgFns,
 };
 use boot_core::{prelude::*, BootEnvironment, BootError};
-use cosmwasm_std::Empty;
+use cosmwasm_std::{Decimal, Empty};
 use semver::Version;
 use serde::Serialize;
 use speculoos::prelude::*;
@@ -227,15 +227,25 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
 
     fn instantiate_apis(&self) -> Result<(), crate::AbstractBootError> {
         let (dex, staking) = get_apis(self.get_chain());
-        let init_msg = abstract_os::api::InstantiateMsg {
+        let staking_init_msg = abstract_os::api::InstantiateMsg {
             app: Empty {},
             base: abstract_os::api::BaseInstantiateMsg {
                 ans_host_address: self.ans_host.address()?.into(),
                 version_control_address: self.version_control.address()?.into(),
             },
         };
-        dex.instantiate(&init_msg, None, None)?;
-        staking.instantiate(&init_msg, None, None)?;
+        let dex_init_msg = abstract_os::api::InstantiateMsg::<abstract_os::dex::DexInstantiateMsg> {
+            app: abstract_os::dex::DexInstantiateMsg {
+                swap_fee: Decimal::percent(1),
+                recipient_os: 0,
+            },
+            base: abstract_os::api::BaseInstantiateMsg {
+                ans_host_address: self.ans_host.addr_str()?,
+                version_control_address: self.version_control.addr_str()?,
+            },
+        };
+        dex.instantiate(&dex_init_msg, None, None)?;
+        staking.instantiate(&staking_init_msg, None, None)?;
         Ok(())
     }
 

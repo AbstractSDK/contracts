@@ -207,21 +207,10 @@ mod tests {
         testing::{mock_dependencies, MockQuerier},
         Empty,
     };
-    use cw_storage_plus::{Map, PrimaryKey};
-    use serde::{de::DeserializeOwned, Serialize};
+
     use speculoos::prelude::*;
 
     use std::fmt::Debug;
-
-    fn mock_map_key<'a, K, V>(map: Map<'a, K, V>, key: K) -> String
-    where
-        V: Serialize + DeserializeOwned,
-        K: PrimaryKey<'a>,
-    {
-        String::from_utf8(map.key(key).deref().to_vec()).unwrap()
-    }
-
-    use std::ops::Deref;
 
     fn assert_not_found<T: Debug>(res: AbstractSdkResult<T>) {
         assert_that!(res)

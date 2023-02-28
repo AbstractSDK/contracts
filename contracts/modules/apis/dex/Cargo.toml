@@ -15,15 +15,17 @@ name = "deploy"
 required-features = ["deploy"]
 
 [features]
+default = ["export"]
+# Use endpoint "export" feature instead of "library" feature because features are required to be additive.
+# https://doc.rust-lang.org/cargo/reference/features.html?highlight=additive#feature-unification
+export = []
 deploy = ["boot-core/daemon"]
-default = ["juno", "terra"]
 # feature flag that fixes the astroport liquidity msg for testing
 testing = ["terra"]
-library = []
 backtraces = ["cosmwasm-std/backtraces"]
 juno = ["dep:wasmswap", "dep:cw20_junoswap", "dep:wyndex"]
 terra = ["dep:terraswap", "dep:astroport", "dep:cw20_junoswap"]
-osmosis = ["library", "dep:osmosis-std"]
+osmosis = ["dep:osmosis-std"]
 all = ["terra", "juno", "osmosis"]
 
 # Keep as is until TendermintStake updates.
@@ -57,7 +59,7 @@ wyndex = {git = "https://github.com/cosmorama/wynddex.git", optional = true}
 osmosis-std = { version = "0.13.2", optional = true }
 
 [dev-dependencies]
-abstract-boot = { workspace = true }
+abstract-boot = { workspace = true, features = ["integration"]}
 boot-core = { workspace = true }
 tokio = { workspace = true }
 semver = { workspace = true }
