@@ -3,7 +3,7 @@
 //! `abstract_os::dex` is a generic dex-interfacing contract that handles address retrievals and dex-interactions.
 
 use crate::{
-    api::{self, ApiRequestMsg},
+    api,
     objects::{AnsAsset, AssetEntry, DexAssetPairing},
 };
 use cosmwasm_schema::QueryResponses;

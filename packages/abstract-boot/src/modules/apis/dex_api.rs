@@ -6,7 +6,7 @@ use abstract_os::{
     EXCHANGE, MANAGER,
 };
 use boot_core::{interface::ContractInstance, prelude::boot_contract, BootEnvironment, Contract};
-use cosmwasm_std::{Empty, Decimal};
+use cosmwasm_std::{Decimal, Empty};
 use log::info;
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
@@ -47,7 +47,8 @@ impl<Chain: BootEnvironment> DexApi<Chain> {
                     max_spread: Some(Decimal::percent(30)),
                     belief_price: None,
                 },
-            }.into(),
+            }
+            .into(),
         });
 
         info!("Swap msg: {:?}", serde_json::to_string(&swap_msg)?);

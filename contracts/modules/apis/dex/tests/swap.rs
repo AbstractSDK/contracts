@@ -17,8 +17,8 @@ fn swap_native() -> anyhow::Result<()> {
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
 
     let deployment = Abstract::deploy_on(chain.clone(), "1.0.0".parse()?)?;
-    let wyndex = wyndex_bundle::WynDex::deploy_on(chain.clone(), Empty{})?;
-    
+    let wyndex = wyndex_bundle::WynDex::deploy_on(chain.clone(), Empty {})?;
+
     let _root_os = create_default_os(&deployment.os_factory)?;
     deployment.deploy_modules()?;
     let os = create_default_os(&deployment.os_factory)?;
@@ -30,7 +30,9 @@ fn swap_native() -> anyhow::Result<()> {
     // install dex
     os.manager.install_module(EXCHANGE, &Empty {})?;
     let exchange_api = DexApi::new(EXCHANGE, chain.clone());
-    exchange_api.set_address(&Addr::unchecked(os.manager.module_info(EXCHANGE)?.unwrap().address));
+    exchange_api.set_address(&Addr::unchecked(
+        os.manager.module_info(EXCHANGE)?.unwrap().address,
+    ));
 
     exchange_api.swap(("eur", 100), "usd", wyndex_bundle::WYNDEX.into())?;
     Ok(())
