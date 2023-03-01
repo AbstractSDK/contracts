@@ -1,5 +1,5 @@
 //! # Functionality we want to implement on `OS`
-//! 
+//!
 //! ## Queries
 //! - module address
 //! - module asserts
@@ -13,9 +13,19 @@
 
 mod manager;
 mod proxy;
+use std::collections::HashSet;
+
+use abstract_os::{manager::ManagerModuleInfo, objects::OsId};
+use boot_core::{
+    prelude::{BootUpload, ContractInstance},
+    BootEnvironment,
+};
+use serde::Serialize;
+use speculoos::prelude::*;
+
+use crate::{get_os_core_contracts, VersionControl};
+
 pub use self::{manager::*, proxy::*};
-
-
 pub struct OS<Chain: BootEnvironment> {
     pub manager: Manager<Chain>,
     pub proxy: Proxy<Chain>,

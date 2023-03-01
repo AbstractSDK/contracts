@@ -1,17 +1,11 @@
 use crate::{
     get_apis, get_apps, get_native_contracts, get_os_core_contracts, AnsHost, Manager,
-    ModuleFactory, OSFactory, Proxy, VersionControl,
+    ModuleFactory, OSFactory, Proxy, VersionControl, OS,
 };
-use abstract_os::{
-    manager::{ManagerModuleInfo, QueryMsgFns as ManagerQueryMsgFns},
-    proxy::QueryMsgFns as ProxyQueryMsgFns, version_control::Core,
-};
+
 use boot_core::{prelude::*, BootEnvironment, BootError};
 use cosmwasm_std::{Decimal, Empty};
 use semver::Version;
-use serde::Serialize;
-use speculoos::prelude::*;
-use std::collections::HashSet;
 
 pub struct Abstract<Chain: BootEnvironment> {
     pub chain: Chain,

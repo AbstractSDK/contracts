@@ -434,8 +434,7 @@ mod tests {
             let unique_pool_id: UniquePoolId = 1u64.into();
             let pool_address: PoolAddress = Addr::unchecked("pool_address").into();
             let pool_reference = PoolReference::new(unique_pool_id, pool_address);
-            let pool_metadata =
-                PoolMetadata::new(dex.clone(), PoolType::ConstantProduct, assets.clone());
+            let pool_metadata = PoolMetadata::new(dex, PoolType::ConstantProduct, assets.clone());
 
             let querier = MockQuerierBuilder::default()
                 .with_contract_map_entry(

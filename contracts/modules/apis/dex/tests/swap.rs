@@ -18,13 +18,13 @@ fn swap_native() -> anyhow::Result<()> {
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
 
     let deployment = Abstract::deploy_on(chain.clone(), "1.0.0".parse()?)?;
-    let wyndex = wyndex_bundle::WynDex::deploy_on(chain.clone(), Empty {})?;
+    let _wyndex = wyndex_bundle::WynDex::deploy_on(chain.clone(), Empty {})?;
 
     let _root_os = create_default_os(&deployment.os_factory)?;
     deployment.deploy_modules()?;
     let os = create_default_os(&deployment.os_factory)?;
     let proxy_addr = os.proxy.address()?;
-    let manager_addr = os.manager.address()?;
+    let _manager_addr = os.manager.address()?;
     // mint to proxy
     chain.set_balance(&os.proxy.address()?, vec![coin(10_000, EUR)])?;
     // install exchange on OS
