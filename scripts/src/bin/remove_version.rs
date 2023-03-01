@@ -1,14 +1,12 @@
-use abstract_boot::{VersionControl, VCExecFns};
-use abstract_os::{
-    objects::module::{ModuleInfo, ModuleVersion},
-};
+use abstract_boot::{VCExecFns, VersionControl};
+use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
 use boot_core::{
     networks, networks::NetworkInfo, prelude::instantiate_daemon_env, DaemonOptionsBuilder,
 };
 use cosmwasm_std::Addr;
 use std::{env, sync::Arc};
 
-const NETWORK: NetworkInfo = networks::UNI_5;
+const NETWORK: NetworkInfo = networks::UNI_6;
 
 // To deploy the app we need to get the memory and then register it
 // We can then deploy a test OS that uses that new app

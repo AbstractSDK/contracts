@@ -3,11 +3,11 @@
 //! `abstract_os::dex` is a generic dex-interfacing contract that handles address retrievals and dex-interactions.
 
 use crate::{
-    api::{self},
+    api,
     objects::{AnsAsset, AssetEntry, DexAssetPairing},
 };
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Decimal, Uint128};
+use cosmwasm_std::{CosmosMsg, Decimal, Uint128};
 
 pub type DexName = String;
 pub type OfferAsset = AnsAsset;
@@ -39,7 +39,7 @@ pub struct DexInstantiateMsg {
 /// Dex Execute msg
 #[cosmwasm_schema::cw_serde]
 pub enum DexApiExecuteMsg {
-    Action(DexExecuteMsg),
+    Request(DexExecuteMsg),
     UpdateFee {
         swap_fee: Option<Decimal>,
         recipient_os_id: Option<u32>,
@@ -48,7 +48,7 @@ pub enum DexApiExecuteMsg {
 
 impl From<DexExecuteMsg> for DexApiExecuteMsg {
     fn from(action: DexExecuteMsg) -> Self {
-        DexApiExecuteMsg::Action(action)
+        DexApiExecuteMsg::Request(action)
     }
 }
 
@@ -117,6 +117,9 @@ pub enum DexQueryMsg {
         ask_asset: AssetEntry,
         dex: Option<DexName>,
     },
+    /// Endpoint can be used by front-end to easily interact with contracts.
+    #[returns(GenerateMessagesResponse)]
+    GenerateMessages { message: DexExecuteMsg },
 }
 
 // LP/protocol fees could be withheld from either input or output so commission asset must be included.
@@ -131,4 +134,11 @@ pub struct SimulateSwapResponse {
     pub commission: (AssetEntry, Uint128),
     /// API fee charged for the swap (paid in offer asset)
     pub api_fee: Uint128,
+}
+
+/// Response from GenerateMsgs
+#[cosmwasm_schema::cw_serde]
+pub struct GenerateMessagesResponse {
+    /// messages generated for dex action
+    pub messages: Vec<CosmosMsg>,
 }

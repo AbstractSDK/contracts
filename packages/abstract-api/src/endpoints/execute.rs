@@ -15,12 +15,12 @@ use serde::Serialize;
 
 impl<
         Error: From<StdError> + From<ApiError> + From<AbstractSdkError>,
-        CustomExecMsg: Serialize + JsonSchema + ApiExecuteMsg,
         CustomInitMsg,
+        CustomExecMsg: Serialize + JsonSchema + ApiExecuteMsg,
         CustomQueryMsg,
         ReceiveMsg: Serialize + JsonSchema,
     > ExecuteEndpoint
-    for ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
+    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg>
 {
     type ExecuteMsg = ExecuteMsg<CustomExecMsg, ReceiveMsg>;
 
@@ -36,8 +36,8 @@ impl<
             ExecuteMsg::Base(exec_msg) => self
                 .base_execute(deps, env, info, exec_msg)
                 .map_err(From::from),
-            ExecuteMsg::IbcCallback(msg) => self.handle_ibc_callback(deps, env, info, msg),
-            ExecuteMsg::Receive(msg) => self.handle_receive(deps, env, info, msg),
+            ExecuteMsg::IbcCallback(msg) => self.ibc_callback(deps, env, info, msg),
+            ExecuteMsg::Receive(msg) => self.receive(deps, env, info, msg),
             #[allow(unreachable_patterns)]
             _ => Err(StdError::generic_err("Unsupported api execute message variant").into()),
         }
@@ -47,11 +47,11 @@ impl<
 /// The api-contract base implementation.
 impl<
         Error: From<StdError> + From<ApiError> + From<AbstractSdkError>,
-        CustomExecMsg,
         CustomInitMsg,
+        CustomExecMsg,
         CustomQueryMsg,
         ReceiveMsg,
-    > ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
+    > ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg>
 {
     fn base_execute(
         &mut self,
@@ -68,7 +68,10 @@ impl<
         }
     }
 
-    /// Handle a custom execution message sent to this app.
+    /// Handle a custom execution message sent to this api.
+    /// Two success scenarios are possible:
+    /// 1. The sender is a trader of the given proxy address and has provided the proxy address in the message.
+    /// 2. The sender is a manager of the given proxy address.
     fn handle_app_msg(
         mut self,
         deps: DepsMut,
@@ -218,7 +221,7 @@ mod tests {
     use crate::test_common::{MockApiExecMsg, MockError};
     use speculoos::prelude::*;
 
-    type MockApi = ApiContract<MockError, MockApiExecMsg, Empty, Empty, Empty>;
+    type MockApi = ApiContract<MockError, Empty, MockApiExecMsg, Empty, Empty>;
     type ApiMockResult = Result<(), MockError>;
 
     const TEST_METADATA: &str = "test_metadata";

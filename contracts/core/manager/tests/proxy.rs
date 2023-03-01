@@ -1,10 +1,10 @@
 mod common;
 use abstract_boot::*;
+use abstract_manager::contract::CONTRACT_VERSION;
 use abstract_os::{manager::ManagerModuleInfo, PROXY};
 use boot_core::prelude::{instantiate_default_mock_env, ContractInstance};
 use common::{create_default_os, init_abstract_env, AResult, TEST_COIN};
 use cosmwasm_std::{Addr, Coin, CosmosMsg};
-use manager::contract::CONTRACT_VERSION;
 use speculoos::prelude::*;
 
 #[test]
@@ -47,7 +47,7 @@ fn exec_through_manager() -> AResult {
     let os = create_default_os(&deployment.os_factory)?;
 
     // mint coins to proxy address
-    chain.init_balance(&os.proxy.address()?, vec![Coin::new(100_000, TEST_COIN)])?;
+    chain.set_balance(&os.proxy.address()?, vec![Coin::new(100_000, TEST_COIN)])?;
 
     // burn coins from proxy
     let proxy_balance = chain
