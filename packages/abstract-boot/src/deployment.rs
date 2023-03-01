@@ -4,7 +4,7 @@ use crate::{
 };
 use abstract_os::{
     manager::{ManagerModuleInfo, QueryMsgFns as ManagerQueryMsgFns},
-    proxy::QueryMsgFns as ProxyQueryMsgFns,
+    proxy::QueryMsgFns as ProxyQueryMsgFns, version_control::Core,
 };
 use boot_core::{prelude::*, BootEnvironment, BootError};
 use cosmwasm_std::{Decimal, Empty};
@@ -146,6 +146,11 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
         self.chain.clone()
     }
 
+    pub fn get_os(&self, os_id: OsId) -> Result<OS<Chain>, BootError> {
+        let (manager, proxy) = get_os_core_contracts(self.get_chain(), Some(os_id));
+        Ok(OS { manager, proxy })
+    }
+
     pub fn deploy(&mut self, os_core: &mut OS<Chain>) -> Result<(), crate::AbstractBootError> {
         let sender = &self.chain.sender();
 
@@ -272,71 +277,5 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
             &self.version,
         )?;
         Ok(())
-    }
-}
-
-pub struct OS<Chain: BootEnvironment> {
-    pub manager: Manager<Chain>,
-    pub proxy: Proxy<Chain>,
-}
-
-impl<Chain: BootEnvironment> OS<Chain> {
-    pub fn new(chain: Chain, os_id: Option<OsId>) -> Self {
-        let (manager, proxy) = get_os_core_contracts(chain, os_id);
-        Self { manager, proxy }
-    }
-
-    pub fn upload(&mut self) -> Result<(), crate::AbstractBootError> {
-        self.manager.upload()?;
-        self.proxy.upload()?;
-        Ok(())
-    }
-
-    /// Register the os core contracts in the version control
-    pub fn register(
-        &self,
-        version_control: &VersionControl<Chain>,
-        version: &str,
-    ) -> Result<(), crate::AbstractBootError> {
-        version_control.register_core(self, version)
-    }
-
-    pub fn install_module<TInitMsg: Serialize>(
-        &mut self,
-        module_id: &str,
-        init_msg: &TInitMsg,
-    ) -> Result<(), crate::AbstractBootError> {
-        self.manager.install_module(module_id, init_msg)
-    }
-
-    /// Assert that the OS has the expected modules with the provided **expected_module_addrs** installed.
-    /// Also checks that the proxy's configuration includes the expected module addresses.
-    /// Note that the proxy is automatically included in the assertions and *should not* (but can) be included in the expected list.
-    /// Returns the `Vec<ManagerModuleInfo>` from the manager
-    pub fn expect_modules(
-        &self,
-        module_addrs: Vec<String>,
-    ) -> Result<Vec<ManagerModuleInfo>, crate::AbstractBootError> {
-        let abstract_os::manager::ModuleInfosResponse {
-            module_infos: manager_modules,
-        } = self.manager.module_infos(None, None)?;
-
-        let expected_module_addrs = module_addrs
-            .into_iter()
-            .chain(std::iter::once(self.manager.address()?.into_string()))
-            .collect::<HashSet<_>>();
-
-        // account for the proxy
-        assert_that!(manager_modules).has_length(expected_module_addrs.len());
-
-        // check proxy config
-        let abstract_os::proxy::ConfigResponse {
-            modules: proxy_whitelist,
-        } = self.proxy.config()?;
-
-        let actual_proxy_whitelist = HashSet::from_iter(proxy_whitelist);
-        assert_eq!(actual_proxy_whitelist, expected_module_addrs);
-
-        Ok(manager_modules)
     }
 }
