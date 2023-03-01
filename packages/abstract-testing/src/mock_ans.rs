@@ -28,22 +28,12 @@ use crate::{MockQuerierBuilder, TEST_ANS_HOST};
 /// pub const ASSET_PAIRINGS: Map<&DexAssetPairing, Vec<PoolReference>> = Map::new("pool_ids");
 /// pub const POOL_METADATA: Map<UniquePoolId, PoolMetadata> = Map::new("pools");
 /// ```
+#[derive(Debug, Clone)]
 pub struct MockAnsHost<'a> {
     pub contracts: Vec<(&'a ContractEntry, Addr)>,
     pub assets: Vec<(&'a AssetEntry, AssetInfo)>,
     pub channels: Vec<(&'a ChannelEntry, String)>,
     pub pools: Vec<(UncheckedPoolAddress, PoolMetadata)>,
-}
-
-impl Default for MockAnsHost<'_> {
-    fn default() -> Self {
-        Self {
-            contracts: vec![],
-            assets: vec![],
-            channels: vec![],
-            pools: vec![],
-        }
-    }
 }
 
 impl MockAnsHost<'_> {
