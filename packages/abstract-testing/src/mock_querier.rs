@@ -161,13 +161,13 @@ impl MockQuerierBuilder {
     ///     .with_contract_map_entry(
     ///     "contract_address",
     ///     MAP,
-    ///     ("key".to_string(), &"value".to_string())
+    ///     ("key".to_string(), "value".to_string())
     /// );
     pub fn with_contract_map_entry<'a, K, V>(
         self,
         contract: &str,
         cw_map: Map<'a, K, V>,
-        entry: (K, &V),
+        entry: (K, V),
     ) -> Self
     where
         K: PrimaryKey<'a>,
@@ -180,7 +180,7 @@ impl MockQuerierBuilder {
         mut self,
         contract: &str,
         cw_map: Map<'a, K, V>,
-        entries: Vec<(K, &V)>,
+        entries: Vec<(K, V)>,
     ) -> Self
     where
         K: PrimaryKey<'a>,
@@ -190,7 +190,7 @@ impl MockQuerierBuilder {
             self.insert_contract_key_value(
                 contract,
                 raw_map_key(&cw_map, key),
-                to_binary(value).unwrap(),
+                to_binary(&value).unwrap(),
             );
         }
 

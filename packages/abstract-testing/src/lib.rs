@@ -2,6 +2,7 @@ pub(crate) mod abstract_mock_querier;
 pub mod map_tester;
 pub mod mock_module;
 pub(crate) mod mock_querier;
+pub mod mock_ans;
 use cosmwasm_std::{
     testing::{MockApi, MockQuerier, MockStorage},
     OwnedDeps,
