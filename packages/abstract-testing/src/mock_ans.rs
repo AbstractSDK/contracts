@@ -1,13 +1,20 @@
-use std::collections::HashMap;
-
-use abstract_os::{objects::{ContractEntry, AssetEntry, ChannelEntry, pool_id::UncheckedPoolAddress, PoolMetadata, UniquePoolId}, dex::DexName, ans_host::state::{ASSET_ADDRESSES, CONTRACT_ADDRESSES, CHANNELS, POOL_METADATA, REGISTERED_DEXES}};
-use cosmwasm_std::{Addr, testing::{mock_dependencies, MockApi}};
+use abstract_os::{
+    ans_host::{
+        state::{
+            ASSET_ADDRESSES, ASSET_PAIRINGS, CHANNELS, CONTRACT_ADDRESSES, POOL_METADATA,
+            REGISTERED_DEXES,
+        },
+        AssetPair,
+    },
+    objects::{
+        pool_id::UncheckedPoolAddress, AssetEntry, ChannelEntry, ContractEntry, DexAssetPairing,
+        PoolMetadata, PoolReference, UniquePoolId,
+    },
+};
+use cosmwasm_std::{testing::MockApi, Addr};
 use cw_asset::AssetInfo;
 
 use crate::{MockQuerierBuilder, TEST_ANS_HOST};
-
-
-
 
 /// mirror ANS state
 /// ```rust,ignore
@@ -20,12 +27,12 @@ use crate::{MockQuerierBuilder, TEST_ANS_HOST};
 /// // (asset1, asset2, dex_name) -> {id: uniqueId, pool_id: poolId}
 /// pub const ASSET_PAIRINGS: Map<&DexAssetPairing, Vec<PoolReference>> = Map::new("pool_ids");
 /// pub const POOL_METADATA: Map<UniquePoolId, PoolMetadata> = Map::new("pools");
-/// ``` 
+/// ```
 pub struct MockAnsHost<'a> {
     pub contracts: Vec<(&'a ContractEntry, Addr)>,
     pub assets: Vec<(&'a AssetEntry, AssetInfo)>,
     pub channels: Vec<(&'a ChannelEntry, String)>,
-    pub pools: Vec<(UncheckedPoolAddress, PoolMetadata)>
+    pub pools: Vec<(UncheckedPoolAddress, PoolMetadata)>,
 }
 
 impl Default for MockAnsHost<'_> {
@@ -39,46 +46,68 @@ impl Default for MockAnsHost<'_> {
     }
 }
 
-impl MockAnsHost<'_>{
-    // consume to drop self as re-using is not possible
+impl MockAnsHost<'_> {
+    // consume to drop self as re-using should not be possible
     pub fn insert_into(self, querier_builder: &mut MockQuerierBuilder) {
-        querier_builder.with_contract_map_entries(TEST_ANS_HOST, ASSET_ADDRESSES, self.assets.clone());
-        querier_builder.with_contract_map_entries(TEST_ANS_HOST, CONTRACT_ADDRESSES, self.contracts.clone());
+        querier_builder.with_contract_map_entries(
+            TEST_ANS_HOST,
+            ASSET_ADDRESSES,
+            self.assets.clone(),
+        );
+        querier_builder.with_contract_map_entries(
+            TEST_ANS_HOST,
+            CONTRACT_ADDRESSES,
+            self.contracts.clone(),
+        );
         querier_builder.with_contract_map_entries(TEST_ANS_HOST, CHANNELS, self.channels.clone());
 
         let mut unique_id = UniquePoolId::new(0);
-        let dexes = vec![];
+        let mut dexes = vec![];
         for (pool_addr, pool_meta) in self.pools.clone() {
             let dex = pool_meta.dex.clone();
             if !dexes.contains(&dex) {
                 dexes.push(dex);
             }
             let pool_addr = pool_addr.check(&MockApi::default()).unwrap();
-            querier_builder.with_contract_map_entries(TEST_ANS_HOST, POOL_METADATA, (pool_addr, pool_meta));
+            querier_builder.with_contract_map_entries(
+                TEST_ANS_HOST,
+                POOL_METADATA,
+                vec![(unique_id, pool_meta.clone())],
+            );
+            // add pairs for this pool
+            for (i, asset_x) in pool_meta.assets.iter().enumerate() {
+                for (j, asset_y) in pool_meta.assets.iter().enumerate() {
+                    // Skip self-pairings
+                    if i == j || asset_x == asset_y {
+                        continue;
+                    }
+                    let pair: AssetPair = (asset_x.clone(), asset_y.clone());
+                    let pair: DexAssetPairing =
+                        DexAssetPairing::new(pair.0.clone(), pair.1.clone(), &pool_meta.dex);
+                    querier_builder.with_contract_map_entries(
+                        TEST_ANS_HOST,
+                        ASSET_PAIRINGS,
+                        vec![(
+                            &pair,
+                            vec![PoolReference {
+                                unique_id,
+                                pool_address: pool_addr.clone(),
+                            }],
+                        )],
+                    );
+                }
+            }
+
+            // .iter().for_each(|pair: Vec<AssetEntry>| {
+            //     if pair[0] == pair[1] {
+            //         return;
+            //     }
+            //     let pair: DexAssetPairing = DexAssetPairing::new(pair[0].clone(), pair[1].clone(), &pool_meta.dex);
+            //     querier_builder.with_contract_map_entries(TEST_ANS_HOST, ASSET_PAIRINGS, vec![(&pair, vec![PoolReference{ unique_id, pool_address: pool_addr.clone() }])]);
+            // });
+
             unique_id.increment();
         }
         querier_builder.with_contract_item(TEST_ANS_HOST, REGISTERED_DEXES, &dexes);
     }
 }
-
-
-/// Execute an action on every asset pairing in the list of assets
-/// Example: assets: [A, B, C] -> [A, B], [A, C], [B, C]
-fn exec_on_asset_pairings<T, A, E>(assets: &[AssetEntry], mut action: A) -> StdResult<()>
-where
-    A: FnMut(AssetPair) -> Result<T, E>,
-    StdError: From<E>,
-{
-    for (i, asset_x) in assets.iter().enumerate() {
-        for (j, asset_y) in assets.iter().enumerate() {
-            // Skip self-pairings
-            if i == j || asset_x == asset_y {
-                continue;
-            }
-            let pair: AssetPair = (asset_x.clone(), asset_y.clone());
-            action(pair)?;
-        }
-    }
-    Ok(())
-}
-

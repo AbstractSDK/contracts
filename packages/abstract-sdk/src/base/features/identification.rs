@@ -69,9 +69,9 @@ mod test {
             let binding = MockBinding;
             let mut deps = mock_dependencies();
 
-            deps.querier = MockQuerierBuilder::default()
-                .with_contract_item(TEST_PROXY, MANAGER, &Some(Addr::unchecked(TEST_MANAGER)))
-                .build();
+            let mut builder = MockQuerierBuilder::default();
+            builder.with_contract_item(TEST_PROXY, MANAGER, &Some(Addr::unchecked(TEST_MANAGER)));
+            deps.querier = builder.build();
 
             assert_that!(binding.manager_address(deps.as_ref()))
                 .is_ok()
@@ -81,9 +81,9 @@ mod test {
         #[test]
         fn test_os_core() {
             let mut deps = mock_dependencies();
-            deps.querier = MockQuerierBuilder::default()
-                .with_contract_item(TEST_PROXY, MANAGER, &Some(Addr::unchecked(TEST_MANAGER)))
-                .build();
+            let mut builder = MockQuerierBuilder::default();
+            builder.with_contract_item(TEST_PROXY, MANAGER, &Some(Addr::unchecked(TEST_MANAGER)));
+            deps.querier = builder.build();
 
             let expected_core = Core {
                 manager: Addr::unchecked(TEST_MANAGER),
@@ -99,9 +99,9 @@ mod test {
         #[test]
         fn os_id() {
             let mut deps = mock_dependencies();
-            deps.querier = MockQuerierBuilder::default()
-                .with_contract_item(TEST_PROXY, OS_ID, &TEST_OS_ID)
-                .build();
+            let mut builder = MockQuerierBuilder::default();
+            builder.with_contract_item(TEST_PROXY, OS_ID, &TEST_OS_ID);
+            deps.querier = builder.build();
 
             let binding = MockBinding;
             assert_that!(binding.os_id(deps.as_ref()))

@@ -39,6 +39,7 @@ type RawHandler = dyn for<'a> Fn(&'a str) -> BinaryQueryResult;
 ///   Ok(to_binary(&msg).unwrap())
 /// }).build();
 /// ```
+
 pub struct MockQuerierBuilder {
     base: MockQuerier,
     fallback_raw_handler: Box<FallbackHandler>,
@@ -92,7 +93,7 @@ where
 }
 
 impl MockQuerierBuilder {
-    pub fn with_fallback_smart_handler<SH: 'static>(mut self, handler: SH) -> Self
+    pub fn with_fallback_smart_handler<SH: 'static>(&mut self, handler: SH) -> &mut Self
     where
         SH: Fn(&str, &Binary) -> BinaryQueryResult,
     {
@@ -100,7 +101,7 @@ impl MockQuerierBuilder {
         self
     }
 
-    pub fn with_fallback_raw_handler<RH: 'static>(mut self, handler: RH) -> Self
+    pub fn with_fallback_raw_handler<RH: 'static>(&mut self, handler: RH) -> &mut Self
     where
         RH: Fn(&str, &Binary) -> BinaryQueryResult,
     {
@@ -127,7 +128,7 @@ impl MockQuerierBuilder {
     ///   Ok(to_binary(&msg).unwrap())
     /// }).build();
     /// ```
-    pub fn with_smart_handler<SH: 'static>(mut self, contract: &str, handler: SH) -> Self
+    pub fn with_smart_handler<SH: 'static>(&mut self, contract: &str, handler: SH) -> &mut Self
     where
         SH: Fn(&Binary) -> BinaryQueryResult,
     {
@@ -136,7 +137,7 @@ impl MockQuerierBuilder {
         self
     }
 
-    pub fn with_raw_handler<RH: 'static>(mut self, contract: &str, handler: RH) -> Self
+    pub fn with_raw_handler<RH: 'static>(&mut self, contract: &str, handler: RH) -> &mut Self
     where
         RH: Fn(&str) -> BinaryQueryResult,
     {
@@ -164,11 +165,11 @@ impl MockQuerierBuilder {
     ///     ("key".to_string(), "value".to_string())
     /// );
     pub fn with_contract_map_entry<'a, K, V>(
-        self,
+        &mut self,
         contract: &str,
         cw_map: Map<'a, K, V>,
         entry: (K, V),
-    ) -> Self
+    ) -> &mut Self
     where
         K: PrimaryKey<'a>,
         V: Serialize + DeserializeOwned,
@@ -177,11 +178,11 @@ impl MockQuerierBuilder {
     }
 
     pub fn with_contract_map_entries<'a, K, V>(
-        mut self,
+        &mut self,
         contract: &str,
         cw_map: Map<'a, K, V>,
         entries: Vec<(K, V)>,
-    ) -> Self
+    ) -> &mut Self
     where
         K: PrimaryKey<'a>,
         V: Serialize + DeserializeOwned,
@@ -200,11 +201,11 @@ impl MockQuerierBuilder {
     /// Add an empty map key to the querier for the given contract.
     /// This is useful when you want the item to exist, but not have a value.
     pub fn with_contract_map_key<'a, K, V>(
-        mut self,
+        &mut self,
         contract: &str,
         cw_map: Map<'a, K, V>,
         key: K,
-    ) -> Self
+    ) -> &mut Self
     where
         K: PrimaryKey<'a>,
         V: Serialize + DeserializeOwned,
@@ -216,7 +217,7 @@ impl MockQuerierBuilder {
 
     /// Add an empty item key to the querier for the given contract.
     /// This is useful when you want the item to exist, but not have a value.
-    pub fn with_empty_contract_item<T>(mut self, contract: &str, cw_item: Item<T>) -> Self
+    pub fn with_empty_contract_item<T>(&mut self, contract: &str, cw_item: Item<T>) -> &mut Self
     where
         T: Serialize + DeserializeOwned,
     {
@@ -239,7 +240,12 @@ impl MockQuerierBuilder {
     ///     &"value".to_string(),
     /// );
     /// ```
-    pub fn with_contract_item<T>(mut self, contract: &str, cw_item: Item<T>, value: &T) -> Self
+    pub fn with_contract_item<T>(
+        &mut self,
+        contract: &str,
+        cw_item: Item<T>,
+        value: &T,
+    ) -> &mut Self
     where
         T: Serialize + DeserializeOwned,
     {
@@ -259,7 +265,7 @@ impl MockQuerierBuilder {
     /// MockQuerierBuilder::default()
     ///    .with_contract_version("contract_address", "v1.0.0");
     /// ```
-    pub fn with_contract_version(self, contract: &str, version: impl ToString) -> Self {
+    pub fn with_contract_version(&mut self, contract: &str, version: impl ToString) -> &mut Self {
         self.with_contract_item(
             contract,
             CONTRACT,
@@ -339,12 +345,12 @@ pub fn mock_querier() -> MockQuerier {
         }
     };
 
-    MockQuerierBuilder::default()
-        .with_fallback_raw_handler(raw_handler)
+    let mut mock = MockQuerierBuilder::default();
+    mock.with_fallback_raw_handler(raw_handler)
         .with_contract_map_entry(
             TEST_VERSION_CONTROL,
             OS_ADDRESSES,
-            (TEST_OS_ID, &test_core()),
+            (TEST_OS_ID, test_core()),
         )
         .with_contract_item(
             TEST_PROXY,
@@ -359,9 +365,9 @@ pub fn mock_querier() -> MockQuerier {
         .with_contract_map_entry(
             TEST_MANAGER,
             OS_MODULES,
-            (TEST_MODULE_ID, &Addr::unchecked(TEST_MODULE_ADDRESS)),
-        )
-        .build()
+            (TEST_MODULE_ID, Addr::unchecked(TEST_MODULE_ADDRESS)),
+        );
+    mock.build()
 }
 
 pub fn wrap_querier(querier: &MockQuerier) -> QuerierWrapper<'_, Empty> {

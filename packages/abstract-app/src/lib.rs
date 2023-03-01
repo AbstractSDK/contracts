@@ -84,21 +84,21 @@ mod test_common {
     pub const MOCK_APP: MockAppContract = MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None);
 
     pub fn app_base_mock_querier() -> MockQuerierBuilder {
-        MockQuerierBuilder::default().with_smart_handler(TEST_MODULE_FACTORY, |msg| {
-            match from_binary(msg).unwrap() {
-                abstract_os::module_factory::QueryMsg::Context {} => {
-                    let resp = ContextResponse {
-                        core: Some(Core {
-                            manager: Addr::unchecked(TEST_MANAGER),
-                            proxy: Addr::unchecked(TEST_PROXY),
-                        }),
-                        module: None,
-                    };
-                    Ok(to_binary(&resp).unwrap())
-                }
-                _ => panic!("unexpected message"),
+        let mut builder = MockQuerierBuilder::default();
+        builder.with_smart_handler(TEST_MODULE_FACTORY, |msg| match from_binary(msg).unwrap() {
+            abstract_os::module_factory::QueryMsg::Context {} => {
+                let resp = ContextResponse {
+                    core: Some(Core {
+                        manager: Addr::unchecked(TEST_MANAGER),
+                        proxy: Addr::unchecked(TEST_PROXY),
+                    }),
+                    module: None,
+                };
+                Ok(to_binary(&resp).unwrap())
             }
-        })
+            _ => panic!("unexpected message"),
+        });
+        builder
     }
 
     /// Instantiate the contract with the default [`TEST_MODULE_FACTORY`].

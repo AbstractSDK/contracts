@@ -1116,7 +1116,7 @@ mod test {
     mod upgrade {
         use super::*;
         use abstract_os::version_control::state::MODULE_LIBRARY;
-        use abstract_testing::{MockQuerierBuilder, TEST_MODULE_ADDRESS};
+        use abstract_testing::{prelude::mocked_os_querier_builder, TEST_MODULE_ADDRESS};
 
         #[test]
         fn only_root() -> ManagerTestResult {
@@ -1134,7 +1134,9 @@ mod test {
 
             let initial_version = "0.1.0";
             let new_version = "0.10.0";
-            deps.querier = MockQuerierBuilder::default()
+            let mut builder = mocked_os_querier_builder();
+            builder
+                .builder()
                 // old version
                 .with_contract_version(TEST_MODULE_ADDRESS, initial_version)
                 // new version
@@ -1147,7 +1149,7 @@ mod test {
                             name: "test".to_string(),
                             version: ModuleVersion::Version(new_version.to_string()),
                         },
-                        &ModuleReference::App(1),
+                        ModuleReference::App(1),
                     ),
                 )
                 // old module data
@@ -1160,8 +1162,8 @@ mod test {
                         dependencies: vec![],
                         metadata: None,
                     },
-                )
-                .build();
+                );
+            deps.querier = builder.build();
 
             // manual installation
             OS_MODULES

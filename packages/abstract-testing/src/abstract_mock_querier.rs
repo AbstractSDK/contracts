@@ -1,4 +1,4 @@
-use crate::{MockQuerierBuilder, TEST_ANS_HOST, TEST_VERSION_CONTROL, mock_ans::MockAnsHost};
+use crate::{mock_ans::MockAnsHost, MockQuerierBuilder, TEST_ANS_HOST, TEST_VERSION_CONTROL};
 use abstract_os::{
     ans_host::state::ASSET_ADDRESSES,
     objects::{common_namespace::ADMIN_NAMESPACE, core::OS_ID, AssetEntry},
@@ -24,9 +24,8 @@ impl Default for AbstractMockQuerierBuilder {
 
 impl AbstractMockQuerierBuilder {
     /// Mock the existence of an OS by setting the OS id for the proxy and manager along with registering the os to version control.
-    pub fn os(mut self, manager: &str, proxy: &str, os_id: u32) -> Self {
-        self.builder = self
-            .builder
+    pub fn os(&mut self, manager: &str, proxy: &str, os_id: u32) -> &mut Self {
+        self.builder
             .with_contract_item(proxy, OS_ID, &os_id)
             .with_contract_item(manager, OS_ID, &os_id)
             .with_contract_item(
@@ -50,22 +49,21 @@ impl AbstractMockQuerierBuilder {
     }
 
     /// Add mock assets into ANS
-    pub fn assets(mut self, assets: Vec<(&AssetEntry, AssetInfo)>) -> Self {
-        self.builder =
-            self.builder
-                .with_contract_map_entries(TEST_ANS_HOST, ASSET_ADDRESSES, assets);
+    pub fn assets(&mut self, assets: Vec<(&AssetEntry, AssetInfo)>) -> &mut Self {
+        self.builder
+            .with_contract_map_entries(TEST_ANS_HOST, ASSET_ADDRESSES, assets);
 
         self
     }
 
     /// Change the version control address. Any os added after this will be registered to this address.
-    pub fn set_version_control(mut self, version_control: &'static str) -> Self {
+    pub fn set_version_control(&mut self, version_control: &'static str) -> &mut Self {
         self.version_control = version_control;
         self
     }
 
-    pub fn ans(self, ans: MockAnsHost) -> Self {
-        
+    pub fn ans(&mut self, ans: MockAnsHost) -> &mut Self {
+        ans.insert_into(&mut self.builder);
         self
     }
 

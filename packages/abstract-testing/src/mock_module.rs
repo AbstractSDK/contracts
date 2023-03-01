@@ -23,7 +23,9 @@ impl MockModule {
 
 /// A mock module querier setup with the proper responses for proxy/manager/osId.
 pub fn mocked_os_querier_builder() -> AbstractMockQuerierBuilder {
-    AbstractMockQuerierBuilder::default().os(TEST_MANAGER, TEST_PROXY, TEST_OS_ID)
+    let mut a_builder = AbstractMockQuerierBuilder::default();
+    a_builder.os(TEST_MANAGER, TEST_PROXY, TEST_OS_ID);
+    a_builder
 }
 
 #[cfg(feature = "sdk")]

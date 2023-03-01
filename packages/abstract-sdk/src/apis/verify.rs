@@ -104,14 +104,15 @@ mod test {
         #[test]
         fn not_proxy_fails() {
             let mut deps = mock_dependencies();
-            deps.querier = mocked_os_querier_builder()
+            let mut builder = mocked_os_querier_builder();
+            builder
                 // Setup the addresses as if the OS was registered
                 .os("not_manager", "not_proxy", TEST_OS_ID)
                 // update the proxy to be proxy of a different OS
                 .os(TEST_MANAGER, TEST_PROXY, 1)
                 .builder()
-                .with_contract_item("not_proxy", OS_ID, &1)
-                .build();
+                .with_contract_item("not_proxy", OS_ID, &1);
+            deps.querier = builder.build();
 
             let binding = MockBinding;
 
@@ -128,11 +129,13 @@ mod test {
         #[test]
         fn inactive_os_fails() {
             let mut deps = mock_dependencies();
+            let mut builder = MockQuerierBuilder::default();
 
-            deps.querier = MockQuerierBuilder::default()
+            builder
                 .with_contract_item(TEST_PROXY, OS_ID, &TEST_OS_ID)
-                .with_contract_map_key(TEST_VERSION_CONTROL, OS_ADDRESSES, TEST_OS_ID)
-                .build();
+                .with_contract_map_key(TEST_VERSION_CONTROL, OS_ADDRESSES, TEST_OS_ID);
+
+            deps.querier = builder.build();
 
             let binding = MockBinding;
 
@@ -150,14 +153,16 @@ mod test {
         fn returns_core() {
             let mut deps = mock_dependencies();
 
-            deps.querier = MockQuerierBuilder::default()
+            let mut builder = MockQuerierBuilder::default();
+
+            builder
                 .with_contract_item(TEST_PROXY, OS_ID, &TEST_OS_ID)
                 .with_contract_map_entry(
                     TEST_VERSION_CONTROL,
                     OS_ADDRESSES,
-                    (TEST_OS_ID, &test_core()),
-                )
-                .build();
+                    (TEST_OS_ID, test_core()),
+                );
+            deps.querier = builder.build();
 
             let binding = MockBinding;
 
@@ -171,21 +176,22 @@ mod test {
         #[test]
         fn errors_when_not_manager_of_returned_os() {
             let mut deps = mock_dependencies();
+            let mut builder = MockQuerierBuilder::default();
 
-            deps.querier = MockQuerierBuilder::default()
+            builder
                 .with_contract_item(TEST_PROXY, OS_ID, &TEST_OS_ID)
                 .with_contract_map_entry(
                     TEST_VERSION_CONTROL,
                     OS_ADDRESSES,
                     (
                         TEST_OS_ID,
-                        &Core {
+                        Core {
                             manager: Addr::unchecked(TEST_MANAGER),
                             proxy: Addr::unchecked("not_poxry"),
                         },
                     ),
-                )
-                .build();
+                );
+            deps.querier = builder.build();
 
             let binding = MockBinding;
 
@@ -206,14 +212,15 @@ mod test {
         #[test]
         fn not_manager_fails() {
             let mut deps = mock_dependencies();
-            deps.querier = mocked_os_querier_builder()
+            let mut builder = mocked_os_querier_builder();
+            builder
                 // Setup the addresses as if the OS was registered
                 .os("not_manager", "not_proxy", TEST_OS_ID)
                 // update the proxy to be proxy of a different OS
                 .os(TEST_MANAGER, TEST_PROXY, 1)
                 .builder()
-                .with_contract_item("not_manager", OS_ID, &1)
-                .build();
+                .with_contract_item("not_manager", OS_ID, &1);
+            deps.querier = builder.build();
 
             let binding = MockBinding;
 
@@ -230,11 +237,11 @@ mod test {
         #[test]
         fn inactive_os_fails() {
             let mut deps = mock_dependencies();
-
-            deps.querier = MockQuerierBuilder::default()
+            let mut builder = MockQuerierBuilder::default();
+            builder
                 .with_contract_item(TEST_MANAGER, OS_ID, &TEST_OS_ID)
-                .with_contract_map_key(TEST_VERSION_CONTROL, OS_ADDRESSES, TEST_OS_ID)
-                .build();
+                .with_contract_map_key(TEST_VERSION_CONTROL, OS_ADDRESSES, TEST_OS_ID);
+            deps.querier = builder.build();
 
             let binding = MockBinding;
 
@@ -255,15 +262,16 @@ mod test {
         #[test]
         fn returns_core() {
             let mut deps = mock_dependencies();
-
-            deps.querier = MockQuerierBuilder::default()
+            let mut builder = MockQuerierBuilder::default();
+            builder
                 .with_contract_item(TEST_MANAGER, OS_ID, &TEST_OS_ID)
                 .with_contract_map_entry(
                     TEST_VERSION_CONTROL,
                     OS_ADDRESSES,
-                    (TEST_OS_ID, &test_core()),
-                )
-                .build();
+                    (TEST_OS_ID, test_core()),
+                );
+
+            deps.querier = builder.build();
 
             let binding = MockBinding;
 
@@ -278,20 +286,21 @@ mod test {
         fn errors_when_not_manager_of_returned_os() {
             let mut deps = mock_dependencies();
 
-            deps.querier = MockQuerierBuilder::default()
+            let mut builder = MockQuerierBuilder::default();
+            builder
                 .with_contract_item(TEST_MANAGER, OS_ID, &TEST_OS_ID)
                 .with_contract_map_entry(
                     TEST_VERSION_CONTROL,
                     OS_ADDRESSES,
                     (
                         TEST_OS_ID,
-                        &Core {
+                        Core {
                             manager: Addr::unchecked("not_manager"),
                             proxy: Addr::unchecked(TEST_PROXY),
                         },
                     ),
-                )
-                .build();
+                );
+            deps.querier = builder.build();
 
             let binding = MockBinding;
 

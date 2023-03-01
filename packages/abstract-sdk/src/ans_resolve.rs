@@ -230,12 +230,12 @@ mod tests {
     }
 
     fn default_test_querier() -> MockQuerier {
-        MockQuerierBuilder::default()
-            .with_fallback_raw_handler(|contract, _| match contract {
-                TEST_ANS_HOST => Ok(Binary::default()),
-                _ => Err("unexpected contract".into()),
-            })
-            .build()
+        let mut builder = MockQuerierBuilder::default();
+        builder.with_fallback_raw_handler(|contract, _| match contract {
+            TEST_ANS_HOST => Ok(Binary::default()),
+            _ => Err("unexpected contract".into()),
+        });
+        builder.build()
     }
 
     /// Querier builder with the ans host contract known.
@@ -273,13 +273,13 @@ mod tests {
             let expected_addr = Addr::unchecked("result");
             let test_asset_entry = AssetEntry::new("aoeu");
             let expected_value = AssetInfo::cw20(expected_addr.clone());
-            let querier = MockQuerierBuilder::default()
-                .with_contract_map_entry(
-                    TEST_ANS_HOST,
-                    ASSET_ADDRESSES,
-                    (&test_asset_entry, &expected_value),
-                )
-                .build();
+            let mut builder = MockQuerierBuilder::default();
+            builder.with_contract_map_entry(
+                TEST_ANS_HOST,
+                ASSET_ADDRESSES,
+                (&test_asset_entry, expected_value.clone()),
+            );
+            let querier = builder.build();
 
             let _ans_host = mock_ans_host();
 
@@ -315,13 +315,16 @@ mod tests {
                     AssetInfo::cw20(Addr::unchecked("snth")),
                 ),
             ];
-            let querier = MockQuerierBuilder::default()
-                .with_contract_map_entries(
-                    TEST_ANS_HOST,
-                    ASSET_ADDRESSES,
-                    expected_entries.iter().map(|(k, v)| (k, v)).collect(),
-                )
-                .build();
+            let mut builder = MockQuerierBuilder::default();
+            builder.with_contract_map_entries(
+                TEST_ANS_HOST,
+                ASSET_ADDRESSES,
+                expected_entries
+                    .iter()
+                    .map(|(k, v)| (k, v.clone()))
+                    .collect(),
+            );
+            let querier = builder.build();
 
             let _ans_host = mock_ans_host();
 
@@ -343,13 +346,13 @@ mod tests {
 
             let test_lp_token = LpToken::new("junoswap", assets);
             let expected_value = AssetInfo::cw20(lp_token_address);
-            let querier = MockQuerierBuilder::default()
-                .with_contract_map_entry(
-                    TEST_ANS_HOST,
-                    ASSET_ADDRESSES,
-                    (&test_lp_token.clone().into(), &expected_value),
-                )
-                .build();
+            let mut builder = MockQuerierBuilder::default();
+            builder.with_contract_map_entry(
+                TEST_ANS_HOST,
+                ASSET_ADDRESSES,
+                (&test_lp_token.clone().into(), expected_value.clone()),
+            );
+            let querier = builder.build();
 
             let _ans_host = mock_ans_host();
 
@@ -388,14 +391,14 @@ mod tests {
             let dex = "junoswap";
             let pool_type = PoolType::ConstantProduct;
             let test_pool_metadata = PoolMetadata::new(dex.clone(), pool_type.clone(), assets);
-            let querier = AbstractMockQuerierBuilder::default()
-                .assets(
-                    resolved_assets
-                        .iter()
-                        .map(|(k, v)| (k, v.clone()))
-                        .collect(),
-                )
-                .build();
+            let mut builder = AbstractMockQuerierBuilder::default();
+            builder.assets(
+                resolved_assets
+                    .iter()
+                    .map(|(k, v)| (k, (*v).clone()))
+                    .collect(),
+            );
+            let querier = builder.build();
 
             let expected_value = ResolvedPoolMetadata {
                 dex: dex.into(),
@@ -448,18 +451,19 @@ mod tests {
             let pool_metadata =
                 PoolMetadata::new(dex.clone(), PoolType::ConstantProduct, assets.clone());
 
-            let querier = MockQuerierBuilder::default()
+            let mut builder = MockQuerierBuilder::default();
+            builder
                 .with_contract_map_entry(
                     TEST_ANS_HOST,
                     ASSET_PAIRINGS,
-                    (&pairing, &vec![pool_reference]),
+                    (&pairing, vec![pool_reference]),
                 )
                 .with_contract_map_entry(
                     TEST_ANS_HOST,
                     POOL_METADATA,
-                    (unique_pool_id, &pool_metadata),
-                )
-                .build();
+                    (unique_pool_id, pool_metadata.clone()),
+                );
+            let querier = builder.build();
 
             let _ans_host = mock_ans_host();
 
@@ -491,13 +495,13 @@ mod tests {
             };
 
             let expected_value = Addr::unchecked("address");
-            let querier = MockQuerierBuilder::default()
-                .with_contract_map_entry(
-                    TEST_ANS_HOST,
-                    CONTRACT_ADDRESSES,
-                    (&test_contract_entry, &expected_value),
-                )
-                .build();
+            let mut builder = MockQuerierBuilder::default();
+            builder.with_contract_map_entry(
+                TEST_ANS_HOST,
+                CONTRACT_ADDRESSES,
+                (&test_contract_entry, expected_value.clone()),
+            );
+            let querier = builder.build();
 
             let res = test_resolve(&querier, &test_contract_entry);
 
@@ -533,13 +537,16 @@ mod tests {
                     expected_addr,
                 ),
             ];
-            let querier = MockQuerierBuilder::default()
-                .with_contract_map_entries(
-                    TEST_ANS_HOST,
-                    CONTRACT_ADDRESSES,
-                    expected_entries.iter().map(|(k, v)| (k, v)).collect(),
-                )
-                .build();
+            let mut builder = MockQuerierBuilder::default();
+            builder.with_contract_map_entries(
+                TEST_ANS_HOST,
+                CONTRACT_ADDRESSES,
+                expected_entries
+                    .iter()
+                    .map(|(k, v)| (k, v.clone()))
+                    .collect(),
+            );
+            let querier = builder.build();
 
             let (keys, values): (Vec<_>, Vec<_>) = expected_entries.into_iter().unzip();
 
@@ -561,13 +568,13 @@ mod tests {
             };
 
             let expected_value = "channel-id".to_string();
-            let querier = MockQuerierBuilder::default()
-                .with_contract_map_entry(
-                    TEST_ANS_HOST,
-                    CHANNELS,
-                    (&test_channel_entry, &expected_value),
-                )
-                .build();
+            let mut builder = MockQuerierBuilder::default();
+            builder.with_contract_map_entry(
+                TEST_ANS_HOST,
+                CHANNELS,
+                (&test_channel_entry, expected_value.clone()),
+            );
+            let querier = builder.build();
 
             let res = test_resolve(&querier, &test_channel_entry);
 
@@ -595,13 +602,13 @@ mod tests {
             let test_asset_info = AssetInfo::cw20(expected_address.clone());
 
             let expected_value = AssetEntry::new("chinachinachina");
-            let querier = MockQuerierBuilder::default()
-                .with_contract_map_entry(
-                    TEST_ANS_HOST,
-                    REV_ASSET_ADDRESSES,
-                    (&test_asset_info, &expected_value),
-                )
-                .build();
+            let mut builder = MockQuerierBuilder::default();
+            builder.with_contract_map_entry(
+                TEST_ANS_HOST,
+                REV_ASSET_ADDRESSES,
+                (&test_asset_info, expected_value.clone()),
+            );
+            let querier = builder.build();
 
             let res = test_resolve(&querier, &test_asset_info);
             assert_that!(res).is_ok().is_equal_to(expected_value);
@@ -631,13 +638,16 @@ mod tests {
                     AssetEntry::new("robinrocks!"),
                 ),
             ];
-            let querier = MockQuerierBuilder::default()
-                .with_contract_map_entries(
-                    TEST_ANS_HOST,
-                    REV_ASSET_ADDRESSES,
-                    expected_entries.iter().map(|(k, v)| (k, v)).collect(),
-                )
-                .build();
+            let mut querier = MockQuerierBuilder::default();
+            querier.with_contract_map_entries(
+                TEST_ANS_HOST,
+                REV_ASSET_ADDRESSES,
+                expected_entries
+                    .iter()
+                    .map(|(k, v)| (k, v.clone()))
+                    .collect(),
+            );
+            let querier = querier.build();
 
             let (keys, values): (Vec<_>, Vec<_>) = expected_entries.into_iter().unzip();
 
