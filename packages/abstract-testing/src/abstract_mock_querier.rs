@@ -1,4 +1,4 @@
-use crate::{MockQuerierBuilder, TEST_ANS_HOST, TEST_VERSION_CONTROL, mock_ans::MockAnsHost};
+use crate::{mock_ans::MockAnsHost, MockQuerierBuilder, TEST_ANS_HOST, TEST_VERSION_CONTROL};
 use abstract_os::{
     ans_host::state::ASSET_ADDRESSES,
     objects::{common_namespace::ADMIN_NAMESPACE, core::OS_ID, AssetEntry},
@@ -64,13 +64,12 @@ impl AbstractMockQuerierBuilder {
         self
     }
 
-    pub fn ans(self, ans: MockAnsHost) -> Self {
-        
+    pub fn ans(self, _ans: MockAnsHost) -> Self {
         self
     }
 
-    pub fn builder(&mut self) -> &mut MockQuerierBuilder {
-        &mut self.builder
+    pub fn builder(self) -> MockQuerierBuilder {
+        self.builder
     }
 
     pub fn build(self) -> MockQuerier {

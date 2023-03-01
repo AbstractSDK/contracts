@@ -344,7 +344,7 @@ pub fn mock_querier() -> MockQuerier {
         .with_contract_map_entry(
             TEST_VERSION_CONTROL,
             OS_ADDRESSES,
-            (TEST_OS_ID, &test_core()),
+            (TEST_OS_ID, test_core()),
         )
         .with_contract_item(
             TEST_PROXY,
@@ -359,7 +359,7 @@ pub fn mock_querier() -> MockQuerier {
         .with_contract_map_entry(
             TEST_MANAGER,
             OS_MODULES,
-            (TEST_MODULE_ID, &Addr::unchecked(TEST_MODULE_ADDRESS)),
+            (TEST_MODULE_ID, Addr::unchecked(TEST_MODULE_ADDRESS)),
         )
         .build()
 }
