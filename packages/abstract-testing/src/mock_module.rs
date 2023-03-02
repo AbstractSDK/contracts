@@ -2,7 +2,6 @@ use crate::{
     abstract_mock_querier::AbstractMockQuerierBuilder, TEST_ANS_HOST, TEST_MANAGER, TEST_MODULE_ID,
     TEST_OS_ID, TEST_PROXY,
 };
-use abstract_os::{api, app};
 use cosmwasm_std::{Addr, Deps};
 #[cfg(feature = "sdk")]
 use ::{
@@ -55,10 +54,10 @@ pub struct MockModuleExecuteMsg {}
 #[cosmwasm_schema::cw_serde]
 pub struct MockModuleQueryMsg {}
 
-impl api::ApiExecuteMsg for MockModuleExecuteMsg {}
+impl abstract_os::api::ApiExecuteMsg for MockModuleExecuteMsg {}
 
-impl api::ApiQueryMsg for MockModuleQueryMsg {}
+impl abstract_os::api::ApiQueryMsg for MockModuleQueryMsg {}
 
-impl app::AppExecuteMsg for MockModuleExecuteMsg {}
+impl abstract_os::app::AppExecuteMsg for MockModuleExecuteMsg {}
 
-impl app::AppQueryMsg for MockModuleQueryMsg {}
+impl abstract_os::app::AppQueryMsg for MockModuleQueryMsg {}

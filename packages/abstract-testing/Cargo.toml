@@ -1,7 +1,13 @@
 [package]
 name = "abstract-testing"
-version = "0.1.0"
+version = { workspace = true }
+authors = { workspace = true }
 edition = { workspace = true }
+description = "Abstract contract interfaces and storage layouts"
+license = { workspace = true }
+readme = "README.md"
+repository = "https://github.com/Abstract-OS/contracts"
+
 
 [features]
 default = ["sdk"]
