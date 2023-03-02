@@ -14,18 +14,27 @@ pub mod error;
 /// Abstract SDK trait implementations
 pub mod features;
 mod handler;
-pub mod state;
-
 #[cfg(feature = "schema")]
 mod schema;
+pub mod state;
 
 #[cfg(test)]
 mod test_common {
-    use crate::ApiError;
-    use abstract_os::api;
+    use crate::{ApiContract, ApiError};
+    use abstract_os::api::{self, BaseInstantiateMsg, InstantiateMsg};
+    use abstract_sdk::base::InstantiateEndpoint;
     use abstract_sdk::AbstractSdkError;
-    use cosmwasm_std::StdError;
+    use abstract_testing::{
+        TEST_ADMIN, TEST_ANS_HOST, TEST_MODULE_ID, TEST_VERSION, TEST_VERSION_CONTROL,
+    };
+    use cosmwasm_std::{
+        testing::{mock_env, mock_info},
+        DepsMut, Empty, Env, MessageInfo, Response, StdError,
+    };
     use thiserror::Error;
+
+    pub const TEST_METADATA: &str = "test_metadata";
+    pub const TEST_TRADER: &str = "test_trader";
 
     #[derive(Error, Debug, PartialEq)]
     pub enum MockError {
@@ -46,4 +55,37 @@ mod test_common {
     pub struct MockApiExecMsg;
 
     impl api::ApiExecuteMsg for MockApiExecMsg {}
+
+    /// Mock API type
+    pub type MockApi = ApiContract<MockError, Empty, MockApiExecMsg, Empty>;
+
+    /// use for testing
+    pub const MOCK_API: MockApi = MockApi::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
+        .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_response".as_bytes())))
+        .with_instantiate(mock_init_handler);
+
+    pub type ApiMockResult = Result<(), MockError>;
+
+    pub fn mock_init(deps: DepsMut) -> Result<Response, MockError> {
+        let api = MOCK_API;
+        let info = mock_info(TEST_ADMIN, &[]);
+        let init_msg = InstantiateMsg {
+            base: BaseInstantiateMsg {
+                ans_host_address: TEST_ANS_HOST.into(),
+                version_control_address: TEST_VERSION_CONTROL.into(),
+            },
+            app: Empty {},
+        };
+        api.instantiate(deps, mock_env(), info, init_msg)
+    }
+
+    fn mock_init_handler(
+        _deps: DepsMut,
+        _env: Env,
+        _info: MessageInfo,
+        _api: MockApi,
+        _msg: Empty,
+    ) -> Result<Response, MockError> {
+        Ok(Response::new().set_data("mock_response".as_bytes()))
+    }
 }

@@ -2,11 +2,10 @@ use crate::{
     state::{ApiContract, ApiState},
     ApiError,
 };
-use abstract_os::objects::module_version::set_module_data;
+use abstract_os::{api::InstantiateMsg, objects::module_version::set_module_data};
 use abstract_sdk::{
     base::{endpoints::InstantiateEndpoint, Handler},
     feature_objects::AnsHost,
-    os::api::InstantiateMsg,
     AbstractSdkError,
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
@@ -68,31 +67,12 @@ mod tests {
     use speculoos::prelude::*;
 
     use super::*;
-    use crate::test_common::MockError;
+    use crate::test_common::{ApiMockResult, MOCK_API, TEST_METADATA};
     use abstract_testing::*;
-
-    type MockApi = ApiContract<MockError, Empty, Empty, Empty, Empty>;
-    type ApiMockResult = Result<(), MockError>;
-    const TEST_METADATA: &str = "test_metadata";
-
-    fn mock_init_handler(
-        _deps: DepsMut,
-        _env: Env,
-        _info: MessageInfo,
-        _api: MockApi,
-        _msg: Empty,
-    ) -> Result<Response, MockError> {
-        Ok(Response::new().set_data("mock_response".as_bytes()))
-    }
-
-    fn mock_api() -> MockApi {
-        MockApi::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
-            .with_instantiate(mock_init_handler)
-    }
 
     #[test]
     fn successful() -> ApiMockResult {
-        let api = mock_api();
+        let api = MOCK_API;
         let env = mock_env();
         let info = mock_info(TEST_MANAGER, &[]);
         let mut deps = mock_dependencies();
@@ -123,7 +103,7 @@ mod tests {
             version: TEST_VERSION.into(),
         });
 
-        let api = mock_api();
+        let api = MOCK_API;
         let no_traders_registered = api.traders.is_empty(&deps.storage);
         assert!(no_traders_registered);
 
@@ -139,7 +119,7 @@ mod tests {
 
     #[test]
     fn invalid_ans_host() -> ApiMockResult {
-        let api = MockApi::new(TEST_MODULE_ID, TEST_VERSION, None);
+        let api = MOCK_API;
         let env = mock_env();
         let info = mock_info(TEST_MANAGER, &[]);
         let mut deps = mock_dependencies();
@@ -160,7 +140,7 @@ mod tests {
 
     #[test]
     fn invalid_version_control() -> ApiMockResult {
-        let api = MockApi::new(TEST_MODULE_ID, TEST_VERSION, None);
+        let api = MOCK_API;
         let env = mock_env();
         let info = mock_info(TEST_MANAGER, &[]);
         let mut deps = mock_dependencies();
