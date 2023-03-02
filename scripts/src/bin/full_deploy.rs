@@ -1,8 +1,8 @@
-use abstract_boot::{Abstract, DexApi, OS};
+use abstract_boot::{Abstract, OS};
 use abstract_os::objects::gov_type::GovernanceDetails;
-use abstract_os::EXCHANGE;
-use boot_core::networks::juno::JUNO_CHAIN;
-use boot_core::networks::NetworkKind;
+
+
+
 use boot_core::{
     networks::{parse_network, NetworkInfo},
     prelude::*,
@@ -38,7 +38,7 @@ fn full_deploy(network: NetworkInfo) -> anyhow::Result<()> {
 
     // let _dex = DexApi::new("dex", chain);
 
-    deployment.deploy_modules()?;
+    // deployment.deploy_modules()?;
 
     let ans_host = deployment.ans_host;
     ans_host.update_all()?;
