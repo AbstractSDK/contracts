@@ -1,6 +1,5 @@
 use crate::{state::AppContract, AppError, Handler, QueryEndpoint};
-use abstract_os::app::AppQueryMsg;
-use abstract_sdk::os::app::{AppConfigResponse, BaseQueryMsg, QueryMsg};
+use abstract_os::app::{AppConfigResponse, AppQueryMsg, BaseQueryMsg, QueryMsg};
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
 use cw_controllers::AdminResponse;
 

@@ -133,6 +133,7 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
         }
     }
 
+    #[allow(unused)]
     fn get_chain(&self) -> Chain {
         self.chain.clone()
     }

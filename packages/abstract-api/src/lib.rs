@@ -22,8 +22,7 @@ pub mod state;
 mod test_common {
     use crate::{ApiContract, ApiError};
     use abstract_os::api::{self, BaseInstantiateMsg, InstantiateMsg};
-    use abstract_sdk::base::InstantiateEndpoint;
-    use abstract_sdk::AbstractSdkError;
+    use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
     use abstract_testing::{
         TEST_ADMIN, TEST_ANS_HOST, TEST_MODULE_ID, TEST_VERSION, TEST_VERSION_CONTROL,
     };

@@ -1,6 +1,8 @@
 use crate::{error::ApiError, state::ApiContract, ApiResult};
-use abstract_os::api::{ApiExecuteMsg, BaseExecuteMsg, ExecuteMsg};
-use abstract_os::{api::ApiRequestMsg, version_control::Core};
+use abstract_os::{
+    api::{ApiExecuteMsg, ApiRequestMsg, BaseExecuteMsg, ExecuteMsg},
+    version_control::Core,
+};
 use abstract_sdk::{
     base::{
         endpoints::{ExecuteEndpoint, IbcCallbackEndpoint, ReceiveEndpoint},

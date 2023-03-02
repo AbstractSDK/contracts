@@ -1,8 +1,8 @@
 mod common;
 use abstract_boot::*;
+use abstract_os::manager::ManagerModuleInfo;
 use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
 use abstract_os::{api::BaseQueryMsgFns, *};
-use abstract_os::{manager::ManagerModuleInfo};
 use abstract_testing::{ROOT_USER, TEST_MODULE_ID, TEST_VERSION};
 use boot_core::prelude::BootExecute;
 use boot_core::{
@@ -287,7 +287,8 @@ fn not_trader_exec() -> AResult {
     install_api(&os.manager, TEST_MODULE_ID)?;
     // non-trader cannot execute
     let res = staking_api
-        .call_as(&not_trader).execute(&MockApiExecMsg.into(), None)
+        .call_as(&not_trader)
+        .execute(&MockApiExecMsg.into(), None)
         .unwrap_err();
     assert_that!(res.root().to_string()).contains(
         "Sender: not_trader of request to tester:test-module-id is not a Manager or Trader",

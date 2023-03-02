@@ -10,7 +10,7 @@ use cosmwasm_std::{
 pub use mock_querier::{map_key, mock_querier, raw_map_key, wrap_querier, MockQuerierBuilder};
 
 pub type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
-
+pub const ROOT_USER: &str = "root_user";
 mod test_addresses {
     use abstract_os::version_control::Core;
     use cosmwasm_std::Addr;
@@ -26,7 +26,7 @@ mod test_addresses {
     pub const TEST_OS_FACTORY: &str = "os_factory_address";
     pub const TEST_MODULE_FACTORY: &str = "module_factory_address";
     pub const TEST_MODULE_ADDRESS: &str = "test_module_address";
-    pub const TEST_MODULE_ID: &str = "test-module-id";
+    pub const TEST_MODULE_ID: &str = "tester:test-module-id";
 
     pub const TEST_MODULE_RESPONSE: &str = "test_module_response";
 

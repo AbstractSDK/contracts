@@ -3,9 +3,7 @@ use abstract_os::{
     objects::OsId, ANS_HOST, IBC_CLIENT, MANAGER, MODULE_FACTORY, OS_FACTORY, PROXY,
     VERSION_CONTROL,
 };
-use boot_core::{
-    prelude::ContractInstance, state::StateInterface, BootEnvironment, IndexResponse, TxHandler,
-};
+use boot_core::{state::StateInterface, BootEnvironment, IndexResponse, TxHandler};
 
 #[allow(clippy::type_complexity)]
 pub fn get_native_contracts<Chain: BootEnvironment>(

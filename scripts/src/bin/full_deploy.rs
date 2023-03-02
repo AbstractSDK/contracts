@@ -1,8 +1,6 @@
 use abstract_boot::{Abstract, OS};
 use abstract_os::objects::gov_type::GovernanceDetails;
 
-
-
 use boot_core::{
     networks::{parse_network, NetworkInfo},
     prelude::*,
@@ -25,7 +23,7 @@ fn full_deploy(network: NetworkInfo) -> anyhow::Result<()> {
 
     let mut os_core = OS::new(chain.clone(), None);
 
-    let mut deployment = Abstract::new(chain.clone(), abstract_os_version);
+    let mut deployment = Abstract::new(chain, abstract_os_version);
 
     deployment.deploy(&mut os_core)?;
 

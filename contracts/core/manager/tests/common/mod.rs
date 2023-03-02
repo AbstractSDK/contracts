@@ -3,13 +3,12 @@ pub const TEST_COIN: &str = "ucoin";
 use ::abstract_manager::contract::CONTRACT_VERSION;
 use abstract_boot::OS;
 use abstract_boot::{Abstract, AnsHost, Manager, ModuleFactory, OSFactory, Proxy, VersionControl};
-use abstract_os::{
-    api::InstantiateMsg, objects::gov_type::GovernanceDetails, PROXY, TENDERMINT_STAKING,
-};
+use abstract_os::{api::InstantiateMsg, objects::gov_type::GovernanceDetails, PROXY};
 use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL};
 use boot_core::{
+    boot_contract,
     prelude::{BootInstantiate, BootUpload, ContractInstance},
-    Mock, boot_contract, Contract,
+    Contract, Mock,
 };
 use cosmwasm_std::{Addr, Empty};
 use cw_multi_test::ContractWrapper;
@@ -203,7 +202,7 @@ fn mock_init_handler(
     Ok(Response::new().set_data("mock_response".as_bytes()))
 }
 
-use abstract_os::api::{ExecuteMsg as ApiExecMsg,QueryMsg};
+use abstract_os::api::{ExecuteMsg as ApiExecMsg, QueryMsg};
 
 abstract_api::export_endpoints!(MOCK_API, MockApi);
 
@@ -214,12 +213,11 @@ pub struct BootMockApi;
 impl<Chain: boot_core::BootEnvironment> BootMockApi<Chain> {
     pub fn new(name: &str, chain: Chain) -> Self {
         Self(
-            Contract::new(name, chain)
-                .with_mock(Box::new(ContractWrapper::new_with_empty(
-                    self::execute,
-                    self::instantiate,
-                    self::query,
-                ))),
+            Contract::new(name, chain).with_mock(Box::new(ContractWrapper::new_with_empty(
+                self::execute,
+                self::instantiate,
+                self::query,
+            ))),
         )
     }
 }

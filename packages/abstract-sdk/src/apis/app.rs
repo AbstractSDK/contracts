@@ -1,3 +1,4 @@
+#![allow(unused)]
 use crate::{AbstractSdkResult, ModuleInterface};
 use abstract_os::objects::module::ModuleId;
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, Empty};
