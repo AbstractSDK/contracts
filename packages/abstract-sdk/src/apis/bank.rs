@@ -177,6 +177,7 @@ impl Transferable for Asset {
 #[cfg(test)]
 mod test {
     use super::*;
+    use speculoos::prelude::*;
 
     use crate::apis::test_common::*;
 

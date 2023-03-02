@@ -72,7 +72,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
 mod test {
     use super::*;
     use crate::apis::test_common::*;
-
+    use speculoos::prelude::*;
     const TEST_HOST_CHAIN: &str = "host_chain";
 
     /// Tests that a host_action can be built with no callback

@@ -1,5 +1,6 @@
+pub mod api;
+pub mod app;
 pub mod bank;
-pub mod dex;
 pub mod execution;
 pub mod ibc;
 pub mod modules;
@@ -12,13 +13,14 @@ pub mod version_registry;
 #[cfg(test)]
 mod test_common {
     use crate::{
-        features::{AbstractNameService, Identification, ModuleIdentification},
+        features::{AbstractNameService, Dependencies, Identification, ModuleIdentification},
         AbstractSdkResult,
     };
-    pub use abstract_testing::{mock_module::*, *};
+    pub use abstract_testing::{prelude::*, *};
+    // pub use abstract_testing::{mock_module::*, *};
     pub use cosmwasm_std::{testing::*, *};
-    use os::objects::ans_host::AnsHost;
-    pub use speculoos::prelude::*;
+    use os::objects::{ans_host::AnsHost, dependency::StaticDependency, module::ModuleId};
+    // pub use speculoos::prelude::*;
 
     // We implement the following traits here for the mock module (in this package) to avoid a circular dependency
     impl Identification for MockModule {
@@ -40,4 +42,15 @@ mod test_common {
             })
         }
     }
+
+    impl Dependencies for MockModule {
+        fn dependencies(&self) -> &[StaticDependency] {
+            &[TEST_MODULE_DEP]
+        }
+    }
+
+    pub const TEST_MODULE_DEP: StaticDependency =
+        StaticDependency::new(TEST_MODULE_ID, &[">1.0.0"]);
+    /// Nonexistent module
+    pub const FAKE_MODULE_ID: ModuleId = "fake_module";
 }

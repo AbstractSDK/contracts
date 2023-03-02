@@ -74,8 +74,8 @@ impl<'a, T: Execution> Executor<'a, T> {
 #[cfg(test)]
 mod test {
     use super::*;
-
     use crate::apis::test_common::*;
+    use speculoos::prelude::*;
 
     fn mock_bank_send(amount: Vec<Coin>) -> CosmosMsg {
         CosmosMsg::Bank(BankMsg::Send {
