@@ -19,10 +19,6 @@ mod interfaces;
 
 pub use crate::interfaces::*;
 
-mod modules;
-
-pub use crate::modules::*;
-
 mod deployment;
 mod error;
 mod module_deployer;
