@@ -1,15 +1,15 @@
 pub const ROOT_USER: &str = "root_user";
 pub const TEST_COIN: &str = "ucoin";
 use ::abstract_manager::contract::CONTRACT_VERSION;
+use abstract_boot::OS;
 use abstract_boot::{Abstract, AnsHost, Manager, ModuleFactory, OSFactory, Proxy, VersionControl};
-use abstract_boot::{TMintStakingApi, OS};
 use abstract_os::{
     api::InstantiateMsg, objects::gov_type::GovernanceDetails, PROXY, TENDERMINT_STAKING,
 };
 use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL};
 use boot_core::{
     prelude::{BootInstantiate, BootUpload, ContractInstance},
-    Mock,
+    Mock, boot_contract, Contract,
 };
 use cosmwasm_std::{Addr, Empty};
 use cw_multi_test::ContractWrapper;
@@ -104,21 +104,13 @@ pub(crate) fn create_default_os(factory: &OSFactory<Mock>) -> anyhow::Result<OS<
     Ok(os)
 }
 
-/// Instantiates the staking api and registers it with the version control
-#[allow(dead_code)]
-pub(crate) fn init_staking_api(
+/// Instantiates the mock api and registers it with the version control
+pub fn init_mock_api(
     chain: Mock,
     deployment: &Abstract<Mock>,
     version: Option<String>,
-) -> anyhow::Result<TMintStakingApi<Mock>> {
-    let mut staking_api = TMintStakingApi::new(TENDERMINT_STAKING, chain);
-    staking_api.as_instance_mut().set_mock(Box::new(
-        cw_multi_test::ContractWrapper::new_with_empty(
-            ::tendermint_staking::contract::execute,
-            ::tendermint_staking::contract::instantiate,
-            ::tendermint_staking::contract::query,
-        ),
-    ));
+) -> anyhow::Result<BootMockApi<Mock>> {
+    let mut staking_api = BootMockApi::new(TEST_MODULE_ID, chain);
     staking_api.upload()?;
     staking_api.instantiate(
         &InstantiateMsg {
@@ -140,4 +132,94 @@ pub(crate) fn init_staking_api(
         .version_control
         .register_apis(vec![staking_api.as_instance()], &version)?;
     Ok(staking_api)
+}
+
+use abstract_api::{ApiContract, ApiError};
+use abstract_os::api::{self, BaseInstantiateMsg};
+use abstract_sdk::base::InstantiateEndpoint;
+use abstract_sdk::AbstractSdkError;
+use abstract_testing::{
+    TEST_ADMIN, TEST_ANS_HOST, TEST_MODULE_ID, TEST_VERSION, TEST_VERSION_CONTROL,
+};
+use cosmwasm_std::{
+    testing::{mock_env, mock_info},
+    DepsMut, Env, MessageInfo, Response, StdError,
+};
+use thiserror::Error;
+
+pub const TEST_METADATA: &str = "test_metadata";
+pub const TEST_TRADER: &str = "test_trader";
+
+#[derive(Error, Debug, PartialEq)]
+pub enum MockError {
+    #[error("{0}")]
+    Std(#[from] StdError),
+
+    #[error(transparent)]
+    Api(#[from] ApiError),
+
+    #[error("{0}")]
+    Abstract(#[from] abstract_os::AbstractOsError),
+
+    #[error("{0}")]
+    AbstractSdk(#[from] AbstractSdkError),
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct MockApiExecMsg;
+
+impl api::ApiExecuteMsg for MockApiExecMsg {}
+
+/// Mock API type
+pub type MockApi = ApiContract<MockError, Empty, MockApiExecMsg, Empty>;
+
+/// use for testing
+pub const MOCK_API: MockApi = MockApi::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
+    .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_response".as_bytes())))
+    .with_instantiate(mock_init_handler);
+
+pub type ApiMockResult = Result<(), MockError>;
+
+pub fn mock_init(deps: DepsMut) -> Result<Response, MockError> {
+    let api = MOCK_API;
+    let info = mock_info(TEST_ADMIN, &[]);
+    let init_msg = InstantiateMsg {
+        base: BaseInstantiateMsg {
+            ans_host_address: TEST_ANS_HOST.into(),
+            version_control_address: TEST_VERSION_CONTROL.into(),
+        },
+        app: Empty {},
+    };
+    api.instantiate(deps, mock_env(), info, init_msg)
+}
+
+fn mock_init_handler(
+    _deps: DepsMut,
+    _env: Env,
+    _info: MessageInfo,
+    _api: MockApi,
+    _msg: Empty,
+) -> Result<Response, MockError> {
+    Ok(Response::new().set_data("mock_response".as_bytes()))
+}
+
+use abstract_os::api::{ExecuteMsg as ApiExecMsg,QueryMsg};
+
+abstract_api::export_endpoints!(MOCK_API, MockApi);
+
+type ExecuteMsg = ApiExecMsg<MockApiExecMsg>;
+#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
+pub struct BootMockApi;
+
+impl<Chain: boot_core::BootEnvironment> BootMockApi<Chain> {
+    pub fn new(name: &str, chain: Chain) -> Self {
+        Self(
+            Contract::new(name, chain)
+                .with_mock(Box::new(ContractWrapper::new_with_empty(
+                    self::execute,
+                    self::instantiate,
+                    self::query,
+                ))),
+        )
+    }
 }
