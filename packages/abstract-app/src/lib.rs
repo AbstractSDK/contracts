@@ -1,9 +1,9 @@
 mod endpoints;
 pub mod error;
 pub mod features;
+pub(crate) mod handler;
 pub mod schema;
 pub mod state;
-pub(crate) mod handler;
 pub(crate) use abstract_sdk::base::*;
 
 pub use crate::state::AppContract;

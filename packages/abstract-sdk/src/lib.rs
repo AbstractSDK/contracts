@@ -23,7 +23,8 @@ pub mod feature_objects;
 pub use error::{AbstractSdkError, EndpointError};
 
 pub use crate::apis::{
-    bank::*, execution::*, ibc::*, modules::*, respond::*, vault::*, verify::*, version_registry::*, api::*, app::*,
+    api::*, app::*, bank::*, execution::*, ibc::*, modules::*, respond::*, vault::*, verify::*,
+    version_registry::*,
 };
 
 pub mod features {
