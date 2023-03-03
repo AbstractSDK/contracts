@@ -14,16 +14,15 @@ pub mod error;
 /// Abstract SDK trait implementations
 pub mod features;
 mod handler;
-#[cfg(feature = "schema")]
-mod schema;
+pub mod schema;
 pub mod state;
 
-#[cfg(test)]
-mod test_common {
+#[cfg(feature = "test-utils")]
+pub mod mock {
     use crate::{ApiContract, ApiError};
     use abstract_os::api::{self, BaseInstantiateMsg, InstantiateMsg};
     use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
-    use abstract_testing::{
+    use abstract_testing::prelude::{
         TEST_ADMIN, TEST_ANS_HOST, TEST_MODULE_ID, TEST_VERSION, TEST_VERSION_CONTROL,
     };
     use cosmwasm_std::{
@@ -64,6 +63,8 @@ mod test_common {
         .with_instantiate(mock_init_handler);
 
     pub type ApiMockResult = Result<(), MockError>;
+    // export these for upload usage
+    crate::export_endpoints!(MOCK_API, MockApi);
 
     pub fn mock_init(deps: DepsMut) -> Result<Response, MockError> {
         let api = MOCK_API;

@@ -71,7 +71,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::apis::test_common::*;
+    use crate::mock_module::*;
     use speculoos::prelude::*;
     const TEST_HOST_CHAIN: &str = "host_chain";
 

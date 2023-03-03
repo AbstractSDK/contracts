@@ -210,14 +210,14 @@ mod tests {
     use super::*;
     use abstract_os::api;
 
-    use abstract_testing::*;
+    use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
         Addr, Storage,
     };
     use std::collections::HashSet;
 
-    use crate::test_common::*;
+    use crate::mock::*;
     use speculoos::prelude::*;
 
     fn execute_as(
@@ -237,7 +237,7 @@ mod tests {
     }
 
     mod update_traders {
-        use crate::test_common::TEST_TRADER;
+        use crate::mock::TEST_TRADER;
 
         use super::*;
 
@@ -367,11 +367,11 @@ mod tests {
     }
 
     mod execute_app {
-        use crate::test_common::{MOCK_API, TEST_TRADER};
+        use crate::mock::{MOCK_API, TEST_TRADER};
 
         use super::*;
 
-        use abstract_testing::mock_module::mocked_os_querier_builder;
+        use abstract_testing::prelude::mocked_os_querier_builder;
 
         /// This sets up the test with the following:
         /// TEST_PROXY has a single trader, TEST_TRADER

@@ -58,7 +58,7 @@ mod tests {
         api::{BaseInstantiateMsg, InstantiateMsg},
         objects::module_version::{ModuleData, MODULE},
     };
-    use abstract_sdk::base::InstantiateEndpoint;
+    use abstract_sdk::{base::InstantiateEndpoint, feature_objects::AnsHost};
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
         Addr, Empty, StdError,
@@ -66,9 +66,11 @@ mod tests {
     use cw2::{ContractVersion, CONTRACT};
     use speculoos::prelude::*;
 
-    use super::*;
-    use crate::test_common::{ApiMockResult, MOCK_API, TEST_METADATA};
-    use abstract_testing::*;
+    use crate::{
+        mock::{ApiMockResult, MOCK_API, TEST_METADATA},
+        state::ApiState,
+    };
+    use abstract_testing::prelude::*;
 
     #[test]
     fn successful() -> ApiMockResult {

@@ -65,8 +65,7 @@ impl<'a, T: AppInterface> App<'a, T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::apis::test_common::*;
-    use abstract_testing::prelude::MockModule;
+    use crate::mock_module::*;
     use cosmwasm_std::testing::mock_dependencies;
     use speculoos::prelude::*;
 
@@ -90,7 +89,7 @@ mod tests {
     }
 
     mod app_request {
-        use abstract_testing::prelude::MockModuleExecuteMsg;
+        use crate::mock_module::MockModuleExecuteMsg;
         use os::app;
 
         use super::*;
@@ -206,7 +205,7 @@ mod tests {
 
             assert_that!(res)
                 .is_ok()
-                .is_equal_to(abstract_testing::TEST_MODULE_RESPONSE.to_string());
+                .is_equal_to(abstract_testing::prelude::TEST_MODULE_RESPONSE.to_string());
         }
     }
 }

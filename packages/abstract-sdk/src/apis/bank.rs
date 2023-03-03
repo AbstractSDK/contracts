@@ -179,7 +179,7 @@ mod test {
     use super::*;
     use speculoos::prelude::*;
 
-    use crate::apis::test_common::*;
+    use crate::mock_module::*;
 
     mod transfer_coins {
         use super::*;

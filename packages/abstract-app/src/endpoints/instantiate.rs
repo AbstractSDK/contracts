@@ -79,9 +79,11 @@ impl<
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_common::*;
+    use crate::mock::*;
+    use speculoos::prelude::*;
 
-    use abstract_testing::{TEST_ANS_HOST, TEST_MODULE_FACTORY};
+    use abstract_testing::prelude::{TEST_ANS_HOST, TEST_MODULE_FACTORY};
+    use speculoos::assert_that;
 
     #[test]
     fn test_instantiate() {

@@ -71,10 +71,10 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::apis::test_common::*;
-    use speculoos::prelude::*;
+    use crate::mock_module::*;
 
-    use abstract_testing::{prelude::MockModule, TEST_MODULE_ID};
+    use abstract_testing::prelude::TEST_MODULE_ID;
+    use speculoos::prelude::*;
 
     mod assert_module_dependency {
         use super::*;

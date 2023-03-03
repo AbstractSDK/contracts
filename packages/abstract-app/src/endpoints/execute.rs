@@ -98,10 +98,11 @@ impl<
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_common::*;
-    use abstract_testing::TEST_MANAGER;
+    use crate::mock::*;
+    use abstract_testing::prelude::TEST_MANAGER;
     use cosmwasm_std::Addr;
     use cw_controllers::AdminError;
+    use speculoos::prelude::*;
 
     type AppExecuteMsg = ExecuteMsg<MockExecMsg, MockReceiveMsg>;
 
@@ -132,7 +133,7 @@ mod test {
 
     mod base {
         use super::*;
-        use abstract_testing::TEST_ANS_HOST;
+        use abstract_testing::prelude::TEST_ANS_HOST;
 
         #[test]
         fn only_manager() -> AppTestResult {

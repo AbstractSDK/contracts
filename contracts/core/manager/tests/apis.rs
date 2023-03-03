@@ -3,7 +3,7 @@ use abstract_boot::*;
 use abstract_os::manager::ManagerModuleInfo;
 use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
 use abstract_os::{api::BaseQueryMsgFns, *};
-use abstract_testing::{ROOT_USER, TEST_MODULE_ID, TEST_VERSION};
+use abstract_testing::prelude::{ROOT_USER, TEST_MODULE_ID, TEST_VERSION};
 use boot_core::prelude::BootExecute;
 use boot_core::{
     prelude::{instantiate_default_mock_env, CallAs, ContractInstance},

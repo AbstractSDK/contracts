@@ -137,7 +137,7 @@ use abstract_api::{ApiContract, ApiError};
 use abstract_os::api::{self, BaseInstantiateMsg};
 use abstract_sdk::base::InstantiateEndpoint;
 use abstract_sdk::AbstractSdkError;
-use abstract_testing::{
+use abstract_testing::addresses::{
     TEST_ADMIN, TEST_ANS_HOST, TEST_MODULE_ID, TEST_VERSION, TEST_VERSION_CONTROL,
 };
 use cosmwasm_std::{

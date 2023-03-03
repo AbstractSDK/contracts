@@ -57,7 +57,7 @@ impl<'a, T: ApiInterface> Api<'a, T> {
 #[cfg(test)]
 mod tests {
 
-    use crate::apis::test_common::*;
+    use crate::mock_module::*;
     use abstract_testing::prelude::*;
     use cosmwasm_std::testing::mock_dependencies;
     use speculoos::{assert_that, result::ResultAssertions};
@@ -148,7 +148,7 @@ mod tests {
 
             assert_that!(res)
                 .is_ok()
-                .is_equal_to(abstract_testing::TEST_MODULE_RESPONSE.to_string());
+                .is_equal_to(abstract_testing::prelude::TEST_MODULE_RESPONSE.to_string());
         }
     }
 }

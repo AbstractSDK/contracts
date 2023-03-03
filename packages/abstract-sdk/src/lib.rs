@@ -45,3 +45,6 @@ pub mod namespaces {
 pub mod register {
     pub use abstract_os::registry::*;
 }
+
+#[cfg(feature = "test-utils")]
+pub mod mock_module;

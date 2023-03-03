@@ -1,7 +1,6 @@
 pub(crate) mod abstract_mock_querier;
 pub mod map_tester;
 pub mod mock_ans;
-pub mod mock_module;
 pub(crate) mod mock_querier;
 use cosmwasm_std::{
     testing::{MockApi, MockQuerier, MockStorage},
@@ -11,7 +10,7 @@ pub use mock_querier::{map_key, mock_querier, raw_map_key, wrap_querier, MockQue
 
 pub type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 pub const ROOT_USER: &str = "root_user";
-mod test_addresses {
+pub mod addresses {
     use abstract_os::version_control::Core;
     use cosmwasm_std::Addr;
 
@@ -39,15 +38,13 @@ mod test_addresses {
     }
 }
 
-pub use test_addresses::*;
-
 pub mod prelude {
     use super::*;
 
-    pub use abstract_mock_querier::AbstractMockQuerierBuilder;
-    pub use mock_module::mocked_os_querier_builder;
+    pub use super::ROOT_USER;
+    pub use abstract_mock_querier::{mocked_os_querier_builder, AbstractMockQuerierBuilder};
+    pub use addresses::*;
     pub use mock_querier::{map_key, mock_querier, raw_map_key, wrap_querier, MockQuerierBuilder};
-    pub use test_addresses::*;
 
     pub use super::MockDeps;
 
@@ -56,6 +53,4 @@ pub mod prelude {
         testing::{MockApi, MockQuerier, MockStorage},
         to_binary,
     };
-
-    pub use mock_module::*;
 }
