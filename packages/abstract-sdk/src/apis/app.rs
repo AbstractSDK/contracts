@@ -23,7 +23,7 @@ pub struct App<'a, T: AppInterface> {
 
 impl<'a, T: AppInterface> App<'a, T> {
     /// Construct an app request message.
-    fn request<M: Serialize>(
+    pub fn request<M: Serialize>(
         &self,
         app_id: ModuleId,
         message: impl Into<msg::ExecuteMsg<M, Empty>>,
@@ -36,7 +36,7 @@ impl<'a, T: AppInterface> App<'a, T> {
     }
 
     /// Construct an app configuation message
-    fn configure(
+    pub fn configure(
         &self,
         app_id: ModuleId,
         message: msg::BaseExecuteMsg,
@@ -48,7 +48,7 @@ impl<'a, T: AppInterface> App<'a, T> {
     }
 
     /// Smart query an app
-    fn query<Q: Serialize, R: DeserializeOwned>(
+    pub fn query<Q: Serialize, R: DeserializeOwned>(
         &self,
         app_id: ModuleId,
         message: impl Into<msg::QueryMsg<Q>>,
