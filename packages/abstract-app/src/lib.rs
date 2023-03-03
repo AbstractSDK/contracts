@@ -1,22 +1,16 @@
-pub use crate::state::AppContract;
-pub(crate) use abstract_sdk::base::*;
-use cosmwasm_std::{Empty, Response};
-pub use error::AppError;
-
 mod endpoints;
 pub mod error;
-/// Abstract SDK trait implementations
 pub mod features;
-pub(crate) mod handler;
-
 pub mod schema;
 pub mod state;
+pub(crate) mod handler;
+pub(crate) use abstract_sdk::base::*;
 
-// #[cfg(test)]
-// mod testing;
-// Default to Empty
+pub use crate::state::AppContract;
+pub use error::AppError;
 pub type AppResult<C = Empty> = Result<Response<C>, AppError>;
 
+use cosmwasm_std::{Empty, Response};
 #[cfg(feature = "test-utils")]
 pub mod mock {
     pub use abstract_os::app;
