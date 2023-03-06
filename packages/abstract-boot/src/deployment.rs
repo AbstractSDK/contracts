@@ -24,7 +24,6 @@ impl<Chain: BootEnvironment> boot_core::deploy::Deploy<Chain> for Abstract<Chain
     type Error = BootError;
     type DeployData = semver::Version;
 
-    // TODO: From<BootError>
     #[allow(unused_mut)]
     fn deploy_on(chain: Chain, version: semver::Version) -> Result<Self, BootError> {
         let mut ans_host = AnsHost::new(ANS_HOST, chain.clone());
@@ -211,13 +210,6 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
         Ok(())
     }
 
-    // pub fn deploy_modules(&self) -> Result<(), crate::AbstractBootError> {
-    //     self.upload_modules()?;
-    //     self.instantiate_apis()?;
-    //     self.register_modules()?;
-    //     Ok(())
-    // }
-
     pub fn contracts(&self) -> Vec<&Contract<Chain>> {
         vec![
             self.ans_host.as_instance(),
@@ -226,55 +218,4 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
             self.module_factory.as_instance(),
         ]
     }
-
-    // fn instantiate_apis(&self) -> Result<(), crate::AbstractBootError> {
-    //     let (dex, staking) = get_apis(self.get_chain());
-    //     let dex_init_msg = abstract_os::api::InstantiateMsg {
-    //         app: DexInstantiateMsg {
-    //             swap_fee: Decimal::permille(3),
-    //             recipient_os: 0u32,
-    //         },
-    //         base: abstract_os::api::BaseInstantiateMsg {
-    //             ans_host_address: self.ans_host.address()?.into(),
-    //             version_control_address: self.version_control.address()?.into(),
-    //         },
-    //     };
-    //     dex.instantiate(&dex_init_msg, None, None)?;
-    //     let staking_init_msg = abstract_os::api::InstantiateMsg {
-    //         app: Empty {},
-    //         base: abstract_os::api::BaseInstantiateMsg {
-    //             ans_host_address: self.ans_host.address()?.into(),
-    //             version_control_address: self.version_control.address()?.into(),
-    //         },
-    //     };
-    //     staking.instantiate(&staking_init_msg, None, None)?;
-    //     Ok(())
-    // }
-
-    // fn upload_modules(&self) -> Result<(), crate::AbstractBootError> {
-    //     let (mut dex, mut staking) = get_apis(self.get_chain());
-    //     let (mut etf, _subs) = get_apps(self.get_chain());
-    //     let modules: Vec<&mut dyn BootUpload<Chain>> = vec![&mut dex, &mut staking, &mut etf];
-    //     // no subscription
-    //     // vec![&mut dex, &mut staking, &mut etf, &mut subs];
-    //     modules
-    //         .into_iter()
-    //         .map(BootUpload::upload)
-    //         .collect::<Result<Vec<_>, _>>()?;
-    //     Ok(())
-    // }
-
-    // fn register_modules(&self) -> Result<(), crate::AbstractBootError> {
-    //     let (dex, staking) = get_apis(self.get_chain());
-    //     let (etf, subs) = get_apps(self.get_chain());
-
-    //     self.version_control
-    //         // , subs.as_instance()
-    //         .register_apps(vec![etf.as_instance()], &self.version)?;
-    //     self.version_control.register_apis(
-    //         vec![dex.as_instance(), staking.as_instance()],
-    //         &self.version,
-    //     )?;
-    //     Ok(())
-    // }
 }
