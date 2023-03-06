@@ -177,10 +177,10 @@ impl Transferable for Asset {
 #[cfg(test)]
 mod test {
     use super::*;
-    use speculoos::prelude::*;
-    use cosmwasm_std::{*,testing::*};
-    use abstract_testing::prelude::*;
     use crate::mock_module::*;
+    use abstract_testing::prelude::*;
+    use cosmwasm_std::{testing::*, *};
+    use speculoos::prelude::*;
 
     mod transfer_coins {
         use super::*;

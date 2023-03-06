@@ -1,5 +1,5 @@
 use abstract_os::objects::dependency::StaticDependency;
-use abstract_testing::prelude::{TEST_PROXY, TEST_MODULE_ID};
+use abstract_testing::prelude::{TEST_MODULE_ID, TEST_PROXY};
 use cosmwasm_std::{Addr, Deps};
 
 use crate::features::{AbstractNameService, Dependencies, Identification, ModuleIdentification};

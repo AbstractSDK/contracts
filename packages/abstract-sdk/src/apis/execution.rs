@@ -75,9 +75,9 @@ impl<'a, T: Execution> Executor<'a, T> {
 mod test {
     use super::*;
     use crate::mock_module::*;
-    use speculoos::prelude::*;
-    use cosmwasm_std::{*,testing::*};
     use abstract_testing::prelude::*;
+    use cosmwasm_std::{testing::*, *};
+    use speculoos::prelude::*;
 
     fn mock_bank_send(amount: Vec<Coin>) -> CosmosMsg {
         CosmosMsg::Bank(BankMsg::Send {

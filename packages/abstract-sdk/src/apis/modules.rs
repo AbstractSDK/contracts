@@ -78,7 +78,7 @@ mod test {
 
     mod assert_module_dependency {
         use super::*;
-        use cosmwasm_std::{testing::*};
+        use cosmwasm_std::testing::*;
 
         #[test]
         fn should_return_ok_if_dependency() {

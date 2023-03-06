@@ -60,7 +60,6 @@ pub mod mock {
     pub type MockApi = ApiContract<MockError, Empty, MockApiExecMsg, Empty>;
     type ExecuteMsg = api::ExecuteMsg<MockApiExecMsg>;
 
-
     /// use for testing
     pub const MOCK_API: MockApi = MockApi::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
         .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_response".as_bytes())))
@@ -100,14 +99,9 @@ pub mod mock {
 
     impl<Chain: boot_core::BootEnvironment> BootMockApi<Chain> {
         pub fn new(name: &str, chain: Chain) -> Self {
-            Self(
-                boot_core::Contract::new(name, chain).with_mock(Box::new(ContractWrapper::new_with_empty(
-                    self::execute,
-                    self::instantiate,
-                    self::query,
-                ))),
-            )
+            Self(boot_core::Contract::new(name, chain).with_mock(Box::new(
+                ContractWrapper::new_with_empty(self::execute, self::instantiate, self::query),
+            )))
         }
     }
-
 }

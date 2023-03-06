@@ -1,16 +1,14 @@
 pub const ROOT_USER: &str = "root_user";
 pub const TEST_COIN: &str = "ucoin";
-use abstract_api::mock::{MockApi, BootMockApi};
 use ::abstract_manager::contract::CONTRACT_VERSION;
-use abstract_boot::{OS, ApiDeployer};
+use abstract_api::mock::{BootMockApi, MockApi};
 use abstract_boot::{Abstract, AnsHost, Manager, ModuleFactory, OSFactory, Proxy, VersionControl};
+use abstract_boot::{ApiDeployer, OS};
 use abstract_os::{api::InstantiateMsg, objects::gov_type::GovernanceDetails, PROXY};
 use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL};
 use boot_core::ContractWrapper;
 use boot_core::{
-    boot_contract,
-    {BootInstantiate, BootUpload, ContractInstance},
-    Contract, Mock,
+    boot_contract, Contract, Mock, {BootInstantiate, BootUpload, ContractInstance},
 };
 use cosmwasm_std::{Addr, Empty};
 use semver::Version;
@@ -128,6 +126,6 @@ pub(crate) fn init_mock_api(
     let version: Version = version
         .unwrap_or_else(|| CONTRACT_VERSION.to_string())
         .parse()?;
-    staking_api.deploy(version, Empty {  })?;
+    staking_api.deploy(version, Empty {})?;
     Ok(staking_api)
 }

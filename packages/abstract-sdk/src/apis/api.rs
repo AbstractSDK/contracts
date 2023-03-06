@@ -59,7 +59,7 @@ mod tests {
 
     use crate::mock_module::*;
     use abstract_testing::prelude::*;
-    use cosmwasm_std::{*,testing::*};
+    use cosmwasm_std::{testing::*, *};
     use speculoos::{assert_that, result::ResultAssertions};
 
     use super::*;

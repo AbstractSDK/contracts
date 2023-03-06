@@ -6,16 +6,15 @@ use abstract_os::{api::BaseQueryMsgFns, *};
 use abstract_testing::prelude::{ROOT_USER, TEST_MODULE_ID, TEST_VERSION};
 use boot_core::BootExecute;
 use boot_core::{
-    {instantiate_default_mock_env, CallAs, ContractInstance},
-    BootError, Mock, TxHandler,
+    BootError, Mock, TxHandler, {instantiate_default_mock_env, CallAs, ContractInstance},
 };
-use common::{create_default_os, init_abstract_env, AResult, TEST_COIN, init_mock_api};
+use common::{create_default_os, init_abstract_env, init_mock_api, AResult, TEST_COIN};
 use cosmwasm_std::{Addr, Coin, Decimal, Empty, Validator};
 use cw_multi_test::StakingInfo;
 use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};
 
 const VALIDATOR: &str = "testvaloper1";
-use abstract_api::mock::{BootMockApi, MockApiExecMsg, MockApi};
+use abstract_api::mock::{BootMockApi, MockApi, MockApiExecMsg};
 
 fn install_api(manager: &Manager<Mock>, api: &str) -> AResult {
     manager.install_module(api, &Empty {}).map_err(Into::into)
@@ -219,7 +218,6 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
     deployment.deploy(&mut core)?;
     let os = create_default_os(&deployment.os_factory)?;
     let staking_api = init_mock_api(chain.clone(), &deployment, Some("1.0.0".to_string()))?;
-
 
     install_api(&os.manager, TEST_MODULE_ID)?;
 

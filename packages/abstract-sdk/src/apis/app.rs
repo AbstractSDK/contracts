@@ -66,9 +66,9 @@ impl<'a, T: AppInterface> App<'a, T> {
 #[cfg(test)]
 mod tests {
     use crate::mock_module::*;
-    use speculoos::prelude::*;
-    use cosmwasm_std::{*,testing::*};
     use abstract_testing::prelude::*;
+    use cosmwasm_std::{testing::*, *};
+    use speculoos::prelude::*;
 
     pub use super::*;
     /// Helper to check that the method is not callable when the module is not a dependency
