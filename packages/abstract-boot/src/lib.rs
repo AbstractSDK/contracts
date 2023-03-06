@@ -19,13 +19,13 @@ mod interfaces;
 
 pub use crate::interfaces::*;
 
+mod deployers;
 mod deployment;
 mod error;
-mod module_deployer;
 mod traits;
 
 pub use error::AbstractBootError;
 
-pub use crate::module_deployer::*;
+pub use crate::deployers::*;
 
 pub use crate::deployment::*;

@@ -1,6 +1,6 @@
 [package]
 name = "abstract-boot"
-version = "0.12.0-alpha.1"
+version = "0.12.0-alpha.2"
 edition = { workspace = true }
 license = { workspace = true }
 description = "Abstract deployment helpers with BOOT"
@@ -30,12 +30,6 @@ serde_json = "1.0.79"
 speculoos = { workspace = true }
 
 cw-multi-test = { workspace = true, optional = true }
-# ans-host = { workspace = true, optional = true, features = ["library"] }
-# module-factory = { workspace = true, optional = true, features = ["library"] }
-# os-factory = { workspace = true, optional = true, features = ["library"] }
-# version-control = { workspace = true, optional = true, features = ["library"] }
-# proxy = { workspace = true, optional = true, features = ["library"] }
-# manager = { workspace = true, optional = true, features = ["library"] }
 
 module-factory = {package = "abstract-module-factory", path = "../../contracts/native/module-factory", features = ["library"], version = "0.11.0", optional = true }
 os-factory = {package = "abstract-os-factory", path = "../../contracts/native/os-factory", features = ["library"], version = "0.11.0", optional = true }
