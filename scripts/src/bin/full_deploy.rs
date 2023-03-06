@@ -3,7 +3,7 @@ use abstract_os::objects::gov_type::GovernanceDetails;
 
 use boot_core::{
     networks::{parse_network, NetworkInfo},
-    prelude::*,
+    *,
 };
 use clap::Parser;
 use semver::Version;

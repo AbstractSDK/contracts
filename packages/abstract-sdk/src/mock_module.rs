@@ -1,13 +1,10 @@
 use abstract_os::objects::dependency::StaticDependency;
+use abstract_testing::prelude::{TEST_PROXY, TEST_MODULE_ID};
 use cosmwasm_std::{Addr, Deps};
 
 use crate::features::{AbstractNameService, Dependencies, Identification, ModuleIdentification};
 use crate::AbstractSdkResult;
 use abstract_os::objects::ans_host::AnsHost;
-
-pub use abstract_testing::prelude::*;
-// pub use abstract_testing::{mock_module::*, *};
-pub use cosmwasm_std::{testing::*, *};
 use os::objects::module::ModuleId;
 
 // We implement the following traits here for the mock module (in this package) to avoid a circular dependency

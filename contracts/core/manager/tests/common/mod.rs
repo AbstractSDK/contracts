@@ -1,17 +1,18 @@
 pub const ROOT_USER: &str = "root_user";
 pub const TEST_COIN: &str = "ucoin";
+use abstract_api::mock::{MockApi, BootMockApi};
 use ::abstract_manager::contract::CONTRACT_VERSION;
-use abstract_boot::OS;
+use abstract_boot::{OS, ApiDeployer};
 use abstract_boot::{Abstract, AnsHost, Manager, ModuleFactory, OSFactory, Proxy, VersionControl};
 use abstract_os::{api::InstantiateMsg, objects::gov_type::GovernanceDetails, PROXY};
 use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL};
+use boot_core::ContractWrapper;
 use boot_core::{
     boot_contract,
-    prelude::{BootInstantiate, BootUpload, ContractInstance},
+    {BootInstantiate, BootUpload, ContractInstance},
     Contract, Mock,
 };
 use cosmwasm_std::{Addr, Empty};
-use cw_multi_test::ContractWrapper;
 use semver::Version;
 
 pub fn init_abstract_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, OS<Mock>)> {
@@ -42,7 +43,7 @@ pub fn init_abstract_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, OS<Mock
     ));
 
     module_factory.as_instance_mut().set_mock(Box::new(
-        cw_multi_test::ContractWrapper::new_with_empty(
+        boot_core::ContractWrapper::new_with_empty(
             ::module_factory::contract::execute,
             ::module_factory::contract::instantiate,
             ::module_factory::contract::query,
@@ -52,7 +53,7 @@ pub fn init_abstract_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, OS<Mock
     ));
 
     version_control.as_instance_mut().set_mock(Box::new(
-        cw_multi_test::ContractWrapper::new_with_empty(
+        boot_core::ContractWrapper::new_with_empty(
             ::version_control::contract::execute,
             ::version_control::contract::instantiate,
             ::version_control::contract::query,
@@ -61,7 +62,7 @@ pub fn init_abstract_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, OS<Mock
     ));
 
     manager.as_instance_mut().set_mock(Box::new(
-        cw_multi_test::ContractWrapper::new_with_empty(
+        boot_core::ContractWrapper::new_with_empty(
             ::abstract_manager::contract::execute,
             ::abstract_manager::contract::instantiate,
             ::abstract_manager::contract::query,
@@ -70,7 +71,7 @@ pub fn init_abstract_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, OS<Mock
     ));
 
     proxy.as_instance_mut().set_mock(Box::new(
-        cw_multi_test::ContractWrapper::new_with_empty(
+        boot_core::ContractWrapper::new_with_empty(
             ::proxy::contract::execute,
             ::proxy::contract::instantiate,
             ::proxy::contract::query,
@@ -118,3 +119,15 @@ use thiserror::Error;
 pub const TEST_METADATA: &str = "test_metadata";
 pub const TEST_TRADER: &str = "test_trader";
 
+pub(crate) fn init_mock_api(
+    chain: Mock,
+    _deployment: &Abstract<Mock>,
+    version: Option<String>,
+) -> anyhow::Result<BootMockApi<Mock>> {
+    let mut staking_api = BootMockApi::new(TEST_MODULE_ID, chain);
+    let version: Version = version
+        .unwrap_or_else(|| CONTRACT_VERSION.to_string())
+        .parse()?;
+    staking_api.deploy(version, Empty {  })?;
+    Ok(staking_api)
+}

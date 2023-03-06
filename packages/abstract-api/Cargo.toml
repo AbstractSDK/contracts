@@ -15,7 +15,7 @@ resolver = "2"
 [features]
 backtraces = ["cosmwasm-std/backtraces"]
 # Exposes a mock API contract for testing
-test-utils = ["dep:abstract-testing"]
+test-utils = ["dep:abstract-testing", "dep:abstract-boot", "dep:boot-core"]
 
 [dependencies]
 cosmwasm-std = { workspace = true }
@@ -29,6 +29,8 @@ cw2 = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-os = { workspace = true }
 abstract-testing = { workspace = true, optional = true }
+abstract-boot = { workspace = true, optional = true }
+boot-core = { workspace = true, optional = true }
 
 [dev-dependencies]
 abstract-testing = { workspace = true }

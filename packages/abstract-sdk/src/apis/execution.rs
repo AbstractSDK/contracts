@@ -76,6 +76,8 @@ mod test {
     use super::*;
     use crate::mock_module::*;
     use speculoos::prelude::*;
+    use cosmwasm_std::{*,testing::*};
+    use abstract_testing::prelude::*;
 
     fn mock_bank_send(amount: Vec<Coin>) -> CosmosMsg {
         CosmosMsg::Bank(BankMsg::Send {
@@ -132,7 +134,6 @@ mod test {
 
     mod execute_with_reply {
         use super::*;
-        use crate::mock_module::TEST_PROXY;
 
         /// Tests that no error is thrown with empty messages provided
         #[test]
@@ -201,7 +202,6 @@ mod test {
 
     mod execute_with_response {
         use super::*;
-        use crate::mock_module::TEST_PROXY;
         use cosmwasm_std::coins;
 
         /// Tests that no error is thrown with empty messages provided

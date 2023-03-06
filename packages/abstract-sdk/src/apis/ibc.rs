@@ -73,6 +73,8 @@ mod test {
     use super::*;
     use crate::mock_module::*;
     use speculoos::prelude::*;
+    use cosmwasm_std::{*,testing::*};
+    use abstract_testing::prelude::*;
     const TEST_HOST_CHAIN: &str = "host_chain";
 
     /// Tests that a host_action can be built with no callback

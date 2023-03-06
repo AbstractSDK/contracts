@@ -4,18 +4,18 @@ use abstract_os::manager::ManagerModuleInfo;
 use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
 use abstract_os::{api::BaseQueryMsgFns, *};
 use abstract_testing::prelude::{ROOT_USER, TEST_MODULE_ID, TEST_VERSION};
-use boot_core::prelude::BootExecute;
+use boot_core::BootExecute;
 use boot_core::{
-    prelude::{instantiate_default_mock_env, CallAs, ContractInstance},
+    {instantiate_default_mock_env, CallAs, ContractInstance},
     BootError, Mock, TxHandler,
 };
-use common::{create_default_os, init_abstract_env, AResult, TEST_COIN};
+use common::{create_default_os, init_abstract_env, AResult, TEST_COIN, init_mock_api};
 use cosmwasm_std::{Addr, Coin, Decimal, Empty, Validator};
 use cw_multi_test::StakingInfo;
 use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};
 
 const VALIDATOR: &str = "testvaloper1";
-use abstract_api::mock::{MockApiExecMsg, BootMockApi};
+use abstract_api::mock::{BootMockApi, MockApiExecMsg, MockApi};
 
 fn install_api(manager: &Manager<Mock>, api: &str) -> AResult {
     manager.install_module(api, &Empty {}).map_err(Into::into)
@@ -72,8 +72,7 @@ fn installing_one_api_should_succeed() -> AResult {
     let (mut deployment, mut core) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut core)?;
     let os = create_default_os(&deployment.os_factory)?;
-    let staking_api = init_mock_api(chain, &deployment, None)?;
-
+    let staking_api = init_mock_api(chain.clone(), &deployment, None)?;
     install_api(&os.manager, TEST_MODULE_ID)?;
 
     let modules = os.expect_modules(vec![staking_api.address()?.to_string()])?;
@@ -216,9 +215,11 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
     let sender = Addr::unchecked(common::ROOT_USER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut core) = init_abstract_env(chain.clone())?;
+
     deployment.deploy(&mut core)?;
     let os = create_default_os(&deployment.os_factory)?;
-    let staking_api = BootMockApi::new(TEST_MODULE_ID, chain.clone());;
+    let staking_api = init_mock_api(chain.clone(), &deployment, Some("1.0.0".to_string()))?;
+
 
     install_api(&os.manager, TEST_MODULE_ID)?;
 
@@ -313,8 +314,8 @@ fn manager_api_exec_staking_delegation() -> AResult {
 
     deployment.deploy(&mut core)?;
     let os = create_default_os(&deployment.os_factory)?;
-    let mut staking_api = BootMockApi::new(TEST_MODULE_ID, chain.clone());
-    staking_api.deploy();
+    let _staking_api_one = init_mock_api(chain.clone(), &deployment, Some("1.2.3".to_string()))?;
+
     install_api(&os.manager, TEST_MODULE_ID)?;
 
     chain.set_balance(&os.proxy.address()?, vec![Coin::new(100_000, TEST_COIN)])?;

@@ -2,7 +2,7 @@ use crate::{
     get_native_contracts, AnsHost, Manager, ModuleFactory, OSFactory, Proxy, VersionControl, OS,
 };
 
-use boot_core::{prelude::*, BootEnvironment, BootError};
+use boot_core::*;
 
 use semver::Version;
 
@@ -17,9 +17,9 @@ pub struct Abstract<Chain: BootEnvironment> {
 
 use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, PROXY, VERSION_CONTROL};
 #[cfg(feature = "integration")]
-use cw_multi_test::ContractWrapper;
+use boot_core::ContractWrapper;
 
-impl<Chain: BootEnvironment> boot_core::deploy::Deploy<Chain> for Abstract<Chain> {
+impl<Chain: BootEnvironment> boot_core::Deploy<Chain> for Abstract<Chain> {
     // We don't have a custom error type
     type Error = BootError;
     type DeployData = semver::Version;
@@ -52,7 +52,7 @@ impl<Chain: BootEnvironment> boot_core::deploy::Deploy<Chain> for Abstract<Chain
             ));
 
             module_factory.as_instance_mut().set_mock(Box::new(
-                cw_multi_test::ContractWrapper::new_with_empty(
+                boot_core::ContractWrapper::new_with_empty(
                     ::module_factory::contract::execute,
                     ::module_factory::contract::instantiate,
                     ::module_factory::contract::query,
@@ -61,7 +61,7 @@ impl<Chain: BootEnvironment> boot_core::deploy::Deploy<Chain> for Abstract<Chain
             ));
 
             version_control.as_instance_mut().set_mock(Box::new(
-                cw_multi_test::ContractWrapper::new_with_empty(
+                boot_core::ContractWrapper::new_with_empty(
                     ::version_control::contract::execute,
                     ::version_control::contract::instantiate,
                     ::version_control::contract::query,
@@ -69,20 +69,20 @@ impl<Chain: BootEnvironment> boot_core::deploy::Deploy<Chain> for Abstract<Chain
             ));
 
             manager.as_instance_mut().set_mock(Box::new(
-                cw_multi_test::ContractWrapper::new_with_empty(
+                boot_core::ContractWrapper::new_with_empty(
                     ::manager::contract::execute,
                     ::manager::contract::instantiate,
                     ::manager::contract::query,
                 ),
             ));
 
-            proxy.as_instance_mut().set_mock(Box::new(
-                cw_multi_test::ContractWrapper::new_with_empty(
+            proxy
+                .as_instance_mut()
+                .set_mock(Box::new(boot_core::ContractWrapper::new_with_empty(
                     ::proxy::contract::execute,
                     ::proxy::contract::instantiate,
                     ::proxy::contract::query,
-                ),
-            ));
+                )));
         }
 
         let mut deployment = Abstract {

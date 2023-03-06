@@ -85,8 +85,6 @@ mod test {
     use cosmwasm_std::testing::*;
 
     use abstract_testing::prelude::*;
-
-    use crate::mock_module::mocked_os_querier_builder;
     use speculoos::prelude::*;
 
     struct MockBinding;

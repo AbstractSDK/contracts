@@ -8,7 +8,7 @@ description = "Abstract deployment helpers with BOOT"
 [features]
 default = ["integration"]
 daemon = ["boot-core/daemon"]
-integration = ["dep:ans-host", "dep:cw-multi-test", "dep:module-factory", "dep:os-factory", "dep:version-control", "dep:proxy", "dep:manager"]
+integration = ["dep:ans-host", "dep:module-factory", "dep:os-factory", "dep:version-control", "dep:proxy", "dep:manager"]
 
 [dependencies]
 cosmwasm-std = { workspace = true }
@@ -28,8 +28,6 @@ tokio = { workspace = true }
 log = "0.4.14"
 serde_json = "1.0.79"
 speculoos = { workspace = true }
-
-cw-multi-test = { workspace = true, optional = true }
 
 module-factory = {package = "abstract-module-factory", path = "../../contracts/native/module-factory", features = ["library"], version = "0.11.0", optional = true }
 os-factory = {package = "abstract-os-factory", path = "../../contracts/native/os-factory", features = ["library"], version = "0.11.0", optional = true }

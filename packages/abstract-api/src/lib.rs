@@ -20,11 +20,13 @@ pub mod state;
 #[cfg(feature = "test-utils")]
 pub mod mock {
     use crate::{ApiContract, ApiError};
+    use abstract_boot::ApiDeployer;
     use abstract_os::api::{self, BaseInstantiateMsg, InstantiateMsg};
     use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
     use abstract_testing::prelude::{
         TEST_ADMIN, TEST_ANS_HOST, TEST_MODULE_ID, TEST_VERSION, TEST_VERSION_CONTROL,
     };
+    use boot_core::{BootEnvironment, ContractWrapper};
     use cosmwasm_std::{
         testing::{mock_env, mock_info},
         DepsMut, Empty, Env, MessageInfo, Response, StdError,
@@ -56,6 +58,8 @@ pub mod mock {
 
     /// Mock API type
     pub type MockApi = ApiContract<MockError, Empty, MockApiExecMsg, Empty>;
+    type ExecuteMsg = api::ExecuteMsg<MockApiExecMsg>;
+
 
     /// use for testing
     pub const MOCK_API: MockApi = MockApi::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
@@ -88,4 +92,22 @@ pub mod mock {
     ) -> Result<Response, MockError> {
         Ok(Response::new().set_data("mock_response".as_bytes()))
     }
+
+    #[boot_core::boot_contract(InstantiateMsg, ExecuteMsg, api::QueryMsg, Empty)]
+    pub struct BootMockApi;
+
+    impl<Chain: BootEnvironment> ApiDeployer<Chain, Empty> for BootMockApi<Chain> {}
+
+    impl<Chain: boot_core::BootEnvironment> BootMockApi<Chain> {
+        pub fn new(name: &str, chain: Chain) -> Self {
+            Self(
+                boot_core::Contract::new(name, chain).with_mock(Box::new(ContractWrapper::new_with_empty(
+                    self::execute,
+                    self::instantiate,
+                    self::query,
+                ))),
+            )
+        }
+    }
+
 }
