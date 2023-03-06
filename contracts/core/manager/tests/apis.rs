@@ -15,7 +15,8 @@ use cw_multi_test::StakingInfo;
 use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};
 
 const VALIDATOR: &str = "testvaloper1";
-use crate::common::{init_mock_api, MockApiExecMsg};
+use abstract_api::mock::{MockApiExecMsg, BootMockApi};
+
 fn install_api(manager: &Manager<Mock>, api: &str) -> AResult {
     manager.install_module(api, &Empty {}).map_err(Into::into)
 }
@@ -217,7 +218,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
     let (mut deployment, mut core) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut core)?;
     let os = create_default_os(&deployment.os_factory)?;
-    let staking_api = init_mock_api(chain.clone(), &deployment, None)?;
+    let staking_api = BootMockApi::new(TEST_MODULE_ID, chain.clone());;
 
     install_api(&os.manager, TEST_MODULE_ID)?;
 
@@ -312,7 +313,8 @@ fn manager_api_exec_staking_delegation() -> AResult {
 
     deployment.deploy(&mut core)?;
     let os = create_default_os(&deployment.os_factory)?;
-    let _staking_api = init_mock_api(chain.clone(), &deployment, None)?;
+    let mut staking_api = BootMockApi::new(TEST_MODULE_ID, chain.clone());
+    staking_api.deploy();
     install_api(&os.manager, TEST_MODULE_ID)?;
 
     chain.set_balance(&os.proxy.address()?, vec![Coin::new(100_000, TEST_COIN)])?;
