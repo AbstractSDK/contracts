@@ -75,5 +75,4 @@ fn install_app_versions_not_met() -> AResult {
     deploy_modules(&chain);
     let os = create_default_os(&abstr.os_factory)?;
     let OS { manager, proxy: _ } = &os;
-    
 }
