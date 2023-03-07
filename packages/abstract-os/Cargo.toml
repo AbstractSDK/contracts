@@ -14,7 +14,7 @@ repository = "https://github.com/Abstract-OS/contracts"
 [features]
 boot = ["dep:boot-core"]
 # for quicker tests, cargo test --lib
-backtraces = ["cosmwasm-std/backtraces"]
+
 
 [dependencies]
 cosmwasm-std = { workspace = true, features = ["iterator"] }

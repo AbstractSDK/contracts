@@ -12,7 +12,7 @@ resolver = "2"
 
 [features]
 # for quicker tests, cargo test --lib
-backtraces = ["cosmwasm-std/backtraces"]
+
 # Expose MockModule for testing with other APIs
 test-utils = ["dep:abstract-testing", "dep:cosmwasm-schema"]
 
