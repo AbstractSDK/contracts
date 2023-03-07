@@ -5,7 +5,7 @@ use abstract_os::{
 use cosmwasm_std::{Deps, DepsMut, StdError, Storage};
 use cw_semver::{Comparator, Version};
 
-use crate::{contract::ManagerResult, error::ManagerError, commands::MIGRATE_CONTEXT};
+use crate::{commands::MIGRATE_CONTEXT, contract::ManagerResult, error::ManagerError};
 
 /// Assert the dependencies that this app relies on are installed.
 pub fn assert_install_requirements(deps: Deps, module_id: &str) -> ManagerResult<Vec<Dependency>> {
@@ -29,7 +29,7 @@ pub fn assert_migrate_requirements(
     // for each module that depends on this module, check if it supports the new version.
     for dependent_module in dependents {
         // if the dependent is also being migrated, skip it.
-        if migrating.iter().any(|(m,_)| m == &dependent_module) {
+        if migrating.iter().any(|(m, _)| m == &dependent_module) {
             continue;
         }
         let dependent_address = OS_MODULES.load(deps.storage, &dependent_module)?;
