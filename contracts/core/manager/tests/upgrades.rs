@@ -66,3 +66,14 @@ fn install_app_successful() -> AResult {
     os.expect_modules(vec![api1, api2, app1])?;
     Ok(())
 }
+
+#[test]
+fn install_app_versions_not_met() -> AResult {
+    let sender = Addr::unchecked(common::ROOT_USER);
+    let (_state, chain) = instantiate_default_mock_env(&sender)?;
+    let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
+    deploy_modules(&chain);
+    let os = create_default_os(&abstr.os_factory)?;
+    let OS { manager, proxy: _ } = &os;
+    
+}
