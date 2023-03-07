@@ -14,7 +14,7 @@ use cw_multi_test::StakingInfo;
 use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};
 
 const VALIDATOR: &str = "testvaloper1";
-use abstract_api::mock::{BootMockApi, MockApi, MockApiExecMsg};
+use abstract_api::mock::{BootMockApi, MockApiContract, MockApiExecMsg};
 
 fn install_api(manager: &Manager<Mock>, api: &str) -> AResult {
     manager.install_module(api, &Empty {}).map_err(Into::into)
@@ -240,6 +240,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
 
     // Register the new version
     let new_version_num = "100.0.0";
+    let old_api_addr = staking_api.address()?;
 
     // We init the staking api with a new version to ensure that we get a new address
     let new_staking_api = init_mock_api(chain, &deployment, Some(new_version_num.to_string()))?;
@@ -256,16 +257,19 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
 
     let modules = os.expect_modules(vec![new_staking_api.address()?.to_string()])?;
 
-    // assert_that!(modules[1]).is_equal_to(&ManagerModuleInfo {
-    //     address: staking_api.addr_str()?,
-    //     id: TEST_MODULE_ID.to_string(),
-    //     version: cw2::ContractVersion {
-    //         contract: TEST_MODULE_ID.into(),
-    //         version: new_version_num.to_string(),
-    //     },
-    // });
-    // we should check that the address registered in the manager is the new one as opposed to the version, which is incorrectly returned as the ContractVerison (right now)
-    // TODO uncomment when the manager actually queries version control (if desired)
+    assert_that!(modules[1]).is_equal_to(&ManagerModuleInfo {
+        // the address stored for BootMockApi was updated when we instantiated the new version, so this is the new address
+        address: new_staking_api.addr_str()?,
+        id: TEST_MODULE_ID.to_string(),
+        version: cw2::ContractVersion {
+            contract: TEST_MODULE_ID.into(),
+            // IMPORTANT: The version of the contract did not change although the version of the module in version control did.
+            // Beware of this distinction. The version of the contract is the version that's imbedded into the contract's wasm on compilation.
+            version: TEST_VERSION.to_string(),
+        },
+    });
+    // assert that the new staking api has a different address
+    assert_ne!(old_api_addr, new_staking_api.address()?);
 
     assert_that!(modules[1].address)
         .is_equal_to(new_staking_api.as_instance().address()?.to_string());

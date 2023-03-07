@@ -13,7 +13,9 @@ pub type AppResult<C = Empty> = Result<Response<C>, AppError>;
 use cosmwasm_std::{Empty, Response};
 #[cfg(feature = "test-utils")]
 pub mod mock {
+    use abstract_boot::AppDeployer;
     pub use abstract_os::app;
+    use boot_core::{BootEnvironment, ContractWrapper};
     pub use cosmwasm_std::testing::*;
     use cosmwasm_std::{from_binary, to_binary, Addr, StdError};
 
@@ -114,5 +116,25 @@ pub mod mock {
             .unwrap();
 
         deps
+    }
+
+    type Exec = app::ExecuteMsg<MockExecMsg>;
+    type Query = app::QueryMsg<MockQueryMsg>;
+    type Init = app::InstantiateMsg<MockInitMsg>;
+    type Migrate = app::MigrateMsg<MockMigrateMsg>;
+    #[boot_core::boot_contract(Init, Exec, Query, Migrate)]
+    pub struct BootMockApp;
+
+    impl<Chain: BootEnvironment> AppDeployer<Chain> for BootMockApp<Chain> {}
+
+    impl<Chain: boot_core::BootEnvironment> BootMockApp<Chain> {
+        pub fn new(name: &str, chain: Chain) -> Self {
+            Self(
+                boot_core::Contract::new(name, chain).with_mock(Box::new(
+                    ContractWrapper::new_with_empty(self::execute, self::instantiate, self::query)
+                        .with_migrate(self::migrate),
+                )),
+            )
+        }
     }
 }

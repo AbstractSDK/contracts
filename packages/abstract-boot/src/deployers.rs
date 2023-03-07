@@ -6,12 +6,16 @@ use semver::Version;
 use serde::Serialize;
 
 /// Trait for deploying APIs
-pub trait ApiDeployer<Chain: BootEnvironment, IMsg: Serialize>:
+pub trait ApiDeployer<Chain: BootEnvironment, CustomInitMsg: Serialize>:
     ContractInstance<Chain>
-    + BootInstantiate<Chain, InstantiateMsg = abstract_os::api::InstantiateMsg<IMsg>>
+    + BootInstantiate<Chain, InstantiateMsg = abstract_os::api::InstantiateMsg<CustomInitMsg>>
     + BootUpload<Chain>
 {
-    fn deploy(&mut self, version: Version, init_msg: IMsg) -> Result<(), crate::AbstractBootError> {
+    fn deploy(
+        &mut self,
+        version: Version,
+        custom_init_msg: CustomInitMsg,
+    ) -> Result<(), crate::AbstractBootError> {
         // retrieve the deployment
         let abstr = Abstract::load_from(self.get_chain().clone())?;
 
@@ -31,7 +35,7 @@ pub trait ApiDeployer<Chain: BootEnvironment, IMsg: Serialize>:
 
         self.upload()?;
         let init_msg = abstract_os::api::InstantiateMsg {
-            app: init_msg,
+            app: custom_init_msg,
             base: abstract_os::api::BaseInstantiateMsg {
                 ans_host_address: abstr.ans_host.address()?.into(),
                 version_control_address: abstr.version_control.address()?.into(),

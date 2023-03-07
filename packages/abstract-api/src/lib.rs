@@ -57,17 +57,18 @@ pub mod mock {
     impl api::ApiExecuteMsg for MockApiExecMsg {}
 
     /// Mock API type
-    pub type MockApi = ApiContract<MockError, Empty, MockApiExecMsg, Empty>;
+    pub type MockApiContract = ApiContract<MockError, Empty, MockApiExecMsg, Empty>;
     type ExecuteMsg = api::ExecuteMsg<MockApiExecMsg>;
 
     /// use for testing
-    pub const MOCK_API: MockApi = MockApi::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
-        .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_response".as_bytes())))
-        .with_instantiate(mock_init_handler);
+    pub const MOCK_API: MockApiContract =
+        MockApiContract::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
+            .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_response".as_bytes())))
+            .with_instantiate(mock_init_handler);
 
     pub type ApiMockResult = Result<(), MockError>;
     // export these for upload usage
-    crate::export_endpoints!(MOCK_API, MockApi);
+    crate::export_endpoints!(MOCK_API, MockApiContract);
 
     pub fn mock_init(deps: DepsMut) -> Result<Response, MockError> {
         let api = MOCK_API;
@@ -86,7 +87,7 @@ pub mod mock {
         _deps: DepsMut,
         _env: Env,
         _info: MessageInfo,
-        _api: MockApi,
+        _api: MockApiContract,
         _msg: Empty,
     ) -> Result<Response, MockError> {
         Ok(Response::new().set_data("mock_response".as_bytes()))
