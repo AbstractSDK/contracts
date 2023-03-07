@@ -59,7 +59,7 @@ pub trait AppDeployer<Chain: BootEnvironment>: ContractInstance<Chain> + BootUpl
         // check for existing version
         let version_check = abstr
             .version_control
-            .get_api_addr(&self.id(), ModuleVersion::from(version.to_string()));
+            .get_app_code(&self.id(), ModuleVersion::from(version.to_string()));
 
         if version_check.is_ok() {
             return Err(StdErr(format!(
@@ -74,7 +74,7 @@ pub trait AppDeployer<Chain: BootEnvironment>: ContractInstance<Chain> + BootUpl
 
         abstr
             .version_control
-            .register_apis(vec![self.as_instance()], &version)?;
+            .register_apps(vec![self.as_instance()], &version)?;
         Ok(())
     }
 }

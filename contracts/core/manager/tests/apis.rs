@@ -14,7 +14,7 @@ use cw_multi_test::StakingInfo;
 use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};
 
 const VALIDATOR: &str = "testvaloper1";
-use abstract_api::mock::{BootMockApi, MockApiContract, MockApiExecMsg};
+use abstract_api::mock::{MockApiExecMsg};
 
 fn install_api(manager: &Manager<Mock>, api: &str) -> AResult {
     manager.install_module(api, &Empty {}).map_err(Into::into)
