@@ -77,13 +77,21 @@ pub fn remove_as_dependent(
     Ok(())
 }
 
-fn assert_comparators(bounds: &[Comparator], version: &Version, module_id: &str) -> ManagerResult<()> {
+fn assert_comparators(
+    bounds: &[Comparator],
+    version: &Version,
+    module_id: &str,
+) -> ManagerResult<()> {
     // assert requirements
     bounds.iter().try_for_each(|comp: &Comparator| {
         if comp.matches(version) {
             Ok(())
         } else {
-            Err(ManagerError::VersionRequirementNotMet { module_id: module_id.to_string(), version: version.to_string(), comp: comp.to_string() })
+            Err(ManagerError::VersionRequirementNotMet {
+                module_id: module_id.to_string(),
+                version: version.to_string(),
+                comp: comp.to_string(),
+            })
         }
     })?;
     Ok(())
@@ -92,11 +100,15 @@ fn assert_comparators(bounds: &[Comparator], version: &Version, module_id: &str)
 /// Goes over all the provided dependencies and asserts that:
 /// 1. The dependency is installed
 /// 2. The dependency version fits the requirements
-pub fn assert_dependency_requirements(deps: Deps, dependencies: &[Dependency], dependent: &str) -> ManagerResult<()> {
+pub fn assert_dependency_requirements(
+    deps: Deps,
+    dependencies: &[Dependency],
+    dependent: &str,
+) -> ManagerResult<()> {
     for dep in dependencies {
-        let dep_addr = OS_MODULES.may_load(deps.storage, &dep.id)?.ok_or_else(|| {
-            ManagerError::DependencyNotMet(dep.id.clone(), dependent.to_string())
-        })?;
+        let dep_addr = OS_MODULES
+            .may_load(deps.storage, &dep.id)?
+            .ok_or_else(|| ManagerError::DependencyNotMet(dep.id.clone(), dependent.to_string()))?;
 
         let dep_version = cw2::CONTRACT.query(&deps.querier, dep_addr)?;
         let version: Version = dep_version.version.parse().unwrap();
