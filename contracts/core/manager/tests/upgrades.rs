@@ -1,15 +1,16 @@
 mod common;
 
-use abstract_boot::{Abstract, AbstractBootError, Manager, OS};
+use abstract_boot::{Abstract, AbstractBootError, Manager, OS, ManagerExecFns};
 use abstract_manager::error::ManagerError;
 use abstract_os::app::{self, BaseInstantiateMsg};
-use abstract_os::objects::module::ModuleVersion;
+use abstract_os::objects::module::{ModuleVersion, ModuleInfo};
 use abstract_testing::prelude::TEST_VERSION;
 use boot_core::{
     instantiate_default_mock_env, Addr, BootError, ContractInstance, Deploy, Empty, Mock,
 };
 use common::mock_modules::*;
 use common::{create_default_os, init_abstract_env, init_mock_api, AResult, TEST_COIN};
+use cosmwasm_std::to_binary;
 use speculoos::prelude::*;
 
 fn install_module_version(
@@ -117,12 +118,24 @@ fn upgrade_app_() -> AResult {
     let res = manager.upgrade_module(MOCK_APP1_ID, &app::MigrateMsg{base: app::BaseMigrateMsg {  }, app: Empty {}});
     // fails because api 1 is not version 2
     assert_that!(res.unwrap_err().root().to_string()).contains(
-    ManagerError::VersionRequirementNotMet { module_id: MOCK_API1_ID.into(), version: V1.into(), comp: "^2.0.0".into(), pre_migration: false }.to_string()
+    ManagerError::VersionRequirementNotMet { module_id: MOCK_API1_ID.into(), version: V1.into(), comp: "^2.0.0".into() }.to_string()
     );
 
     // upgrade api 1 to version 2
     
-    let res = manager.upgrade_module(MOCK_API1_ID, &app::MigrateMsg{base: app::BaseMigrateMsg {  }, app: Empty {}})?;
+    let res = manager.upgrade_module(MOCK_API1_ID, &app::MigrateMsg{base: app::BaseMigrateMsg {  }, app: Empty {}});
+    // fails because app v1 is not version 2 and depends on api 1 being version 1.
+    assert_that!(res.unwrap_err().root().to_string()).contains(
+        ManagerError::VersionRequirementNotMet { module_id: MOCK_API1_ID.into(), version: V2.into(), comp: "^1.0.0".into() }.to_string()
+        );
+
+    // solution: upgrade multiple modules in the same tx
+
+    manager.upgrade(vec![
+        (ModuleInfo::from_id_latest(MOCK_APP1_ID)?, Some(to_binary(&app::MigrateMsg{base: app::BaseMigrateMsg {  }, app: Empty {}})?)),
+        (ModuleInfo::from_id_latest(MOCK_API1_ID)?, None),
+        (ModuleInfo::from_id_latest(MOCK_API2_ID)?, None),
+    ])?;
 
     Ok(())
 }
