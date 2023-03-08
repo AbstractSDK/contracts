@@ -39,7 +39,6 @@ cw-semver = { workspace = true }
 abstract-macros = { workspace = true }
 
 [dev-dependencies]
-cw-multi-test = { workspace = true, features = ["staking"] }
 cw20 = { workspace = true }
 abstract-boot = { workspace = true }
 boot-core = { workspace = true }
