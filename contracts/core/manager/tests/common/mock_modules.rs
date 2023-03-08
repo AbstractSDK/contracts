@@ -60,6 +60,58 @@ pub mod api_1 {
     use abstract_os::api::InstantiateMsg;
     pub const MOCK_API1_ID: &str = "tester:mock-api1";
 
+    // won't work as 1. mock_api needs to be a const for it to be accessable in the closures
+    // 2. the ContractWrapper handlers are fn pointers (not Fn trait objects)
+    // pub fn api_constructor(version: Version, mock: &Mock) -> BootMockApi<Mock> {
+    //     let mock_api: MockApiContract =
+    //         MockApiContract::new(MOCK_API1_ID, &version.to_string(), None);
+
+    //     let instantiate =  |
+    //         deps: ::cosmwasm_std::DepsMut,
+    //         env: ::cosmwasm_std::Env,
+    //         info: ::cosmwasm_std::MessageInfo,
+    //         msg: <MockApiContract as ::abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg,
+    //     | -> Result<::cosmwasm_std::Response, <MockApiContract as ::abstract_sdk::base::Handler>::Error> {
+    //         use ::abstract_sdk::base::InstantiateEndpoint;
+    //         mock_api.instantiate(deps, env, info, msg)
+    //     };
+    //     // Execute entrypoint
+    //     let execute =
+    //         |deps: ::cosmwasm_std::DepsMut,
+    //          env: ::cosmwasm_std::Env,
+    //          info: ::cosmwasm_std::MessageInfo,
+    //          msg: <MockApiContract as ::abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg|
+    //          -> Result<
+    //             ::cosmwasm_std::Response,
+    //             <MockApiContract as ::abstract_sdk::base::Handler>::Error,
+    //         > {
+    //             use ::abstract_sdk::base::ExecuteEndpoint;
+    //             mock_api.execute(deps, env, info, msg)
+    //         };
+
+    //     // Query entrypoint
+    //     let query = |deps: ::cosmwasm_std::Deps,
+    //                  env: ::cosmwasm_std::Env,
+    //                  msg: <MockApiContract as ::abstract_sdk::base::QueryEndpoint>::QueryMsg|
+    //      -> Result<
+    //         ::cosmwasm_std::Binary,
+    //         <MockApiContract as ::abstract_sdk::base::Handler>::Error,
+    //     > {
+    //         use ::abstract_sdk::base::QueryEndpoint;
+    //         mock_api.query(deps, env, msg)
+    //     };
+
+    //     let mut api = BootMockApi::new(MOCK_API1_ID, mock.clone());
+    //     api.as_instance_mut().set_mock(Box::new(
+    //         ContractWrapper::<ExecuteMsg, _, _, _, _, _>::new_with_empty(
+    //             execute,
+    //             instantiate,
+    //             query,
+    //         ),
+    //     ));
+    //     api
+    // }
+
     pub mod v1 {
         use super::*;
 
