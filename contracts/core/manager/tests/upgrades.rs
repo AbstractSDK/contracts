@@ -260,14 +260,12 @@ fn uninstall_modules() -> AResult {
 
     let res = manager.uninstall_module(api_1::MOCK_API_ID);
     // fails because app is depends on api 1
-    assert_that!(res.unwrap_err().root().to_string()).contains(
-        ManagerError::ModuleHasDependents(vec![app_1::MOCK_APP_ID.into()]).to_string(),
-    );
+    assert_that!(res.unwrap_err().root().to_string())
+        .contains(ManagerError::ModuleHasDependents(vec![app_1::MOCK_APP_ID.into()]).to_string());
     // same for api 2
     let res = manager.uninstall_module(api_2::MOCK_API_ID);
-    assert_that!(res.unwrap_err().root().to_string()).contains(
-        ManagerError::ModuleHasDependents(vec![app_1::MOCK_APP_ID.into()]).to_string(),
-    );
+    assert_that!(res.unwrap_err().root().to_string())
+        .contains(ManagerError::ModuleHasDependents(vec![app_1::MOCK_APP_ID.into()]).to_string());
 
     // we can only uninstall if the app is uninstalled first
     manager.uninstall_module(app_1::MOCK_APP_ID)?;
