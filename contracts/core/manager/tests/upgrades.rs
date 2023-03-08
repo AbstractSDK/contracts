@@ -80,10 +80,10 @@ fn install_app_versions_not_met() -> AResult {
     let OS { manager, proxy: _ } = &os;
 
     // install api 2
-    let api2 = install_module_version(manager, &abstr, api_1::MOCK_API_ID, V1)?;
+    let _api2 = install_module_version(manager, &abstr, api_1::MOCK_API_ID, V1)?;
 
     // successfully install app 1
-    let app1 = install_module_version(manager, &abstr, api_2::MOCK_API_ID, V1)?;
+    let _app1 = install_module_version(manager, &abstr, api_2::MOCK_API_ID, V1)?;
 
     // attempt to install app with version 2
 
@@ -242,5 +242,38 @@ fn upgrade_app_() -> AResult {
         (ModuleInfo::from_id_latest(api_2::MOCK_API_ID)?, None),
     ])?;
 
+    Ok(())
+}
+
+#[test]
+fn uninstall_modules() -> AResult {
+    let sender = Addr::unchecked(common::ROOT_USER);
+    let (_state, chain) = instantiate_default_mock_env(&sender)?;
+    let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
+    deploy_modules(&chain);
+    let os = create_default_os(&abstr.os_factory)?;
+    let OS { manager, proxy: _ } = &os;
+    let api1 = install_module_version(manager, &abstr, api_1::MOCK_API_ID, V1)?;
+    let api2 = install_module_version(manager, &abstr, api_2::MOCK_API_ID, V1)?;
+    let app1 = install_module_version(manager, &abstr, app_1::MOCK_APP_ID, V1)?;
+    os.expect_modules(vec![api1, api2, app1])?;
+
+    let res = manager.uninstall_module(api_1::MOCK_API_ID);
+    // fails because app is depends on api 1
+    assert_that!(res.unwrap_err().root().to_string()).contains(
+        ManagerError::ModuleHasDependents(vec![app_1::MOCK_APP_ID.into()]).to_string(),
+    );
+    // same for api 2
+    let res = manager.uninstall_module(api_2::MOCK_API_ID);
+    assert_that!(res.unwrap_err().root().to_string()).contains(
+        ManagerError::ModuleHasDependents(vec![app_1::MOCK_APP_ID.into()]).to_string(),
+    );
+
+    // we can only uninstall if the app is uninstalled first
+    manager.uninstall_module(app_1::MOCK_APP_ID)?;
+    // now we can uninstall api 1
+    manager.uninstall_module(api_1::MOCK_API_ID)?;
+    // and api 2
+    manager.uninstall_module(api_2::MOCK_API_ID)?;
     Ok(())
 }
