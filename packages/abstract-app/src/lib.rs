@@ -139,7 +139,7 @@ pub mod mock {
     }
 
     #[macro_export]
-macro_rules! gen_app_mock {
+    macro_rules! gen_app_mock {
     ($name:ident,$id:expr, $version:expr, $deps:expr) => {
         use ::abstract_os::app;
         use ::abstract_app::mock::{MockExecMsg, MockInitMsg, MockMigrateMsg, MockQueryMsg, MockReceiveMsg};
@@ -192,7 +192,7 @@ macro_rules! gen_app_mock {
         }
 
         #[boot_core::boot_contract(Init, Exec, Query, Migrate)]
-        pub struct $name; 
+        pub struct $name;
 
         impl<Chain: ::boot_core::BootEnvironment> ::abstract_boot::AppDeployer<Chain> for $name <Chain> {}
 

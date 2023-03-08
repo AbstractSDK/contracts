@@ -105,13 +105,13 @@ pub mod mock {
         }
     }
 
-/// Generate a BOOT instance for a mock api
-/// - $name: name of the contract (&str)
-/// - $id: id of the contract (&str)
-/// - $version: version of the contract (&str)
-/// - $deps: dependencies of the contract (&[StaticDependency])
+    /// Generate a BOOT instance for a mock api
+    /// - $name: name of the contract (&str)
+    /// - $id: id of the contract (&str)
+    /// - $version: version of the contract (&str)
+    /// - $deps: dependencies of the contract (&[StaticDependency])
     #[macro_export]
-macro_rules! gen_api_mock {
+    macro_rules! gen_api_mock {
     ($name:ident, $id:expr, $version:expr, $deps:expr) => {
         use ::abstract_os::api::*;
         use ::cosmwasm_std::Empty;
@@ -175,5 +175,4 @@ macro_rules! gen_api_mock {
         }
     };
 }
-
 }
