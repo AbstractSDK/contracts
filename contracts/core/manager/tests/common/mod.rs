@@ -3,7 +3,7 @@ pub mod mock_modules;
 pub const ROOT_USER: &str = "root_user";
 pub const TEST_COIN: &str = "ucoin";
 use ::abstract_manager::contract::CONTRACT_VERSION;
-use abstract_api::mock::{BootMockApi, MockApiContract};
+use abstract_api::mock::{BootMockApi, MockApiContract, MockInitMsg};
 use abstract_boot::{Abstract, AnsHost, Manager, ModuleFactory, OSFactory, Proxy, VersionControl};
 use abstract_boot::{ApiDeployer, OS};
 use abstract_os::{api::InstantiateMsg, objects::gov_type::GovernanceDetails, PROXY};
@@ -128,6 +128,6 @@ pub(crate) fn init_mock_api(
     let version: Version = version
         .unwrap_or_else(|| CONTRACT_VERSION.to_string())
         .parse()?;
-    staking_api.deploy(version, Empty {})?;
+    staking_api.deploy(version, MockInitMsg)?;
     Ok(staking_api)
 }

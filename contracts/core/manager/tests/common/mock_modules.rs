@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use abstract_api::gen_api_mock;
+use abstract_api::mock::MockInitMsg;
 use abstract_api::{mock::MockError as ApiMockError, ApiContract};
 use abstract_app::gen_app_mock;
 use abstract_app::mock::MockError as AppMockError;
@@ -22,22 +23,22 @@ pub const V2: &str = "2.0.0";
 /// deploys different version apis and app for migration testing
 pub fn deploy_modules(mock: &Mock) {
     self::BootMockApi1V1::new(mock.clone())
-        .deploy(V1.parse().unwrap(), Empty {})
+        .deploy(V1.parse().unwrap(), MockInitMsg)
         .unwrap();
 
     // do same for version 2
     self::BootMockApi1V2::new(mock.clone())
-        .deploy(V2.parse().unwrap(), Empty {})
+        .deploy(V2.parse().unwrap(), MockInitMsg)
         .unwrap();
 
     // and now for api 2
     self::BootMockApi2V1::new(mock.clone())
-        .deploy(V1.parse().unwrap(), Empty {})
+        .deploy(V1.parse().unwrap(), MockInitMsg)
         .unwrap();
 
     // do same for version 2
     self::BootMockApi2V2::new(mock.clone())
-        .deploy(V2.parse().unwrap(), Empty {})
+        .deploy(V2.parse().unwrap(), MockInitMsg)
         .unwrap();
 
     // and now for app 1

@@ -1,4 +1,5 @@
 mod common;
+use abstract_api::mock::MockExecMsg;
 use abstract_boot::*;
 use abstract_os::manager::ManagerModuleInfo;
 use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
@@ -291,13 +292,13 @@ fn not_trader_exec() -> AResult {
     // non-trader cannot execute
     let res = staking_api
         .call_as(&not_trader)
-        .execute(&Empty {}.into(), None)
+        .execute(&MockExecMsg.into(), None)
         .unwrap_err();
     assert_that!(res.root().to_string()).contains(
         "Sender: not_trader of request to tester:test-module-id is not a Manager or Trader",
     );
     // neither can the ROOT directly
-    let res = staking_api.execute(&Empty {}.into(), None).unwrap_err();
+    let res = staking_api.execute(&MockExecMsg.into(), None).unwrap_err();
     assert_that!(&res.root().to_string()).contains(
         "Sender: root_user of request to tester:test-module-id is not a Manager or Trader",
     );
@@ -320,7 +321,7 @@ fn manager_api_exec_staking_delegation() -> AResult {
 
     os.manager.execute_on_module(
         TEST_MODULE_ID,
-        Into::<abstract_os::api::ExecuteMsg>::into(Empty {}),
+        Into::<abstract_os::api::ExecuteMsg<MockExecMsg>>::into(MockExecMsg),
     )?;
 
     Ok(())
