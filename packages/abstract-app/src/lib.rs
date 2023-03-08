@@ -137,4 +137,83 @@ pub mod mock {
             )
         }
     }
+
+    #[macro_export]
+macro_rules! gen_app_mock {
+    ($name:ident,$id:expr, $version:expr, $deps:expr) => {
+        use ::abstract_os::app;
+        use ::abstract_app::mock::{MockExecMsg, MockInitMsg, MockMigrateMsg, MockQueryMsg, MockReceiveMsg};
+
+        type Exec = app::ExecuteMsg<MockExecMsg, MockReceiveMsg>;
+        type Query = app::QueryMsg<MockQueryMsg>;
+        type Init = app::InstantiateMsg<MockInitMsg>;
+        type Migrate = app::MigrateMsg<MockMigrateMsg>;
+        const MOCK_APP: ::abstract_app::mock::MockAppContract = ::abstract_app::mock::MockAppContract::new($id, $version, None)
+        .with_dependencies($deps);
+
+        fn mock_instantiate(
+            deps: ::cosmwasm_std::DepsMut,
+            env: ::cosmwasm_std::Env,
+            info: ::cosmwasm_std::MessageInfo,
+            msg: <::abstract_app::mock::MockAppContract as ::abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg,
+        ) -> Result<::cosmwasm_std::Response, <::abstract_app::mock::MockAppContract as ::abstract_sdk::base::Handler>::Error> {
+            use ::abstract_sdk::base::InstantiateEndpoint;
+            MOCK_APP.instantiate(deps, env, info, msg)
+        }
+
+        /// Execute entrypoint
+        fn mock_execute(
+            deps: ::cosmwasm_std::DepsMut,
+            env: ::cosmwasm_std::Env,
+            info: ::cosmwasm_std::MessageInfo,
+            msg: <::abstract_app::mock::MockAppContract as ::abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg,
+        ) -> Result<::cosmwasm_std::Response, <::abstract_app::mock::MockAppContract as ::abstract_sdk::base::Handler>::Error> {
+            use ::abstract_sdk::base::ExecuteEndpoint;
+            MOCK_APP.execute(deps, env, info, msg)
+        }
+
+        /// Query entrypoint
+        fn mock_query(
+            deps: ::cosmwasm_std::Deps,
+            env: ::cosmwasm_std::Env,
+            msg: <::abstract_app::mock::MockAppContract as ::abstract_sdk::base::QueryEndpoint>::QueryMsg,
+        ) -> Result<::cosmwasm_std::Binary, <::abstract_app::mock::MockAppContract as ::abstract_sdk::base::Handler>::Error> {
+            use ::abstract_sdk::base::QueryEndpoint;
+            MOCK_APP.query(deps, env, msg)
+        }
+
+        fn mock_migrate(
+            deps: ::cosmwasm_std::DepsMut,
+            env: ::cosmwasm_std::Env,
+            msg: <::abstract_app::mock::MockAppContract as ::abstract_sdk::base::MigrateEndpoint>::MigrateMsg,
+        ) -> Result<::cosmwasm_std::Response, <::abstract_app::mock::MockAppContract as ::abstract_sdk::base::Handler>::Error> {
+            use ::abstract_sdk::base::MigrateEndpoint;
+            MOCK_APP.migrate(deps, env, msg)
+        }
+
+        #[boot_core::boot_contract(Init, Exec, Query, Migrate)]
+        pub struct $name; 
+
+        impl<Chain: ::boot_core::BootEnvironment> ::abstract_boot::AppDeployer<Chain> for $name <Chain> {}
+
+        impl<Chain: ::boot_core::BootEnvironment> $name <Chain> {
+            pub fn new(chain: Chain) -> Self {
+                Self(
+                    boot_core::Contract::new($id,chain).with_mock(Box::new(::boot_core::ContractWrapper::<
+                        Exec,
+                        _,
+                        _,
+                        _,
+                        _,
+                        _,
+                    >::new_with_empty(
+                        self::mock_execute,
+                        self::mock_instantiate,
+                        self::mock_query,
+                    ).with_migrate(self::mock_migrate))),
+                )
+            }
+        }
+    };
+}
 }

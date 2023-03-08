@@ -21,7 +21,7 @@ pub mod state;
 pub mod mock {
     use crate::{ApiContract, ApiError};
     use abstract_boot::ApiDeployer;
-    use abstract_os::api::{self, BaseInstantiateMsg, InstantiateMsg};
+    use abstract_os::api::*;
     use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
     use abstract_testing::prelude::{
         TEST_ADMIN, TEST_ANS_HOST, TEST_MODULE_ID, TEST_VERSION, TEST_VERSION_CONTROL,
@@ -51,14 +51,13 @@ pub mod mock {
         AbstractSdk(#[from] AbstractSdkError),
     }
 
-    #[cosmwasm_schema::cw_serde]
-    pub struct MockApiExecMsg;
+    // #[cosmwasm_schema::cw_serde]
+    // pub struct MockApiExecMsg;
 
-    impl api::ApiExecuteMsg for MockApiExecMsg {}
+    // impl api::ApiExecuteMsg for MockApiExecMsg {}
 
     /// Mock API type
-    pub type MockApiContract = ApiContract<MockError, Empty, MockApiExecMsg, Empty>;
-    type ExecuteMsg = api::ExecuteMsg<MockApiExecMsg>;
+    pub type MockApiContract = ApiContract<MockError, Empty, Empty, Empty>;
 
     /// use for testing
     pub const MOCK_API: MockApiContract =
@@ -93,7 +92,7 @@ pub mod mock {
         Ok(Response::new().set_data("mock_response".as_bytes()))
     }
 
-    #[boot_core::boot_contract(InstantiateMsg, ExecuteMsg, api::QueryMsg, Empty)]
+    #[boot_core::boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
     pub struct BootMockApi;
 
     impl<Chain: BootEnvironment> ApiDeployer<Chain, Empty> for BootMockApi<Chain> {}
@@ -105,4 +104,76 @@ pub mod mock {
             )))
         }
     }
+
+/// Generate a BOOT instance for a mock api
+/// - $name: name of the contract (&str)
+/// - $id: id of the contract (&str)
+/// - $version: version of the contract (&str)
+/// - $deps: dependencies of the contract (&[StaticDependency])
+    #[macro_export]
+macro_rules! gen_api_mock {
+    ($name:ident, $id:expr, $version:expr, $deps:expr) => {
+        use ::abstract_os::api::*;
+        use ::cosmwasm_std::Empty;
+
+        const MOCK_API: ::abstract_api::mock::MockApiContract = ::abstract_api::mock::MockApiContract::new($id, $version, None)
+        .with_dependencies($deps);
+
+        fn instantiate(
+            deps: ::cosmwasm_std::DepsMut,
+            env: ::cosmwasm_std::Env,
+            info: ::cosmwasm_std::MessageInfo,
+            msg: <::abstract_api::mock::MockApiContract as ::abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg,
+        ) -> Result<::cosmwasm_std::Response, <::abstract_api::mock::MockApiContract as ::abstract_sdk::base::Handler>::Error> {
+            use ::abstract_sdk::base::InstantiateEndpoint;
+            MOCK_API.instantiate(deps, env, info, msg)
+        }
+
+        /// Execute entrypoint
+        fn execute(
+            deps: ::cosmwasm_std::DepsMut,
+            env: ::cosmwasm_std::Env,
+            info: ::cosmwasm_std::MessageInfo,
+            msg: <::abstract_api::mock::MockApiContract as ::abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg,
+        ) -> Result<::cosmwasm_std::Response, <::abstract_api::mock::MockApiContract as ::abstract_sdk::base::Handler>::Error> {
+            use ::abstract_sdk::base::ExecuteEndpoint;
+            MOCK_API.execute(deps, env, info, msg)
+        }
+
+        /// Query entrypoint
+        fn query(
+            deps: ::cosmwasm_std::Deps,
+            env: ::cosmwasm_std::Env,
+            msg: <::abstract_api::mock::MockApiContract as ::abstract_sdk::base::QueryEndpoint>::QueryMsg,
+        ) -> Result<::cosmwasm_std::Binary, <::abstract_api::mock::MockApiContract as ::abstract_sdk::base::Handler>::Error> {
+            use ::abstract_sdk::base::QueryEndpoint;
+            MOCK_API.query(deps, env, msg)
+        }
+
+        #[boot_core::boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
+        pub struct $name ;
+
+        impl<Chain: ::boot_core::BootEnvironment> ::abstract_boot::ApiDeployer<Chain, Empty> for $name <Chain> {}
+
+        impl<Chain: ::boot_core::BootEnvironment> $name <Chain> {
+            pub fn new(chain: Chain) -> Self {
+                Self(
+                    ::boot_core::Contract::new($id, chain).with_mock(Box::new(::boot_core::ContractWrapper::<
+                        ExecuteMsg,
+                        _,
+                        _,
+                        _,
+                        _,
+                        _,
+                    >::new_with_empty(
+                        self::execute,
+                        self::instantiate,
+                        self::query,
+                    ))),
+                )
+            }
+        }
+    };
+}
+
 }
