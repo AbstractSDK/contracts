@@ -126,6 +126,7 @@ fn upgrade_app_() -> AResult {
             module_id: MOCK_API1_ID.into(),
             version: V1.into(),
             comp: "^2.0.0".into(),
+            post_migration: true,
         }
         .to_string(),
     );
@@ -145,12 +146,89 @@ fn upgrade_app_() -> AResult {
             module_id: MOCK_API1_ID.into(),
             version: V2.into(),
             comp: "^1.0.0".into(),
+            post_migration: false,
         }
         .to_string(),
     );
 
     // solution: upgrade multiple modules in the same tx
+    // Important: the order of the modules is important. The hightest-level dependents must be migrated first.
 
+    // attempt to upgrade app 1 to identical version while updating other modules
+    let res = manager.upgrade(vec![
+        (
+            ModuleInfo::from_id(MOCK_APP1_ID, ModuleVersion::Version(V1.to_string()))?,
+            Some(to_binary(&app::MigrateMsg {
+                base: app::BaseMigrateMsg {},
+                app: Empty {},
+            })?),
+        ),
+        (ModuleInfo::from_id_latest(MOCK_API1_ID)?, None),
+        (ModuleInfo::from_id_latest(MOCK_API2_ID)?, None),
+    ]);
+
+    // fails because app v1 is depends on api 1 being version 1.
+    assert_that!(res.unwrap_err().root().to_string()).contains(
+        ManagerError::VersionRequirementNotMet {
+            module_id: MOCK_API1_ID.into(),
+            version: V2.into(),
+            comp: "^1.0.0".into(),
+            post_migration: true,
+        }
+        .to_string(),
+    );
+
+    // attempt to upgrade app 1 to version 2 while not updating other modules
+    let res = manager.upgrade(vec![(
+        ModuleInfo::from_id(MOCK_APP1_ID, ModuleVersion::Version(V2.to_string()))?,
+        Some(to_binary(&app::MigrateMsg {
+            base: app::BaseMigrateMsg {},
+            app: Empty {},
+        })?),
+    )]);
+
+    // fails because app v1 is depends on api 1 being version 2.
+    assert_that!(res.unwrap_err().root().to_string()).contains(
+        ManagerError::VersionRequirementNotMet {
+            module_id: MOCK_API1_ID.into(),
+            version: V1.into(),
+            comp: "^2.0.0".into(),
+            post_migration: true,
+        }
+        .to_string(),
+    );
+
+    // attempt to upgrade app 1 to identical version while updating other modules
+    let res = manager.upgrade(vec![
+        (
+            ModuleInfo::from_id(MOCK_APP1_ID, ModuleVersion::Version(V2.to_string()))?,
+            Some(to_binary(&app::MigrateMsg {
+                base: app::BaseMigrateMsg {},
+                app: Empty {},
+            })?),
+        ),
+        (
+            ModuleInfo::from_id(MOCK_API1_ID, ModuleVersion::Version(V1.to_string()))?,
+            None,
+        ),
+        (
+            ModuleInfo::from_id(MOCK_API2_ID, ModuleVersion::Version(V1.to_string()))?,
+            None,
+        ),
+    ]);
+
+    // fails because app v1 is depends on api 1 being version 2.
+    assert_that!(res.unwrap_err().root().to_string()).contains(
+        ManagerError::VersionRequirementNotMet {
+            module_id: MOCK_API1_ID.into(),
+            version: V1.into(),
+            comp: "^2.0.0".into(),
+            post_migration: true,
+        }
+        .to_string(),
+    );
+
+    // successfully upgrade all the modules
     manager.upgrade(vec![
         (
             ModuleInfo::from_id_latest(MOCK_APP1_ID)?,

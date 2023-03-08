@@ -55,11 +55,12 @@ pub enum ManagerError {
     #[error("The provided module {0} was not found")]
     ModuleNotFound(String),
 
-    #[error("Module {module_id} with version {version} does not fit requirement {comp}")]
+    #[error("Module {module_id} with version {version} does not fit requirement {comp}, post_migration: {post_migration}")]
     VersionRequirementNotMet {
         module_id: String,
         version: String,
         comp: String,
+        post_migration: bool,
     },
 
     #[error("module {0} is a dependency of {1} and is not installed.")]

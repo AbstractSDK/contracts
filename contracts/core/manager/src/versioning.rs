@@ -40,8 +40,9 @@ pub fn assert_migrate_requirements(
             .iter()
             .filter(|dep| dep.id == module_id);
         // assert bounds
-        applicable_bounds
-            .try_for_each(|dep| assert_comparators(&dep.version_req, &new_version, module_id))?;
+        applicable_bounds.try_for_each(|dep| {
+            assert_comparators(&dep.version_req, &new_version, module_id, false)
+        })?;
     }
     Ok(())
 }
@@ -87,6 +88,7 @@ fn assert_comparators(
     bounds: &[Comparator],
     version: &Version,
     module_id: &str,
+    post_migration: bool,
 ) -> ManagerResult<()> {
     // assert requirements
     bounds.iter().try_for_each(|comp: &Comparator| {
@@ -97,6 +99,7 @@ fn assert_comparators(
                 module_id: module_id.to_string(),
                 version: version.to_string(),
                 comp: comp.to_string(),
+                post_migration,
             })
         }
     })?;
@@ -119,7 +122,7 @@ pub fn assert_dependency_requirements(
         let dep_version = cw2::CONTRACT.query(&deps.querier, dep_addr)?;
         let version: Version = dep_version.version.parse().unwrap();
         // assert requirements
-        assert_comparators(&dep.version_req, &version, &dep.id)?;
+        assert_comparators(&dep.version_req, &version, &dep.id, true)?;
     }
     Ok(())
 }
@@ -160,12 +163,13 @@ pub fn maybe_add_new_deps(
     old_deps: &[Dependency],
 ) -> ManagerResult<Vec<Dependency>> {
     let new_deps = load_module_dependencies(deps.as_ref(), module_id)?;
-    // find deps that are no longer required.
-    // ie. the old deps contain a deps that the new deps doesn't.
+    // find deps that are new.
+    // the new deps contain deps that were not in the old deps.
     let to_be_added_deps: Vec<&Dependency> =
         new_deps.iter().filter(|d| !old_deps.contains(d)).collect();
     for dep_to_add in &to_be_added_deps {
-        // Remove module from dependents on the removable dep
+        // Add module as dependent on the new deps
+        // Will also run when a version requirement is changed.
         DEPENDENTS.update(deps.storage, &dep_to_add.id, |dependents| {
             // Adding new dep so might be the first entry, hence default to empty set in that case.
             let mut dependents = dependents.unwrap_or_default();
