@@ -15,7 +15,7 @@ use cosmwasm_std::{Addr, Coin, Decimal, Empty, Validator};
 use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};
 
 const VALIDATOR: &str = "testvaloper1";
-use abstract_api::mock::{BootMockApi, MockApi, MockApiExecMsg};
+use abstract_api::mock::BootMockApi;
 
 fn install_api(manager: &Manager<Mock>, api: &str) -> AResult {
     manager.install_module(api, &Empty {}).map_err(Into::into)
