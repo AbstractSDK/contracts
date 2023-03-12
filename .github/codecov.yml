@@ -16,6 +16,15 @@ ignore:
   - "tests"
   - "**/examples"
   - "**/schema.rs"
+  - "packages/abstract-boot"
+  - "packages/abstract-testing"
+  # Ignore token implementation
+  - "contracts/token"
+  - "contracts/modules/apps/subscription"
+  # Ignore protobuf generated files
+  - "contracts/native/module-factory/src/response.rs"
+  - "contracts/native/os-factory/src/response.rs"
+
 
 
 # Make comments less noisy
