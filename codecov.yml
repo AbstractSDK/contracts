@@ -15,16 +15,13 @@ comment: # this is a top-level key
 ignore:
   - "scripts"
   - "**/examples"
-  - "packages/abstract-boot"
-  - "packages/abstract-testing"
   - "**/*.json"
+  - "packages/abstract-boot"
   # Ignore token implementation
   - "contracts/token"
-  # TODO: modules coverage
-  - "contracts/modules"
+  - "packages/abstract-testing"
   - "contracts/modules/apps/subscription"
   # Ignore protobuf generated files
-  - "contracts/modules/apps/etf/src/response.rs"
   - "contracts/native/module-factory/src/response.rs"
   - "contracts/native/os-factory/src/response.rs"
   # We also ignore the schema generators
