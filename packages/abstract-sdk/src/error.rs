@@ -19,11 +19,14 @@ impl Display for EndpointError {
 
 #[derive(Error, Debug, PartialEq)]
 pub enum AbstractSdkError {
+    #[error("generic error: {0}")]
+    GenericErr(String),
+
     #[error("Abstract OS error in the sdk: {0}")]
     AbstractOs(#[from] AbstractOsError),
 
-    #[error("Std error encountered in sdk: {0}")]
-    Std(#[from] cosmwasm_std::StdError),
+    #[error("StdError error encountered in sdk: {0}")]
+    CwStd(#[from] cosmwasm_std::StdError),
 
     #[error("Asset error encountered in sdk while handling assets: {0}")]
     Asset(#[from] AssetError),
@@ -88,6 +91,6 @@ pub enum AbstractSdkError {
 
 impl AbstractSdkError {
     pub fn generic_err(msg: impl Into<String>) -> Self {
-        AbstractSdkError::Std(cosmwasm_std::StdError::generic_err(msg))
+        AbstractSdkError::GenericErr(msg.into())
     }
 }

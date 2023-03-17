@@ -7,8 +7,11 @@ use thiserror::Error;
 /// Wrapper error for the Abstract-OS framework.
 #[derive(Error, Debug, PartialEq)]
 pub enum AbstractOsError {
+    #[error("generic error: {0}")]
+    GenericErr(String),
+
     #[error("Std error encountered while handling os object: {0}")]
-    Std(#[from] StdError),
+    CwStd(#[from] StdError),
 
     #[error("{0}")]
     Asset(#[from] AssetError),
@@ -51,6 +54,12 @@ pub enum AbstractOsError {
     // deposit error
     #[error("deposit error: {0}")]
     Deposit(String),
+}
+
+impl AbstractOsError {
+    pub fn generic_err(msg: impl Into<String>) -> Self {
+        AbstractOsError::GenericErr(msg.into())
+    }
 }
 
 impl From<SemverError> for AbstractOsError {
