@@ -1,6 +1,7 @@
 use abstract_os::ans_host::{
     AssetInfoListResponse, AssetInfoMapEntry, AssetInfosResponse, AssetMapEntry, ContractMapEntry,
 };
+use abstract_os::AbstractOsError;
 use abstract_os::{ans_host::state::REV_ASSET_ADDRESSES, objects::DexName};
 use abstract_os::{
     ans_host::state::{Config, ADMIN, ASSET_PAIRINGS, CONFIG, POOL_METADATA},
@@ -20,14 +21,17 @@ use abstract_os::{
     },
 };
 use abstract_sdk::cw_helpers::cw_storage_plus::load_many;
-use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdError, StdResult, Storage};
+use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, Storage};
 use cw_asset::AssetInfoUnchecked;
 use cw_storage_plus::Bound;
+
+use crate::contract::AnsHostResult;
+use crate::error::AnsHostError;
 
 pub(crate) const DEFAULT_LIMIT: u8 = 15;
 pub(crate) const MAX_LIMIT: u8 = 25;
 
-pub fn query_config(deps: Deps) -> StdResult<Binary> {
+pub fn query_config(deps: Deps) -> AnsHostResult<Binary> {
     let Config {
         next_unique_pool_id,
     } = CONFIG.load(deps.storage)?;
@@ -39,10 +43,10 @@ pub fn query_config(deps: Deps) -> StdResult<Binary> {
         admin,
     };
 
-    to_binary(&res)
+    to_binary(&res).map_err(Into::into)
 }
 
-pub fn query_assets(deps: Deps, _env: Env, keys: Vec<String>) -> StdResult<Binary> {
+pub fn query_assets(deps: Deps, _env: Env, keys: Vec<String>) -> AnsHostResult<Binary> {
     let keys: Vec<AssetEntry> = keys.into_iter().map(|name| name.as_str().into()).collect();
 
     let assets = load_many(ASSET_ADDRESSES, deps.storage, keys.iter().collect())?;
@@ -50,13 +54,14 @@ pub fn query_assets(deps: Deps, _env: Env, keys: Vec<String>) -> StdResult<Binar
     to_binary(&AssetsResponse {
         assets: assets.into_iter().map(|(k, v)| (k.to_owned(), v)).collect(),
     })
+    .map_err(Into::into)
 }
 
 pub fn query_asset_list(
     deps: Deps,
     last_asset_name: Option<String>,
     limit: Option<u8>,
-) -> StdResult<Binary> {
+) -> AnsHostResult<Binary> {
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
     let entry = last_asset_name.map(AssetEntry::from);
     let start_bound = entry.as_ref().map(Bound::exclusive);
@@ -66,39 +71,40 @@ pub fn query_asset_list(
         .take(limit)
         .collect();
 
-    to_binary(&AssetListResponse { assets: res? })
+    to_binary(&AssetListResponse { assets: res? }).map_err(Into::into)
 }
 
 pub fn query_asset_infos(
     deps: Deps,
     _env: Env,
     keys: Vec<AssetInfoUnchecked>,
-) -> StdResult<Binary> {
+) -> AnsHostResult<Binary> {
     let keys = keys
         .into_iter()
         .map(|info| {
             info.check(deps.api, None)
-                .map_err(|e| StdError::generic_err(e.to_string()))
+                .map_err(Into::<AnsHostError>::into)
         })
-        .collect::<StdResult<Vec<_>>>()?;
+        .collect::<AnsHostResult<Vec<_>>>()?;
 
     let infos = load_many(REV_ASSET_ADDRESSES, deps.storage, keys.iter().collect())?;
 
     to_binary(&AssetInfosResponse {
         infos: infos.into_iter().map(|(k, v)| (k.to_owned(), v)).collect(),
     })
+    .map_err(Into::into)
 }
 
 pub fn query_asset_info_list(
     deps: Deps,
     last_asset_info: Option<AssetInfoUnchecked>,
     limit: Option<u8>,
-) -> StdResult<Binary> {
+) -> AnsHostResult<Binary> {
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
     let asset_info = last_asset_info
         .map(|info| {
             info.check(deps.api, None)
-                .map_err(|e| StdError::generic_err(e.to_string()))
+                .map_err(|e| AbstractOsError::generic_err(e.to_string()))
         })
         .transpose()?;
     let start_bound = asset_info.as_ref().map(Bound::exclusive);
@@ -108,10 +114,10 @@ pub fn query_asset_info_list(
         .take(limit)
         .collect();
 
-    to_binary(&AssetInfoListResponse { infos: res? })
+    to_binary(&AssetInfoListResponse { infos: res? }).map_err(Into::into)
 }
 
-pub fn query_contract(deps: Deps, _env: Env, keys: Vec<&ContractEntry>) -> StdResult<Binary> {
+pub fn query_contract(deps: Deps, _env: Env, keys: Vec<&ContractEntry>) -> AnsHostResult<Binary> {
     let contracts = load_many(CONTRACT_ADDRESSES, deps.storage, keys)?;
 
     to_binary(&ContractsResponse {
@@ -120,9 +126,10 @@ pub fn query_contract(deps: Deps, _env: Env, keys: Vec<&ContractEntry>) -> StdRe
             .map(|(x, a)| (x.to_owned(), a.to_string()))
             .collect(),
     })
+    .map_err(Into::into)
 }
 
-pub fn query_channels(deps: Deps, _env: Env, keys: Vec<&ChannelEntry>) -> StdResult<Binary> {
+pub fn query_channels(deps: Deps, _env: Env, keys: Vec<&ChannelEntry>) -> AnsHostResult<Binary> {
     let channels = load_many(CHANNELS, deps.storage, keys)?;
 
     to_binary(&ChannelsResponse {
@@ -131,13 +138,14 @@ pub fn query_channels(deps: Deps, _env: Env, keys: Vec<&ChannelEntry>) -> StdRes
             .map(|(k, v)| (k.to_owned(), v))
             .collect(),
     })
+    .map_err(Into::into)
 }
 
 pub fn query_contract_list(
     deps: Deps,
     last_contract: Option<ContractEntry>,
     limit: Option<u8>,
-) -> StdResult<Binary> {
+) -> AnsHostResult<Binary> {
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
     let start_bound = last_contract.as_ref().map(Bound::exclusive);
 
@@ -149,13 +157,14 @@ pub fn query_contract_list(
     to_binary(&ContractListResponse {
         contracts: res?.into_iter().map(|(x, a)| (x, a.to_string())).collect(),
     })
+    .map_err(Into::into)
 }
 
 pub fn query_channel_list(
     deps: Deps,
     last_channel: Option<ChannelEntry>,
     limit: Option<u8>,
-) -> StdResult<Binary> {
+) -> AnsHostResult<Binary> {
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
     let start_bound = last_channel.as_ref().map(Bound::exclusive);
 
@@ -164,13 +173,13 @@ pub fn query_channel_list(
         .take(limit)
         .collect();
 
-    to_binary(&ChannelListResponse { channels: res? })
+    to_binary(&ChannelListResponse { channels: res? }).map_err(Into::into)
 }
 
-pub fn query_registered_dexes(deps: Deps, _env: Env) -> StdResult<Binary> {
+pub fn query_registered_dexes(deps: Deps, _env: Env) -> AnsHostResult<Binary> {
     let dexes = REGISTERED_DEXES.load(deps.storage)?;
 
-    to_binary(&RegisteredDexesResponse { dexes })
+    to_binary(&RegisteredDexesResponse { dexes }).map_err(Into::into)
 }
 
 pub fn list_pool_entries(
@@ -178,7 +187,7 @@ pub fn list_pool_entries(
     filter: Option<AssetPairingFilter>,
     start_after: Option<DexAssetPairing>,
     limit: Option<u8>,
-) -> StdResult<Binary> {
+) -> AnsHostResult<Binary> {
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
 
     let (asset_pair_filter, dex_filter) = match filter {
@@ -234,11 +243,11 @@ pub fn list_pool_entries(
         res?
     };
 
-    to_binary(&PoolAddressListResponse { pools: entry_list })
+    to_binary(&PoolAddressListResponse { pools: entry_list }).map_err(Into::into)
 }
 
 /// Query the pool ids based on the actual keys
-pub fn query_pool_entries(deps: Deps, keys: Vec<DexAssetPairing>) -> StdResult<Binary> {
+pub fn query_pool_entries(deps: Deps, keys: Vec<DexAssetPairing>) -> AnsHostResult<Binary> {
     let mut entries: Vec<AssetPairingMapEntry> = vec![];
     for key in keys.into_iter() {
         let entry = load_asset_pairing_entry(deps.storage, key)?;
@@ -246,19 +255,19 @@ pub fn query_pool_entries(deps: Deps, keys: Vec<DexAssetPairing>) -> StdResult<B
         entries.push(entry);
     }
 
-    to_binary(&PoolsResponse { pools: entries })
+    to_binary(&PoolsResponse { pools: entries }).map_err(Into::into)
 }
 
 /// Loads a given key from the asset pairings store and returns the ENTRY
 fn load_asset_pairing_entry(
     storage: &dyn Storage,
     key: DexAssetPairing,
-) -> StdResult<AssetPairingMapEntry> {
+) -> AnsHostResult<AssetPairingMapEntry> {
     let value = ASSET_PAIRINGS.load(storage, &key)?;
     Ok((key, value))
 }
 
-pub fn query_pool_metadatas(deps: Deps, keys: Vec<UniquePoolId>) -> StdResult<Binary> {
+pub fn query_pool_metadatas(deps: Deps, keys: Vec<UniquePoolId>) -> AnsHostResult<Binary> {
     let mut entries: Vec<PoolMetadataMapEntry> = vec![];
     for key in keys.into_iter() {
         let entry = load_pool_metadata_entry(deps.storage, key)?;
@@ -266,7 +275,7 @@ pub fn query_pool_metadatas(deps: Deps, keys: Vec<UniquePoolId>) -> StdResult<Bi
         entries.push(entry);
     }
 
-    to_binary(&PoolMetadatasResponse { metadatas: entries })
+    to_binary(&PoolMetadatasResponse { metadatas: entries }).map_err(Into::into)
 }
 
 pub fn list_pool_metadata_entries(
@@ -274,7 +283,7 @@ pub fn list_pool_metadata_entries(
     filter: Option<PoolMetadataFilter>,
     start_after: Option<UniquePoolId>,
     limit: Option<u8>,
-) -> StdResult<Binary> {
+) -> AnsHostResult<Binary> {
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
     let start_bound = start_after.map(Bound::exclusive);
 
@@ -294,14 +303,14 @@ pub fn list_pool_metadata_entries(
         .map(|e| e.map(|(k, v)| (k, v)))
         .collect();
 
-    to_binary(&PoolMetadataListResponse { metadatas: res? })
+    to_binary(&PoolMetadataListResponse { metadatas: res? }).map_err(Into::into)
 }
 
 /// Loads a given key from the asset pairings store and returns the ENTRY
 fn load_pool_metadata_entry(
     storage: &dyn Storage,
     key: UniquePoolId,
-) -> StdResult<PoolMetadataMapEntry> {
+) -> AnsHostResult<PoolMetadataMapEntry> {
     let value = POOL_METADATA.load(storage, key)?;
     Ok((key, value))
 }
@@ -310,7 +319,7 @@ mod test {
     use abstract_os::ans_host::*;
     use abstract_os::objects::PoolType;
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info, MockApi};
-    use cosmwasm_std::{from_binary, Addr, DepsMut};
+    use cosmwasm_std::{from_binary, Addr, DepsMut, StdResult};
 
     use crate::contract;
     use crate::contract::{instantiate, AnsHostResult};
@@ -332,7 +341,7 @@ mod test {
         instantiate(deps.branch(), mock_env(), info, InstantiateMsg {})
     }
 
-    fn query_helper(deps: Deps, msg: QueryMsg) -> StdResult<Binary> {
+    fn query_helper(deps: Deps, msg: QueryMsg) -> AnsHostResult<Binary> {
         let res = contract::query(deps, mock_env(), msg)?;
         Ok(res)
     }

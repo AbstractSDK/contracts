@@ -1,13 +1,16 @@
 use crate::contract::ProxyResult;
 use crate::error::ProxyError;
 use abstract_macros::abstract_response;
-use abstract_os::objects::{oracle::Oracle, price_source::UncheckedPriceSource, AssetEntry};
+use abstract_os::{
+    objects::{oracle::Oracle, price_source::UncheckedPriceSource, AssetEntry},
+    AbstractOsError,
+};
 use abstract_sdk::os::{
     ibc_client::ExecuteMsg as IbcClientMsg,
     proxy::state::{ADMIN, ANS_HOST, STATE},
     IBC_CLIENT, PROXY,
 };
-use cosmwasm_std::{wasm_execute, CosmosMsg, DepsMut, Empty, MessageInfo, StdError};
+use cosmwasm_std::{wasm_execute, CosmosMsg, DepsMut, Empty, MessageInfo};
 
 const LIST_SIZE_LIMIT: usize = 15;
 
@@ -50,7 +53,7 @@ pub fn execute_ibc_action(
     let ibc_client_address = abstract_sdk::os::manager::state::OS_MODULES
         .query(&deps.querier, manager_address, IBC_CLIENT)?
         .ok_or_else(|| {
-            StdError::generic_err(format!(
+            AbstractOsError::generic_err(format!(
                 "ibc_client not found on manager. Add it under the {IBC_CLIENT} name."
             ))
         })?;

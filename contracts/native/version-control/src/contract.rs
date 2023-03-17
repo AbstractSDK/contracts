@@ -7,7 +7,7 @@ use abstract_sdk::os::{
     },
     VERSION_CONTROL,
 };
-use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response};
 use cw2::{get_contract_version, set_contract_version};
 use cw_controllers::{Admin, AdminError};
 use cw_semver::Version;
@@ -16,7 +16,7 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 use crate::commands::*;
 use crate::queries;
 
-pub type VCResult = Result<Response, VCError>;
+pub type VCResult<T = Response> = Result<T, VCError>;
 
 pub const ABSTRACT_NAMESPACE: &str = "abstract";
 
@@ -73,14 +73,14 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> VCResult<Binary> {
     match msg {
         QueryMsg::OsCore { os_id } => queries::handle_os_address_query(deps, os_id),
         QueryMsg::Modules { infos } => queries::handle_modules_query(deps, infos),
         QueryMsg::Config {} => {
             let admin = ADMIN.get(deps)?.unwrap().into_string();
             let factory = FACTORY.get(deps)?.unwrap().into_string();
-            to_binary(&ConfigResponse { admin, factory })
+            to_binary(&ConfigResponse { admin, factory }).map_err(Into::into)
         }
         QueryMsg::ModuleList {
             filter,

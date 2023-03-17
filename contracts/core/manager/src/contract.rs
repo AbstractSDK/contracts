@@ -15,9 +15,7 @@ use abstract_sdk::os::{
     proxy::state::OS_ID,
     MANAGER,
 };
-use cosmwasm_std::{
-    ensure_eq, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
-};
+use cosmwasm_std::{ensure_eq, Binary, Deps, DepsMut, Env, MessageInfo, Response};
 use cw2::{get_contract_version, set_contract_version};
 use semver::Version;
 
@@ -142,7 +140,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> ManagerResult<Binary> {
     match msg {
         QueryMsg::ModuleVersions { ids } => queries::handle_contract_versions_query(deps, env, ids),
         QueryMsg::ModuleAddresses { ids } => queries::handle_module_address_query(deps, env, ids),
@@ -158,7 +156,7 @@ pub fn handle_callback(mut deps: DepsMut, env: Env, info: MessageInfo) -> Manage
     ensure_eq!(
         info.sender,
         env.contract.address,
-        StdError::generic_err("Callback must be called by contract")
+        ManagerError::InvalidCallback {}
     );
     let migrated_modules = MIGRATE_CONTEXT.load(deps.storage)?;
 

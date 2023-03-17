@@ -1340,8 +1340,6 @@ mod test {
     mod handle_callback {
         use super::*;
 
-        use cosmwasm_std::StdError;
-
         #[test]
         fn only_by_contract() -> ManagerTestResult {
             let mut deps = mock_dependencies();
@@ -1357,9 +1355,9 @@ mod test {
                 msg,
             );
 
-            assert_that(&res)
+            assert_that!(&res)
                 .is_err()
-                .matches(|err| matches!(err, ManagerError::Std(StdError::GenericErr { .. })));
+                .is_equal_to(ManagerError::InvalidCallback {});
 
             Ok(())
         }

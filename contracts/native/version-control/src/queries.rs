@@ -1,6 +1,6 @@
-use crate::error::VCError;
-use abstract_os::objects::OsId;
+use crate::{contract::VCResult, error::VCError};
 use abstract_os::version_control::ModuleFilter;
+use abstract_os::{objects::OsId, AbstractOsError};
 use abstract_sdk::os::{
     objects::{
         module::{Module, ModuleInfo, ModuleVersion},
@@ -11,23 +11,26 @@ use abstract_sdk::os::{
         OsCoreResponse,
     },
 };
-use cosmwasm_std::{to_binary, Binary, Deps, Order, StdError, StdResult};
+use cosmwasm_std::{to_binary, Binary, Deps, Order, StdResult};
 use cw_storage_plus::Bound;
 
 const DEFAULT_LIMIT: u8 = 10;
 const MAX_LIMIT: u8 = 20;
 
-pub fn handle_os_address_query(deps: Deps, os_id: OsId) -> StdResult<Binary> {
+pub fn handle_os_address_query(deps: Deps, os_id: OsId) -> VCResult<Binary> {
     let os_address = OS_ADDRESSES.load(deps.storage, os_id);
     match os_address {
-        Err(_) => Err(StdError::generic_err(
+        Err(_) => Err(AbstractOsError::generic_err(
             VCError::MissingOsId { id: os_id }.to_string(),
         )),
-        Ok(core) => to_binary(&OsCoreResponse { os_core: core }),
+        Ok(core) => {
+            to_binary(&OsCoreResponse { os_core: core }).map_err(Into::<AbstractOsError>::into)
+        }
     }
+    .map_err(Into::into)
 }
 
-pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<Binary> {
+pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> VCResult<Binary> {
     let mut modules_response = ModulesResponse { modules: vec![] };
     for mut module in modules {
         let maybe_module_ref = if let ModuleVersion::Version(_) = module.version {
@@ -41,18 +44,14 @@ pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<B
                 .collect();
             let (latest_version, id) = versions?
                 .first()
-                .ok_or_else(|| StdError::GenericErr {
-                    msg: VCError::ModuleNotFound(module.clone()).to_string(),
-                })?
+                .ok_or_else(|| VCError::ModuleNotFound(module.clone()))?
                 .clone();
             module.version = ModuleVersion::Version(latest_version);
             Ok(id)
         };
 
         match maybe_module_ref {
-            Err(_) => Err(StdError::generic_err(
-                VCError::ModuleNotFound(module).to_string(),
-            )),
+            Err(_) => Err(VCError::ModuleNotFound(module)),
             Ok(mod_ref) => {
                 modules_response.modules.push(Module {
                     info: module,
@@ -63,7 +62,7 @@ pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<B
         }?;
     }
 
-    to_binary(&modules_response)
+    to_binary(&modules_response).map_err(Into::into)
 }
 
 pub fn handle_module_list_query(
@@ -71,7 +70,7 @@ pub fn handle_module_list_query(
     start_after: Option<ModuleInfo>,
     limit: Option<u8>,
     filter: Option<ModuleFilter>,
-) -> StdResult<Binary> {
+) -> VCResult<Binary> {
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
 
     let mut modules: Vec<(ModuleInfo, ModuleReference)> = vec![];
@@ -114,7 +113,7 @@ pub fn handle_module_list_query(
 
     let modules = modules.into_iter().map(Module::from).collect();
 
-    to_binary(&ModulesListResponse { modules })
+    to_binary(&ModulesListResponse { modules }).map_err(Into::into)
 }
 
 /// Filter the modules with their primary key prefix (provider)
@@ -124,7 +123,7 @@ fn filter_modules_by_provider(
     limit: usize,
     provider: &str,
     name: &Option<String>,
-) -> StdResult<Vec<(ModuleInfo, ModuleReference)>> {
+) -> VCResult<Vec<(ModuleInfo, ModuleReference)>> {
     let mut modules: Vec<(ModuleInfo, ModuleReference)> = vec![];
 
     // Filter by name using full prefix
@@ -180,7 +179,7 @@ fn filter_modules_by_provider(
 #[cfg(test)]
 mod test {
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-    use cosmwasm_std::{DepsMut, StdError};
+    use cosmwasm_std::DepsMut;
 
     use abstract_os::version_control::*;
 
@@ -204,7 +203,7 @@ mod test {
         contract::execute(deps, mock_env(), mock_info(TEST_ADMIN, &[]), msg)
     }
 
-    fn query_helper(deps: Deps, msg: QueryMsg) -> StdResult<Binary> {
+    fn query_helper(deps: Deps, msg: QueryMsg) -> VCResult<Binary> {
         contract::query(deps, mock_env(), msg)
     }
 
@@ -270,7 +269,7 @@ mod test {
             let res = query_helper(deps.as_ref(), query_msg);
             assert_that!(res)
                 .is_err()
-                .matches(|e| matches!(e, StdError::GenericErr { .. }));
+                .matches(|e| matches!(e, VCError::ModuleNotFound(..)));
             Ok(())
         }
 
@@ -395,7 +394,7 @@ mod test {
             let res = query_helper(deps.as_ref(), query_msg);
             assert_that!(res)
                 .is_err()
-                .matches(|e| matches!(e, StdError::GenericErr { .. }));
+                .matches(|e| matches!(e, VCError::ModuleNotFound(..)));
             Ok(())
         }
     }

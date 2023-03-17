@@ -7,7 +7,7 @@ use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult}
 use cw2::{get_contract_version, set_contract_version};
 use semver::Version;
 
-pub type AnsHostResult = Result<Response, AnsHostError>;
+pub type AnsHostResult<T = Response> = Result<T, AnsHostError>;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 use abstract_os::objects::module_version::{migrate_module_data, set_module_data};
@@ -52,7 +52,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> A
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> AnsHostResult<Binary> {
     match msg {
         QueryMsg::Config {} => queries::query_config(deps),
         QueryMsg::Assets { names } => queries::query_assets(deps, env, names),

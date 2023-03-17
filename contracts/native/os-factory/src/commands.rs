@@ -4,7 +4,8 @@ use crate::{
 };
 use abstract_macros::abstract_response;
 use abstract_os::{
-    objects::module::Module, version_control::ModulesResponse, AbstractResult, OS_FACTORY,
+    objects::module::Module, version_control::ModulesResponse, AbstractOsError, AbstractResult,
+    OS_FACTORY,
 };
 use abstract_sdk::{
     cw_helpers::cosmwasm_std::wasm_smart_query,
@@ -53,9 +54,7 @@ pub fn receive_cw20(
             };
             execute_create_os(deps, env, governance, Some(asset), name, description, link)
         }
-        _ => Err(OsFactoryError::Std(StdError::generic_err(
-            "unknown send msg hook",
-        ))),
+        _ => Err(AbstractOsError::generic_err("unknown send msg hook").into()),
     }
 }
 

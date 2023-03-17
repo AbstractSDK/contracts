@@ -37,6 +37,9 @@ pub enum ManagerError {
     #[error("only the subscription contract can change the OS status")]
     CallerNotSubscriptionContract {},
 
+    #[error("callback must be called by the contract itself")]
+    InvalidCallback {},
+
     #[error("A migratemsg is required when when migrating this module")]
     MsgRequired {},
 

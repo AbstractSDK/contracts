@@ -3,6 +3,7 @@ use crate::{
     error::IbcClientError,
     ibc::PACKET_LIFETIME,
 };
+use abstract_os::AbstractOsError;
 use abstract_sdk::{
     feature_objects::VersionControlContract,
     features::Identification,
@@ -17,9 +18,7 @@ use abstract_sdk::{
     },
     Execution, OsVerification, Resolve,
 };
-use cosmwasm_std::{
-    to_binary, Coin, CosmosMsg, DepsMut, Env, IbcMsg, MessageInfo, StdError, Storage,
-};
+use cosmwasm_std::{to_binary, Coin, CosmosMsg, DepsMut, Env, IbcMsg, MessageInfo, Storage};
 
 pub fn execute_update_config(
     deps: DepsMut,
@@ -177,7 +176,7 @@ pub fn execute_send_funds(
     let remote_addr = match data.remote_addr {
         Some(addr) => addr,
         None => {
-            return Err(StdError::generic_err(
+            return Err(AbstractOsError::generic_err(
                 "We don't have the remote address for this channel or OS",
             )
             .into())
