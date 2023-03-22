@@ -30,8 +30,11 @@ impl PoolMetadata {
         pool_type: PoolType,
         assets: Vec<U>,
     ) -> Self {
-        let mut assets = assets.into_iter().map(|a| a.into()).collect::<Vec<AssetEntry>>();
-        // sort the asset name 
+        let mut assets = assets
+            .into_iter()
+            .map(|a| a.into())
+            .collect::<Vec<AssetEntry>>();
+        // sort the asset name
         assets.sort_unstable();
         Self {
             dex: dex_name.to_string(),
@@ -115,7 +118,7 @@ mod tests {
         fn new_works() {
             let dex = "junoswap";
             let pool_type = PoolType::Stable;
-            let mut assets = vec!["uust".to_string(),"uusd".to_string()];
+            let mut assets = vec!["uust".to_string(), "uusd".to_string()];
             let actual = PoolMetadata::new(dex, pool_type.clone(), assets.clone());
             // sort the asset names
             assets.sort();
