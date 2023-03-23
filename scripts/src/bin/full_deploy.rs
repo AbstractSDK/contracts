@@ -13,7 +13,7 @@ use tokio::runtime::Runtime;
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn full_deploy(network: NetworkInfo) -> anyhow::Result<()> {
-    let abstract_os_version: Version = ABSTRACT_VERSION.parse().unwrap();
+    let abstract_version: Version = ABSTRACT_VERSION.parse().unwrap();
 
     let rt = Arc::new(Runtime::new()?);
     let options = DaemonOptionsBuilder::default().network(network).build();
@@ -23,7 +23,7 @@ fn full_deploy(network: NetworkInfo) -> anyhow::Result<()> {
 
     let mut os_core = AbstractAccount::new(chain.clone(), None);
 
-    let mut deployment = Abstract::new(chain, abstract_os_version);
+    let mut deployment = Abstract::new(chain, abstract_version);
 
     deployment.deploy(&mut os_core)?;
 

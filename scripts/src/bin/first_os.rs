@@ -29,13 +29,13 @@ pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Script that registers the first OS in abstract (our OS)
 pub fn first_os(network: NetworkInfo) -> anyhow::Result<()> {
-    let abstract_os_version: Version = ABSTRACT_VERSION.parse().unwrap();
+    let abstract_version: Version = ABSTRACT_VERSION.parse().unwrap();
     // let network = LOCAL_JUNO;
     let rt = Arc::new(Runtime::new()?);
     let options = DaemonOptionsBuilder::default().network(network).build();
     let (sender, chain) = instantiate_daemon_env(&rt, options?)?;
 
-    let deployment = Abstract::new(chain, abstract_os_version);
+    let deployment = Abstract::new(chain, abstract_version);
 
     // NOTE: this assumes that the deployment has been deployed
 

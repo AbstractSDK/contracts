@@ -1,5 +1,7 @@
 use abstract_boot::{AbstractAccount, AccountFactory, OsFactoryQueryFns, VersionControl};
-use abstract_os::{account_factory, manager, proxy, MANAGER, ACCOUNT_FACTORY, PROXY, VERSION_CONTROL};
+use abstract_os::{
+    account_factory, manager, proxy, ACCOUNT_FACTORY, MANAGER, PROXY, VERSION_CONTROL,
+};
 use boot_core::{
     networks::{parse_network, NetworkInfo},
     *,
@@ -14,7 +16,7 @@ pub fn migrate(network: NetworkInfo) -> anyhow::Result<()> {
     let options = DaemonOptionsBuilder::default().network(network).build();
     let (_sender, chain) = instantiate_daemon_env(&rt, options?)?;
 
-    let _abstract_os_version: Version = VERSION.parse().unwrap();
+    let _abstract_version: Version = VERSION.parse().unwrap();
 
     let _version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
 
@@ -24,7 +26,7 @@ pub fn migrate(network: NetworkInfo) -> anyhow::Result<()> {
     // os_core.register(&version_control, VERSION)?;
 
     // Register the cores
-    // version_control.register_cores(vec![os_core.proxy.as_instance()], &abstract_os_version)?;
+    // version_control.register_cores(vec![os_core.proxy.as_instance()], &abstract_version)?;
 
     let account_factory = AccountFactory::new(ACCOUNT_FACTORY, chain.clone());
     let account_factory::ConfigResponse { next_os_id, .. } =
@@ -51,11 +53,11 @@ pub fn migrate(network: NetworkInfo) -> anyhow::Result<()> {
     // // Deregister the app
     // version_control.remove_module(ModuleInfo::from_id(
     //     MANAGER,
-    //     ModuleVersion::Version(abstract_os_version.to_string()),
+    //     ModuleVersion::Version(abstract_version.to_string()),
     // )?)?;
 
     // Register the cores
-    // version_control.register_cores(vec![os_core.manager.as_instance()], &abstract_os_version)?;
+    // version_control.register_cores(vec![os_core.manager.as_instance()], &abstract_version)?;
 
     // let mut vc = VersionControl::new(VERSION_CONTROL, chain);
     //

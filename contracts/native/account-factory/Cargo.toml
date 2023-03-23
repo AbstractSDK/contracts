@@ -3,7 +3,7 @@ name = "abstract-account-factory"
 version = { workspace = true }
 authors = { workspace = true }
 edition = { workspace = true }
-description = "Abstract OS Factory Contract"
+description = "Abstract Factory Contract"
 license = { workspace = true }
 readme = "README.md"
 repository = "https://github.com/Abstract-OS/contracts"

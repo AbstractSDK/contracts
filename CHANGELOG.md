@@ -1,4 +1,4 @@
-# Abstract-OS Changelog
+# Abstract Changelog
 
 All notable changes to this project will be documented in this file.
 

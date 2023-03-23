@@ -3,7 +3,7 @@ name = "abstract-manager"
 version = { workspace = true }
 authors = { workspace = true }
 edition = { workspace = true }
-description = "Abstract OS Manager Contract"
+description = "Abstract Manager Contract"
 license = { workspace = true }
 readme = "README.md"
 repository = "https://github.com/Abstract-OS/contracts"

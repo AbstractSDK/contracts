@@ -16,7 +16,7 @@ pub fn migrate(network: NetworkInfo) -> anyhow::Result<()> {
     let options = DaemonOptionsBuilder::default().network(network).build();
     let (_sender, chain) = instantiate_daemon_env(&rt, options?)?;
 
-    let abstract_os_version = Version::parse(VERSION)?;
+    let abstract_version = Version::parse(VERSION)?;
 
     let vc = VersionControl::new(VERSION_CONTROL, chain.clone());
 
@@ -24,7 +24,7 @@ pub fn migrate(network: NetworkInfo) -> anyhow::Result<()> {
     manager.upload()?;
 
     // Register the new manager
-    vc.register_cores(vec![manager.as_instance()], &abstract_os_version)?;
+    vc.register_cores(vec![manager.as_instance()], &abstract_version)?;
 
     Ok(())
 }
