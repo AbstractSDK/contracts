@@ -161,7 +161,7 @@ mod test {
     fn mock_init(deps: DepsMut) {
         let info = mock_info(TEST_MANAGER, &[]);
         let msg = InstantiateMsg {
-            os_id: 0,
+            account_id: 0,
             ans_host_address: MOCK_CONTRACT_ADDR.to_string(),
         };
         let _res = instantiate(deps, mock_env(), info, msg).unwrap();

@@ -76,7 +76,7 @@ impl<RequestMsg, Request, BaseExecMsg> From<ApiRequestMsg<RequestMsg>>
 }
 
 /// An api request.
-/// If proxy is None, then the sender must be an OS manager and the proxy address is extrapolated from the OS id.
+/// If proxy is None, then the sender must be an OS manager and the proxy address is extrapolated from the Account id.
 #[cosmwasm_schema::cw_serde]
 pub struct ApiRequestMsg<Request> {
     pub proxy_address: Option<String>,

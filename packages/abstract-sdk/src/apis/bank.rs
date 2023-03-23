@@ -45,12 +45,12 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     /// # use abstract_os::objects::AnsAsset;
     /// # use abstract_os::objects::ans_host::AnsHost;
     /// # use abstract_sdk::{
-    ///     features::{Identification, AbstractNameService, ModuleIdentification},
+    ///     features::{AccountIdentification, AbstractNameService, ModuleIdentification},
     ///     TransferInterface, AbstractSdkResult,
     /// };
     /// #
     /// # struct MockModule;
-    /// # impl Identification for MockModule {
+    /// # impl AccountIdentification for MockModule {
     /// #    fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
     /// #       unimplemented!("Not needed for this example")
     /// #   }

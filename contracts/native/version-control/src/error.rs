@@ -1,4 +1,4 @@
-use abstract_os::objects::OsId;
+use abstract_os::objects::AccountId;
 use abstract_os::AbstractError;
 use abstract_sdk::os::objects::module::ModuleInfo;
 use abstract_sdk::AbstractSdkError;
@@ -29,8 +29,8 @@ pub enum VCError {
     #[error("Module {0} cannot be updated")]
     NotUpdateableModule(ModuleInfo),
 
-    #[error("OS ID {} is not in version control register", id)]
-    MissingOsId { id: OsId },
+    #[error("Account ID {} is not in version control register", id)]
+    MissingAccountId { id: AccountId },
 }
 impl From<cw_semver::Error> for VCError {
     fn from(err: cw_semver::Error) -> Self {

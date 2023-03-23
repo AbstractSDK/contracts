@@ -4,7 +4,7 @@
 //!
 //! ## Description
 //!
-//! The OS-manager is part of the Core OS contracts along with the `abstract_os::proxy` contract.
+//! The Account manager is part of the Core Abstract Account contracts along with the `abstract_os::proxy` contract.
 //! This contract is responsible for:
 //! - Managing modules instantiation and migrations.
 //! - Managing permissions.
@@ -17,7 +17,7 @@
 pub mod state {
     use std::collections::HashSet;
 
-    pub use crate::objects::core::OS_ID;
+    pub use crate::objects::core::ACCOUNT_ID;
     use crate::objects::module::ModuleId;
     use cosmwasm_std::Addr;
     use cw_controllers::Admin;
@@ -60,7 +60,7 @@ pub mod state {
 
 use self::state::OsInfo;
 use crate::objects::{
-    core::OsId,
+    core::AccountId,
     module::{Module, ModuleInfo},
 };
 use cosmwasm_schema::QueryResponses;
@@ -72,7 +72,7 @@ pub struct MigrateMsg {}
 
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
-    pub os_id: OsId,
+    pub account_id: AccountId,
     pub root_user: String,
     pub version_control_address: String,
     pub module_factory_address: String,
@@ -183,7 +183,7 @@ pub struct ConfigResponse {
     pub root: String,
     pub version_control_address: String,
     pub module_factory_address: String,
-    pub os_id: Uint64,
+    pub account_id: Uint64,
 }
 
 #[cosmwasm_schema::cw_serde]

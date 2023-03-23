@@ -3,7 +3,7 @@
 
 use crate::{
     cw_helpers::cosmwasm_std::wasm_smart_query,
-    features::{AbstractNameService, Identification},
+    features::{AbstractNameService, AccountIdentification},
     AbstractSdkResult,
 };
 use abstract_os::{objects::AssetEntry, proxy::QueryMsg};
@@ -13,13 +13,13 @@ use os::{objects::oracle::AccountValue, proxy::TokenValueResponse};
 
 /// Retrieve asset-registration information from the OS.
 /// Query asset values and balances.
-pub trait VaultInterface: AbstractNameService + Identification {
+pub trait VaultInterface: AbstractNameService + AccountIdentification {
     fn vault<'a>(&'a self, deps: Deps<'a>) -> Vault<Self> {
         Vault { base: self, deps }
     }
 }
 
-impl<T> VaultInterface for T where T: AbstractNameService + Identification {}
+impl<T> VaultInterface for T where T: AbstractNameService + AccountIdentification {}
 
 #[derive(Clone)]
 pub struct Vault<'a, T: VaultInterface> {

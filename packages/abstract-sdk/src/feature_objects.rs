@@ -5,7 +5,7 @@
 //! requiring the usage of a base contract.
 
 use crate::{
-    features::{AbstractRegistryAccess, Identification, ModuleIdentification},
+    features::{AbstractRegistryAccess, AccountIdentification, ModuleIdentification},
     AbstractSdkResult,
 };
 pub use abstract_os::objects::ans_host::AnsHost;
@@ -33,7 +33,7 @@ impl AbstractRegistryAccess for VersionControlContract {
 }
 
 /// Store a proxy contract address.
-/// Implements [`Identification`].
+/// Implements [`AccountIdentification`].
 #[derive(Clone)]
 pub struct ProxyContract {
     pub contract_address: Addr,
@@ -47,7 +47,7 @@ impl ProxyContract {
     }
 }
 
-impl Identification for ProxyContract {
+impl AccountIdentification for ProxyContract {
     fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
         Ok(self.contract_address.clone())
     }
@@ -59,7 +59,7 @@ impl ModuleIdentification for ProxyContract {
     }
 }
 
-impl Identification for Core {
+impl AccountIdentification for Core {
     fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
         Ok(self.proxy.clone())
     }

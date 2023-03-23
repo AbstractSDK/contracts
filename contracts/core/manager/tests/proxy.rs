@@ -33,7 +33,7 @@ fn instantiate() -> AResult {
         root: sender.to_string(),
         version_control_address: deployment.version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),
-        os_id: 0u32.into(),
+        account_id: 0u32.into(),
     });
     Ok(())
 }

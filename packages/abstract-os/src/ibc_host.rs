@@ -13,7 +13,7 @@ use crate::{
         MigrateMsg as MiddlewareMigrateMsg, QueryMsg as MiddlewareQueryMsg,
     },
     ibc_client::CallbackInfo,
-    objects::core::OsId,
+    objects::core::AccountId,
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Binary, CosmosMsg, Empty, QueryRequest};
@@ -63,7 +63,7 @@ pub enum HostAction {
 impl HostAction {
     pub fn into_packet(
         self,
-        os_id: OsId,
+        account_id: AccountId,
         retries: u8,
         client_chain: String,
         callback_info: Option<CallbackInfo>,
@@ -72,7 +72,7 @@ impl HostAction {
             client_chain,
             retries,
             callback_info,
-            os_id,
+            account_id,
             action: self,
         }
     }
@@ -84,7 +84,7 @@ pub struct PacketMsg {
     pub client_chain: String,
     /// Amount of retries to attempt if packet returns with StdAck::Error
     pub retries: u8,
-    pub os_id: OsId,
+    pub account_id: AccountId,
     /// Callback performed after receiving an StdAck::Result
     pub callback_info: Option<CallbackInfo>,
     /// execute the custom host function
@@ -103,7 +103,7 @@ pub enum BaseExecuteMsg {
     /// Allow for fund recovery through the Admin
     RecoverAccount {
         closed_channel: String,
-        os_id: OsId,
+        account_id: AccountId,
         msgs: Vec<CosmosMsg>,
     },
 }
@@ -118,7 +118,10 @@ pub enum BaseQueryMsg {
     /// Returns (reflect) account that is attached to this channel,
     /// or none.
     #[returns(AccountResponse)]
-    Account { client_chain: String, os_id: OsId },
+    Account {
+        client_chain: String,
+        account_id: AccountId,
+    },
     /// Returns all (channel, reflect_account) pairs.
     /// No pagination - this is a test contract
     #[returns(ListAccountsResponse)]
@@ -142,7 +145,7 @@ pub struct ListAccountsResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct AccountInfo {
-    pub os_id: OsId,
+    pub account_id: AccountId,
     pub account: String,
     pub channel_id: String,
 }

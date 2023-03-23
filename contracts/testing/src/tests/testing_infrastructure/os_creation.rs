@@ -50,15 +50,15 @@ pub fn init_os(
         &native_contracts.account_factory,
         &account_factory::QueryMsg::Config {},
     )?;
-    let os_id = resp.next_os_id - 1;
+    let account_id = resp.next_acct_id - 1;
 
     // Check OS
     let core: OsCoreResponse = app.wrap().query_wasm_smart(
         &native_contracts.version_control,
-        &version_control::QueryMsg::OsCore { os_id },
+        &version_control::QueryMsg::OsCore { account_id },
     )?;
 
-    os_store.insert(os_id, core.os_core);
+    os_store.insert(account_id, core.os_core);
     assert!(os_store_as_expected(app, native_contracts, os_store));
     Ok(())
 }

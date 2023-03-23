@@ -3,7 +3,7 @@
 //!
 
 use crate::{
-    features::{Identification, ModuleIdentification},
+    features::{AccountIdentification, ModuleIdentification},
     AbstractSdkResult,
 };
 use abstract_macros::with_abstract_event;
@@ -11,13 +11,13 @@ use abstract_os::proxy::ExecuteMsg;
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, ReplyOn, Response, SubMsg};
 
 /// Execute an arbitrary `CosmosMsg` action on the OS.
-pub trait Execution: Identification + ModuleIdentification {
+pub trait Execution: AccountIdentification + ModuleIdentification {
     fn executor<'a>(&'a self, deps: Deps<'a>) -> Executor<Self> {
         Executor { base: self, deps }
     }
 }
 
-impl<T> Execution for T where T: Identification + ModuleIdentification {}
+impl<T> Execution for T where T: AccountIdentification + ModuleIdentification {}
 
 #[derive(Clone)]
 pub struct Executor<'a, T: Execution> {

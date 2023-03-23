@@ -477,7 +477,7 @@ mod tests {
             let other_proxy = "some_other_proxy";
             let mut deps = mock_dependencies();
             deps.querier = mocked_os_querier_builder()
-                .os("some_other_manager", other_proxy, 69420u32)
+                .account("some_other_manager", other_proxy, 69420u32)
                 .build();
 
             setup_with_traders(deps.as_mut(), vec![TEST_TRADER]);

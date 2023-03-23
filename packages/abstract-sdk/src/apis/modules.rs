@@ -2,7 +2,7 @@
 //! The Module interface provides helper functions to execute functions on other modules installed on the OS.
 
 use crate::{
-    features::{Dependencies, Identification},
+    features::{AccountIdentification, Dependencies},
     AbstractSdkResult,
 };
 use abstract_os::manager::state::OS_MODULES;
@@ -11,13 +11,13 @@ use cw2::{ContractVersion, CONTRACT};
 use os::objects::module::ModuleId;
 
 /// Interact with other modules on the OS.
-pub trait ModuleInterface: Identification + Dependencies {
+pub trait ModuleInterface: AccountIdentification + Dependencies {
     fn modules<'a>(&'a self, deps: Deps<'a>) -> Modules<Self> {
         Modules { base: self, deps }
     }
 }
 
-impl<T> ModuleInterface for T where T: Identification + Dependencies {}
+impl<T> ModuleInterface for T where T: AccountIdentification + Dependencies {}
 
 #[derive(Clone)]
 pub struct Modules<'a, T: ModuleInterface> {

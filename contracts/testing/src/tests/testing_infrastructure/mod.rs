@@ -49,9 +49,9 @@ pub mod env {
     pub fn get_os_state(
         app: &App,
         os_store: &HashMap<u32, Core>,
-        os_id: &u32,
+        account_id: &u32,
     ) -> AnyResult<HashMap<String, Addr>> {
-        let manager_addr: Addr = os_store.get(os_id).unwrap().manager.clone();
+        let manager_addr: Addr = os_store.get(account_id).unwrap().manager.clone();
         // Check OS
         let mut resp: ManagerMsgs::ModuleInfosResponse = app.wrap().query_wasm_smart(
             &manager_addr,

@@ -2,7 +2,7 @@
 //! The IbcClient object provides helper function for ibc-related queries or actions.
 //!
 
-use crate::{features::Identification, AbstractSdkResult};
+use crate::{features::AccountIdentification, AbstractSdkResult};
 use abstract_os::{
     ibc_client::{CallbackInfo, ExecuteMsg as IbcClientMsg},
     ibc_host::HostAction,
@@ -11,13 +11,13 @@ use abstract_os::{
 use cosmwasm_std::{wasm_execute, Coin, CosmosMsg, Deps};
 
 /// Interact with other chains over IBC.
-pub trait IbcInterface: Identification {
+pub trait IbcInterface: AccountIdentification {
     fn ibc_client<'a>(&'a self, deps: Deps<'a>) -> IbcClient<Self> {
         IbcClient { base: self, deps }
     }
 }
 
-impl<T> IbcInterface for T where T: Identification {}
+impl<T> IbcInterface for T where T: AccountIdentification {}
 
 #[derive(Clone)]
 pub struct IbcClient<'a, T: IbcInterface> {

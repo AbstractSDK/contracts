@@ -1,7 +1,7 @@
 use crate::{ApiContract, ApiError};
 use abstract_sdk::{
     feature_objects::AnsHost,
-    features::{AbstractNameService, AbstractRegistryAccess, Identification},
+    features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification},
     AbstractSdkError, AbstractSdkResult,
 };
 use cosmwasm_std::{Addr, Deps, StdError};
@@ -27,7 +27,7 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         ReceiveMsg,
-    > Identification
+    > AccountIdentification
     for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg>
 {
     fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {

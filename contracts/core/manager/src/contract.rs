@@ -8,11 +8,11 @@ use crate::{
 };
 use abstract_sdk::os::{
     manager::{
-        state::{Config, OsInfo, CONFIG, INFO, ACCOUNT_FACTORY, ROOT, STATUS},
+        state::{Config, OsInfo, ACCOUNT_FACTORY, CONFIG, INFO, ROOT, STATUS},
         CallbackMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     },
     objects::module_version::{migrate_module_data, set_module_data},
-    proxy::state::OS_ID,
+    proxy::state::ACCOUNT_ID,
     MANAGER,
 };
 use cosmwasm_std::{
@@ -57,7 +57,7 @@ pub fn instantiate(
         .map(|a| deps.api.addr_validate(&a))
         .transpose()?;
 
-    OS_ID.save(deps.storage, &msg.os_id)?;
+    ACCOUNT_ID.save(deps.storage, &msg.account_id)?;
     CONFIG.save(
         deps.storage,
         &Config {
@@ -90,7 +90,10 @@ pub fn instantiate(
     ACCOUNT_FACTORY.set(deps, Some(info.sender))?;
     Ok(ManagerResponse::new(
         "instantiate",
-        vec![("os_id", msg.os_id.to_string()), ("owner", msg.root_user)],
+        vec![
+            ("account_id", msg.account_id.to_string()),
+            ("owner", msg.root_user),
+        ],
     ))
 }
 

@@ -1,4 +1,4 @@
-use abstract_sdk::os::manager::state::{OsInfo, CONFIG, INFO, OS_ID, OS_MODULES, ROOT};
+use abstract_sdk::os::manager::state::{OsInfo, ACCOUNT_ID, CONFIG, INFO, OS_MODULES, ROOT};
 use abstract_sdk::os::manager::{
     ConfigResponse, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse, ModuleInfosResponse,
     ModuleVersionsResponse,
@@ -34,7 +34,7 @@ pub fn handle_os_info_query(deps: Deps) -> StdResult<Binary> {
 }
 
 pub fn handle_config_query(deps: Deps) -> StdResult<Binary> {
-    let os_id = Uint64::from(OS_ID.load(deps.storage)?);
+    let account_id = Uint64::from(ACCOUNT_ID.load(deps.storage)?);
     let root = ROOT
         .get(deps)?
         .unwrap_or_else(|| Addr::unchecked(""))
@@ -42,7 +42,7 @@ pub fn handle_config_query(deps: Deps) -> StdResult<Binary> {
     let config = CONFIG.load(deps.storage)?;
     to_binary(&ConfigResponse {
         root,
-        os_id,
+        account_id,
         version_control_address: config.version_control_address.to_string(),
         module_factory_address: config.module_factory_address.into_string(),
     })

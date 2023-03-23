@@ -27,7 +27,7 @@ pub fn instantiate(
         module_factory_address: deps.api.addr_validate(&msg.module_factory_address)?,
         ans_host_contract: deps.api.addr_validate(&msg.ans_host_address)?,
         subscription_address: None,
-        next_os_id: 0u32,
+        next_acct_id: 0u32,
     };
 
     set_contract_version(deps.storage, ACCOUNT_FACTORY, CONTRACT_VERSION)?;
@@ -116,7 +116,7 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
         ans_host_contract: state.ans_host_contract.into(),
         subscription_address: state.subscription_address.map(Addr::into),
         module_factory_address: state.module_factory_address.into(),
-        next_os_id: state.next_os_id,
+        next_acct_id: state.next_acct_id,
     };
 
     Ok(resp)
@@ -129,7 +129,12 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response
 
     if storage_version < version {
         set_contract_version(deps.storage, ACCOUNT_FACTORY, CONTRACT_VERSION)?;
-        migrate_module_data(deps.storage, ACCOUNT_FACTORY, CONTRACT_VERSION, None::<String>)?;
+        migrate_module_data(
+            deps.storage,
+            ACCOUNT_FACTORY,
+            CONTRACT_VERSION,
+            None::<String>,
+        )?;
     }
     Ok(Response::default())
 }

@@ -25,8 +25,8 @@
 //! It also allows for tight and low-gas integration between contracts by performing raw queries on these states.
 //! A contract's state object can be imported and used like:
 //! ```ignore
-//! use crate::manager::state::OS_ID
-//! let os_id = OS_ID.query(querier, manager_address).unwrap();
+//! use crate::manager::state::ACCOUNT_ID
+//! let account_id = ACCOUNT_ID.query(querier, manager_address).unwrap();
 //! ```
 //! The internally stored objects are also contained within this package in [`crate::objects`].
 //!

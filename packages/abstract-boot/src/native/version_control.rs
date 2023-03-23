@@ -4,7 +4,7 @@ use abstract_os::{
     objects::{
         module::{Module, ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
-        OsId,
+        AccountId,
     },
     version_control::*,
     VERSION_CONTROL,
@@ -161,8 +161,8 @@ where
         modules_to_register
     }
 
-    pub fn get_os_core(&self, os_id: OsId) -> Result<Core, crate::AbstractBootError> {
-        let resp: OsCoreResponse = self.query(&QueryMsg::OsCore { os_id })?;
+    pub fn get_os_core(&self, account_id: AccountId) -> Result<Core, crate::AbstractBootError> {
+        let resp: OsCoreResponse = self.query(&QueryMsg::OsCore { account_id })?;
         Ok(resp.os_core)
     }
 

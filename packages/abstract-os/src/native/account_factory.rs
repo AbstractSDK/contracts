@@ -1,11 +1,11 @@
-//! # Os Factory
+//! # Account Factory
 //!
 //! `abstract_os::account_factory` handles OS creation and registration.
 //!
 //! ## Description
-//! The OS factory instantiates a new OS instance and registeres it with the [`crate::version_control`] contract. It then forwards the payment to the main os's subscription module.  
-//! ## Create a new OS
-//! Call [`ExecuteMsg::CreateOs`] on this contract along with a [`crate::objects::gov_type`] and name you'd like to display on your OS.
+//! The OS factory instantiates a new OS instance and registers it with the [`crate::version_control`] contract. It then forwards the payment to the main os's subscription module.  
+//! ## Create a new Account
+//! Call [`ExecuteMsg::CreateAccount`] on this contract along with a [`crate::objects::gov_type`] and name you'd like to display on your OS.
 //!
 pub mod state {
     use cosmwasm_std::Addr;
@@ -14,7 +14,7 @@ pub mod state {
 
     use serde::{Deserialize, Serialize};
 
-    use crate::objects::{common_namespace::ADMIN_NAMESPACE, core::OsId};
+    use crate::objects::{common_namespace::ADMIN_NAMESPACE, core::AccountId};
 
     #[cosmwasm_schema::cw_serde]
     pub struct Config {
@@ -22,7 +22,7 @@ pub mod state {
         pub ans_host_contract: Addr,
         pub module_factory_address: Addr,
         pub subscription_address: Option<Addr>,
-        pub next_os_id: OsId,
+        pub next_acct_id: AccountId,
     }
 
     #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -35,7 +35,7 @@ pub mod state {
     pub const CONTEXT: Item<Context> = Item::new("\u{0}{6}context");
 }
 
-use crate::objects::{core::OsId, gov_type::GovernanceDetails};
+use crate::objects::{core::AccountId, gov_type::GovernanceDetails};
 use cosmwasm_schema::QueryResponses;
 use cw20::Cw20ReceiveMsg;
 
@@ -98,7 +98,7 @@ pub struct ConfigResponse {
     pub version_control_contract: String,
     pub module_factory_address: String,
     pub subscription_address: Option<String>,
-    pub next_os_id: OsId,
+    pub next_acct_id: AccountId,
 }
 
 /// We currently take no arguments for migrations

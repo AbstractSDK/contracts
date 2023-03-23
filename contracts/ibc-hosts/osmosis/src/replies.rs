@@ -16,11 +16,11 @@ pub fn swap_reply(
     let (packet, channel) = PROCESSING_PACKET.load(deps.storage)?;
     let PacketMsg {
         client_chain,
-        os_id,
+        account_id,
         ..
     } = packet;
-    let client_proxy_addr = CLIENT_PROXY.load(deps.storage, (&channel, os_id))?;
-    let local_proxy_addr = ACCOUNTS.load(deps.storage, (&channel, os_id))?;
+    let client_proxy_addr = CLIENT_PROXY.load(deps.storage, (&channel, account_id))?;
+    let local_proxy_addr = ACCOUNTS.load(deps.storage, (&channel, account_id))?;
     host.proxy_address = Some(local_proxy_addr);
     // send everything back to client
     let _send_back_msg = host.send_all_back(deps.as_ref(), env, client_proxy_addr, client_chain)?;

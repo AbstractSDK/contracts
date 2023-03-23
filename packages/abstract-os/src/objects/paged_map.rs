@@ -264,7 +264,7 @@ mod tests {
     use super::*;
     use serde::{Deserialize, Serialize};
 
-    use crate::objects::core::OsId;
+    use crate::objects::core::AccountId;
     use cosmwasm_std::testing::{mock_dependencies, MockStorage};
 
     #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
@@ -407,7 +407,7 @@ mod tests {
             store: &mut dyn Storage,
             mut value: Data,
             _context: &String,
-        ) -> AbstractResult<Option<OsId>> {
+        ) -> AbstractResult<Option<AccountId>> {
             let balance = value.balance;
             value.balance = 0;
             USERS.unsafe_save(store, key, &value)?;

@@ -97,13 +97,13 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<QueryResponse> {
     match msg {
         QueryMsg::Config {} => to_binary(&queries::query_config(deps)?),
-        QueryMsg::Account { chain, os_id } => {
-            to_binary(&queries::query_account(deps, chain, os_id)?)
+        QueryMsg::Account { chain, account_id } => {
+            to_binary(&queries::query_account(deps, chain, account_id)?)
         }
         QueryMsg::ListAccounts {} => to_binary(&queries::query_list_accounts(deps)?),
-        QueryMsg::LatestQueryResult { chain, os_id } => {
-            to_binary(&queries::query_latest_ibc_query_result(deps, chain, os_id)?)
-        }
+        QueryMsg::LatestQueryResult { chain, account_id } => to_binary(
+            &queries::query_latest_ibc_query_result(deps, chain, account_id)?,
+        ),
         QueryMsg::ListChannels {} => to_binary(&queries::query_list_channels(deps)?),
     }
 }

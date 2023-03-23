@@ -1,6 +1,6 @@
 use crate::{AccountFactory, AnsHost, IbcClient, Manager, ModuleFactory, Proxy, VersionControl};
 use abstract_os::{
-    objects::OsId, ANS_HOST, IBC_CLIENT, MANAGER, MODULE_FACTORY, ACCOUNT_FACTORY, PROXY,
+    objects::AccountId, ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, MANAGER, MODULE_FACTORY, PROXY,
     VERSION_CONTROL,
 };
 use boot_core::{BootEnvironment, IndexResponse, StateInterface, TxHandler};
@@ -34,14 +34,14 @@ where
 
 pub fn get_os_core_contracts<Chain: BootEnvironment>(
     chain: Chain,
-    os_id: Option<OsId>,
+    account_id: Option<AccountId>,
 ) -> (Manager<Chain>, Proxy<Chain>)
 where
     <Chain as TxHandler>::Response: IndexResponse,
 {
-    if let Some(os_id) = os_id {
+    if let Some(account_id) = account_id {
         let version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
-        let core = version_control.get_os_core(os_id).unwrap();
+        let core = version_control.get_os_core(account_id).unwrap();
         chain.state().set_address(MANAGER, &core.manager);
         chain.state().set_address(PROXY, &core.proxy);
         let manager = Manager::new(MANAGER, chain.clone());

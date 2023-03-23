@@ -29,12 +29,12 @@ pub fn migrate(network: NetworkInfo) -> anyhow::Result<()> {
     // version_control.register_cores(vec![os_core.proxy.as_instance()], &abstract_version)?;
 
     let account_factory = AccountFactory::new(ACCOUNT_FACTORY, chain.clone());
-    let account_factory::ConfigResponse { next_os_id, .. } =
+    let account_factory::ConfigResponse { next_acct_id, .. } =
         OsFactoryQueryFns::config(&account_factory)?;
-    let latest_os_id = next_os_id - 1;
+    let latest_acct_id = next_acct_id - 1;
 
-    for os_id in 1..=latest_os_id {
-        let os = AbstractAccount::new(chain.clone(), Some(os_id));
+    for account_id in 1..=latest_acct_id {
+        let os = AbstractAccount::new(chain.clone(), Some(account_id));
         // todo: check admin
 
         // Upgrade manager first

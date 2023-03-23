@@ -3,7 +3,7 @@ use crate::{
     state::{CLIENT_PROXY, CLOSED_CHANNELS, PENDING},
     Host, HostError,
 };
-use abstract_os::objects::OsId;
+use abstract_os::objects::AccountId;
 use abstract_sdk::os::abstract_ica::{
     check_order, check_version, IbcQueryResponse, StdAck, WhoAmIResponse, IBC_APP_VERSION,
 };
@@ -138,7 +138,7 @@ pub fn receive_register<
     env: Env,
     host: Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>,
     channel: String,
-    os_id: OsId,
+    account_id: AccountId,
     os_proxy_address: String,
 ) -> Result<IbcReceiveResponse, HostError> {
     let cfg = host.base_state.load(deps.storage)?;
@@ -156,12 +156,12 @@ pub fn receive_register<
     let msg = SubMsg::reply_on_success(msg, INIT_CALLBACK_ID);
 
     // store the proxy address of the OS on the client chain.
-    CLIENT_PROXY.save(deps.storage, (&channel, os_id), &os_proxy_address)?;
+    CLIENT_PROXY.save(deps.storage, (&channel, account_id), &os_proxy_address)?;
     // store the os info for the reply handler
-    PENDING.save(deps.storage, &(channel, os_id))?;
+    PENDING.save(deps.storage, &(channel, account_id))?;
 
     // We rely on Reply handler to change this to Success!
-    let acknowledgement = StdAck::fail(format!("Failed to create proxy for OS {os_id} "));
+    let acknowledgement = StdAck::fail(format!("Failed to create proxy for OS {account_id} "));
 
     Ok(IbcReceiveResponse::new()
         .add_submessage(msg)

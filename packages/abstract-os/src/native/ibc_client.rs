@@ -1,5 +1,5 @@
 use self::state::AccountData;
-use crate::{abstract_ica::StdAck, ibc_host::HostAction, objects::core::OsId};
+use crate::{abstract_ica::StdAck, ibc_host::HostAction, objects::core::AccountId};
 use abstract_ica::IbcResponseMsg;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{from_slice, Binary, Coin, CosmosMsg, StdResult, Timestamp};
@@ -8,7 +8,7 @@ pub mod state {
 
     use super::LatestQueryResponse;
     use crate::{
-        objects::{ans_host::AnsHost, common_namespace::ADMIN_NAMESPACE, core::OsId},
+        objects::{ans_host::AnsHost, common_namespace::ADMIN_NAMESPACE, core::AccountId},
         ANS_HOST as ANS_HOST_KEY,
     };
     use cosmwasm_std::{Addr, Coin, Timestamp};
@@ -39,10 +39,10 @@ pub mod state {
     /// host_chain -> channel-id
     pub const CHANNELS: Map<&str, String> = Map::new("channels");
     pub const CONFIG: Item<Config> = Item::new("config");
-    /// (channel-id,os_id) -> remote_addr
-    pub const ACCOUNTS: Map<(&str, OsId), AccountData> = Map::new("accounts");
+    /// (channel-id,account_id) -> remote_addr
+    pub const ACCOUNTS: Map<(&str, AccountId), AccountData> = Map::new("accounts");
     /// Todo: see if we can remove this
-    pub const LATEST_QUERIES: Map<(&str, OsId), LatestQueryResponse> = Map::new("queries");
+    pub const LATEST_QUERIES: Map<(&str, AccountId), LatestQueryResponse> = Map::new("queries");
     pub const ANS_HOST: Item<AnsHost> = Item::new(ANS_HOST_KEY);
 }
 
@@ -122,10 +122,16 @@ pub enum QueryMsg {
     ListAccounts {},
     // Get channel info for one chain
     #[returns(AccountResponse)]
-    Account { chain: String, os_id: OsId },
+    Account {
+        chain: String,
+        account_id: AccountId,
+    },
     // Get remote account info for a chain + OS
     #[returns(LatestQueryResponse)]
-    LatestQueryResult { chain: String, os_id: OsId },
+    LatestQueryResult {
+        chain: String,
+        account_id: AccountId,
+    },
     // get the channels
     #[returns(ListChannelsResponse)]
     ListChannels {},
@@ -165,7 +171,7 @@ pub struct RemoteProxyResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct AccountInfo {
     pub channel_id: String,
-    pub os_id: OsId,
+    pub account_id: AccountId,
     /// last block balance was updated (0 is never)
     pub last_update_time: Timestamp,
     /// in normal cases, it should be set, but there is a delay between binding
@@ -175,10 +181,10 @@ pub struct AccountInfo {
 }
 
 impl AccountInfo {
-    pub fn convert(channel_id: String, os_id: OsId, input: AccountData) -> Self {
+    pub fn convert(channel_id: String, account_id: AccountId, input: AccountData) -> Self {
         AccountInfo {
             channel_id,
-            os_id,
+            account_id,
             last_update_time: input.last_update_time,
             remote_addr: input.remote_addr,
             remote_balance: input.remote_balance,

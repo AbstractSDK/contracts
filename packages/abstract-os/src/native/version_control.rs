@@ -1,12 +1,12 @@
 //! # Version Control
 //!
-//! `abstract_os::version_control` stores chain-specific code-ids, addresses and an os_id map.
+//! `abstract_os::version_control` stores chain-specific code-ids, addresses and an account_id map.
 //!
 //! ## Description
 //! Code-ids and api-contract addresses are stored on this address. This data can not be changed and allows for complex factory logic.
 //! Both code-ids and addresses are stored on a per-module version basis which allows users to easily upgrade their modules.
 //!
-//! An internal os-id store provides external verification for manager and proxy addresses.  
+//! An internal account-id store provides external verification for manager and proxy addresses.  
 
 pub type ModuleMapEntry = (ModuleInfo, ModuleReference);
 
@@ -15,7 +15,7 @@ pub mod state {
     use cw_storage_plus::Map;
 
     use crate::objects::{
-        common_namespace::ADMIN_NAMESPACE, core::OsId, module::ModuleInfo,
+        common_namespace::ADMIN_NAMESPACE, core::AccountId, module::ModuleInfo,
         module_reference::ModuleReference,
     };
 
@@ -26,12 +26,12 @@ pub mod state {
 
     // We can iterate over the map giving just the prefix to get all the versions
     pub const MODULE_LIBRARY: Map<&ModuleInfo, ModuleReference> = Map::new("module_lib");
-    /// Maps OS ID to the address of its core contracts
-    pub const OS_ADDRESSES: Map<OsId, Core> = Map::new("os_core");
+    /// Maps Account ID to the address of its core contracts
+    pub const OS_ADDRESSES: Map<AccountId, Core> = Map::new("os_core");
 }
 
 use crate::objects::{
-    core::OsId,
+    core::AccountId,
     module::{Module, ModuleInfo},
     module_reference::ModuleReference,
 };
@@ -57,7 +57,7 @@ pub enum ExecuteMsg {
     AddModules { modules: Vec<ModuleMapEntry> },
     /// Add a new OS to the deployed OSs.  
     /// Only Factory can call this
-    AddOs { os_id: OsId, core: Core },
+    AddOs { account_id: AccountId, core: Core },
     /// Sets a new Admin
     SetAdmin { new_admin: String },
     /// Sets a new Factory
@@ -80,7 +80,7 @@ pub enum QueryMsg {
     /// Query Core of an OS
     /// Returns [`OsCoreResponse`]
     #[returns(OsCoreResponse)]
-    OsCore { os_id: OsId },
+    OsCore { account_id: AccountId },
     /// Queries api addresses
     /// Returns [`ModulesResponse`]
     #[returns(ModulesResponse)]

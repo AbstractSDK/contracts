@@ -29,7 +29,7 @@ fn instantiate() -> AResult {
         version_control_contract: deployment.version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),
         subscription_address: None,
-        next_os_id: 0,
+        next_acct_id: 0,
     };
 
     assert_that!(&factory_config).is_equal_to(&expected);
@@ -65,7 +65,7 @@ fn create_one_os() -> AResult {
         version_control_contract: deployment.version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),
         subscription_address: None,
-        next_os_id: 1,
+        next_acct_id: 1,
     };
 
     assert_that!(&factory_config).is_equal_to(&expected);
@@ -130,7 +130,7 @@ fn create_two_os_s() -> AResult {
         version_control_contract: deployment.version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),
         subscription_address: None,
-        next_os_id: 2,
+        next_acct_id: 2,
     };
 
     assert_that!(&factory_config).is_equal_to(&expected);
@@ -199,7 +199,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
 
     assert_that!(os_config).is_equal_to(abstract_os::manager::ConfigResponse {
         root: owner.into_string(),
-        os_id: Uint64::from(0u64),
+        account_id: Uint64::from(0u64),
         version_control_address: version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),
     });
@@ -232,7 +232,7 @@ fn sender_is_not_admin_external() -> AResult {
 
     assert_that!(os_config).is_equal_to(abstract_os::manager::ConfigResponse {
         root: owner.into_string(),
-        os_id: Uint64::from(0u64),
+        account_id: Uint64::from(0u64),
         version_control_address: version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),
     });

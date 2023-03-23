@@ -5,7 +5,7 @@ use abstract_os::objects::{module_version::migrate_module_data, oracle::Oracle};
 use abstract_sdk::{
     feature_objects::AnsHost,
     os::{
-        objects::{core::OS_ID, module_version::set_module_data},
+        objects::{core::ACCOUNT_ID, module_version::set_module_data},
         proxy::{
             state::{State, ADMIN, ANS_HOST, STATE},
             AssetConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
@@ -34,7 +34,7 @@ pub fn instantiate(
     // Use CW2 to set the contract version, this is needed for migrations
     set_contract_version(deps.storage, PROXY, CONTRACT_VERSION)?;
     set_module_data(deps.storage, PROXY, CONTRACT_VERSION, &[], None::<String>)?;
-    OS_ID.save(deps.storage, &msg.os_id)?;
+    ACCOUNT_ID.save(deps.storage, &msg.account_id)?;
     STATE.save(deps.storage, &State { modules: vec![] })?;
     ANS_HOST.save(
         deps.storage,

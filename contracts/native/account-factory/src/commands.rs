@@ -92,34 +92,35 @@ pub fn execute_create_os(
     let module: Module = query_module(&deps.querier, &config.version_control_contract, MANAGER)?;
 
     if let ModuleReference::Core(manager_code_id) = module.reference {
-        Ok(
-            OsFactoryResponse::new("create_os", vec![("os_id", &config.next_os_id.to_string())])
-                // Create manager
-                .add_submessage(SubMsg {
-                    id: CREATE_OS_MANAGER_MSG_ID,
-                    gas_limit: None,
-                    msg: WasmMsg::Instantiate {
-                        code_id: manager_code_id,
-                        funds: vec![],
-                        // Currently set admin to self, update later when we know the contract's address.
-                        admin: Some(env.contract.address.to_string()),
-                        label: format!("Abstract OS: {}", config.next_os_id),
-                        msg: to_binary(&ManagerInstantiateMsg {
-                            os_id: config.next_os_id,
-                            root_user: root_user.to_string(),
-                            version_control_address: config.version_control_contract.to_string(),
-                            subscription_address: config.subscription_address.map(Addr::into),
-                            module_factory_address: config.module_factory_address.to_string(),
-                            name,
-                            description,
-                            link,
-                            governance_type: governance.to_string(),
-                        })?,
-                    }
-                    .into(),
-                    reply_on: ReplyOn::Success,
-                }),
+        Ok(OsFactoryResponse::new(
+            "create_os",
+            vec![("account_id", &config.next_acct_id.to_string())],
         )
+        // Create manager
+        .add_submessage(SubMsg {
+            id: CREATE_OS_MANAGER_MSG_ID,
+            gas_limit: None,
+            msg: WasmMsg::Instantiate {
+                code_id: manager_code_id,
+                funds: vec![],
+                // Currently set admin to self, update later when we know the contract's address.
+                admin: Some(env.contract.address.to_string()),
+                label: format!("Abstract OS: {}", config.next_acct_id),
+                msg: to_binary(&ManagerInstantiateMsg {
+                    account_id: config.next_acct_id,
+                    root_user: root_user.to_string(),
+                    version_control_address: config.version_control_contract.to_string(),
+                    subscription_address: config.subscription_address.map(Addr::into),
+                    module_factory_address: config.module_factory_address.to_string(),
+                    name,
+                    description,
+                    link,
+                    governance_type: governance.to_string(),
+                })?,
+            }
+            .into(),
+            reply_on: ReplyOn::Success,
+        }))
     } else {
         Err(OsFactoryError::WrongModuleKind(
             module.info.to_string(),
@@ -162,9 +163,9 @@ pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> OsFact
                 code_id: proxy_code_id,
                 funds: vec![],
                 admin: Some(manager_address.to_string()),
-                label: format!("Proxy of OS: {}", config.next_os_id),
+                label: format!("Proxy of OS: {}", config.next_acct_id),
                 msg: to_binary(&ProxyInstantiateMsg {
-                    os_id: config.next_os_id,
+                    account_id: config.next_acct_id,
                     ans_host_address: config.ans_host_contract.to_string(),
                 })?,
             }
@@ -221,7 +222,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
         contract_addr: config.version_control_contract.to_string(),
         funds: vec![],
         msg: to_binary(&VCExecuteMsg::AddOs {
-            os_id: config.next_os_id,
+            account_id: config.next_acct_id,
             core,
         })?,
     });
@@ -249,7 +250,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
     });
 
     // Update id sequence
-    config.next_os_id += 1;
+    config.next_acct_id += 1;
     CONFIG.save(deps.storage, &config)?;
 
     Ok(OsFactoryResponse::new(
@@ -340,14 +341,14 @@ pub fn execute_update_config(
 //             AssetInfoBase::Cw20(_) => received_payment.send_msg(
 //                 sub_addr,
 //                 to_binary(&SubDepositHook::Pay {
-//                     os_id: config.next_os_id,
+//                     account_id: config.next_acct_id,
 //                 })?,
 //             )?,
 //             AssetInfoBase::Native(denom) => CosmosMsg::Wasm(WasmMsg::Execute {
 //                 contract_addr: sub_addr.into(),
 //                 msg: to_binary::<app::ExecuteMsg<SubscriptionExecuteMsg>>(&app::ExecuteMsg::App(
 //                     SubscriptionExecuteMsg::Pay {
-//                         os_id: config.next_os_id,
+//                         account_id: config.next_acct_id,
 //                     },
 //                 ))?,
 //                 funds: vec![Coin::new(received_payment.amount.u128(), denom)],

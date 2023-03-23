@@ -1,19 +1,18 @@
 use abstract_os::{
-    objects::common_namespace::ADMIN_NAMESPACE, proxy::state::OS_ID, version_control::Core,
+    objects::common_namespace::ADMIN_NAMESPACE, proxy::state::ACCOUNT_ID, version_control::Core,
 };
 use cosmwasm_std::{Addr, Deps};
 use cw_storage_plus::Item;
-use os::objects::OsId;
+use os::objects::AccountId;
 
 // see os::proxy::state::ADMIN
 use crate::{AbstractSdkError, AbstractSdkResult};
 
 const MANAGER: Item<'_, Option<Addr>> = Item::new(ADMIN_NAMESPACE);
 
-// TODO: rename OsIdentification
-/// Retrieve identifying information about an OS.
-/// This includes the manager, proxy, core and os_id.
-pub trait Identification: Sized {
+/// Retrieve identifying information about an Account.
+/// This includes the manager, proxy, core and account_id.
+pub trait AccountIdentification: Sized {
     fn proxy_address(&self, deps: Deps) -> AbstractSdkResult<Addr>;
     fn manager_address(&self, deps: Deps) -> AbstractSdkResult<Addr> {
         let maybe_proxy_manager = MANAGER.query(&deps.querier, self.proxy_address(deps)?)?;
@@ -27,9 +26,9 @@ pub trait Identification: Sized {
             proxy: self.proxy_address(deps)?,
         })
     }
-    /// Get the OS id for the current context.
-    fn os_id(&self, deps: Deps) -> AbstractSdkResult<OsId> {
-        OS_ID
+    /// Get the Account id for the current context.
+    fn account_id(&self, deps: Deps) -> AbstractSdkResult<AccountId> {
+        ACCOUNT_ID
             .query(&deps.querier, self.proxy_address(deps)?)
             .map_err(Into::into)
     }
@@ -43,7 +42,7 @@ mod test {
 
     struct MockBinding;
 
-    impl Identification for MockBinding {
+    impl AccountIdentification for MockBinding {
         fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
             Ok(Addr::unchecked(TEST_PROXY))
         }
@@ -97,16 +96,16 @@ mod test {
         }
 
         #[test]
-        fn os_id() {
+        fn account_id() {
             let mut deps = mock_dependencies();
             deps.querier = MockQuerierBuilder::default()
-                .with_contract_item(TEST_PROXY, OS_ID, &TEST_OS_ID)
+                .with_contract_item(TEST_PROXY, ACCOUNT_ID, &TEST_ACCOUNT_ID)
                 .build();
 
             let binding = MockBinding;
-            assert_that!(binding.os_id(deps.as_ref()))
+            assert_that!(binding.account_id(deps.as_ref()))
                 .is_ok()
-                .is_equal_to(TEST_OS_ID);
+                .is_equal_to(TEST_ACCOUNT_ID);
         }
     }
 }

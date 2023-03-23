@@ -146,7 +146,7 @@ fn add_and_remove_contributors() {
         init_os(&mut app, &sender, &env.native_contracts, &mut env.os_store).unwrap();
     }
     let msg: msgs::ExecuteMsg = msgs::SubscriptionExecuteMsg::UpdateContributor {
-        contributor_os_id: contributing_os1,
+        contributor_acct_id: contributing_os1,
         base_per_block: Some(Decimal::from_str(DEFAULT_PAY).unwrap()),
         weight: Some(100u64.into()),
         expiration_block: Some((app.block_info().height + 500).into()),
@@ -183,7 +183,7 @@ fn add_and_remove_contributors() {
     );
 
     let msg = app::ExecuteMsg::<_>::App(msgs::SubscriptionExecuteMsg::UpdateContributor {
-        contributor_os_id: contributing_os2,
+        contributor_acct_id: contributing_os2,
         base_per_block: Some(Decimal::from_str(DEFAULT_PAY).unwrap()),
         weight: Some(200u64.into()),
         expiration_block: Some((app.block_info().height + 500).into()),
@@ -196,7 +196,7 @@ fn add_and_remove_contributors() {
         .query_wasm_smart(
             subscription_addr,
             &app::QueryMsg::App(msgs::SubscriptionQueryMsg::ContributorState {
-                os_id: contributing_os2,
+                account_id: contributing_os2,
             }),
         )
         .unwrap();
@@ -212,7 +212,7 @@ fn add_and_remove_contributors() {
     );
 
     let msg = app::ExecuteMsg::<_>::App(msgs::SubscriptionExecuteMsg::RemoveContributor {
-        os_id: contributing_os1,
+        account_id: contributing_os1,
     });
 
     let resp =
@@ -287,7 +287,7 @@ fn add_and_remove_contributors() {
 //     // 50 os' were created
 //     assert_eq!(abstract_balance.amount.u128(), 5_000u128);
 
-//     let msg = msgs::ExecuteMsg::ClaimEmissions { os_id: 2 };
+//     let msg = msgs::ExecuteMsg::ClaimEmissions { account_id: 2 };
 //     let resp = app
 //         .execute_contract(sender.clone(), subscription_addr.clone(), &msg, &[])
 //         // Can only claim after tallying
@@ -303,7 +303,7 @@ fn add_and_remove_contributors() {
 //         .execute_contract(sender.clone(), subscription_addr.clone(), &msg, &[])
 //         .unwrap();
 
-//     let msg = msgs::ExecuteMsg::ClaimEmissions { os_id: 2 };
+//     let msg = msgs::ExecuteMsg::ClaimEmissions { account_id: 2 };
 //     let resp = app
 //         .execute_contract(sender.clone(), subscription_addr.clone(), &msg, &[])
 //         // Can only claim after tallying
@@ -396,7 +396,7 @@ fn add_and_remove_contributors() {
 //     );
 //     send_compensations_until_done(&mut app, &sender, &subscription_addr);
 
-//     let msg = msgs::ExecuteMsg::ClaimEmissions { os_id: 2 };
+//     let msg = msgs::ExecuteMsg::ClaimEmissions { account_id: 2 };
 //     let _resp = app
 //         .execute_contract(sender.clone(), subscription_addr.clone(), &msg, &[])
 //         .unwrap();
@@ -555,7 +555,7 @@ fn add_and_remove_contributors() {
 // //     // 50 os' were created
 // //     assert_eq!(abstract_balance.amount.u128(), 5_000u128);
 
-// //     let msg = msgs::ExecuteMsg::ClaimEmissions { os_id: 2 };
+// //     let msg = msgs::ExecuteMsg::ClaimEmissions { account_id: 2 };
 // //     let resp = app
 // //         .execute_contract(sender.clone(), subscription_addr.clone(), &msg, &[])
 // //         // Can only claim after tallying
@@ -571,7 +571,7 @@ fn add_and_remove_contributors() {
 // //         .execute_contract(sender.clone(), subscription_addr.clone(), &msg, &[])
 // //         .unwrap();
 
-// //     let msg = msgs::ExecuteMsg::ClaimEmissions { os_id: 2 };
+// //     let msg = msgs::ExecuteMsg::ClaimEmissions { account_id: 2 };
 // //     let resp = app
 // //         .execute_contract(sender.clone(), subscription_addr.clone(), &msg, &[])
 // //         // Can only claim after tallying
@@ -663,7 +663,7 @@ fn add_and_remove_contributors() {
 // //         }
 // //     );
 
-// //     let msg = msgs::ExecuteMsg::ClaimEmissions { os_id: 2 };
+// //     let msg = msgs::ExecuteMsg::ClaimEmissions { account_id: 2 };
 // //     let resp = app
 // //         .execute_contract(sender.clone(), subscription_addr.clone(), &msg, &[])
 // //         .unwrap();

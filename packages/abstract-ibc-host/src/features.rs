@@ -1,7 +1,7 @@
 use crate::{Host, HostError};
-use abstract_os::objects::OsId;
+use abstract_os::objects::AccountId;
 use abstract_sdk::{
-    features::{AbstractNameService, Identification},
+    features::{AbstractNameService, AccountIdentification},
     AbstractSdkError, AbstractSdkResult,
 };
 use cosmwasm_std::Deps;
@@ -28,7 +28,7 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-    > Identification
+    > AccountIdentification
     for Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<cosmwasm_std::Addr> {
@@ -48,9 +48,9 @@ impl<
         ))
     }
 
-    fn os_id(&self, _deps: Deps) -> AbstractSdkResult<OsId> {
+    fn account_id(&self, _deps: Deps) -> AbstractSdkResult<AccountId> {
         Err(AbstractSdkError::generic_err(
-            "os_id not available on stateless ibc deployment",
+            "account_id not available on stateless ibc deployment",
         ))
     }
 }

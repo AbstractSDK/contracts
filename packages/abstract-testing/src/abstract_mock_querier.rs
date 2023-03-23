@@ -1,16 +1,16 @@
 use crate::{addresses::*, mock_ans::MockAnsHost, MockQuerierBuilder};
 use abstract_os::{
     ans_host::state::ASSET_ADDRESSES,
-    objects::{common_namespace::ADMIN_NAMESPACE, core::OS_ID, AssetEntry},
+    objects::{common_namespace::ADMIN_NAMESPACE, core::ACCOUNT_ID, AssetEntry},
     version_control::{state::OS_ADDRESSES, Core},
 };
 use cosmwasm_std::{testing::MockQuerier, Addr};
 use cw_asset::AssetInfo;
 use cw_storage_plus::Item;
 
-/// A mock querier setup with the proper responses for proxy/manager/osId.
+/// A mock querier setup with the proper responses for proxy/manager/accountId.
 pub fn mocked_os_querier_builder() -> AbstractMockQuerierBuilder {
-    AbstractMockQuerierBuilder::default().os(TEST_MANAGER, TEST_PROXY, TEST_OS_ID)
+    AbstractMockQuerierBuilder::default().account(TEST_MANAGER, TEST_PROXY, TEST_ACCOUNT_ID)
 }
 
 pub struct AbstractMockQuerierBuilder {
@@ -28,12 +28,12 @@ impl Default for AbstractMockQuerierBuilder {
 }
 
 impl AbstractMockQuerierBuilder {
-    /// Mock the existence of an OS by setting the OS id for the proxy and manager along with registering the os to version control.
-    pub fn os(mut self, manager: &str, proxy: &str, os_id: u32) -> Self {
+    /// Mock the existence of an OS by setting the Account id for the proxy and manager along with registering the os to version control.
+    pub fn account(mut self, manager: &str, proxy: &str, account_id: u32) -> Self {
         self.builder = self
             .builder
-            .with_contract_item(proxy, OS_ID, &os_id)
-            .with_contract_item(manager, OS_ID, &os_id)
+            .with_contract_item(proxy, ACCOUNT_ID, &account_id)
+            .with_contract_item(manager, ACCOUNT_ID, &account_id)
             .with_contract_item(
                 proxy,
                 Item::new(ADMIN_NAMESPACE),
@@ -43,7 +43,7 @@ impl AbstractMockQuerierBuilder {
                 self.version_control,
                 OS_ADDRESSES,
                 (
-                    os_id,
+                    account_id,
                     Core {
                         manager: Addr::unchecked(manager),
                         proxy: Addr::unchecked(proxy),

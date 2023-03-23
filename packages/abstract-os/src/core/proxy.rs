@@ -14,7 +14,7 @@
 use crate::{
     ibc_client::ExecuteMsg as IbcClientMsg,
     objects::{
-        core::OsId,
+        core::AccountId,
         oracle::{AccountValue, Complexity},
         price_source::{PriceSource, UncheckedPriceSource},
         AssetEntry,
@@ -25,8 +25,7 @@ use cosmwasm_std::{CosmosMsg, Empty, Uint128};
 use cw_asset::{Asset, AssetInfo};
 
 pub mod state {
-
-    pub use crate::objects::core::OS_ID;
+    pub use crate::objects::core::ACCOUNT_ID;
     use cw_controllers::Admin;
 
     use cosmwasm_std::Addr;
@@ -45,7 +44,7 @@ pub mod state {
 
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
-    pub os_id: OsId,
+    pub account_id: AccountId,
     pub ans_host_address: String,
 }
 

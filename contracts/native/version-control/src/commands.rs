@@ -1,7 +1,7 @@
 use crate::contract::{VCResult, ABSTRACT_NAMESPACE};
 use crate::error::VCError;
 use abstract_macros::abstract_response;
-use abstract_os::objects::OsId;
+use abstract_os::objects::AccountId;
 use abstract_sdk::os::{
     objects::{module::ModuleInfo, module_reference::ModuleReference},
     version_control::{state::*, Core},
@@ -14,15 +14,15 @@ pub struct VcResponse;
 
 /// Add new OS to version control contract
 /// Only Factory can add OS
-pub fn add_os(deps: DepsMut, msg_info: MessageInfo, os_id: OsId, core: Core) -> VCResult {
+pub fn add_os(deps: DepsMut, msg_info: MessageInfo, account_id: AccountId, core: Core) -> VCResult {
     // Only Factory can add new OS
     FACTORY.assert_admin(deps.as_ref(), &msg_info.sender)?;
-    OS_ADDRESSES.save(deps.storage, os_id, &core)?;
+    OS_ADDRESSES.save(deps.storage, account_id, &core)?;
 
     Ok(VcResponse::new(
         "add_os",
         vec![
-            ("os_id", os_id.to_string().as_str()),
+            ("account_id", account_id.to_string().as_str()),
             ("manager", core.manager.as_ref()),
             ("proxy", core.proxy.as_ref()),
         ],
@@ -372,7 +372,7 @@ mod test {
                 proxy: Addr::unchecked(TEST_PROXY_ADDR),
             };
             let msg = ExecuteMsg::AddOs {
-                os_id: 0,
+                account_id: 0,
                 core: test_core.clone(),
             };
 

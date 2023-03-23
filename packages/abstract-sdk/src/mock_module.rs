@@ -2,13 +2,15 @@ use abstract_os::objects::dependency::StaticDependency;
 use abstract_testing::prelude::{TEST_MODULE_ID, TEST_PROXY};
 use cosmwasm_std::{Addr, Deps};
 
-use crate::features::{AbstractNameService, Dependencies, Identification, ModuleIdentification};
+use crate::features::{
+    AbstractNameService, AccountIdentification, Dependencies, ModuleIdentification,
+};
 use crate::AbstractSdkResult;
 use abstract_os::objects::ans_host::AnsHost;
 use os::objects::module::ModuleId;
 
 // We implement the following traits here for the mock module (in this package) to avoid a circular dependency
-impl Identification for MockModule {
+impl AccountIdentification for MockModule {
     fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
         Ok(Addr::unchecked(TEST_PROXY))
     }

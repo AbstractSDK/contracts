@@ -622,7 +622,7 @@ mod test {
             mock_env(),
             info,
             InstantiateMsg {
-                os_id: 1,
+                account_id: 1,
                 root_user: TEST_ROOT.to_string(),
                 version_control_address: TEST_VERSION_CONTROL.to_string(),
                 module_factory_address: TEST_MODULE_FACTORY.to_string(),
@@ -1378,7 +1378,7 @@ mod test {
                 mock_env(),
                 info,
                 InstantiateMsg {
-                    os_id: 1,
+                    account_id: 1,
                     root_user: TEST_ROOT.to_string(),
                     version_control_address: TEST_VERSION_CONTROL.to_string(),
                     module_factory_address: TEST_MODULE_FACTORY.to_string(),

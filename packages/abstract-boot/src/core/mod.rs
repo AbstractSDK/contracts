@@ -15,7 +15,7 @@ mod manager;
 mod proxy;
 use std::collections::HashSet;
 
-use abstract_os::{manager::ManagerModuleInfo, objects::OsId};
+use abstract_os::{manager::ManagerModuleInfo, objects::AccountId};
 use boot_core::{
     BootEnvironment, {BootUpload, ContractInstance},
 };
@@ -31,8 +31,8 @@ pub struct AbstractAccount<Chain: BootEnvironment> {
 }
 
 impl<Chain: BootEnvironment> AbstractAccount<Chain> {
-    pub fn new(chain: Chain, os_id: Option<OsId>) -> Self {
-        let (manager, proxy) = get_os_core_contracts(chain, os_id);
+    pub fn new(chain: Chain, account_id: Option<AccountId>) -> Self {
+        let (manager, proxy) = get_os_core_contracts(chain, account_id);
         Self { manager, proxy }
     }
 

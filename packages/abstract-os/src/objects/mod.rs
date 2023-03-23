@@ -28,7 +28,7 @@ pub mod paged_map;
 pub mod price_source;
 pub mod time_weighted_average;
 
-pub use self::core::OsId;
+pub use self::core::AccountId;
 pub use ans_asset::AnsAsset;
 pub use asset_entry::AssetEntry;
 pub use channel_entry::{ChannelEntry, UncheckedChannelEntry};
