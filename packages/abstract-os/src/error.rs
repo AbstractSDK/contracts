@@ -6,7 +6,7 @@ use thiserror::Error;
 
 /// Wrapper error for the Abstract-OS framework.
 #[derive(Error, Debug, PartialEq)]
-pub enum AbstractOsError {
+pub enum AbstractError {
     #[error("Std error encountered while handling os object: {0}")]
     Std(#[from] StdError),
 
@@ -53,14 +53,14 @@ pub enum AbstractOsError {
     Deposit(String),
 }
 
-impl From<SemverError> for AbstractOsError {
+impl From<SemverError> for AbstractError {
     fn from(err: SemverError) -> Self {
-        AbstractOsError::Semver(err.to_string())
+        AbstractError::Semver(err.to_string())
     }
 }
 
-impl From<CwSemverError> for AbstractOsError {
+impl From<CwSemverError> for AbstractError {
     fn from(err: CwSemverError) -> Self {
-        AbstractOsError::Semver(err.to_string())
+        AbstractError::Semver(err.to_string())
     }
 }

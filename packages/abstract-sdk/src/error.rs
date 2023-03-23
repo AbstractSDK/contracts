@@ -1,6 +1,6 @@
 use cosmwasm_std::Addr;
 use cw_asset::AssetError;
-use os::{objects::AssetEntry, AbstractOsError};
+use os::{objects::AssetEntry, AbstractError};
 use std::fmt::{Display, Formatter};
 use thiserror::Error;
 
@@ -20,7 +20,7 @@ impl Display for EndpointError {
 #[derive(Error, Debug, PartialEq)]
 pub enum AbstractSdkError {
     #[error("Abstract OS error in the sdk: {0}")]
-    AbstractOs(#[from] AbstractOsError),
+    AbstractOs(#[from] AbstractError),
 
     #[error("Std error encountered in sdk: {0}")]
     Std(#[from] cosmwasm_std::StdError),

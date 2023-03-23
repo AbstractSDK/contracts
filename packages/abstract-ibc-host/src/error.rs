@@ -1,4 +1,4 @@
-use abstract_os::AbstractOsError;
+use abstract_os::AbstractError;
 use abstract_sdk::{os::abstract_ica::SimpleIcaError, AbstractSdkError};
 use cosmwasm_std::StdError;
 use cw_controllers::AdminError;
@@ -11,7 +11,7 @@ pub enum HostError {
     Std(#[from] StdError),
 
     #[error("{0}")]
-    AbstractOs(#[from] AbstractOsError),
+    AbstractOs(#[from] AbstractError),
 
     #[error("{0}")]
     AbstractSdk(#[from] AbstractSdkError),

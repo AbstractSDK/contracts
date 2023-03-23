@@ -1,4 +1,4 @@
-use crate::{error::AbstractOsError, AbstractResult};
+use crate::{error::AbstractError, AbstractResult};
 use cosmwasm_std::{Addr, Api, StdError};
 use std::{fmt, str::FromStr};
 
@@ -25,7 +25,7 @@ impl PoolAddress {
     pub fn expect_contract(&self) -> AbstractResult<Addr> {
         match self {
             PoolAddress::Contract(addr) => Ok(addr.clone()),
-            _ => Err(AbstractOsError::Assert(
+            _ => Err(AbstractError::Assert(
                 "Pool address not a contract address.".into(),
             )),
         }
@@ -34,7 +34,7 @@ impl PoolAddress {
     pub fn expect_id(&self) -> AbstractResult<u64> {
         match self {
             PoolAddress::Id(id) => Ok(*id),
-            _ => Err(AbstractOsError::Assert(
+            _ => Err(AbstractError::Assert(
                 "Pool address not an numerical ID.".into(),
             )),
         }
@@ -44,7 +44,7 @@ impl PoolAddress {
 pub type UncheckedPoolAddress = PoolAddressBase<String>;
 
 impl FromStr for UncheckedPoolAddress {
-    type Err = AbstractOsError;
+    type Err = AbstractError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let words: Vec<&str> = s.split(':').collect();
@@ -52,7 +52,7 @@ impl FromStr for UncheckedPoolAddress {
         match words[0] {
             "contract" => {
                 if words.len() != 2 {
-                    return Err(AbstractOsError::FormattingError {
+                    return Err(AbstractError::FormattingError {
                         object: "unchecked pool address".to_string(),
                         expected: "contract:{{contract_addr}}".to_string(),
                         actual: s.to_string(),
@@ -63,7 +63,7 @@ impl FromStr for UncheckedPoolAddress {
             }
             "id" => {
                 if words.len() != 2 {
-                    return Err(AbstractOsError::FormattingError {
+                    return Err(AbstractError::FormattingError {
                         object: "unchecked pool address".to_string(),
                         expected: "id:{{pool_id}}".to_string(),
                         actual: s.to_string(),
@@ -75,7 +75,7 @@ impl FromStr for UncheckedPoolAddress {
                     Err(err) => Err(StdError::generic_err(err.to_string()).into()),
                 }
             }
-            _unknown => Err(AbstractOsError::FormattingError {
+            _unknown => Err(AbstractError::FormattingError {
                 object: "unchecked pool address".to_string(),
                 expected: "'contract' or 'id'".to_string(),
                 actual: s.to_string(),

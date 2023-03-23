@@ -1,4 +1,4 @@
-use abstract_os::AbstractOsError;
+use abstract_os::AbstractError;
 use abstract_sdk::os::objects::module::ModuleInfo;
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
@@ -11,7 +11,7 @@ pub enum ManagerError {
     Std(#[from] StdError),
 
     #[error("{0}")]
-    AbstractOs(#[from] AbstractOsError),
+    AbstractOs(#[from] AbstractError),
 
     #[error("{0}")]
     AbstractSdk(#[from] AbstractSdkError),

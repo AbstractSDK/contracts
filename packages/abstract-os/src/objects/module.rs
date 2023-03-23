@@ -1,5 +1,5 @@
 use super::module_reference::ModuleReference;
-use crate::{error::AbstractOsError, AbstractResult};
+use crate::{error::AbstractError, AbstractResult};
 use cosmwasm_std::{to_binary, Binary, StdError, StdResult};
 use cw2::ContractVersion;
 use cw_semver::Version;
@@ -27,21 +27,21 @@ const MAX_LENGTH: usize = 64;
 /// See https://github.com/rust-lang/api-guidelines/discussions/29
 fn validate_name(name: &str) -> AbstractResult<()> {
     if name.is_empty() {
-        return Err(AbstractOsError::FormattingError {
+        return Err(AbstractError::FormattingError {
             object: "module name".into(),
             expected: "with content".into(),
             actual: "empty".to_string(),
         });
     }
     if name.len() > MAX_LENGTH {
-        return Err(AbstractOsError::FormattingError {
+        return Err(AbstractError::FormattingError {
             object: "module name".into(),
             expected: "at most 64 characters".into(),
             actual: name.len().to_string(),
         });
     }
     if name.contains(|c: char| !c.is_ascii_alphanumeric() && c != '-') {
-        return Err(AbstractOsError::FormattingError {
+        return Err(AbstractError::FormattingError {
             object: "module name".into(),
             expected: "alphanumeric characters and hyphens".into(),
             actual: name.to_string(),
@@ -49,7 +49,7 @@ fn validate_name(name: &str) -> AbstractResult<()> {
     }
 
     if name != name.to_lowercase() {
-        return Err(AbstractOsError::FormattingError {
+        return Err(AbstractError::FormattingError {
             object: "module name".into(),
             expected: name.to_ascii_lowercase(),
             actual: name.to_string(),
@@ -62,7 +62,7 @@ impl ModuleInfo {
     pub fn from_id(id: &str, version: ModuleVersion) -> AbstractResult<Self> {
         let split: Vec<&str> = id.split(':').collect();
         if split.len() != 2 {
-            return Err(AbstractOsError::FormattingError {
+            return Err(AbstractError::FormattingError {
                 object: "contract id".into(),
                 expected: "provider:contract_name".to_string(),
                 actual: id.to_string(),
@@ -97,7 +97,7 @@ impl ModuleInfo {
 
     pub fn assert_version_variant(&self) -> AbstractResult<()> {
         match &self.version {
-            ModuleVersion::Latest => Err(AbstractOsError::Assert(
+            ModuleVersion::Latest => Err(AbstractError::Assert(
                 "Module version must be set to a specific version".into(),
             )),
             ModuleVersion::Version(ver) => {
@@ -245,11 +245,11 @@ impl fmt::Display for ModuleInfo {
 }
 
 impl TryInto<Version> for ModuleVersion {
-    type Error = AbstractOsError;
+    type Error = AbstractError;
 
     fn try_into(self) -> AbstractResult<Version> {
         match self {
-            ModuleVersion::Latest => Err(AbstractOsError::MissingVersion("module".to_string())),
+            ModuleVersion::Latest => Err(AbstractError::MissingVersion("module".to_string())),
             ModuleVersion::Version(ver) => {
                 let version = Version::parse(&ver)?;
                 Ok(version)
@@ -259,12 +259,12 @@ impl TryInto<Version> for ModuleVersion {
 }
 
 impl TryFrom<ContractVersion> for ModuleInfo {
-    type Error = AbstractOsError;
+    type Error = AbstractError;
 
     fn try_from(value: ContractVersion) -> Result<Self, Self::Error> {
         let split: Vec<&str> = value.contract.split(':').collect();
         if split.len() != 2 {
-            return Err(AbstractOsError::FormattingError {
+            return Err(AbstractError::FormattingError {
                 object: "contract id".to_string(),
                 expected: "provider:contract_name".into(),
                 actual: value.contract,

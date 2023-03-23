@@ -57,7 +57,7 @@ impl<'a> Oracle<'a> {
             .count();
         let delta: i128 = to_add.len() as i128 - to_remove.len() as i128;
         if current_vault_size as i128 + delta > LIST_SIZE_LIMIT as i128 {
-            return Err(crate::AbstractOsError::Std(StdError::generic_err(
+            return Err(crate::AbstractError::Std(StdError::generic_err(
                 "Oracle list size limit exceeded",
             )));
         }
@@ -390,7 +390,7 @@ impl<'a> Oracle<'a> {
         for dependency in dependencies {
             let asset_info = self.assets.has(deps.storage, dependency);
             if !asset_info {
-                return Err(crate::AbstractOsError::Std(StdError::generic_err(format!(
+                return Err(crate::AbstractError::Std(StdError::generic_err(format!(
                     "Asset {dependency} not registered on oracle"
                 ))));
             }

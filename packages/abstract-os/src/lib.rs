@@ -40,7 +40,7 @@
 //! An `AbstractError` wraps error throws by `StdError` or `AssetError`. It is also use in the objects to throw errors.
 
 /// Result type for Abstract OS objects
-pub type AbstractResult<T> = Result<T, error::AbstractOsError>;
+pub type AbstractResult<T> = Result<T, error::AbstractError>;
 
 pub extern crate abstract_ica;
 pub mod base;
@@ -54,7 +54,8 @@ pub mod objects;
 pub mod registry;
 
 mod error;
-pub use error::AbstractOsError;
+
+pub use error::AbstractError;
 
 mod core;
 pub use crate::core::*;

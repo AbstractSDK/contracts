@@ -13,7 +13,7 @@ use super::{
     ans_host::AnsHost, asset_entry::AssetEntry, DexAssetPairing, LpToken, PoolAddress,
     PoolReference,
 };
-use crate::{error::AbstractOsError, AbstractResult};
+use crate::{error::AbstractError, AbstractResult};
 use cosmwasm_std::{
     to_binary, Addr, Decimal, Deps, QuerierWrapper, QueryRequest, StdError, Uint128, WasmQuery,
 };
@@ -229,7 +229,7 @@ impl PriceSource {
             .map(|a| {
                 let balance = a
                     .query_balance(&deps.querier, pool.clone())
-                    .map_err(AbstractOsError::from)?;
+                    .map_err(AbstractError::from)?;
                 Ok(AssetConversion::new(
                     a.clone(),
                     Decimal::from_ratio(balance.u128(), supply.u128()),

@@ -321,7 +321,7 @@ mod test {
 
     mod update_factory_binaries {
         use super::*;
-        use abstract_os::{objects::module::ModuleVersion, AbstractOsError};
+        use abstract_os::{objects::module::ModuleVersion, AbstractError};
         use abstract_testing::map_tester::*;
         use abstract_testing::prelude::TEST_ADMIN;
 
@@ -400,7 +400,7 @@ mod test {
 
             assert_that!(res)
                 .is_err()
-                .is_equal_to(ModuleFactoryError::AbstractOs(AbstractOsError::Assert(
+                .is_equal_to(ModuleFactoryError::AbstractOs(AbstractError::Assert(
                     "Module version must be set to a specific version".into(),
                 )));
 

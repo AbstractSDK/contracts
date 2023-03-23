@@ -1,4 +1,4 @@
-use crate::{error::AbstractOsError, AbstractResult};
+use crate::{error::AbstractError, AbstractResult};
 use cosmwasm_std::{Storage, Uint64};
 use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
@@ -23,7 +23,7 @@ impl Deposit {
 
     pub fn decrease(&mut self, amount: Uint64) -> AbstractResult<Self> {
         if amount > self.value {
-            return Err(AbstractOsError::Deposit(format!(
+            return Err(AbstractError::Deposit(format!(
                 "Cannot decrease {} by {}",
                 self.value, amount
             )));

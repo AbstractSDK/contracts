@@ -1,4 +1,4 @@
-use abstract_os::AbstractOsError;
+use abstract_os::AbstractError;
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::{StdError, Uint128};
 use cw_asset::AssetError;
@@ -10,7 +10,7 @@ pub enum ProxyError {
     Std(#[from] StdError),
 
     #[error("{0}")]
-    AbstractOs(#[from] AbstractOsError),
+    AbstractOs(#[from] AbstractError),
 
     #[error("{0}")]
     AbstractSdk(#[from] AbstractSdkError),

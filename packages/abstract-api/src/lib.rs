@@ -45,7 +45,7 @@ pub mod mock {
         Api(#[from] ApiError),
 
         #[error("{0}")]
-        Abstract(#[from] abstract_os::AbstractOsError),
+        Abstract(#[from] abstract_os::AbstractError),
 
         #[error("{0}")]
         AbstractSdk(#[from] AbstractSdkError),

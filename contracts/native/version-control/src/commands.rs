@@ -207,7 +207,7 @@ mod test {
     mod add_modules {
         use super::*;
         use abstract_os::objects::{module::*, module_reference::ModuleReference};
-        use abstract_os::AbstractOsError;
+        use abstract_os::AbstractError;
 
         fn test_module() -> ModuleInfo {
             ModuleInfo::from_id(TEST_MODULE, ModuleVersion::Version(TEST_VERSION.into())).unwrap()
@@ -285,7 +285,7 @@ mod test {
             let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::AbstractOs(AbstractOsError::Assert(
+                .is_equal_to(&VCError::AbstractOs(AbstractError::Assert(
                     "Module version must be set to a specific version".into(),
                 )));
             Ok(())
@@ -348,7 +348,7 @@ mod test {
                 assert_that!(&res)
                     .named(&format!("ModuleInfo validation failed for {bad_module}"))
                     .is_err()
-                    .is_equal_to(&VCError::AbstractOs(AbstractOsError::FormattingError {
+                    .is_equal_to(&VCError::AbstractOs(AbstractError::FormattingError {
                         object: "module name".into(),
                         expected: "with content".into(),
                         actual: "empty".into(),

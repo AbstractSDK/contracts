@@ -1,4 +1,4 @@
-use crate::{error::AbstractOsError, AbstractResult};
+use crate::{error::AbstractError, AbstractResult};
 use cosmwasm_std::{Addr, Api, CosmosMsg, Decimal, Uint128};
 use cw_asset::Asset;
 
@@ -53,7 +53,7 @@ pub struct Fee {
 impl Fee {
     pub fn new(share: Decimal) -> AbstractResult<Self> {
         if share >= Decimal::percent(100) {
-            return Err(AbstractOsError::Fee(
+            return Err(AbstractError::Fee(
                 "fee share must be lesser than 100%".to_string(),
             ));
         }
