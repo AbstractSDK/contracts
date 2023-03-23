@@ -1,4 +1,4 @@
-use crate::{deployment, OS};
+use crate::{deployment, AbstractAccount};
 pub use abstract_os::version_control::{ExecuteMsgFns as VCExecFns, QueryMsgFns as VCQueryFns};
 use abstract_os::{
     objects::{
@@ -44,7 +44,7 @@ where
 
     pub fn register_core(
         &self,
-        os: &OS<Chain>,
+        os: &AbstractAccount<Chain>,
         version: &str,
     ) -> Result<(), crate::AbstractBootError> {
         let manager = os.manager.as_instance();

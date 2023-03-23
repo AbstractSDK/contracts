@@ -25,12 +25,12 @@ use speculoos::prelude::*;
 use crate::{get_os_core_contracts, VersionControl};
 
 pub use self::{manager::*, proxy::*};
-pub struct OS<Chain: BootEnvironment> {
+pub struct AbstractAccount<Chain: BootEnvironment> {
     pub manager: Manager<Chain>,
     pub proxy: Proxy<Chain>,
 }
 
-impl<Chain: BootEnvironment> OS<Chain> {
+impl<Chain: BootEnvironment> AbstractAccount<Chain> {
     pub fn new(chain: Chain, os_id: Option<OsId>) -> Self {
         let (manager, proxy) = get_os_core_contracts(chain, os_id);
         Self { manager, proxy }

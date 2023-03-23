@@ -6,8 +6,10 @@ pub const TEST_COIN: &str = "ucoin";
 
 use ::abstract_manager::contract::CONTRACT_VERSION;
 use abstract_api::mock::{BootMockApi, MockInitMsg};
-use abstract_boot::{Abstract, AnsHost, Manager, ModuleFactory, OSFactory, Proxy, VersionControl};
-use abstract_boot::{ApiDeployer, OS};
+use abstract_boot::{
+    Abstract, AccountFactory, AnsHost, Manager, ModuleFactory, Proxy, VersionControl,
+};
+use abstract_boot::{AbstractAccount, ApiDeployer};
 use abstract_os::{objects::gov_type::GovernanceDetails, PROXY};
 use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL};
 use boot_core::ContractWrapper;
@@ -15,9 +17,9 @@ use boot_core::{ContractInstance, Mock};
 use cosmwasm_std::Addr;
 use semver::Version;
 
-pub fn init_abstract_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, OS<Mock>)> {
+pub fn init_abstract_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, AbstractAccount<Mock>)> {
     let mut ans_host = AnsHost::new(ANS_HOST, chain.clone());
-    let mut os_factory = OSFactory::new(OS_FACTORY, chain.clone());
+    let mut os_factory = AccountFactory::new(OS_FACTORY, chain.clone());
     let mut version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
     let mut module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
     let mut manager = Manager::new(MANAGER, chain.clone());
@@ -90,15 +92,17 @@ pub fn init_abstract_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, OS<Mock
         module_factory,
     };
 
-    let os_core = OS { manager, proxy };
+    let os_core = AbstractAccount { manager, proxy };
 
     Ok((deployment, os_core))
 }
 
 pub(crate) type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 
-pub(crate) fn create_default_os(factory: &OSFactory<Mock>) -> anyhow::Result<OS<Mock>> {
-    let os = factory.create_default_os(GovernanceDetails::Monarchy {
+pub(crate) fn create_default_os(
+    factory: &AccountFactory<Mock>,
+) -> anyhow::Result<AbstractAccount<Mock>> {
+    let os = factory.create_default_account(GovernanceDetails::Monarchy {
         monarch: Addr::unchecked(ROOT_USER).to_string(),
     })?;
     Ok(os)

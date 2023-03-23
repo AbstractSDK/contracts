@@ -1,5 +1,5 @@
 mod common;
-use abstract_boot::{OsFactoryExecFns, OsFactoryQueryFns, VCQueryFns, OS, *};
+use abstract_boot::{AbstractAccount, OsFactoryExecFns, OsFactoryQueryFns, VCQueryFns, *};
 use abstract_os::{
     objects::gov_type::GovernanceDetails, os_factory, version_control::Core, ABSTRACT_EVENT_NAME,
 };
@@ -181,7 +181,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
 
     let os = version_control.os_core(0)?.os_core;
 
-    let os_1 = OS::new(chain, Some(0));
+    let os_1 = AbstractAccount::new(chain, Some(0));
     assert_that!(Core {
         manager: os_1.manager.address()?,
         proxy: os_1.proxy.address()?,
@@ -226,7 +226,7 @@ fn sender_is_not_admin_external() -> AResult {
         Some(String::from("os_link_of_at_least_11_char")),
     )?;
 
-    let os = OS::new(chain, Some(0));
+    let os = AbstractAccount::new(chain, Some(0));
     let os_config = os.manager.config()?;
 
     assert_that!(os_config).is_equal_to(abstract_os::manager::ConfigResponse {

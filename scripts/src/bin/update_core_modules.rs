@@ -1,4 +1,4 @@
-use abstract_boot::{OSFactory, OsFactoryQueryFns, VersionControl, OS};
+use abstract_boot::{AbstractAccount, AccountFactory, OsFactoryQueryFns, VersionControl};
 use abstract_os::{manager, os_factory, proxy, MANAGER, OS_FACTORY, PROXY, VERSION_CONTROL};
 use boot_core::{
     networks::{parse_network, NetworkInfo},
@@ -19,19 +19,19 @@ pub fn migrate(network: NetworkInfo) -> anyhow::Result<()> {
     let _version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
 
     // Upload the new core contracts
-    let _os_core = OS::new(chain.clone(), None);
+    let _os_core = AbstractAccount::new(chain.clone(), None);
     // os_core.upload()?;
     // os_core.register(&version_control, VERSION)?;
 
     // Register the cores
     // version_control.register_cores(vec![os_core.proxy.as_instance()], &abstract_os_version)?;
 
-    let os_factory = OSFactory::new(OS_FACTORY, chain.clone());
+    let os_factory = AccountFactory::new(OS_FACTORY, chain.clone());
     let os_factory::ConfigResponse { next_os_id, .. } = OsFactoryQueryFns::config(&os_factory)?;
     let latest_os_id = next_os_id - 1;
 
     for os_id in 1..=latest_os_id {
-        let os = OS::new(chain.clone(), Some(os_id));
+        let os = AbstractAccount::new(chain.clone(), Some(os_id));
         // todo: check admin
 
         // Upgrade manager first

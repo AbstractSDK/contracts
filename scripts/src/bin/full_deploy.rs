@@ -1,4 +1,4 @@
-use abstract_boot::{Abstract, OS};
+use abstract_boot::{Abstract, AbstractAccount};
 use abstract_os::objects::gov_type::GovernanceDetails;
 
 use boot_core::{
@@ -21,7 +21,7 @@ fn full_deploy(network: NetworkInfo) -> anyhow::Result<()> {
 
     // log::info!("Your balance is: {}", );
 
-    let mut os_core = OS::new(chain.clone(), None);
+    let mut os_core = AbstractAccount::new(chain.clone(), None);
 
     let mut deployment = Abstract::new(chain, abstract_os_version);
 
@@ -30,7 +30,7 @@ fn full_deploy(network: NetworkInfo) -> anyhow::Result<()> {
     // CReate the Abstract OS because it's needed for the fees for the dex module
     deployment
         .os_factory
-        .create_default_os(GovernanceDetails::Monarchy {
+        .create_default_account(GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         })?;
 

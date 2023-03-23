@@ -1,4 +1,4 @@
-use crate::{Manager, Proxy, OS};
+use crate::{AbstractAccount, Manager, Proxy};
 pub use abstract_os::os_factory::{
     ExecuteMsgFns as OsFactoryExecFns, QueryMsgFns as OsFactoryQueryFns,
 };
@@ -13,28 +13,28 @@ use cosmwasm_std::Addr;
 
 /// A helper struct that contains fields from [`abstract_os::manager::state::OsInfo`]
 #[derive(Default)]
-pub struct OsDetails {
+pub struct AccountDetails {
     name: String,
     description: Option<String>,
     link: Option<String>,
 }
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
-pub struct OSFactory<Chain>;
+pub struct AccountFactory<Chain>;
 
-impl<Chain: BootEnvironment> OSFactory<Chain> {
+impl<Chain: BootEnvironment> AccountFactory<Chain> {
     pub fn new(name: &str, chain: Chain) -> Self {
         let mut contract = Contract::new(name, chain);
         contract = contract.with_wasm_path("os_factory");
         Self(contract)
     }
 
-    pub fn create_new_os(
+    pub fn create_new_account(
         &self,
-        os_details: OsDetails,
+        os_details: AccountDetails,
         governance_details: GovernanceDetails,
-    ) -> Result<OS<Chain>, crate::AbstractBootError> {
-        let OsDetails {
+    ) -> Result<AbstractAccount<Chain>, crate::AbstractBootError> {
+        let AccountDetails {
             name,
             link,
             description,
@@ -58,18 +58,18 @@ impl<Chain: BootEnvironment> OSFactory<Chain> {
         self.get_chain()
             .state()
             .set_address(PROXY, &Addr::unchecked(proxy_address));
-        Ok(OS {
+        Ok(AbstractAccount {
             manager: Manager::new(MANAGER, self.get_chain().clone()),
             proxy: Proxy::new(PROXY, self.get_chain().clone()),
         })
     }
 
-    pub fn create_default_os(
+    pub fn create_default_account(
         &self,
         governance_details: GovernanceDetails,
-    ) -> Result<OS<Chain>, crate::AbstractBootError> {
-        self.create_new_os(
-            OsDetails {
+    ) -> Result<AbstractAccount<Chain>, crate::AbstractBootError> {
+        self.create_new_account(
+            AccountDetails {
                 name: "Default Abstract OS".into(),
                 ..Default::default()
             },

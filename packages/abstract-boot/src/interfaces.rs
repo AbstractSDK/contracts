@@ -1,4 +1,4 @@
-use crate::{AnsHost, IbcClient, Manager, ModuleFactory, OSFactory, Proxy, VersionControl};
+use crate::{AnsHost, IbcClient, Manager, ModuleFactory, AccountFactory, Proxy, VersionControl};
 use abstract_os::{
     objects::OsId, ANS_HOST, IBC_CLIENT, MANAGER, MODULE_FACTORY, OS_FACTORY, PROXY,
     VERSION_CONTROL,
@@ -10,7 +10,7 @@ pub fn get_native_contracts<Chain: BootEnvironment>(
     chain: Chain,
 ) -> (
     AnsHost<Chain>,
-    OSFactory<Chain>,
+    AccountFactory<Chain>,
     VersionControl<Chain>,
     ModuleFactory<Chain>,
     IbcClient<Chain>,
@@ -19,7 +19,7 @@ where
     <Chain as TxHandler>::Response: IndexResponse,
 {
     let ans_host = AnsHost::new(ANS_HOST, chain.clone());
-    let os_factory = OSFactory::new(OS_FACTORY, chain.clone());
+    let os_factory = AccountFactory::new(OS_FACTORY, chain.clone());
     let version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
     let module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
     let ibc_client = IbcClient::new(IBC_CLIENT, chain);

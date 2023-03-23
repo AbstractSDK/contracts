@@ -1,5 +1,6 @@
 use abstract_boot::{
-    Abstract, AnsHost, Manager, ModuleFactory, OSFactory, Proxy, VersionControl, OS,
+    Abstract, AbstractAccount, AccountFactory, AnsHost, Manager, ModuleFactory, Proxy,
+    VersionControl,
 };
 use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, PROXY, VERSION_CONTROL};
 use boot_core::ContractWrapper;
@@ -7,9 +8,9 @@ use boot_core::{ContractInstance, Mock};
 
 pub const ROOT_USER: &str = "root_user";
 
-pub fn init_abstract_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, OS<Mock>)> {
+pub fn init_abstract_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, AbstractAccount<Mock>)> {
     let mut ans_host = AnsHost::new(ANS_HOST, chain.clone());
-    let mut os_factory = OSFactory::new(OS_FACTORY, chain.clone());
+    let mut os_factory = AccountFactory::new(OS_FACTORY, chain.clone());
     let mut version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
     let mut module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
     let mut manager = Manager::new(MANAGER, chain.clone());
@@ -76,7 +77,7 @@ pub fn init_abstract_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, OS<Mock
         module_factory,
     };
 
-    let os_core = OS { manager, proxy };
+    let os_core = AbstractAccount { manager, proxy };
 
     Ok((deployment, os_core))
 }

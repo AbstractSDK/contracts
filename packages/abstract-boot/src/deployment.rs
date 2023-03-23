@@ -1,5 +1,6 @@
 use crate::{
-    get_native_contracts, AnsHost, Manager, ModuleFactory, OSFactory, Proxy, VersionControl, OS,
+    get_native_contracts, AbstractAccount, AccountFactory, AnsHost, Manager, ModuleFactory, Proxy,
+    VersionControl,
 };
 
 use boot_core::*;
@@ -11,7 +12,7 @@ pub struct Abstract<Chain: BootEnvironment> {
     pub version: Version,
     pub ans_host: AnsHost<Chain>,
     pub version_control: VersionControl<Chain>,
-    pub os_factory: OSFactory<Chain>,
+    pub os_factory: AccountFactory<Chain>,
     pub module_factory: ModuleFactory<Chain>,
 }
 
@@ -27,7 +28,7 @@ impl<Chain: BootEnvironment> boot_core::Deploy<Chain> for Abstract<Chain> {
     #[allow(unused_mut)]
     fn deploy_on(chain: Chain, version: semver::Version) -> Result<Self, BootError> {
         let mut ans_host = AnsHost::new(ANS_HOST, chain.clone());
-        let mut os_factory = OSFactory::new(OS_FACTORY, chain.clone());
+        let mut os_factory = AccountFactory::new(OS_FACTORY, chain.clone());
         let mut version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
         let mut module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
         let mut manager = Manager::new(MANAGER, chain.clone());
@@ -94,7 +95,7 @@ impl<Chain: BootEnvironment> boot_core::Deploy<Chain> for Abstract<Chain> {
             module_factory,
         };
 
-        let mut os_core = OS { manager, proxy };
+        let mut os_core = AbstractAccount { manager, proxy };
 
         deployment
             .deploy(&mut os_core)
@@ -137,7 +138,10 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
         self.chain.clone()
     }
 
-    pub fn upload(&mut self, os_core: &mut OS<Chain>) -> Result<(), crate::AbstractBootError> {
+    pub fn upload(
+        &mut self,
+        os_core: &mut AbstractAccount<Chain>,
+    ) -> Result<(), crate::AbstractBootError> {
         self.ans_host.upload()?;
         self.version_control.upload()?;
         self.os_factory.upload()?;
@@ -185,7 +189,10 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
         Ok(())
     }
 
-    pub fn deploy(&mut self, os_core: &mut OS<Chain>) -> Result<(), crate::AbstractBootError> {
+    pub fn deploy(
+        &mut self,
+        os_core: &mut AbstractAccount<Chain>,
+    ) -> Result<(), crate::AbstractBootError> {
         // ########### Upload ##############
         self.upload(os_core)?;
 

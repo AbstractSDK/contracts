@@ -41,7 +41,7 @@ pub fn first_os(network: NetworkInfo) -> anyhow::Result<()> {
 
     deployment
         .os_factory
-        .create_default_os(GovernanceDetails::Monarchy {
+        .create_default_account(GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         })?;
 
