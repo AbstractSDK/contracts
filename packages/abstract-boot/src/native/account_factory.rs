@@ -1,9 +1,9 @@
 use crate::{AbstractAccount, Manager, Proxy};
-pub use abstract_os::os_factory::{
+pub use abstract_os::account_factory::{
     ExecuteMsgFns as OsFactoryExecFns, QueryMsgFns as OsFactoryQueryFns,
 };
 use abstract_os::{
-    objects::gov_type::GovernanceDetails, os_factory::*, ABSTRACT_EVENT_NAME, MANAGER, PROXY,
+    account_factory::*, objects::gov_type::GovernanceDetails, ABSTRACT_EVENT_NAME, MANAGER, PROXY,
 };
 use boot_core::{
     boot_contract, BootEnvironment, Contract, IndexResponse, StateInterface, TxResponse,
@@ -25,7 +25,7 @@ pub struct AccountFactory<Chain>;
 impl<Chain: BootEnvironment> AccountFactory<Chain> {
     pub fn new(name: &str, chain: Chain) -> Self {
         let mut contract = Contract::new(name, chain);
-        contract = contract.with_wasm_path("os_factory");
+        contract = contract.with_wasm_path("account_factory");
         Self(contract)
     }
 

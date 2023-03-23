@@ -3,4 +3,4 @@ pub mod contract;
 mod error;
 mod querier;
 mod response;
-pub(crate) use abstract_sdk::os::os_factory::state;
+pub(crate) use abstract_sdk::os::account_factory::state;

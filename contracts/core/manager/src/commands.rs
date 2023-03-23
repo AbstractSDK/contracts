@@ -605,7 +605,7 @@ mod test {
 
     type ManagerTestResult = Result<(), ManagerError>;
 
-    const TEST_OS_FACTORY: &str = "os_factory";
+    const TEST_ACCOUNT_FACTORY: &str = "account_factory";
     const TEST_ROOT: &str = "testroot";
     const TEST_MODULE_FACTORY: &str = "module_factory";
 
@@ -615,7 +615,7 @@ mod test {
 
     /// Initialize the manager with the test root as the root
     fn mock_init(mut deps: DepsMut) -> ManagerResult {
-        let info = mock_info(TEST_OS_FACTORY, &[]);
+        let info = mock_info(TEST_ACCOUNT_FACTORY, &[]);
 
         contract::instantiate(
             deps.branch(),
@@ -645,7 +645,7 @@ mod test {
     }
 
     fn _execute_as_admin(deps: DepsMut, msg: ExecuteMsg) -> ManagerResult {
-        execute_as(deps, TEST_OS_FACTORY, msg)
+        execute_as(deps, TEST_ACCOUNT_FACTORY, msg)
     }
 
     fn execute_as_root(deps: DepsMut, msg: ExecuteMsg) -> ManagerResult {
@@ -840,7 +840,7 @@ mod test {
         }
 
         #[test]
-        fn only_os_factory_or_root() -> ManagerTestResult {
+        fn only_account_factory_or_root() -> ManagerTestResult {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
@@ -849,7 +849,7 @@ mod test {
                 to_remove: None,
             };
 
-            let res = execute_as(deps.as_mut(), TEST_OS_FACTORY, msg.clone());
+            let res = execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg.clone());
             assert_that(&res).is_ok();
 
             let res = execute_as_root(deps.as_mut(), msg.clone());
@@ -1371,7 +1371,7 @@ mod test {
         const SUBSCRIPTION: &str = "subscription";
 
         fn mock_init_with_subscription(mut deps: DepsMut) -> ManagerResult {
-            let info = mock_info(TEST_OS_FACTORY, &[]);
+            let info = mock_info(TEST_ACCOUNT_FACTORY, &[]);
 
             contract::instantiate(
                 deps.branch(),

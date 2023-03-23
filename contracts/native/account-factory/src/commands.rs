@@ -4,16 +4,16 @@ use crate::{
 };
 use abstract_macros::abstract_response;
 use abstract_os::{
-    objects::module::Module, version_control::ModulesResponse, AbstractResult, OS_FACTORY,
+    objects::module::Module, version_control::ModulesResponse, AbstractResult, ACCOUNT_FACTORY,
 };
 use abstract_sdk::{
     cw_helpers::cosmwasm_std::wasm_smart_query,
     os::{
+        account_factory::ExecuteMsg,
         manager::{ExecuteMsg::UpdateModuleAddresses, InstantiateMsg as ManagerInstantiateMsg},
         objects::{
             gov_type::GovernanceDetails, module::ModuleInfo, module_reference::ModuleReference,
         },
-        os_factory::ExecuteMsg,
         proxy::{ExecuteMsg as ProxyExecMsg, InstantiateMsg as ProxyInstantiateMsg},
         version_control::{Core, ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery},
     },
@@ -30,7 +30,7 @@ pub const CREATE_OS_MANAGER_MSG_ID: u64 = 1u64;
 pub const CREATE_OS_PROXY_MSG_ID: u64 = 2u64;
 use abstract_sdk::os::{MANAGER, PROXY};
 
-#[abstract_response(OS_FACTORY)]
+#[abstract_response(ACCOUNT_FACTORY)]
 struct OsFactoryResponse;
 
 pub fn receive_cw20(

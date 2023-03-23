@@ -8,7 +8,7 @@ use crate::{
 };
 use abstract_sdk::os::{
     manager::{
-        state::{Config, OsInfo, CONFIG, INFO, OS_FACTORY, ROOT, STATUS},
+        state::{Config, OsInfo, CONFIG, INFO, ACCOUNT_FACTORY, ROOT, STATUS},
         CallbackMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     },
     objects::module_version::{migrate_module_data, set_module_data},
@@ -87,7 +87,7 @@ pub fn instantiate(
     let root = deps.api.addr_validate(&msg.root_user)?;
     ROOT.set(deps.branch(), Some(root))?;
     STATUS.save(deps.storage, &true)?;
-    OS_FACTORY.set(deps, Some(info.sender))?;
+    ACCOUNT_FACTORY.set(deps, Some(info.sender))?;
     Ok(ManagerResponse::new(
         "instantiate",
         vec![("os_id", msg.os_id.to_string()), ("owner", msg.root_user)],
@@ -113,7 +113,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                 ExecuteMsg::UpdateModuleAddresses { to_add, to_remove } => {
                     // only factory/root can add custom modules.
                     // required to add Proxy after init by os factory.
-                    OS_FACTORY
+                    ACCOUNT_FACTORY
                         .assert_admin(deps.as_ref(), &info.sender)
                         .or_else(|_| ROOT.assert_admin(deps.as_ref(), &info.sender))?;
                     update_module_addresses(deps, to_add, to_remove)

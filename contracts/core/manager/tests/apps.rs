@@ -12,7 +12,7 @@ fn execute_on_proxy_through_manager() -> AResult {
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut core) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut core)?;
-    let os = create_default_os(&deployment.os_factory)?;
+    let os = create_default_os(&deployment.account_factory)?;
 
     // mint coins to proxy address
     chain.set_balance(&os.proxy.address()?, vec![Coin::new(100_000, TEST_COIN)])?;

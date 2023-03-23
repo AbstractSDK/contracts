@@ -31,7 +31,7 @@ fn installing_one_api_should_succeed() -> AResult {
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut core) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut core)?;
-    let os = create_default_os(&deployment.os_factory)?;
+    let os = create_default_os(&deployment.account_factory)?;
     let staking_api = init_mock_api(chain.clone(), &deployment, None)?;
     install_api(&os.manager, TEST_MODULE_ID)?;
 
@@ -67,7 +67,7 @@ fn install_non_existent_apiname_should_fail() -> AResult {
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut core) = init_abstract_env(chain)?;
     deployment.deploy(&mut core)?;
-    let os = create_default_os(&deployment.os_factory)?;
+    let os = create_default_os(&deployment.account_factory)?;
 
     let res = install_api(&os.manager, "lol:no_chance");
 
@@ -81,7 +81,7 @@ fn install_non_existent_version_should_fail() -> AResult {
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut core) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut core)?;
-    let os = create_default_os(&deployment.os_factory)?;
+    let os = create_default_os(&deployment.account_factory)?;
     init_mock_api(chain, &deployment, None)?;
 
     let res = os.manager.install_module_version(
@@ -102,7 +102,7 @@ fn installation_of_duplicate_api_should_fail() -> AResult {
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut core) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut core)?;
-    let os = create_default_os(&deployment.os_factory)?;
+    let os = create_default_os(&deployment.account_factory)?;
     let staking_api = init_mock_api(chain, &deployment, None)?;
 
     install_api(&os.manager, TEST_MODULE_ID)?;
@@ -137,7 +137,7 @@ fn reinstalling_api_should_be_allowed() -> AResult {
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut core) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut core)?;
-    let os = create_default_os(&deployment.os_factory)?;
+    let os = create_default_os(&deployment.account_factory)?;
     let staking_api = init_mock_api(chain, &deployment, None)?;
 
     install_api(&os.manager, TEST_MODULE_ID)?;
@@ -176,7 +176,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
     let (mut deployment, mut core) = init_abstract_env(chain.clone())?;
 
     deployment.deploy(&mut core)?;
-    let os = create_default_os(&deployment.os_factory)?;
+    let os = create_default_os(&deployment.account_factory)?;
     let staking_api = init_mock_api(chain.clone(), &deployment, Some("1.0.0".to_string()))?;
 
     install_api(&os.manager, TEST_MODULE_ID)?;
@@ -246,7 +246,7 @@ fn not_trader_exec() -> AResult {
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut core) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut core)?;
-    let os = create_default_os(&deployment.os_factory)?;
+    let os = create_default_os(&deployment.account_factory)?;
     let staking_api = init_mock_api(chain, &deployment, None)?;
     install_api(&os.manager, TEST_MODULE_ID)?;
     // non-trader cannot execute
@@ -272,7 +272,7 @@ fn manager_api_exec_staking_delegation() -> AResult {
     let (mut deployment, mut core) = init_abstract_env(chain.clone())?;
 
     deployment.deploy(&mut core)?;
-    let os = create_default_os(&deployment.os_factory)?;
+    let os = create_default_os(&deployment.account_factory)?;
     let _staking_api_one = init_mock_api(chain.clone(), &deployment, Some("1.2.3".to_string()))?;
 
     install_api(&os.manager, TEST_MODULE_ID)?;
@@ -293,7 +293,7 @@ fn installing_specific_version_should_install_expected() -> AResult {
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut core) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut core)?;
-    let os = create_default_os(&deployment.os_factory)?;
+    let os = create_default_os(&deployment.account_factory)?;
     let _staking_api_one = init_mock_api(chain.clone(), &deployment, Some("1.2.3".to_string()))?;
     let expected_version = "2.3.4".to_string();
     let expected_staking_api =

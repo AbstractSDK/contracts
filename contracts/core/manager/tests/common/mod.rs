@@ -11,7 +11,7 @@ use abstract_boot::{
 };
 use abstract_boot::{AbstractAccount, ApiDeployer};
 use abstract_os::{objects::gov_type::GovernanceDetails, PROXY};
-use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL};
+use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, ACCOUNT_FACTORY, VERSION_CONTROL};
 use boot_core::ContractWrapper;
 use boot_core::{ContractInstance, Mock};
 use cosmwasm_std::Addr;
@@ -19,7 +19,7 @@ use semver::Version;
 
 pub fn init_abstract_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, AbstractAccount<Mock>)> {
     let mut ans_host = AnsHost::new(ANS_HOST, chain.clone());
-    let mut os_factory = AccountFactory::new(OS_FACTORY, chain.clone());
+    let mut account_factory = AccountFactory::new(ACCOUNT_FACTORY, chain.clone());
     let mut version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
     let mut module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
     let mut manager = Manager::new(MANAGER, chain.clone());
@@ -34,14 +34,14 @@ pub fn init_abstract_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, Abstrac
         .with_migrate_empty(::ans_host::contract::migrate),
     ));
 
-    os_factory.as_instance_mut().set_mock(Box::new(
+    account_factory.as_instance_mut().set_mock(Box::new(
         ContractWrapper::new_with_empty(
-            ::os_factory::contract::execute,
-            ::os_factory::contract::instantiate,
-            ::os_factory::contract::query,
+            ::account_factory::contract::execute,
+            ::account_factory::contract::instantiate,
+            ::account_factory::contract::query,
         )
-        .with_migrate_empty(::os_factory::contract::migrate)
-        .with_reply_empty(::os_factory::contract::reply),
+        .with_migrate_empty(::account_factory::contract::migrate)
+        .with_reply_empty(::account_factory::contract::reply),
     ));
 
     module_factory.as_instance_mut().set_mock(Box::new(
@@ -87,7 +87,7 @@ pub fn init_abstract_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, Abstrac
         chain,
         version: "1.0.0".parse()?,
         ans_host,
-        os_factory,
+        account_factory,
         version_control,
         module_factory,
     };

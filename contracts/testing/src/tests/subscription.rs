@@ -1,4 +1,11 @@
-use std::str::FromStr;
+use super::{
+    common::{DEFAULT_VERSION, TEST_CREATOR},
+    testing_infrastructure::env::{get_os_state, init_os, mock_app, register_app, AbstractEnv},
+};
+use crate::tests::{
+    common::{DEFAULT_PAY, RANDOM_USER, SUBSCRIPTION_COST},
+    testing_infrastructure::env::{exec_msg_on_manager, mint_tokens},
+};
 use abstract_os::app;
 use abstract_sdk::os::{
     objects::module::{ModuleInfo, ModuleVersion},
@@ -14,14 +21,7 @@ use cosmwasm_std::{Addr, Decimal, Uint128};
 use cw_asset::AssetInfoBase;
 use cw_controllers::AdminError;
 use cw_multi_test::{App, ContractWrapper, Executor};
-use crate::tests::{
-    common::{DEFAULT_PAY, RANDOM_USER, SUBSCRIPTION_COST},
-    testing_infrastructure::env::{exec_msg_on_manager, mint_tokens},
-};
-use super::{
-    common::{DEFAULT_VERSION, TEST_CREATOR},
-    testing_infrastructure::env::{get_os_state, init_os, mock_app, register_app, AbstractEnv},
-};
+use std::str::FromStr;
 
 pub fn register_subscription(
     app: &mut App,
@@ -83,12 +83,12 @@ fn proper_initialization() {
         config.subscription,
         state::SubscriptionConfig {
             version_control_address: env.native_contracts.version_control,
-            factory_address: env.native_contracts.os_factory,
+            factory_address: env.native_contracts.account_factory,
             payment_asset: cw_asset::AssetInfoBase::native("uusd"),
             subscription_cost_per_block: Decimal::from_str(SUBSCRIPTION_COST).unwrap(),
             subscription_per_block_emissions: EmissionType::IncomeBased(AssetInfoBase::Cw20(
                 env.native_contracts.token
-            ))
+            )),
         }
     );
 

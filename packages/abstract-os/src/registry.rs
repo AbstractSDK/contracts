@@ -7,7 +7,7 @@
 
 pub const MANAGER: &str = "abstract:manager";
 pub const VERSION_CONTROL: &str = "abstract:version-control";
-pub const OS_FACTORY: &str = "abstract:os-factory";
+pub const ACCOUNT_FACTORY: &str = "abstract:account-factory";
 pub const MODULE_FACTORY: &str = "abstract:module-factory";
 pub const PROXY: &str = "abstract:proxy";
 pub const ANS_HOST: &str = "abstract:ans-host";
@@ -22,7 +22,7 @@ pub const ICS20: &str = "ics-20";
 pub static NATIVE_CONTRACTS: &[&str] = &[
     ANS_HOST,
     MODULE_FACTORY,
-    OS_FACTORY,
+    ACCOUNT_FACTORY,
     VERSION_CONTROL,
     "cw20",
 ];

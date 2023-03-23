@@ -1,6 +1,6 @@
-use crate::{AnsHost, IbcClient, Manager, ModuleFactory, AccountFactory, Proxy, VersionControl};
+use crate::{AccountFactory, AnsHost, IbcClient, Manager, ModuleFactory, Proxy, VersionControl};
 use abstract_os::{
-    objects::OsId, ANS_HOST, IBC_CLIENT, MANAGER, MODULE_FACTORY, OS_FACTORY, PROXY,
+    objects::OsId, ANS_HOST, IBC_CLIENT, MANAGER, MODULE_FACTORY, ACCOUNT_FACTORY, PROXY,
     VERSION_CONTROL,
 };
 use boot_core::{BootEnvironment, IndexResponse, StateInterface, TxHandler};
@@ -19,13 +19,13 @@ where
     <Chain as TxHandler>::Response: IndexResponse,
 {
     let ans_host = AnsHost::new(ANS_HOST, chain.clone());
-    let os_factory = AccountFactory::new(OS_FACTORY, chain.clone());
+    let account_factory = AccountFactory::new(ACCOUNT_FACTORY, chain.clone());
     let version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
     let module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
     let ibc_client = IbcClient::new(IBC_CLIENT, chain);
     (
         ans_host,
-        os_factory,
+        account_factory,
         version_control,
         module_factory,
         ibc_client,

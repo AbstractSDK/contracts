@@ -1,6 +1,6 @@
 //! # Os Factory
 //!
-//! `abstract_os::os_factory` handles OS creation and registration.
+//! `abstract_os::account_factory` handles OS creation and registration.
 //!
 //! ## Description
 //! The OS factory instantiates a new OS instance and registeres it with the [`crate::version_control`] contract. It then forwards the payment to the main os's subscription module.  

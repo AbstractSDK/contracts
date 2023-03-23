@@ -12,11 +12,11 @@ pub struct Abstract<Chain: BootEnvironment> {
     pub version: Version,
     pub ans_host: AnsHost<Chain>,
     pub version_control: VersionControl<Chain>,
-    pub os_factory: AccountFactory<Chain>,
+    pub account_factory: AccountFactory<Chain>,
     pub module_factory: ModuleFactory<Chain>,
 }
 
-use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, PROXY, VERSION_CONTROL};
+use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, ACCOUNT_FACTORY, PROXY, VERSION_CONTROL};
 #[cfg(feature = "integration")]
 use boot_core::ContractWrapper;
 
@@ -28,7 +28,7 @@ impl<Chain: BootEnvironment> boot_core::Deploy<Chain> for Abstract<Chain> {
     #[allow(unused_mut)]
     fn deploy_on(chain: Chain, version: semver::Version) -> Result<Self, BootError> {
         let mut ans_host = AnsHost::new(ANS_HOST, chain.clone());
-        let mut os_factory = AccountFactory::new(OS_FACTORY, chain.clone());
+        let mut account_factory = AccountFactory::new(ACCOUNT_FACTORY, chain.clone());
         let mut version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
         let mut module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
         let mut manager = Manager::new(MANAGER, chain.clone());
@@ -43,13 +43,13 @@ impl<Chain: BootEnvironment> boot_core::Deploy<Chain> for Abstract<Chain> {
                     ::ans_host::contract::query,
                 )));
 
-            os_factory.as_instance_mut().set_mock(Box::new(
+            account_factory.as_instance_mut().set_mock(Box::new(
                 ContractWrapper::new_with_empty(
-                    ::os_factory::contract::execute,
-                    ::os_factory::contract::instantiate,
-                    ::os_factory::contract::query,
+                    ::account_factory::contract::execute,
+                    ::account_factory::contract::instantiate,
+                    ::account_factory::contract::query,
                 )
-                .with_reply_empty(::os_factory::contract::reply),
+                .with_reply_empty(::account_factory::contract::reply),
             ));
 
             module_factory.as_instance_mut().set_mock(Box::new(
@@ -90,7 +90,7 @@ impl<Chain: BootEnvironment> boot_core::Deploy<Chain> for Abstract<Chain> {
             chain,
             version,
             ans_host,
-            os_factory,
+            account_factory,
             version_control,
             module_factory,
         };
@@ -104,7 +104,7 @@ impl<Chain: BootEnvironment> boot_core::Deploy<Chain> for Abstract<Chain> {
     }
 
     fn load_from(chain: Chain) -> Result<Self, Self::Error> {
-        let (ans_host, os_factory, version_control, module_factory, _ibc_client) =
+        let (ans_host, account_factory, version_control, module_factory, _ibc_client) =
             get_native_contracts(chain.clone());
         let version = env!("CARGO_PKG_VERSION").parse().unwrap();
         Ok(Self {
@@ -112,7 +112,7 @@ impl<Chain: BootEnvironment> boot_core::Deploy<Chain> for Abstract<Chain> {
             version,
             ans_host,
             version_control,
-            os_factory,
+            account_factory,
             module_factory,
         })
     }
@@ -120,14 +120,14 @@ impl<Chain: BootEnvironment> boot_core::Deploy<Chain> for Abstract<Chain> {
 
 impl<Chain: BootEnvironment> Abstract<Chain> {
     pub fn new(chain: Chain, version: Version) -> Self {
-        let (ans_host, os_factory, version_control, module_factory, _ibc_client) =
+        let (ans_host, account_factory, version_control, module_factory, _ibc_client) =
             get_native_contracts(chain.clone());
 
         Self {
             chain,
             ans_host,
             version_control,
-            os_factory,
+            account_factory,
             module_factory,
             version,
         }
@@ -144,7 +144,7 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
     ) -> Result<(), crate::AbstractBootError> {
         self.ans_host.upload()?;
         self.version_control.upload()?;
-        self.os_factory.upload()?;
+        self.account_factory.upload()?;
         self.module_factory.upload()?;
 
         os_core.upload()?;
@@ -176,8 +176,8 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
             None,
         )?;
 
-        self.os_factory.instantiate(
-            &abstract_os::os_factory::InstantiateMsg {
+        self.account_factory.instantiate(
+            &abstract_os::account_factory::InstantiateMsg {
                 version_control_address: self.version_control.address()?.into_string(),
                 ans_host_address: self.ans_host.address()?.into_string(),
                 module_factory_address: self.module_factory.address()?.into_string(),
@@ -202,7 +202,7 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
         // Set Factory
         self.version_control.execute(
             &abstract_os::version_control::ExecuteMsg::SetFactory {
-                new_factory: self.os_factory.address()?.into_string(),
+                new_factory: self.account_factory.address()?.into_string(),
             },
             None,
         )?;
@@ -221,7 +221,7 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
         vec![
             self.ans_host.as_instance(),
             self.version_control.as_instance(),
-            self.os_factory.as_instance(),
+            self.account_factory.as_instance(),
             self.module_factory.as_instance(),
         ]
     }

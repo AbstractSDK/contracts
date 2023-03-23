@@ -48,7 +48,7 @@ pub mod state {
     /// Info about the OS
     pub const INFO: Item<OsInfo> = Item::new("\u{0}{4}info");
     /// Contract Admin
-    pub const OS_FACTORY: Admin = Admin::new("\u{0}{7}factory");
+    pub const ACCOUNT_FACTORY: Admin = Admin::new("\u{0}{7}factory");
     /// Root user
     pub const ROOT: Admin = Admin::new("root");
     /// Enabled Abstract modules

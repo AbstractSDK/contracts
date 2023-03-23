@@ -44,7 +44,7 @@ cw20 = { workspace = true }
 abstract-boot = { workspace = true }
 boot-core = { workspace = true }
 anyhow = { workspace = true }
-os-factory = { workspace = true }
+account-factory = { workspace = true }
 ans-host = { workspace = true }
 version-control = { workspace = true }
 proxy = { workspace = true }

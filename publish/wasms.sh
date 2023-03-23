@@ -2,7 +2,7 @@
 set -o errexit -o nounset -o pipefail
 command -v shellcheck >/dev/null && shellcheck "$0"
 
-NATIVE_CONTRACTS="ans-host version-control os-factory module-factory"
+NATIVE_CONTRACTS="ans-host version-control account-factory module-factory"
 CORE_CONTRACTS="manager proxy"
 MODULES="apis/dex apis/tendermint-staking apps/etf"
 

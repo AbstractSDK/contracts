@@ -1,5 +1,5 @@
 use abstract_boot::{AbstractAccount, AccountFactory, OsFactoryQueryFns, VersionControl};
-use abstract_os::{manager, os_factory, proxy, MANAGER, OS_FACTORY, PROXY, VERSION_CONTROL};
+use abstract_os::{account_factory, manager, proxy, MANAGER, ACCOUNT_FACTORY, PROXY, VERSION_CONTROL};
 use boot_core::{
     networks::{parse_network, NetworkInfo},
     *,
@@ -26,8 +26,9 @@ pub fn migrate(network: NetworkInfo) -> anyhow::Result<()> {
     // Register the cores
     // version_control.register_cores(vec![os_core.proxy.as_instance()], &abstract_os_version)?;
 
-    let os_factory = AccountFactory::new(OS_FACTORY, chain.clone());
-    let os_factory::ConfigResponse { next_os_id, .. } = OsFactoryQueryFns::config(&os_factory)?;
+    let account_factory = AccountFactory::new(ACCOUNT_FACTORY, chain.clone());
+    let account_factory::ConfigResponse { next_os_id, .. } =
+        OsFactoryQueryFns::config(&account_factory)?;
     let latest_os_id = next_os_id - 1;
 
     for os_id in 1..=latest_os_id {

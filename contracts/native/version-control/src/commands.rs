@@ -96,7 +96,7 @@ mod test {
     use speculoos::prelude::*;
 
     use super::*;
-    use abstract_testing::prelude::{TEST_ADMIN, TEST_OS_FACTORY, TEST_VERSION};
+    use abstract_testing::prelude::{TEST_ACCOUNT_FACTORY, TEST_ADMIN, TEST_VERSION};
 
     type VersionControlTestResult = Result<(), VCError>;
 
@@ -112,14 +112,14 @@ mod test {
         contract::instantiate(deps.branch(), mock_env(), info, InstantiateMsg {})
     }
 
-    /// Initialize the version_control with admin and updated os_factory
+    /// Initialize the version_control with admin and updated account_factory
     fn mock_init_with_factory(mut deps: DepsMut) -> VCResult {
         let info = mock_info(TEST_ADMIN, &[]);
         contract::instantiate(deps.branch(), mock_env(), info, InstantiateMsg {})?;
         execute_as_admin(
             deps,
             ExecuteMsg::SetFactory {
-                new_factory: TEST_OS_FACTORY.to_string(),
+                new_factory: TEST_ACCOUNT_FACTORY.to_string(),
             },
         )
     }
@@ -389,7 +389,7 @@ mod test {
                 .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
 
             // as factory
-            execute_as(deps.as_mut(), TEST_OS_FACTORY, msg)?;
+            execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg)?;
 
             let os = OS_ADDRESSES.load(&deps.storage, 0)?;
             assert_that!(&os).is_equal_to(&test_core);
@@ -428,7 +428,7 @@ mod test {
             mock_init(deps.as_mut())?;
 
             let msg = ExecuteMsg::SetFactory {
-                new_factory: TEST_OS_FACTORY.into(),
+                new_factory: TEST_ACCOUNT_FACTORY.into(),
             };
 
             // as other
@@ -439,7 +439,7 @@ mod test {
 
             execute_as_admin(deps.as_mut(), msg)?;
             let new_factory = FACTORY.query_admin(deps.as_ref())?.admin;
-            assert_that!(new_factory).is_equal_to(&Some(TEST_OS_FACTORY.into()));
+            assert_that!(new_factory).is_equal_to(&Some(TEST_ACCOUNT_FACTORY.into()));
             Ok(())
         }
     }

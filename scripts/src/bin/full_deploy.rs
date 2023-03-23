@@ -29,7 +29,7 @@ fn full_deploy(network: NetworkInfo) -> anyhow::Result<()> {
 
     // CReate the Abstract OS because it's needed for the fees for the dex module
     deployment
-        .os_factory
+        .account_factory
         .create_default_account(GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         })?;

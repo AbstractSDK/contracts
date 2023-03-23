@@ -17,7 +17,7 @@ fi
 # BASE_PACKAGES="abstract-ica abstract-macros"
 UTILS_PACKAGES="abstract-os abstract-sdk abstract-testing"
 CORE_CONTRACTS="proxy manager"
-NATIVE_CONTRACTS="ans-host os-factory module-factory version-control"
+NATIVE_CONTRACTS="ans-host account-factory module-factory version-control"
 ALL_PACKAGES="abstract-boot abstract-api abstract-app abstract-ibc-host"
 
 # for pack in $BASE_PACKAGES; do

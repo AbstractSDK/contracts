@@ -1,24 +1,24 @@
-use std::{collections::HashMap, str::FromStr};
-use abstract_sdk::os::{objects::module::ModuleVersion, version_control::OsCoreResponse};
-use cosmwasm_std::Addr;
-use abstract_sdk::os::{
-    app::BaseInstantiateMsg, objects::module::ModuleInfo,
-    subscription::InstantiateMsg as SubInitMsg, version_control::Core,
-};
-use cosmwasm_std::{to_binary, Coin, Decimal, Uint128, Uint64};
-use cw_asset::AssetInfoUnchecked;
-use abstract_sdk::os::SUBSCRIPTION;
-use cw_multi_test::App;
+use super::common_integration::NativeContracts;
+use super::{upload::upload_base_contracts, verify::os_store_as_expected};
 use crate::tests::{
     common::{OS_NAME, SUBSCRIPTION_COST, TEST_CREATOR},
     subscription::register_subscription,
     testing_infrastructure::common_integration::mock_app,
 };
+use abstract_sdk::os::SUBSCRIPTION;
 use abstract_sdk::os::*;
+use abstract_sdk::os::{
+    app::BaseInstantiateMsg, objects::module::ModuleInfo,
+    subscription::InstantiateMsg as SubInitMsg, version_control::Core,
+};
+use abstract_sdk::os::{objects::module::ModuleVersion, version_control::OsCoreResponse};
 use anyhow::Result as AnyResult;
+use cosmwasm_std::Addr;
+use cosmwasm_std::{to_binary, Coin, Decimal, Uint128, Uint64};
+use cw_asset::AssetInfoUnchecked;
+use cw_multi_test::App;
 use cw_multi_test::Executor;
-use super::common_integration::NativeContracts;
-use super::{upload::upload_base_contracts, verify::os_store_as_expected};
+use std::{collections::HashMap, str::FromStr};
 
 pub fn init_os(
     app: &mut App,
@@ -34,8 +34,8 @@ pub fn init_os(
 
     let _resp = app.execute_contract(
         sender.clone(),
-        native_contracts.os_factory.clone(),
-        &abstract_sdk::os::os_factory::ExecuteMsg::CreateOs {
+        native_contracts.account_factory.clone(),
+        &abstract_sdk::os::account_factory::ExecuteMsg::CreateOs {
             governance: abstract_sdk::os::objects::gov_type::GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
             },
@@ -46,9 +46,9 @@ pub fn init_os(
         &funds,
     )?;
 
-    let resp: os_factory::ConfigResponse = app.wrap().query_wasm_smart(
-        &native_contracts.os_factory,
-        &os_factory::QueryMsg::Config {},
+    let resp: account_factory::ConfigResponse = app.wrap().query_wasm_smart(
+        &native_contracts.account_factory,
+        &account_factory::QueryMsg::Config {},
     )?;
     let os_id = resp.next_os_id - 1;
 
@@ -87,7 +87,7 @@ pub fn init_primary_os(
                 income_averaging_period: Uint64::new(100),
             }),
             subscription: abstract_sdk::os::subscription::SubscriptionInstantiateMsg {
-                factory_addr: native_contracts.os_factory.to_string(),
+                factory_addr: native_contracts.account_factory.to_string(),
                 payment_asset: AssetInfoUnchecked::native("uusd"),
                 subscription_cost_per_block: Decimal::from_str(SUBSCRIPTION_COST).unwrap(),
                 version_control_addr: native_contracts.version_control.to_string(),
@@ -111,7 +111,7 @@ pub fn init_primary_os(
         .execute_contract(sender.clone(), core.manager.clone(), &msg, &[])
         .unwrap();
 
-    let msg = abstract_sdk::os::os_factory::ExecuteMsg::UpdateConfig {
+    let msg = abstract_sdk::os::account_factory::ExecuteMsg::UpdateConfig {
         admin: None,
         ans_host_contract: None,
         version_control_contract: None,
@@ -121,7 +121,7 @@ pub fn init_primary_os(
 
     app.execute_contract(
         sender.clone(),
-        native_contracts.os_factory.clone(),
+        native_contracts.account_factory.clone(),
         &msg,
         &[],
     )

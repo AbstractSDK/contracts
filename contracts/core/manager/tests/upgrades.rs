@@ -38,7 +38,7 @@ fn install_app_successful() -> AResult {
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
     deploy_modules(&chain);
-    let os = create_default_os(&abstr.os_factory)?;
+    let os = create_default_os(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy: _ } = &os;
 
     // dependency for mock_api1 not met
@@ -74,7 +74,7 @@ fn install_app_versions_not_met() -> AResult {
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
     deploy_modules(&chain);
-    let os = create_default_os(&abstr.os_factory)?;
+    let os = create_default_os(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy: _ } = &os;
 
     // install api 2
@@ -98,7 +98,7 @@ fn upgrade_app_() -> AResult {
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
     deploy_modules(&chain);
-    let os = create_default_os(&abstr.os_factory)?;
+    let os = create_default_os(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy: _ } = &os;
 
     // install api 1
@@ -248,7 +248,7 @@ fn uninstall_modules() -> AResult {
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
     deploy_modules(&chain);
-    let os = create_default_os(&abstr.os_factory)?;
+    let os = create_default_os(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy: _ } = &os;
     let api1 = install_module_version(manager, &abstr, api_1::MOCK_API_ID, V1)?;
     let api2 = install_module_version(manager, &abstr, api_2::MOCK_API_ID, V1)?;
@@ -279,7 +279,7 @@ fn update_api_with_traders() -> AResult {
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
     deploy_modules(&chain);
-    let os = create_default_os(&abstr.os_factory)?;
+    let os = create_default_os(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy } = &os;
 
     // install api 1

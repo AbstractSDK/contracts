@@ -40,7 +40,7 @@ pub fn first_os(network: NetworkInfo) -> anyhow::Result<()> {
     // NOTE: this assumes that the deployment has been deployed
 
     deployment
-        .os_factory
+        .account_factory
         .create_default_account(GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         })?;

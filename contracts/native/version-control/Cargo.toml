@@ -41,7 +41,7 @@ abstract-boot = { workspace = true }
 boot-core = { workspace = true }
 anyhow = { workspace = true }
 module-factory = { workspace = true }
-os-factory = { workspace = true }
+account-factory = { workspace = true }
 ans-host = { workspace = true }
 proxy = { workspace = true }
 manager = { workspace = true }

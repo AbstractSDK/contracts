@@ -1,7 +1,8 @@
 mod common;
 use abstract_boot::{AbstractAccount, OsFactoryExecFns, OsFactoryQueryFns, VCQueryFns, *};
 use abstract_os::{
-    objects::gov_type::GovernanceDetails, os_factory, version_control::Core, ABSTRACT_EVENT_NAME,
+    account_factory, objects::gov_type::GovernanceDetails, version_control::Core,
+    ABSTRACT_EVENT_NAME,
 };
 use boot_core::{
     IndexResponse, {instantiate_default_mock_env, ContractInstance},
@@ -20,9 +21,9 @@ fn instantiate() -> AResult {
     let (mut deployment, mut core) = init_abstract_env(chain)?;
     deployment.deploy(&mut core)?;
 
-    let factory = deployment.os_factory;
+    let factory = deployment.account_factory;
     let factory_config = factory.config()?;
-    let expected = os_factory::ConfigResponse {
+    let expected = account_factory::ConfigResponse {
         owner: sender.into_string(),
         ans_host_contract: deployment.ans_host.address()?.into(),
         version_control_contract: deployment.version_control.address()?.into_string(),
@@ -43,7 +44,7 @@ fn create_one_os() -> AResult {
     let (mut deployment, mut core) = init_abstract_env(chain)?;
     deployment.deploy(&mut core)?;
 
-    let factory = &deployment.os_factory;
+    let factory = &deployment.account_factory;
     let version_control = &deployment.version_control;
     let os_creation = factory.create_os(
         GovernanceDetails::Monarchy {
@@ -58,7 +59,7 @@ fn create_one_os() -> AResult {
     let proxy = os_creation.event_attr_value(ABSTRACT_EVENT_NAME, "proxy_address")?;
 
     let factory_config = factory.config()?;
-    let expected = os_factory::ConfigResponse {
+    let expected = account_factory::ConfigResponse {
         owner: sender.clone().into_string(),
         ans_host_contract: deployment.ans_host.address()?.into(),
         version_control_contract: deployment.version_control.address()?.into_string(),
@@ -95,7 +96,7 @@ fn create_two_os_s() -> AResult {
     let (mut deployment, mut core) = init_abstract_env(chain)?;
     deployment.deploy(&mut core)?;
 
-    let factory = &deployment.os_factory;
+    let factory = &deployment.account_factory;
     let version_control = &deployment.version_control;
     // first os
     let os_1 = factory.create_os(
@@ -123,7 +124,7 @@ fn create_two_os_s() -> AResult {
     let proxy2 = os_2.event_attr_value(ABSTRACT_EVENT_NAME, "proxy_address")?;
 
     let factory_config = factory.config()?;
-    let expected = os_factory::ConfigResponse {
+    let expected = account_factory::ConfigResponse {
         owner: sender.clone().into_string(),
         ans_host_contract: deployment.ans_host.address()?.into(),
         version_control_contract: deployment.version_control.address()?.into_string(),
@@ -165,7 +166,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
     let (mut deployment, mut core) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut core)?;
 
-    let factory = &deployment.os_factory;
+    let factory = &deployment.account_factory;
     let version_control = &deployment.version_control;
     let os_creation = factory.create_os(
         GovernanceDetails::Monarchy {
@@ -214,7 +215,7 @@ fn sender_is_not_admin_external() -> AResult {
     let (mut deployment, mut core) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut core)?;
 
-    let factory = &deployment.os_factory;
+    let factory = &deployment.account_factory;
     let version_control = &deployment.version_control;
     factory.create_os(
         GovernanceDetails::External {
