@@ -11,7 +11,7 @@ use abstract_boot::{
 };
 use abstract_boot::{AbstractAccount, ApiDeployer};
 use abstract_os::{objects::gov_type::GovernanceDetails, PROXY};
-use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, ACCOUNT_FACTORY, VERSION_CONTROL};
+use abstract_os::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, VERSION_CONTROL};
 use boot_core::ContractWrapper;
 use boot_core::{ContractInstance, Mock};
 use cosmwasm_std::Addr;
@@ -92,9 +92,9 @@ pub fn init_abstract_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, Abstrac
         module_factory,
     };
 
-    let os_core = AbstractAccount { manager, proxy };
+    let account = AbstractAccount { manager, proxy };
 
-    Ok((deployment, os_core))
+    Ok((deployment, account))
 }
 
 pub(crate) type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>

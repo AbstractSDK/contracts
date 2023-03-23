@@ -61,7 +61,7 @@ impl<'a, T: VaultInterface> Vault<'a, T> {
     //     let proxy_address = self.base.proxy_address(self.deps)?;
 
     //     let mut asset_keys = vec![];
-    //     let mut base_asset: Option<AssetInfo> = None;
+    //     let mut account_asset: Option<AssetInfo> = None;
     //     let mut resp: AssetsResponse = querier.query_wasm_smart(
     //         &proxy_address,
     //         &QueryMsg::Assets {

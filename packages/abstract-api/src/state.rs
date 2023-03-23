@@ -7,7 +7,7 @@ use abstract_sdk::{
     },
     feature_objects::AnsHost,
     namespaces::BASE_STATE,
-    os::version_control::Core,
+    os::version_control::AccountBase,
     AbstractSdkError,
 };
 use cosmwasm_std::{Addr, Empty, StdError, StdResult, Storage};
@@ -42,7 +42,7 @@ pub struct ApiContract<
     /// Map ProxyAddr -> WhitelistedTraders
     pub traders: Map<'static, Addr, HashSet<Addr>>,
     /// The OS on which commands are executed. Set each time in the [`abstract_os::api::ExecuteMsg::Base`] handler.
-    pub target_os: Option<Core>,
+    pub target_os: Option<AccountBase>,
 }
 
 /// Constructor
@@ -172,7 +172,7 @@ mod tests {
     fn set_and_get_target() -> ApiMockResult {
         let mut mock = get_mock();
         let target = Addr::unchecked("target");
-        mock.target_os = Some(Core {
+        mock.target_os = Some(AccountBase {
             proxy: target.clone(),
             manager: Addr::unchecked("manager"),
         });

@@ -7,8 +7,8 @@ use abstract_sdk::os::{
         module_reference::ModuleReference,
     },
     version_control::{
-        state::MODULE_LIBRARY, state::OS_ADDRESSES, ModulesListResponse, ModulesResponse,
-        OsCoreResponse,
+        state::ACCOUNT_ADDRESSES, state::MODULE_LIBRARY, ModulesListResponse, ModulesResponse,
+        AccountBaseResponse,
     },
 };
 use cosmwasm_std::{to_binary, Binary, Deps, Order, StdError, StdResult};
@@ -18,12 +18,12 @@ const DEFAULT_LIMIT: u8 = 10;
 const MAX_LIMIT: u8 = 20;
 
 pub fn handle_os_address_query(deps: Deps, account_id: AccountId) -> StdResult<Binary> {
-    let os_address = OS_ADDRESSES.load(deps.storage, account_id);
+    let os_address = ACCOUNT_ADDRESSES.load(deps.storage, account_id);
     match os_address {
         Err(_) => Err(StdError::generic_err(
             VCError::MissingAccountId { id: account_id }.to_string(),
         )),
-        Ok(core) => to_binary(&OsCoreResponse { os_core: core }),
+        Ok(base) => to_binary(&AccountBaseResponse { account: base }),
     }
 }
 

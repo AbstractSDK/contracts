@@ -10,8 +10,8 @@ use speculoos::prelude::*;
 fn execute_on_proxy_through_manager() -> AResult {
     let sender = Addr::unchecked(common::ROOT_USER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
-    let (mut deployment, mut core) = init_abstract_env(chain.clone())?;
-    deployment.deploy(&mut core)?;
+    let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
+    deployment.deploy(&mut account)?;
     let os = create_default_os(&deployment.account_factory)?;
 
     // mint coins to proxy address

@@ -22,7 +22,7 @@ use boot_core::{
 use serde::Serialize;
 use speculoos::prelude::*;
 
-use crate::{get_os_core_contracts, VersionControl};
+use crate::{get_account_contracts, VersionControl};
 
 pub use self::{manager::*, proxy::*};
 pub struct AbstractAccount<Chain: BootEnvironment> {
@@ -32,7 +32,7 @@ pub struct AbstractAccount<Chain: BootEnvironment> {
 
 impl<Chain: BootEnvironment> AbstractAccount<Chain> {
     pub fn new(chain: Chain, account_id: Option<AccountId>) -> Self {
-        let (manager, proxy) = get_os_core_contracts(chain, account_id);
+        let (manager, proxy) = get_account_contracts(chain, account_id);
         Self { manager, proxy }
     }
 

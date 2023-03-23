@@ -3,7 +3,7 @@
 use crate::{features::AbstractRegistryAccess, AbstractSdkError, AbstractSdkResult};
 use abstract_os::{
     manager::state::ACCOUNT_ID,
-    version_control::{state::OS_ADDRESSES, Core},
+    version_control::{state::ACCOUNT_ADDRESSES, AccountBase},
 };
 use cosmwasm_std::{Addr, Deps};
 
@@ -25,7 +25,7 @@ pub struct OsRegistry<'a, T: OsVerification> {
 
 impl<'a, T: OsVerification> OsRegistry<'a, T> {
     /// Verify if the provided manager address is indeed a user.
-    pub fn assert_manager(&self, maybe_manager: &Addr) -> AbstractSdkResult<Core> {
+    pub fn assert_manager(&self, maybe_manager: &Addr) -> AbstractSdkResult<AccountBase> {
         let account_id = self.account_id(maybe_manager)?;
         let core = self.core(account_id)?;
         if &core.manager != maybe_manager {
@@ -39,7 +39,7 @@ impl<'a, T: OsVerification> OsRegistry<'a, T> {
     }
 
     /// Verify if the provided proxy address is indeed a user.
-    pub fn assert_proxy(&self, maybe_proxy: &Addr) -> AbstractSdkResult<Core> {
+    pub fn assert_proxy(&self, maybe_proxy: &Addr) -> AbstractSdkResult<AccountBase> {
         let account_id = self.account_id(maybe_proxy)?;
         let core = self.core(account_id)?;
         if &core.proxy != maybe_proxy {
@@ -57,8 +57,8 @@ impl<'a, T: OsVerification> OsRegistry<'a, T> {
         self.core(account_id).map(|core| core.manager)
     }
 
-    pub fn core(&self, account_id: u32) -> AbstractSdkResult<Core> {
-        let maybe_os = OS_ADDRESSES.query(
+    pub fn core(&self, account_id: u32) -> AbstractSdkResult<AccountBase> {
+        let maybe_os = ACCOUNT_ADDRESSES.query(
             &self.deps.querier,
             self.base.abstract_registry(self.deps)?,
             account_id,
@@ -132,7 +132,7 @@ mod test {
 
             deps.querier = MockQuerierBuilder::default()
                 .with_contract_item(TEST_PROXY, ACCOUNT_ID, &TEST_ACCOUNT_ID)
-                .with_contract_map_key(TEST_VERSION_CONTROL, OS_ADDRESSES, TEST_ACCOUNT_ID)
+                .with_contract_map_key(TEST_VERSION_CONTROL, ACCOUNT_ADDRESSES, TEST_ACCOUNT_ID)
                 .build();
 
             let binding = MockBinding;
@@ -155,7 +155,7 @@ mod test {
                 .with_contract_item(TEST_PROXY, ACCOUNT_ID, &TEST_ACCOUNT_ID)
                 .with_contract_map_entry(
                     TEST_VERSION_CONTROL,
-                    OS_ADDRESSES,
+                    ACCOUNT_ADDRESSES,
                     (TEST_ACCOUNT_ID, test_core()),
                 )
                 .build();
@@ -177,10 +177,10 @@ mod test {
                 .with_contract_item(TEST_PROXY, ACCOUNT_ID, &TEST_ACCOUNT_ID)
                 .with_contract_map_entry(
                     TEST_VERSION_CONTROL,
-                    OS_ADDRESSES,
+                    ACCOUNT_ADDRESSES,
                     (
                         TEST_ACCOUNT_ID,
-                        Core {
+                        AccountBase {
                             manager: Addr::unchecked(TEST_MANAGER),
                             proxy: Addr::unchecked("not_poxry"),
                         },
@@ -234,7 +234,7 @@ mod test {
 
             deps.querier = MockQuerierBuilder::default()
                 .with_contract_item(TEST_MANAGER, ACCOUNT_ID, &TEST_ACCOUNT_ID)
-                .with_contract_map_key(TEST_VERSION_CONTROL, OS_ADDRESSES, TEST_ACCOUNT_ID)
+                .with_contract_map_key(TEST_VERSION_CONTROL, ACCOUNT_ADDRESSES, TEST_ACCOUNT_ID)
                 .build();
 
             let binding = MockBinding;
@@ -261,7 +261,7 @@ mod test {
                 .with_contract_item(TEST_MANAGER, ACCOUNT_ID, &TEST_ACCOUNT_ID)
                 .with_contract_map_entry(
                     TEST_VERSION_CONTROL,
-                    OS_ADDRESSES,
+                    ACCOUNT_ADDRESSES,
                     (TEST_ACCOUNT_ID, test_core()),
                 )
                 .build();
@@ -283,10 +283,10 @@ mod test {
                 .with_contract_item(TEST_MANAGER, ACCOUNT_ID, &TEST_ACCOUNT_ID)
                 .with_contract_map_entry(
                     TEST_VERSION_CONTROL,
-                    OS_ADDRESSES,
+                    ACCOUNT_ADDRESSES,
                     (
                         TEST_ACCOUNT_ID,
-                        Core {
+                        AccountBase {
                             manager: Addr::unchecked("not_manager"),
                             proxy: Addr::unchecked(TEST_PROXY),
                         },

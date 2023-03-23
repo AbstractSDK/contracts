@@ -19,7 +19,7 @@ pub mod state {
         module_reference::ModuleReference,
     };
 
-    use super::Core;
+    use super::AccountBase;
 
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
     pub const FACTORY: Admin = Admin::new("factory");
@@ -27,7 +27,7 @@ pub mod state {
     // We can iterate over the map giving just the prefix to get all the versions
     pub const MODULE_LIBRARY: Map<&ModuleInfo, ModuleReference> = Map::new("module_lib");
     /// Maps Account ID to the address of its core contracts
-    pub const OS_ADDRESSES: Map<AccountId, Core> = Map::new("os_core");
+    pub const ACCOUNT_ADDRESSES: Map<AccountId, AccountBase> = Map::new("account");
 }
 
 use crate::objects::{
@@ -40,7 +40,7 @@ use cosmwasm_std::Addr;
 
 /// Contains the minimal Abstract-OS contract addresses.
 #[cosmwasm_schema::cw_serde]
-pub struct Core {
+pub struct AccountBase {
     pub manager: Addr,
     pub proxy: Addr,
 }
@@ -57,7 +57,10 @@ pub enum ExecuteMsg {
     AddModules { modules: Vec<ModuleMapEntry> },
     /// Add a new OS to the deployed OSs.  
     /// Only Factory can call this
-    AddOs { account_id: AccountId, core: Core },
+    AddOs {
+        account_id: AccountId,
+        core: AccountBase,
+    },
     /// Sets a new Admin
     SetAdmin { new_admin: String },
     /// Sets a new Factory
@@ -78,9 +81,9 @@ pub struct ModuleFilter {
 #[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
 pub enum QueryMsg {
     /// Query Core of an OS
-    /// Returns [`OsCoreResponse`]
-    #[returns(OsCoreResponse)]
-    OsCore { account_id: AccountId },
+    /// Returns [`AccountBaseResponse`]
+    #[returns(AccountBaseResponse)]
+    AccountBase { account_id: AccountId },
     /// Queries api addresses
     /// Returns [`ModulesResponse`]
     #[returns(ModulesResponse)]
@@ -98,8 +101,8 @@ pub enum QueryMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct OsCoreResponse {
-    pub os_core: Core,
+pub struct AccountBaseResponse {
+    pub account: AccountBase,
 }
 
 #[cosmwasm_schema::cw_serde]

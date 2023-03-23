@@ -2,7 +2,7 @@ use abstract_boot::{
     Abstract, AbstractAccount, AccountFactory, AnsHost, Manager, ModuleFactory, Proxy,
     VersionControl,
 };
-use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, ACCOUNT_FACTORY, PROXY, VERSION_CONTROL};
+use abstract_os::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY, VERSION_CONTROL};
 use boot_core::ContractWrapper;
 use boot_core::{ContractInstance, Mock};
 
@@ -77,7 +77,7 @@ pub fn init_test_env<'a>(chain: Mock) -> anyhow::Result<(Abstract<Mock>, Abstrac
         module_factory,
     };
 
-    let os_core = AbstractAccount { manager, proxy };
+    let account = AbstractAccount { manager, proxy };
 
-    Ok((deployment, os_core))
+    Ok((deployment, account))
 }

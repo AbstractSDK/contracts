@@ -15,7 +15,7 @@ use abstract_sdk::{
             gov_type::GovernanceDetails, module::ModuleInfo, module_reference::ModuleReference,
         },
         proxy::{ExecuteMsg as ProxyExecMsg, InstantiateMsg as ProxyInstantiateMsg},
-        version_control::{Core, ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery},
+        version_control::{AccountBase, ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery},
     },
 };
 use cosmwasm_std::{
@@ -212,13 +212,13 @@ pub fn after_proxy_add_to_manager_and_set_admin(
     let proxy_address = res.get_contract_address();
 
     // construct OS core
-    let core = Core {
+    let core = AccountBase {
         manager: context.os_manager_address.clone(),
         proxy: deps.api.addr_validate(proxy_address)?,
     };
 
     // Add OS core to version_control
-    let add_os_core_to_version_control_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
+    let add_account_to_version_control_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: config.version_control_contract.to_string(),
         funds: vec![],
         msg: to_binary(&VCExecuteMsg::AddOs {
@@ -257,7 +257,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
         "create_proxy",
         vec![("proxy_address", res.get_contract_address())],
     )
-    .add_message(add_os_core_to_version_control_msg)
+    .add_message(add_account_to_version_control_msg)
     .add_message(wasm_execute(
         context.os_manager_address.to_string(),
         &UpdateModuleAddresses {

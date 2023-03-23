@@ -33,8 +33,8 @@ abstract-os = {workspace = true}
 abstract-sdk = {workspace = true}
 cw-multi-test = {workspace = true}
 anyhow = {workspace = true}
-proxy = { path = "../core/proxy" }
-manager = { path = "../core/manager" }
+proxy = { path = "../base/proxy" }
+manager = { path = "../base/manager" }
 ans-host = { path = "../native/ans-host" }
 account-factory = { path = "../native/account-factory" }
 module-factory = { path = "../native/module-factory" }

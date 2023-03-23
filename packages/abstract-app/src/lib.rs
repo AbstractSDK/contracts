@@ -41,7 +41,7 @@ pub mod mock {
     pub struct MockReceiveMsg;
 
     use crate::{AppContract, AppError};
-    use abstract_os::{module_factory::ContextResponse, version_control::Core};
+    use abstract_os::{module_factory::ContextResponse, version_control::AccountBase};
     use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
     use abstract_testing::prelude::{
         MockDeps, MockQuerierBuilder, TEST_ANS_HOST, TEST_MANAGER, TEST_MODULE_FACTORY,
@@ -83,7 +83,7 @@ pub mod mock {
             match from_binary(msg).unwrap() {
                 abstract_os::module_factory::QueryMsg::Context {} => {
                     let resp = ContextResponse {
-                        core: Some(Core {
+                        core: Some(AccountBase {
                             manager: Addr::unchecked(TEST_MANAGER),
                             proxy: Addr::unchecked(TEST_PROXY),
                         }),

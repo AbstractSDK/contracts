@@ -2,7 +2,7 @@ use crate::{addresses::*, mock_ans::MockAnsHost, MockQuerierBuilder};
 use abstract_os::{
     ans_host::state::ASSET_ADDRESSES,
     objects::{common_namespace::ADMIN_NAMESPACE, core::ACCOUNT_ID, AssetEntry},
-    version_control::{state::OS_ADDRESSES, Core},
+    version_control::{state::ACCOUNT_ADDRESSES, AccountBase},
 };
 use cosmwasm_std::{testing::MockQuerier, Addr};
 use cw_asset::AssetInfo;
@@ -41,10 +41,10 @@ impl AbstractMockQuerierBuilder {
             )
             .with_contract_map_entry(
                 self.version_control,
-                OS_ADDRESSES,
+                ACCOUNT_ADDRESSES,
                 (
                     account_id,
-                    Core {
+                    AccountBase {
                         manager: Addr::unchecked(manager),
                         proxy: Addr::unchecked(proxy),
                     },

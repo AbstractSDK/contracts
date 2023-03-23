@@ -10,7 +10,7 @@ pub mod state {
             common_namespace::ADMIN_NAMESPACE,
             module::{Module, ModuleInfo},
         },
-        version_control::Core,
+        version_control::AccountBase,
     };
     use cosmwasm_std::{Addr, Binary};
     use cw_controllers::Admin;
@@ -26,7 +26,7 @@ pub mod state {
 
     #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
     pub struct Context {
-        pub core: Option<Core>,
+        pub core: Option<AccountBase>,
         pub module: Option<Module>,
     }
 
@@ -38,7 +38,7 @@ pub mod state {
 
 use crate::{
     objects::module::{Module, ModuleInfo},
-    version_control::Core,
+    version_control::AccountBase,
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Binary;
@@ -96,7 +96,7 @@ pub struct ConfigResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ContextResponse {
-    pub core: Option<Core>,
+    pub core: Option<AccountBase>,
     pub module: Option<Module>,
 }
 

@@ -21,11 +21,11 @@ fn full_deploy(network: NetworkInfo) -> anyhow::Result<()> {
 
     // log::info!("Your balance is: {}", );
 
-    let mut os_core = AbstractAccount::new(chain.clone(), None);
+    let mut account = AbstractAccount::new(chain.clone(), None);
 
     let mut deployment = Abstract::new(chain, abstract_version);
 
-    deployment.deploy(&mut os_core)?;
+    deployment.deploy(&mut account)?;
 
     // CReate the Abstract OS because it's needed for the fees for the dex module
     deployment

@@ -16,7 +16,7 @@ pub struct Abstract<Chain: BootEnvironment> {
     pub module_factory: ModuleFactory<Chain>,
 }
 
-use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, ACCOUNT_FACTORY, PROXY, VERSION_CONTROL};
+use abstract_os::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY, VERSION_CONTROL};
 #[cfg(feature = "integration")]
 use boot_core::ContractWrapper;
 
@@ -95,10 +95,10 @@ impl<Chain: BootEnvironment> boot_core::Deploy<Chain> for Abstract<Chain> {
             module_factory,
         };
 
-        let mut os_core = AbstractAccount { manager, proxy };
+        let mut account = AbstractAccount { manager, proxy };
 
         deployment
-            .deploy(&mut os_core)
+            .deploy(&mut account)
             .map_err(|e| BootError::StdErr(e.to_string()))?;
         Ok(deployment)
     }
@@ -140,14 +140,14 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
 
     pub fn upload(
         &mut self,
-        os_core: &mut AbstractAccount<Chain>,
+        account: &mut AbstractAccount<Chain>,
     ) -> Result<(), crate::AbstractBootError> {
         self.ans_host.upload()?;
         self.version_control.upload()?;
         self.account_factory.upload()?;
         self.module_factory.upload()?;
 
-        os_core.upload()?;
+        account.upload()?;
 
         Ok(())
     }
@@ -191,10 +191,10 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
 
     pub fn deploy(
         &mut self,
-        os_core: &mut AbstractAccount<Chain>,
+        account: &mut AbstractAccount<Chain>,
     ) -> Result<(), crate::AbstractBootError> {
         // ########### Upload ##############
-        self.upload(os_core)?;
+        self.upload(account)?;
 
         // ########### Instantiate ##############
         self.instantiate()?;
@@ -210,7 +210,7 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
         // ########### upload modules and token ##############
 
         self.version_control
-            .register_core(os_core, &self.version.to_string())?;
+            .register_core(account, &self.version.to_string())?;
 
         self.version_control.register_deployment(self)?;
 

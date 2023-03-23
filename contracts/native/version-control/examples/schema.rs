@@ -32,5 +32,5 @@ fn main() {
     // );
     // export_schema_with_title(&schema_for!(CodeIdResponse), &out_dir, "CodeIdResponse");
     // export_schema_with_title(&schema_for!(CodeIdsResponse), &out_dir, "CodeIdsResponse");
-    // export_schema_with_title(&schema_for!(OsCoreResponse), &out_dir, "OsCoreResponse");
+    // export_schema_with_title(&schema_for!(AccountBaseResponse), &out_dir, "AccountBaseResponse");
 }

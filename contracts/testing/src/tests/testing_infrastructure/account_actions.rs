@@ -1,12 +1,12 @@
 use abstract_sdk::os::manager as manager_msg;
+use abstract_sdk::os::modules::Module;
 use abstract_sdk::os::version_control::Core;
-use abstract_sdk::os::{modules::Module};
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{to_binary, Addr};
 use cw_multi_test::{App, Executor};
 use serde::Serialize;
 
-pub trait CoreActions {
+pub trait BaseActions {
     fn add_module<T: Serialize>(
         &self,
         app: &mut App,
@@ -16,7 +16,7 @@ pub trait CoreActions {
     ) -> AnyResult<()>;
 }
 
-impl CoreActions for Core {
+impl BaseActions for Core {
     fn add_module<T: Serialize>(
         &self,
         app: &mut App,

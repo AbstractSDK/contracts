@@ -1,7 +1,7 @@
 use crate::{error::ApiError, state::ApiContract, ApiResult};
 use abstract_os::{
     api::{ApiExecuteMsg, ApiRequestMsg, BaseExecuteMsg, ExecuteMsg},
-    version_control::Core,
+    version_control::AccountBase,
 };
 use abstract_sdk::{
     base::{
@@ -171,7 +171,7 @@ impl<
         to_add: Vec<String>,
         to_remove: Vec<String>,
     ) -> ApiResult {
-        let Core {
+        let AccountBase {
             // Manager can only change traders for associated proxy
             proxy,
             ..

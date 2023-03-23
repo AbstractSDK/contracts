@@ -46,7 +46,10 @@ impl<
         }
     }
 
-    fn os_core(&self, _deps: Deps) -> AbstractSdkResult<abstract_sdk::os::version_control::Core> {
+    fn account_base(
+        &self,
+        _deps: Deps,
+    ) -> AbstractSdkResult<abstract_sdk::os::version_control::AccountBase> {
         if let Some(target) = &self.target_os {
             Ok(target.clone())
         } else {
@@ -73,7 +76,7 @@ impl<
 mod tests {
     use abstract_os::{
         api::{ApiRequestMsg, ExecuteMsg},
-        version_control::Core,
+        version_control::AccountBase,
     };
     use abstract_sdk::base::ExecuteEndpoint;
     use abstract_testing::prelude::*;
@@ -102,8 +105,8 @@ mod tests {
         assert_that!(proxy.as_str()).is_equal_to(TEST_PROXY);
         let manager = api.manager_address(deps.as_ref())?;
         assert_that!(manager.as_str()).is_equal_to(TEST_MANAGER);
-        let os_core = api.os_core(deps.as_ref())?;
-        assert_that!(os_core).is_equal_to(Core {
+        let account = api.account_base(deps.as_ref())?;
+        assert_that!(account).is_equal_to(AccountBase {
             manager: Addr::unchecked(TEST_MANAGER),
             proxy: Addr::unchecked(TEST_PROXY),
         });
@@ -153,7 +156,7 @@ mod tests {
         let res = MOCK_API.manager_address(deps.as_ref());
         assert_that!(res).is_err();
 
-        let res = MOCK_API.os_core(deps.as_ref());
+        let res = MOCK_API.account_base(deps.as_ref());
         assert_that!(res).is_err();
     }
 }

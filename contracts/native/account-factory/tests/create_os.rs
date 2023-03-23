@@ -1,7 +1,7 @@
 mod common;
 use abstract_boot::{AbstractAccount, OsFactoryExecFns, OsFactoryQueryFns, VCQueryFns, *};
 use abstract_os::{
-    account_factory, objects::gov_type::GovernanceDetails, version_control::Core,
+    account_factory, objects::gov_type::GovernanceDetails, version_control::AccountBase,
     ABSTRACT_EVENT_NAME,
 };
 use boot_core::{
@@ -18,8 +18,8 @@ fn instantiate() -> AResult {
     let _not_owner = Addr::unchecked("not_owner");
     let sender = Addr::unchecked(common::ROOT_USER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
-    let (mut deployment, mut core) = init_abstract_env(chain)?;
-    deployment.deploy(&mut core)?;
+    let (mut deployment, mut account) = init_abstract_env(chain)?;
+    deployment.deploy(&mut account)?;
 
     let factory = deployment.account_factory;
     let factory_config = factory.config()?;
@@ -41,8 +41,8 @@ fn create_one_os() -> AResult {
     let _not_owner = Addr::unchecked("not_owner");
     let sender = Addr::unchecked(common::ROOT_USER);
     let (_, chain) = instantiate_default_mock_env(&sender)?;
-    let (mut deployment, mut core) = init_abstract_env(chain)?;
-    deployment.deploy(&mut core)?;
+    let (mut deployment, mut account) = init_abstract_env(chain)?;
+    deployment.deploy(&mut account)?;
 
     let factory = &deployment.account_factory;
     let version_control = &deployment.version_control;
@@ -78,9 +78,9 @@ fn create_one_os() -> AResult {
 
     assert_that!(&vc_config).is_equal_to(&expected);
 
-    let os_list = version_control.os_core(0)?;
+    let os_list = version_control.account_base(0)?;
 
-    assert_that!(&os_list.os_core).is_equal_to(Core {
+    assert_that!(&os_list.account).is_equal_to(AccountBase {
         manager: Addr::unchecked(manager),
         proxy: Addr::unchecked(proxy),
     });
@@ -93,8 +93,8 @@ fn create_two_os_s() -> AResult {
     let _not_owner = Addr::unchecked("not_owner");
     let sender = Addr::unchecked(common::ROOT_USER);
     let (_, chain) = instantiate_default_mock_env(&sender)?;
-    let (mut deployment, mut core) = init_abstract_env(chain)?;
-    deployment.deploy(&mut core)?;
+    let (mut deployment, mut account) = init_abstract_env(chain)?;
+    deployment.deploy(&mut account)?;
 
     let factory = &deployment.account_factory;
     let version_control = &deployment.version_control;
@@ -143,14 +143,14 @@ fn create_two_os_s() -> AResult {
 
     assert_that!(&vc_config).is_equal_to(&expected);
 
-    let os_1 = version_control.os_core(0)?.os_core;
-    assert_that!(&os_1).is_equal_to(Core {
+    let os_1 = version_control.account_base(0)?.account;
+    assert_that!(&os_1).is_equal_to(AccountBase {
         manager: Addr::unchecked(manager1),
         proxy: Addr::unchecked(proxy1),
     });
 
-    let os_2 = version_control.os_core(1)?.os_core;
-    assert_that!(&os_2).is_equal_to(Core {
+    let os_2 = version_control.account_base(1)?.account;
+    assert_that!(&os_2).is_equal_to(AccountBase {
         manager: Addr::unchecked(manager2),
         proxy: Addr::unchecked(proxy2),
     });
@@ -163,8 +163,8 @@ fn sender_is_not_admin_monarchy() -> AResult {
     let owner = Addr::unchecked("owner");
     let sender = Addr::unchecked(common::ROOT_USER);
     let (_, chain) = instantiate_default_mock_env(&sender)?;
-    let (mut deployment, mut core) = init_abstract_env(chain.clone())?;
-    deployment.deploy(&mut core)?;
+    let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
+    deployment.deploy(&mut account)?;
 
     let factory = &deployment.account_factory;
     let version_control = &deployment.version_control;
@@ -180,16 +180,16 @@ fn sender_is_not_admin_monarchy() -> AResult {
     let manager = os_creation.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
     let proxy = os_creation.event_attr_value(ABSTRACT_EVENT_NAME, "proxy_address")?;
 
-    let os = version_control.os_core(0)?.os_core;
+    let os = version_control.account_base(0)?.account;
 
     let os_1 = AbstractAccount::new(chain, Some(0));
-    assert_that!(Core {
+    assert_that!(AccountBase {
         manager: os_1.manager.address()?,
         proxy: os_1.proxy.address()?,
     })
     .is_equal_to(&os);
 
-    assert_that!(Core {
+    assert_that!(AccountBase {
         manager: Addr::unchecked(manager),
         proxy: Addr::unchecked(proxy),
     })
@@ -212,8 +212,8 @@ fn sender_is_not_admin_external() -> AResult {
     let owner = Addr::unchecked("owner");
     let sender = Addr::unchecked(common::ROOT_USER);
     let (_, chain) = instantiate_default_mock_env(&sender)?;
-    let (mut deployment, mut core) = init_abstract_env(chain.clone())?;
-    deployment.deploy(&mut core)?;
+    let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
+    deployment.deploy(&mut account)?;
 
     let factory = &deployment.account_factory;
     let version_control = &deployment.version_control;

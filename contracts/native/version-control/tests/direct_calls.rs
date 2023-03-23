@@ -12,8 +12,8 @@ type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 fn instantiate() -> AResult {
     let sender = Addr::unchecked(common::ROOT_USER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
-    let (mut deployment, mut core) = init_test_env(chain)?;
-    deployment.deploy(&mut core)?;
+    let (mut deployment, mut account) = init_test_env(chain)?;
+    deployment.deploy(&mut account)?;
 
     let factory = deployment.module_factory;
     let factory_config = factory.config()?;
@@ -32,8 +32,8 @@ fn instantiate() -> AResult {
 fn caller_must_be_manager() -> AResult {
     let sender = Addr::unchecked(common::ROOT_USER);
     let (_, chain) = instantiate_default_mock_env(&sender)?;
-    let (mut deployment, mut core) = init_test_env(chain)?;
-    deployment.deploy(&mut core)?;
+    let (mut deployment, mut account) = init_test_env(chain)?;
+    deployment.deploy(&mut account)?;
 
     let factory = &deployment.module_factory;
     let test_module = ModuleInfo::from_id(

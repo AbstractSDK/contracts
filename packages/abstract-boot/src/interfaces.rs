@@ -32,7 +32,7 @@ where
     )
 }
 
-pub fn get_os_core_contracts<Chain: BootEnvironment>(
+pub fn get_account_contracts<Chain: BootEnvironment>(
     chain: Chain,
     account_id: Option<AccountId>,
 ) -> (Manager<Chain>, Proxy<Chain>)
@@ -41,7 +41,7 @@ where
 {
     if let Some(account_id) = account_id {
         let version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
-        let core = version_control.get_os_core(account_id).unwrap();
+        let core = version_control.get_account(account_id).unwrap();
         chain.state().set_address(MANAGER, &core.manager);
         chain.state().set_address(PROXY, &core.proxy);
         let manager = Manager::new(MANAGER, chain.clone());

@@ -4,7 +4,7 @@ use abstract_macros::abstract_response;
 use abstract_os::objects::AccountId;
 use abstract_sdk::os::{
     objects::{module::ModuleInfo, module_reference::ModuleReference},
-    version_control::{state::*, Core},
+    version_control::{state::*, AccountBase},
     VERSION_CONTROL,
 };
 use cosmwasm_std::{DepsMut, Empty, MessageInfo};
@@ -14,10 +14,15 @@ pub struct VcResponse;
 
 /// Add new OS to version control contract
 /// Only Factory can add OS
-pub fn add_os(deps: DepsMut, msg_info: MessageInfo, account_id: AccountId, core: Core) -> VCResult {
+pub fn add_os(
+    deps: DepsMut,
+    msg_info: MessageInfo,
+    account_id: AccountId,
+    core: AccountBase,
+) -> VCResult {
     // Only Factory can add new OS
     FACTORY.assert_admin(deps.as_ref(), &msg_info.sender)?;
-    OS_ADDRESSES.save(deps.storage, account_id, &core)?;
+    ACCOUNT_ADDRESSES.save(deps.storage, account_id, &core)?;
 
     Ok(VcResponse::new(
         "add_os",
@@ -367,7 +372,7 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init_with_factory(deps.as_mut())?;
 
-            let test_core: Core = Core {
+            let test_core: AccountBase = AccountBase {
                 manager: Addr::unchecked(TEST_MANAGER_ADDR),
                 proxy: Addr::unchecked(TEST_PROXY_ADDR),
             };
@@ -391,7 +396,7 @@ mod test {
             // as factory
             execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg)?;
 
-            let os = OS_ADDRESSES.load(&deps.storage, 0)?;
+            let os = ACCOUNT_ADDRESSES.load(&deps.storage, 0)?;
             assert_that!(&os).is_equal_to(&test_core);
             Ok(())
         }

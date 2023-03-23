@@ -9,7 +9,7 @@ use crate::{
     AbstractSdkResult,
 };
 pub use abstract_os::objects::ans_host::AnsHost;
-use abstract_os::version_control::Core;
+use abstract_os::version_control::AccountBase;
 use cosmwasm_std::{Addr, Deps};
 use os::PROXY;
 
@@ -59,7 +59,7 @@ impl ModuleIdentification for ProxyContract {
     }
 }
 
-impl AccountIdentification for Core {
+impl AccountIdentification for AccountBase {
     fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
         Ok(self.proxy.clone())
     }
@@ -68,12 +68,12 @@ impl AccountIdentification for Core {
         Ok(self.manager.clone())
     }
 
-    fn os_core(&self, _deps: Deps) -> AbstractSdkResult<Core> {
+    fn account_base(&self, _deps: Deps) -> AbstractSdkResult<AccountBase> {
         Ok(self.clone())
     }
 }
 
-impl ModuleIdentification for Core {
+impl ModuleIdentification for AccountBase {
     /// Any actions executed by the core will be by the proxy address
     fn module_id(&self) -> &'static str {
         PROXY
@@ -132,12 +132,12 @@ mod tests {
         }
     }
 
-    mod core {
+    mod base {
         use super::*;
         use cosmwasm_std::testing::mock_dependencies;
 
-        fn test_core() -> Core {
-            Core {
+        fn test_core() -> AccountBase {
+            AccountBase {
                 manager: Addr::unchecked(TEST_MANAGER),
                 proxy: Addr::unchecked(TEST_PROXY),
             }
@@ -168,12 +168,12 @@ mod tests {
         }
 
         #[test]
-        fn test_os_core() {
+        fn test_account() {
             let core = test_core();
 
             let deps = mock_dependencies();
 
-            assert_that!(core.os_core(deps.as_ref()))
+            assert_that!(core.account_base(deps.as_ref()))
                 .is_ok()
                 .is_equal_to(core);
         }

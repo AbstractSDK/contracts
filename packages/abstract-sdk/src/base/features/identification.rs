@@ -1,5 +1,6 @@
 use abstract_os::{
-    objects::common_namespace::ADMIN_NAMESPACE, proxy::state::ACCOUNT_ID, version_control::Core,
+    objects::common_namespace::ADMIN_NAMESPACE, proxy::state::ACCOUNT_ID,
+    version_control::AccountBase,
 };
 use cosmwasm_std::{Addr, Deps};
 use cw_storage_plus::Item;
@@ -20,8 +21,8 @@ pub trait AccountIdentification: Sized {
             proxy_addr: self.proxy_address(deps).unwrap(),
         })
     }
-    fn os_core(&self, deps: Deps) -> AbstractSdkResult<Core> {
-        Ok(Core {
+    fn account_base(&self, deps: Deps) -> AbstractSdkResult<AccountBase> {
+        Ok(AccountBase {
             manager: self.manager_address(deps)?,
             proxy: self.proxy_address(deps)?,
         })
@@ -48,7 +49,7 @@ mod test {
         }
     }
 
-    mod core {
+    mod base {
         use super::*;
         use cosmwasm_std::testing::mock_dependencies;
 
@@ -78,19 +79,19 @@ mod test {
         }
 
         #[test]
-        fn test_os_core() {
+        fn test_account() {
             let mut deps = mock_dependencies();
             deps.querier = MockQuerierBuilder::default()
                 .with_contract_item(TEST_PROXY, MANAGER, &Some(Addr::unchecked(TEST_MANAGER)))
                 .build();
 
-            let expected_core = Core {
+            let expected_core = AccountBase {
                 manager: Addr::unchecked(TEST_MANAGER),
                 proxy: Addr::unchecked(TEST_PROXY),
             };
 
             let binding = MockBinding;
-            assert_that!(binding.os_core(deps.as_ref()))
+            assert_that!(binding.account_base(deps.as_ref()))
                 .is_ok()
                 .is_equal_to(expected_core);
         }

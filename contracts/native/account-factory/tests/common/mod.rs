@@ -77,7 +77,7 @@ pub fn init_abstract_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, Abstrac
         module_factory,
     };
 
-    let os_core = AbstractAccount { manager, proxy };
+    let account = AbstractAccount { manager, proxy };
 
-    Ok((deployment, os_core))
+    Ok((deployment, account))
 }

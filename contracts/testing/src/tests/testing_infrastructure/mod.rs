@@ -1,7 +1,7 @@
+mod account_creation;
 mod common_integration;
 mod instantiate;
 mod module_uploader;
-mod os_creation;
 mod upload;
 mod verify;
 

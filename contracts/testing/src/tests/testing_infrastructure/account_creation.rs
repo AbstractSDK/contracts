@@ -11,7 +11,7 @@ use abstract_sdk::os::{
     app::BaseInstantiateMsg, objects::module::ModuleInfo,
     subscription::InstantiateMsg as SubInitMsg, version_control::Core,
 };
-use abstract_sdk::os::{objects::module::ModuleVersion, version_control::OsCoreResponse};
+use abstract_sdk::os::{objects::module::ModuleVersion, version_control::AccountBaseResponse};
 use anyhow::Result as AnyResult;
 use cosmwasm_std::Addr;
 use cosmwasm_std::{to_binary, Coin, Decimal, Uint128, Uint64};
@@ -53,12 +53,12 @@ pub fn init_os(
     let account_id = resp.next_acct_id - 1;
 
     // Check OS
-    let core: OsCoreResponse = app.wrap().query_wasm_smart(
+    let core: AccountBaseResponse = app.wrap().query_wasm_smart(
         &native_contracts.version_control,
         &version_control::QueryMsg::OsCore { account_id },
     )?;
 
-    os_store.insert(account_id, core.os_core);
+    os_store.insert(account_id, core.account);
     assert!(os_store_as_expected(app, native_contracts, os_store));
     Ok(())
 }

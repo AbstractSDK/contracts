@@ -42,7 +42,10 @@ impl<
         ))
     }
 
-    fn os_core(&self, _deps: Deps) -> AbstractSdkResult<abstract_sdk::os::version_control::Core> {
+    fn account_base(
+        &self,
+        _deps: Deps,
+    ) -> AbstractSdkResult<abstract_sdk::os::version_control::AccountBase> {
         Err(AbstractSdkError::generic_err(
             "OS core not available on stateless ibc deployment",
         ))

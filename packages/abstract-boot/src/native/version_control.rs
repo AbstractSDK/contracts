@@ -161,9 +161,12 @@ where
         modules_to_register
     }
 
-    pub fn get_os_core(&self, account_id: AccountId) -> Result<Core, crate::AbstractBootError> {
-        let resp: OsCoreResponse = self.query(&QueryMsg::OsCore { account_id })?;
-        Ok(resp.os_core)
+    pub fn get_account(
+        &self,
+        account_id: AccountId,
+    ) -> Result<AccountBase, crate::AbstractBootError> {
+        let resp: AccountBaseResponse = self.query(&QueryMsg::AccountBase { account_id })?;
+        Ok(resp.account)
     }
 
     /// Retrieves an API's address from version control given the module **id** and **version**.
