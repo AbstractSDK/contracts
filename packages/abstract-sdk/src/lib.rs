@@ -10,7 +10,7 @@
 pub type AbstractSdkResult<T> = Result<T, crate::error::AbstractSdkError>;
 
 pub extern crate abstract_macros as macros;
-pub extern crate abstract_os as os;
+pub extern crate abstract_os as interfaces;
 
 mod ans_resolve;
 mod apis;

@@ -8,7 +8,7 @@ use crate::{
 use abstract_os::manager::state::OS_MODULES;
 use cosmwasm_std::{Addr, Deps, QueryRequest, WasmQuery};
 use cw2::{ContractVersion, CONTRACT};
-use os::objects::module::ModuleId;
+use interfaces::objects::module::ModuleId;
 
 /// Interact with other modules on the OS.
 pub trait ModuleInterface: AccountIdentification + Dependencies {

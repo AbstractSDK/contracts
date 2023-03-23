@@ -65,7 +65,7 @@
 //!
 //!
 //! ```rust,ignore
-//! use abstract_sdk::os::app::{ExecuteMsg, AppExecuteMsg};
+//! use abstract_sdk::interfaces::app::{ExecuteMsg, AppExecuteMsg};
 //! use abstract_app::{AppContract, AppError};
 //! # use abstract_sdk::base::ExecuteEndpoint;
 //! # use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};

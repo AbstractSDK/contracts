@@ -5,7 +5,7 @@ use abstract_macros::abstract_response;
 use abstract_os::ibc_host::ExecuteMsg;
 use abstract_sdk::{
     base::{ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint, ReplyEndpoint},
-    os::{
+    interfaces::{
         abstract_ica::StdAck,
         dex::DexAction,
         ibc_host::{InstantiateMsg, MigrateMsg, QueryMsg},

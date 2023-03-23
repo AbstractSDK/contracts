@@ -4,9 +4,9 @@ use abstract_os::objects::oracle::{AccountValue, Oracle};
 use abstract_os::proxy::{
     AssetsConfigResponse, BaseAssetResponse, HoldingAmountResponse, OracleAsset, TokenValueResponse,
 };
-use abstract_sdk::os::objects::AssetEntry;
-use abstract_sdk::os::proxy::state::{ANS_HOST, STATE};
-use abstract_sdk::os::proxy::{AssetsInfoResponse, ConfigResponse};
+use abstract_sdk::interfaces::objects::AssetEntry;
+use abstract_sdk::interfaces::proxy::state::{ANS_HOST, STATE};
+use abstract_sdk::interfaces::proxy::{AssetsInfoResponse, ConfigResponse};
 use abstract_sdk::Resolve;
 use cosmwasm_std::{Addr, Deps, Env, StdResult};
 use cw_asset::{Asset, AssetInfo};

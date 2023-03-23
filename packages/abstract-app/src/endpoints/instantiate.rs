@@ -9,7 +9,7 @@ use abstract_os::{
 use abstract_sdk::{
     cw_helpers::cosmwasm_std::wasm_smart_query,
     feature_objects::AnsHost,
-    os::module_factory::{ContextResponse, QueryMsg as FactoryQuery},
+    interfaces::module_factory::{ContextResponse, QueryMsg as FactoryQuery},
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
 use cw2::set_contract_version;
@@ -52,7 +52,7 @@ impl<
             &FactoryQuery::Context {},
         )?)?;
 
-        let Some(core) = resp.core else {
+        let Some(core) = resp.account else {
             return Err(
                 StdError::generic_err("context of module factory not properly set.").into(),
             );

@@ -11,8 +11,8 @@ use abstract_sdk::{
         ReplyHandlerFn,
     },
     feature_objects::AnsHost,
+    interfaces::ibc_host::PacketMsg,
     namespaces::{ADMIN_NAMESPACE, BASE_STATE},
-    os::ibc_host::PacketMsg,
 };
 use cosmwasm_std::{Addr, Binary, Empty, StdResult, Storage};
 use cw_controllers::Admin;

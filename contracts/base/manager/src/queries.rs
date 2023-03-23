@@ -1,5 +1,7 @@
-use abstract_sdk::os::manager::state::{OsInfo, ACCOUNT_ID, CONFIG, INFO, OS_MODULES, ROOT};
-use abstract_sdk::os::manager::{
+use abstract_sdk::interfaces::manager::state::{
+    OsInfo, ACCOUNT_ID, CONFIG, INFO, OS_MODULES, ROOT,
+};
+use abstract_sdk::interfaces::manager::{
     ConfigResponse, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse, ModuleInfosResponse,
     ModuleVersionsResponse,
 };

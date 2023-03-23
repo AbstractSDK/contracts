@@ -6,7 +6,7 @@ use crate::{
 use abstract_sdk::{
     feature_objects::VersionControlContract,
     features::AccountIdentification,
-    os::{
+    interfaces::{
         ibc_client::{
             state::{AccountData, ACCOUNTS, ADMIN, ANS_HOST, CHANNELS, CONFIG, LATEST_QUERIES},
             CallbackInfo,

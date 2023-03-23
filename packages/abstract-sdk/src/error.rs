@@ -1,6 +1,6 @@
 use cosmwasm_std::Addr;
 use cw_asset::AssetError;
-use os::{objects::AssetEntry, AbstractError};
+use interfaces::{objects::AssetEntry, AbstractError};
 use std::fmt::{Display, Formatter};
 use thiserror::Error;
 

@@ -1,5 +1,5 @@
 use super::{common_integration::NativeContracts, instantiate::init_native_contracts};
-use abstract_sdk::os::{
+use abstract_sdk::interfaces::{
     objects::module_reference::ModuleReference, ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY,
     PROXY, VERSION_CONTROL,
 };

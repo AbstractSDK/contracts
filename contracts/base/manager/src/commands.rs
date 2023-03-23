@@ -8,7 +8,7 @@ use abstract_macros::abstract_response;
 use abstract_sdk::{
     cw_helpers::cosmwasm_std::wasm_smart_query,
     feature_objects::VersionControlContract,
-    os::{
+    interfaces::{
         manager::state::DEPENDENTS,
         manager::state::{OsInfo, Subscribed, CONFIG, INFO, OS_MODULES, ROOT, STATUS},
         manager::{CallbackMsg, ExecuteMsg},
@@ -333,7 +333,7 @@ pub fn set_migrate_msgs_and_context(
                 migrate_msg.unwrap_or_else(|| to_binary(&Empty {}).unwrap()),
             ));
         }
-        ModuleReference::Core(code_id) | ModuleReference::Standalone(code_id) => msgs.push(
+        ModuleReference::Account(code_id) | ModuleReference::Standalone(code_id) => msgs.push(
             get_migrate_msg(old_module_addr, code_id, migrate_msg.unwrap()),
         ),
         _ => return Err(ManagerError::NotUpgradeable(module_info)),
@@ -541,7 +541,7 @@ fn upgrade_self(
 ) -> ManagerResult {
     let contract = get_contract_version(deps.storage)?;
     let module = query_module(deps.as_ref(), module_info.clone(), Some(contract))?;
-    if let ModuleReference::Core(manager_code_id) = module.reference {
+    if let ModuleReference::Account(manager_code_id) = module.reference {
         let migration_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Migrate {
             contract_addr: env.contract.address.into_string(),
             new_code_id: manager_code_id,

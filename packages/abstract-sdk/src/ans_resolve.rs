@@ -4,7 +4,7 @@
 use crate::AbstractSdkResult;
 use cosmwasm_std::{Addr, QuerierWrapper};
 use cw_asset::{Asset, AssetInfo};
-use os::objects::{
+use interfaces::objects::{
     ans_host::AnsHost, pool_metadata::ResolvedPoolMetadata, AnsAsset, AssetEntry, ChannelEntry,
     ContractEntry, DexAssetPairing, LpToken, PoolMetadata, PoolReference, UniquePoolId,
 };
@@ -364,7 +364,7 @@ mod tests {
     mod pool_metadata {
         use super::*;
 
-        use os::objects::PoolType;
+        use interfaces::objects::PoolType;
 
         #[test]
         fn exists() {
@@ -421,7 +421,7 @@ mod tests {
     mod pools {
         use super::*;
         use abstract_os::ans_host::state::{ASSET_PAIRINGS, POOL_METADATA};
-        use os::objects::{PoolAddress, PoolType};
+        use interfaces::objects::{PoolAddress, PoolType};
 
         #[test]
         fn exists() {
@@ -472,7 +472,7 @@ mod tests {
 
     mod contract_entry {
         use super::*;
-        use os::ans_host::state::CONTRACT_ADDRESSES;
+        use interfaces::ans_host::state::CONTRACT_ADDRESSES;
 
         #[test]
         fn exists() {
@@ -545,7 +545,7 @@ mod tests {
 
     mod channel_entry {
         use super::*;
-        use os::ans_host::state::CHANNELS;
+        use interfaces::ans_host::state::CHANNELS;
 
         #[test]
         fn exists() {
@@ -581,7 +581,7 @@ mod tests {
 
     mod asset_info_and_asset {
         use super::*;
-        use os::ans_host::state::REV_ASSET_ADDRESSES;
+        use interfaces::ans_host::state::REV_ASSET_ADDRESSES;
 
         #[test]
         fn exists() {

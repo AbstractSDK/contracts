@@ -6,8 +6,8 @@ use abstract_sdk::{
         QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
     },
     feature_objects::AnsHost,
+    interfaces::version_control::AccountBase,
     namespaces::BASE_STATE,
-    os::version_control::AccountBase,
     AbstractSdkError,
 };
 use cosmwasm_std::{Addr, Empty, StdError, StdResult, Storage};

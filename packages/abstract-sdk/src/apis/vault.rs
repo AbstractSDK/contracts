@@ -9,7 +9,7 @@ use crate::{
 use abstract_os::{objects::AssetEntry, proxy::QueryMsg};
 use cosmwasm_std::{Deps, Uint128};
 
-use os::{objects::oracle::AccountValue, proxy::TokenValueResponse};
+use interfaces::{objects::oracle::AccountValue, proxy::TokenValueResponse};
 
 /// Retrieve asset-registration information from the OS.
 /// Query asset values and balances.

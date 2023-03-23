@@ -11,7 +11,7 @@ use crate::{
 pub use abstract_os::objects::ans_host::AnsHost;
 use abstract_os::version_control::AccountBase;
 use cosmwasm_std::{Addr, Deps};
-use os::PROXY;
+use interfaces::PROXY;
 
 /// Store the Version Control contract.
 /// Implements [`AbstractRegistryAccess`]

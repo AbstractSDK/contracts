@@ -96,7 +96,7 @@ pub struct ConfigResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ContextResponse {
-    pub core: Option<AccountBase>,
+    pub account: Option<AccountBase>,
     pub module: Option<Module>,
 }
 

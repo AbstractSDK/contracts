@@ -6,7 +6,7 @@ use crate::{
     validation::{validate_description, validate_link, validate_name_or_gov_type},
     versioning,
 };
-use abstract_sdk::os::{
+use abstract_sdk::interfaces::{
     manager::{
         state::{Config, OsInfo, ACCOUNT_FACTORY, CONFIG, INFO, ROOT, STATUS},
         CallbackMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,

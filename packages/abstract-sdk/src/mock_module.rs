@@ -7,7 +7,7 @@ use crate::features::{
 };
 use crate::AbstractSdkResult;
 use abstract_os::objects::ans_host::AnsHost;
-use os::objects::module::ModuleId;
+use interfaces::objects::module::ModuleId;
 
 // We implement the following traits here for the mock module (in this package) to avoid a circular dependency
 impl AccountIdentification for MockModule {

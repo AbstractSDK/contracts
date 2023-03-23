@@ -4,7 +4,7 @@
 use crate::{ans_resolve::Resolve, features::AbstractNameService, AbstractSdkResult, Execution};
 use cosmwasm_std::{Addr, BankMsg, Coin, CosmosMsg, Deps};
 use cw_asset::Asset;
-use os::objects::{AnsAsset, AssetEntry};
+use interfaces::objects::{AnsAsset, AssetEntry};
 
 /// Query and Transfer assets from and to the Abstract OS.
 pub trait TransferInterface: AbstractNameService + Execution {
@@ -184,7 +184,7 @@ mod test {
 
     mod transfer_coins {
         use super::*;
-        use os::proxy::ExecuteMsg::ModuleAction;
+        use interfaces::proxy::ExecuteMsg::ModuleAction;
 
         #[test]
         fn transfer_asset_to_sender() {

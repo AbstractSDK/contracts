@@ -50,7 +50,7 @@ where
         let manager = os.manager.as_instance();
         let manager_module = (
             ModuleInfo::from_id(&manager.id, ModuleVersion::Version(version.to_string()))?,
-            ModuleReference::Core(manager.code_id()?),
+            ModuleReference::Account(manager.code_id()?),
         );
         self.add_modules(vec![manager_module])?;
 
@@ -59,7 +59,7 @@ where
         let proxy = os.proxy.as_instance();
         let proxy_module = (
             ModuleInfo::from_id(&proxy.id, ModuleVersion::Version(version.to_string()))?,
-            ModuleReference::Core(proxy.code_id()?),
+            ModuleReference::Account(proxy.code_id()?),
         );
         self.add_modules(vec![proxy_module])?;
 
@@ -74,7 +74,7 @@ where
         version: &Version,
     ) -> Result<(), crate::AbstractBootError> {
         let to_register = self.contracts_into_module_entries(apps, version, |c| {
-            ModuleReference::Core(c.code_id().unwrap())
+            ModuleReference::Account(c.code_id().unwrap())
         })?;
         self.add_modules(to_register)?;
         Ok(())

@@ -1,6 +1,6 @@
 use super::common_integration::NativeContracts;
-use abstract_sdk::os::version_control::{AccountBaseResponse, Core};
-use abstract_sdk::os::*;
+use abstract_sdk::interfaces::version_control::{AccountBaseResponse, Core};
+use abstract_sdk::interfaces::*;
 use cw_multi_test::App;
 use std::collections::HashMap;
 

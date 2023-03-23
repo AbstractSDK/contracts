@@ -1,14 +1,14 @@
 use crate::error::VCError;
 use abstract_os::objects::AccountId;
 use abstract_os::version_control::ModuleFilter;
-use abstract_sdk::os::{
+use abstract_sdk::interfaces::{
     objects::{
         module::{Module, ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
     },
     version_control::{
-        state::ACCOUNT_ADDRESSES, state::MODULE_LIBRARY, ModulesListResponse, ModulesResponse,
-        AccountBaseResponse,
+        state::ACCOUNT_ADDRESSES, state::MODULE_LIBRARY, AccountBaseResponse, ModulesListResponse,
+        ModulesResponse,
     },
 };
 use cosmwasm_std::{to_binary, Binary, Deps, Order, StdError, StdResult};

@@ -1,5 +1,5 @@
 use crate::error::VCError;
-use abstract_sdk::os::{
+use abstract_sdk::interfaces::{
     objects::{module_version::migrate_module_data, module_version::set_module_data},
     version_control::{
         state::{ADMIN, FACTORY},

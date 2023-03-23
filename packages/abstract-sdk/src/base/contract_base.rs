@@ -4,7 +4,7 @@ use abstract_os::abstract_ica::StdAck;
 use cosmwasm_std::{Binary, Deps, DepsMut, Empty, Env, MessageInfo, Reply, Response, Storage};
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Item;
-use os::objects::dependency::StaticDependency;
+use interfaces::objects::dependency::StaticDependency;
 
 pub type ModuleId = &'static str;
 pub type VersionString = &'static str;

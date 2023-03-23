@@ -1,6 +1,6 @@
 use super::common_integration::NativeContracts;
 use crate::tests::common::{DEFAULT_VERSION, TEST_CREATOR};
-use abstract_sdk::os::{
+use abstract_sdk::interfaces::{
     account_factory as OSFactoryMsg, ans_host as AnsHostMsg, module_factory as ModuleFactoryMsg,
     objects::{
         module::{ModuleInfo, ModuleVersion},

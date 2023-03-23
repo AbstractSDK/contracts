@@ -4,7 +4,7 @@ use crate::{
 };
 use abstract_sdk::{
     features::AbstractNameService,
-    os::{
+    interfaces::{
         abstract_ica::{BalancesResponse, DispatchResponse, SendAllBackResponse, StdAck},
         objects::ChannelEntry,
         ICS20,

@@ -2,7 +2,7 @@ use crate::contract::ProxyResult;
 use crate::error::ProxyError;
 use abstract_macros::abstract_response;
 use abstract_os::objects::{oracle::Oracle, price_source::UncheckedPriceSource, AssetEntry};
-use abstract_sdk::os::{
+use abstract_sdk::interfaces::{
     ibc_client::ExecuteMsg as IbcClientMsg,
     proxy::state::{ADMIN, ANS_HOST, STATE},
     IBC_CLIENT, PROXY,
@@ -47,7 +47,7 @@ pub fn execute_ibc_action(
         return Err(ProxyError::SenderNotWhitelisted {});
     }
     let manager_address = ADMIN.get(deps.as_ref())?.unwrap();
-    let ibc_client_address = abstract_sdk::os::manager::state::OS_MODULES
+    let ibc_client_address = abstract_sdk::interfaces::manager::state::OS_MODULES
         .query(&deps.querier, manager_address, IBC_CLIENT)?
         .ok_or_else(|| {
             StdError::generic_err(format!(

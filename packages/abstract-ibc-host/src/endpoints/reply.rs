@@ -4,7 +4,7 @@ use crate::{
 };
 use abstract_sdk::{
     base::{Handler, ReplyEndpoint},
-    os::{
+    interfaces::{
         abstract_ica::{DispatchResponse, RegisterResponse, StdAck},
         ibc_host::PacketMsg,
     },

@@ -83,7 +83,7 @@ pub mod mock {
             match from_binary(msg).unwrap() {
                 abstract_os::module_factory::QueryMsg::Context {} => {
                     let resp = ContextResponse {
-                        core: Some(AccountBase {
+                        account: Some(AccountBase {
                             manager: Addr::unchecked(TEST_MANAGER),
                             proxy: Addr::unchecked(TEST_PROXY),
                         }),

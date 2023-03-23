@@ -49,7 +49,7 @@ impl<
     fn account_base(
         &self,
         _deps: Deps,
-    ) -> AbstractSdkResult<abstract_sdk::os::version_control::AccountBase> {
+    ) -> AbstractSdkResult<abstract_sdk::interfaces::version_control::AccountBase> {
         if let Some(target) = &self.target_os {
             Ok(target.clone())
         } else {

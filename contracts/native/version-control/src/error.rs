@@ -1,6 +1,6 @@
 use abstract_os::objects::AccountId;
 use abstract_os::AbstractError;
-use abstract_sdk::os::objects::module::ModuleInfo;
+use abstract_sdk::interfaces::objects::module::ModuleInfo;
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use cw_controllers::AdminError;

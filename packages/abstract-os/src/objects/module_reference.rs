@@ -5,7 +5,7 @@ use cosmwasm_std::{Addr, Deps};
 #[non_exhaustive]
 pub enum ModuleReference {
     /// Core Abstract Contracts
-    Core(u64),
+    Account(u64),
     /// Native Abstract Contracts
     Native(Addr),
     /// Installable apis
@@ -33,7 +33,7 @@ impl ModuleReference {
 
     pub fn unwrap_core(&self) -> AbstractResult<u64> {
         match self {
-            ModuleReference::Core(v) => Ok(*v),
+            ModuleReference::Account(v) => Ok(*v),
             _ => Err(AbstractError::Assert(
                 "module reference not a core module.".to_string(),
             )),
@@ -97,7 +97,7 @@ mod test {
 
     #[test]
     fn core() {
-        let core = ModuleReference::Core(1);
+        let core = ModuleReference::Account(1);
         assert_eq!(core.unwrap_core().unwrap(), 1);
         assert!(core.unwrap_native().is_err());
         assert!(core.unwrap_api().is_err());
@@ -151,7 +151,7 @@ mod test {
         let api = ModuleReference::Api(Addr::unchecked("addr"));
         assert_eq!(api.unwrap_addr().unwrap(), Addr::unchecked("addr"));
 
-        let core = ModuleReference::Core(1);
+        let core = ModuleReference::Account(1);
         assert!(core.unwrap_addr().is_err());
     }
 
@@ -165,7 +165,7 @@ mod test {
         let api = ModuleReference::Api(Addr::unchecked("addr"));
         assert_that!(api.validate(deps.as_ref())).is_ok();
 
-        let core = ModuleReference::Core(1);
+        let core = ModuleReference::Account(1);
         assert_that!(core.validate(deps.as_ref())).is_ok();
 
         let app = ModuleReference::App(1);

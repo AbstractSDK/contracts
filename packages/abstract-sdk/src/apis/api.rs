@@ -82,7 +82,7 @@ mod tests {
     }
     mod api_request {
         use super::*;
-        use os::api::{self, ApiRequestMsg};
+        use interfaces::api::{self, ApiRequestMsg};
 
         #[test]
         fn should_return_err_if_not_dependency() {

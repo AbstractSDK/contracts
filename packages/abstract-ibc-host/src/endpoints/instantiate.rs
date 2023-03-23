@@ -6,7 +6,7 @@ use abstract_os::objects::module_version::set_module_data;
 use abstract_sdk::{
     base::{Handler, InstantiateEndpoint},
     feature_objects::AnsHost,
-    os::ibc_host::InstantiateMsg,
+    interfaces::ibc_host::InstantiateMsg,
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;

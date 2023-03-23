@@ -3,7 +3,7 @@
 
 use cosmwasm_std::{CosmosMsg, Uint128};
 use cw_asset::Asset;
-use os::objects::fee::{Fee, UsageFee};
+use interfaces::objects::fee::{Fee, UsageFee};
 
 use crate::AbstractSdkResult;
 

@@ -17,7 +17,7 @@ pub fn wasm_smart_query<C>(
 mod test {
     use super::*;
     use cosmwasm_std::Empty;
-    use os::{app, app::BaseQueryMsg};
+    use interfaces::{app, app::BaseQueryMsg};
 
     #[test]
     fn test_wasm_smart_query() {

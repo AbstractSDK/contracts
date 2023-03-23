@@ -1,4 +1,4 @@
-use abstract_sdk::os::{
+use abstract_sdk::interfaces::{
     api::{ApiConfigResponse, TradersResponse},
     dex::SimulateSwapResponse,
 };

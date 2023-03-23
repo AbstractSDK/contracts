@@ -4,7 +4,7 @@ use crate::queries::*;
 use abstract_os::objects::{module_version::migrate_module_data, oracle::Oracle};
 use abstract_sdk::{
     feature_objects::AnsHost,
-    os::{
+    interfaces::{
         objects::{core::ACCOUNT_ID, module_version::set_module_data},
         proxy::{
             state::{State, ADMIN, ANS_HOST, STATE},

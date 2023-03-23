@@ -1,6 +1,6 @@
 use crate::error::IbcClientError;
 use abstract_os::objects::AccountId;
-use abstract_sdk::os::{
+use abstract_sdk::interfaces::{
     abstract_ica::{
         check_order, check_version, BalancesResponse, RegisterResponse, StdAck, WhoAmIResponse,
     },
@@ -313,9 +313,9 @@ pub fn ibc_packet_timeout(
 mod tests {
     use super::*;
     use crate::contract::instantiate;
-    use abstract_sdk::os::ibc_client::InstantiateMsg;
+    use abstract_sdk::interfaces::ibc_client::InstantiateMsg;
 
-    use abstract_sdk::os::abstract_ica::{APP_ORDER, BAD_APP_ORDER, IBC_APP_VERSION};
+    use abstract_sdk::interfaces::abstract_ica::{APP_ORDER, BAD_APP_ORDER, IBC_APP_VERSION};
     use abstract_testing::addresses::{TEST_ADMIN, TEST_ANS_HOST, TEST_VERSION_CONTROL};
     use cosmwasm_std::{
         testing::{
