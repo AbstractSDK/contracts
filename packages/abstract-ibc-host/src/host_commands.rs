@@ -157,7 +157,7 @@ pub fn receive_register<
 
     // store the proxy address of the Account on the client chain.
     CLIENT_PROXY.save(deps.storage, (&channel, account_id), &os_proxy_address)?;
-    // store the os info for the reply handler
+    // store the account info for the reply handler
     PENDING.save(deps.storage, &(channel, account_id))?;
 
     // We rely on Reply handler to change this to Success!

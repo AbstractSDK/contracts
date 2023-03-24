@@ -44,7 +44,7 @@ fn proper_initialization() {
         vault_contract,
     )
     .unwrap();
-    // create second os
+    // create second account
     init_os(&mut app, &sender, &mut env).unwrap();
     // add vault module, no defaults.
     let account = env.os_store.get(&1).unwrap();

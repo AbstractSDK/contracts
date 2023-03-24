@@ -141,7 +141,7 @@ fn proper_initialization() {
     let (_code_ids, native_contracts) = upload_base_contracts(&mut app);
     let mut os_store: HashMap<u32, Core> = HashMap::new();
 
-    init_os(&mut app, &sender, &native_contracts, &mut os_store).expect("created first os");
+    init_os(&mut app, &sender, &native_contracts, &mut os_store).expect("created first account");
 
     // TODO: review on release
     // init_os(&mut app, &sender, &native_contracts, &mut os_store)

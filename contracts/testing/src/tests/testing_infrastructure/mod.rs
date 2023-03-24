@@ -29,7 +29,7 @@ pub mod env {
             let (code_ids, native_contracts) = upload_base_contracts(app);
             let mut os_store: HashMap<u32, Core> = HashMap::new();
 
-            init_os(app, sender, &native_contracts, &mut os_store).expect("created first os");
+            init_os(app, sender, &native_contracts, &mut os_store).expect("created first account");
 
             init_primary_os(app, sender, &native_contracts, &mut os_store).unwrap();
 

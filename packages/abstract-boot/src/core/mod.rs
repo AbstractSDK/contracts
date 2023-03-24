@@ -42,7 +42,7 @@ impl<Chain: BootEnvironment> AbstractAccount<Chain> {
         Ok(())
     }
 
-    /// Register the os core contracts in the version control
+    /// Register the account core contracts in the version control
     pub fn register(
         &self,
         version_control: &VersionControl<Chain>,

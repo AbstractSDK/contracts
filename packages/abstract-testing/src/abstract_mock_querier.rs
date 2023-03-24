@@ -28,7 +28,7 @@ impl Default for AbstractMockQuerierBuilder {
 }
 
 impl AbstractMockQuerierBuilder {
-    /// Mock the existence of an Account by setting the Account id for the proxy and manager along with registering the os to version control.
+    /// Mock the existence of an Account by setting the Account id for the proxy and manager along with registering the account to version control.
     pub fn account(mut self, manager: &str, proxy: &str, account_id: u32) -> Self {
         self.builder = self
             .builder
@@ -63,7 +63,7 @@ impl AbstractMockQuerierBuilder {
         self
     }
 
-    /// Change the version control address. Any os added after this will be registered to this address.
+    /// Change the version control address. Any account added after this will be registered to this address.
     pub fn set_version_control(mut self, version_control: &'static str) -> Self {
         self.version_control = version_control;
         self

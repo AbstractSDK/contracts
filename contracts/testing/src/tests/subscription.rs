@@ -282,9 +282,9 @@ fn add_and_remove_contributors() {
 //         init_os(&mut app, &sender, &env.native_contracts, &mut env.os_store).unwrap();
 //     }
 
-//     // Payments got forwarded to os 0
+//     // Payments got forwarded to account 0
 //     let abstract_balance = app.wrap().query_balance(&proxy_addr, "uusd").unwrap();
-//     // 50 os' were created
+//     // 50 account' were created
 //     assert_eq!(abstract_balance.amount.u128(), 5_000u128);
 
 //     let msg = msgs::ExecuteMsg::ClaimEmissions { account_id: 2 };
@@ -550,9 +550,9 @@ fn add_and_remove_contributors() {
 // //         init_os(&mut app, &sender, &env.native_contracts, &mut env.os_store).unwrap();
 // //     }
 
-// //     // Payments got forwarded to os 0
+// //     // Payments got forwarded to account 0
 // //     let abstract_balance = app.wrap().query_balance(&proxy_addr, "uusd").unwrap();
-// //     // 50 os' were created
+// //     // 50 account' were created
 // //     assert_eq!(abstract_balance.amount.u128(), 5_000u128);
 
 // //     let msg = msgs::ExecuteMsg::ClaimEmissions { account_id: 2 };

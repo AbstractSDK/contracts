@@ -94,7 +94,7 @@ pub fn init_native_contracts(
         module_factory_address: module_factory_instance.to_string(),
         version_control_address: version_control_instance.to_string(),
     };
-    // Instantiate os factory Contract
+    // Instantiate account factory Contract
     let os_factory_instance = app
         .instantiate_contract(
             *code_ids.get(ACCOUNT_FACTORY).unwrap(),

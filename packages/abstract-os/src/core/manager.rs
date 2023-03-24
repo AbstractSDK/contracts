@@ -96,7 +96,7 @@ pub enum ExecuteMsg {
         exec_msg: Binary,
     },
     /// Updates the `OS_MODULES` map
-    /// Only callable by os factory or root.
+    /// Only callable by account factory or root.
     UpdateModuleAddresses {
         to_add: Option<Vec<(String, String)>>,
         to_remove: Option<Vec<String>>,

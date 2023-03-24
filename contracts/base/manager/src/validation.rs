@@ -24,7 +24,7 @@ pub fn validate_link(link: &Option<String>) -> Result<(), ManagerError> {
 }
 
 /**
- * Validates that the title or gov type of the os is valid, i.e. len() between [MIN_TITLE_LENGTH, MAX_TITLE_LENGTH].
+ * Validates that the title or gov type of the account is valid, i.e. len() between [MIN_TITLE_LENGTH, MAX_TITLE_LENGTH].
  */
 pub fn validate_name_or_gov_type(title: &str) -> Result<(), ManagerError> {
     if title.len() < MIN_TITLE_LENGTH {
@@ -37,7 +37,7 @@ pub fn validate_name_or_gov_type(title: &str) -> Result<(), ManagerError> {
 }
 
 /**
- * Validates that the description of the os is valid, i.e. len() between [MIN_DESC_LENGTH, MAX_DESC_LENGTH].
+ * Validates that the description of the account is valid, i.e. len() between [MIN_DESC_LENGTH, MAX_DESC_LENGTH].
  */
 pub fn validate_description(maybe_description: &Option<String>) -> Result<(), ManagerError> {
     if let Some(description) = maybe_description {

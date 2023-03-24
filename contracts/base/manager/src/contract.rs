@@ -115,7 +115,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                 } => set_root_and_gov_type(deps, info, root, governance_type),
                 ExecuteMsg::UpdateModuleAddresses { to_add, to_remove } => {
                     // only factory/root can add custom modules.
-                    // required to add Proxy after init by os factory.
+                    // required to add Proxy after init by account factory.
                     ACCOUNT_FACTORY
                         .assert_admin(deps.as_ref(), &info.sender)
                         .or_else(|_| ROOT.assert_admin(deps.as_ref(), &info.sender))?;

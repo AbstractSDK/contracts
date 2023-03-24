@@ -7,7 +7,7 @@ use thiserror::Error;
 /// Wrapper error for the Abstract-OS framework.
 #[derive(Error, Debug, PartialEq)]
 pub enum AbstractError {
-    #[error("Std error encountered while handling os object: {0}")]
+    #[error("Std error encountered while handling account object: {0}")]
     Std(#[from] StdError),
 
     #[error("{0}")]
@@ -16,7 +16,7 @@ pub enum AbstractError {
     #[error("cw math overflow error: {0}")]
     Overflow(#[from] OverflowError),
 
-    #[error("Semver error encountered while handling os object: {0}")]
+    #[error("Semver error encountered while handling account object: {0}")]
     Semver(String),
 
     #[error("Entry {actual} should be formatted as {expected}")]

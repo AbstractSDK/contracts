@@ -98,7 +98,7 @@ fn create_two_os_s() -> AResult {
 
     let factory = &deployment.account_factory;
     let version_control = &deployment.version_control;
-    // first os
+    // first account
     let os_1 = factory.create_os(
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
@@ -107,7 +107,7 @@ fn create_two_os_s() -> AResult {
         Some(String::from("os_description")),
         Some(String::from("os_link_of_at_least_11_char")),
     )?;
-    // second os
+    // second account
     let os_2 = factory.create_os(
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),

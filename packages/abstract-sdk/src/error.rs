@@ -31,10 +31,10 @@ pub enum AbstractSdkError {
     // #[error("cw math overflow error: {0}")]
     // Overflow(#[from] OverflowError),
 
-    // #[error("Semver error encountered while handling os object: {0}")]
+    // #[error("Semver error encountered while handling account object: {0}")]
     // Semver(#[from] SemverError),
 
-    // #[error("Semver error encountered while handling os object: {0}")]
+    // #[error("Semver error encountered while handling account object: {0}")]
     // CwSemver(#[from] CwSemverError),
     #[error("Missing handler for {endpoint}")]
     MissingHandler { endpoint: String },

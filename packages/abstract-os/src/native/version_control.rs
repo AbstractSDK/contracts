@@ -38,7 +38,7 @@ use crate::objects::{
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
 
-/// Contains the minimal Abstract-OS contract addresses.
+/// Contains the minimal Abstract Account contract addresses.
 #[cosmwasm_schema::cw_serde]
 pub struct AccountBase {
     pub manager: Addr,
