@@ -55,7 +55,7 @@ pub enum ExecuteMsg {
     RemoveModule { module: ModuleInfo },
     /// Add new modules
     AddModules { modules: Vec<ModuleMapEntry> },
-    /// Add a new OS to the deployed OSs.  
+    /// Add a new Account to the deployed OSs.  
     /// Only Factory can call this
     AddOs {
         account_id: AccountId,
@@ -80,7 +80,7 @@ pub struct ModuleFilter {
 #[derive(QueryResponses)]
 #[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
 pub enum QueryMsg {
-    /// Query Core of an OS
+    /// Query Core of an Account
     /// Returns [`AccountBaseResponse`]
     #[returns(AccountBaseResponse)]
     AccountBase { account_id: AccountId },

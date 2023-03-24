@@ -29,10 +29,10 @@ pub enum AbstractError {
         actual: String,
     },
 
-    #[error("API {0} not installed on OS")]
+    #[error("API {0} not installed on Account")]
     ApiNotInstalled(String),
 
-    #[error("App {0} not installed on OS")]
+    #[error("App {0} not installed on Account")]
     AppNotInstalled(String),
 
     #[error("version for {0} in missing")]

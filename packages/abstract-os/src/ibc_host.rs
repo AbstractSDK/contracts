@@ -4,7 +4,7 @@
 //!
 //! ## Description
 //! An Abstract api contract is a contract that is allowed to perform actions on a [proxy](crate::proxy) contract.
-//! It is not migratable and its functionality is shared between users, meaning that all users call the same contract address to perform operations on the OS.
+//! It is not migratable and its functionality is shared between users, meaning that all users call the same contract address to perform operations on the Account.
 //! The api structure is well-suited for implementing standard interfaces to external services like dexes, lending platforms, etc.
 
 use crate::{

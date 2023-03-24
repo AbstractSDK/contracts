@@ -4,7 +4,7 @@
 //!
 //! ## Description
 //! An Abstract api contract is a contract that is allowed to perform actions on a [proxy](crate::proxy) contract.
-//! It is not migratable and its functionality is shared between users, meaning that all users call the same contract address to perform operations on the OS.
+//! It is not migratable and its functionality is shared between users, meaning that all users call the same contract address to perform operations on the Account.
 //! The api structure is well-suited for implementing standard interfaces to external services like dexes, lending platforms, etc.
 
 use crate::base::{
@@ -76,7 +76,7 @@ impl<RequestMsg, Request, BaseExecMsg> From<ApiRequestMsg<RequestMsg>>
 }
 
 /// An api request.
-/// If proxy is None, then the sender must be an OS manager and the proxy address is extrapolated from the Account id.
+/// If proxy is None, then the sender must be an Account manager and the proxy address is extrapolated from the Account id.
 #[cosmwasm_schema::cw_serde]
 pub struct ApiRequestMsg<Request> {
     pub proxy_address: Option<String>,

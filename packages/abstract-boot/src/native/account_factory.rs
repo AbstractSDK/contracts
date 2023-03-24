@@ -70,7 +70,7 @@ impl<Chain: BootEnvironment> AccountFactory<Chain> {
     ) -> Result<AbstractAccount<Chain>, crate::AbstractBootError> {
         self.create_new_account(
             AccountDetails {
-                name: "Default Abstract OS".into(),
+                name: "Default Abstract Account".into(),
                 ..Default::default()
             },
             governance_details,

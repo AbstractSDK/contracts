@@ -87,7 +87,7 @@ pub fn query_module_cw2(deps: &Deps, module_addr: Addr) -> StdResult<ContractVer
     deps.querier.query::<ContractVersion>(&req)
 }
 
-/// RawQuery the module versions of the modules part of the OS
+/// RawQuery the module versions of the modules part of the Account
 /// Errors if not present
 pub fn query_module_versions(
     deps: Deps,
@@ -117,7 +117,7 @@ pub fn query_module_addresses(
     for module in module_names.iter() {
         let result: StdResult<Addr> = OS_MODULES
             .query(&deps.querier, manager_addr.clone(), module)?
-            .ok_or_else(|| StdError::generic_err(format!("Module {module} not present in OS")));
+            .ok_or_else(|| StdError::generic_err(format!("Module {module} not present in Account")));
         // Add to map if present, skip otherwise. Allows version control to check what modules are present.
         match result {
             Ok(address) => modules.insert(module.clone(), address),

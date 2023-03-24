@@ -1,11 +1,11 @@
 //! # Account Factory
 //!
-//! `abstract_os::account_factory` handles OS creation and registration.
+//! `abstract_os::account_factory` handles Account creation and registration.
 //!
 //! ## Description
-//! The OS factory instantiates a new OS instance and registers it with the [`crate::version_control`] contract. It then forwards the payment to the main os's subscription module.  
+//! The Account factory instantiates a new Account instance and registers it with the [`crate::version_control`] contract. It then forwards the payment to the main os's subscription module.  
 //! ## Create a new Account
-//! Call [`ExecuteMsg::CreateAccount`] on this contract along with a [`crate::objects::gov_type`] and name you'd like to display on your OS.
+//! Call [`ExecuteMsg::CreateAccount`] on this contract along with a [`crate::objects::gov_type`] and name you'd like to display on your Account.
 //!
 pub mod state {
     use cosmwasm_std::Addr;
@@ -42,7 +42,7 @@ use cw20::Cw20ReceiveMsg;
 /// Msg used on instantiation
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
-    /// Version control contract used to get code-ids and register OS
+    /// Version control contract used to get code-ids and register Account
     pub version_control_address: String,
     /// AnsHost contract
     pub ans_host_address: String,

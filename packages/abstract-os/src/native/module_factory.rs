@@ -45,7 +45,7 @@ use cosmwasm_std::Binary;
 
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
-    /// Version control address used to get code-ids and register OS
+    /// Version control address used to get code-ids and register Account
     pub version_control_address: String,
     /// AnsHost address
     pub ans_host_address: String,
@@ -60,7 +60,7 @@ pub enum ExecuteMsg {
         ans_host_address: Option<String>,
         version_control_address: Option<String>,
     },
-    /// Installs a module on the OS
+    /// Installs a module on the Account
     InstallModule {
         // Module details
         module: ModuleInfo,

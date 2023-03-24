@@ -12,15 +12,15 @@ use cosmwasm_std::{DepsMut, Empty, MessageInfo};
 #[abstract_response(VERSION_CONTROL)]
 pub struct VcResponse;
 
-/// Add new OS to version control contract
-/// Only Factory can add OS
+/// Add new Account to version control contract
+/// Only Factory can add Account
 pub fn add_os(
     deps: DepsMut,
     msg_info: MessageInfo,
     account_id: AccountId,
     core: AccountBase,
 ) -> VCResult {
-    // Only Factory can add new OS
+    // Only Factory can add new Account
     FACTORY.assert_admin(deps.as_ref(), &msg_info.sender)?;
     ACCOUNT_ADDRESSES.save(deps.storage, account_id, &core)?;
 

@@ -5,7 +5,7 @@ use abstract_os::{api::ApiRequestMsg, objects::module::ModuleId};
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, Empty};
 use serde::{de::DeserializeOwned, Serialize};
 
-/// Interact with other modules on the OS.
+/// Interact with other modules on the Account.
 pub trait ApiInterface: ModuleInterface {
     fn apis<'a>(&'a self, deps: Deps<'a>) -> Api<Self> {
         Api { base: self, deps }

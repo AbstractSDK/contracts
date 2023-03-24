@@ -82,14 +82,14 @@ pub enum ExecuteMsg {
         ans_host: Option<String>,
         version_control: Option<String>,
     },
-    /// Only callable by OS proxy
+    /// Only callable by Account proxy
     /// Will attempt to forward the specified funds to the corresponding
     /// address on the remote chain.
     SendFunds {
         host_chain: String,
         funds: Vec<Coin>,
     },
-    /// Register an OS on a remote chain over IBC
+    /// Register an Account on a remote chain over IBC
     /// This action creates a proxy for them on the remote chain.
     Register {
         host_chain: String,
@@ -126,7 +126,7 @@ pub enum QueryMsg {
         chain: String,
         account_id: AccountId,
     },
-    // Get remote account info for a chain + OS
+    // Get remote account info for a chain + Account
     #[returns(LatestQueryResponse)]
     LatestQueryResult {
         chain: String,

@@ -1,5 +1,5 @@
 //! # Module
-//! The Module interface provides helper functions to execute functions on other modules installed on the OS.
+//! The Module interface provides helper functions to execute functions on other modules installed on the Account.
 
 use crate::{
     features::{AccountIdentification, Dependencies},
@@ -10,7 +10,7 @@ use cosmwasm_std::{Addr, Deps, QueryRequest, WasmQuery};
 use cw2::{ContractVersion, CONTRACT};
 use interfaces::objects::module::ModuleId;
 
-/// Interact with other modules on the OS.
+/// Interact with other modules on the Account.
 pub trait ModuleInterface: AccountIdentification + Dependencies {
     fn modules<'a>(&'a self, deps: Deps<'a>) -> Modules<Self> {
         Modules { base: self, deps }
@@ -26,7 +26,7 @@ pub struct Modules<'a, T: ModuleInterface> {
 }
 
 impl<'a, T: ModuleInterface> Modules<'a, T> {
-    /// Retrieve the address of an application in this OS.
+    /// Retrieve the address of an application in this Account.
     /// This should **not** be used to execute messages on an `Api`.
     /// Use `Modules::api_request(..)` instead.
     pub fn module_address(&self, module_id: ModuleId) -> AbstractSdkResult<Addr> {
@@ -38,7 +38,7 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
         Ok(module_addr)
     }
 
-    /// Retrieve the version of an application in this OS.
+    /// Retrieve the version of an application in this Account.
     /// Note: this method makes use of the Cw2 query and may not coincide with the version of the
     /// module listed in VersionControl.
     pub fn module_version(&self, module_id: ModuleId) -> AbstractSdkResult<ContractVersion> {

@@ -24,7 +24,7 @@ pub const CREATE_STANDALONE_RESPONSE_ID: u64 = 4u64;
 #[abstract_response(MODULE_FACTORY)]
 struct ModuleFactoryResponse;
 
-/// Function that starts the creation of the OS
+/// Function that starts the creation of the Account
 pub fn execute_create_module(
     deps: DepsMut,
     env: Env,
@@ -33,7 +33,7 @@ pub fn execute_create_module(
     root_init_msg: Option<Binary>,
 ) -> ModuleFactoryResult {
     let config = CONFIG.load(deps.storage)?;
-    // Verify sender is active OS manager
+    // Verify sender is active Account manager
     // Construct feature object to access registry functions
     let binding = VersionControlContract::new(config.version_control_address);
 

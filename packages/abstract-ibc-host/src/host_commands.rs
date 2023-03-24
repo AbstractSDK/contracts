@@ -125,7 +125,7 @@ pub fn receive_query(
 }
 
 // processes PacketMsg::Register variant
-/// Creates and registers proxy for remote OS
+/// Creates and registers proxy for remote Account
 pub fn receive_register<
     Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
     CustomExecMsg,
@@ -155,13 +155,13 @@ pub fn receive_register<
     };
     let msg = SubMsg::reply_on_success(msg, INIT_CALLBACK_ID);
 
-    // store the proxy address of the OS on the client chain.
+    // store the proxy address of the Account on the client chain.
     CLIENT_PROXY.save(deps.storage, (&channel, account_id), &os_proxy_address)?;
     // store the os info for the reply handler
     PENDING.save(deps.storage, &(channel, account_id))?;
 
     // We rely on Reply handler to change this to Success!
-    let acknowledgement = StdAck::fail(format!("Failed to create proxy for OS {account_id} "));
+    let acknowledgement = StdAck::fail(format!("Failed to create proxy for Account {account_id} "));
 
     Ok(IbcReceiveResponse::new()
         .add_submessage(msg)

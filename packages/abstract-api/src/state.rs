@@ -41,7 +41,7 @@ pub struct ApiContract<
     pub(crate) base_state: Item<'static, ApiState>,
     /// Map ProxyAddr -> WhitelistedTraders
     pub traders: Map<'static, Addr, HashSet<Addr>>,
-    /// The OS on which commands are executed. Set each time in the [`abstract_os::api::ExecuteMsg::Base`] handler.
+    /// The Account on which commands are executed. Set each time in the [`abstract_os::api::ExecuteMsg::Base`] handler.
     pub target_os: Option<AccountBase>,
 }
 
@@ -125,13 +125,13 @@ impl<
         self.base_state.load(store)
     }
 
-    /// Return the address of the proxy for the OS associated with this API.
+    /// Return the address of the proxy for the Account associated with this API.
     /// Set each time in the [`abstract_os::api::ExecuteMsg::Base`] handler.
     pub fn target(&self) -> Result<&Addr, ApiError> {
         Ok(&self
             .target_os
             .as_ref()
-            .ok_or_else(|| StdError::generic_err("No target OS specified to execute on."))?
+            .ok_or_else(|| StdError::generic_err("No target Account specified to execute on."))?
             .proxy)
     }
 }

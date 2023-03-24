@@ -16,7 +16,7 @@ pub trait OsVerification: AbstractRegistryAccess {
 
 impl<T> OsVerification for T where T: AbstractRegistryAccess {}
 
-/// Endpoint for OS address verification
+/// Endpoint for Account address verification
 #[derive(Clone)]
 pub struct OsRegistry<'a, T: OsVerification> {
     base: &'a T,
@@ -106,9 +106,9 @@ mod test {
         fn not_proxy_fails() {
             let mut deps = mock_dependencies();
             deps.querier = mocked_os_querier_builder()
-                // Setup the addresses as if the OS was registered
+                // Setup the addresses as if the Account was registered
                 .account("not_manager", "not_proxy", TEST_ACCOUNT_ID)
-                // update the proxy to be proxy of a different OS
+                // update the proxy to be proxy of a different Account
                 .account(TEST_MANAGER, TEST_PROXY, 1)
                 .builder()
                 .with_contract_item("not_proxy", ACCOUNT_ID, &1)
@@ -208,9 +208,9 @@ mod test {
         fn not_manager_fails() {
             let mut deps = mock_dependencies();
             deps.querier = mocked_os_querier_builder()
-                // Setup the addresses as if the OS was registered
+                // Setup the addresses as if the Account was registered
                 .account("not_manager", "not_proxy", TEST_ACCOUNT_ID)
-                // update the proxy to be proxy of a different OS
+                // update the proxy to be proxy of a different Account
                 .account(TEST_MANAGER, TEST_PROXY, 1)
                 .builder()
                 .with_contract_item("not_manager", ACCOUNT_ID, &1)

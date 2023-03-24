@@ -167,7 +167,7 @@ pub fn execute_send_funds(
         .os_registry(deps.as_ref())
         .assert_proxy(&info.sender)?;
 
-    // get account_id of OS
+    // get account_id of Account
     let account_id = core.account_id(deps.as_ref())?;
     // get channel used to communicate to host chain
     let channel = CHANNELS.load(deps.storage, &host_chain)?;
@@ -178,7 +178,7 @@ pub fn execute_send_funds(
         Some(addr) => addr,
         None => {
             return Err(StdError::generic_err(
-                "We don't have the remote address for this channel or OS",
+                "We don't have the remote address for this channel or Account",
             )
             .into())
         }

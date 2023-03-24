@@ -59,7 +59,7 @@ impl<Chain: BootEnvironment> AbstractAccount<Chain> {
         self.manager.install_module(module_id, init_msg)
     }
 
-    /// Assert that the OS has the expected modules with the provided **expected_module_addrs** installed.
+    /// Assert that the Account has the expected modules with the provided **expected_module_addrs** installed.
     /// Note that the proxy is automatically included in the assertions.
     /// Returns the `Vec<ManagerModuleInfo>` from the manager
     pub fn expect_modules(

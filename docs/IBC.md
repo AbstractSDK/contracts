@@ -4,20 +4,20 @@ The Abstract IBC architecture aims to provide developers with a set of Abstract-
 
 # Message flow
 IBC actions are instantiated in a custom contract (with proxy execute permissions) or an installed api/app. They result
-in a call to the OS's proxy contract on the `ExecuteMsg::IbcAction { msgs: Vec<IbcClientMsg> }` endpoint.
+in a call to the Account's proxy contract on the `ExecuteMsg::IbcAction { msgs: Vec<IbcClientMsg> }` endpoint.
 
-These `IbcClientMsg` messages are then called on the OS's client contract. Note that the client contract must be enabled
-on the OS's manager. This ensures that the user/developer is aware of enabling IBC on their OS.
+These `IbcClientMsg` messages are then called on the Account's client contract. Note that the client contract must be enabled
+on the Account's manager. This ensures that the user/developer is aware of enabling IBC on their Account.
 
-> By calling the client through the OS's proxy we can ensure the calling contract has sufficient permission to perform action on the local and remote OS.
-> The IBC functionality can be enabled on the OS by calling `EnableIbc` on the manager contract.
+> By calling the client through the Account's proxy we can ensure the calling contract has sufficient permission to perform action on the local and remote Account.
+> The IBC functionality can be enabled on the Account by calling `EnableIbc` on the manager contract.
 > The client contract will check the caller's identity and packet destination. It will then construct the packet and send it over IBC. 
 
 > The channel over which these packets are relayed is maintained by Abstract. Nonetheless we advise users to also relay the channel using their own relayer.  
 
 # IBC Client
 The IBC client contract is a single contract deployed to the client chain (the chain on which the developer aims to
-deploy his application). The client contract can only be called by an OS proxy. By providing
+deploy his application). The client contract can only be called by an Account proxy. By providing
 an [`abstract_sdk::interfaces::ibc_client:ExecuteMsg::SendPacket`] message the Client contract will resolve the target
 chain and related IBC channel to send the packet over. An action and optional callback data is also included in the
 message. The optional callback data is used to perform a callback by the client after they received an `Ack::Success`

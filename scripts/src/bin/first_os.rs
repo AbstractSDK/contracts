@@ -27,7 +27,7 @@ pub const HARPOON_4: NetworkInfo = NetworkInfo {
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-/// Script that registers the first OS in abstract (our OS)
+/// Script that registers the first Account in abstract (our Account)
 pub fn first_os(network: NetworkInfo) -> anyhow::Result<()> {
     let abstract_version: Version = ABSTRACT_VERSION.parse().unwrap();
     // let network = LOCAL_JUNO;

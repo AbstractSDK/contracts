@@ -7,7 +7,7 @@ use std::{env, sync::Arc};
 const NETWORK: NetworkInfo = networks::UNI_6;
 
 // To deploy the app we need to get the memory and then register it
-// We can then deploy a test OS that uses that new app
+// We can then deploy a test Account that uses that new app
 
 const _MODULE_VERSION: &str = env!("CARGO_PKG_VERSION");
 

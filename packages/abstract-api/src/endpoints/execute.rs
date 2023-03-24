@@ -106,7 +106,7 @@ impl<
                     // If the sender is a trader, return the core.
                     requested_core
                 } else {
-                    // If the sender is NOT a trader, check that it is a manager of some OS.
+                    // If the sender is NOT a trader, check that it is a manager of some Account.
                     os_registry
                         .assert_manager(sender)
                         .map_err(unauthorized_sender)?

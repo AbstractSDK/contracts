@@ -21,7 +21,7 @@ The Abstract APIs are objects that can only be retrieved if a contract or featur
 
 #### Example
 
-The [`Bank`](https://docs.rs/abstract-sdk/latest/abstract_sdk/apis/bank) API allows developers to transfer assets from and to the OS through their module object. We now want to use this API to create a `Splitter` API that splits the transfer of some amount of funds between a set of receivers.
+The [`Bank`](https://docs.rs/abstract-sdk/latest/abstract_sdk/apis/bank) API allows developers to transfer assets from and to the Account through their module object. We now want to use this API to create a `Splitter` API that splits the transfer of some amount of funds between a set of receivers.
 
 ```rust,no_run
 use abstract_sdk::{TransferInterface,AbstractSdkResult};

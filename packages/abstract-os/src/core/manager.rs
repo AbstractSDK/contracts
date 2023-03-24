@@ -1,4 +1,4 @@
-//! # OS Manager
+//! # Account Manager
 //!
 //! `abstract_os::manager` implements the contract interface and state lay-out.
 //!
@@ -8,7 +8,7 @@
 //! This contract is responsible for:
 //! - Managing modules instantiation and migrations.
 //! - Managing permissions.
-//! - Upgrading the OS and its modules.
+//! - Upgrading the Account and its modules.
 //! - Providing module name to address resolution.
 //!
 //! **The manager should be set as the contract/CosmWasm admin by default on your modules.**
@@ -45,7 +45,7 @@ pub mod state {
     pub const STATUS: Item<Subscribed> = Item::new("\u{0}{6}status");
     /// Configuration
     pub const CONFIG: Item<Config> = Item::new("\u{0}{6}config");
-    /// Info about the OS
+    /// Info about the Account
     pub const INFO: Item<OsInfo> = Item::new("\u{0}{4}info");
     /// Contract Admin
     pub const ACCOUNT_FACTORY: Admin = Admin::new("\u{0}{7}factory");
@@ -109,7 +109,7 @@ pub enum ExecuteMsg {
         init_msg: Option<Binary>,
     },
     /// Registers a module after creation.
-    /// Used as a callback *only* by the Module Factory to register the module on the OS.
+    /// Used as a callback *only* by the Module Factory to register the module on the Account.
     RegisterModule {
         module_addr: String,
         module: Module,

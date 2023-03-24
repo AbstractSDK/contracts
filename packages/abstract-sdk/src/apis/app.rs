@@ -6,7 +6,7 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use abstract_os::app as msg;
 
-/// Interact with other modules on the OS.
+/// Interact with other modules on the Account.
 pub trait AppInterface: ModuleInterface {
     fn apps<'a>(&'a self, deps: Deps<'a>) -> App<Self> {
         App { base: self, deps }

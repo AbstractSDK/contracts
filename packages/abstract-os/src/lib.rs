@@ -2,7 +2,7 @@
 
 // https://doc.rust-lang.org/rustdoc/how-to-write-documentation.html
 
-//! # Abstract OS
+//! # Abstract Account
 //!
 //! Abstract OS is the interface-defining crate to the Abstract OS smart-contract framework.
 //!

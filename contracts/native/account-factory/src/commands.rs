@@ -60,7 +60,7 @@ pub fn receive_cw20(
     }
 }
 
-/// Function that starts the creation of the OS
+/// Function that starts the creation of the Account
 pub fn execute_create_os(
     deps: DepsMut,
     env: Env,
@@ -106,7 +106,7 @@ pub fn execute_create_os(
                 funds: vec![],
                 // Currently set admin to self, update later when we know the contract's address.
                 admin: Some(env.contract.address.to_string()),
-                label: format!("Abstract OS: {}", config.next_acct_id),
+                label: format!("Abstract Account: {}", config.next_acct_id),
                 msg: to_binary(&ManagerInstantiateMsg {
                     account_id: config.next_acct_id,
                     root_user: root_user.to_string(),
@@ -164,7 +164,7 @@ pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> OsFact
                 code_id: proxy_code_id,
                 funds: vec![],
                 admin: Some(manager_address.to_string()),
-                label: format!("Proxy of OS: {}", config.next_acct_id),
+                label: format!("Proxy of Account: {}", config.next_acct_id),
                 msg: to_binary(&ProxyInstantiateMsg {
                     account_id: config.next_acct_id,
                     ans_host_address: config.ans_host_contract.to_string(),

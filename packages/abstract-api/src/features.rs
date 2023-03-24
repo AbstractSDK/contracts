@@ -20,7 +20,7 @@ impl<
     }
 }
 
-/// Retrieve identifying information about the calling OS
+/// Retrieve identifying information about the calling Account
 impl<
         Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
         CustomInitMsg,
@@ -34,7 +34,7 @@ impl<
         if let Some(target) = &self.target_os {
             Ok(target.proxy.clone())
         } else {
-            Err(StdError::generic_err("No target OS specified to execute on.").into())
+            Err(StdError::generic_err("No target Account specified to execute on.").into())
         }
     }
 
@@ -42,7 +42,7 @@ impl<
         if let Some(target) = &self.target_os {
             Ok(target.manager.clone())
         } else {
-            Err(StdError::generic_err("No OS manager specified.").into())
+            Err(StdError::generic_err("No Account manager specified.").into())
         }
     }
 

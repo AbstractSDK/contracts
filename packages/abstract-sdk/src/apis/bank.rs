@@ -1,12 +1,12 @@
 //! # Bank
-//! The Bank object handles asset transfers to and from the OS.
+//! The Bank object handles asset transfers to and from the Account.
 
 use crate::{ans_resolve::Resolve, features::AbstractNameService, AbstractSdkResult, Execution};
 use cosmwasm_std::{Addr, BankMsg, Coin, CosmosMsg, Deps};
 use cw_asset::Asset;
 use interfaces::objects::{AnsAsset, AssetEntry};
 
-/// Query and Transfer assets from and to the Abstract OS.
+/// Query and Transfer assets from and to the Abstract Account.
 pub trait TransferInterface: AbstractNameService + Execution {
     fn bank<'a>(&'a self, deps: Deps<'a>) -> Bank<Self> {
         Bank { base: self, deps }
@@ -37,7 +37,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
         Ok(Asset::new(resolved_info, balance))
     }
 
-    /// Transfer the provided **funds** from the OS' vault to the **recipient**.
+    /// Transfer the provided **funds** from the Account' vault to the **recipient**.
     /// The caller must be a whitelisted module or trader.
     ///
     /// ```rust
@@ -97,7 +97,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
         self.base.executor(self.deps).execute(transfer_msgs?)
     }
 
-    /// Transfer **coins** from the OS' vault to the **recipient**.
+    /// Transfer **coins** from the Account' vault to the **recipient**.
     /// The caller must be a whitelisted module or trader.
     pub fn transfer_coins(
         &self,
@@ -111,7 +111,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
         self.base.executor(self.deps).execute(vec![send_msg])
     }
 
-    /// Transfer the **funds** (deposit) into the OS from the current contract.
+    /// Transfer the **funds** (deposit) into the Account from the current contract.
     pub fn deposit<R: Transferable>(&self, funds: Vec<R>) -> AbstractSdkResult<Vec<CosmosMsg>> {
         let recipient = self.base.proxy_address(self.deps)?;
         let transferable_funds = funds
@@ -125,7 +125,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
             .map_err(Into::into)
     }
 
-    /// Deposit coins into the OS
+    /// Deposit coins into the Account
     pub fn deposit_coins(&self, coins: Vec<Coin>) -> AbstractSdkResult<CosmosMsg> {
         let recipient = self.base.proxy_address(self.deps)?.into_string();
         Ok(CosmosMsg::Bank(BankMsg::Send {

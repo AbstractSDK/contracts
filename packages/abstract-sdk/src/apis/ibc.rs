@@ -48,7 +48,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         )?
         .into())
     }
-    /// IbcClient the provided coins from the OS to its proxy on the `receiving_chain`.
+    /// IbcClient the provided coins from the Account to its proxy on the `receiving_chain`.
     pub fn ics20_transfer(
         &self,
         receiving_chain: String,
