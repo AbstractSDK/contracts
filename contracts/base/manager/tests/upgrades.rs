@@ -302,7 +302,7 @@ fn update_api_with_traders() -> AResult {
     // assert that the address actually changed
     assert_that!(api_v2.modules[0].1).is_not_equal_to(api1.clone());
 
-    let api = api_1::BootMockApi1V2::new(chain.clone());
+    let api = api_1::BootMockApi1V2::new(chain);
     use abstract_interface::api::BaseQueryMsgFns as _;
     let traders = api.traders(proxy.addr_str()?)?;
     assert_that!(traders.traders).contains(Addr::unchecked("trader"));

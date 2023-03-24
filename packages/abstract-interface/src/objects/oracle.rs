@@ -115,8 +115,7 @@ impl<'a> Oracle<'a> {
                 let mut v = v.unwrap_or_default();
                 if v.contains(&asset) {
                     return Err(StdError::generic_err(format!(
-                        "Asset {} already registered",
-                        asset
+                        "Asset {asset} already registered"
                     )));
                 }
                 v.push(asset.clone());
@@ -125,8 +124,7 @@ impl<'a> Oracle<'a> {
             self.assets.update(deps.storage, &asset, |v| {
                 if v.is_some() {
                     return Err(StdError::generic_err(format!(
-                        "asset {} already registered",
-                        asset
+                        "asset {asset} already registered"
                     )));
                 }
                 Ok((price_source, complexity))
@@ -147,8 +145,7 @@ impl<'a> Oracle<'a> {
             // assert asset was in config
             if !self.config.has(deps.storage, &asset) {
                 return Err(StdError::generic_err(format!(
-                    "Asset {} not registered on oracle",
-                    asset
+                    "Asset {asset} not registered on oracle"
                 ))
                 .into());
             }
@@ -237,7 +234,7 @@ impl<'a> Oracle<'a> {
     pub fn account_value(&mut self, deps: Deps, account: &Addr) -> AbstractResult<AccountValue> {
         // get the highest complexity
         let start_complexity = self.highest_complexity(deps)?;
-        eprintln!("start complexity: {}", start_complexity);
+        eprintln!("start complexity: {start_complexity}");
         self.complexity_value_calculation(deps, start_complexity, account)
     }
 
@@ -253,10 +250,10 @@ impl<'a> Oracle<'a> {
             let (price_source, _) = self.assets.load(deps.storage, &asset)?;
             // get the balance for this asset
             let balance = asset.query_balance(&deps.querier, account)?;
-            eprintln!("{}: {} ", asset, balance);
+            eprintln!("{asset}: {balance} ");
             // and the cached balances
             let mut cached_balances = self.cached_balance(&asset).unwrap_or_default();
-            eprintln!("cached: {:?}", cached_balances);
+            eprintln!("cached: {cached_balances:?}");
             // add the balance to the cached balances
             cached_balances.push((asset.clone(), balance));
 
@@ -299,8 +296,7 @@ impl<'a> Oracle<'a> {
         conversions: Vec<AssetConversion>,
     ) -> AbstractResult<()> {
         eprintln!(
-            "updating cache with source asset balances: {:?}",
-            source_asset_balances
+            "updating cache with source asset balances: {source_asset_balances:?}"
         );
         for (source_asset, balance) in source_asset_balances {
             // these balances are the equivalent to the source asset, just in a different denomination
@@ -362,16 +358,14 @@ impl<'a> Oracle<'a> {
                 for dep in &deps {
                     if !encountered_assets.contains(&dep.to_string()) {
                         return Err(StdError::generic_err(format!(
-                            "Asset {} is an oracle dependency but is not registered",
-                            dep
+                            "Asset {dep} is an oracle dependency but is not registered"
                         ))
                         .into());
                     }
                 }
                 if !encountered_assets.insert(asset.to_string()) {
                     return Err(StdError::generic_err(format!(
-                        "Asset {} is registered twice",
-                        asset
+                        "Asset {asset} is registered twice"
                     ))
                     .into());
                 };
@@ -540,8 +534,8 @@ mod tests {
 
     pub fn get_ans() -> AnsHost {
         let addr = Addr::unchecked(TEST_ANS_HOST);
-        let ans = AnsHost::new(addr);
-        ans
+        
+        AnsHost::new(addr)
     }
 
     pub fn base_asset() -> (AssetEntry, UncheckedPriceSource) {

@@ -33,7 +33,7 @@ fn installing_one_api_should_succeed() -> AResult {
     let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut account)?;
     let account = create_default_account(&deployment.account_factory)?;
-    let staking_api = init_mock_api(chain.clone(), &deployment, None)?;
+    let staking_api = init_mock_api(chain, &deployment, None)?;
     install_api(&account.manager, TEST_MODULE_ID)?;
 
     let modules = account.expect_modules(vec![staking_api.address()?.to_string()])?;
