@@ -1,7 +1,7 @@
 use crate::commands::*;
 use crate::error::ProxyError;
 use crate::queries::*;
-use abstract_os::objects::{module_version::migrate_module_data, oracle::Oracle};
+use abstract_interface::objects::{module_version::migrate_module_data, oracle::Oracle};
 use abstract_sdk::{
     feature_objects::AnsHost,
     interfaces::{

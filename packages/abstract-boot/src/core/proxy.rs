@@ -1,6 +1,6 @@
 use crate::Manager;
-pub use abstract_os::proxy::{ExecuteMsgFns as ProxyExecFns, QueryMsgFns as ProxyQueryFns};
-use abstract_os::{
+pub use abstract_interface::proxy::{ExecuteMsgFns as ProxyExecFns, QueryMsgFns as ProxyQueryFns};
+use abstract_interface::{
     objects::{price_source::UncheckedPriceSource, AssetEntry},
     proxy::*,
     MANAGER, PROXY,

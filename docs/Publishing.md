@@ -12,9 +12,10 @@ Ideally only update the packages that have changed. If you are unsure, update al
 By changing the version in the Cargo workspace you change the version of all contracts and `abstract-boot`.
 `abstract-boot` is a wrapper package around all the abstract contracts and is used extensively in testing.
 
-New releases of `abstract-os`, `abstract-sdk` or `abstract-testing` should be reflected in the Cargo workspace file.
+New releases of `abstract-interface`, `abstract-sdk` or `abstract-testing` should be reflected in the Cargo workspace
+file.
 
-1. `abstract-os`
+1. `abstract-interface`
 2. `abstract-testing`
 3. `abstract-sdk`
 4. All contracts in `./contracts`

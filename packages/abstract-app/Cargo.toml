@@ -26,8 +26,8 @@ thiserror = { workspace = true }
 cw2 = { workspace = true }
 cw-asset = { workspace = true }
 abstract-sdk = { workspace = true }
-abstract-os = { workspace = true }
-abstract-testing = { workspace = true, optional = true}
+abstract-interface = { workspace = true }
+abstract-testing = { workspace = true, optional = true }
 abstract-boot = { version = "0.12.0",workspace = true, optional = true }
 boot-core = { workspace = true, optional = true }
 

@@ -219,7 +219,7 @@ fn clear_accounts(store: &mut dyn Storage) {
 mod test {
     use super::*;
     use crate::contract;
-    use abstract_os::{ibc_client::*, AbstractResult};
+    use abstract_interface::{ibc_client::*, AbstractResult};
     use abstract_testing::prelude::{TEST_ADMIN, TEST_ANS_HOST, TEST_VERSION_CONTROL};
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
@@ -262,7 +262,7 @@ mod test {
 
     mod update_config {
         use super::*;
-        use abstract_os::{abstract_ica::StdAck, ibc_client::state::Config};
+        use abstract_interface::{abstract_ica::StdAck, ibc_client::state::Config};
         use abstract_testing::prelude::TEST_VERSION_CONTROL;
         use cosmwasm_std::{Empty, Timestamp};
 

@@ -1,6 +1,6 @@
 //! # Abstract Token
 //!
-//! `abstract_os::abstract_token` is a custom token that's only transferable between abstract-os instances.
+//! `abstract_interface::abstract_token` is a custom token that's only transferable between abstract-interface instances.
 //!
 //! ## Description
 //! An app is a contract that is allowed to perform actions on a [proxy](crate::proxy) contract while also being migratable.

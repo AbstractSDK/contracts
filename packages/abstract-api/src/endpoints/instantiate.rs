@@ -2,7 +2,7 @@ use crate::{
     state::{ApiContract, ApiState},
     ApiError,
 };
-use abstract_os::{api::InstantiateMsg, objects::module_version::set_module_data};
+use abstract_interface::{api::InstantiateMsg, objects::module_version::set_module_data};
 use abstract_sdk::{
     base::{endpoints::InstantiateEndpoint, Handler},
     feature_objects::AnsHost,
@@ -54,7 +54,7 @@ impl<
 
 #[cfg(test)]
 mod tests {
-    use abstract_os::{
+    use abstract_interface::{
         api::{BaseInstantiateMsg, InstantiateMsg},
         objects::module_version::{ModuleData, MODULE},
     };

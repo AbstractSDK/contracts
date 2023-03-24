@@ -3,7 +3,7 @@ use crate::{
     state::{CLIENT_PROXY, CLOSED_CHANNELS, PENDING},
     Host, HostError,
 };
-use abstract_os::objects::AccountId;
+use abstract_interface::objects::AccountId;
 use abstract_sdk::interfaces::abstract_ica::{
     check_order, check_version, IbcQueryResponse, StdAck, WhoAmIResponse, IBC_APP_VERSION,
 };

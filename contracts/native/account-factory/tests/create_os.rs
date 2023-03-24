@@ -1,6 +1,6 @@
 mod common;
 use abstract_boot::{AbstractAccount, OsFactoryExecFns, OsFactoryQueryFns, VCQueryFns, *};
-use abstract_os::{
+use abstract_interface::{
     account_factory, objects::gov_type::GovernanceDetails, version_control::AccountBase,
     ABSTRACT_EVENT_NAME,
 };
@@ -71,7 +71,7 @@ fn create_one_os() -> AResult {
     assert_that!(&factory_config).is_equal_to(&expected);
 
     let vc_config = version_control.config()?;
-    let expected = abstract_os::version_control::ConfigResponse {
+    let expected = abstract_interface::version_control::ConfigResponse {
         admin: sender.into_string(),
         factory: factory.address()?.into_string(),
     };
@@ -136,7 +136,7 @@ fn create_two_os_s() -> AResult {
     assert_that!(&factory_config).is_equal_to(&expected);
 
     let vc_config = version_control.config()?;
-    let expected = abstract_os::version_control::ConfigResponse {
+    let expected = abstract_interface::version_control::ConfigResponse {
         admin: sender.into_string(),
         factory: factory.address()?.into_string(),
     };
@@ -197,7 +197,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
 
     let os_config = os_1.manager.config()?;
 
-    assert_that!(os_config).is_equal_to(abstract_os::manager::ConfigResponse {
+    assert_that!(os_config).is_equal_to(abstract_interface::manager::ConfigResponse {
         root: owner.into_string(),
         account_id: Uint64::from(0u64),
         version_control_address: version_control.address()?.into_string(),
@@ -230,7 +230,7 @@ fn sender_is_not_admin_external() -> AResult {
     let account = AbstractAccount::new(chain, Some(0));
     let os_config = account.manager.config()?;
 
-    assert_that!(os_config).is_equal_to(abstract_os::manager::ConfigResponse {
+    assert_that!(os_config).is_equal_to(abstract_interface::manager::ConfigResponse {
         root: owner.into_string(),
         account_id: Uint64::from(0u64),
         version_control_address: version_control.address()?.into_string(),

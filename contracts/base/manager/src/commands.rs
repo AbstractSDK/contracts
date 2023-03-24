@@ -24,7 +24,7 @@ use abstract_sdk::{
     ModuleRegistryInterface,
 };
 
-use abstract_os::api::{
+use abstract_interface::api::{
     BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as ApiExecMsg, QueryMsg as ApiQuery, TradersResponse,
 };
 use cosmwasm_std::{
@@ -596,7 +596,7 @@ mod test {
     };
     use cosmwasm_std::{Order, OwnedDeps, StdError, Storage};
 
-    use abstract_os::manager::InstantiateMsg;
+    use abstract_interface::manager::InstantiateMsg;
 
     use crate::contract;
     use speculoos::prelude::*;

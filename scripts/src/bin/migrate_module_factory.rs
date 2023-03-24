@@ -1,5 +1,5 @@
 use abstract_boot::{ModuleFactory, VersionControl};
-use abstract_os::{MODULE_FACTORY, VERSION_CONTROL};
+use abstract_interface::{MODULE_FACTORY, VERSION_CONTROL};
 use boot_core::{
     networks::{parse_network, NetworkInfo},
     *,
@@ -24,7 +24,7 @@ pub fn migrate(network: NetworkInfo) -> anyhow::Result<()> {
 
     module_factory.upload()?;
     module_factory.migrate(
-        &abstract_os::module_factory::MigrateMsg {},
+        &abstract_interface::module_factory::MigrateMsg {},
         module_factory.code_id()?,
     )?;
 

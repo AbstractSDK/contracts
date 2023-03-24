@@ -1,5 +1,5 @@
-use abstract_os::ans_host::MigrateMsg;
-use abstract_os::ans_host::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use abstract_interface::ans_host::MigrateMsg;
+use abstract_interface::ans_host::{ExecuteMsg, InstantiateMsg, QueryMsg};
 use cosmwasm_schema::write_api;
 
 fn main() {

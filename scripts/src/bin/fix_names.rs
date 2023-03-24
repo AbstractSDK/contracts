@@ -1,5 +1,5 @@
 use abstract_boot::{Abstract, VCExecFns};
-use abstract_os::{
+use abstract_interface::{
     objects::module::{Module, ModuleInfo},
     version_control::{ModulesListResponse, QueryMsgFns},
 };

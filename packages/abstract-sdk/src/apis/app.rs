@@ -1,10 +1,10 @@
 #![allow(unused)]
 use crate::{AbstractSdkResult, ModuleInterface};
-use abstract_os::objects::module::ModuleId;
+use abstract_interface::objects::module::ModuleId;
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, Empty};
 use serde::{de::DeserializeOwned, Serialize};
 
-use abstract_os::app as msg;
+use abstract_interface::app as msg;
 
 /// Interact with other modules on the Account.
 pub trait AppInterface: ModuleInterface {

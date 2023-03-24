@@ -1,9 +1,10 @@
 mod common;
+
 use abstract_api::mock::MockExecMsg;
 use abstract_boot::*;
-use abstract_os::manager::ManagerModuleInfo;
-use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
-use abstract_os::{api::BaseQueryMsgFns, *};
+use abstract_interface::manager::ManagerModuleInfo;
+use abstract_interface::objects::module::{ModuleInfo, ModuleVersion};
+use abstract_interface::{api::BaseQueryMsgFns, *};
 use abstract_testing::prelude::{ROOT_USER, TEST_MODULE_ID, TEST_VERSION};
 use boot_core::BootExecute;
 use boot_core::{
@@ -284,7 +285,7 @@ fn manager_api_exec_staking_delegation() -> AResult {
 
     account.manager.execute_on_module(
         TEST_MODULE_ID,
-        Into::<abstract_os::api::ExecuteMsg<MockExecMsg>>::into(MockExecMsg),
+        Into::<abstract_interface::api::ExecuteMsg<MockExecMsg>>::into(MockExecMsg),
     )?;
 
     Ok(())

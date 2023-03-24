@@ -1,5 +1,5 @@
 use crate::{Host, HostError};
-use abstract_os::objects::AccountId;
+use abstract_interface::objects::AccountId;
 use abstract_sdk::{
     features::{AbstractNameService, AccountIdentification},
     AbstractSdkError, AbstractSdkResult,

@@ -2,9 +2,9 @@ mod common;
 
 use abstract_app::mock::{MockInitMsg, MockMigrateMsg};
 use abstract_boot::{Abstract, AbstractAccount, Manager, ManagerExecFns};
+use abstract_interface::app::{self, BaseInstantiateMsg};
+use abstract_interface::objects::module::{ModuleInfo, ModuleVersion};
 use abstract_manager::error::ManagerError;
-use abstract_os::app::{self, BaseInstantiateMsg};
-use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
 use abstract_testing::prelude::TEST_VERSION;
 use boot_core::{instantiate_default_mock_env, Addr, ContractInstance, Deploy, Empty, Mock};
 use common::mock_modules::*;
@@ -297,13 +297,13 @@ fn update_api_with_traders() -> AResult {
             app: Empty {},
         },
     )?;
-    use abstract_os::manager::QueryMsgFns as _;
+    use abstract_interface::manager::QueryMsgFns as _;
     let api_v2 = manager.module_addresses(vec![api_1::MOCK_API_ID.into()])?;
     // assert that the address actually changed
     assert_that!(api_v2.modules[0].1).is_not_equal_to(api1.clone());
 
     let api = api_1::BootMockApi1V2::new(chain.clone());
-    use abstract_os::api::BaseQueryMsgFns as _;
+    use abstract_interface::api::BaseQueryMsgFns as _;
     let traders = api.traders(proxy.addr_str()?)?;
     assert_that!(traders.traders).contains(Addr::unchecked("trader"));
 

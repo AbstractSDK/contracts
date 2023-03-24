@@ -1,6 +1,6 @@
 use crate::error::VCError;
-use abstract_os::objects::AccountId;
-use abstract_os::version_control::ModuleFilter;
+use abstract_interface::objects::AccountId;
+use abstract_interface::version_control::ModuleFilter;
 use abstract_sdk::interfaces::{
     objects::{
         module::{Module, ModuleInfo, ModuleVersion},
@@ -182,7 +182,7 @@ mod test {
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use cosmwasm_std::{DepsMut, StdError};
 
-    use abstract_os::version_control::*;
+    use abstract_interface::version_control::*;
 
     use crate::contract;
     use crate::contract::VCResult;
@@ -210,7 +210,7 @@ mod test {
 
     mod module {
         use super::*;
-        use abstract_os::objects::module::ModuleVersion::Latest;
+        use abstract_interface::objects::module::ModuleVersion::Latest;
 
         use cosmwasm_std::from_binary;
 

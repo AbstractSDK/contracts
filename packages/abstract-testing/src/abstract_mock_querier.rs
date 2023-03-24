@@ -1,5 +1,5 @@
 use crate::{addresses::*, mock_ans::MockAnsHost, MockQuerierBuilder};
-use abstract_os::{
+use abstract_interface::{
     ans_host::state::ASSET_ADDRESSES,
     objects::{common_namespace::ADMIN_NAMESPACE, core::ACCOUNT_ID, AssetEntry},
     version_control::{state::ACCOUNT_ADDRESSES, AccountBase},

@@ -6,7 +6,7 @@ use crate::tests::{
     common::{DEFAULT_PAY, RANDOM_USER, SUBSCRIPTION_COST},
     testing_infrastructure::env::{exec_msg_on_manager, mint_tokens},
 };
-use abstract_os::app;
+use abstract_interface::app;
 use abstract_sdk::interfaces::{
     objects::module::{ModuleInfo, ModuleVersion},
     subscription as msgs,

@@ -227,7 +227,7 @@ mod test {
     use speculoos::prelude::*;
 
     use crate::contract::{execute, instantiate};
-    use abstract_os::module_factory::{ExecuteMsg, InstantiateMsg};
+    use abstract_interface::module_factory::{ExecuteMsg, InstantiateMsg};
     use abstract_testing::prelude::{TEST_ANS_HOST, TEST_VERSION_CONTROL};
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 
@@ -263,7 +263,7 @@ mod test {
 
     mod instantiate_contract {
         use super::*;
-        use abstract_os::objects::module::ModuleVersion;
+        use abstract_interface::objects::module::ModuleVersion;
         use cosmwasm_std::{testing::mock_info, to_binary};
 
         #[test]
@@ -321,7 +321,7 @@ mod test {
 
     mod update_factory_binaries {
         use super::*;
-        use abstract_os::{objects::module::ModuleVersion, AbstractError};
+        use abstract_interface::{objects::module::ModuleVersion, AbstractError};
         use abstract_testing::map_tester::*;
         use abstract_testing::prelude::TEST_ADMIN;
 

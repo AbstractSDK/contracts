@@ -1,4 +1,4 @@
-use abstract_os::AbstractError;
+use abstract_interface::AbstractError;
 use abstract_sdk::interfaces::objects::module::ModuleInfo;
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;

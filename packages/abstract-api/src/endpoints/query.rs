@@ -1,5 +1,7 @@
 use crate::{state::ApiContract, ApiError};
-use abstract_os::api::{ApiConfigResponse, ApiQueryMsg, BaseQueryMsg, QueryMsg, TradersResponse};
+use abstract_interface::api::{
+    ApiConfigResponse, ApiQueryMsg, BaseQueryMsg, QueryMsg, TradersResponse,
+};
 use abstract_sdk::{
     base::{endpoints::QueryEndpoint, Handler},
     AbstractSdkError,

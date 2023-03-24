@@ -1,7 +1,7 @@
 use crate::{
     state::AppContract, AppError, AppResult, ExecuteEndpoint, Handler, IbcCallbackEndpoint,
 };
-use abstract_os::app::{AppExecuteMsg, BaseExecuteMsg, ExecuteMsg};
+use abstract_interface::app::{AppExecuteMsg, BaseExecuteMsg, ExecuteMsg};
 use abstract_sdk::{base::ReceiveEndpoint, features::AbstractResponse};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
 use schemars::JsonSchema;

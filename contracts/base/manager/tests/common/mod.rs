@@ -10,8 +10,8 @@ use abstract_boot::{
     Abstract, AccountFactory, AnsHost, Manager, ModuleFactory, Proxy, VersionControl,
 };
 use abstract_boot::{AbstractAccount, ApiDeployer};
-use abstract_os::{objects::gov_type::GovernanceDetails, PROXY};
-use abstract_os::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, VERSION_CONTROL};
+use abstract_interface::{objects::gov_type::GovernanceDetails, PROXY};
+use abstract_interface::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, VERSION_CONTROL};
 use boot_core::ContractWrapper;
 use boot_core::{ContractInstance, Mock};
 use cosmwasm_std::Addr;

@@ -1,5 +1,7 @@
-pub use abstract_os::manager::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns};
-use abstract_os::{
+pub use abstract_interface::manager::{
+    ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns,
+};
+use abstract_interface::{
     api,
     manager::*,
     objects::module::{ModuleInfo, ModuleVersion},

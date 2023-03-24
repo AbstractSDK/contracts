@@ -1,7 +1,7 @@
 mod common;
 use abstract_boot::*;
+use abstract_interface::{manager::ManagerModuleInfo, PROXY};
 use abstract_manager::contract::CONTRACT_VERSION;
-use abstract_os::{manager::ManagerModuleInfo, PROXY};
 use boot_core::{instantiate_default_mock_env, ContractInstance};
 use common::{create_default_account, init_abstract_env, AResult, TEST_COIN};
 use cosmwasm_std::{Addr, Coin, CosmosMsg};
@@ -29,12 +29,14 @@ fn instantiate() -> AResult {
     });
 
     // assert manager config
-    assert_that!(account.manager.config()?).is_equal_to(abstract_os::manager::ConfigResponse {
-        root: sender.to_string(),
-        version_control_address: deployment.version_control.address()?.into_string(),
-        module_factory_address: deployment.module_factory.address()?.into_string(),
-        account_id: 0u32.into(),
-    });
+    assert_that!(account.manager.config()?).is_equal_to(
+        abstract_interface::manager::ConfigResponse {
+            root: sender.to_string(),
+            version_control_address: deployment.version_control.address()?.into_string(),
+            module_factory_address: deployment.module_factory.address()?.into_string(),
+            account_id: 0u32.into(),
+        },
+    );
     Ok(())
 }
 
@@ -63,7 +65,7 @@ fn exec_through_manager() -> AResult {
     let burn_amount: Vec<Coin> = vec![Coin::new(10_000, TEST_COIN)];
 
     account.manager.exec_on_module(
-        cosmwasm_std::to_binary(&abstract_os::proxy::ExecuteMsg::ModuleAction {
+        cosmwasm_std::to_binary(&abstract_interface::proxy::ExecuteMsg::ModuleAction {
             msgs: vec![CosmosMsg::Bank(cosmwasm_std::BankMsg::Burn {
                 amount: burn_amount,
             })],
@@ -97,7 +99,7 @@ fn migrate_proxy() -> AResult {
 
     account
         .manager
-        .upgrade_module(PROXY, &abstract_os::proxy::MigrateMsg {})?;
+        .upgrade_module(PROXY, &abstract_interface::proxy::MigrateMsg {})?;
 
     let module = account.manager.module_info(PROXY)?;
 

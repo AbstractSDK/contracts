@@ -26,7 +26,7 @@ schemars = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 cw-asset = { workspace = true }
-abstract-os = { workspace = true }
+abstract-interface = { workspace = true }
 semver = { workspace = true }
 abstract-macros = { workspace = true}
 

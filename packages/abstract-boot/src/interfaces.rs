@@ -1,5 +1,5 @@
 use crate::{AccountFactory, AnsHost, IbcClient, Manager, ModuleFactory, Proxy, VersionControl};
-use abstract_os::{
+use abstract_interface::{
     objects::AccountId, ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, MANAGER, MODULE_FACTORY, PROXY,
     VERSION_CONTROL,
 };

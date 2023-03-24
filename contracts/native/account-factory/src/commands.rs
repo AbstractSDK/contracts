@@ -2,10 +2,10 @@ use crate::{
     contract::OsFactoryResult, error::OsFactoryError, response::MsgInstantiateContractResponse,
     state::*,
 };
-use abstract_macros::abstract_response;
-use abstract_os::{
+use abstract_interface::{
     objects::module::Module, version_control::ModulesResponse, AbstractResult, ACCOUNT_FACTORY,
 };
+use abstract_macros::abstract_response;
 use abstract_sdk::{
     cw_helpers::cosmwasm_std::wasm_smart_query,
     interfaces::{

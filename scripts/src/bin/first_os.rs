@@ -1,5 +1,5 @@
 use abstract_boot::Abstract;
-use abstract_os::objects::gov_type::GovernanceDetails;
+use abstract_interface::objects::gov_type::GovernanceDetails;
 use boot_core::{
     networks::{ChainInfo, NetworkInfo, NetworkKind},
     *,

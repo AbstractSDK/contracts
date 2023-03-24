@@ -74,7 +74,7 @@ impl<
 }
 #[cfg(test)]
 mod tests {
-    use abstract_os::{
+    use abstract_interface::{
         api::{ApiRequestMsg, ExecuteMsg},
         version_control::AccountBase,
     };

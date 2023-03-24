@@ -1,7 +1,7 @@
 //! # Verification
 //! The `Verify` struct provides helper functions that enable the contract to verify if the sender is an Abstract Account, Account admin, etc.
 use crate::{features::AbstractRegistryAccess, AbstractSdkError, AbstractSdkResult};
-use abstract_os::{
+use abstract_interface::{
     manager::state::ACCOUNT_ID,
     version_control::{state::ACCOUNT_ADDRESSES, AccountBase},
 };

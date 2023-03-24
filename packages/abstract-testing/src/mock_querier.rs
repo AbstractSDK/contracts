@@ -2,7 +2,7 @@ use crate::addresses::{
     test_core, TEST_ACCOUNT_ID, TEST_MANAGER, TEST_MODULE_ADDRESS, TEST_MODULE_ID,
     TEST_MODULE_RESPONSE, TEST_PROXY, TEST_VERSION_CONTROL,
 };
-use abstract_os::{
+use abstract_interface::{
     manager::state::{ACCOUNT_ID, OS_MODULES},
     version_control::state::ACCOUNT_ADDRESSES,
 };
@@ -373,7 +373,7 @@ mod tests {
     use crate::addresses::{TEST_ACCOUNT_ID, TEST_MODULE_ID};
 
     use super::*;
-    use abstract_os::{
+    use abstract_interface::{
         manager::state::OS_MODULES, proxy::state::ACCOUNT_ID,
         version_control::state::ACCOUNT_ADDRESSES,
     };
@@ -382,7 +382,7 @@ mod tests {
 
     mod account {
         use super::*;
-        use abstract_os::version_control::AccountBase;
+        use abstract_interface::version_control::AccountBase;
 
         #[test]
         fn should_return_os_address() {

@@ -1,6 +1,6 @@
 //! # Abstract Api Base
 //!
-//! `abstract_os::api` implements shared functionality that's useful for creating new Abstract apis.
+//! `abstract_interface::api` implements shared functionality that's useful for creating new Abstract apis.
 //!
 //! ## Description
 //! An Abstract api contract is a contract that is allowed to perform actions on a [proxy](crate::proxy) contract.

@@ -1,4 +1,4 @@
-use abstract_os::{
+use abstract_interface::{
     manager::state::{DEPENDENTS, OS_MODULES},
     objects::{dependency::Dependency, module_version::MODULE},
 };

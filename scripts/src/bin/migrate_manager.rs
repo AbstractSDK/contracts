@@ -1,5 +1,5 @@
 use abstract_boot::{Manager, VersionControl};
-use abstract_os::{MANAGER, VERSION_CONTROL};
+use abstract_interface::{MANAGER, VERSION_CONTROL};
 use boot_core::{
     networks::{parse_network, NetworkInfo},
     *,

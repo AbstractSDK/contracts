@@ -1,6 +1,6 @@
 //! # Module Factory
 //!
-//! `abstract_os::module_factory` is a native contract that handles instantiation and migration of account modules.
+//! `abstract_interface::module_factory` is a native contract that handles instantiation and migration of account modules.
 //!
 //! ## Description  
 //! This contract is instantiated by Abstract and only used internally. Adding or upgrading modules is done using the [`crate::manager::ExecuteMsg`] endpoint.  

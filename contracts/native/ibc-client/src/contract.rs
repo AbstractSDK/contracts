@@ -1,6 +1,5 @@
 use crate::{commands, error::IbcClientError, queries};
-use abstract_macros::abstract_response;
-use abstract_os::{
+use abstract_interface::{
     ibc_client::{state::*, *},
     objects::{
         ans_host::AnsHost,
@@ -8,6 +7,7 @@ use abstract_os::{
     },
     AbstractResult, IBC_CLIENT,
 };
+use abstract_macros::abstract_response;
 use cosmwasm_std::{
     to_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response, StdResult,
 };
