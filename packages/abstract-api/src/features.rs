@@ -53,7 +53,7 @@ impl<
         if let Some(target) = &self.target_os {
             Ok(target.clone())
         } else {
-            Err(StdError::generic_err("No OS core specified.").into())
+            Err(StdError::generic_err("No Account base specified.").into())
         }
     }
 }

@@ -48,7 +48,7 @@ impl<Chain: BootEnvironment> AbstractAccount<Chain> {
         version_control: &VersionControl<Chain>,
         version: &str,
     ) -> Result<(), crate::AbstractBootError> {
-        version_control.register_core(self, version)
+        version_control.register_base(self, version)
     }
 
     pub fn install_module<TInitMsg: Serialize>(

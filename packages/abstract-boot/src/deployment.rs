@@ -210,7 +210,7 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
         // ########### upload modules and token ##############
 
         self.version_control
-            .register_core(account, &self.version.to_string())?;
+            .register_base(account, &self.version.to_string())?;
 
         self.version_control.register_deployment(self)?;
 

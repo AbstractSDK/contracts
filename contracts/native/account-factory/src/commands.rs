@@ -80,7 +80,7 @@ pub fn execute_create_os(
         //     forward_payment(asset, &config, &mut msgs, sub_addr)?;
         // }
     }
-    // Get address of OS root user, depends on gov-type
+    // Get address of Account root user, depends on gov-type
     let root_user: Addr = match &governance {
         GovernanceDetails::Monarchy { monarch } => deps.api.addr_validate(monarch)?,
         GovernanceDetails::External {
@@ -212,13 +212,13 @@ pub fn after_proxy_add_to_manager_and_set_admin(
 
     let proxy_address = res.get_contract_address();
 
-    // construct OS core
+    // construct Account base
     let core = AccountBase {
         manager: context.os_manager_address.clone(),
         proxy: deps.api.addr_validate(proxy_address)?,
     };
 
-    // Add OS core to version_control
+    // Add Account base to version_control
     let add_account_to_version_control_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: config.version_control_contract.to_string(),
         funds: vec![],

@@ -375,10 +375,10 @@ mod tests {
 
         /// This sets up the test with the following:
         /// TEST_PROXY has a single trader, TEST_TRADER
-        /// TEST_MANAGER and TEST_PROXY are the OS core
+        /// TEST_MANAGER and TEST_PROXY are the Account base
         ///
-        /// Note that the querier needs to mock the OS core, as the proxy will
-        /// query the OS core to get the list of traders.
+        /// Note that the querier needs to mock the Account base, as the proxy will
+        /// query the Account base to get the list of traders.
         fn setup_with_traders(mut deps: DepsMut, traders: Vec<&str>) {
             mock_init(deps.branch()).unwrap();
 

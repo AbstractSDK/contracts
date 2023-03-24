@@ -396,8 +396,8 @@ mod test {
             // as factory
             execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg)?;
 
-            let os = ACCOUNT_ADDRESSES.load(&deps.storage, 0)?;
-            assert_that!(&os).is_equal_to(&test_core);
+            let account = ACCOUNT_ADDRESSES.load(&deps.storage, 0)?;
+            assert_that!(&account).is_equal_to(&test_core);
             Ok(())
         }
     }

@@ -34,7 +34,7 @@ pub enum ManagerError {
     #[error("Registering module fails because caller is not module factory")]
     CallerNotFactory {},
 
-    #[error("only the subscription contract can change the OS status")]
+    #[error("only the subscription contract can change the Account status")]
     CallerNotSubscriptionContract {},
 
     #[error("A migratemsg is required when when migrating this module")]

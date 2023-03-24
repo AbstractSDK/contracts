@@ -2,7 +2,7 @@ mod common;
 use abstract_boot::*;
 use abstract_os::PROXY;
 use boot_core::{instantiate_default_mock_env, ContractInstance};
-use common::{create_default_os, init_abstract_env, AResult, TEST_COIN};
+use common::{create_default_account, init_abstract_env, AResult, TEST_COIN};
 use cosmwasm_std::{Addr, Coin, CosmosMsg};
 use speculoos::prelude::*;
 
@@ -12,22 +12,25 @@ fn execute_on_proxy_through_manager() -> AResult {
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut account)?;
-    let os = create_default_os(&deployment.account_factory)?;
+    let account = create_default_account(&deployment.account_factory)?;
 
     // mint coins to proxy address
-    chain.set_balance(&os.proxy.address()?, vec![Coin::new(100_000, TEST_COIN)])?;
+    chain.set_balance(
+        &account.proxy.address()?,
+        vec![Coin::new(100_000, TEST_COIN)],
+    )?;
 
     // burn coins from proxy
     let proxy_balance = chain
         .app
         .borrow()
         .wrap()
-        .query_all_balances(os.proxy.address()?)?;
+        .query_all_balances(account.proxy.address()?)?;
     assert_that!(proxy_balance).is_equal_to(vec![Coin::new(100_000, TEST_COIN)]);
 
     let burn_amount: Vec<Coin> = vec![Coin::new(10_000, TEST_COIN)];
 
-    os.manager.exec_on_module(
+    account.manager.exec_on_module(
         cosmwasm_std::to_binary(&abstract_os::proxy::ExecuteMsg::ModuleAction {
             msgs: vec![CosmosMsg::Bank(cosmwasm_std::BankMsg::Burn {
                 amount: burn_amount,
@@ -40,7 +43,7 @@ fn execute_on_proxy_through_manager() -> AResult {
         .app
         .borrow()
         .wrap()
-        .query_all_balances(os.proxy.address()?)?;
+        .query_all_balances(account.proxy.address()?)?;
     assert_that!(proxy_balance).is_equal_to(vec![Coin::new(100_000 - 10_000, TEST_COIN)]);
 
     Ok(())

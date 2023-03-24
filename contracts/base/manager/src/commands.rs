@@ -403,7 +403,7 @@ pub fn replace_api(
     Ok(msgs)
 }
 
-/// Update the OS information
+/// Update the Account information
 pub fn update_info(
     deps: DepsMut,
     info: MessageInfo,

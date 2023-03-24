@@ -42,12 +42,12 @@ where
         Ok(modules.swap_remove(0))
     }
 
-    pub fn register_core(
+    pub fn register_base(
         &self,
-        os: &AbstractAccount<Chain>,
+        account: &AbstractAccount<Chain>,
         version: &str,
     ) -> Result<(), crate::AbstractBootError> {
-        let manager = os.manager.as_instance();
+        let manager = account.manager.as_instance();
         let manager_module = (
             ModuleInfo::from_id(&manager.id, ModuleVersion::Version(version.to_string()))?,
             ModuleReference::Account(manager.code_id()?),
@@ -56,7 +56,7 @@ where
 
         log::info!("Module {} registered", manager.id);
 
-        let proxy = os.proxy.as_instance();
+        let proxy = account.proxy.as_instance();
         let proxy_module = (
             ModuleInfo::from_id(&proxy.id, ModuleVersion::Version(version.to_string()))?,
             ModuleReference::Account(proxy.code_id()?),

@@ -180,20 +180,20 @@ fn sender_is_not_admin_monarchy() -> AResult {
     let manager = os_creation.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
     let proxy = os_creation.event_attr_value(ABSTRACT_EVENT_NAME, "proxy_address")?;
 
-    let os = version_control.account_base(0)?.account;
+    let account = version_control.account_base(0)?.account;
 
     let os_1 = AbstractAccount::new(chain, Some(0));
     assert_that!(AccountBase {
         manager: os_1.manager.address()?,
         proxy: os_1.proxy.address()?,
     })
-    .is_equal_to(&os);
+    .is_equal_to(&account);
 
     assert_that!(AccountBase {
         manager: Addr::unchecked(manager),
         proxy: Addr::unchecked(proxy),
     })
-    .is_equal_to(&os);
+    .is_equal_to(&account);
 
     let os_config = os_1.manager.config()?;
 
@@ -227,8 +227,8 @@ fn sender_is_not_admin_external() -> AResult {
         Some(String::from("os_link_of_at_least_11_char")),
     )?;
 
-    let os = AbstractAccount::new(chain, Some(0));
-    let os_config = os.manager.config()?;
+    let account = AbstractAccount::new(chain, Some(0));
+    let os_config = account.manager.config()?;
 
     assert_that!(os_config).is_equal_to(abstract_os::manager::ConfigResponse {
         root: owner.into_string(),

@@ -7,7 +7,7 @@ use abstract_os::PROXY;
 use core::result::Result::{Err, Ok};
 
 /**
- * Validates that the link is valid when creating a os.
+ * Validates that the link is valid when creating a account.
  */
 pub fn validate_link(link: &Option<String>) -> Result<(), ManagerError> {
     if let Some(link) = link {

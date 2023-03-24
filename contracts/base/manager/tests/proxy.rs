@@ -3,7 +3,7 @@ use abstract_boot::*;
 use abstract_manager::contract::CONTRACT_VERSION;
 use abstract_os::{manager::ManagerModuleInfo, PROXY};
 use boot_core::{instantiate_default_mock_env, ContractInstance};
-use common::{create_default_os, init_abstract_env, AResult, TEST_COIN};
+use common::{create_default_account, init_abstract_env, AResult, TEST_COIN};
 use cosmwasm_std::{Addr, Coin, CosmosMsg};
 use speculoos::prelude::*;
 
@@ -13,14 +13,14 @@ fn instantiate() -> AResult {
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut account) = init_abstract_env(chain)?;
     deployment.deploy(&mut account)?;
-    let os = create_default_os(&deployment.account_factory)?;
+    let account = create_default_account(&deployment.account_factory)?;
 
-    let modules = os.manager.module_infos(None, None)?.module_infos;
+    let modules = account.manager.module_infos(None, None)?.module_infos;
 
     // assert proxy module
     assert_that!(&modules).has_length(1);
     assert_that(&modules[0]).is_equal_to(&ManagerModuleInfo {
-        address: os.proxy.address()?.into_string(),
+        address: account.proxy.address()?.into_string(),
         id: PROXY.to_string(),
         version: cw2::ContractVersion {
             contract: PROXY.into(),
@@ -29,7 +29,7 @@ fn instantiate() -> AResult {
     });
 
     // assert manager config
-    assert_that!(os.manager.config()?).is_equal_to(abstract_os::manager::ConfigResponse {
+    assert_that!(account.manager.config()?).is_equal_to(abstract_os::manager::ConfigResponse {
         root: sender.to_string(),
         version_control_address: deployment.version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),
@@ -44,22 +44,25 @@ fn exec_through_manager() -> AResult {
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut account)?;
-    let os = create_default_os(&deployment.account_factory)?;
+    let account = create_default_account(&deployment.account_factory)?;
 
     // mint coins to proxy address
-    chain.set_balance(&os.proxy.address()?, vec![Coin::new(100_000, TEST_COIN)])?;
+    chain.set_balance(
+        &account.proxy.address()?,
+        vec![Coin::new(100_000, TEST_COIN)],
+    )?;
 
     // burn coins from proxy
     let proxy_balance = chain
         .app
         .borrow()
         .wrap()
-        .query_all_balances(os.proxy.address()?)?;
+        .query_all_balances(account.proxy.address()?)?;
     assert_that!(proxy_balance).is_equal_to(vec![Coin::new(100_000, TEST_COIN)]);
 
     let burn_amount: Vec<Coin> = vec![Coin::new(10_000, TEST_COIN)];
 
-    os.manager.exec_on_module(
+    account.manager.exec_on_module(
         cosmwasm_std::to_binary(&abstract_os::proxy::ExecuteMsg::ModuleAction {
             msgs: vec![CosmosMsg::Bank(cosmwasm_std::BankMsg::Burn {
                 amount: burn_amount,
@@ -72,7 +75,7 @@ fn exec_through_manager() -> AResult {
         .app
         .borrow()
         .wrap()
-        .query_all_balances(os.proxy.address()?)?;
+        .query_all_balances(account.proxy.address()?)?;
     assert_that!(proxy_balance).is_equal_to(vec![Coin::new(100_000 - 10_000, TEST_COIN)]);
 
     Ok(())
@@ -85,17 +88,18 @@ fn migrate_proxy() -> AResult {
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut account) = init_abstract_env(chain)?;
     deployment.deploy(&mut account)?;
-    let os = create_default_os(&deployment.account_factory)?;
+    let account = create_default_account(&deployment.account_factory)?;
 
     let new_version = "1.0.1".parse().unwrap();
     deployment
         .version_control
-        .register_cores(vec![os.proxy.as_instance()], &new_version)?;
+        .register_cores(vec![account.proxy.as_instance()], &new_version)?;
 
-    os.manager
+    account
+        .manager
         .upgrade_module(PROXY, &abstract_os::proxy::MigrateMsg {})?;
 
-    let module = os.manager.module_info(PROXY)?;
+    let module = account.manager.module_info(PROXY)?;
 
     assert_that!(module)
         .is_some()

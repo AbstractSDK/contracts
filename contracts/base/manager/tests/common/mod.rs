@@ -99,13 +99,13 @@ pub fn init_abstract_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, Abstrac
 
 pub(crate) type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 
-pub(crate) fn create_default_os(
+pub(crate) fn create_default_account(
     factory: &AccountFactory<Mock>,
 ) -> anyhow::Result<AbstractAccount<Mock>> {
-    let os = factory.create_default_account(GovernanceDetails::Monarchy {
+    let account = factory.create_default_account(GovernanceDetails::Monarchy {
         monarch: Addr::unchecked(ROOT_USER).to_string(),
     })?;
-    Ok(os)
+    Ok(account)
 }
 
 use abstract_testing::addresses::TEST_MODULE_ID;

@@ -9,7 +9,7 @@ use boot_core::BootExecute;
 use boot_core::{
     BootError, Mock, {instantiate_default_mock_env, CallAs, ContractInstance},
 };
-use common::{create_default_os, init_abstract_env, init_mock_api, AResult, TEST_COIN};
+use common::{create_default_account, init_abstract_env, init_mock_api, AResult, TEST_COIN};
 use cosmwasm_std::{Addr, Coin, Empty};
 // use cw_multi_test::StakingInfo;
 use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};
@@ -31,11 +31,11 @@ fn installing_one_api_should_succeed() -> AResult {
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut account)?;
-    let os = create_default_os(&deployment.account_factory)?;
+    let account = create_default_account(&deployment.account_factory)?;
     let staking_api = init_mock_api(chain.clone(), &deployment, None)?;
-    install_api(&os.manager, TEST_MODULE_ID)?;
+    install_api(&account.manager, TEST_MODULE_ID)?;
 
-    let modules = os.expect_modules(vec![staking_api.address()?.to_string()])?;
+    let modules = account.expect_modules(vec![staking_api.address()?.to_string()])?;
 
     assert_that(&modules[1]).is_equal_to(&ManagerModuleInfo {
         address: staking_api.addr_str()?,
@@ -55,7 +55,7 @@ fn installing_one_api_should_succeed() -> AResult {
     });
 
     // no traders registered
-    let traders = staking_api.traders(os.proxy.addr_str()?)?;
+    let traders = staking_api.traders(account.proxy.addr_str()?)?;
     assert_that!(traders).is_equal_to(api::TradersResponse { traders: vec![] });
 
     Ok(())
@@ -67,9 +67,9 @@ fn install_non_existent_apiname_should_fail() -> AResult {
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut account) = init_abstract_env(chain)?;
     deployment.deploy(&mut account)?;
-    let os = create_default_os(&deployment.account_factory)?;
+    let account = create_default_account(&deployment.account_factory)?;
 
-    let res = install_api(&os.manager, "lol:no_chance");
+    let res = install_api(&account.manager, "lol:no_chance");
 
     assert_that!(res).is_err();
     Ok(())
@@ -81,10 +81,10 @@ fn install_non_existent_version_should_fail() -> AResult {
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut account)?;
-    let os = create_default_os(&deployment.account_factory)?;
+    let account = create_default_account(&deployment.account_factory)?;
     init_mock_api(chain, &deployment, None)?;
 
-    let res = os.manager.install_module_version(
+    let res = account.manager.install_module_version(
         TEST_MODULE_ID,
         ModuleVersion::Version("1.2.3".to_string()),
         &Empty {},
@@ -102,12 +102,12 @@ fn installation_of_duplicate_api_should_fail() -> AResult {
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut account)?;
-    let os = create_default_os(&deployment.account_factory)?;
+    let account = create_default_account(&deployment.account_factory)?;
     let staking_api = init_mock_api(chain, &deployment, None)?;
 
-    install_api(&os.manager, TEST_MODULE_ID)?;
+    install_api(&account.manager, TEST_MODULE_ID)?;
 
-    let modules = os.expect_modules(vec![staking_api.address()?.to_string()])?;
+    let modules = account.expect_modules(vec![staking_api.address()?.to_string()])?;
 
     // assert proxy module
     // check staking api
@@ -121,12 +121,12 @@ fn installation_of_duplicate_api_should_fail() -> AResult {
     });
 
     // install again
-    let second_install_res = install_api(&os.manager, TEST_MODULE_ID);
+    let second_install_res = install_api(&account.manager, TEST_MODULE_ID);
     assert_that!(second_install_res)
         .is_err()
         .matches(|e| e.to_string().contains("test-module-id"));
 
-    os.expect_modules(vec![staking_api.address()?.to_string()])?;
+    account.expect_modules(vec![staking_api.address()?.to_string()])?;
 
     Ok(())
 }
@@ -137,12 +137,12 @@ fn reinstalling_api_should_be_allowed() -> AResult {
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut account)?;
-    let os = create_default_os(&deployment.account_factory)?;
+    let account = create_default_account(&deployment.account_factory)?;
     let staking_api = init_mock_api(chain, &deployment, None)?;
 
-    install_api(&os.manager, TEST_MODULE_ID)?;
+    install_api(&account.manager, TEST_MODULE_ID)?;
 
-    let modules = os.expect_modules(vec![staking_api.address()?.to_string()])?;
+    let modules = account.expect_modules(vec![staking_api.address()?.to_string()])?;
 
     // check staking api
     assert_that(&modules[1]).is_equal_to(&ManagerModuleInfo {
@@ -155,15 +155,15 @@ fn reinstalling_api_should_be_allowed() -> AResult {
     });
 
     // uninstall
-    uninstall_module(&os.manager, TEST_MODULE_ID)?;
+    uninstall_module(&account.manager, TEST_MODULE_ID)?;
 
     // None expected
-    os.expect_modules(vec![])?;
+    account.expect_modules(vec![])?;
 
     // reinstall
-    install_api(&os.manager, TEST_MODULE_ID)?;
+    install_api(&account.manager, TEST_MODULE_ID)?;
 
-    os.expect_modules(vec![staking_api.address()?.to_string()])?;
+    account.expect_modules(vec![staking_api.address()?.to_string()])?;
 
     Ok(())
 }
@@ -176,12 +176,12 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
     let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
 
     deployment.deploy(&mut account)?;
-    let os = create_default_os(&deployment.account_factory)?;
+    let account = create_default_account(&deployment.account_factory)?;
     let staking_api = init_mock_api(chain.clone(), &deployment, Some("1.0.0".to_string()))?;
 
-    install_api(&os.manager, TEST_MODULE_ID)?;
+    install_api(&account.manager, TEST_MODULE_ID)?;
 
-    let modules = os.expect_modules(vec![staking_api.address()?.to_string()])?;
+    let modules = account.expect_modules(vec![staking_api.address()?.to_string()])?;
 
     // check staking api
     assert_that(&modules[1]).is_equal_to(&ManagerModuleInfo {
@@ -194,9 +194,9 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
     });
 
     // uninstall tendermint staking
-    uninstall_module(&os.manager, TEST_MODULE_ID)?;
+    uninstall_module(&account.manager, TEST_MODULE_ID)?;
 
-    os.expect_modules(vec![])?;
+    account.expect_modules(vec![])?;
 
     // Register the new version
     let new_version_num = "100.0.0";
@@ -213,9 +213,9 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
         .is_equal_to(ModuleVersion::Version(new_version_num.to_string()));
 
     // reinstall
-    install_api(&os.manager, TEST_MODULE_ID)?;
+    install_api(&account.manager, TEST_MODULE_ID)?;
 
-    let modules = os.expect_modules(vec![new_staking_api.address()?.to_string()])?;
+    let modules = account.expect_modules(vec![new_staking_api.address()?.to_string()])?;
 
     assert_that!(modules[1]).is_equal_to(&ManagerModuleInfo {
         // the address stored for BootMockApi was updated when we instantiated the new version, so this is the new address
@@ -246,9 +246,9 @@ fn not_trader_exec() -> AResult {
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut account)?;
-    let os = create_default_os(&deployment.account_factory)?;
+    let account = create_default_account(&deployment.account_factory)?;
     let staking_api = init_mock_api(chain, &deployment, None)?;
-    install_api(&os.manager, TEST_MODULE_ID)?;
+    install_api(&account.manager, TEST_MODULE_ID)?;
     // non-trader cannot execute
     let res = staking_api
         .call_as(&not_trader)
@@ -272,14 +272,17 @@ fn manager_api_exec_staking_delegation() -> AResult {
     let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
 
     deployment.deploy(&mut account)?;
-    let os = create_default_os(&deployment.account_factory)?;
+    let account = create_default_account(&deployment.account_factory)?;
     let _staking_api_one = init_mock_api(chain.clone(), &deployment, Some("1.2.3".to_string()))?;
 
-    install_api(&os.manager, TEST_MODULE_ID)?;
+    install_api(&account.manager, TEST_MODULE_ID)?;
 
-    chain.set_balance(&os.proxy.address()?, vec![Coin::new(100_000, TEST_COIN)])?;
+    chain.set_balance(
+        &account.proxy.address()?,
+        vec![Coin::new(100_000, TEST_COIN)],
+    )?;
 
-    os.manager.execute_on_module(
+    account.manager.execute_on_module(
         TEST_MODULE_ID,
         Into::<abstract_os::api::ExecuteMsg<MockExecMsg>>::into(MockExecMsg),
     )?;
@@ -293,7 +296,7 @@ fn installing_specific_version_should_install_expected() -> AResult {
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut account)?;
-    let os = create_default_os(&deployment.account_factory)?;
+    let account = create_default_account(&deployment.account_factory)?;
     let _staking_api_one = init_mock_api(chain.clone(), &deployment, Some("1.2.3".to_string()))?;
     let expected_version = "2.3.4".to_string();
     let expected_staking_api =
@@ -303,13 +306,13 @@ fn installing_specific_version_should_install_expected() -> AResult {
     let _staking_api_three = init_mock_api(chain, &deployment, Some("3.4.5".to_string()))?;
 
     // install specific version
-    os.manager.install_module_version(
+    account.manager.install_module_version(
         TEST_MODULE_ID,
         ModuleVersion::Version(expected_version),
         &Empty {},
     )?;
 
-    let modules = os.expect_modules(vec![expected_staking_api_addr])?;
+    let modules = account.expect_modules(vec![expected_staking_api_addr])?;
     let installed_module: ManagerModuleInfo = modules[1].clone();
     assert_that!(installed_module.id).is_equal_to(TEST_MODULE_ID.to_string());
 

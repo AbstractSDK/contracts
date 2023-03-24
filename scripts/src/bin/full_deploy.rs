@@ -27,7 +27,7 @@ fn full_deploy(network: NetworkInfo) -> anyhow::Result<()> {
 
     deployment.deploy(&mut account)?;
 
-    // CReate the Abstract OS because it's needed for the fees for the dex module
+    // CReate the Abstract Account because it's needed for the fees for the dex module
     deployment
         .account_factory
         .create_default_account(GovernanceDetails::Monarchy {

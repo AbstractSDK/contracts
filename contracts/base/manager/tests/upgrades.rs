@@ -8,7 +8,7 @@ use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
 use abstract_testing::prelude::TEST_VERSION;
 use boot_core::{instantiate_default_mock_env, Addr, ContractInstance, Deploy, Empty, Mock};
 use common::mock_modules::*;
-use common::{create_default_os, AResult};
+use common::{create_default_account, AResult};
 use cosmwasm_std::to_binary;
 use speculoos::prelude::*;
 
@@ -38,8 +38,8 @@ fn install_app_successful() -> AResult {
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
     deploy_modules(&chain);
-    let os = create_default_os(&abstr.account_factory)?;
-    let AbstractAccount { manager, proxy: _ } = &os;
+    let account = create_default_account(&abstr.account_factory)?;
+    let AbstractAccount { manager, proxy: _ } = &account;
 
     // dependency for mock_api1 not met
     let res = install_module_version(manager, &abstr, app_1::MOCK_APP_ID, V1);
@@ -64,7 +64,7 @@ fn install_app_successful() -> AResult {
     // successfully install app 1
     let app1 = install_module_version(manager, &abstr, app_1::MOCK_APP_ID, V1)?;
 
-    os.expect_modules(vec![api1, api2, app1])?;
+    account.expect_modules(vec![api1, api2, app1])?;
     Ok(())
 }
 
@@ -74,8 +74,8 @@ fn install_app_versions_not_met() -> AResult {
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
     deploy_modules(&chain);
-    let os = create_default_os(&abstr.account_factory)?;
-    let AbstractAccount { manager, proxy: _ } = &os;
+    let account = create_default_account(&abstr.account_factory)?;
+    let AbstractAccount { manager, proxy: _ } = &account;
 
     // install api 2
     let _api2 = install_module_version(manager, &abstr, api_1::MOCK_API_ID, V1)?;
@@ -98,8 +98,8 @@ fn upgrade_app_() -> AResult {
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
     deploy_modules(&chain);
-    let os = create_default_os(&abstr.account_factory)?;
-    let AbstractAccount { manager, proxy: _ } = &os;
+    let account = create_default_account(&abstr.account_factory)?;
+    let AbstractAccount { manager, proxy: _ } = &account;
 
     // install api 1
     let api1 = install_module_version(manager, &abstr, api_1::MOCK_API_ID, V1)?;
@@ -109,7 +109,7 @@ fn upgrade_app_() -> AResult {
 
     // successfully install app 1
     let app1 = install_module_version(manager, &abstr, app_1::MOCK_APP_ID, V1)?;
-    os.expect_modules(vec![api1, api2, app1])?;
+    account.expect_modules(vec![api1, api2, app1])?;
 
     // attempt upgrade app 1 to version 2
     let res = manager.upgrade_module(
@@ -248,12 +248,12 @@ fn uninstall_modules() -> AResult {
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
     deploy_modules(&chain);
-    let os = create_default_os(&abstr.account_factory)?;
-    let AbstractAccount { manager, proxy: _ } = &os;
+    let account = create_default_account(&abstr.account_factory)?;
+    let AbstractAccount { manager, proxy: _ } = &account;
     let api1 = install_module_version(manager, &abstr, api_1::MOCK_API_ID, V1)?;
     let api2 = install_module_version(manager, &abstr, api_2::MOCK_API_ID, V1)?;
     let app1 = install_module_version(manager, &abstr, app_1::MOCK_APP_ID, V1)?;
-    os.expect_modules(vec![api1, api2, app1])?;
+    account.expect_modules(vec![api1, api2, app1])?;
 
     let res = manager.uninstall_module(api_1::MOCK_API_ID);
     // fails because app is depends on api 1
@@ -279,12 +279,12 @@ fn update_api_with_traders() -> AResult {
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
     deploy_modules(&chain);
-    let os = create_default_os(&abstr.account_factory)?;
-    let AbstractAccount { manager, proxy } = &os;
+    let account = create_default_account(&abstr.account_factory)?;
+    let AbstractAccount { manager, proxy } = &account;
 
     // install api 1
     let api1 = install_module_version(manager, &abstr, api_1::MOCK_API_ID, V1)?;
-    os.expect_modules(vec![api1.clone()])?;
+    account.expect_modules(vec![api1.clone()])?;
 
     // register a trader on API1
     manager.update_api_traders(api_1::MOCK_API_ID, vec!["trader".to_string()], vec![])?;

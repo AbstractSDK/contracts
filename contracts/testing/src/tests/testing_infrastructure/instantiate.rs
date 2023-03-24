@@ -13,7 +13,7 @@ use cosmwasm_std::{Addr, Timestamp};
 use cw_multi_test::{App, Executor};
 use std::collections::HashMap;
 
-/// Creates the basic contract instances needed to test the os.
+/// Creates the basic contract instances needed to test the account.
 ///
 
 pub fn init_native_contracts(

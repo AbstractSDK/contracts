@@ -34,17 +34,17 @@ pub fn migrate(network: NetworkInfo) -> anyhow::Result<()> {
     let latest_acct_id = next_acct_id - 1;
 
     for account_id in 1..=latest_acct_id {
-        let os = AbstractAccount::new(chain.clone(), Some(account_id));
+        let account = AbstractAccount::new(chain.clone(), Some(account_id));
         // todo: check admin
 
         // Upgrade manager first
-        os.manager.upgrade(vec![(
+        account.manager.upgrade(vec![(
             ModuleInfo::from_id_latest(MANAGER)?,
             Some(to_binary(&manager::MigrateMsg {}).unwrap()),
         )])?;
 
         // Then upgrade proxy
-        os.manager.upgrade(vec![(
+        account.manager.upgrade(vec![(
             ModuleInfo::from_id_latest(PROXY)?,
             Some(to_binary(&proxy::MigrateMsg {}).unwrap()),
         )])?;
