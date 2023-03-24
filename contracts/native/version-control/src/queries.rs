@@ -1,6 +1,9 @@
 use crate::error::VCError;
 use abstract_core::objects::AccountId;
 use abstract_core::version_control::ModuleFilter;
+use abstract_os::objects::{namespace::Namespace, OsId};
+use abstract_os::version_control::state::OS_NAMESPACES;
+use abstract_os::version_control::{ModuleFilter, NamespaceListResponse};
 use abstract_sdk::core::{
     objects::{
         module::{Module, ModuleInfo, ModuleVersion},
@@ -122,6 +125,41 @@ pub fn handle_module_list_query(
     let modules = modules.into_iter().map(Module::from).collect();
 
     to_binary(&ModulesListResponse { modules })
+}
+
+pub fn handle_namespace_list_query(
+    deps: Deps,
+    start_after: Option<String>,
+    limit: Option<u8>,
+    filter: Option<OsId>,
+) -> StdResult<Binary> {
+    let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
+    let namespace = start_after.map(Namespace::from);
+    let start_bound = namespace.as_ref().map(Bound::exclusive);
+
+    let mut namespaces: Vec<(Namespace, OsId)> = vec![];
+
+    if let Some(os_id) = filter {
+        namespaces.extend(
+            OS_NAMESPACES
+                .range(deps.storage, start_bound, None, Order::Ascending)
+                .collect::<StdResult<Vec<_>>>()?
+                .into_iter()
+                .filter(|v| v.1 == os_id)
+                .take(limit),
+        );
+    } else {
+        // Load all namespaces
+        namespaces.extend(
+            OS_NAMESPACES
+                .range(deps.storage, start_bound, None, Order::Ascending)
+                .take(limit)
+                .collect::<StdResult<Vec<_>>>()?
+                .into_iter(),
+        );
+    };
+
+    to_binary(&NamespaceListResponse { namespaces })
 }
 
 /// Filter the modules with their primary key prefix (provider)

@@ -2,12 +2,18 @@ use crate::contract::{VCResult, ABSTRACT_NAMESPACE};
 use crate::error::VCError;
 use abstract_core::objects::AccountId;
 use abstract_macros::abstract_response;
+use abstract_os::manager::{ConfigResponse as ManagerConfigResponse, QueryMsg as ManagerQueryMsg};
+use abstract_os::objects::namespace::Namespace;
+use abstract_os::objects::OsId;
 use abstract_sdk::core::{
     objects::{module::ModuleInfo, module_reference::ModuleReference},
     version_control::{state::*, AccountBase},
     VERSION_CONTROL,
 };
-use cosmwasm_std::{DepsMut, Empty, MessageInfo};
+use cosmwasm_std::{
+    to_binary, Addr, DepsMut, Empty, MessageInfo, QuerierWrapper, QueryRequest, StdResult,
+    WasmQuery,
+};
 
 #[abstract_response(VERSION_CONTROL)]
 pub struct VcResponse;
@@ -52,6 +58,23 @@ pub fn add_modules(
         if module.provider == ABSTRACT_NAMESPACE {
             // Only Admin can update abstract contracts
             ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
+        } else {
+            // Only root user can add modules
+            let namespace = Namespace::from(module.provider.clone());
+            if let Some(os_id) = OS_NAMESPACES.may_load(deps.storage, &namespace)? {
+                let os_core = OS_ADDRESSES.load(deps.storage, os_id)?;
+                let root_user = query_manager_root_user(&deps.querier, &os_core.manager)?;
+                if msg_info.sender != root_user {
+                    return Err(VCError::RootUserMistmatch {
+                        sender: msg_info.sender.into_string(),
+                        root: root_user,
+                    });
+                }
+            } else {
+                return Err(VCError::MissingNamespace {
+                    namespace: module.provider,
+                });
+            }
         }
         MODULE_LIBRARY.save(deps.storage, &module, &mod_ref)?;
     }
@@ -87,6 +110,82 @@ pub fn remove_module(
     ))
 }
 
+/// Claim namespaces
+/// Only the root user of the OS can do this
+pub fn claim_namespaces(
+    deps: DepsMut,
+    msg_info: MessageInfo,
+    os_id: OsId,
+    namespaces: Vec<String>,
+) -> VCResult {
+    // verify root user of OS
+    let os_core = OS_ADDRESSES.load(deps.storage, os_id)?;
+    let root_user = query_manager_root_user(&deps.querier, &os_core.manager)?;
+    if msg_info.sender != root_user {
+        return Err(VCError::RootUserMistmatch {
+            sender: msg_info.sender.into_string(),
+            root: root_user,
+        });
+    }
+
+    let mut all_namespaces = "".to_owned();
+    for namespace in namespaces.iter() {
+        let item = Namespace::from(namespace);
+        item.validate()?;
+        // verify namespace already claimed
+        if let Some(id) = OS_NAMESPACES.may_load(deps.storage, &item)? {
+            return Err(VCError::NamespaceOccupied {
+                namespace: namespace.to_string(),
+                id,
+            });
+        }
+        OS_NAMESPACES.save(deps.storage, &item, &os_id)?;
+        all_namespaces.push(',');
+        all_namespaces.push_str(namespace);
+    }
+
+    Ok(VcResponse::new(
+        "claim_namespaces",
+        vec![("namespaces", &all_namespaces)],
+    ))
+}
+
+/// Remove a module
+/// Only admin or the root user can do this
+pub fn remove_namespaces(
+    deps: DepsMut,
+    msg_info: MessageInfo,
+    namespaces: Vec<String>,
+) -> VCResult {
+    let is_admin = ADMIN.is_admin(deps.as_ref(), &msg_info.sender)?;
+
+    let mut all_namespaces = "".to_owned();
+    for namespace in namespaces.iter() {
+        let item = Namespace::from(namespace);
+        // skip if namespace not exists
+        if let Some(os_id) = OS_NAMESPACES.may_load(deps.storage, &item)? {
+            // verify remove permission
+            let os_core = OS_ADDRESSES.load(deps.storage, os_id)?;
+            let root_user = query_manager_root_user(&deps.querier, &os_core.manager)?;
+            if !is_admin && msg_info.sender != root_user {
+                return Err(VCError::RootUserMistmatch {
+                    sender: msg_info.sender.into_string(),
+                    root: root_user,
+                });
+            }
+
+            OS_NAMESPACES.remove(deps.storage, &item);
+            all_namespaces.push(',');
+            all_namespaces.push_str(namespace);
+        }
+    }
+
+    Ok(VcResponse::new(
+        "remove_namespaces",
+        vec![("namespaces", &all_namespaces)],
+    ))
+}
+
 pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> VCResult {
     let admin_addr = deps.api.addr_validate(&admin)?;
     let previous_admin = ADMIN.get(deps.as_ref())?.unwrap();
@@ -99,6 +198,19 @@ pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> VCResult {
             ("admin", admin),
         ],
     ))
+}
+
+pub fn query_manager_root_user(
+    querier: &QuerierWrapper,
+    contract_addr: &Addr,
+) -> StdResult<String> {
+    let root_user = querier
+        .query(&QueryRequest::Wasm(WasmQuery::Smart {
+            contract_addr: contract_addr.into(),
+            msg: to_binary(&ManagerQueryMsg::Config {})?,
+        }))
+        .map_or_else(|_| "".to_string(), |v: ManagerConfigResponse| v.root);
+    Ok(root_user)
 }
 
 #[cfg(test)]

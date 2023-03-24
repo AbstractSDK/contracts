@@ -64,6 +64,10 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
     match msg {
         ExecuteMsg::AddModules { modules } => add_modules(deps, info, modules),
         ExecuteMsg::RemoveModule { module, yank } => remove_module(deps, info, module, yank),
+        ExecuteMsg::ClaimNamespaces { os_id, namespaces } => {
+            claim_namespaces(deps, info, os_id, namespaces)
+        }
+        ExecuteMsg::RemoveNamespaces { namespaces } => remove_namespaces(deps, info, namespaces),
         ExecuteMsg::AddAccount {
             account_id,
             account_base: base,
@@ -91,6 +95,11 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             limit,
             yanked,
         } => queries::handle_module_list_query(deps, start_after, limit, filter, yanked),
+        QueryMsg::NamespaceList {
+            filter,
+            start_after,
+            limit,
+        } => queries::handle_namespace_list_query(deps, start_after, limit, filter),
     }
 }
 

@@ -16,7 +16,7 @@ pub mod state {
 
     use crate::objects::{
         common_namespace::ADMIN_NAMESPACE, core::AccountId, module::ModuleInfo,
-        module_reference::ModuleReference,
+        module_reference::ModuleReference, namespace::Namespace,
     };
 
     use super::AccountBase;
@@ -30,12 +30,15 @@ pub mod state {
     pub const YANKED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("yanked_modules");
     /// Maps Account ID to the address of its core contracts
     pub const ACCOUNT_ADDRESSES: Map<AccountId, AccountBase> = Map::new("account");
+    /// Maps OS ID to the namespaces
+    pub const OS_NAMESPACES: Map<&Namespace, OsId> = Map::new("os_namespace");
 }
 
 use crate::objects::{
     core::AccountId,
     module::{Module, ModuleInfo},
     module_reference::ModuleReference,
+    namespace::Namespace,
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
@@ -57,6 +60,14 @@ pub enum ExecuteMsg {
     RemoveModule { module: ModuleInfo, yank: bool },
     /// Add new modules
     AddModules { modules: Vec<ModuleMapEntry> },
+    /// Claim namespaces
+    ClaimNamespaces {
+        os_id: OsId,
+        namespaces: Vec<String>,
+    },
+    /// Remove namespace claims
+    /// Only admin or root user can call this
+    RemoveNamespaces { namespaces: Vec<String> },
     /// Register a new Account to the deployed Accounts.  
     /// Only Factory can call this
     AddAccount {
@@ -101,6 +112,13 @@ pub enum QueryMsg {
         limit: Option<u8>,
         yanked: bool,
     },
+    /// Returns [`NamespaceListResponse`]
+    #[returns(NamespaceListResponse)]
+    NamespaceList {
+        filter: Option<OsId>,
+        start_after: Option<String>,
+        limit: Option<u8>,
+    },
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -116,6 +134,11 @@ pub struct ModulesResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct ModulesListResponse {
     pub modules: Vec<Module>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct NamespaceListResponse {
+    pub namespaces: Vec<(Namespace, OsId)>,
 }
 
 #[cosmwasm_schema::cw_serde]
