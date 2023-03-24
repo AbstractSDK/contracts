@@ -10,7 +10,7 @@ pub enum IbcClientError {
     Std(#[from] StdError),
 
     #[error("{0}")]
-    AbstractOs(#[from] AbstractError),
+    Abstract(#[from] AbstractError),
 
     #[error("{0}")]
     AbstractSdk(#[from] AbstractSdkError),

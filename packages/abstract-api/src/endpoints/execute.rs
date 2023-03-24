@@ -116,7 +116,7 @@ impl<
                 .assert_manager(sender)
                 .map_err(unauthorized_sender)?,
         };
-        self.target_os = Some(core);
+        self.target_account = Some(core);
         self.execute_handler()?(deps, env, info, self, request.request)
     }
 
@@ -135,7 +135,7 @@ impl<
                 api: self.module_id().to_string(),
                 sender: info.sender.to_string(),
             })?;
-        self.target_os = Some(core);
+        self.target_account = Some(core);
 
         let dependencies = self.dependencies();
         let mut msgs: Vec<CosmosMsg> = vec![];

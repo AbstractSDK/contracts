@@ -100,7 +100,7 @@ pub fn instantiate(
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> ManagerResult {
     match msg {
-        ExecuteMsg::SuspendOs { new_status } => update_subscription_status(deps, info, new_status),
+        ExecuteMsg::SuspendAccount { new_status } => update_subscription_status(deps, info, new_status),
         msg => {
             // Block actions if user is not subscribed
             let is_subscribed = STATUS.load(deps.storage)?;

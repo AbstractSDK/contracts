@@ -4,7 +4,7 @@
 
 //! # Abstract Account
 //!
-//! Abstract OS is the interface-defining crate to the Abstract OS smart-contract framework.
+//! Abstract Interface is the interface-defining crate to the Abstract smart-contract framework.
 //!
 //! ## Description
 //! This crate provides the key utilities that are required to integrate with or write Abstract contracts.
@@ -39,7 +39,7 @@
 //! ## Errors
 //! An `AbstractError` wraps error throws by `StdError` or `AssetError`. It is also use in the objects to throw errors.
 
-/// Result type for Abstract OS objects
+/// Result type for Abstract objects
 pub type AbstractResult<T> = Result<T, error::AbstractError>;
 
 pub extern crate abstract_ica;

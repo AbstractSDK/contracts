@@ -14,7 +14,7 @@ pub enum OsmoError {
     DexError(#[from] DexError),
 
     #[error("{0}")]
-    AbstractOs(#[from] AbstractError),
+    Abstract(#[from] AbstractError),
 
     #[error("{0}")]
     AbstractSdk(#[from] AbstractSdkError),

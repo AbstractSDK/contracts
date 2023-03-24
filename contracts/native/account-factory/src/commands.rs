@@ -1,6 +1,6 @@
 use crate::{
-    contract::OsFactoryResult, error::OsFactoryError, response::MsgInstantiateContractResponse,
-    state::*,
+    contract::OsFactoryResult, error::AccountFactoryError,
+    response::MsgInstantiateContractResponse, state::*,
 };
 use abstract_interface::{
     objects::module::Module, version_control::ModulesResponse, AbstractResult, ACCOUNT_FACTORY,
@@ -26,8 +26,8 @@ use cw20::Cw20ReceiveMsg;
 use cw_asset::{Asset, AssetInfo};
 use protobuf::Message;
 
-pub const CREATE_OS_MANAGER_MSG_ID: u64 = 1u64;
-pub const CREATE_OS_PROXY_MSG_ID: u64 = 2u64;
+pub const CREATE_ACCOUNT_MANAGER_MSG_ID: u64 = 1u64;
+pub const CREATE_ACCOUNT_PROXY_MSG_ID: u64 = 2u64;
 
 use abstract_sdk::interfaces::{MANAGER, PROXY};
 
@@ -41,7 +41,7 @@ pub fn receive_cw20(
     cw20_msg: Cw20ReceiveMsg,
 ) -> OsFactoryResult {
     match from_binary(&cw20_msg.msg)? {
-        ExecuteMsg::CreateOs {
+        ExecuteMsg::CreateAccount {
             governance,
             description,
             link,
@@ -52,16 +52,16 @@ pub fn receive_cw20(
                 info: AssetInfo::Cw20(msg_info.sender),
                 amount: cw20_msg.amount,
             };
-            execute_create_os(deps, env, governance, Some(asset), name, description, link)
+            execute_create_account(deps, env, governance, Some(asset), name, description, link)
         }
-        _ => Err(OsFactoryError::Std(StdError::generic_err(
+        _ => Err(AccountFactoryError::Std(StdError::generic_err(
             "unknown send msg hook",
         ))),
     }
 }
 
 /// Function that starts the creation of the Account
-pub fn execute_create_os(
+pub fn execute_create_account(
     deps: DepsMut,
     env: Env,
     governance: GovernanceDetails,
@@ -94,12 +94,12 @@ pub fn execute_create_os(
 
     if let ModuleReference::Account(manager_code_id) = module.reference {
         Ok(OsFactoryResponse::new(
-            "create_os",
+            "create_account",
             vec![("account_id", &config.next_acct_id.to_string())],
         )
         // Create manager
         .add_submessage(SubMsg {
-            id: CREATE_OS_MANAGER_MSG_ID,
+            id: CREATE_ACCOUNT_MANAGER_MSG_ID,
             gas_limit: None,
             msg: WasmMsg::Instantiate {
                 code_id: manager_code_id,
@@ -123,7 +123,7 @@ pub fn execute_create_os(
             reply_on: ReplyOn::Success,
         }))
     } else {
-        Err(OsFactoryError::WrongModuleKind(
+        Err(AccountFactoryError::WrongModuleKind(
             module.info.to_string(),
             "core".to_string(),
         ))
@@ -158,7 +158,7 @@ pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> OsFact
         )
         // Instantiate proxy contract
         .add_submessage(SubMsg {
-            id: CREATE_OS_PROXY_MSG_ID,
+            id: CREATE_ACCOUNT_PROXY_MSG_ID,
             gas_limit: None,
             msg: WasmMsg::Instantiate {
                 code_id: proxy_code_id,
@@ -174,7 +174,7 @@ pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> OsFact
             reply_on: ReplyOn::Success,
         }))
     } else {
-        Err(OsFactoryError::WrongModuleKind(
+        Err(AccountFactoryError::WrongModuleKind(
             module.info.to_string(),
             "app".to_string(),
         ))
@@ -222,9 +222,9 @@ pub fn after_proxy_add_to_manager_and_set_admin(
     let add_account_to_version_control_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: config.version_control_contract.to_string(),
         funds: vec![],
-        msg: to_binary(&VCExecuteMsg::AddOs {
+        msg: to_binary(&VCExecuteMsg::AddAccount {
             account_id: config.next_acct_id,
-            core,
+            base: core,
         })?,
     });
 

@@ -1,4 +1,4 @@
-//! # Functionality we want to implement on `OS`
+//! # Functionality we want to implement on an `Account`
 //!
 //! ## Queries
 //! - module address

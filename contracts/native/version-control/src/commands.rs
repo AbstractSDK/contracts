@@ -290,7 +290,7 @@ mod test {
             let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::AbstractOs(AbstractError::Assert(
+                .is_equal_to(&VCError::Abstract(AbstractError::Assert(
                     "Module version must be set to a specific version".into(),
                 )));
             Ok(())
@@ -353,7 +353,7 @@ mod test {
                 assert_that!(&res)
                     .named(&format!("ModuleInfo validation failed for {bad_module}"))
                     .is_err()
-                    .is_equal_to(&VCError::AbstractOs(AbstractError::FormattingError {
+                    .is_equal_to(&VCError::Abstract(AbstractError::FormattingError {
                         object: "module name".into(),
                         expected: "with content".into(),
                         actual: "empty".into(),
@@ -376,9 +376,9 @@ mod test {
                 manager: Addr::unchecked(TEST_MANAGER_ADDR),
                 proxy: Addr::unchecked(TEST_PROXY_ADDR),
             };
-            let msg = ExecuteMsg::AddOs {
+            let msg = ExecuteMsg::AddAccount {
                 account_id: 0,
-                core: test_core.clone(),
+                base: test_core.clone(),
             };
 
             // as other

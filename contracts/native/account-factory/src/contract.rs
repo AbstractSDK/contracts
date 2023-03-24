@@ -1,4 +1,4 @@
-use crate::{commands, error::OsFactoryError, state::*};
+use crate::{commands, error::AccountFactoryError, state::*};
 use abstract_sdk::interfaces::{
     account_factory::*,
     objects::module_version::{migrate_module_data, set_module_data},
@@ -11,7 +11,7 @@ use cw2::{get_contract_version, set_contract_version};
 use cw_asset::Asset;
 use semver::Version;
 
-pub type OsFactoryResult = Result<Response, OsFactoryError>;
+pub type OsFactoryResult = Result<Response, AccountFactoryError>;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -64,14 +64,14 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> O
             module_factory_address,
             subscription_address,
         ),
-        ExecuteMsg::CreateOs {
+        ExecuteMsg::CreateAccount {
             governance,
             link,
             name,
             description,
         } => {
             let maybe_received_coin = info.funds.last().map(Asset::from);
-            commands::execute_create_os(
+            commands::execute_create_account(
                 deps,
                 env,
                 governance,
@@ -89,14 +89,14 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> O
 pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> OsFactoryResult {
     match msg {
         Reply {
-            id: commands::CREATE_OS_MANAGER_MSG_ID,
+            id: commands::CREATE_ACCOUNT_MANAGER_MSG_ID,
             result,
         } => commands::after_manager_create_proxy(deps, result),
         Reply {
-            id: commands::CREATE_OS_PROXY_MSG_ID,
+            id: commands::CREATE_ACCOUNT_PROXY_MSG_ID,
             result,
         } => commands::after_proxy_add_to_manager_and_set_admin(deps, result),
-        _ => Err(OsFactoryError::UnexpectedReply {}),
+        _ => Err(AccountFactoryError::UnexpectedReply {}),
     }
 }
 

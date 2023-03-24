@@ -4,7 +4,7 @@ use cw_semver::Error as CwSemverError;
 use semver::Error as SemverError;
 use thiserror::Error;
 
-/// Wrapper error for the Abstract-OS framework.
+/// Wrapper error for the Abstract framework.
 #[derive(Error, Debug, PartialEq)]
 pub enum AbstractError {
     #[error("Std error encountered while handling account object: {0}")]

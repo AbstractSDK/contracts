@@ -135,7 +135,7 @@ pub enum ExecuteMsg {
         governance_type: Option<String>,
     },
     /// Suspend manager contract
-    SuspendOs {
+    SuspendAccount {
         new_status: bool,
     },
     EnableIBC {

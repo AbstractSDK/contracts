@@ -71,7 +71,7 @@ pub enum ExecuteMsg {
     },
     /// Creates the core contracts and sets the permissions.
     /// [`crate::manager`] and [`crate::proxy`]
-    CreateOs {
+    CreateAccount {
         // Governance details
         // Use [`crate::objects::GovernanceDetails::Monarchy`] to use a custom governance modal.
         // TODO: add support for other types of gov.

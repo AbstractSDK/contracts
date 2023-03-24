@@ -55,11 +55,11 @@ pub enum ExecuteMsg {
     RemoveModule { module: ModuleInfo },
     /// Add new modules
     AddModules { modules: Vec<ModuleMapEntry> },
-    /// Add a new Account to the deployed OSs.  
+    /// Register a new Account to the deployed Accounts.  
     /// Only Factory can call this
-    AddOs {
+    AddAccount {
         account_id: AccountId,
-        core: AccountBase,
+        base: AccountBase,
     },
     /// Sets a new Admin
     SetAdmin { new_admin: String },

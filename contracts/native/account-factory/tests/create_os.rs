@@ -46,7 +46,7 @@ fn create_one_os() -> AResult {
 
     let factory = &deployment.account_factory;
     let version_control = &deployment.version_control;
-    let os_creation = factory.create_os(
+    let os_creation = factory.create_account(
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
@@ -99,7 +99,7 @@ fn create_two_os_s() -> AResult {
     let factory = &deployment.account_factory;
     let version_control = &deployment.version_control;
     // first account
-    let os_1 = factory.create_os(
+    let os_1 = factory.create_account(
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
@@ -108,7 +108,7 @@ fn create_two_os_s() -> AResult {
         Some(String::from("os_link_of_at_least_11_char")),
     )?;
     // second account
-    let os_2 = factory.create_os(
+    let os_2 = factory.create_account(
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
@@ -168,7 +168,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
 
     let factory = &deployment.account_factory;
     let version_control = &deployment.version_control;
-    let os_creation = factory.create_os(
+    let os_creation = factory.create_account(
         GovernanceDetails::Monarchy {
             monarch: owner.to_string(),
         },
@@ -217,7 +217,7 @@ fn sender_is_not_admin_external() -> AResult {
 
     let factory = &deployment.account_factory;
     let version_control = &deployment.version_control;
-    factory.create_os(
+    factory.create_account(
         GovernanceDetails::External {
             governance_address: owner.to_string(),
             governance_type: "some_gov_description".to_string(),

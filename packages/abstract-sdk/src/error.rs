@@ -20,7 +20,7 @@ impl Display for EndpointError {
 #[derive(Error, Debug, PartialEq)]
 pub enum AbstractSdkError {
     #[error("Abstract Account error in the sdk: {0}")]
-    AbstractOs(#[from] AbstractError),
+    Abstract(#[from] AbstractError),
 
     #[error("Std error encountered in sdk: {0}")]
     Std(#[from] cosmwasm_std::StdError),

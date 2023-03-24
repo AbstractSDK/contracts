@@ -31,7 +31,7 @@ impl<
     for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg>
 {
     fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
-        if let Some(target) = &self.target_os {
+        if let Some(target) = &self.target_account {
             Ok(target.proxy.clone())
         } else {
             Err(StdError::generic_err("No target Account specified to execute on.").into())
@@ -39,7 +39,7 @@ impl<
     }
 
     fn manager_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
-        if let Some(target) = &self.target_os {
+        if let Some(target) = &self.target_account {
             Ok(target.manager.clone())
         } else {
             Err(StdError::generic_err("No Account manager specified.").into())
@@ -50,7 +50,7 @@ impl<
         &self,
         _deps: Deps,
     ) -> AbstractSdkResult<abstract_sdk::interfaces::version_control::AccountBase> {
-        if let Some(target) = &self.target_os {
+        if let Some(target) = &self.target_account {
             Ok(target.clone())
         } else {
             Err(StdError::generic_err("No Account base specified.").into())

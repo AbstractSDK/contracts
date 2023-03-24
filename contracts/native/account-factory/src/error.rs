@@ -6,12 +6,12 @@ use cw_controllers::AdminError;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
-pub enum OsFactoryError {
+pub enum AccountFactoryError {
     #[error("{0}")]
     Std(#[from] StdError),
 
     #[error("{0}")]
-    AbstractOs(#[from] AbstractError),
+    Abstract(#[from] AbstractError),
 
     #[error("{0}")]
     AbstractSdk(#[from] AbstractSdkError),

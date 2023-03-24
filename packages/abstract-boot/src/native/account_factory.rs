@@ -41,7 +41,7 @@ impl<Chain: BootEnvironment> AccountFactory<Chain> {
         } = os_details;
 
         let result = self.execute(
-            &ExecuteMsg::CreateOs {
+            &ExecuteMsg::CreateAccount {
                 governance: governance_details,
                 name,
                 link,

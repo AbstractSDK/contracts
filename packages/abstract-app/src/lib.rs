@@ -58,7 +58,7 @@ pub mod mock {
         DappError(#[from] AppError),
 
         #[error("{0}")]
-        AbstractOs(#[from] abstract_interface::AbstractError),
+        Abstract(#[from] abstract_interface::AbstractError),
 
         #[error("{0}")]
         AbstractSdk(#[from] AbstractSdkError),

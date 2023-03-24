@@ -400,7 +400,7 @@ mod test {
 
             assert_that!(res)
                 .is_err()
-                .is_equal_to(ModuleFactoryError::AbstractOs(AbstractError::Assert(
+                .is_equal_to(ModuleFactoryError::Abstract(AbstractError::Assert(
                     "Module version must be set to a specific version".into(),
                 )));
 

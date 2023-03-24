@@ -42,7 +42,7 @@ pub struct ApiContract<
     /// Map ProxyAddr -> WhitelistedTraders
     pub traders: Map<'static, Addr, HashSet<Addr>>,
     /// The Account on which commands are executed. Set each time in the [`abstract_interface::api::ExecuteMsg::Base`] handler.
-    pub target_os: Option<AccountBase>,
+    pub target_account: Option<AccountBase>,
 }
 
 /// Constructor
@@ -63,7 +63,7 @@ impl<
             contract: AbstractContract::new(name, version, metadata),
             base_state: Item::new(BASE_STATE),
             traders: Map::new(TRADER_NAMESPACE),
-            target_os: None,
+            target_account: None,
         }
     }
 
@@ -129,7 +129,7 @@ impl<
     /// Set each time in the [`abstract_interface::api::ExecuteMsg::Base`] handler.
     pub fn target(&self) -> Result<&Addr, ApiError> {
         Ok(&self
-            .target_os
+            .target_account
             .as_ref()
             .ok_or_else(|| StdError::generic_err("No target Account specified to execute on."))?
             .proxy)
@@ -172,7 +172,7 @@ mod tests {
     fn set_and_get_target() -> ApiMockResult {
         let mut mock = get_mock();
         let target = Addr::unchecked("target");
-        mock.target_os = Some(AccountBase {
+        mock.target_account = Some(AccountBase {
             proxy: target.clone(),
             manager: Addr::unchecked("manager"),
         });

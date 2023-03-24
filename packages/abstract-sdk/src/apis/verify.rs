@@ -58,12 +58,12 @@ impl<'a, T: OsVerification> OsRegistry<'a, T> {
     }
 
     pub fn core(&self, account_id: u32) -> AbstractSdkResult<AccountBase> {
-        let maybe_os = ACCOUNT_ADDRESSES.query(
+        let maybe_account = ACCOUNT_ADDRESSES.query(
             &self.deps.querier,
             self.base.abstract_registry(self.deps)?,
             account_id,
         )?;
-        match maybe_os {
+        match maybe_account {
             None => Err(AbstractSdkError::UnknownAccountId {
                 account_id,
                 version_control_addr: self.base.abstract_registry(self.deps)?,

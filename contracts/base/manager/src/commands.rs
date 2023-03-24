@@ -1401,7 +1401,7 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init_with_subscription(deps.as_mut())?;
 
-            let msg = ExecuteMsg::SuspendOs { new_status: true };
+            let msg = ExecuteMsg::SuspendAccount { new_status: true };
 
             let res = execute_as(deps.as_mut(), "not subscsription", msg);
             assert_that(&res)
@@ -1416,7 +1416,7 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let msg = ExecuteMsg::SuspendOs { new_status: true };
+            let msg = ExecuteMsg::SuspendAccount { new_status: true };
 
             let res = execute_as_subscription(deps.as_mut(), msg);
             assert_that(&res)
@@ -1431,7 +1431,7 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init_with_subscription(deps.as_mut())?;
 
-            let msg = ExecuteMsg::SuspendOs { new_status: true };
+            let msg = ExecuteMsg::SuspendAccount { new_status: true };
 
             let res = execute_as_subscription(deps.as_mut(), msg);
 
@@ -1446,7 +1446,7 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init_with_subscription(deps.as_mut())?;
 
-            let msg = ExecuteMsg::SuspendOs { new_status: false };
+            let msg = ExecuteMsg::SuspendAccount { new_status: false };
 
             let res = execute_as_subscription(deps.as_mut(), msg);
 

@@ -6,7 +6,7 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum AbstractBootError {
     #[error(transparent)]
-    AbstractOs(#[from] AbstractError),
+    Abstract(#[from] AbstractError),
 
     #[error(transparent)]
     Boot(#[from] BootError),
