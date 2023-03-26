@@ -38,7 +38,7 @@ done
 
 for con in $CORE_CONTRACTS; do
   (
-    cd "contracts/core/$con"
+    cd "contracts/account/$con"
     echo "Publishing core $con"
     cargo publish
   )

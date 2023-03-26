@@ -93,7 +93,7 @@ fn migrate_proxy() -> AResult {
     let new_version = "1.0.1".parse().unwrap();
     deployment
         .version_control
-        .register_cores(vec![account.proxy.as_instance()], &new_version)?;
+        .register_account_mods(vec![account.proxy.as_instance()], &new_version)?;
 
     account
         .manager

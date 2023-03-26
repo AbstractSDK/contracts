@@ -33,8 +33,8 @@ iabstract = { workspace = true }
 abstract-sdk = { workspace = true }
 cw-multi-test = {workspace = true}
 anyhow = {workspace = true}
-proxy = { path = "../base/proxy" }
-manager = { path = "../base/manager" }
+proxy = { path = "../account/proxy" }
+manager = { path = "../account/manager" }
 ans-host = { path = "../native/ans-host" }
 account-factory = { path = "../native/account-factory" }
 module-factory = { path = "../native/module-factory" }

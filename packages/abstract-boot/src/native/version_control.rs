@@ -67,8 +67,8 @@ where
         Ok(())
     }
 
-    /// Register core modules
-    pub fn register_cores(
+    /// Register account modules
+    pub fn register_account_mods(
         &self,
         apps: Vec<&Contract<Chain>>,
         version: &Version,

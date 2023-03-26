@@ -26,7 +26,7 @@ pub fn migrate(network: NetworkInfo) -> anyhow::Result<()> {
     // account.register(&version_control, VERSION)?;
 
     // Register the cores
-    // version_control.register_cores(vec![account.proxy.as_instance()], &abstract_version)?;
+    // version_control.register_account_mods(vec![account.proxy.as_instance()], &abstract_version)?;
 
     let account_factory = AccountFactory::new(ACCOUNT_FACTORY, chain.clone());
     let account_factory::ConfigResponse { next_acct_id, .. } =
@@ -57,7 +57,7 @@ pub fn migrate(network: NetworkInfo) -> anyhow::Result<()> {
     // )?)?;
 
     // Register the cores
-    // version_control.register_cores(vec![account.manager.as_instance()], &abstract_version)?;
+    // version_control.register_account_mods(vec![account.manager.as_instance()], &abstract_version)?;
 
     // let mut vc = VersionControl::new(VERSION_CONTROL, chain);
     //

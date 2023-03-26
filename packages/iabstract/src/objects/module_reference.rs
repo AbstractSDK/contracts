@@ -31,11 +31,11 @@ impl ModuleReference {
         Ok(())
     }
 
-    pub fn unwrap_core(&self) -> AbstractResult<u64> {
+    pub fn unwrap_account(&self) -> AbstractResult<u64> {
         match self {
             ModuleReference::Account(v) => Ok(*v),
             _ => Err(AbstractError::Assert(
-                "module reference not a core module.".to_string(),
+                "module reference not an account module.".to_string(),
             )),
         }
     }
@@ -98,7 +98,7 @@ mod test {
     #[test]
     fn core() {
         let core = ModuleReference::Account(1);
-        assert_eq!(core.unwrap_core().unwrap(), 1);
+        assert_eq!(core.unwrap_account().unwrap(), 1);
         assert!(core.unwrap_native().is_err());
         assert!(core.unwrap_api().is_err());
         assert!(core.unwrap_app().is_err());
@@ -107,7 +107,7 @@ mod test {
     #[test]
     fn native() {
         let native = ModuleReference::Native(Addr::unchecked("addr"));
-        assert!(native.unwrap_core().is_err());
+        assert!(native.unwrap_account().is_err());
         assert_eq!(native.unwrap_native().unwrap(), Addr::unchecked("addr"));
         assert!(native.unwrap_api().is_err());
         assert!(native.unwrap_app().is_err());
@@ -117,7 +117,7 @@ mod test {
     #[test]
     fn api() {
         let api = ModuleReference::Api(Addr::unchecked("addr"));
-        assert!(api.unwrap_core().is_err());
+        assert!(api.unwrap_account().is_err());
         assert!(api.unwrap_native().is_err());
         assert_eq!(api.unwrap_api().unwrap(), Addr::unchecked("addr"));
         assert!(api.unwrap_app().is_err());
@@ -127,7 +127,7 @@ mod test {
     #[test]
     fn app() {
         let app = ModuleReference::App(1);
-        assert!(app.unwrap_core().is_err());
+        assert!(app.unwrap_account().is_err());
         assert!(app.unwrap_native().is_err());
         assert!(app.unwrap_api().is_err());
         assert_eq!(app.unwrap_app().unwrap(), 1);
@@ -137,7 +137,7 @@ mod test {
     #[test]
     fn standalone() {
         let standalone = ModuleReference::Standalone(1);
-        assert!(standalone.unwrap_core().is_err());
+        assert!(standalone.unwrap_account().is_err());
         assert!(standalone.unwrap_native().is_err());
         assert!(standalone.unwrap_api().is_err());
         assert!(standalone.unwrap_app().is_err());

@@ -24,7 +24,7 @@ pub fn migrate(network: NetworkInfo) -> anyhow::Result<()> {
     manager.upload()?;
 
     // Register the new manager
-    vc.register_cores(vec![manager.as_instance()], &abstract_version)?;
+    vc.register_account_mods(vec![manager.as_instance()], &abstract_version)?;
 
     Ok(())
 }

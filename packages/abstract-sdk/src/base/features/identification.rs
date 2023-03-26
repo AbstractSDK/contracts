@@ -49,7 +49,7 @@ mod test {
         }
     }
 
-    mod base {
+    mod account {
         use super::*;
         use cosmwasm_std::testing::mock_dependencies;
 

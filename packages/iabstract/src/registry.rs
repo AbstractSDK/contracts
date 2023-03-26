@@ -26,5 +26,5 @@ pub static NATIVE_CONTRACTS: &[&str] = &[
     VERSION_CONTROL,
     "cw20",
 ];
-pub static CORE: &[&str] = &[MANAGER, PROXY];
+pub static ACCOUNT_CONTRACTS: &[&str] = &[MANAGER, PROXY];
 pub const ABSTRACT_EVENT_NAME: &str = "wasm-abstract";
