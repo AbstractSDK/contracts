@@ -35,7 +35,7 @@ pub trait ApiDeployer<Chain: BootEnvironment, CustomInitMsg: Serialize>:
 
         self.upload()?;
         let init_msg = iabstract::api::InstantiateMsg {
-            app: custom_init_msg,
+            module: custom_init_msg,
             base: iabstract::api::BaseInstantiateMsg {
                 ans_host_address: abstr.ans_host.address()?.into(),
                 version_control_address: abstr.version_control.address()?.into(),

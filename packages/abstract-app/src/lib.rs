@@ -108,7 +108,7 @@ pub mod mock {
             base: app::BaseInstantiateMsg {
                 ans_host_address: TEST_ANS_HOST.to_string(),
             },
-            app: MockInitMsg {},
+            module: MockInitMsg {},
         };
 
         MOCK_APP

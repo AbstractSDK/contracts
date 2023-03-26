@@ -34,7 +34,7 @@ impl<
         msg: Self::ExecuteMsg,
     ) -> Result<Response, Error> {
         match msg {
-            ExecuteMsg::App(request) => self.handle_app_msg(deps, env, info, request),
+            ExecuteMsg::Module(request) => self.handle_app_msg(deps, env, info, request),
             ExecuteMsg::Base(exec_msg) => self
                 .base_execute(deps, env, info, exec_msg)
                 .map_err(From::from),
@@ -398,7 +398,7 @@ mod tests {
 
             setup_with_traders(deps.as_mut(), vec![]);
 
-            let msg = ExecuteMsg::App(ApiRequestMsg {
+            let msg = ExecuteMsg::Module(ApiRequestMsg {
                 proxy_address: None,
                 request: MockExecMsg,
             });
@@ -428,7 +428,7 @@ mod tests {
 
             setup_with_traders(deps.as_mut(), vec![]);
 
-            let msg = ExecuteMsg::App(ApiRequestMsg {
+            let msg = ExecuteMsg::Module(ApiRequestMsg {
                 proxy_address: None,
                 request: MockExecMsg,
             });
@@ -445,7 +445,7 @@ mod tests {
 
             setup_with_traders(deps.as_mut(), vec![TEST_TRADER]);
 
-            let msg = ExecuteMsg::App(ApiRequestMsg {
+            let msg = ExecuteMsg::Module(ApiRequestMsg {
                 proxy_address: None,
                 request: MockExecMsg,
             });
@@ -462,7 +462,7 @@ mod tests {
 
             setup_with_traders(deps.as_mut(), vec![TEST_TRADER]);
 
-            let msg = ExecuteMsg::App(ApiRequestMsg {
+            let msg = ExecuteMsg::Module(ApiRequestMsg {
                 proxy_address: Some(TEST_PROXY.into()),
                 request: MockExecMsg,
             });
@@ -482,7 +482,7 @@ mod tests {
 
             setup_with_traders(deps.as_mut(), vec![TEST_TRADER]);
 
-            let msg = ExecuteMsg::App(ApiRequestMsg {
+            let msg = ExecuteMsg::Module(ApiRequestMsg {
                 proxy_address: Some(other_proxy.into()),
                 request: MockExecMsg,
             });

@@ -54,6 +54,6 @@ impl<
             return Ok(Response::new())
         };
         self.admin.set(deps.branch(), Some(info.sender.clone()))?;
-        handler(deps, env, info, self, msg.app)
+        handler(deps, env, info, self, msg.module)
     }
 }

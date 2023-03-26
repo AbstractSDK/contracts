@@ -38,7 +38,7 @@ impl<
         msg: Self::ExecuteMsg,
     ) -> Result<Response, Self::Error> {
         match msg {
-            ExecuteMsg::App(request) => self.execute_handler()?(deps, env, info, self, request),
+            ExecuteMsg::Module(request) => self.execute_handler()?(deps, env, info, self, request),
             ExecuteMsg::Base(exec_msg) => self
                 .base_execute(deps, env, info, exec_msg)
                 .map_err(From::from),

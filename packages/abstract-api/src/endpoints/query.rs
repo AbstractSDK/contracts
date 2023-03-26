@@ -20,7 +20,7 @@ impl<
     type QueryMsg = QueryMsg<CustomQueryMsg>;
     fn query(&self, deps: Deps, env: Env, msg: Self::QueryMsg) -> Result<Binary, Error> {
         match msg {
-            QueryMsg::App(msg) => self.query_handler()?(deps, env, self, msg),
+            QueryMsg::Module(msg) => self.query_handler()?(deps, env, self, msg),
             QueryMsg::Base(msg) => self.base_query(deps, env, msg),
         }
     }

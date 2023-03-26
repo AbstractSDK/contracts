@@ -22,7 +22,7 @@ fn install_module_version(
         module,
         ModuleVersion::Version(version.to_string()),
         &app::InstantiateMsg {
-            app: MockInitMsg,
+            module: MockInitMsg,
             base: BaseInstantiateMsg {
                 ans_host_address: abstr.ans_host.addr_str()?,
             },
@@ -116,7 +116,7 @@ fn upgrade_app_() -> AResult {
         app_1::MOCK_APP_ID,
         &app::MigrateMsg {
             base: app::BaseMigrateMsg {},
-            app: MockMigrateMsg,
+            module: MockMigrateMsg,
         },
     );
     // fails because api 1 is not version 2
@@ -135,7 +135,7 @@ fn upgrade_app_() -> AResult {
         api_1::MOCK_API_ID,
         &app::MigrateMsg {
             base: app::BaseMigrateMsg {},
-            app: Empty {},
+            module: Empty {},
         },
     );
     // fails because app v1 is not version 2 and depends on api 1 being version 1.
@@ -158,7 +158,7 @@ fn upgrade_app_() -> AResult {
             ModuleInfo::from_id(app_1::MOCK_APP_ID, ModuleVersion::Version(V1.to_string()))?,
             Some(to_binary(&app::MigrateMsg {
                 base: app::BaseMigrateMsg {},
-                app: MockMigrateMsg,
+                module: MockMigrateMsg,
             })?),
         ),
         (ModuleInfo::from_id_latest(api_1::MOCK_API_ID)?, None),
@@ -181,7 +181,7 @@ fn upgrade_app_() -> AResult {
         ModuleInfo::from_id(app_1::MOCK_APP_ID, ModuleVersion::Version(V2.to_string()))?,
         Some(to_binary(&app::MigrateMsg {
             base: app::BaseMigrateMsg {},
-            app: MockMigrateMsg,
+            module: MockMigrateMsg,
         })?),
     )]);
 
@@ -202,7 +202,7 @@ fn upgrade_app_() -> AResult {
             ModuleInfo::from_id(app_1::MOCK_APP_ID, ModuleVersion::Version(V2.to_string()))?,
             Some(to_binary(&app::MigrateMsg {
                 base: app::BaseMigrateMsg {},
-                app: MockMigrateMsg,
+                module: MockMigrateMsg,
             })?),
         ),
         (
@@ -232,7 +232,7 @@ fn upgrade_app_() -> AResult {
             ModuleInfo::from_id_latest(app_1::MOCK_APP_ID)?,
             Some(to_binary(&app::MigrateMsg {
                 base: app::BaseMigrateMsg {},
-                app: MockMigrateMsg,
+                module: MockMigrateMsg,
             })?),
         ),
         (ModuleInfo::from_id_latest(api_1::MOCK_API_ID)?, None),
@@ -294,7 +294,7 @@ fn update_api_with_traders() -> AResult {
         api_1::MOCK_API_ID,
         &app::MigrateMsg {
             base: app::BaseMigrateMsg {},
-            app: Empty {},
+            module: Empty {},
         },
     )?;
     use iabstract::manager::QueryMsgFns as _;

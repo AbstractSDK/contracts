@@ -44,7 +44,7 @@ impl<
         }
 
         if let Some(migrate_fn) = self.maybe_migrate_handler() {
-            return migrate_fn(deps, env, self, msg.app);
+            return migrate_fn(deps, env, self, msg.module);
         }
         Ok(Response::default())
     }

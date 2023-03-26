@@ -117,7 +117,7 @@ mod tests {
             let res = mods.request(TEST_MODULE_ID, MockModuleExecuteMsg {});
 
             let expected_msg: app::ExecuteMsg<_, Empty> =
-                app::ExecuteMsg::App(MockModuleExecuteMsg {});
+                app::ExecuteMsg::Module(MockModuleExecuteMsg {});
 
             assert_that!(res)
                 .is_ok()

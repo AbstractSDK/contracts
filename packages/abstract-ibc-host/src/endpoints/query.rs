@@ -27,7 +27,7 @@ impl<
     type QueryMsg = QueryMsg<Self::CustomQueryMsg>;
     fn query(&self, deps: Deps, env: Env, msg: Self::QueryMsg) -> Result<Binary, Error> {
         match msg {
-            QueryMsg::App(api_query) => self.query_handler()?(deps, env, self, api_query),
+            QueryMsg::Module(api_query) => self.query_handler()?(deps, env, self, api_query),
             QueryMsg::Base(base_query) => {
                 self.base_query(deps, env, base_query).map_err(From::from)
             }

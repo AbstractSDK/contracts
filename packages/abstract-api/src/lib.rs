@@ -89,7 +89,7 @@ pub mod mock {
                 ans_host_address: TEST_ANS_HOST.into(),
                 version_control_address: TEST_VERSION_CONTROL.into(),
             },
-            app: MockInitMsg,
+            module: MockInitMsg,
         };
         api.instantiate(deps, mock_env(), info, init_msg)
     }
@@ -101,7 +101,7 @@ pub mod mock {
                 ans_host_address: TEST_ANS_HOST.into(),
                 version_control_address: TEST_VERSION_CONTROL.into(),
             },
-            app: MockInitMsg,
+            module: MockInitMsg,
         };
         api.instantiate(deps, mock_env(), info, init_msg)
     }

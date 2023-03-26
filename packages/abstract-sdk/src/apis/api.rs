@@ -30,7 +30,7 @@ impl<'a, T: ApiInterface> Api<'a, T> {
     ) -> AbstractSdkResult<CosmosMsg> {
         let modules = self.base.modules(self.deps);
         modules.assert_module_dependency(api_id)?;
-        let api_msg = iabstract::api::ExecuteMsg::<_>::App(ApiRequestMsg::new(
+        let api_msg = iabstract::api::ExecuteMsg::<_>::Module(ApiRequestMsg::new(
             Some(self.base.proxy_address(self.deps)?.into_string()),
             message,
         ));
@@ -105,7 +105,7 @@ mod tests {
 
             let res = mods.request(TEST_MODULE_ID, MockModuleExecuteMsg {});
 
-            let expected_msg: api::ExecuteMsg<_, Empty> = api::ExecuteMsg::App(ApiRequestMsg {
+            let expected_msg: api::ExecuteMsg<_, Empty> = api::ExecuteMsg::Module(ApiRequestMsg {
                 proxy_address: Some(TEST_PROXY.into()),
                 request: MockModuleExecuteMsg {},
             });

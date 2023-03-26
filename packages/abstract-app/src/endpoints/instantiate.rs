@@ -72,7 +72,7 @@ impl<
         let Some(handler) = self.maybe_instantiate_handler() else {
             return Ok(Response::new())
         };
-        handler(deps, env, info, self, msg.app)
+        handler(deps, env, info, self, msg.module)
     }
 }
 
@@ -96,7 +96,7 @@ mod test {
             base: BaseInstantiateMsg {
                 ans_host_address: TEST_ANS_HOST.to_string(),
             },
-            app: MockInitMsg {},
+            module: MockInitMsg {},
         };
 
         let res = MOCK_APP

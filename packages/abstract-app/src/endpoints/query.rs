@@ -25,7 +25,7 @@ impl<
     fn query(&self, deps: Deps, env: Env, msg: Self::QueryMsg) -> Result<Binary, Error> {
         match msg {
             QueryMsg::Base(msg) => self.base_query(deps, env, msg).map_err(Into::into),
-            QueryMsg::App(msg) => self.query_handler()?(deps, env, self, msg),
+            QueryMsg::Module(msg) => self.query_handler()?(deps, env, self, msg),
         }
     }
 }
@@ -82,7 +82,7 @@ mod test {
         #[test]
         fn without_handler() {
             let deps = mock_init();
-            let msg = AppQueryMsg::App(MockQueryMsg);
+            let msg = AppQueryMsg::Module(MockQueryMsg);
 
             let res = query_helper(deps.as_ref(), msg);
 
@@ -110,7 +110,7 @@ mod test {
         #[test]
         fn with_handler() {
             let deps = mock_init();
-            let msg = AppQueryMsg::App(MockQueryMsg);
+            let msg = AppQueryMsg::Module(MockQueryMsg);
 
             let with_mocked_query = MOCK_APP.with_query(mock_query_handler);
             let res = with_mocked_query.query(deps.as_ref(), mock_env(), msg);

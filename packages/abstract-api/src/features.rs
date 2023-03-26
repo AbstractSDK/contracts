@@ -132,7 +132,7 @@ mod tests {
 
         mock_init_custom(deps.as_mut(), featured_api()).unwrap();
 
-        let msg = ExecuteMsg::App(ApiRequestMsg {
+        let msg = ExecuteMsg::Module(ApiRequestMsg {
             proxy_address: None,
             request: MockExecMsg,
         });

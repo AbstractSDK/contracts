@@ -17,8 +17,9 @@ use serde::Serialize;
 
 pub type ExecuteMsg<Request = Empty, ReceiveMsg = Empty> =
     MiddlewareExecMsg<BaseExecuteMsg, ApiRequestMsg<Request>, ReceiveMsg>;
-pub type QueryMsg<AppMsg = Empty> = MiddlewareQueryMsg<BaseQueryMsg, AppMsg>;
-pub type InstantiateMsg<AppMsg = Empty> = MiddlewareInstantiateMsg<BaseInstantiateMsg, AppMsg>;
+pub type QueryMsg<ModuleMsg = Empty> = MiddlewareQueryMsg<BaseQueryMsg, ModuleMsg>;
+pub type InstantiateMsg<ModuleMsg = Empty> =
+    MiddlewareInstantiateMsg<BaseInstantiateMsg, ModuleMsg>;
 
 /// Trait indicates that the type is used as an app message
 /// in the [`ExecuteMsg`] enum.
@@ -27,7 +28,7 @@ pub trait ApiExecuteMsg: Serialize {}
 
 impl<T: ApiExecuteMsg, R: Serialize> From<T> for ExecuteMsg<T, R> {
     fn from(api_msg: T) -> Self {
-        Self::App(ApiRequestMsg {
+        Self::Module(ApiRequestMsg {
             proxy_address: None,
             request: api_msg,
         })
@@ -43,7 +44,7 @@ pub trait ApiQueryMsg: Serialize {}
 
 impl<T: ApiQueryMsg> From<T> for QueryMsg<T> {
     fn from(app: T) -> Self {
-        Self::App(app)
+        Self::Module(app)
     }
 }
 
@@ -71,7 +72,7 @@ impl<RequestMsg, Request, BaseExecMsg> From<ApiRequestMsg<RequestMsg>>
     for MiddlewareExecMsg<BaseExecMsg, ApiRequestMsg<RequestMsg>, Request>
 {
     fn from(request_msg: ApiRequestMsg<RequestMsg>) -> Self {
-        Self::App(request_msg)
+        Self::Module(request_msg)
     }
 }
 
@@ -112,7 +113,7 @@ pub enum BaseExecuteMsg {
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
 #[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
-#[cfg_attr(feature = "boot", impl_into(QueryMsg<AppMsg>))]
+#[cfg_attr(feature = "boot", impl_into(QueryMsg < ModuleMsg >))]
 pub enum BaseQueryMsg {
     /// Returns [`ApiConfigResponse`].
     #[returns(ApiConfigResponse)]

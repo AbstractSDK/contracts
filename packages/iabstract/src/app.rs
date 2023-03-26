@@ -9,11 +9,11 @@ use crate::base::{
     MigrateMsg as EndpointMigrateMsg, QueryMsg as EndpointQueryMsg,
 };
 
-pub type ExecuteMsg<AppMsg = Empty, ReceiveMsg = Empty> =
-    EndpointExecMsg<BaseExecuteMsg, AppMsg, ReceiveMsg>;
-pub type QueryMsg<AppMsg = Empty> = EndpointQueryMsg<BaseQueryMsg, AppMsg>;
-pub type InstantiateMsg<AppMsg = Empty> = EndpointInstantiateMsg<BaseInstantiateMsg, AppMsg>;
-pub type MigrateMsg<AppMsg = Empty> = EndpointMigrateMsg<BaseMigrateMsg, AppMsg>;
+pub type ExecuteMsg<ModuleMsg = Empty, ReceiveMsg = Empty> =
+    EndpointExecMsg<BaseExecuteMsg, ModuleMsg, ReceiveMsg>;
+pub type QueryMsg<ModuleMsg = Empty> = EndpointQueryMsg<BaseQueryMsg, ModuleMsg>;
+pub type InstantiateMsg<ModuleMsg = Empty> = EndpointInstantiateMsg<BaseInstantiateMsg, ModuleMsg>;
+pub type MigrateMsg<ModuleMsg = Empty> = EndpointMigrateMsg<BaseMigrateMsg, ModuleMsg>;
 
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Empty};
@@ -27,7 +27,7 @@ use serde::Serialize;
 pub trait AppExecuteMsg: Serialize {}
 impl<T: AppExecuteMsg, R: Serialize> From<T> for ExecuteMsg<T, R> {
     fn from(app: T) -> Self {
-        Self::App(app)
+        Self::Module(app)
     }
 }
 
@@ -39,7 +39,7 @@ impl AppExecuteMsg for Empty {}
 pub trait AppQueryMsg: Serialize {}
 impl<T: AppQueryMsg> From<T> for QueryMsg<T> {
     fn from(app: T) -> Self {
-        Self::App(app)
+        Self::Module(app)
     }
 }
 impl AppQueryMsg for Empty {}
@@ -67,7 +67,7 @@ impl<T> From<BaseExecuteMsg> for ExecuteMsg<T> {
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
 #[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
-#[cfg_attr(feature = "boot", impl_into(QueryMsg<AppMsg>))]
+#[cfg_attr(feature = "boot", impl_into(QueryMsg < ModuleMsg >))]
 pub enum BaseQueryMsg {
     /// Returns [`AppConfigResponse`]
     #[returns(AppConfigResponse)]

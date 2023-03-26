@@ -17,11 +17,11 @@
 //!
 //! /// EndpointMsg to the Base.
 //! #[cosmwasm_schema::cw_serde]
-//! pub enum ExecuteMsg<BaseMsg, AppMsg, ReceiveMsg = Empty> {
+//! pub enum ExecuteMsg<BaseMsg, ModuleMsg, ReceiveMsg = Empty> {
 //!     /// A base configuration message.
 //!     Base(BaseMsg),
 //!     /// An app request.
-//!     App(AppMsg),
+//!     App(ModuleMsg),
 //!     /// IbcReceive to process IBC callbacks
 //!     IbcCallback(IbcResponseMsg),
 //!     /// Receive endpoint for CW20 / external service integrations
@@ -29,27 +29,27 @@
 //! }
 //!
 //! #[cosmwasm_schema::cw_serde]
-//! pub struct InstantiateMsg<BaseMsg, AppMsg = Empty> {
+//! pub struct InstantiateMsg<BaseMsg, ModuleMsg = Empty> {
 //!     /// base instantiate msg
 //!     pub base: BaseMsg,
 //!     /// custom instantiate msg
-//!     pub app: AppMsg,
+//!     pub app: ModuleMsg,
 //! }
 //!
 //! #[cosmwasm_schema::cw_serde]
-//! pub enum QueryMsg<BaseMsg, AppMsg = Empty> {
+//! pub enum QueryMsg<BaseMsg, ModuleMsg = Empty> {
 //!     /// A query message to the base.
 //!     Base(BaseMsg),
 //!     /// Custom query
-//!     App(AppMsg),
+//!     App(ModuleMsg),
 //! }
 //!
 //! #[cosmwasm_schema::cw_serde]
-//! pub struct MigrateMsg<BaseMsg = Empty, AppMsg = Empty> {
+//! pub struct MigrateMsg<BaseMsg = Empty, ModuleMsg = Empty> {
 //!     /// base migrate msg
 //!     pub base: BaseMsg,
 //!     /// custom migrate msg
-//!     pub app: AppMsg,
+//!     pub app: ModuleMsg,
 //! }
 //!
 //! ```
