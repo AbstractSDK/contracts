@@ -1,15 +1,15 @@
 use crate::contract::ProxyResult;
 
-use abstract_interface::objects::oracle::{AccountValue, Oracle};
-use abstract_interface::proxy::{
-    AssetsConfigResponse, BaseAssetResponse, HoldingAmountResponse, OracleAsset, TokenValueResponse,
-};
 use abstract_sdk::interfaces::objects::AssetEntry;
 use abstract_sdk::interfaces::proxy::state::{ANS_HOST, STATE};
 use abstract_sdk::interfaces::proxy::{AssetsInfoResponse, ConfigResponse};
 use abstract_sdk::Resolve;
 use cosmwasm_std::{Addr, Deps, Env, StdResult};
 use cw_asset::{Asset, AssetInfo};
+use iabstract::objects::oracle::{AccountValue, Oracle};
+use iabstract::proxy::{
+    AssetsConfigResponse, BaseAssetResponse, HoldingAmountResponse, OracleAsset, TokenValueResponse,
+};
 
 /// get the assets pricing information
 pub fn query_oracle_asset_info(
@@ -103,16 +103,14 @@ pub fn query_holding_amount(
 
 #[cfg(test)]
 mod test {
-    use abstract_interface::objects::price_source::{PriceSource, UncheckedPriceSource};
+    use iabstract::objects::price_source::{PriceSource, UncheckedPriceSource};
 
     use abstract_testing::{prelude::*, MockAnsHost};
     use cosmwasm_std::testing::{mock_dependencies, MOCK_CONTRACT_ADDR};
     use cosmwasm_std::testing::{mock_env, mock_info, MockApi, MockQuerier, MockStorage};
     use cosmwasm_std::{coin, Decimal, DepsMut, OwnedDeps};
 
-    use abstract_interface::proxy::{
-        AssetConfigResponse, ExecuteMsg, InstantiateMsg, TokenValueResponse,
-    };
+    use iabstract::proxy::{AssetConfigResponse, ExecuteMsg, InstantiateMsg, TokenValueResponse};
 
     use crate::contract::{execute, instantiate, query};
 
@@ -167,7 +165,7 @@ mod test {
             &query(
                 deps.as_ref(),
                 mock_env(),
-                abstract_interface::proxy::QueryMsg::BaseAsset {},
+                iabstract::proxy::QueryMsg::BaseAsset {},
             )
             .unwrap(),
         )
@@ -197,7 +195,7 @@ mod test {
             &query(
                 deps.as_ref(),
                 mock_env(),
-                abstract_interface::proxy::QueryMsg::Config {},
+                iabstract::proxy::QueryMsg::Config {},
             )
             .unwrap(),
         )
@@ -234,7 +232,7 @@ mod test {
             &query(
                 deps.as_ref(),
                 mock_env(),
-                abstract_interface::proxy::QueryMsg::HoldingAmount {
+                iabstract::proxy::QueryMsg::HoldingAmount {
                     identifier: AssetEntry::from(USD),
                 },
             )
@@ -249,7 +247,7 @@ mod test {
             &query(
                 deps.as_ref(),
                 mock_env(),
-                abstract_interface::proxy::QueryMsg::TotalValue {},
+                iabstract::proxy::QueryMsg::TotalValue {},
             )
             .unwrap(),
         )
@@ -266,7 +264,7 @@ mod test {
             &query(
                 deps.as_ref(),
                 mock_env(),
-                abstract_interface::proxy::QueryMsg::TokenValue {
+                iabstract::proxy::QueryMsg::TokenValue {
                     identifier: AssetEntry::from(USD),
                 },
             )
@@ -280,7 +278,7 @@ mod test {
             &query(
                 deps.as_ref(),
                 mock_env(),
-                abstract_interface::proxy::QueryMsg::AssetConfig {
+                iabstract::proxy::QueryMsg::AssetConfig {
                     identifier: AssetEntry::from(USD),
                 },
             )
@@ -308,7 +306,7 @@ mod test {
             &query(
                 deps.as_ref(),
                 mock_env(),
-                abstract_interface::proxy::QueryMsg::AssetsConfig {
+                iabstract::proxy::QueryMsg::AssetsConfig {
                     start_after: None,
                     limit: None,
                 },
@@ -342,7 +340,7 @@ mod test {
             &query(
                 deps.as_ref(),
                 mock_env(),
-                abstract_interface::proxy::QueryMsg::AssetsInfo {
+                iabstract::proxy::QueryMsg::AssetsInfo {
                     start_after: None,
                     limit: None,
                 },

@@ -1,11 +1,11 @@
 //! # Verification
 //! The `Verify` struct provides helper functions that enable the contract to verify if the sender is an Abstract Account, Account admin, etc.
 use crate::{features::AbstractRegistryAccess, AbstractSdkError, AbstractSdkResult};
-use abstract_interface::{
+use cosmwasm_std::{Addr, Deps};
+use iabstract::{
     manager::state::ACCOUNT_ID,
     version_control::{state::ACCOUNT_ADDRESSES, AccountBase},
 };
-use cosmwasm_std::{Addr, Deps};
 
 /// Verify if an addresses is associated with an Abstract Account.
 pub trait OsVerification: AbstractRegistryAccess {

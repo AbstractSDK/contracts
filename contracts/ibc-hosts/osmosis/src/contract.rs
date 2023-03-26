@@ -1,7 +1,6 @@
 use crate::error::OsmoError;
 use abstract_ibc_host::chains::OSMOSIS;
 use abstract_ibc_host::Host;
-use abstract_interface::ibc_host::ExecuteMsg;
 use abstract_macros::abstract_response;
 use abstract_sdk::{
     base::{ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint, ReplyEndpoint},
@@ -19,6 +18,7 @@ use cosmwasm_std::{
 };
 use dex::host_exchange::Osmosis;
 use dex::LocalDex;
+use iabstract::ibc_host::ExecuteMsg;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 

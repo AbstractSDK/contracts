@@ -16,11 +16,9 @@ pub struct Abstract<Chain: BootEnvironment> {
     pub module_factory: ModuleFactory<Chain>,
 }
 
-use abstract_interface::{
-    ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY, VERSION_CONTROL,
-};
 #[cfg(feature = "integration")]
 use boot_core::ContractWrapper;
+use iabstract::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY, VERSION_CONTROL};
 
 impl<Chain: BootEnvironment> boot_core::Deploy<Chain> for Abstract<Chain> {
     // We don't have a custom error type
@@ -157,20 +155,17 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
     pub fn instantiate(&mut self) -> Result<(), crate::AbstractBootError> {
         let sender = &self.chain.sender();
 
-        self.ans_host.instantiate(
-            &abstract_interface::ans_host::InstantiateMsg {},
-            Some(sender),
-            None,
-        )?;
+        self.ans_host
+            .instantiate(&iabstract::ans_host::InstantiateMsg {}, Some(sender), None)?;
 
         self.version_control.instantiate(
-            &abstract_interface::version_control::InstantiateMsg {},
+            &iabstract::version_control::InstantiateMsg {},
             Some(sender),
             None,
         )?;
 
         self.module_factory.instantiate(
-            &abstract_interface::module_factory::InstantiateMsg {
+            &iabstract::module_factory::InstantiateMsg {
                 version_control_address: self.version_control.address()?.into_string(),
                 ans_host_address: self.ans_host.address()?.into_string(),
             },
@@ -179,7 +174,7 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
         )?;
 
         self.account_factory.instantiate(
-            &abstract_interface::account_factory::InstantiateMsg {
+            &iabstract::account_factory::InstantiateMsg {
                 version_control_address: self.version_control.address()?.into_string(),
                 ans_host_address: self.ans_host.address()?.into_string(),
                 module_factory_address: self.module_factory.address()?.into_string(),
@@ -203,7 +198,7 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
 
         // Set Factory
         self.version_control.execute(
-            &abstract_interface::version_control::ExecuteMsg::SetFactory {
+            &iabstract::version_control::ExecuteMsg::SetFactory {
                 new_factory: self.account_factory.address()?.into_string(),
             },
             None,

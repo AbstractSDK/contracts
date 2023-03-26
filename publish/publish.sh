@@ -15,7 +15,7 @@ fi
 
 # these are imported by other packages
 # BASE_PACKAGES="abstract-ica abstract-macros"
-UTILS_PACKAGES="abstract-interface abstract-sdk abstract-testing"
+UTILS_PACKAGES="iabstract abstract-sdk abstract-testing"
 CORE_CONTRACTS="proxy manager"
 NATIVE_CONTRACTS="ans-host account-factory module-factory version-control"
 ALL_PACKAGES="abstract-boot abstract-api abstract-app abstract-ibc-host"

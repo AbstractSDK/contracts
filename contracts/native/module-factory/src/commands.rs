@@ -227,9 +227,9 @@ mod test {
     use speculoos::prelude::*;
 
     use crate::contract::{execute, instantiate};
-    use abstract_interface::module_factory::{ExecuteMsg, InstantiateMsg};
     use abstract_testing::prelude::{TEST_ANS_HOST, TEST_VERSION_CONTROL};
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
+    use iabstract::module_factory::{ExecuteMsg, InstantiateMsg};
 
     type ModuleFactoryTestResult = Result<(), ModuleFactoryError>;
 
@@ -263,8 +263,8 @@ mod test {
 
     mod instantiate_contract {
         use super::*;
-        use abstract_interface::objects::module::ModuleVersion;
         use cosmwasm_std::{testing::mock_info, to_binary};
+        use iabstract::objects::module::ModuleVersion;
 
         #[test]
         fn should_create_submsg_with_instantiate_msg() -> ModuleFactoryTestResult {
@@ -321,9 +321,9 @@ mod test {
 
     mod update_factory_binaries {
         use super::*;
-        use abstract_interface::{objects::module::ModuleVersion, AbstractError};
         use abstract_testing::map_tester::*;
         use abstract_testing::prelude::TEST_ADMIN;
+        use iabstract::{objects::module::ModuleVersion, AbstractError};
 
         fn update_module_msgs_builder(
             to_add: Vec<(ModuleInfo, Binary)>,

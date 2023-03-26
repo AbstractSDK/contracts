@@ -6,9 +6,9 @@ use crate::{
     features::{AccountIdentification, ModuleIdentification},
     AbstractSdkResult,
 };
-use abstract_interface::proxy::ExecuteMsg;
 use abstract_macros::with_abstract_event;
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, ReplyOn, Response, SubMsg};
+use iabstract::proxy::ExecuteMsg;
 
 /// Execute an arbitrary `CosmosMsg` action on the Account.
 pub trait Execution: AccountIdentification + ModuleIdentification {

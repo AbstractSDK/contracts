@@ -1,9 +1,9 @@
 mod common;
 use abstract_boot::*;
-use abstract_interface::PROXY;
 use boot_core::{instantiate_default_mock_env, ContractInstance};
 use common::{create_default_account, init_abstract_env, AResult, TEST_COIN};
 use cosmwasm_std::{Addr, Coin, CosmosMsg};
+use iabstract::PROXY;
 use speculoos::prelude::*;
 
 #[test]
@@ -31,7 +31,7 @@ fn execute_on_proxy_through_manager() -> AResult {
     let burn_amount: Vec<Coin> = vec![Coin::new(10_000, TEST_COIN)];
 
     account.manager.exec_on_module(
-        cosmwasm_std::to_binary(&abstract_interface::proxy::ExecuteMsg::ModuleAction {
+        cosmwasm_std::to_binary(&iabstract::proxy::ExecuteMsg::ModuleAction {
             msgs: vec![CosmosMsg::Bank(cosmwasm_std::BankMsg::Burn {
                 amount: burn_amount,
             })],

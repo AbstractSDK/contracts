@@ -1,11 +1,11 @@
 use crate::Manager;
-pub use abstract_interface::proxy::{ExecuteMsgFns as ProxyExecFns, QueryMsgFns as ProxyQueryFns};
-use abstract_interface::{
+use boot_core::{boot_contract, BootEnvironment, Contract, ContractInstance};
+pub use iabstract::proxy::{ExecuteMsgFns as ProxyExecFns, QueryMsgFns as ProxyQueryFns};
+use iabstract::{
     objects::{price_source::UncheckedPriceSource, AssetEntry},
     proxy::*,
     MANAGER, PROXY,
 };
-use boot_core::{boot_contract, BootEnvironment, Contract, ContractInstance};
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Proxy<Chain>;

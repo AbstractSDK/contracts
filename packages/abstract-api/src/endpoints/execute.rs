@@ -1,8 +1,4 @@
 use crate::{error::ApiError, state::ApiContract, ApiResult};
-use abstract_interface::{
-    api::{ApiExecuteMsg, ApiRequestMsg, BaseExecuteMsg, ExecuteMsg},
-    version_control::AccountBase,
-};
 use abstract_sdk::{
     base::{
         endpoints::{ExecuteEndpoint, IbcCallbackEndpoint, ReceiveEndpoint},
@@ -12,6 +8,10 @@ use abstract_sdk::{
     AbstractResponse, AbstractSdkError, Execution, ModuleInterface, OsVerification,
 };
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdError};
+use iabstract::{
+    api::{ApiExecuteMsg, ApiRequestMsg, BaseExecuteMsg, ExecuteMsg},
+    version_control::AccountBase,
+};
 use schemars::JsonSchema;
 use serde::Serialize;
 
@@ -208,7 +208,7 @@ impl<
 #[cfg(test)]
 mod tests {
     use super::*;
-    use abstract_interface::api;
+    use iabstract::api;
 
     use abstract_testing::prelude::*;
     use cosmwasm_std::{

@@ -6,8 +6,8 @@ use crate::{
     features::{AbstractNameService, AccountIdentification},
     AbstractSdkResult,
 };
-use abstract_interface::{objects::AssetEntry, proxy::QueryMsg};
 use cosmwasm_std::{Deps, Uint128};
+use iabstract::{objects::AssetEntry, proxy::QueryMsg};
 
 use interfaces::{objects::oracle::AccountValue, proxy::TokenValueResponse};
 

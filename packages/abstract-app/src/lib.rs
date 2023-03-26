@@ -14,10 +14,10 @@ use cosmwasm_std::{Empty, Response};
 #[cfg(feature = "test-utils")]
 pub mod mock {
     use abstract_boot::AppDeployer;
-    pub use abstract_interface::app;
     use boot_core::{BootEnvironment, ContractWrapper};
     pub use cosmwasm_std::testing::*;
     use cosmwasm_std::{from_binary, to_binary, Addr, StdError};
+    pub use iabstract::app;
 
     pub type AppTestResult = Result<(), MockError>;
 
@@ -41,12 +41,12 @@ pub mod mock {
     pub struct MockReceiveMsg;
 
     use crate::{AppContract, AppError};
-    use abstract_interface::{module_factory::ContextResponse, version_control::AccountBase};
     use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
     use abstract_testing::prelude::{
         MockDeps, MockQuerierBuilder, TEST_ANS_HOST, TEST_MANAGER, TEST_MODULE_FACTORY,
         TEST_MODULE_ID, TEST_PROXY, TEST_VERSION,
     };
+    use iabstract::{module_factory::ContextResponse, version_control::AccountBase};
     use thiserror::Error;
 
     #[derive(Error, Debug, PartialEq)]
@@ -58,7 +58,7 @@ pub mod mock {
         DappError(#[from] AppError),
 
         #[error("{0}")]
-        Abstract(#[from] abstract_interface::AbstractError),
+        Abstract(#[from] iabstract::AbstractError),
 
         #[error("{0}")]
         AbstractSdk(#[from] AbstractSdkError),
@@ -81,7 +81,7 @@ pub mod mock {
     pub fn app_base_mock_querier() -> MockQuerierBuilder {
         MockQuerierBuilder::default().with_smart_handler(TEST_MODULE_FACTORY, |msg| {
             match from_binary(msg).unwrap() {
-                abstract_interface::module_factory::QueryMsg::Context {} => {
+                iabstract::module_factory::QueryMsg::Context {} => {
                     let resp = ContextResponse {
                         account: Some(AccountBase {
                             manager: Addr::unchecked(TEST_MANAGER),
@@ -141,7 +141,7 @@ pub mod mock {
     #[macro_export]
     macro_rules! gen_app_mock {
     ($name:ident,$id:expr, $version:expr, $deps:expr) => {
-        use ::abstract_interface::app;
+        use ::iabstract::app;
         use ::abstract_app::mock::{MockExecMsg, MockInitMsg, MockMigrateMsg, MockQueryMsg, MockReceiveMsg};
 
         type Exec = app::ExecuteMsg<MockExecMsg, MockReceiveMsg>;

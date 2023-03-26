@@ -10,11 +10,11 @@ use abstract_boot::{
     Abstract, AccountFactory, AnsHost, Manager, ModuleFactory, Proxy, VersionControl,
 };
 use abstract_boot::{AbstractAccount, ApiDeployer};
-use abstract_interface::{objects::gov_type::GovernanceDetails, PROXY};
-use abstract_interface::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, VERSION_CONTROL};
 use boot_core::ContractWrapper;
 use boot_core::{ContractInstance, Mock};
 use cosmwasm_std::Addr;
+use iabstract::{objects::gov_type::GovernanceDetails, PROXY};
+use iabstract::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, VERSION_CONTROL};
 use semver::Version;
 
 pub fn init_abstract_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, AbstractAccount<Mock>)> {

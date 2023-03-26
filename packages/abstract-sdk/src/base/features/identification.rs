@@ -1,9 +1,9 @@
-use abstract_interface::{
+use cosmwasm_std::{Addr, Deps};
+use cw_storage_plus::Item;
+use iabstract::{
     objects::common_namespace::ADMIN_NAMESPACE, proxy::state::ACCOUNT_ID,
     version_control::AccountBase,
 };
-use cosmwasm_std::{Addr, Deps};
-use cw_storage_plus::Item;
 use interfaces::objects::AccountId;
 
 // see interfaces::proxy::state::ADMIN

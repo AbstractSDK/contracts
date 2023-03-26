@@ -1,6 +1,6 @@
 //! # Version Control
 //!
-//! `abstract_interface::version_control` stores chain-specific code-ids, addresses and an account_id map.
+//! `iabstract::version_control` stores chain-specific code-ids, addresses and an account_id map.
 //!
 //! ## Description
 //! Code-ids and api-contract addresses are stored on this address. This data can not be changed and allows for complex factory logic.

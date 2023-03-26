@@ -3,8 +3,8 @@ use crate::contract::{
     MIN_TITLE_LENGTH,
 };
 use crate::error::ManagerError;
-use abstract_interface::PROXY;
 use core::result::Result::{Err, Ok};
+use iabstract::PROXY;
 
 /**
  * Validates that the link is valid when creating a account.

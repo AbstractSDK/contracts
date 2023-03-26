@@ -34,7 +34,7 @@ thiserror = {workspace = true}
 semver = {workspace = true}
 protobuf = {workspace = true}
 abstract-sdk = { workspace = true }
-abstract-interface = { workspace = true }
+iabstract = { workspace = true }
 abstract-macros = { workspace = true }
 cw-asset = { workspace = true }
 

@@ -1,12 +1,12 @@
-use abstract_interface::module_factory::*;
+use iabstract::module_factory::*;
 
 // use crate::api::get_api_init_msgs;
 use boot_core::{BootEnvironment, Contract, TxResponse};
 
-pub use abstract_interface::module_factory::{
+use boot_core::{boot_contract, BootExecute};
+pub use iabstract::module_factory::{
     ExecuteMsgFns as MFactoryExecFns, QueryMsgFns as MFactoryQueryFns,
 };
-use boot_core::{boot_contract, BootExecute};
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct ModuleFactory<Chain>;

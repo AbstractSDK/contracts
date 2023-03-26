@@ -2,11 +2,9 @@ use abstract_boot::{
     Abstract, AbstractAccount, AccountFactory, AnsHost, Manager, ModuleFactory, Proxy,
     VersionControl,
 };
-use abstract_interface::{
-    ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY, VERSION_CONTROL,
-};
 use boot_core::ContractWrapper;
 use boot_core::{ContractInstance, Mock};
+use iabstract::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY, VERSION_CONTROL};
 
 pub const OWNER: &str = "owner";
 

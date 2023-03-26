@@ -1,7 +1,7 @@
 use crate::{state::AppContract, AppError, Handler, QueryEndpoint};
-use abstract_interface::app::{AppConfigResponse, AppQueryMsg, BaseQueryMsg, QueryMsg};
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
 use cw_controllers::AdminResponse;
+use iabstract::app::{AppConfigResponse, AppQueryMsg, BaseQueryMsg, QueryMsg};
 
 impl<
         Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,

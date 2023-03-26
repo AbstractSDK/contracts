@@ -1,9 +1,9 @@
 mod common;
 use abstract_boot::*;
-use abstract_interface::{module_factory, objects::module::ModuleInfo};
 use boot_core::{instantiate_default_mock_env, ContractInstance};
 use common::init_test_env;
 use cosmwasm_std::Addr;
+use iabstract::{module_factory, objects::module::ModuleInfo};
 use speculoos::prelude::*;
 
 type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
@@ -38,7 +38,7 @@ fn caller_must_be_manager() -> AResult {
     let factory = &deployment.module_factory;
     let test_module = ModuleInfo::from_id(
         "publisher:test",
-        abstract_interface::objects::module::ModuleVersion::Latest,
+        iabstract::objects::module::ModuleVersion::Latest,
     )?;
 
     let res = factory.install_module(test_module, None).unwrap_err();

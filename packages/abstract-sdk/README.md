@@ -25,7 +25,7 @@ The [`Bank`](https://docs.rs/abstract-sdk/latest/abstract_sdk/apis/bank) API all
 
 ```rust,no_run
 use abstract_sdk::{TransferInterface,AbstractSdkResult};
-use abstract_interface::objects::AnsAsset;
+use iabstract::objects::AnsAsset;
 use cosmwasm_std::{Addr, CosmosMsg, Deps, StdResult, Uint128};
 
 // Trait to retrieve the Splitter object

@@ -1,6 +1,5 @@
 use crate::contract::ProxyResult;
 use crate::error::ProxyError;
-use abstract_interface::objects::{oracle::Oracle, price_source::UncheckedPriceSource, AssetEntry};
 use abstract_macros::abstract_response;
 use abstract_sdk::interfaces::{
     ibc_client::ExecuteMsg as IbcClientMsg,
@@ -8,6 +7,7 @@ use abstract_sdk::interfaces::{
     IBC_CLIENT, PROXY,
 };
 use cosmwasm_std::{wasm_execute, CosmosMsg, DepsMut, Empty, MessageInfo, StdError};
+use iabstract::objects::{oracle::Oracle, price_source::UncheckedPriceSource, AssetEntry};
 
 const LIST_SIZE_LIMIT: usize = 15;
 
@@ -148,7 +148,7 @@ mod test {
     use cosmwasm_std::{Addr, OwnedDeps, Storage};
     use speculoos::prelude::*;
 
-    use abstract_interface::proxy::{ExecuteMsg, InstantiateMsg};
+    use iabstract::proxy::{ExecuteMsg, InstantiateMsg};
 
     use crate::contract::{execute, instantiate};
 
@@ -265,7 +265,7 @@ mod test {
         use cosmwasm_std::Addr;
         use cw_controllers::AdminError;
 
-        use abstract_interface::proxy::state::State;
+        use iabstract::proxy::state::State;
 
         use super::*;
 
@@ -327,7 +327,7 @@ mod test {
 
     mod execute_action {
         use super::*;
-        use abstract_interface::proxy::state::State;
+        use iabstract::proxy::state::State;
 
         #[test]
         fn only_whitelisted_can_execute() {
@@ -386,9 +386,9 @@ mod test {
     }
 
     mod execute_ibc {
-        use abstract_interface::{manager, proxy::state::State};
         use abstract_testing::{prelude::TEST_MANAGER, MockQuerierBuilder};
         use cosmwasm_std::{to_binary, SubMsg};
+        use iabstract::{manager, proxy::state::State};
 
         use super::*;
 
@@ -407,7 +407,7 @@ mod test {
                 .unwrap();
 
             let msg = ExecuteMsg::IbcAction {
-                msgs: vec![abstract_interface::ibc_client::ExecuteMsg::Register {
+                msgs: vec![iabstract::ibc_client::ExecuteMsg::Register {
                     host_chain: "juno".into(),
                 }],
             };
@@ -432,7 +432,7 @@ mod test {
             assert_that!(res.messages[0]).is_equal_to(SubMsg::new(CosmosMsg::Wasm(
                 cosmwasm_std::WasmMsg::Execute {
                     contract_addr: "ibc_client_addr".into(),
-                    msg: to_binary(&abstract_interface::ibc_client::ExecuteMsg::Register {
+                    msg: to_binary(&iabstract::ibc_client::ExecuteMsg::Register {
                         host_chain: "juno".into(),
                     })
                     .unwrap(),

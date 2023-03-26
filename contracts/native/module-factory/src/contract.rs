@@ -1,5 +1,4 @@
 use crate::{commands, error::ModuleFactoryError, state::*};
-use abstract_interface::objects::module_version::migrate_module_data;
 use abstract_sdk::interfaces::{
     module_factory::*, objects::module_version::set_module_data, MODULE_FACTORY,
 };
@@ -7,6 +6,7 @@ use cosmwasm_std::{
     to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
 use cw2::{get_contract_version, set_contract_version};
+use iabstract::objects::module_version::migrate_module_data;
 use semver::Version;
 
 pub type ModuleFactoryResult = Result<Response, ModuleFactoryError>;

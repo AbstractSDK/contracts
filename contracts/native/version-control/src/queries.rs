@@ -1,6 +1,4 @@
 use crate::error::VCError;
-use abstract_interface::objects::AccountId;
-use abstract_interface::version_control::ModuleFilter;
 use abstract_sdk::interfaces::{
     objects::{
         module::{Module, ModuleInfo, ModuleVersion},
@@ -13,6 +11,8 @@ use abstract_sdk::interfaces::{
 };
 use cosmwasm_std::{to_binary, Binary, Deps, Order, StdError, StdResult};
 use cw_storage_plus::Bound;
+use iabstract::objects::AccountId;
+use iabstract::version_control::ModuleFilter;
 
 const DEFAULT_LIMIT: u8 = 10;
 const MAX_LIMIT: u8 = 20;
@@ -182,7 +182,7 @@ mod test {
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use cosmwasm_std::{DepsMut, StdError};
 
-    use abstract_interface::version_control::*;
+    use iabstract::version_control::*;
 
     use crate::contract;
     use crate::contract::VCResult;
@@ -210,7 +210,7 @@ mod test {
 
     mod module {
         use super::*;
-        use abstract_interface::objects::module::ModuleVersion::Latest;
+        use iabstract::objects::module::ModuleVersion::Latest;
 
         use cosmwasm_std::from_binary;
 

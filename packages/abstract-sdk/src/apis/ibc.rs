@@ -3,12 +3,12 @@
 //!
 
 use crate::{features::AccountIdentification, AbstractSdkResult};
-use abstract_interface::{
+use cosmwasm_std::{wasm_execute, Coin, CosmosMsg, Deps};
+use iabstract::{
     ibc_client::{CallbackInfo, ExecuteMsg as IbcClientMsg},
     ibc_host::HostAction,
     proxy::ExecuteMsg,
 };
-use cosmwasm_std::{wasm_execute, Coin, CosmosMsg, Deps};
 
 /// Interact with other chains over IBC.
 pub trait IbcInterface: AccountIdentification {

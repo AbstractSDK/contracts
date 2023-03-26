@@ -74,15 +74,15 @@ impl<
 }
 #[cfg(test)]
 mod tests {
-    use abstract_interface::{
-        api::{ApiRequestMsg, ExecuteMsg},
-        version_control::AccountBase,
-    };
     use abstract_sdk::base::ExecuteEndpoint;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
         DepsMut, Env, MessageInfo, Response,
+    };
+    use iabstract::{
+        api::{ApiRequestMsg, ExecuteMsg},
+        version_control::AccountBase,
     };
     use speculoos::prelude::*;
 

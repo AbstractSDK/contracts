@@ -1,10 +1,10 @@
 use crate::{Host, HostError};
-use abstract_interface::objects::AccountId;
 use abstract_sdk::{
     features::{AbstractNameService, AccountIdentification},
     AbstractSdkError, AbstractSdkResult,
 };
 use cosmwasm_std::Deps;
+use iabstract::objects::AccountId;
 
 impl<
         Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,

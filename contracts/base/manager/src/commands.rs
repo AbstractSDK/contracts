@@ -24,15 +24,15 @@ use abstract_sdk::{
     ModuleRegistryInterface,
 };
 
-use abstract_interface::api::{
-    BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as ApiExecMsg, QueryMsg as ApiQuery, TradersResponse,
-};
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo,
     StdResult, Storage, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
 use cw_storage_plus::Item;
+use iabstract::api::{
+    BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as ApiExecMsg, QueryMsg as ApiQuery, TradersResponse,
+};
 use semver::Version;
 
 #[abstract_response(MANAGER)]
@@ -600,7 +600,7 @@ mod test {
     };
     use cosmwasm_std::{Order, OwnedDeps, StdError, Storage};
 
-    use abstract_interface::manager::InstantiateMsg;
+    use iabstract::manager::InstantiateMsg;
 
     use crate::contract;
     use speculoos::prelude::*;

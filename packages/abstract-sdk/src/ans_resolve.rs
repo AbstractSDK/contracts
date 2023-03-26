@@ -201,12 +201,12 @@ mod tests {
     use super::*;
     use cosmwasm_std::Binary;
 
-    use abstract_interface::ans_host::state::ASSET_ADDRESSES;
     use abstract_testing::prelude::{wrap_querier, MockDeps, MockQuerierBuilder, TEST_ANS_HOST};
     use cosmwasm_std::{
         testing::{mock_dependencies, MockQuerier},
         Empty,
     };
+    use iabstract::ans_host::state::ASSET_ADDRESSES;
 
     use speculoos::prelude::*;
 
@@ -420,7 +420,7 @@ mod tests {
 
     mod pools {
         use super::*;
-        use abstract_interface::ans_host::state::{ASSET_PAIRINGS, POOL_METADATA};
+        use iabstract::ans_host::state::{ASSET_PAIRINGS, POOL_METADATA};
         use interfaces::objects::{PoolAddress, PoolType};
 
         #[test]

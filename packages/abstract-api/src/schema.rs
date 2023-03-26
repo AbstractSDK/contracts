@@ -1,11 +1,11 @@
 use crate::{ApiContract, ApiError};
-use abstract_interface::api::{ApiExecuteMsg, ApiQueryMsg};
 use abstract_sdk::{
     base::endpoints::{ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint},
     interfaces::api::{ApiConfigResponse, TradersResponse},
 };
 use cosmwasm_schema::{export_schema_with_title, schema_for, write_api, QueryResponses};
 use cosmwasm_std::Empty;
+use iabstract::api::{ApiExecuteMsg, ApiQueryMsg};
 use schemars::JsonSchema;
 use serde::Serialize;
 use std::path::Path;

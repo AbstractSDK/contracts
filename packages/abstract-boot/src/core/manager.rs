@@ -1,13 +1,11 @@
-pub use abstract_interface::manager::{
-    ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns,
-};
-use abstract_interface::{
+use boot_core::{boot_contract, BootEnvironment, BootExecute, Contract};
+use cosmwasm_std::{to_binary, Empty};
+pub use iabstract::manager::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns};
+use iabstract::{
     api,
     manager::*,
     objects::module::{ModuleInfo, ModuleVersion},
 };
-use boot_core::{boot_contract, BootEnvironment, BootExecute, Contract};
-use cosmwasm_std::{to_binary, Empty};
 use serde::Serialize;
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]

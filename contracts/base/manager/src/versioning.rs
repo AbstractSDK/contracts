@@ -1,9 +1,9 @@
-use abstract_interface::{
+use cosmwasm_std::{Deps, DepsMut, StdError, Storage};
+use cw_semver::{Comparator, Version};
+use iabstract::{
     manager::state::{DEPENDENTS, OS_MODULES},
     objects::{dependency::Dependency, module_version::MODULE},
 };
-use cosmwasm_std::{Deps, DepsMut, StdError, Storage};
-use cw_semver::{Comparator, Version};
 
 use crate::{commands::MIGRATE_CONTEXT, contract::ManagerResult, error::ManagerError};
 

@@ -2,14 +2,14 @@ use crate::{
     cw_helpers::cosmwasm_std::wasm_smart_query, features::AbstractRegistryAccess, AbstractSdkError,
     AbstractSdkResult,
 };
-use abstract_interface::{
+use cosmwasm_std::Deps;
+use iabstract::{
     objects::{
         module::{Module, ModuleInfo},
         module_reference::ModuleReference,
     },
     version_control::{state::MODULE_LIBRARY, ModulesResponse, QueryMsg},
 };
-use cosmwasm_std::Deps;
 
 /// Access the Abstract Version Control and access module information.
 pub trait ModuleRegistryInterface: AbstractRegistryAccess {

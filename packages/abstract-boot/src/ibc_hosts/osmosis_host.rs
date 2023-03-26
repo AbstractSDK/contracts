@@ -1,6 +1,6 @@
-use abstract_interface::ibc_host::*;
 use boot_core::{boot_contract, BootEnvironment, Contract};
 use cosmwasm_std::Empty;
+use iabstract::ibc_host::*;
 
 #[boot_contract(InstantiateMsg, Empty, QueryMsg, MigrateMsg)]
 pub struct OsmosisHost<Chain>;

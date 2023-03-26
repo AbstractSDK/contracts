@@ -1,12 +1,10 @@
 use crate::{state::ApiContract, ApiError};
-use abstract_interface::api::{
-    ApiConfigResponse, ApiQueryMsg, BaseQueryMsg, QueryMsg, TradersResponse,
-};
 use abstract_sdk::{
     base::{endpoints::QueryEndpoint, Handler},
     AbstractSdkError,
 };
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
+use iabstract::api::{ApiConfigResponse, ApiQueryMsg, BaseQueryMsg, QueryMsg, TradersResponse};
 
 /// Where we dispatch the queries for the ApiContract
 /// These ApiQueryMsg declarations can be found in `abstract_sdk::interfaces::common_module::app_msg`

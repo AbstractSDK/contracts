@@ -4,7 +4,6 @@ use crate::{
     },
     HostError,
 };
-use abstract_interface::objects::AccountId;
 use abstract_sdk::{
     base::{
         AbstractContract, ExecuteHandlerFn, InstantiateHandlerFn, QueryHandlerFn, ReceiveHandlerFn,
@@ -17,6 +16,7 @@ use abstract_sdk::{
 use cosmwasm_std::{Addr, Binary, Empty, StdResult, Storage};
 use cw_controllers::Admin;
 use cw_storage_plus::{Item, Map};
+use iabstract::objects::AccountId;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

@@ -1,9 +1,9 @@
 use abstract_boot::Abstract;
-use abstract_interface::objects::gov_type::GovernanceDetails;
 use boot_core::{
     networks::{ChainInfo, NetworkInfo, NetworkKind},
     *,
 };
+use iabstract::objects::gov_type::GovernanceDetails;
 use semver::Version;
 use std::sync::Arc;
 use tokio::runtime::Runtime;

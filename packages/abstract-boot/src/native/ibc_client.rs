@@ -1,10 +1,10 @@
-use abstract_interface::ibc_client::*;
 use boot_core::{BootEnvironment, Contract};
+use iabstract::ibc_client::*;
 
-pub use abstract_interface::ibc_client::{
+use boot_core::boot_contract;
+pub use iabstract::ibc_client::{
     ExecuteMsgFns as IbcClientExecFns, QueryMsgFns as IbcClientQueryFns,
 };
-use boot_core::boot_contract;
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct IbcClient<Chain>;

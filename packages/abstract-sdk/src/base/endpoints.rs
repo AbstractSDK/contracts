@@ -10,7 +10,7 @@
 //! ## Message format
 //! Each Abstract module accepts a fixed message format that can be customized by the developer to add their own functionality.
 //!
-//! The base massage format is defined [here](abstract_interface::base) as follows:
+//! The base massage format is defined [here](iabstract::base) as follows:
 //! ```rust
 //! use abstract_ica::IbcResponseMsg;
 //! use cosmwasm_std::Empty;
@@ -75,7 +75,7 @@
 //! impl <Error: From<cosmwasm_std::StdError> + From<AppError> + 'static, CustomExecMsg: Serialize + JsonSchema + AppExecuteMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg: Serialize + JsonSchema >
 //! ExecuteEndpoint for AppContract <Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg > {
 //!     
-//!     // Expected entrypoint ExecuteMsg type, imported from abstract_interface.
+//!     // Expected entrypoint ExecuteMsg type, imported from iabstract.
 //!     // As you can see from the type definition, the `AppContract` accepts a custom `AppExecuteMsg`
 //!     // type that is inserted into the expected execute message.
 //!     type ExecuteMsg = ExecuteMsg<CustomExecMsg, ReceiveMsg>;

@@ -2,7 +2,6 @@ use crate::{
     state::{Host, HostState, CLOSED_CHANNELS},
     HostError,
 };
-use abstract_interface::objects::module_version::set_module_data;
 use abstract_sdk::{
     base::{Handler, InstantiateEndpoint},
     feature_objects::AnsHost,
@@ -10,6 +9,7 @@ use abstract_sdk::{
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;
+use iabstract::objects::module_version::set_module_data;
 use schemars::JsonSchema;
 use serde::Serialize;
 

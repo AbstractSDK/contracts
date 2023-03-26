@@ -6,7 +6,6 @@ use crate::tests::{
     common::{DEFAULT_PAY, RANDOM_USER, SUBSCRIPTION_COST},
     testing_infrastructure::env::{exec_msg_on_manager, mint_tokens},
 };
-use abstract_interface::app;
 use abstract_sdk::interfaces::{
     objects::module::{ModuleInfo, ModuleVersion},
     subscription as msgs,
@@ -21,6 +20,7 @@ use cosmwasm_std::{Addr, Decimal, Uint128};
 use cw_asset::AssetInfoBase;
 use cw_controllers::AdminError;
 use cw_multi_test::{App, ContractWrapper, Executor};
+use iabstract::app;
 use std::str::FromStr;
 
 pub fn register_subscription(

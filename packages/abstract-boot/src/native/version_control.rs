@@ -1,8 +1,13 @@
 use crate::{deployment, AbstractAccount};
-pub use abstract_interface::version_control::{
-    ExecuteMsgFns as VCExecFns, QueryMsgFns as VCQueryFns,
+#[cfg(feature = "daemon")]
+use boot_core::Daemon;
+use boot_core::{
+    boot_contract, BootEnvironment, Contract, IndexResponse, TxResponse,
+    {BootQuery, ContractInstance},
 };
-use abstract_interface::{
+use cosmwasm_std::Addr;
+pub use iabstract::version_control::{ExecuteMsgFns as VCExecFns, QueryMsgFns as VCQueryFns};
+use iabstract::{
     objects::{
         module::{Module, ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
@@ -11,13 +16,6 @@ use abstract_interface::{
     version_control::*,
     VERSION_CONTROL,
 };
-#[cfg(feature = "daemon")]
-use boot_core::Daemon;
-use boot_core::{
-    boot_contract, BootEnvironment, Contract, IndexResponse, TxResponse,
-    {BootQuery, ContractInstance},
-};
-use cosmwasm_std::Addr;
 use semver::Version;
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]

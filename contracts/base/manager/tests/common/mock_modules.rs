@@ -7,7 +7,7 @@ use abstract_app::gen_app_mock;
 use abstract_app::mock::MockError as AppMockError;
 use abstract_app::AppContract;
 use abstract_boot::{ApiDeployer, AppDeployer};
-use abstract_interface::objects::dependency::StaticDependency;
+use iabstract::objects::dependency::StaticDependency;
 // use boot_core::{ContractWrapper};
 use boot_core::{Empty, Mock};
 

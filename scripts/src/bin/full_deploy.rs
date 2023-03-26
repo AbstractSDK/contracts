@@ -1,5 +1,5 @@
 use abstract_boot::{Abstract, AbstractAccount};
-use abstract_interface::objects::gov_type::GovernanceDetails;
+use iabstract::objects::gov_type::GovernanceDetails;
 
 use boot_core::{
     networks::{parse_network, NetworkInfo},

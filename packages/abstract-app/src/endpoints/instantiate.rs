@@ -2,10 +2,6 @@ use crate::{
     state::{AppContract, AppState},
     AppError, Handler, InstantiateEndpoint,
 };
-use abstract_interface::{
-    app::{BaseInstantiateMsg, InstantiateMsg},
-    objects::module_version::set_module_data,
-};
 use abstract_sdk::{
     cw_helpers::cosmwasm_std::wasm_smart_query,
     feature_objects::AnsHost,
@@ -13,6 +9,10 @@ use abstract_sdk::{
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
 use cw2::set_contract_version;
+use iabstract::{
+    app::{BaseInstantiateMsg, InstantiateMsg},
+    objects::module_version::set_module_data,
+};
 use schemars::JsonSchema;
 use serde::Serialize;
 

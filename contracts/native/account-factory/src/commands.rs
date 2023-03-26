@@ -2,9 +2,6 @@ use crate::{
     contract::OsFactoryResult, error::AccountFactoryError,
     response::MsgInstantiateContractResponse, state::*,
 };
-use abstract_interface::{
-    objects::module::Module, version_control::ModulesResponse, AbstractResult, ACCOUNT_FACTORY,
-};
 use abstract_macros::abstract_response;
 use abstract_sdk::{
     cw_helpers::cosmwasm_std::wasm_smart_query,
@@ -24,6 +21,9 @@ use cosmwasm_std::{
 };
 use cw20::Cw20ReceiveMsg;
 use cw_asset::{Asset, AssetInfo};
+use iabstract::{
+    objects::module::Module, version_control::ModulesResponse, AbstractResult, ACCOUNT_FACTORY,
+};
 use protobuf::Message;
 
 pub const CREATE_ACCOUNT_MANAGER_MSG_ID: u64 = 1u64;

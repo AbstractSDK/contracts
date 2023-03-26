@@ -1,10 +1,10 @@
 //! # Account Manager
 //!
-//! `abstract_interface::manager` implements the contract interface and state lay-out.
+//! `iabstract::manager` implements the contract interface and state lay-out.
 //!
 //! ## Description
 //!
-//! The Account manager is part of the Core Abstract Account contracts along with the `abstract_interface::proxy` contract.
+//! The Account manager is part of the Core Abstract Account contracts along with the `iabstract::proxy` contract.
 //! This contract is responsible for:
 //! - Managing modules instantiation and migrations.
 //! - Managing permissions.
