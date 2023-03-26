@@ -1,5 +1,5 @@
 use abstract_sdk::interfaces::manager::state::{
-    OsInfo, ACCOUNT_ID, CONFIG, INFO, OS_MODULES, ROOT,
+    OsInfo, ACCOUNT_ID, CONFIG, INFO, OS_MODULES, OWNER,
 };
 use abstract_sdk::interfaces::manager::{
     ConfigResponse, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse, ModuleInfosResponse,
@@ -37,13 +37,13 @@ pub fn handle_os_info_query(deps: Deps) -> StdResult<Binary> {
 
 pub fn handle_config_query(deps: Deps) -> StdResult<Binary> {
     let account_id = Uint64::from(ACCOUNT_ID.load(deps.storage)?);
-    let root = ROOT
+    let owner = OWNER
         .get(deps)?
         .unwrap_or_else(|| Addr::unchecked(""))
         .to_string();
     let config = CONFIG.load(deps.storage)?;
     to_binary(&ConfigResponse {
-        root,
+        owner,
         account_id,
         version_control_address: config.version_control_address.to_string(),
         module_factory_address: config.module_factory_address.into_string(),
@@ -117,7 +117,9 @@ pub fn query_module_addresses(
     for module in module_names.iter() {
         let result: StdResult<Addr> = OS_MODULES
             .query(&deps.querier, manager_addr.clone(), module)?
-            .ok_or_else(|| StdError::generic_err(format!("Module {module} not present in Account")));
+            .ok_or_else(|| {
+                StdError::generic_err(format!("Module {module} not present in Account"))
+            });
         // Add to map if present, skip otherwise. Allows version control to check what modules are present.
         match result {
             Ok(address) => modules.insert(module.clone(), address),

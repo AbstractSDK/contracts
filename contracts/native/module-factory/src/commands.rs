@@ -30,7 +30,7 @@ pub fn execute_create_module(
     env: Env,
     info: MessageInfo,
     module_info: ModuleInfo,
-    root_init_msg: Option<Binary>,
+    owner_init_msg: Option<Binary>,
 ) -> ModuleFactoryResult {
     let config = CONFIG.load(deps.storage)?;
     // Verify sender is active Account manager
@@ -49,7 +49,7 @@ pub fn execute_create_module(
     // let fixed_binary = MODULE_INIT_BINARIES.may_load(deps.storage, new_module.info.clone())?;
     // let init_msg = ModuleInitMsg {
     //     fixed_init: fixed_binary,
-    //     root_init: root_init_msg,
+    //     owner_init: owner_init_msg,
     // }
     // .format()?;
 
@@ -66,7 +66,7 @@ pub fn execute_create_module(
         ModuleReference::App(code_id) => instantiate_contract(
             block_height,
             *code_id,
-            root_init_msg.unwrap(),
+            owner_init_msg.unwrap(),
             Some(core.manager),
             CREATE_APP_RESPONSE_ID,
             new_module.info,
@@ -90,7 +90,7 @@ pub fn execute_create_module(
         ModuleReference::Standalone(code_id) => instantiate_contract(
             block_height,
             *code_id,
-            root_init_msg.unwrap(),
+            owner_init_msg.unwrap(),
             Some(core.manager),
             CREATE_STANDALONE_RESPONSE_ID,
             new_module.info,

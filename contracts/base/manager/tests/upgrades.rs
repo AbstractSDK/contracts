@@ -34,7 +34,7 @@ fn install_module_version(
 
 #[test]
 fn install_app_successful() -> AResult {
-    let sender = Addr::unchecked(common::ROOT_USER);
+    let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
     deploy_modules(&chain);
@@ -70,7 +70,7 @@ fn install_app_successful() -> AResult {
 
 #[test]
 fn install_app_versions_not_met() -> AResult {
-    let sender = Addr::unchecked(common::ROOT_USER);
+    let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
     deploy_modules(&chain);
@@ -94,7 +94,7 @@ fn install_app_versions_not_met() -> AResult {
 
 #[test]
 fn upgrade_app_() -> AResult {
-    let sender = Addr::unchecked(common::ROOT_USER);
+    let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
     deploy_modules(&chain);
@@ -244,7 +244,7 @@ fn upgrade_app_() -> AResult {
 
 #[test]
 fn uninstall_modules() -> AResult {
-    let sender = Addr::unchecked(common::ROOT_USER);
+    let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
     deploy_modules(&chain);
@@ -275,7 +275,7 @@ fn uninstall_modules() -> AResult {
 
 #[test]
 fn update_api_with_traders() -> AResult {
-    let sender = Addr::unchecked(common::ROOT_USER);
+    let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
     deploy_modules(&chain);

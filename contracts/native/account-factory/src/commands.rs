@@ -80,8 +80,8 @@ pub fn execute_create_account(
         //     forward_payment(asset, &config, &mut msgs, sub_addr)?;
         // }
     }
-    // Get address of Account root user, depends on gov-type
-    let root_user: Addr = match &governance {
+    // Get address of Account owner, depends on gov-type
+    let owner: Addr = match &governance {
         GovernanceDetails::Monarchy { monarch } => deps.api.addr_validate(monarch)?,
         GovernanceDetails::External {
             governance_address,
@@ -109,7 +109,7 @@ pub fn execute_create_account(
                 label: format!("Abstract Account: {}", config.next_acct_id),
                 msg: to_binary(&ManagerInstantiateMsg {
                     account_id: config.next_acct_id,
-                    root_user: root_user.to_string(),
+                    owner: owner.to_string(),
                     version_control_address: config.version_control_contract.to_string(),
                     subscription_address: config.subscription_address.map(Addr::into),
                     module_factory_address: config.module_factory_address.to_string(),

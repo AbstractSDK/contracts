@@ -8,7 +8,7 @@ use crate::{
 };
 use abstract_sdk::interfaces::{
     manager::{
-        state::{Config, OsInfo, ACCOUNT_FACTORY, CONFIG, INFO, ROOT, STATUS},
+        state::{Config, OsInfo, ACCOUNT_FACTORY, CONFIG, INFO, OWNER, STATUS},
         CallbackMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     },
     objects::module_version::{migrate_module_data, set_module_data},
@@ -83,16 +83,16 @@ pub fn instantiate(
     INFO.save(deps.storage, &os_info)?;
     MIGRATE_CONTEXT.save(deps.storage, &vec![])?;
 
-    // Set root
-    let root = deps.api.addr_validate(&msg.root_user)?;
-    ROOT.set(deps.branch(), Some(root))?;
+    // Set oner
+    let owner = deps.api.addr_validate(&msg.owner)?;
+    OWNER.set(deps.branch(), Some(owner))?;
     STATUS.save(deps.storage, &true)?;
     ACCOUNT_FACTORY.set(deps, Some(info.sender))?;
     Ok(ManagerResponse::new(
         "instantiate",
         vec![
             ("account_id", msg.account_id.to_string()),
-            ("owner", msg.root_user),
+            ("owner", msg.owner),
         ],
     ))
 }
@@ -100,7 +100,9 @@ pub fn instantiate(
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> ManagerResult {
     match msg {
-        ExecuteMsg::SuspendAccount { new_status } => update_subscription_status(deps, info, new_status),
+        ExecuteMsg::SuspendAccount { new_status } => {
+            update_subscription_status(deps, info, new_status)
+        }
         msg => {
             // Block actions if user is not subscribed
             let is_subscribed = STATUS.load(deps.storage)?;
@@ -109,16 +111,16 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
             }
 
             match msg {
-                ExecuteMsg::SetRoot {
-                    root,
+                ExecuteMsg::SetOwner {
+                    owner,
                     governance_type,
-                } => set_root_and_gov_type(deps, info, root, governance_type),
+                } => set_owner_and_gov_type(deps, info, owner, governance_type),
                 ExecuteMsg::UpdateModuleAddresses { to_add, to_remove } => {
-                    // only factory/root can add custom modules.
+                    // only factory/owner can add custom modules.
                     // required to add Proxy after init by account factory.
                     ACCOUNT_FACTORY
                         .assert_admin(deps.as_ref(), &info.sender)
-                        .or_else(|_| ROOT.assert_admin(deps.as_ref(), &info.sender))?;
+                        .or_else(|_| OWNER.assert_admin(deps.as_ref(), &info.sender))?;
                     update_module_addresses(deps, to_add, to_remove)
                 }
                 ExecuteMsg::InstallModule { module, init_msg } => {

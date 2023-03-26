@@ -49,8 +49,8 @@ pub mod state {
     pub const INFO: Item<OsInfo> = Item::new("\u{0}{4}info");
     /// Contract Admin
     pub const ACCOUNT_FACTORY: Admin = Admin::new("\u{0}{7}factory");
-    /// Root user
-    pub const ROOT: Admin = Admin::new("root");
+    /// Account owner
+    pub const OWNER: Admin = Admin::new("owner");
     /// Enabled Abstract modules
     pub const OS_MODULES: Map<ModuleId, Addr> = Map::new("os_modules");
     /// Stores the dependency relationship between modules
@@ -73,7 +73,7 @@ pub struct MigrateMsg {}
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
     pub account_id: AccountId,
-    pub root_user: String,
+    pub owner: String,
     pub version_control_address: String,
     pub module_factory_address: String,
     pub subscription_address: Option<String>,
@@ -96,12 +96,12 @@ pub enum ExecuteMsg {
         exec_msg: Binary,
     },
     /// Updates the `OS_MODULES` map
-    /// Only callable by account factory or root.
+    /// Only callable by account factory or owner.
     UpdateModuleAddresses {
         to_add: Option<Vec<(String, String)>>,
         to_remove: Option<Vec<String>>,
     },
-    /// Install module using module factory, callable by Root
+    /// Install module using module factory, callable by Owner
     InstallModule {
         // Module information.
         module: ModuleInfo,
@@ -129,9 +129,9 @@ pub enum ExecuteMsg {
         description: Option<String>,
         link: Option<String>,
     },
-    /// Sets a new Root
-    SetRoot {
-        root: String,
+    /// Sets a new Owner
+    SetOwner {
+        owner: String,
         governance_type: Option<String>,
     },
     /// Suspend manager contract
@@ -180,7 +180,7 @@ pub struct ModuleAddressesResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
-    pub root: String,
+    pub owner: String,
     pub version_control_address: String,
     pub module_factory_address: String,
     pub account_id: Uint64,

@@ -9,7 +9,7 @@ use speculoos::prelude::*;
 
 #[test]
 fn instantiate() -> AResult {
-    let sender = Addr::unchecked(common::ROOT_USER);
+    let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut account) = init_abstract_env(chain)?;
     deployment.deploy(&mut account)?;
@@ -31,7 +31,7 @@ fn instantiate() -> AResult {
     // assert manager config
     assert_that!(account.manager.config()?).is_equal_to(
         abstract_interface::manager::ConfigResponse {
-            root: sender.to_string(),
+            owner: sender.to_string(),
             version_control_address: deployment.version_control.address()?.into_string(),
             module_factory_address: deployment.module_factory.address()?.into_string(),
             account_id: 0u32.into(),
@@ -42,7 +42,7 @@ fn instantiate() -> AResult {
 
 #[test]
 fn exec_through_manager() -> AResult {
-    let sender = Addr::unchecked(common::ROOT_USER);
+    let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut account)?;
@@ -86,7 +86,7 @@ fn exec_through_manager() -> AResult {
 /// This basically just checks that the proxy is able to be migrated .... but the actual version cannot change... unless we mock the responses from the version queries
 #[test]
 fn migrate_proxy() -> AResult {
-    let sender = Addr::unchecked(common::ROOT_USER);
+    let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut account) = init_abstract_env(chain)?;
     deployment.deploy(&mut account)?;

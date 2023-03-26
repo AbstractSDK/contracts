@@ -10,7 +10,7 @@ use abstract_sdk::{
     feature_objects::VersionControlContract,
     interfaces::{
         manager::state::DEPENDENTS,
-        manager::state::{OsInfo, Subscribed, CONFIG, INFO, OS_MODULES, ROOT, STATUS},
+        manager::state::{OsInfo, Subscribed, CONFIG, INFO, OS_MODULES, OWNER, STATUS},
         manager::{CallbackMsg, ExecuteMsg},
         module_factory::ExecuteMsg as ModuleFactoryMsg,
         objects::{
@@ -80,8 +80,8 @@ pub fn install_module(
     module: ModuleInfo,
     init_msg: Option<Binary>,
 ) -> ManagerResult {
-    // Only Root can call this method
-    ROOT.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    // only owner can call this method
+    OWNER.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
     // Check if module is already enabled.
     if OS_MODULES.may_load(deps.storage, &module.id())?.is_some() {
@@ -164,8 +164,8 @@ pub fn exec_on_module(
     module_id: String,
     exec_msg: Binary,
 ) -> ManagerResult {
-    // Only root can update module configs
-    ROOT.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    // only owner can update module configs
+    OWNER.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
     let module_addr = load_module_addr(deps.storage, &module_id)?;
 
@@ -188,8 +188,8 @@ fn load_module_addr(storage: &dyn Storage, module_id: &String) -> Result<Addr, M
 }
 
 pub fn uninstall_module(deps: DepsMut, msg_info: MessageInfo, module_id: String) -> ManagerResult {
-    // Only root can uninstall modules
-    ROOT.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    // only owner can uninstall modules
+    OWNER.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
     validation::validate_not_proxy(&module_id)?;
 
@@ -224,16 +224,17 @@ pub fn uninstall_module(deps: DepsMut, msg_info: MessageInfo, module_id: String)
     )
 }
 
-pub fn set_root_and_gov_type(
+pub fn set_owner_and_gov_type(
     deps: DepsMut,
     info: MessageInfo,
-    root: String,
+    new_owner: String,
     governance_type: Option<String>,
 ) -> ManagerResult {
-    ROOT.assert_admin(deps.as_ref(), &info.sender)?;
+    OWNER.assert_admin(deps.as_ref(), &info.sender)?;
 
-    let root_addr = deps.api.addr_validate(&root)?;
-    let previous_root = ROOT.get(deps.as_ref())?.unwrap();
+    let owner_addr = deps.api.addr_validate(&new_owner)?;
+    let previous_owner = OWNER.get(deps.as_ref())?.unwrap();
+
     if let Some(new_gov_type) = governance_type {
         let mut info = INFO.load(deps.storage)?;
         validate_name_or_gov_type(&new_gov_type)?;
@@ -241,10 +242,13 @@ pub fn set_root_and_gov_type(
         INFO.save(deps.storage, &info)?;
     }
 
-    ROOT.execute_update_admin::<Empty, Empty>(deps, info, Some(root_addr))?;
+    OWNER.execute_update_admin::<Empty, Empty>(deps, info, Some(owner_addr))?;
     Ok(ManagerResponse::new(
-        "update_root",
-        vec![("previous_root", previous_root.to_string()), ("root", root)],
+        "update_owner",
+        vec![
+            ("previous_owner", previous_owner.to_string()),
+            ("owner", new_owner),
+        ],
     ))
 }
 
@@ -258,7 +262,7 @@ pub fn upgrade_modules(
     info: MessageInfo,
     modules: Vec<(ModuleInfo, Option<Binary>)>,
 ) -> ManagerResult {
-    ROOT.assert_admin(deps.as_ref(), &info.sender)?;
+    OWNER.assert_admin(deps.as_ref(), &info.sender)?;
     let mut upgrade_msgs = vec![];
     for (module_info, migrate_msg) in modules {
         if module_info.id() == MANAGER {
@@ -411,7 +415,7 @@ pub fn update_info(
     description: Option<String>,
     link: Option<String>,
 ) -> ManagerResult {
-    ROOT.assert_admin(deps.as_ref(), &info.sender)?;
+    OWNER.assert_admin(deps.as_ref(), &info.sender)?;
     let mut info: OsInfo = INFO.load(deps.storage)?;
     if let Some(name) = name {
         validate_name_or_gov_type(&name)?;
@@ -447,8 +451,8 @@ pub fn update_subscription_status(
 }
 
 pub fn enable_ibc(deps: DepsMut, msg_info: MessageInfo, enable_ibc: bool) -> ManagerResult {
-    // Only root can update IBC status
-    ROOT.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    // only owner can update IBC status
+    OWNER.assert_admin(deps.as_ref(), &msg_info.sender)?;
     let proxy = OS_MODULES.load(deps.storage, PROXY)?;
 
     let maybe_client = OS_MODULES.may_load(deps.storage, IBC_CLIENT)?;
@@ -606,14 +610,14 @@ mod test {
     type ManagerTestResult = Result<(), ManagerError>;
 
     const TEST_ACCOUNT_FACTORY: &str = "account_factory";
-    const TEST_ROOT: &str = "testroot";
+    const TEST_OWNER: &str = "testowner";
     const TEST_MODULE_FACTORY: &str = "module_factory";
 
     const TEST_VERSION_CONTROL: &str = "version_control";
 
     const TEST_PROXY_ADDR: &str = "proxy";
 
-    /// Initialize the manager with the test root as the root
+    /// Initialize the manager with the test owner as the owner
     fn mock_init(mut deps: DepsMut) -> ManagerResult {
         let info = mock_info(TEST_ACCOUNT_FACTORY, &[]);
 
@@ -623,7 +627,7 @@ mod test {
             info,
             InstantiateMsg {
                 account_id: 1,
-                root_user: TEST_ROOT.to_string(),
+                owner: TEST_OWNER.to_string(),
                 version_control_address: TEST_VERSION_CONTROL.to_string(),
                 module_factory_address: TEST_MODULE_FACTORY.to_string(),
                 subscription_address: None,
@@ -636,7 +640,7 @@ mod test {
     }
 
     fn mock_installed_proxy(deps: DepsMut) -> StdResult<()> {
-        let _info = mock_info(TEST_ROOT, &[]);
+        let _info = mock_info(TEST_OWNER, &[]);
         OS_MODULES.save(deps.storage, PROXY, &Addr::unchecked(TEST_PROXY_ADDR))
     }
 
@@ -648,8 +652,8 @@ mod test {
         execute_as(deps, TEST_ACCOUNT_FACTORY, msg)
     }
 
-    fn execute_as_root(deps: DepsMut, msg: ExecuteMsg) -> ManagerResult {
-        execute_as(deps, TEST_ROOT, msg)
+    fn execute_as_owner(deps: DepsMut, msg: ExecuteMsg) -> ManagerResult {
+        execute_as(deps, TEST_OWNER, msg)
     }
 
     fn init_with_proxy(deps: &mut MockDeps) {
@@ -663,13 +667,13 @@ mod test {
             .collect()
     }
 
-    fn test_only_root(msg: ExecuteMsg) -> ManagerTestResult {
+    fn test_only_owner(msg: ExecuteMsg) -> ManagerTestResult {
         let mut deps = mock_dependencies();
         mock_init(deps.as_mut())?;
 
-        let _info = mock_info("not_root", &[]);
+        let _info = mock_info("not_owner", &[]);
 
-        let res = execute_as(deps.as_mut(), "not_root", msg);
+        let res = execute_as(deps.as_mut(), "not_owner", msg);
         assert_that(&res)
             .is_err()
             .is_equal_to(ManagerError::Admin(AdminError::NotAdmin {}));
@@ -681,30 +685,30 @@ mod test {
 
     type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 
-    mod set_root_and_gov_type {
+    mod set_owner_and_gov_type {
         use super::*;
 
         #[test]
-        fn only_root() -> ManagerTestResult {
-            let msg = ExecuteMsg::SetRoot {
-                root: "new_root".to_string(),
+        fn only_owner() -> ManagerTestResult {
+            let msg = ExecuteMsg::SetOwner {
+                owner: "new_owner".to_string(),
                 governance_type: None,
             };
 
-            test_only_root(msg)
+            test_only_owner(msg)
         }
 
         #[test]
-        fn validates_new_root_address() -> ManagerTestResult {
+        fn validates_new_owner_address() -> ManagerTestResult {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let msg = ExecuteMsg::SetRoot {
-                root: "INVALID".to_string(),
+            let msg = ExecuteMsg::SetOwner {
+                owner: "INVALID".to_string(),
                 governance_type: None,
             };
 
-            let res = execute_as_root(deps.as_mut(), msg);
+            let res = execute_as_owner(deps.as_mut(), msg);
             assert_that!(res)
                 .is_err()
                 .matches(|err| matches!(err, ManagerError::Std(StdError::GenericErr { .. })));
@@ -712,22 +716,22 @@ mod test {
         }
 
         #[test]
-        fn updates_root() -> ManagerTestResult {
+        fn updates_owner() -> ManagerTestResult {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let new_root = "new_root";
-            let msg = ExecuteMsg::SetRoot {
-                root: new_root.to_string(),
+            let new_owner = "new_owner";
+            let msg = ExecuteMsg::SetOwner {
+                owner: new_owner.to_string(),
                 governance_type: None,
             };
 
-            let res = execute_as_root(deps.as_mut(), msg);
+            let res = execute_as_owner(deps.as_mut(), msg);
             assert_that(&res).is_ok();
 
-            let actual_root = ROOT.get(deps.as_ref())?.unwrap();
+            let actual_owner = OWNER.get(deps.as_ref())?.unwrap();
 
-            assert_that(&actual_root).is_equal_to(Addr::unchecked(new_root));
+            assert_that(&actual_owner).is_equal_to(Addr::unchecked(new_owner));
 
             Ok(())
         }
@@ -739,12 +743,12 @@ mod test {
 
             let new_gov = "new_gov".to_string();
 
-            let msg = ExecuteMsg::SetRoot {
-                root: TEST_ROOT.to_string(),
+            let msg = ExecuteMsg::SetOwner {
+                owner: TEST_OWNER.to_string(),
                 governance_type: Some(new_gov.clone()),
             };
 
-            execute_as_root(deps.as_mut(), msg)?;
+            execute_as_owner(deps.as_mut(), msg)?;
 
             let actual_info = INFO.load(deps.as_ref().storage)?;
             assert_that(&actual_info.governance_type).is_equal_to(new_gov);
@@ -840,7 +844,7 @@ mod test {
         }
 
         #[test]
-        fn only_account_factory_or_root() -> ManagerTestResult {
+        fn only_account_factory_or_owner() -> ManagerTestResult {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
@@ -852,7 +856,7 @@ mod test {
             let res = execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg.clone());
             assert_that(&res).is_ok();
 
-            let res = execute_as_root(deps.as_mut(), msg.clone());
+            let res = execute_as_owner(deps.as_mut(), msg.clone());
             assert_that(&res).is_ok();
 
             let res = execute_as(deps.as_mut(), "not_os_factory", msg);
@@ -868,7 +872,7 @@ mod test {
         use super::*;
 
         #[test]
-        fn only_os_root() -> ManagerTestResult {
+        fn only_os_owner() -> ManagerTestResult {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
@@ -877,7 +881,7 @@ mod test {
                 init_msg: None,
             };
 
-            let res = execute_as(deps.as_mut(), "not_root", msg);
+            let res = execute_as(deps.as_mut(), "not_owner", msg);
             assert_that(&res)
                 .is_err()
                 .is_equal_to(ManagerError::Admin(AdminError::NotAdmin {}));
@@ -902,7 +906,7 @@ mod test {
                 &Addr::unchecked("test_module_addr"),
             )?;
 
-            let res = execute_as_root(deps.as_mut(), msg);
+            let res = execute_as_owner(deps.as_mut(), msg);
             assert_that(&res).is_err().matches(|e| {
                 let _module_id = String::from("test:module");
                 matches!(e, ManagerError::ModuleAlreadyInstalled(_module_id))
@@ -921,7 +925,7 @@ mod test {
                 init_msg: None,
             };
 
-            let res = execute_as_root(deps.as_mut(), msg);
+            let res = execute_as_owner(deps.as_mut(), msg);
             assert_that(&res).is_ok();
 
             Ok(())
@@ -940,7 +944,7 @@ mod test {
                 init_msg: expected_init.clone(),
             };
 
-            let res = execute_as_root(deps.as_mut(), msg);
+            let res = execute_as_owner(deps.as_mut(), msg);
             assert_that(&res).is_ok();
 
             let msgs = res.unwrap().messages;
@@ -970,12 +974,12 @@ mod test {
         use std::collections::HashSet;
 
         #[test]
-        fn only_root() -> ManagerTestResult {
+        fn only_owner() -> ManagerTestResult {
             let msg = ExecuteMsg::RemoveModule {
                 module_id: "test:module".to_string(),
             };
 
-            test_only_root(msg)
+            test_only_owner(msg)
         }
 
         #[test]
@@ -992,7 +996,7 @@ mod test {
             let dependents = HashSet::from_iter(vec!["test:dependent".to_string()]);
             DEPENDENTS.save(&mut deps.storage, test_module, &dependents)?;
 
-            let res = execute_as_root(deps.as_mut(), msg);
+            let res = execute_as_owner(deps.as_mut(), msg);
             assert_that(&res)
                 .is_err()
                 .is_equal_to(ManagerError::ModuleHasDependents(Vec::from_iter(
@@ -1011,7 +1015,7 @@ mod test {
                 module_id: PROXY.to_string(),
             };
 
-            let res = execute_as_root(deps.as_mut(), msg);
+            let res = execute_as_owner(deps.as_mut(), msg);
             assert_that(&res)
                 .is_err()
                 .is_equal_to(ManagerError::CannotRemoveProxy {});
@@ -1057,13 +1061,13 @@ mod test {
         use super::*;
 
         #[test]
-        fn only_root() -> ManagerTestResult {
+        fn only_owner() -> ManagerTestResult {
             let msg = ExecuteMsg::ExecOnModule {
                 module_id: "test:module".to_string(),
                 exec_msg: to_binary(&"some msg")?,
             };
 
-            test_only_root(msg)
+            test_only_owner(msg)
         }
 
         #[test]
@@ -1077,7 +1081,7 @@ mod test {
                 exec_msg: to_binary(&"some msg")?,
             };
 
-            let res = execute_as_root(deps.as_mut(), msg);
+            let res = execute_as_owner(deps.as_mut(), msg);
             assert_that(&res)
                 .is_err()
                 .is_equal_to(ManagerError::ModuleNotFound(missing_module));
@@ -1097,7 +1101,7 @@ mod test {
                 exec_msg: to_binary(exec_msg.clone())?,
             };
 
-            let res = execute_as_root(deps.as_mut(), msg);
+            let res = execute_as_owner(deps.as_mut(), msg);
             assert_that(&res).is_ok();
 
             let msgs = res.unwrap().messages;
@@ -1116,14 +1120,14 @@ mod test {
         use super::*;
 
         #[test]
-        fn only_root() -> ManagerTestResult {
+        fn only_owner() -> ManagerTestResult {
             let msg = ExecuteMsg::UpdateInfo {
                 name: None,
                 description: None,
                 link: None,
             };
 
-            test_only_root(msg)
+            test_only_owner(msg)
         }
         // integration tests
 
@@ -1142,7 +1146,7 @@ mod test {
                 link: Some(link.to_string()),
             };
 
-            let res = execute_as_root(deps.as_mut(), msg);
+            let res = execute_as_owner(deps.as_mut(), msg);
             assert_that(&res).is_ok();
 
             let info = INFO.load(deps.as_ref().storage)?;
@@ -1177,7 +1181,7 @@ mod test {
                 link: None,
             };
 
-            let res = execute_as_root(deps.as_mut(), msg);
+            let res = execute_as_owner(deps.as_mut(), msg);
             assert_that(&res).is_ok();
 
             let info = INFO.load(deps.as_ref().storage)?;
@@ -1200,7 +1204,7 @@ mod test {
                 link: None,
             };
 
-            let res = execute_as_root(deps.as_mut(), msg);
+            let res = execute_as_owner(deps.as_mut(), msg);
             assert_that(&res)
                 .is_err()
                 .matches(|e| matches!(e, ManagerError::TitleInvalidShort(_)));
@@ -1211,7 +1215,7 @@ mod test {
                 link: None,
             };
 
-            let res = execute_as_root(deps.as_mut(), msg);
+            let res = execute_as_owner(deps.as_mut(), msg);
             assert_that(&res)
                 .is_err()
                 .matches(|e| matches!(e, ManagerError::TitleInvalidLong(_)));
@@ -1230,7 +1234,7 @@ mod test {
                 link: Some("aoeu".to_string()),
             };
 
-            let res = execute_as_root(deps.as_mut(), msg);
+            let res = execute_as_owner(deps.as_mut(), msg);
             assert_that(&res)
                 .is_err()
                 .matches(|e| matches!(e, ManagerError::LinkInvalidShort(_)));
@@ -1241,7 +1245,7 @@ mod test {
                 link: Some("a".repeat(129)),
             };
 
-            let res = execute_as_root(deps.as_mut(), msg);
+            let res = execute_as_owner(deps.as_mut(), msg);
             assert_that(&res)
                 .is_err()
                 .matches(|e| matches!(e, ManagerError::LinkInvalidLong(_)));
@@ -1266,10 +1270,10 @@ mod test {
         }
 
         #[test]
-        fn only_root() -> ManagerTestResult {
+        fn only_owner() -> ManagerTestResult {
             let msg = ExecuteMsg::EnableIBC { new_status: true };
 
-            test_only_root(msg)
+            test_only_owner(msg)
         }
 
         #[test]
@@ -1279,7 +1283,7 @@ mod test {
 
             let msg = ExecuteMsg::EnableIBC { new_status: false };
 
-            let res = execute_as_root(deps.as_mut(), msg);
+            let res = execute_as_owner(deps.as_mut(), msg);
             assert_that(&res)
                 .is_err()
                 .is_equal_to(ManagerError::ModuleNotFound(IBC_CLIENT.to_string()));
@@ -1296,7 +1300,7 @@ mod test {
 
             let msg = ExecuteMsg::EnableIBC { new_status: true };
 
-            let res = execute_as_root(deps.as_mut(), msg);
+            let res = execute_as_owner(deps.as_mut(), msg);
             assert_that(&res)
                 .is_err()
                 .matches(|e| matches!(e, ManagerError::ModuleAlreadyInstalled(_)));
@@ -1313,7 +1317,7 @@ mod test {
 
             let msg = ExecuteMsg::EnableIBC { new_status: false };
 
-            let res = execute_as_root(deps.as_mut(), msg);
+            let res = execute_as_owner(deps.as_mut(), msg);
             assert_that(&res).is_ok();
 
             let msgs = res.unwrap().messages;
@@ -1379,7 +1383,7 @@ mod test {
                 info,
                 InstantiateMsg {
                     account_id: 1,
-                    root_user: TEST_ROOT.to_string(),
+                    owner: TEST_OWNER.to_string(),
                     version_control_address: TEST_VERSION_CONTROL.to_string(),
                     module_factory_address: TEST_MODULE_FACTORY.to_string(),
                     subscription_address: Some(SUBSCRIPTION.to_string()),

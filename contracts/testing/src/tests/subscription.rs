@@ -217,7 +217,7 @@ fn add_and_remove_contributors() {
 
     let resp =
         exec_msg_on_manager(&mut app, &random_user, &manager_addr, SUBSCRIPTION, &msg).unwrap_err();
-    // Only OS root can change stuff on module
+    // Only account owner can change stuff on module
     assert_eq!(
         AdminError::NotAdmin {}.to_string(),
         resp.source().unwrap().to_string()

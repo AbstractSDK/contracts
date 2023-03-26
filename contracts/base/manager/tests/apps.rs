@@ -8,7 +8,7 @@ use speculoos::prelude::*;
 
 #[test]
 fn execute_on_proxy_through_manager() -> AResult {
-    let sender = Addr::unchecked(common::ROOT_USER);
+    let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut account)?;

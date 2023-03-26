@@ -1,7 +1,7 @@
 #![allow(unused)]
 pub mod mock_modules;
 
-pub const ROOT_USER: &str = "root_user";
+pub const OWNER: &str = "owner";
 pub const TEST_COIN: &str = "ucoin";
 
 use ::abstract_manager::contract::CONTRACT_VERSION;
@@ -103,7 +103,7 @@ pub(crate) fn create_default_account(
     factory: &AccountFactory<Mock>,
 ) -> anyhow::Result<AbstractAccount<Mock>> {
     let account = factory.create_default_account(GovernanceDetails::Monarchy {
-        monarch: Addr::unchecked(ROOT_USER).to_string(),
+        monarch: Addr::unchecked(OWNER).to_string(),
     })?;
     Ok(account)
 }

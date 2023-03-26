@@ -16,7 +16,7 @@ type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 #[test]
 fn instantiate() -> AResult {
     let _not_owner = Addr::unchecked("not_owner");
-    let sender = Addr::unchecked(common::ROOT_USER);
+    let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut account) = init_abstract_env(chain)?;
     deployment.deploy(&mut account)?;
@@ -39,7 +39,7 @@ fn instantiate() -> AResult {
 #[test]
 fn create_one_os() -> AResult {
     let _not_owner = Addr::unchecked("not_owner");
-    let sender = Addr::unchecked(common::ROOT_USER);
+    let sender = Addr::unchecked(common::OWNER);
     let (_, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut account) = init_abstract_env(chain)?;
     deployment.deploy(&mut account)?;
@@ -91,7 +91,7 @@ fn create_one_os() -> AResult {
 #[test]
 fn create_two_os_s() -> AResult {
     let _not_owner = Addr::unchecked("not_owner");
-    let sender = Addr::unchecked(common::ROOT_USER);
+    let sender = Addr::unchecked(common::OWNER);
     let (_, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut account) = init_abstract_env(chain)?;
     deployment.deploy(&mut account)?;
@@ -161,7 +161,7 @@ fn create_two_os_s() -> AResult {
 #[test]
 fn sender_is_not_admin_monarchy() -> AResult {
     let owner = Addr::unchecked("owner");
-    let sender = Addr::unchecked(common::ROOT_USER);
+    let sender = Addr::unchecked(common::OWNER);
     let (_, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut account)?;
@@ -198,7 +198,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
     let os_config = os_1.manager.config()?;
 
     assert_that!(os_config).is_equal_to(abstract_interface::manager::ConfigResponse {
-        root: owner.into_string(),
+        owner: owner.into_string(),
         account_id: Uint64::from(0u64),
         version_control_address: version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),
@@ -210,7 +210,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
 #[test]
 fn sender_is_not_admin_external() -> AResult {
     let owner = Addr::unchecked("owner");
-    let sender = Addr::unchecked(common::ROOT_USER);
+    let sender = Addr::unchecked(common::OWNER);
     let (_, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut account)?;
@@ -231,7 +231,7 @@ fn sender_is_not_admin_external() -> AResult {
     let os_config = account.manager.config()?;
 
     assert_that!(os_config).is_equal_to(abstract_interface::manager::ConfigResponse {
-        root: owner.into_string(),
+        owner: owner.into_string(),
         account_id: Uint64::from(0u64),
         version_control_address: version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),

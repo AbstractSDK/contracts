@@ -300,7 +300,7 @@ impl From<(ModuleInfo, ModuleReference)> for Module {
 
 pub struct ModuleInitMsg {
     pub fixed_init: Option<Binary>,
-    pub root_init: Option<Binary>,
+    pub owner_init: Option<Binary>,
 }
 
 impl ModuleInitMsg {
@@ -309,20 +309,20 @@ impl ModuleInitMsg {
             // If both set, receiving contract must handle it using the ModuleInitMsg
             ModuleInitMsg {
                 fixed_init: Some(_),
-                root_init: Some(_),
+                owner_init: Some(_),
             } => to_binary(&self),
             // If not, we can simplify by only sending the custom or fixed message.
             ModuleInitMsg {
                 fixed_init: None,
-                root_init: Some(r),
+                owner_init: Some(r),
             } => Ok(r),
             ModuleInitMsg {
                 fixed_init: Some(f),
-                root_init: None,
+                owner_init: None,
             } => Ok(f),
             ModuleInitMsg {
                 fixed_init: None,
-                root_init: None,
+                owner_init: None,
             } => Err(StdError::generic_err("No init msg set for this module")),
         }
         .map_err(Into::into)

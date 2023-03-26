@@ -5,7 +5,7 @@ use abstract_boot::*;
 use abstract_interface::manager::ManagerModuleInfo;
 use abstract_interface::objects::module::{ModuleInfo, ModuleVersion};
 use abstract_interface::{api::BaseQueryMsgFns, *};
-use abstract_testing::prelude::{ROOT_USER, TEST_MODULE_ID, TEST_VERSION};
+use abstract_testing::prelude::{OWNER, TEST_MODULE_ID, TEST_VERSION};
 use boot_core::BootExecute;
 use boot_core::{
     BootError, Mock, {instantiate_default_mock_env, CallAs, ContractInstance},
@@ -28,7 +28,7 @@ pub(crate) fn uninstall_module(manager: &Manager<Mock>, api: &str) -> AResult {
 
 #[test]
 fn installing_one_api_should_succeed() -> AResult {
-    let sender = Addr::unchecked(common::ROOT_USER);
+    let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut account)?;
@@ -64,7 +64,7 @@ fn installing_one_api_should_succeed() -> AResult {
 
 #[test]
 fn install_non_existent_apiname_should_fail() -> AResult {
-    let sender = Addr::unchecked(common::ROOT_USER);
+    let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut account) = init_abstract_env(chain)?;
     deployment.deploy(&mut account)?;
@@ -78,7 +78,7 @@ fn install_non_existent_apiname_should_fail() -> AResult {
 
 #[test]
 fn install_non_existent_version_should_fail() -> AResult {
-    let sender = Addr::unchecked(common::ROOT_USER);
+    let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut account)?;
@@ -99,7 +99,7 @@ fn install_non_existent_version_should_fail() -> AResult {
 
 #[test]
 fn installation_of_duplicate_api_should_fail() -> AResult {
-    let sender = Addr::unchecked(common::ROOT_USER);
+    let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut account)?;
@@ -134,7 +134,7 @@ fn installation_of_duplicate_api_should_fail() -> AResult {
 
 #[test]
 fn reinstalling_api_should_be_allowed() -> AResult {
-    let sender = Addr::unchecked(common::ROOT_USER);
+    let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut account)?;
@@ -172,7 +172,7 @@ fn reinstalling_api_should_be_allowed() -> AResult {
 /// Reinstalling the API should install the latest version
 #[test]
 fn reinstalling_new_version_should_install_latest() -> AResult {
-    let sender = Addr::unchecked(common::ROOT_USER);
+    let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
 
@@ -242,7 +242,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
 
 #[test]
 fn not_trader_exec() -> AResult {
-    let sender = Addr::unchecked(ROOT_USER);
+    let sender = Addr::unchecked(OWNER);
     let not_trader = Addr::unchecked("not_trader");
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
@@ -260,15 +260,14 @@ fn not_trader_exec() -> AResult {
     );
     // neither can the ROOT directly
     let res = staking_api.execute(&MockExecMsg.into(), None).unwrap_err();
-    assert_that!(&res.root().to_string()).contains(
-        "Sender: root_user of request to tester:test-module-id is not a Manager or Trader",
-    );
+    assert_that!(&res.root().to_string())
+        .contains("Sender: owner of request to tester:test-module-id is not a Manager or Trader");
     Ok(())
 }
 
 #[test]
 fn manager_api_exec_staking_delegation() -> AResult {
-    let sender = Addr::unchecked(common::ROOT_USER);
+    let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
 
@@ -293,7 +292,7 @@ fn manager_api_exec_staking_delegation() -> AResult {
 
 #[test]
 fn installing_specific_version_should_install_expected() -> AResult {
-    let sender = Addr::unchecked(common::ROOT_USER);
+    let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut account)?;

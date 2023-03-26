@@ -10,7 +10,7 @@ type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 
 #[test]
 fn instantiate() -> AResult {
-    let sender = Addr::unchecked(common::ROOT_USER);
+    let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut account) = init_test_env(chain)?;
     deployment.deploy(&mut account)?;
@@ -30,7 +30,7 @@ fn instantiate() -> AResult {
 #[test]
 fn caller_must_be_manager() -> AResult {
     let _not_owner = Addr::unchecked("not_owner");
-    let sender = Addr::unchecked(common::ROOT_USER);
+    let sender = Addr::unchecked(common::OWNER);
     let (_, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut account) = init_test_env(chain)?;
     deployment.deploy(&mut account)?;

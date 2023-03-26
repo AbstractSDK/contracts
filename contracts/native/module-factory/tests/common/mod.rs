@@ -8,7 +8,7 @@ use abstract_interface::{
 use boot_core::ContractWrapper;
 use boot_core::{ContractInstance, Mock};
 
-pub const ROOT_USER: &str = "root_user";
+pub const OWNER: &str = "owner";
 
 pub fn init_test_env<'a>(chain: Mock) -> anyhow::Result<(Abstract<Mock>, AbstractAccount<Mock>)> {
     let mut ans_host = AnsHost::new(ANS_HOST, chain.clone());
