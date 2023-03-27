@@ -25,7 +25,7 @@ cw-controllers = { workspace = true }
 thiserror = { workspace = true }
 cw2 = { workspace = true }
 abstract-sdk = { workspace = true }
-iabstract = { workspace = true }
+abstract_interface = { workspace = true }
 abstract-testing = { workspace = true, optional = true }
 abstract-boot = { version = "0.13.0", workspace = true, optional = true }
 boot-core = { workspace = true, optional = true }

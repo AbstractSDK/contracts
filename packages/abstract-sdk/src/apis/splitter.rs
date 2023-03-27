@@ -1,7 +1,7 @@
 #![allow(unused)]
 use crate::{AbstractSdkResult, TransferInterface};
+use abstract_interface::objects::AnsAsset;
 use cosmwasm_std::{Addr, CosmosMsg, Deps, StdResult, Uint128};
-use iabstract::objects::AnsAsset;
 
 // Trait to retrieve the Splitter object
 // Depends on the ability to transfer funds

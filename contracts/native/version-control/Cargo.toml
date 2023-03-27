@@ -31,7 +31,7 @@ serde = { workspace = true }
 thiserror = { workspace = true }
 cw-semver = { workspace = true }
 abstract-sdk = { workspace = true }
-iabstract = { workspace = true }
+abstract_interface = { workspace = true }
 abstract-macros = { workspace = true }
 
 

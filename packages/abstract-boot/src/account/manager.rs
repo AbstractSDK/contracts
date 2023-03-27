@@ -1,11 +1,13 @@
-use boot_core::{boot_contract, BootEnvironment, BootExecute, Contract};
-use cosmwasm_std::{to_binary, Empty};
-pub use iabstract::manager::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns};
-use iabstract::{
+pub use abstract_interface::manager::{
+    ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns,
+};
+use abstract_interface::{
     api,
     manager::*,
     objects::module::{ModuleInfo, ModuleVersion},
 };
+use boot_core::{boot_contract, BootEnvironment, BootExecute, Contract};
+use cosmwasm_std::{to_binary, Empty};
 use serde::Serialize;
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
@@ -14,7 +16,7 @@ pub struct Manager<Chain>;
 impl<Chain: BootEnvironment> Manager<Chain> {
     pub fn new(name: &str, chain: Chain) -> Self {
         let mut contract = Contract::new(name, chain);
-        contract = contract.with_wasm_path("manager");
+        contract = contract.with_wasm_path("abstract_manager");
         Self(contract)
     }
 

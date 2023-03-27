@@ -1,6 +1,6 @@
+use abstract_interface::AbstractError;
 use boot_core::BootError;
 use cosmwasm_std::StdError;
-use iabstract::AbstractError;
 use thiserror::Error;
 
 #[derive(Error, Debug)]

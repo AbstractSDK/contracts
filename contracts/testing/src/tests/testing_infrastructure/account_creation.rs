@@ -106,7 +106,7 @@ pub fn init_primary_os(
         },
     })?;
 
-    let msg = iabstract::manager::ExecuteMsg::InstallModule {
+    let msg = abstract_interface::manager::ExecuteMsg::InstallModule {
         module: ModuleInfo::from_id(SUBSCRIPTION, ModuleVersion::Latest)?,
         init_msg: Some(init_msg),
     };

@@ -1,4 +1,5 @@
 use crate::error::IbcClientError;
+use abstract_interface::objects::AccountId;
 use abstract_sdk::interfaces::{
     abstract_ica::{
         check_order, check_version, BalancesResponse, RegisterResponse, StdAck, WhoAmIResponse,
@@ -14,7 +15,6 @@ use cosmwasm_std::{
     IbcChannelCloseMsg, IbcChannelConnectMsg, IbcChannelOpenMsg, IbcMsg, IbcPacketAckMsg,
     IbcPacketReceiveMsg, IbcPacketTimeoutMsg, IbcReceiveResponse, IbcTimeout, StdResult,
 };
-use iabstract::objects::AccountId;
 
 // TODO: make configurable?
 /// packets live one hour

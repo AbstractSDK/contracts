@@ -1,11 +1,11 @@
 use abstract_boot::{Abstract, VCExecFns};
+use abstract_interface::{
+    objects::module::{Module, ModuleInfo},
+    version_control::{ModulesListResponse, QueryMsgFns},
+};
 use boot_core::{
     networks::{terra::PISCO_1, NetworkInfo},
     *,
-};
-use iabstract::{
-    objects::module::{Module, ModuleInfo},
-    version_control::{ModulesListResponse, QueryMsgFns},
 };
 use semver::Version;
 use std::sync::Arc;

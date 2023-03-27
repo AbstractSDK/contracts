@@ -1,8 +1,8 @@
+use abstract_interface::AbstractError;
 use abstract_sdk::interfaces::objects::module::ModuleInfo;
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use cw_controllers::AdminError;
-use iabstract::AbstractError;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]

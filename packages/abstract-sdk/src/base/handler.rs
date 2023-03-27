@@ -9,9 +9,9 @@ use crate::{
     },
     AbstractSdkError, AbstractSdkResult,
 };
+use abstract_interface::objects::dependency::StaticDependency;
 use cosmwasm_std::Storage;
 use cw2::ContractVersion;
-use iabstract::objects::dependency::StaticDependency;
 
 pub trait Handler
 where

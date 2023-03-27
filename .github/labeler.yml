@@ -7,8 +7,8 @@
   # Match all of native folders
   - contracts/native/**/*
 "breaking?":
-  # Match all of iabstract folders
-  - packages/iabstract/**/*
+  # Match all of abstract_interface folders
+  - packages/abstract_interface/**/*
 "sdk":
   # Match all of sdk folders
   - packages/abstract-sdk/**/*

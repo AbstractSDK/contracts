@@ -2,6 +2,7 @@ use crate::{
     state::{ApiContract, ApiState},
     ApiError,
 };
+use abstract_interface::{api::InstantiateMsg, objects::module_version::set_module_data};
 use abstract_sdk::{
     base::{endpoints::InstantiateEndpoint, Handler},
     feature_objects::AnsHost,
@@ -9,7 +10,6 @@ use abstract_sdk::{
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;
-use iabstract::{api::InstantiateMsg, objects::module_version::set_module_data};
 use schemars::JsonSchema;
 use serde::Serialize;
 
@@ -54,16 +54,16 @@ impl<
 
 #[cfg(test)]
 mod tests {
+    use abstract_interface::{
+        api::{BaseInstantiateMsg, InstantiateMsg},
+        objects::module_version::{ModuleData, MODULE},
+    };
     use abstract_sdk::{base::InstantiateEndpoint, feature_objects::AnsHost};
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
         Addr, StdError,
     };
     use cw2::{ContractVersion, CONTRACT};
-    use iabstract::{
-        api::{BaseInstantiateMsg, InstantiateMsg},
-        objects::module_version::{ModuleData, MODULE},
-    };
     use speculoos::prelude::*;
 
     use crate::{

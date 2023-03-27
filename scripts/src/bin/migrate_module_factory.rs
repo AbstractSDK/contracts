@@ -1,10 +1,10 @@
 use abstract_boot::{ModuleFactory, VersionControl};
+use abstract_interface::{MODULE_FACTORY, VERSION_CONTROL};
 use boot_core::{
     networks::{parse_network, NetworkInfo},
     *,
 };
 use clap::Parser;
-use iabstract::{MODULE_FACTORY, VERSION_CONTROL};
 use semver::Version;
 use std::sync::Arc;
 use tokio::runtime::Runtime;
@@ -24,7 +24,7 @@ pub fn migrate(network: NetworkInfo) -> anyhow::Result<()> {
 
     module_factory.upload()?;
     module_factory.migrate(
-        &iabstract::module_factory::MigrateMsg {},
+        &abstract_interface::module_factory::MigrateMsg {},
         module_factory.code_id()?,
     )?;
 

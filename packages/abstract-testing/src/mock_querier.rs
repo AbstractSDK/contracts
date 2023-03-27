@@ -2,16 +2,16 @@ use crate::addresses::{
     test_core, TEST_ACCOUNT_ID, TEST_MANAGER, TEST_MODULE_ADDRESS, TEST_MODULE_ID,
     TEST_MODULE_RESPONSE, TEST_PROXY, TEST_VERSION_CONTROL,
 };
+use abstract_interface::{
+    manager::state::{ACCOUNT_ID, OS_MODULES},
+    version_control::state::ACCOUNT_ADDRESSES,
+};
 use cosmwasm_std::{
     from_binary, testing::MockQuerier, to_binary, Addr, Binary, ContractResult, Empty,
     QuerierWrapper, SystemResult, WasmQuery,
 };
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::{Item, Map, PrimaryKey};
-use iabstract::{
-    manager::state::{ACCOUNT_ID, OS_MODULES},
-    version_control::state::ACCOUNT_ADDRESSES,
-};
 use serde::{de::DeserializeOwned, Serialize};
 use std::{collections::HashMap, ops::Deref};
 
@@ -373,16 +373,16 @@ mod tests {
     use crate::addresses::{TEST_ACCOUNT_ID, TEST_MODULE_ID};
 
     use super::*;
-    use cosmwasm_std::testing::mock_dependencies;
-    use iabstract::{
+    use abstract_interface::{
         manager::state::OS_MODULES, proxy::state::ACCOUNT_ID,
         version_control::state::ACCOUNT_ADDRESSES,
     };
+    use cosmwasm_std::testing::mock_dependencies;
     use speculoos::prelude::*;
 
     mod account {
         use super::*;
-        use iabstract::version_control::AccountBase;
+        use abstract_interface::version_control::AccountBase;
 
         #[test]
         fn should_return_os_address() {

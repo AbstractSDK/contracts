@@ -12,7 +12,7 @@
 //! ## Messages
 //! All interfacing message structs are defined here so they can be imported.
 //! ```no_run
-//! use iabstract::manager::ExecuteMsg;
+//! use abstract_interface::manager::ExecuteMsg;
 //! ```
 //! ### Assets
 //! [`cw-asset`](https://crates.io/crates/cw-asset) is used for asset-management.
@@ -34,7 +34,7 @@
 //! Abstract contract names are used internally and for version management.
 //! They are exported for ease of use:
 //! ```no_run
-//! use iabstract::PROXY;
+//! use abstract_interface::PROXY;
 //! ```
 //! ## Errors
 //! An `AbstractError` wraps error throws by `StdError` or `AssetError`. It is also use in the objects to throw errors.

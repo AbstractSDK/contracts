@@ -1,9 +1,9 @@
 use super::handler::Handler;
 use crate::{AbstractSdkError, AbstractSdkResult};
+use abstract_interface::abstract_ica::StdAck;
 use cosmwasm_std::{Binary, Deps, DepsMut, Empty, Env, MessageInfo, Reply, Response, Storage};
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Item;
-use iabstract::abstract_ica::StdAck;
 use interfaces::objects::dependency::StaticDependency;
 
 pub type ModuleId = &'static str;

@@ -1,13 +1,8 @@
 use crate::{deployment, AbstractAccount};
-#[cfg(feature = "daemon")]
-use boot_core::Daemon;
-use boot_core::{
-    boot_contract, BootEnvironment, Contract, IndexResponse, TxResponse,
-    {BootQuery, ContractInstance},
+pub use abstract_interface::version_control::{
+    ExecuteMsgFns as VCExecFns, QueryMsgFns as VCQueryFns,
 };
-use cosmwasm_std::Addr;
-pub use iabstract::version_control::{ExecuteMsgFns as VCExecFns, QueryMsgFns as VCQueryFns};
-use iabstract::{
+use abstract_interface::{
     objects::{
         module::{Module, ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
@@ -16,6 +11,13 @@ use iabstract::{
     version_control::*,
     VERSION_CONTROL,
 };
+#[cfg(feature = "daemon")]
+use boot_core::Daemon;
+use boot_core::{
+    boot_contract, BootEnvironment, Contract, IndexResponse, TxResponse,
+    {BootQuery, ContractInstance},
+};
+use cosmwasm_std::Addr;
 use semver::Version;
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
@@ -27,7 +29,7 @@ where
 {
     pub fn new(name: &str, chain: Chain) -> Self {
         let mut contract = Contract::new(name, chain);
-        contract = contract.with_wasm_path("version_control");
+        contract = contract.with_wasm_path("abstract_version_control");
         Self(contract)
     }
 
@@ -50,7 +52,7 @@ where
         let manager = account.manager.as_instance();
         let manager_module = (
             ModuleInfo::from_id(&manager.id, ModuleVersion::Version(version.to_string()))?,
-            ModuleReference::Account(manager.code_id()?),
+            ModuleReference::AccountBase(manager.code_id()?),
         );
         self.add_modules(vec![manager_module])?;
 
@@ -59,7 +61,7 @@ where
         let proxy = account.proxy.as_instance();
         let proxy_module = (
             ModuleInfo::from_id(&proxy.id, ModuleVersion::Version(version.to_string()))?,
-            ModuleReference::Account(proxy.code_id()?),
+            ModuleReference::AccountBase(proxy.code_id()?),
         );
         self.add_modules(vec![proxy_module])?;
 
@@ -74,7 +76,7 @@ where
         version: &Version,
     ) -> Result<(), crate::AbstractBootError> {
         let to_register = self.contracts_into_module_entries(apps, version, |c| {
-            ModuleReference::Account(c.code_id().unwrap())
+            ModuleReference::AccountBase(c.code_id().unwrap())
         })?;
         self.add_modules(to_register)?;
         Ok(())

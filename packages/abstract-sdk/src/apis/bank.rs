@@ -42,8 +42,8 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     ///
     /// ```rust
     /// # use cosmwasm_std::{Addr, Response, Deps, DepsMut, MessageInfo};
-    /// # use iabstract::objects::AnsAsset;
-    /// # use iabstract::objects::ans_host::AnsHost;
+    /// # use abstract_interface::objects::AnsAsset;
+    /// # use abstract_interface::objects::ans_host::AnsHost;
     /// # use abstract_sdk::{
     ///     features::{AccountIdentification, AbstractNameService, ModuleIdentification},
     ///     TransferInterface, AbstractSdkResult,

@@ -1,6 +1,6 @@
 //! # Abstract App
 //!
-//! `iabstract::app` implements shared functionality that's useful for creating new Abstract apps.
+//! `abstract_interface::app` implements shared functionality that's useful for creating new Abstract apps.
 //!
 //! ## Description
 //! An app is a contract that is allowed to perform actions on a [proxy](crate::proxy) contract while also being migratable.

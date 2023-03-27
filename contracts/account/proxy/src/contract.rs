@@ -1,6 +1,7 @@
 use crate::commands::*;
 use crate::error::ProxyError;
 use crate::queries::*;
+use abstract_interface::objects::{module_version::migrate_module_data, oracle::Oracle};
 use abstract_sdk::{
     feature_objects::AnsHost,
     interfaces::{
@@ -14,7 +15,6 @@ use abstract_sdk::{
 };
 use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response};
 use cw2::{get_contract_version, set_contract_version};
-use iabstract::objects::{module_version::migrate_module_data, oracle::Oracle};
 use semver::Version;
 
 pub type ProxyResult<T = Response> = Result<T, ProxyError>;

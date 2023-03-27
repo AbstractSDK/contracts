@@ -2,6 +2,7 @@ use crate::{
     AbstractContract, AppError, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
     MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
 };
+use abstract_interface::objects::dependency::StaticDependency;
 use abstract_sdk::{
     feature_objects::AnsHost,
     namespaces::{ADMIN_NAMESPACE, BASE_STATE},
@@ -9,7 +10,6 @@ use abstract_sdk::{
 use cosmwasm_std::{Addr, Empty, StdResult, Storage};
 use cw_controllers::Admin;
 use cw_storage_plus::Item;
-use iabstract::objects::dependency::StaticDependency;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

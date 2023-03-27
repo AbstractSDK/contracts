@@ -2,6 +2,9 @@ mod common;
 
 use abstract_api::mock::MockExecMsg;
 use abstract_boot::*;
+use abstract_interface::manager::ManagerModuleInfo;
+use abstract_interface::objects::module::{ModuleInfo, ModuleVersion};
+use abstract_interface::{api::BaseQueryMsgFns, *};
 use abstract_testing::prelude::{OWNER, TEST_MODULE_ID, TEST_VERSION};
 use boot_core::BootExecute;
 use boot_core::{
@@ -9,9 +12,6 @@ use boot_core::{
 };
 use common::{create_default_account, init_abstract_env, init_mock_api, AResult, TEST_COIN};
 use cosmwasm_std::{Addr, Coin, Empty};
-use iabstract::manager::ManagerModuleInfo;
-use iabstract::objects::module::{ModuleInfo, ModuleVersion};
-use iabstract::{api::BaseQueryMsgFns, *};
 // use cw_multi_test::StakingInfo;
 use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};
 
@@ -284,7 +284,7 @@ fn manager_api_exec_staking_delegation() -> AResult {
 
     account.manager.execute_on_module(
         TEST_MODULE_ID,
-        Into::<iabstract::api::ExecuteMsg<MockExecMsg>>::into(MockExecMsg),
+        Into::<abstract_interface::api::ExecuteMsg<MockExecMsg>>::into(MockExecMsg),
     )?;
 
     Ok(())

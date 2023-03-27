@@ -10,11 +10,11 @@ This package contains:
 ## Usage
 ```rust
 // Import a contract Exec/Init/Query message
-iabstract::contract::ExecuteMsg
+abstract_interface::contract::ExecuteMsg
 // Import a contract state lay-out
-iabstract::contract::state::STATE
+abstract_interface::contract::state::STATE
 // Import a state object
-iabstract::object::ProxyValue;
+abstract_interface::object::ProxyValue;
 ```
 
 ## Messages 

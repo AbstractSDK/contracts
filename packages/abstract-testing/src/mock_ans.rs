@@ -1,9 +1,4 @@
-use cosmwasm_std::{
-    testing::{MockApi, MockQuerier},
-    Addr,
-};
-use cw_asset::AssetInfo;
-use iabstract::{
+use abstract_interface::{
     ans_host::{
         state::{
             ASSET_ADDRESSES, ASSET_PAIRINGS, CHANNELS, CONTRACT_ADDRESSES, POOL_METADATA,
@@ -16,6 +11,11 @@ use iabstract::{
         PoolMetadata, PoolReference, PoolType, UniquePoolId,
     },
 };
+use cosmwasm_std::{
+    testing::{MockApi, MockQuerier},
+    Addr,
+};
+use cw_asset::AssetInfo;
 
 use crate::{addresses::*, MockQuerierBuilder};
 

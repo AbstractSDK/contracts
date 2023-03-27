@@ -1,10 +1,10 @@
 use crate::{
     AppContract, AppError, ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint,
 };
+use abstract_interface::app::{AppExecuteMsg, AppQueryMsg};
 use abstract_sdk::interfaces::app::AppConfigResponse;
 use cosmwasm_schema::{export_schema_with_title, schema_for, write_api, QueryResponses};
 use cw_controllers::AdminResponse;
-use iabstract::app::{AppExecuteMsg, AppQueryMsg};
 use schemars::JsonSchema;
 use serde::Serialize;
 use std::path::Path;

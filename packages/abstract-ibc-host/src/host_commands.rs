@@ -3,6 +3,7 @@ use crate::{
     state::{CLIENT_PROXY, CLOSED_CHANNELS, PENDING},
     Host, HostError,
 };
+use abstract_interface::objects::AccountId;
 use abstract_sdk::interfaces::abstract_ica::{
     check_order, check_version, IbcQueryResponse, StdAck, WhoAmIResponse, IBC_APP_VERSION,
 };
@@ -13,7 +14,6 @@ use cosmwasm_std::{
     IbcReceiveResponse, QuerierWrapper, QueryRequest, StdError, StdResult, SubMsg, SystemResult,
     WasmMsg,
 };
-use iabstract::objects::AccountId;
 
 // one hour
 pub const PACKET_LIFETIME: u64 = 60 * 60;

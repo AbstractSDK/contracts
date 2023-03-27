@@ -1,16 +1,16 @@
-use boot_core::{
-    BootEnvironment, BootError, Contract, IndexResponse, TxResponse,
-    {boot_contract, ContractInstance},
-};
-use cosmwasm_std::Addr;
-use cw_asset::AssetInfoUnchecked;
-use iabstract::{
+use abstract_interface::{
     ans_host::*,
     objects::{
         pool_id::UncheckedPoolAddress, PoolMetadata, UncheckedChannelEntry, UncheckedContractEntry,
     },
     ANS_HOST,
 };
+use boot_core::{
+    BootEnvironment, BootError, Contract, IndexResponse, TxResponse,
+    {boot_contract, ContractInstance},
+};
+use cosmwasm_std::Addr;
+use cw_asset::AssetInfoUnchecked;
 use log::info;
 use serde_json::from_reader;
 use std::{cmp::min, collections::HashSet, env, fs::File};
@@ -24,7 +24,7 @@ where
 {
     pub fn new(name: &str, chain: Chain) -> Self {
         let mut contract = Contract::new(name, chain);
-        contract = contract.with_wasm_path("ans_host");
+        contract = contract.with_wasm_path("abstract_ans_host");
         Self(contract)
     }
 

@@ -1,10 +1,10 @@
 use crate::{AppContract, AppError, Handler, MigrateEndpoint};
-use cosmwasm_std::{Response, StdError};
-use cw2::set_contract_version;
-use iabstract::{
+use abstract_interface::{
     app::MigrateMsg,
     objects::module_version::{get_module_data, set_module_data},
 };
+use cosmwasm_std::{Response, StdError};
+use cw2::set_contract_version;
 use schemars::JsonSchema;
 use semver::Version;
 use serde::Serialize;

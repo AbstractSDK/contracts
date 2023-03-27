@@ -1,11 +1,5 @@
 use crate::{commands, error::IbcClientError, queries};
-use abstract_macros::abstract_response;
-use cosmwasm_std::{
-    to_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response, StdResult,
-};
-use cw2::{get_contract_version, set_contract_version};
-use cw_semver::Version;
-use iabstract::{
+use abstract_interface::{
     ibc_client::{state::*, *},
     objects::{
         ans_host::AnsHost,
@@ -13,6 +7,12 @@ use iabstract::{
     },
     AbstractResult, IBC_CLIENT,
 };
+use abstract_macros::abstract_response;
+use cosmwasm_std::{
+    to_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response, StdResult,
+};
+use cw2::{get_contract_version, set_contract_version};
+use cw_semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub(crate) const MAX_RETRIES: u8 = 5;

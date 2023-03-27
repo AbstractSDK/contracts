@@ -1,5 +1,5 @@
-// use iabstract::objects::module::{ModuleInfo, ModuleVersion};
-// use iabstract::objects::module_reference::ModuleReference;
+// use abstract_interface::objects::module::{ModuleInfo, ModuleVersion};
+// use abstract_interface::objects::module_reference::ModuleReference;
 // use boot_core::interface::{ContractInstance, CwInterface};
 // use boot_core::{BootEnvironment, Contract};
 

@@ -1,9 +1,9 @@
 use crate::{AccountFactory, AnsHost, IbcClient, Manager, ModuleFactory, Proxy, VersionControl};
-use boot_core::{BootEnvironment, IndexResponse, StateInterface, TxHandler};
-use iabstract::{
+use abstract_interface::{
     objects::AccountId, ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, MANAGER, MODULE_FACTORY, PROXY,
     VERSION_CONTROL,
 };
+use boot_core::{BootEnvironment, IndexResponse, StateInterface, TxHandler};
 
 #[allow(clippy::type_complexity)]
 pub fn get_native_contracts<Chain: BootEnvironment>(

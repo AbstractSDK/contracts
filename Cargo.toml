@@ -72,7 +72,7 @@ abstract-ibc-client = {package = "abstract-ibc-client", path = "contracts/native
 
 abstract-sdk = { version = "0.13.0", path = "packages/abstract-sdk" }
 abstract-testing = { version = "0.13.0", path = "packages/abstract-testing" }
-iabstract = { version = "0.13.0", path = "packages/iabstract" }
+abstract_interface = { version = "0.13.0", path = "packages/abstract-interfaces" }
 
 # These should remain fixed and don't need to be re-published (unless changes are made)
 abstract-macros = {version = "0.11.0", path = "packages/abstract-macros" }

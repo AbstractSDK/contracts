@@ -24,15 +24,15 @@ use abstract_sdk::{
     ModuleRegistryInterface,
 };
 
+use abstract_interface::api::{
+    BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as ApiExecMsg, QueryMsg as ApiQuery, TradersResponse,
+};
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo,
     StdResult, Storage, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
 use cw_storage_plus::Item;
-use iabstract::api::{
-    BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as ApiExecMsg, QueryMsg as ApiQuery, TradersResponse,
-};
 use semver::Version;
 
 #[abstract_response(MANAGER)]
@@ -337,7 +337,7 @@ pub fn set_migrate_msgs_and_context(
                 migrate_msg.unwrap_or_else(|| to_binary(&Empty {}).unwrap()),
             ));
         }
-        ModuleReference::Account(code_id) | ModuleReference::Standalone(code_id) => msgs.push(
+        ModuleReference::AccountBase(code_id) | ModuleReference::Standalone(code_id) => msgs.push(
             get_migrate_msg(old_module_addr, code_id, migrate_msg.unwrap()),
         ),
         _ => return Err(ManagerError::NotUpgradeable(module_info)),
@@ -545,7 +545,7 @@ fn upgrade_self(
 ) -> ManagerResult {
     let contract = get_contract_version(deps.storage)?;
     let module = query_module(deps.as_ref(), module_info.clone(), Some(contract))?;
-    if let ModuleReference::Account(manager_code_id) = module.reference {
+    if let ModuleReference::AccountBase(manager_code_id) = module.reference {
         let migration_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Migrate {
             contract_addr: env.contract.address.into_string(),
             new_code_id: manager_code_id,
@@ -600,7 +600,7 @@ mod test {
     };
     use cosmwasm_std::{Order, OwnedDeps, StdError, Storage};
 
-    use iabstract::manager::InstantiateMsg;
+    use abstract_interface::manager::InstantiateMsg;
 
     use crate::contract;
     use speculoos::prelude::*;

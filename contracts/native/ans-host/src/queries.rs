@@ -1,12 +1,8 @@
-use abstract_sdk::cw_helpers::cw_storage_plus::load_many;
-use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdError, StdResult, Storage};
-use cw_asset::AssetInfoUnchecked;
-use cw_storage_plus::Bound;
-use iabstract::ans_host::{
+use abstract_interface::ans_host::{
     AssetInfoListResponse, AssetInfoMapEntry, AssetInfosResponse, AssetMapEntry, ContractMapEntry,
 };
-use iabstract::{ans_host::state::REV_ASSET_ADDRESSES, objects::DexName};
-use iabstract::{
+use abstract_interface::{ans_host::state::REV_ASSET_ADDRESSES, objects::DexName};
+use abstract_interface::{
     ans_host::state::{Config, ADMIN, ASSET_PAIRINGS, CONFIG, POOL_METADATA},
     ans_host::{
         state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES, REGISTERED_DEXES},
@@ -23,6 +19,10 @@ use iabstract::{
         UniquePoolId,
     },
 };
+use abstract_sdk::cw_helpers::cw_storage_plus::load_many;
+use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdError, StdResult, Storage};
+use cw_asset::AssetInfoUnchecked;
+use cw_storage_plus::Bound;
 
 pub(crate) const DEFAULT_LIMIT: u8 = 15;
 pub(crate) const MAX_LIMIT: u8 = 25;
@@ -308,17 +308,17 @@ fn load_pool_metadata_entry(
 
 #[cfg(test)]
 mod test {
+    use abstract_interface::ans_host::*;
+    use abstract_interface::objects::PoolType;
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info, MockApi};
     use cosmwasm_std::{from_binary, Addr, DepsMut};
-    use iabstract::ans_host::*;
-    use iabstract::objects::PoolType;
 
     use crate::contract;
     use crate::contract::{instantiate, AnsHostResult};
     use crate::error::AnsHostError;
 
+    use abstract_interface::objects::pool_id::PoolAddressBase;
     use cw_asset::{AssetInfo, AssetInfoUnchecked};
-    use iabstract::objects::pool_id::PoolAddressBase;
     use speculoos::prelude::*;
 
     use super::*;

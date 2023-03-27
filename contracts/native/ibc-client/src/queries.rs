@@ -1,5 +1,4 @@
-use cosmwasm_std::{Deps, Order, StdResult};
-use iabstract::{
+use abstract_interface::{
     ibc_client::{
         state::{Config, ACCOUNTS, ADMIN, CHANNELS, CONFIG, LATEST_QUERIES},
         AccountInfo, AccountResponse, ConfigResponse, LatestQueryResponse, ListAccountsResponse,
@@ -7,6 +6,7 @@ use iabstract::{
     },
     objects::AccountId,
 };
+use cosmwasm_std::{Deps, Order, StdResult};
 
 pub fn query_latest_ibc_query_result(
     deps: Deps,

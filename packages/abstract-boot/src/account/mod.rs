@@ -15,10 +15,10 @@ mod manager;
 mod proxy;
 use std::collections::HashSet;
 
+use abstract_interface::{manager::ManagerModuleInfo, objects::AccountId};
 use boot_core::{
     BootEnvironment, {BootUpload, ContractInstance},
 };
-use iabstract::{manager::ManagerModuleInfo, objects::AccountId};
 use serde::Serialize;
 use speculoos::prelude::*;
 
@@ -66,7 +66,7 @@ impl<Chain: BootEnvironment> AbstractAccount<Chain> {
         &self,
         module_addrs: Vec<String>,
     ) -> Result<Vec<ManagerModuleInfo>, crate::AbstractBootError> {
-        let iabstract::manager::ModuleInfosResponse {
+        let abstract_interface::manager::ModuleInfosResponse {
             module_infos: manager_modules,
         } = self.manager.module_infos(None, None)?;
 
@@ -99,7 +99,7 @@ impl<Chain: BootEnvironment> AbstractAccount<Chain> {
             .collect::<HashSet<_>>();
 
         // check proxy config
-        let iabstract::proxy::ConfigResponse {
+        let abstract_interface::proxy::ConfigResponse {
             modules: proxy_whitelist,
         } = self.proxy.config()?;
 

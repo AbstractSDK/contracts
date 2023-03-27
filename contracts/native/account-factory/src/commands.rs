@@ -2,6 +2,9 @@ use crate::{
     contract::OsFactoryResult, error::AccountFactoryError,
     response::MsgInstantiateContractResponse, state::*,
 };
+use abstract_interface::{
+    objects::module::Module, version_control::ModulesResponse, AbstractResult, ACCOUNT_FACTORY,
+};
 use abstract_macros::abstract_response;
 use abstract_sdk::{
     cw_helpers::cosmwasm_std::wasm_smart_query,
@@ -21,9 +24,6 @@ use cosmwasm_std::{
 };
 use cw20::Cw20ReceiveMsg;
 use cw_asset::{Asset, AssetInfo};
-use iabstract::{
-    objects::module::Module, version_control::ModulesResponse, AbstractResult, ACCOUNT_FACTORY,
-};
 use protobuf::Message;
 
 pub const CREATE_ACCOUNT_MANAGER_MSG_ID: u64 = 1u64;
@@ -92,7 +92,7 @@ pub fn execute_create_account(
     // Query version_control for code_id of Manager contract
     let module: Module = query_module(&deps.querier, &config.version_control_contract, MANAGER)?;
 
-    if let ModuleReference::Account(manager_code_id) = module.reference {
+    if let ModuleReference::AccountBase(manager_code_id) = module.reference {
         Ok(OsFactoryResponse::new(
             "create_account",
             vec![("account_id", &config.next_acct_id.to_string())],
@@ -151,7 +151,7 @@ pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> OsFact
     // Query version_control for code_id of proxy
     let module: Module = query_module(&deps.querier, &config.version_control_contract, PROXY)?;
 
-    if let ModuleReference::Account(proxy_code_id) = module.reference {
+    if let ModuleReference::AccountBase(proxy_code_id) = module.reference {
         Ok(OsFactoryResponse::new(
             "create_manager",
             vec![("manager_address", manager_address.to_string())],

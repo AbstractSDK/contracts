@@ -1,5 +1,6 @@
 use crate::contract::{VCResult, ABSTRACT_NAMESPACE};
 use crate::error::VCError;
+use abstract_interface::objects::AccountId;
 use abstract_macros::abstract_response;
 use abstract_sdk::interfaces::{
     objects::{module::ModuleInfo, module_reference::ModuleReference},
@@ -7,7 +8,6 @@ use abstract_sdk::interfaces::{
     VERSION_CONTROL,
 };
 use cosmwasm_std::{DepsMut, Empty, MessageInfo};
-use iabstract::objects::AccountId;
 
 #[abstract_response(VERSION_CONTROL)]
 pub struct VcResponse;
@@ -95,7 +95,7 @@ mod test {
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use cosmwasm_std::Addr;
 
-    use iabstract::version_control::*;
+    use abstract_interface::version_control::*;
 
     use crate::contract;
     use speculoos::prelude::*;
@@ -211,8 +211,8 @@ mod test {
 
     mod add_modules {
         use super::*;
-        use iabstract::objects::{module::*, module_reference::ModuleReference};
-        use iabstract::AbstractError;
+        use abstract_interface::objects::{module::*, module_reference::ModuleReference};
+        use abstract_interface::AbstractError;
 
         fn test_module() -> ModuleInfo {
             ModuleInfo::from_id(TEST_MODULE, ModuleVersion::Version(TEST_VERSION.into())).unwrap()

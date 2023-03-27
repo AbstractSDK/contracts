@@ -1,11 +1,11 @@
 use abstract_boot::{Abstract, VCExecFns, VCQueryFns};
+use abstract_interface::{
+    objects::module::{Module, ModuleInfo, ModuleVersion},
+    version_control::{ModuleFilter, ModulesListResponse},
+};
 use boot_core::{
     networks::{NetworkInfo, UNI_6},
     *,
-};
-use iabstract::{
-    objects::module::{Module, ModuleInfo, ModuleVersion},
-    version_control::{ModuleFilter, ModulesListResponse},
 };
 use semver::Version;
 use std::sync::Arc;

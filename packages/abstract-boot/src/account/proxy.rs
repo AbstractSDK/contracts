@@ -1,11 +1,11 @@
 use crate::Manager;
-use boot_core::{boot_contract, BootEnvironment, Contract, ContractInstance};
-pub use iabstract::proxy::{ExecuteMsgFns as ProxyExecFns, QueryMsgFns as ProxyQueryFns};
-use iabstract::{
+pub use abstract_interface::proxy::{ExecuteMsgFns as ProxyExecFns, QueryMsgFns as ProxyQueryFns};
+use abstract_interface::{
     objects::{price_source::UncheckedPriceSource, AssetEntry},
     proxy::*,
     MANAGER, PROXY,
 };
+use boot_core::{boot_contract, BootEnvironment, Contract, ContractInstance};
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Proxy<Chain>;
@@ -13,7 +13,7 @@ pub struct Proxy<Chain>;
 impl<Chain: BootEnvironment> Proxy<Chain> {
     pub fn new(name: &str, chain: Chain) -> Self {
         let mut contract = Contract::new(name, chain);
-        contract = contract.with_wasm_path("proxy");
+        contract = contract.with_wasm_path("abstract_proxy");
         Self(contract)
     }
 
