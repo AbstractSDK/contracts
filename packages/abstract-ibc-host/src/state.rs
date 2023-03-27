@@ -4,7 +4,7 @@ use crate::{
     },
     HostError,
 };
-use abstract_interface::objects::AccountId;
+use abstract_core::objects::AccountId;
 use abstract_sdk::{
     base::{
         AbstractContract, ExecuteHandlerFn, InstantiateHandlerFn, QueryHandlerFn, ReceiveHandlerFn,

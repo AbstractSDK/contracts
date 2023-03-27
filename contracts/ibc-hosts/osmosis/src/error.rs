@@ -1,5 +1,5 @@
+use abstract_core::AbstractError;
 use abstract_ibc_host::HostError;
-use abstract_interface::AbstractError;
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use dex::error::DexError;

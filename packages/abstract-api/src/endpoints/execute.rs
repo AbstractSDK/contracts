@@ -1,5 +1,5 @@
 use crate::{error::ApiError, state::ApiContract, ApiResult};
-use abstract_interface::{
+use abstract_core::{
     api::{ApiExecuteMsg, ApiRequestMsg, BaseExecuteMsg, ExecuteMsg},
     version_control::AccountBase,
 };
@@ -208,7 +208,7 @@ impl<
 #[cfg(test)]
 mod tests {
     use super::*;
-    use abstract_interface::api;
+    use abstract_core::api;
 
     use abstract_testing::prelude::*;
     use cosmwasm_std::{

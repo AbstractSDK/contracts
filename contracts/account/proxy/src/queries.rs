@@ -1,7 +1,7 @@
 use crate::contract::ProxyResult;
 
-use abstract_interface::objects::oracle::{AccountValue, Oracle};
-use abstract_interface::proxy::{
+use abstract_core::objects::oracle::{AccountValue, Oracle};
+use abstract_core::proxy::{
     AssetsConfigResponse, BaseAssetResponse, HoldingAmountResponse, OracleAsset, TokenValueResponse,
 };
 use abstract_sdk::interfaces::objects::AssetEntry;
@@ -103,14 +103,14 @@ pub fn query_holding_amount(
 
 #[cfg(test)]
 mod test {
-    use abstract_interface::objects::price_source::{PriceSource, UncheckedPriceSource};
+    use abstract_core::objects::price_source::{PriceSource, UncheckedPriceSource};
 
     use abstract_testing::{prelude::*, MockAnsHost};
     use cosmwasm_std::testing::{mock_dependencies, MOCK_CONTRACT_ADDR};
     use cosmwasm_std::testing::{mock_env, mock_info, MockApi, MockQuerier, MockStorage};
     use cosmwasm_std::{coin, Decimal, DepsMut, OwnedDeps};
 
-    use abstract_interface::proxy::{
+    use abstract_core::proxy::{
         AssetConfigResponse, ExecuteMsg, InstantiateMsg, TokenValueResponse,
     };
 
@@ -167,7 +167,7 @@ mod test {
             &query(
                 deps.as_ref(),
                 mock_env(),
-                abstract_interface::proxy::QueryMsg::BaseAsset {},
+                abstract_core::proxy::QueryMsg::BaseAsset {},
             )
             .unwrap(),
         )
@@ -197,7 +197,7 @@ mod test {
             &query(
                 deps.as_ref(),
                 mock_env(),
-                abstract_interface::proxy::QueryMsg::Config {},
+                abstract_core::proxy::QueryMsg::Config {},
             )
             .unwrap(),
         )
@@ -234,7 +234,7 @@ mod test {
             &query(
                 deps.as_ref(),
                 mock_env(),
-                abstract_interface::proxy::QueryMsg::HoldingAmount {
+                abstract_core::proxy::QueryMsg::HoldingAmount {
                     identifier: AssetEntry::from(USD),
                 },
             )
@@ -249,7 +249,7 @@ mod test {
             &query(
                 deps.as_ref(),
                 mock_env(),
-                abstract_interface::proxy::QueryMsg::TotalValue {},
+                abstract_core::proxy::QueryMsg::TotalValue {},
             )
             .unwrap(),
         )
@@ -266,7 +266,7 @@ mod test {
             &query(
                 deps.as_ref(),
                 mock_env(),
-                abstract_interface::proxy::QueryMsg::TokenValue {
+                abstract_core::proxy::QueryMsg::TokenValue {
                     identifier: AssetEntry::from(USD),
                 },
             )
@@ -280,7 +280,7 @@ mod test {
             &query(
                 deps.as_ref(),
                 mock_env(),
-                abstract_interface::proxy::QueryMsg::AssetConfig {
+                abstract_core::proxy::QueryMsg::AssetConfig {
                     identifier: AssetEntry::from(USD),
                 },
             )
@@ -308,7 +308,7 @@ mod test {
             &query(
                 deps.as_ref(),
                 mock_env(),
-                abstract_interface::proxy::QueryMsg::AssetsConfig {
+                abstract_core::proxy::QueryMsg::AssetsConfig {
                     start_after: None,
                     limit: None,
                 },
@@ -342,7 +342,7 @@ mod test {
             &query(
                 deps.as_ref(),
                 mock_env(),
-                abstract_interface::proxy::QueryMsg::AssetsInfo {
+                abstract_core::proxy::QueryMsg::AssetsInfo {
                     start_after: None,
                     limit: None,
                 },

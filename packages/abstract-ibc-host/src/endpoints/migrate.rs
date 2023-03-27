@@ -1,5 +1,5 @@
 use crate::{Host, HostError};
-use abstract_interface::objects::module_version::{get_module_data, set_module_data};
+use abstract_core::objects::module_version::{get_module_data, set_module_data};
 use abstract_sdk::{
     base::{Handler, MigrateEndpoint},
     interfaces::ibc_host::MigrateMsg,

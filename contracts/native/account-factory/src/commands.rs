@@ -2,7 +2,7 @@ use crate::{
     contract::OsFactoryResult, error::AccountFactoryError,
     response::MsgInstantiateContractResponse, state::*,
 };
-use abstract_interface::{
+use abstract_core::{
     objects::module::Module, version_control::ModulesResponse, AbstractResult, ACCOUNT_FACTORY,
 };
 use abstract_macros::abstract_response;

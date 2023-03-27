@@ -3,7 +3,7 @@
 //!
 
 use crate::{features::AccountIdentification, AbstractSdkResult};
-use abstract_interface::{
+use abstract_core::{
     ibc_client::{CallbackInfo, ExecuteMsg as IbcClientMsg},
     ibc_host::HostAction,
     proxy::ExecuteMsg,

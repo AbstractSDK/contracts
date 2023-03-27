@@ -1,4 +1,4 @@
-use abstract_interface::ibc_host::*;
+use abstract_core::ibc_host::*;
 use boot_core::{boot_contract, BootEnvironment, Contract};
 use cosmwasm_std::Empty;
 

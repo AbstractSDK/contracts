@@ -1,8 +1,8 @@
-use abstract_interface::ans_host::{
+use abstract_core::ans_host::{
     AssetInfoListResponse, AssetInfoMapEntry, AssetInfosResponse, AssetMapEntry, ContractMapEntry,
 };
-use abstract_interface::{ans_host::state::REV_ASSET_ADDRESSES, objects::DexName};
-use abstract_interface::{
+use abstract_core::{ans_host::state::REV_ASSET_ADDRESSES, objects::DexName};
+use abstract_core::{
     ans_host::state::{Config, ADMIN, ASSET_PAIRINGS, CONFIG, POOL_METADATA},
     ans_host::{
         state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES, REGISTERED_DEXES},
@@ -308,8 +308,8 @@ fn load_pool_metadata_entry(
 
 #[cfg(test)]
 mod test {
-    use abstract_interface::ans_host::*;
-    use abstract_interface::objects::PoolType;
+    use abstract_core::ans_host::*;
+    use abstract_core::objects::PoolType;
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info, MockApi};
     use cosmwasm_std::{from_binary, Addr, DepsMut};
 
@@ -317,7 +317,7 @@ mod test {
     use crate::contract::{instantiate, AnsHostResult};
     use crate::error::AnsHostError;
 
-    use abstract_interface::objects::pool_id::PoolAddressBase;
+    use abstract_core::objects::pool_id::PoolAddressBase;
     use cw_asset::{AssetInfo, AssetInfoUnchecked};
     use speculoos::prelude::*;
 

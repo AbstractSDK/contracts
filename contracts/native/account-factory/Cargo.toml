@@ -24,7 +24,7 @@ export = []
 
 
 [dependencies]
-abstract_interface = { workspace = true }
+abstract_core = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-macros = { workspace = true }
 cosmwasm-schema = { workspace = true }

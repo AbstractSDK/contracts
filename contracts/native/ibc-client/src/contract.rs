@@ -1,5 +1,5 @@
 use crate::{commands, error::IbcClientError, queries};
-use abstract_interface::{
+use abstract_core::{
     ibc_client::{state::*, *},
     objects::{
         ans_host::AnsHost,

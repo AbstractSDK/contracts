@@ -1,4 +1,4 @@
-use abstract_interface::{
+use abstract_core::{
     ibc_client::{
         state::{Config, ACCOUNTS, ADMIN, CHANNELS, CONFIG, LATEST_QUERIES},
         AccountInfo, AccountResponse, ConfigResponse, LatestQueryResponse, ListAccountsResponse,

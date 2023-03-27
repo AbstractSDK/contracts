@@ -1,7 +1,7 @@
 use crate::contract::AnsHostResult;
 use crate::error::AnsHostError;
 use crate::error::AnsHostError::InvalidAssetCount;
-use abstract_interface::{
+use abstract_core::{
     ans_host::ExecuteMsg,
     ans_host::{state::*, AssetPair},
     objects::{
@@ -382,7 +382,7 @@ mod test {
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use cosmwasm_std::{Addr, DepsMut};
 
-    use abstract_interface::ans_host::InstantiateMsg;
+    use abstract_core::ans_host::InstantiateMsg;
 
     use crate::contract;
     use crate::contract::{instantiate, AnsHostResult};
@@ -561,8 +561,8 @@ mod test {
     }
 
     mod update_contract_addresses {
-        use abstract_interface::ans_host::ContractMapEntry;
-        use abstract_interface::objects::ContractEntry;
+        use abstract_core::ans_host::ContractMapEntry;
+        use abstract_core::objects::ContractEntry;
         use abstract_testing::map_tester::CwMapTesterBuilder;
 
         use super::*;
@@ -741,7 +741,7 @@ mod test {
 
     mod update_asset_addresses {
         use super::*;
-        use abstract_interface::objects::AssetEntry;
+        use abstract_core::objects::AssetEntry;
         use abstract_testing::map_tester::CwMapTesterBuilder;
         use cw_asset::{AssetError, AssetInfo, AssetInfoBase};
         use cw_storage_plus::Map;
@@ -937,7 +937,7 @@ mod test {
 
     mod update_channels {
         use super::*;
-        use abstract_interface::objects::ChannelEntry;
+        use abstract_core::objects::ChannelEntry;
         use abstract_testing::map_tester::CwMapTesterBuilder;
 
         type UncheckedChannelMapEntry = (UncheckedChannelEntry, String);
@@ -1114,10 +1114,10 @@ mod test {
 
     mod update_pools {
         use super::*;
-        use abstract_interface::ans_host::{AssetPairingMapEntry, PoolMetadataMapEntry};
-        use abstract_interface::objects::PoolType;
+        use abstract_core::ans_host::{AssetPairingMapEntry, PoolMetadataMapEntry};
+        use abstract_core::objects::PoolType;
 
-        use abstract_interface::AbstractResult;
+        use abstract_core::AbstractResult;
         use cosmwasm_std::{Api, Order};
         use speculoos::assert_that;
 

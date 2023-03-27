@@ -1,4 +1,4 @@
-use abstract_interface::AbstractError;
+use abstract_core::AbstractError;
 use abstract_sdk::{interfaces::abstract_ica::SimpleIcaError, AbstractSdkError};
 use cosmwasm_std::StdError;
 use cw_controllers::AdminError;

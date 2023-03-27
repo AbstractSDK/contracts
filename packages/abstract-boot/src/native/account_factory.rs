@@ -1,8 +1,8 @@
 use crate::{AbstractAccount, Manager, Proxy};
-pub use abstract_interface::account_factory::{
+pub use abstract_core::account_factory::{
     ExecuteMsgFns as OsFactoryExecFns, QueryMsgFns as OsFactoryQueryFns,
 };
-use abstract_interface::{
+use abstract_core::{
     account_factory::*, objects::gov_type::GovernanceDetails, ABSTRACT_EVENT_NAME, MANAGER, PROXY,
 };
 use boot_core::{
@@ -11,7 +11,7 @@ use boot_core::{
 };
 use cosmwasm_std::Addr;
 
-/// A helper struct that contains fields from [`abstract_interface::manager::state::OsInfo`]
+/// A helper struct that contains fields from [`abstract_core::manager::state::OsInfo`]
 #[derive(Default)]
 pub struct AccountDetails {
     name: String,

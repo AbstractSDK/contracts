@@ -1,5 +1,5 @@
 use crate::{ApiContract, ApiError};
-use abstract_interface::api::{ApiExecuteMsg, ApiQueryMsg};
+use abstract_core::api::{ApiExecuteMsg, ApiQueryMsg};
 use abstract_sdk::{
     base::endpoints::{ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint},
     interfaces::api::{ApiConfigResponse, TradersResponse},

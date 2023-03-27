@@ -1,4 +1,4 @@
-use abstract_interface::{
+use abstract_core::{
     objects::common_namespace::ADMIN_NAMESPACE, proxy::state::ACCOUNT_ID,
     version_control::AccountBase,
 };

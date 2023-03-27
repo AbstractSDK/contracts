@@ -2,7 +2,7 @@ use crate::{
     state::{Host, ACCOUNTS},
     HostError,
 };
-use abstract_interface::objects::AccountId;
+use abstract_core::objects::AccountId;
 use abstract_sdk::{
     base::{Handler, QueryEndpoint},
     interfaces::ibc_host::{

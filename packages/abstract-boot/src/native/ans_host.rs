@@ -1,4 +1,4 @@
-use abstract_interface::{
+use abstract_core::{
     ans_host::*,
     objects::{
         pool_id::UncheckedPoolAddress, PoolMetadata, UncheckedChannelEntry, UncheckedContractEntry,

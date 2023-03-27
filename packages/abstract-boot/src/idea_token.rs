@@ -1,4 +1,4 @@
-use abstract_interface::abstract_token::*;
+use abstract_core::abstract_token::*;
 use boot_core::{
     boot_contract, BootEnvironment, Contract, TxResponse,
     {BootExecute, BootInstantiate, ContractInstance},

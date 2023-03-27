@@ -2,7 +2,7 @@ use crate::{
     state::{AppContract, AppState},
     AppError, Handler, InstantiateEndpoint,
 };
-use abstract_interface::{
+use abstract_core::{
     app::{BaseInstantiateMsg, InstantiateMsg},
     objects::module_version::set_module_data,
 };

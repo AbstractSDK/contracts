@@ -1,4 +1,4 @@
-use abstract_interface::AbstractError;
+use abstract_core::AbstractError;
 use boot_core::BootError;
 use cosmwasm_std::StdError;
 use thiserror::Error;

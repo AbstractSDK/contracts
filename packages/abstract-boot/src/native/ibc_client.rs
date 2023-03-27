@@ -1,7 +1,7 @@
-use abstract_interface::ibc_client::*;
+use abstract_core::ibc_client::*;
 use boot_core::{BootEnvironment, Contract};
 
-pub use abstract_interface::ibc_client::{
+pub use abstract_core::ibc_client::{
     ExecuteMsgFns as IbcClientExecFns, QueryMsgFns as IbcClientQueryFns,
 };
 use boot_core::boot_contract;

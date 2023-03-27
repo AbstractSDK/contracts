@@ -2,7 +2,7 @@ use crate::{
     cw_helpers::cosmwasm_std::wasm_smart_query, features::AbstractRegistryAccess, AbstractSdkError,
     AbstractSdkResult,
 };
-use abstract_interface::{
+use abstract_core::{
     objects::{
         module::{Module, ModuleInfo},
         module_reference::ModuleReference,

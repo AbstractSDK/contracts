@@ -5,7 +5,7 @@ use crate::{
     features::{AccountIdentification, Dependencies},
     AbstractSdkResult,
 };
-use abstract_interface::manager::state::OS_MODULES;
+use abstract_core::manager::state::OS_MODULES;
 use cosmwasm_std::{Addr, Deps, QueryRequest, WasmQuery};
 use cw2::{ContractVersion, CONTRACT};
 use interfaces::objects::module::ModuleId;

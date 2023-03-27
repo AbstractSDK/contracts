@@ -1,9 +1,9 @@
-use abstract_interface::module_factory::*;
+use abstract_core::module_factory::*;
 
 // use crate::api::get_api_init_msgs;
 use boot_core::{BootEnvironment, Contract, TxResponse};
 
-pub use abstract_interface::module_factory::{
+pub use abstract_core::module_factory::{
     ExecuteMsgFns as MFactoryExecFns, QueryMsgFns as MFactoryQueryFns,
 };
 use boot_core::{boot_contract, BootExecute};

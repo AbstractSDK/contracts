@@ -1,8 +1,6 @@
 use crate::{deployment, AbstractAccount};
-pub use abstract_interface::version_control::{
-    ExecuteMsgFns as VCExecFns, QueryMsgFns as VCQueryFns,
-};
-use abstract_interface::{
+pub use abstract_core::version_control::{ExecuteMsgFns as VCExecFns, QueryMsgFns as VCQueryFns};
+use abstract_core::{
     objects::{
         module::{Module, ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,

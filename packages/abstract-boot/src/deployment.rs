@@ -16,9 +16,7 @@ pub struct Abstract<Chain: BootEnvironment> {
     pub module_factory: ModuleFactory<Chain>,
 }
 
-use abstract_interface::{
-    ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY, VERSION_CONTROL,
-};
+use abstract_core::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY, VERSION_CONTROL};
 #[cfg(feature = "integration")]
 use boot_core::ContractWrapper;
 
@@ -158,19 +156,19 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
         let sender = &self.chain.sender();
 
         self.ans_host.instantiate(
-            &abstract_interface::ans_host::InstantiateMsg {},
+            &abstract_core::ans_host::InstantiateMsg {},
             Some(sender),
             None,
         )?;
 
         self.version_control.instantiate(
-            &abstract_interface::version_control::InstantiateMsg {},
+            &abstract_core::version_control::InstantiateMsg {},
             Some(sender),
             None,
         )?;
 
         self.module_factory.instantiate(
-            &abstract_interface::module_factory::InstantiateMsg {
+            &abstract_core::module_factory::InstantiateMsg {
                 version_control_address: self.version_control.address()?.into_string(),
                 ans_host_address: self.ans_host.address()?.into_string(),
             },
@@ -179,7 +177,7 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
         )?;
 
         self.account_factory.instantiate(
-            &abstract_interface::account_factory::InstantiateMsg {
+            &abstract_core::account_factory::InstantiateMsg {
                 version_control_address: self.version_control.address()?.into_string(),
                 ans_host_address: self.ans_host.address()?.into_string(),
                 module_factory_address: self.module_factory.address()?.into_string(),
@@ -203,7 +201,7 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
 
         // Set Factory
         self.version_control.execute(
-            &abstract_interface::version_control::ExecuteMsg::SetFactory {
+            &abstract_core::version_control::ExecuteMsg::SetFactory {
                 new_factory: self.account_factory.address()?.into_string(),
             },
             None,

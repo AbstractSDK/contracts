@@ -1,5 +1,5 @@
 use crate::ApiError;
-use abstract_interface::objects::dependency::StaticDependency;
+use abstract_core::objects::dependency::StaticDependency;
 use abstract_sdk::{
     base::{
         AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
@@ -41,7 +41,7 @@ pub struct ApiContract<
     pub(crate) base_state: Item<'static, ApiState>,
     /// Map ProxyAddr -> WhitelistedTraders
     pub traders: Map<'static, Addr, HashSet<Addr>>,
-    /// The Account on which commands are executed. Set each time in the [`abstract_interface::api::ExecuteMsg::Base`] handler.
+    /// The Account on which commands are executed. Set each time in the [`abstract_core::api::ExecuteMsg::Base`] handler.
     pub target_account: Option<AccountBase>,
 }
 
@@ -126,7 +126,7 @@ impl<
     }
 
     /// Return the address of the proxy for the Account associated with this API.
-    /// Set each time in the [`abstract_interface::api::ExecuteMsg::Base`] handler.
+    /// Set each time in the [`abstract_core::api::ExecuteMsg::Base`] handler.
     pub fn target(&self) -> Result<&Addr, ApiError> {
         Ok(&self
             .target_account

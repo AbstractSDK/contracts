@@ -1,5 +1,5 @@
 [package]
-name = "abstract_interface"
+name = "abstract_core"
 version = "0.13.0"
 authors = { workspace = true }
 edition = { workspace = true }

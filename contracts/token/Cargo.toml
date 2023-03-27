@@ -29,7 +29,7 @@ schemars = {workspace = true}
 serde = {workspace = true}
 cosmwasm-schema = { workspace = true }
 
-abstract_interface = { workspace = true }
+abstract_core = { workspace = true }
 abstract-sdk = { workspace = true }
 
 [dev-dependencies]

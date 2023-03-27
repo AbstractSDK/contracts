@@ -1,6 +1,6 @@
 use crate::contract::{VCResult, ABSTRACT_NAMESPACE};
 use crate::error::VCError;
-use abstract_interface::objects::AccountId;
+use abstract_core::objects::AccountId;
 use abstract_macros::abstract_response;
 use abstract_sdk::interfaces::{
     objects::{module::ModuleInfo, module_reference::ModuleReference},
@@ -95,7 +95,7 @@ mod test {
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use cosmwasm_std::Addr;
 
-    use abstract_interface::version_control::*;
+    use abstract_core::version_control::*;
 
     use crate::contract;
     use speculoos::prelude::*;
@@ -211,8 +211,8 @@ mod test {
 
     mod add_modules {
         use super::*;
-        use abstract_interface::objects::{module::*, module_reference::ModuleReference};
-        use abstract_interface::AbstractError;
+        use abstract_core::objects::{module::*, module_reference::ModuleReference};
+        use abstract_core::AbstractError;
 
         fn test_module() -> ModuleInfo {
             ModuleInfo::from_id(TEST_MODULE, ModuleVersion::Version(TEST_VERSION.into())).unwrap()

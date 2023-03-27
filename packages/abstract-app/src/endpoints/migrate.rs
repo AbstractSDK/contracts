@@ -1,5 +1,5 @@
 use crate::{AppContract, AppError, Handler, MigrateEndpoint};
-use abstract_interface::{
+use abstract_core::{
     app::MigrateMsg,
     objects::module_version::{get_module_data, set_module_data},
 };

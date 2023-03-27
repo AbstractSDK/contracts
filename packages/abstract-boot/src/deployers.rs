@@ -1,13 +1,14 @@
 use crate::Abstract;
-use abstract_interface::objects::module::ModuleVersion;
+use abstract_core::objects::module::ModuleVersion;
 use boot_core::{BootEnvironment, BootError::StdErr, Deploy, *};
 
 use semver::Version;
 use serde::Serialize;
 
 /// Trait for deploying APIs
-pub trait ApiDeployer<Chain: BootEnvironment, CustomInitMsg: Serialize>: ContractInstance<Chain>
-    + BootInstantiate<Chain, InstantiateMsg = abstract_interface::api::InstantiateMsg<CustomInitMsg>>
+pub trait ApiDeployer<Chain: BootEnvironment, CustomInitMsg: Serialize>:
+    ContractInstance<Chain>
+    + BootInstantiate<Chain, InstantiateMsg = abstract_core::api::InstantiateMsg<CustomInitMsg>>
     + BootUpload<Chain>
 {
     fn deploy(
@@ -33,9 +34,9 @@ pub trait ApiDeployer<Chain: BootEnvironment, CustomInitMsg: Serialize>: Contrac
         };
 
         self.upload()?;
-        let init_msg = abstract_interface::api::InstantiateMsg {
+        let init_msg = abstract_core::api::InstantiateMsg {
             module: custom_init_msg,
-            base: abstract_interface::api::BaseInstantiateMsg {
+            base: abstract_core::api::BaseInstantiateMsg {
                 ans_host_address: abstr.ans_host.address()?.into(),
                 version_control_address: abstr.version_control.address()?.into(),
             },

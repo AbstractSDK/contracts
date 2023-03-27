@@ -1,5 +1,5 @@
 use abstract_boot::{AbstractAccount, AccountFactory, OsFactoryQueryFns, VersionControl};
-use abstract_interface::{
+use abstract_core::{
     account_factory, manager, proxy, ACCOUNT_FACTORY, MANAGER, PROXY, VERSION_CONTROL,
 };
 use boot_core::{
@@ -63,13 +63,13 @@ pub fn migrate(network: NetworkInfo) -> anyhow::Result<()> {
     //
     // vc.upload()?;
     //
-    // vc.migrate(&abstract_interface::version_control::MigrateMsg {}, vc.code_id()?)?;
+    // vc.migrate(&abstract_core::version_control::MigrateMsg {}, vc.code_id()?)?;
 
     //     ans_host.instantiate(&ans_host::InstantiateMsg {}, Some(&sender), None)?;
     //
     //     ans_host.as_instance();
     //
-    //     // ans_host.query(&abstract_interface::ans_host::QueryMsg::DexPools { dex: None, asset_pair: None })?;
+    //     // ans_host.query(&abstract_core::ans_host::QueryMsg::DexPools { dex: None, asset_pair: None })?;
     //
     Ok(())
 }
@@ -82,7 +82,7 @@ struct Arguments {
     network_id: String,
 }
 
-use abstract_interface::{manager::ExecuteMsgFns, objects::module::ModuleInfo};
+use abstract_core::{manager::ExecuteMsgFns, objects::module::ModuleInfo};
 use clap::Parser;
 use cosmwasm_std::to_binary;
 use semver::Version;

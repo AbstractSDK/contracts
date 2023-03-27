@@ -3,7 +3,7 @@ use crate::contract::{
     MIN_TITLE_LENGTH,
 };
 use crate::error::ManagerError;
-use abstract_interface::PROXY;
+use abstract_core::PROXY;
 use core::result::Result::{Err, Ok};
 
 /**

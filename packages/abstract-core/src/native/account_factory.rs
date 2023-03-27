@@ -1,6 +1,6 @@
 //! # Account Factory
 //!
-//! `abstract_interface::account_factory` handles Account creation and registration.
+//! `abstract_core::account_factory` handles Account creation and registration.
 //!
 //! ## Description
 //! The Account factory instantiates a new Account instance and registers it with the [`crate::version_control`] contract. It then forwards the payment to the main account's subscription module.  

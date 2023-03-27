@@ -6,7 +6,7 @@ use crate::{
     features::{AccountIdentification, ModuleIdentification},
     AbstractSdkResult,
 };
-use abstract_interface::proxy::ExecuteMsg;
+use abstract_core::proxy::ExecuteMsg;
 use abstract_macros::with_abstract_event;
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, ReplyOn, Response, SubMsg};
 

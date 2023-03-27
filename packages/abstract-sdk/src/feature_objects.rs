@@ -8,8 +8,8 @@ use crate::{
     features::{AbstractRegistryAccess, AccountIdentification, ModuleIdentification},
     AbstractSdkResult,
 };
-pub use abstract_interface::objects::ans_host::AnsHost;
-use abstract_interface::version_control::AccountBase;
+pub use abstract_core::objects::ans_host::AnsHost;
+use abstract_core::version_control::AccountBase;
 use cosmwasm_std::{Addr, Deps};
 use interfaces::PROXY;
 
@@ -84,7 +84,7 @@ impl crate::features::AbstractNameService for AnsHost {
     fn ans_host(
         &self,
         _deps: Deps,
-    ) -> AbstractSdkResult<abstract_interface::objects::ans_host::AnsHost> {
+    ) -> AbstractSdkResult<abstract_core::objects::ans_host::AnsHost> {
         Ok(self.clone())
     }
 }

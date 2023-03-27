@@ -1,5 +1,5 @@
-use abstract_interface::objects::AccountId;
-use abstract_interface::AbstractError;
+use abstract_core::objects::AccountId;
+use abstract_core::AbstractError;
 use abstract_sdk::interfaces::objects::module::ModuleInfo;
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;

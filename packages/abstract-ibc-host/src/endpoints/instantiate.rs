@@ -2,7 +2,7 @@ use crate::{
     state::{Host, HostState, CLOSED_CHANNELS},
     HostError,
 };
-use abstract_interface::objects::module_version::set_module_data;
+use abstract_core::objects::module_version::set_module_data;
 use abstract_sdk::{
     base::{Handler, InstantiateEndpoint},
     feature_objects::AnsHost,

@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use crate::{AbstractSdkResult, ModuleInterface};
-use abstract_interface::{api::ApiRequestMsg, objects::module::ModuleId};
+use abstract_core::{api::ApiRequestMsg, objects::module::ModuleId};
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, Empty};
 use serde::{de::DeserializeOwned, Serialize};
 
@@ -23,14 +23,14 @@ pub struct Api<'a, T: ApiInterface> {
 impl<'a, T: ApiInterface> Api<'a, T> {
     /// Interactions with Abstract APIs
     /// Construct an api request message.
-    pub fn request<M: Serialize + Into<abstract_interface::api::ExecuteMsg<M, Empty>>>(
+    pub fn request<M: Serialize + Into<abstract_core::api::ExecuteMsg<M, Empty>>>(
         &self,
         api_id: ModuleId,
         message: M,
     ) -> AbstractSdkResult<CosmosMsg> {
         let modules = self.base.modules(self.deps);
         modules.assert_module_dependency(api_id)?;
-        let api_msg = abstract_interface::api::ExecuteMsg::<_>::Module(ApiRequestMsg::new(
+        let api_msg = abstract_core::api::ExecuteMsg::<_>::Module(ApiRequestMsg::new(
             Some(self.base.proxy_address(self.deps)?.into_string()),
             message,
         ));
@@ -42,9 +42,9 @@ impl<'a, T: ApiInterface> Api<'a, T> {
     pub fn query<Q: Serialize, R: DeserializeOwned>(
         &self,
         api_id: ModuleId,
-        message: impl Into<abstract_interface::api::QueryMsg<Q>>,
+        message: impl Into<abstract_core::api::QueryMsg<Q>>,
     ) -> AbstractSdkResult<R> {
-        let api_msg: abstract_interface::api::QueryMsg<Q> = message.into();
+        let api_msg: abstract_core::api::QueryMsg<Q> = message.into();
         let modules = self.base.modules(self.deps);
         let api_address = modules.module_address(api_id)?;
         self.deps
