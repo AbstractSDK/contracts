@@ -294,9 +294,7 @@ impl<'a> Oracle<'a> {
         source_asset_balances: Vec<(AssetInfo, Uint128)>,
         conversions: Vec<AssetConversion>,
     ) -> AbstractResult<()> {
-        eprintln!(
-            "updating cache with source asset balances: {source_asset_balances:?}"
-        );
+        eprintln!("updating cache with source asset balances: {source_asset_balances:?}");
         for (source_asset, balance) in source_asset_balances {
             // these balances are the equivalent to the source asset, just in a different denomination
             let target_assets_balances = AssetConversion::convert(&conversions, balance);
@@ -528,7 +526,7 @@ mod tests {
 
     pub fn get_ans() -> AnsHost {
         let addr = Addr::unchecked(TEST_ANS_HOST);
-        
+
         AnsHost::new(addr)
     }
 
