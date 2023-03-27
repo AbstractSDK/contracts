@@ -74,14 +74,14 @@ impl<'a, T: SplitterInterface> Splitter<'a, T> {
 The API can then be used by any contract that implements its required traits, in this case the `TransferInterface`.
 
 ```rust,no_run
-  # use abstract_sdk::features::{Identification, AbstractNameService, ModuleIdentification};
+  # use abstract_sdk::features::{AccountIdentification, AbstractNameService, ModuleIdentification};
   # use cosmwasm_std::{StdResult, Deps, MessageInfo, CosmosMsg, Addr};
   # use abstract_sdk::feature_objects::AnsHost;
   # use abstract_sdk::AbstractSdkResult;
   # pub struct MyContract {
   #     
   # }
-  # impl Identification for MyContract {
+  # impl AccountIdentification for MyContract {
   #     fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
   #         Ok(Addr::unchecked("just_an_example"))
   #     }
