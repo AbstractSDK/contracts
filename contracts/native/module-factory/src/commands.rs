@@ -4,12 +4,12 @@ use crate::{
 };
 use abstract_macros::abstract_response;
 use abstract_sdk::{
-    feature_objects::VersionControlContract,
-    interfaces::{
+    core::{
         manager::ExecuteMsg as ManagerMsg,
         objects::{module::ModuleInfo, module_reference::ModuleReference},
         MODULE_FACTORY,
     },
+    feature_objects::VersionControlContract,
     *,
 };
 use cosmwasm_std::{

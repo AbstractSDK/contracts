@@ -4,9 +4,7 @@ use crate::{
     ibc::PACKET_LIFETIME,
 };
 use abstract_sdk::{
-    feature_objects::VersionControlContract,
-    features::AccountIdentification,
-    interfaces::{
+    core::{
         ibc_client::{
             state::{AccountData, ACCOUNTS, ADMIN, ANS_HOST, CHANNELS, CONFIG, LATEST_QUERIES},
             CallbackInfo,
@@ -15,6 +13,8 @@ use abstract_sdk::{
         objects::{ans_host::AnsHost, ChannelEntry},
         ICS20,
     },
+    feature_objects::VersionControlContract,
+    features::AccountIdentification,
     Execution, OsVerification, Resolve,
 };
 use cosmwasm_std::{

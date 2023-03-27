@@ -1,5 +1,5 @@
 use crate::{commands, error::AccountFactoryError, state::*};
-use abstract_sdk::interfaces::{
+use abstract_sdk::core::{
     account_factory::*,
     objects::module_version::{migrate_module_data, set_module_data},
     ACCOUNT_FACTORY,

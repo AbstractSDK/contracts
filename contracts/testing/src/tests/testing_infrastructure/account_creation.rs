@@ -5,15 +5,13 @@ use crate::tests::{
     subscription::register_subscription,
     testing_infrastructure::common_integration::mock_app,
 };
-use abstract_sdk::interfaces::SUBSCRIPTION;
-use abstract_sdk::interfaces::*;
-use abstract_sdk::interfaces::{
+use abstract_sdk::core::SUBSCRIPTION;
+use abstract_sdk::core::*;
+use abstract_sdk::core::{
     app::BaseInstantiateMsg, objects::module::ModuleInfo,
     subscription::InstantiateMsg as SubInitMsg, version_control::Core,
 };
-use abstract_sdk::interfaces::{
-    objects::module::ModuleVersion, version_control::AccountBaseResponse,
-};
+use abstract_sdk::core::{objects::module::ModuleVersion, version_control::AccountBaseResponse};
 use anyhow::Result as AnyResult;
 use cosmwasm_std::Addr;
 use cosmwasm_std::{to_binary, Coin, Decimal, Uint128, Uint64};
@@ -37,8 +35,8 @@ pub fn init_os(
     let _resp = app.execute_contract(
         sender.clone(),
         native_contracts.account_factory.clone(),
-        &abstract_sdk::interfaces::account_factory::ExecuteMsg::CreateOs {
-            governance: abstract_sdk::interfaces::objects::gov_type::GovernanceDetails::Monarchy {
+        &abstract_sdk::core::account_factory::ExecuteMsg::CreateOs {
+            governance: abstract_sdk::core::objects::gov_type::GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
             },
             name: OS_NAME.to_string(),
@@ -80,7 +78,7 @@ pub fn init_primary_os(
     let init_msg = to_binary(&app::InstantiateMsg {
         app: SubInitMsg {
             contribution: Some(
-                abstract_sdk::interfaces::subscription::ContributionInstantiateMsg {
+                abstract_sdk::core::subscription::ContributionInstantiateMsg {
                     protocol_income_share: Decimal::percent(10),
                     emission_user_share: Decimal::percent(25),
                     max_emissions_multiple: Decimal::from_ratio(2u128, 1u128),
@@ -90,7 +88,7 @@ pub fn init_primary_os(
                     income_averaging_period: Uint64::new(100),
                 },
             ),
-            subscription: abstract_sdk::interfaces::subscription::SubscriptionInstantiateMsg {
+            subscription: abstract_sdk::core::subscription::SubscriptionInstantiateMsg {
                 factory_addr: native_contracts.account_factory.to_string(),
                 payment_asset: AssetInfoUnchecked::native("uusd"),
                 subscription_cost_per_block: Decimal::from_str(SUBSCRIPTION_COST).unwrap(),
@@ -115,7 +113,7 @@ pub fn init_primary_os(
         .execute_contract(sender.clone(), core.manager.clone(), &msg, &[])
         .unwrap();
 
-    let msg = abstract_sdk::interfaces::account_factory::ExecuteMsg::UpdateConfig {
+    let msg = abstract_sdk::core::account_factory::ExecuteMsg::UpdateConfig {
         admin: None,
         ans_host_contract: None,
         version_control_contract: None,

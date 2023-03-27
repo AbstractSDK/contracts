@@ -7,7 +7,7 @@ use abstract_sdk::{
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
 
 /// Where we dispatch the queries for the ApiContract
-/// These ApiQueryMsg declarations can be found in `abstract_sdk::interfaces::common_module::app_msg`
+/// These ApiQueryMsg declarations can be found in `abstract_sdk::core::common_module::app_msg`
 impl<
         Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
         CustomInitMsg,

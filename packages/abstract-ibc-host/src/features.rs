@@ -45,7 +45,7 @@ impl<
     fn account_base(
         &self,
         _deps: Deps,
-    ) -> AbstractSdkResult<abstract_sdk::interfaces::version_control::AccountBase> {
+    ) -> AbstractSdkResult<abstract_sdk::core::version_control::AccountBase> {
         Err(AbstractSdkError::generic_err(
             "OS core not available on stateless ibc deployment",
         ))

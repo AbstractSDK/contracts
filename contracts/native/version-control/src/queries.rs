@@ -1,7 +1,7 @@
 use crate::error::VCError;
 use abstract_core::objects::AccountId;
 use abstract_core::version_control::ModuleFilter;
-use abstract_sdk::interfaces::{
+use abstract_sdk::core::{
     objects::{
         module::{Module, ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,

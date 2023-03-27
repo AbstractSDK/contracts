@@ -1,4 +1,4 @@
-use interfaces::objects::module::ModuleId;
+use core::objects::module::ModuleId;
 
 use crate::base::Handler;
 

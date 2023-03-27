@@ -1,6 +1,6 @@
 use crate::{commands, error::ModuleFactoryError, state::*};
 use abstract_core::objects::module_version::migrate_module_data;
-use abstract_sdk::interfaces::{
+use abstract_sdk::core::{
     module_factory::*, objects::module_version::set_module_data, MODULE_FACTORY,
 };
 use cosmwasm_std::{

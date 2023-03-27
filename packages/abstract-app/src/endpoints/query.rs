@@ -30,7 +30,7 @@ impl<
     }
 }
 /// Where we dispatch the queries for the AppContract
-/// These BaseQueryMsg declarations can be found in `abstract_sdk::interfaces::common_module::app_msg`
+/// These BaseQueryMsg declarations can be found in `abstract_sdk::core::common_module::app_msg`
 impl<
         Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
         CustomInitMsg,

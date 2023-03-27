@@ -3,7 +3,7 @@ use abstract_ibc_host::{
     state::{ACCOUNTS, CLIENT_PROXY, PROCESSING_PACKET},
     HostError,
 };
-use abstract_sdk::interfaces::ibc_host::PacketMsg;
+use abstract_sdk::core::ibc_host::PacketMsg;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Reply, Response};
 
 pub fn swap_reply(

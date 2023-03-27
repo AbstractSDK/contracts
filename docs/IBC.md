@@ -18,7 +18,7 @@ on the Account's manager. This ensures that the user/developer is aware of enabl
 # IBC Client
 The IBC client contract is a single contract deployed to the client chain (the chain on which the developer aims to
 deploy his application). The client contract can only be called by an Account proxy. By providing
-an [`abstract_sdk::interfaces::ibc_client:ExecuteMsg::SendPacket`] message the Client contract will resolve the target
+an [`abstract_sdk::core::ibc_client:ExecuteMsg::SendPacket`] message the Client contract will resolve the target
 chain and related IBC channel to send the packet over. An action and optional callback data is also included in the
 message. The optional callback data is used to perform a callback by the client after they received an `Ack::Success`
 for the specific packet.
@@ -45,7 +45,7 @@ This functionality is already provided by the app and api contract implementatio
 > Abstract's packages provide an easy entrypoint to this functionality.
 
 The IBC client receives the mentioned data and constructs an IBC packet that contains the most important data for later
-processing. This data is contained in the [`abstract_sdk::interfaces::ibc_host::PacketMsg`] struct.
+processing. This data is contained in the [`abstract_sdk::core::ibc_host::PacketMsg`] struct.
 
 # IBC Host
 
@@ -53,12 +53,12 @@ The IBC host is a packaged contract that can be used to create a contract that i
 of the chain on which it is deployed. By providing this as as base-implementation we believe adding new chains and their
 functionality should be trivial.
 
-It accepts [`abstract_sdk::interfaces::ibc_host::PacketMsg`] messages over IBC. A custom `packet_handler` function is
+It accepts [`abstract_sdk::core::ibc_host::PacketMsg`] messages over IBC. A custom `packet_handler` function is
 expected to be implemented. By providing the type-information about what specific data is expected,
 any `HostAction::App(Binary)` calls will be deserialized to the expected type. For example, the `osmosis-host` contract
-is defined as `pub type OsmoHost<'a> = Host<'a, abstract_sdk::interfaces::dex::RequestMsg>`. Therefore any packets sent
+is defined as `pub type OsmoHost<'a> = Host<'a, abstract_sdk::core::dex::RequestMsg>`. Therefore any packets sent
 to this host with an `HostAction::App(Binary)` variant will be deserialized to
-a `abstract_sdk::interfaces::dex::RequestMsg` which can then be parsed into the local stargaze messages that are
+a `abstract_sdk::core::dex::RequestMsg` which can then be parsed into the local stargaze messages that are
 required to perform the specified DEX action on the associated proxy contract.
 
 > If a channel to the host is closed, it is added to a `closed_channels` list. Any proxy contracts instantiated under this channel are now locked. The `SendAllBack` action is allowed to be called freely, enabling users to get any funds that were left in the proxy back. 

@@ -6,9 +6,7 @@ use crate::{
 use crate::{validation, versioning};
 use abstract_macros::abstract_response;
 use abstract_sdk::{
-    cw_helpers::cosmwasm_std::wasm_smart_query,
-    feature_objects::VersionControlContract,
-    interfaces::{
+    core::{
         manager::state::DEPENDENTS,
         manager::state::{OsInfo, Subscribed, CONFIG, INFO, OS_MODULES, OWNER, STATUS},
         manager::{CallbackMsg, ExecuteMsg},
@@ -21,6 +19,8 @@ use abstract_sdk::{
         proxy::ExecuteMsg as ProxyMsg,
         IBC_CLIENT, MANAGER, PROXY,
     },
+    cw_helpers::cosmwasm_std::wasm_smart_query,
+    feature_objects::VersionControlContract,
     ModuleRegistryInterface,
 };
 

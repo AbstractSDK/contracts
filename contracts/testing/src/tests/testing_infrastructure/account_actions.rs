@@ -1,6 +1,6 @@
-use abstract_sdk::interfaces::manager as manager_msg;
-use abstract_sdk::interfaces::modules::Module;
-use abstract_sdk::interfaces::version_control::Core;
+use abstract_sdk::core::manager as manager_msg;
+use abstract_sdk::core::modules::Module;
+use abstract_sdk::core::version_control::Core;
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{to_binary, Addr};
 use cw_multi_test::{App, Executor};

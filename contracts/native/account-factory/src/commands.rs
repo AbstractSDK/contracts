@@ -7,8 +7,7 @@ use abstract_core::{
 };
 use abstract_macros::abstract_response;
 use abstract_sdk::{
-    cw_helpers::cosmwasm_std::wasm_smart_query,
-    interfaces::{
+    core::{
         account_factory::ExecuteMsg,
         manager::{ExecuteMsg::UpdateModuleAddresses, InstantiateMsg as ManagerInstantiateMsg},
         objects::{
@@ -17,6 +16,7 @@ use abstract_sdk::{
         proxy::{ExecuteMsg as ProxyExecMsg, InstantiateMsg as ProxyInstantiateMsg},
         version_control::{AccountBase, ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery},
     },
+    cw_helpers::cosmwasm_std::wasm_smart_query,
 };
 use cosmwasm_std::{
     from_binary, to_binary, wasm_execute, Addr, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
@@ -29,7 +29,7 @@ use protobuf::Message;
 pub const CREATE_ACCOUNT_MANAGER_MSG_ID: u64 = 1u64;
 pub const CREATE_ACCOUNT_PROXY_MSG_ID: u64 = 2u64;
 
-use abstract_sdk::interfaces::{MANAGER, PROXY};
+use abstract_sdk::core::{MANAGER, PROXY};
 
 #[abstract_response(ACCOUNT_FACTORY)]
 struct OsFactoryResponse;

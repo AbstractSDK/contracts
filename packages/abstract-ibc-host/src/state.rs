@@ -10,8 +10,8 @@ use abstract_sdk::{
         AbstractContract, ExecuteHandlerFn, InstantiateHandlerFn, QueryHandlerFn, ReceiveHandlerFn,
         ReplyHandlerFn,
     },
+    core::ibc_host::PacketMsg,
     feature_objects::AnsHost,
-    interfaces::ibc_host::PacketMsg,
     namespaces::{ADMIN_NAMESPACE, BASE_STATE},
 };
 use cosmwasm_std::{Addr, Binary, Empty, StdResult, Storage};

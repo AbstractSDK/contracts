@@ -4,7 +4,7 @@ use crate::{
     Host, HostError,
 };
 use abstract_core::objects::AccountId;
-use abstract_sdk::interfaces::abstract_ica::{
+use abstract_sdk::core::abstract_ica::{
     check_order, check_version, IbcQueryResponse, StdAck, WhoAmIResponse, IBC_APP_VERSION,
 };
 use cosmwasm_std::{

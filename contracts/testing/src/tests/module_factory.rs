@@ -6,10 +6,10 @@ use super::{
 };
 use crate::tests::common::RANDOM_USER;
 use crate::tests::testing_infrastructure::env::{exec_msg_on_manager, mint_tokens, token_balance};
-use abstract_sdk::interfaces::modules::Module;
-use abstract_sdk::interfaces::vault as vault_msg;
-use abstract_sdk::interfaces::ETF;
-use abstract_sdk::interfaces::{modules::ModuleInfo, registry::SUBSCRIPTION};
+use abstract_sdk::core::modules::Module;
+use abstract_sdk::core::vault as vault_msg;
+use abstract_sdk::core::ETF;
+use abstract_sdk::core::{modules::ModuleInfo, registry::SUBSCRIPTION};
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{Addr, BlockInfo, Decimal, Uint128, Uint64};
 use cw_controllers::AdminError;
@@ -57,10 +57,10 @@ fn proper_initialization() {
                     name: ETF.into(),
                     version: None,
                 },
-                kind: abstract_sdk::interfaces::modules::ModuleKind::App,
+                kind: abstract_sdk::core::modules::ModuleKind::App,
             },
             Some(vault_msg::InstantiateMsg {
-                base: abstract_sdk::interfaces::app::BaseInstantiateMsg {
+                base: abstract_sdk::core::app::BaseInstantiateMsg {
                     ans_host_address: env.native_contracts.ans_host.to_string(),
                 },
                 deposit_asset: "test".into(),

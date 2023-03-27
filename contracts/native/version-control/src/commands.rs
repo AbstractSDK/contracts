@@ -2,7 +2,7 @@ use crate::contract::{VCResult, ABSTRACT_NAMESPACE};
 use crate::error::VCError;
 use abstract_core::objects::AccountId;
 use abstract_macros::abstract_response;
-use abstract_sdk::interfaces::{
+use abstract_sdk::core::{
     objects::{module::ModuleInfo, module_reference::ModuleReference},
     version_control::{state::*, AccountBase},
     VERSION_CONTROL,

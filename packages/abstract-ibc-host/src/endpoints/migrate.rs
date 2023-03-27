@@ -2,7 +2,7 @@ use crate::{Host, HostError};
 use abstract_core::objects::module_version::{get_module_data, set_module_data};
 use abstract_sdk::{
     base::{Handler, MigrateEndpoint},
-    interfaces::ibc_host::MigrateMsg,
+    core::ibc_host::MigrateMsg,
 };
 use cosmwasm_std::{Response, StdError};
 use cw2::set_contract_version;

@@ -3,8 +3,7 @@ use crate::error::ProxyError;
 use crate::queries::*;
 use abstract_core::objects::{module_version::migrate_module_data, oracle::Oracle};
 use abstract_sdk::{
-    feature_objects::AnsHost,
-    interfaces::{
+    core::{
         objects::{core::ACCOUNT_ID, module_version::set_module_data},
         proxy::{
             state::{State, ADMIN, ANS_HOST, STATE},
@@ -12,6 +11,7 @@ use abstract_sdk::{
         },
         PROXY,
     },
+    feature_objects::AnsHost,
 };
 use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response};
 use cw2::{get_contract_version, set_contract_version};

@@ -2,9 +2,9 @@
 //! The Bank object handles asset transfers to and from the Account.
 
 use crate::{ans_resolve::Resolve, features::AbstractNameService, AbstractSdkResult, Execution};
+use core::objects::{AnsAsset, AssetEntry};
 use cosmwasm_std::{Addr, BankMsg, Coin, CosmosMsg, Deps};
 use cw_asset::Asset;
-use interfaces::objects::{AnsAsset, AssetEntry};
 
 /// Query and Transfer assets from and to the Abstract Account.
 pub trait TransferInterface: AbstractNameService + Execution {
@@ -175,7 +175,7 @@ mod test {
 
     mod transfer_coins {
         use super::*;
-        use interfaces::proxy::ExecuteMsg::ModuleAction;
+        use core::proxy::ExecuteMsg::ModuleAction;
 
         #[test]
         fn transfer_asset_to_sender() {

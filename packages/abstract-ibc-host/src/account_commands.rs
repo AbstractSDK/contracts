@@ -3,12 +3,12 @@ use crate::{
     HostError,
 };
 use abstract_sdk::{
-    features::AbstractNameService,
-    interfaces::{
+    core::{
         abstract_ica::{BalancesResponse, DispatchResponse, SendAllBackResponse, StdAck},
         objects::ChannelEntry,
         ICS20,
     },
+    features::AbstractNameService,
 };
 use cosmwasm_std::{
     wasm_execute, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg, IbcReceiveResponse, SubMsg,

@@ -10,8 +10,8 @@ use crate::{
 };
 pub use abstract_core::objects::ans_host::AnsHost;
 use abstract_core::version_control::AccountBase;
+use core::PROXY;
 use cosmwasm_std::{Addr, Deps};
-use interfaces::PROXY;
 
 /// Store the Version Control contract.
 /// Implements [`AbstractRegistryAccess`]

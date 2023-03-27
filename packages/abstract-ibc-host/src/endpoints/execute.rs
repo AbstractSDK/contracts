@@ -5,7 +5,7 @@ use crate::{
 };
 use abstract_sdk::{
     base::{ExecuteEndpoint, Handler},
-    interfaces::ibc_host::{BaseExecuteMsg, ExecuteMsg, HostAction, InternalAction, PacketMsg},
+    core::ibc_host::{BaseExecuteMsg, ExecuteMsg, HostAction, InternalAction, PacketMsg},
     Execution,
 };
 use cosmwasm_std::{

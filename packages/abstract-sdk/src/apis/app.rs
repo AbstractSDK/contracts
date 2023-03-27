@@ -91,7 +91,7 @@ mod tests {
 
     mod app_request {
         use crate::mock_module::MockModuleExecuteMsg;
-        use interfaces::app;
+        use core::app;
 
         use super::*;
 
@@ -130,7 +130,7 @@ mod tests {
     }
 
     mod app_configure {
-        use interfaces::app;
+        use core::app;
 
         use super::*;
 

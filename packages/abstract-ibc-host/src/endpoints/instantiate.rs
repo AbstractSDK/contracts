@@ -5,8 +5,8 @@ use crate::{
 use abstract_core::objects::module_version::set_module_data;
 use abstract_sdk::{
     base::{Handler, InstantiateEndpoint},
+    core::ibc_host::InstantiateMsg,
     feature_objects::AnsHost,
-    interfaces::ibc_host::InstantiateMsg,
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;

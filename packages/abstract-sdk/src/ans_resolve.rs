@@ -2,12 +2,12 @@
 //! An entry (value) in the ans_host key-value store.
 
 use crate::AbstractSdkResult;
-use cosmwasm_std::{Addr, QuerierWrapper};
-use cw_asset::{Asset, AssetInfo};
-use interfaces::objects::{
+use core::objects::{
     ans_host::AnsHost, pool_metadata::ResolvedPoolMetadata, AnsAsset, AssetEntry, ChannelEntry,
     ContractEntry, DexAssetPairing, LpToken, PoolMetadata, PoolReference, UniquePoolId,
 };
+use cosmwasm_std::{Addr, QuerierWrapper};
+use cw_asset::{Asset, AssetInfo};
 
 /// Resolve an [`AbstractNameService`](crate::features::AbstractNameService) entry into its value.
 pub trait Resolve {
@@ -364,7 +364,7 @@ mod tests {
     mod pool_metadata {
         use super::*;
 
-        use interfaces::objects::PoolType;
+        use core::objects::PoolType;
 
         #[test]
         fn exists() {
@@ -421,7 +421,7 @@ mod tests {
     mod pools {
         use super::*;
         use abstract_core::ans_host::state::{ASSET_PAIRINGS, POOL_METADATA};
-        use interfaces::objects::{PoolAddress, PoolType};
+        use core::objects::{PoolAddress, PoolType};
 
         #[test]
         fn exists() {
@@ -472,7 +472,7 @@ mod tests {
 
     mod contract_entry {
         use super::*;
-        use interfaces::ans_host::state::CONTRACT_ADDRESSES;
+        use core::ans_host::state::CONTRACT_ADDRESSES;
 
         #[test]
         fn exists() {
@@ -545,7 +545,7 @@ mod tests {
 
     mod channel_entry {
         use super::*;
-        use interfaces::ans_host::state::CHANNELS;
+        use core::ans_host::state::CHANNELS;
 
         #[test]
         fn exists() {
@@ -581,7 +581,7 @@ mod tests {
 
     mod asset_info_and_asset {
         use super::*;
-        use interfaces::ans_host::state::REV_ASSET_ADDRESSES;
+        use core::ans_host::state::REV_ASSET_ADDRESSES;
 
         #[test]
         fn exists() {

@@ -1,4 +1,4 @@
-use abstract_sdk::interfaces::{
+use abstract_sdk::core::{
     objects::{module::ModuleInfo, module_reference::ModuleReference},
     version_control as VCMsg,
 };
