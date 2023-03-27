@@ -26,6 +26,8 @@ pub mod state {
 
     // We can iterate over the map giving just the prefix to get all the versions
     pub const MODULE_LIBRARY: Map<&ModuleInfo, ModuleReference> = Map::new("module_lib");
+    // Yanked Modules
+    pub const YANKED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("yanked_modules");
     /// Maps Account ID to the address of its core contracts
     pub const ACCOUNT_ADDRESSES: Map<AccountId, AccountBase> = Map::new("account");
 }
@@ -52,7 +54,7 @@ pub struct InstantiateMsg {}
 #[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
 pub enum ExecuteMsg {
     /// Remove some version of a module
-    RemoveModule { module: ModuleInfo },
+    RemoveModule { module: ModuleInfo, yank: bool },
     /// Add new modules
     AddModules { modules: Vec<ModuleMapEntry> },
     /// Register a new Account to the deployed Accounts.  
@@ -97,6 +99,7 @@ pub enum QueryMsg {
         filter: Option<ModuleFilter>,
         start_after: Option<ModuleInfo>,
         limit: Option<u8>,
+        yank: bool,
     },
 }
 
