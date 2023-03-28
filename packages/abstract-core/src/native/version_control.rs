@@ -61,7 +61,7 @@ pub enum ExecuteMsg {
     /// Only Factory can call this
     AddAccount {
         account_id: AccountId,
-        base: AccountBase,
+        account_base: AccountBase,
     },
     /// Sets a new Admin
     SetAdmin { new_admin: String },
@@ -105,7 +105,7 @@ pub enum QueryMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub struct AccountBaseResponse {
-    pub account: AccountBase,
+    pub account_base: AccountBase,
 }
 
 #[cosmwasm_schema::cw_serde]
