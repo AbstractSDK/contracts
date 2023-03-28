@@ -31,7 +31,7 @@ pub mod state {
     /// Maps Account ID to the address of its core contracts
     pub const ACCOUNT_ADDRESSES: Map<AccountId, AccountBase> = Map::new("account");
     /// Maps OS ID to the namespaces
-    pub const OS_NAMESPACES: Map<&Namespace, OsId> = Map::new("os_namespace");
+    pub const OS_NAMESPACES: Map<&Namespace, AccountId> = Map::new("os_namespace");
 }
 
 use crate::objects::{
@@ -62,7 +62,7 @@ pub enum ExecuteMsg {
     AddModules { modules: Vec<ModuleMapEntry> },
     /// Claim namespaces
     ClaimNamespaces {
-        os_id: OsId,
+        account_id: AccountId,
         namespaces: Vec<String>,
     },
     /// Remove namespace claims
@@ -115,7 +115,7 @@ pub enum QueryMsg {
     /// Returns [`NamespaceListResponse`]
     #[returns(NamespaceListResponse)]
     NamespaceList {
-        filter: Option<OsId>,
+        filter: Option<AccountId>,
         start_after: Option<String>,
         limit: Option<u8>,
     },
@@ -138,7 +138,7 @@ pub struct ModulesListResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct NamespaceListResponse {
-    pub namespaces: Vec<(Namespace, OsId)>,
+    pub namespaces: Vec<(Namespace, AccountId)>,
 }
 
 #[cosmwasm_schema::cw_serde]

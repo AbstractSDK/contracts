@@ -1,12 +1,11 @@
 use crate::contract::{VCResult, ABSTRACT_NAMESPACE};
 use crate::error::VCError;
-use abstract_core::objects::AccountId;
 use abstract_macros::abstract_response;
-use abstract_os::manager::{ConfigResponse as ManagerConfigResponse, QueryMsg as ManagerQueryMsg};
-use abstract_os::objects::namespace::Namespace;
-use abstract_os::objects::OsId;
 use abstract_sdk::core::{
-    objects::{module::ModuleInfo, module_reference::ModuleReference},
+    manager::{ConfigResponse as ManagerConfigResponse, QueryMsg as ManagerQueryMsg},
+    objects::{
+        module::ModuleInfo, module_reference::ModuleReference, namespace::Namespace, AccountId,
+    },
     version_control::{state::*, AccountBase},
     VERSION_CONTROL,
 };
@@ -61,8 +60,8 @@ pub fn add_modules(
         } else {
             // Only root user can add modules
             let namespace = Namespace::from(module.provider.clone());
-            if let Some(os_id) = OS_NAMESPACES.may_load(deps.storage, &namespace)? {
-                let os_core = OS_ADDRESSES.load(deps.storage, os_id)?;
+            if let Some(account_id) = OS_NAMESPACES.may_load(deps.storage, &namespace)? {
+                let os_core = ACCOUNT_ADDRESSES.load(deps.storage, account_id)?;
                 let root_user = query_manager_root_user(&deps.querier, &os_core.manager)?;
                 if msg_info.sender != root_user {
                     return Err(VCError::RootUserMistmatch {
@@ -115,11 +114,11 @@ pub fn remove_module(
 pub fn claim_namespaces(
     deps: DepsMut,
     msg_info: MessageInfo,
-    os_id: OsId,
+    account_id: AccountId,
     namespaces: Vec<String>,
 ) -> VCResult {
     // verify root user of OS
-    let os_core = OS_ADDRESSES.load(deps.storage, os_id)?;
+    let os_core = ACCOUNT_ADDRESSES.load(deps.storage, account_id)?;
     let root_user = query_manager_root_user(&deps.querier, &os_core.manager)?;
     if msg_info.sender != root_user {
         return Err(VCError::RootUserMistmatch {
@@ -139,7 +138,7 @@ pub fn claim_namespaces(
                 id,
             });
         }
-        OS_NAMESPACES.save(deps.storage, &item, &os_id)?;
+        OS_NAMESPACES.save(deps.storage, &item, &account_id)?;
         all_namespaces.push(',');
         all_namespaces.push_str(namespace);
     }
@@ -163,9 +162,9 @@ pub fn remove_namespaces(
     for namespace in namespaces.iter() {
         let item = Namespace::from(namespace);
         // skip if namespace not exists
-        if let Some(os_id) = OS_NAMESPACES.may_load(deps.storage, &item)? {
+        if let Some(account_id) = OS_NAMESPACES.may_load(deps.storage, &item)? {
             // verify remove permission
-            let os_core = OS_ADDRESSES.load(deps.storage, os_id)?;
+            let os_core = ACCOUNT_ADDRESSES.load(deps.storage, account_id)?;
             let root_user = query_manager_root_user(&deps.querier, &os_core.manager)?;
             if !is_admin && msg_info.sender != root_user {
                 return Err(VCError::RootUserMistmatch {
@@ -209,7 +208,7 @@ pub fn query_manager_root_user(
             contract_addr: contract_addr.into(),
             msg: to_binary(&ManagerQueryMsg::Config {})?,
         }))
-        .map_or_else(|_| "".to_string(), |v: ManagerConfigResponse| v.root);
+        .map_or_else(|_| "".to_string(), |v: ManagerConfigResponse| v.owner);
     Ok(root_user)
 }
 

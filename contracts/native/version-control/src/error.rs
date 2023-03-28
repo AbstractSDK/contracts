@@ -39,7 +39,7 @@ pub enum VCError {
     RootUserMistmatch { sender: String, root: String },
 
     #[error("Namespace {} is already occupied by {}", namespace, id)]
-    NamespaceOccupied { namespace: String, id: OsId },
+    NamespaceOccupied { namespace: String, id: AccountId },
 }
 impl From<cw_semver::Error> for VCError {
     fn from(err: cw_semver::Error) -> Self {

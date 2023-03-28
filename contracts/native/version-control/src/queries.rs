@@ -1,17 +1,15 @@
 use crate::error::VCError;
-use abstract_core::objects::AccountId;
-use abstract_core::version_control::ModuleFilter;
-use abstract_os::objects::{namespace::Namespace, OsId};
-use abstract_os::version_control::state::OS_NAMESPACES;
-use abstract_os::version_control::{ModuleFilter, NamespaceListResponse};
 use abstract_sdk::core::{
     objects::{
         module::{Module, ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
+        namespace::Namespace,
+        AccountId,
     },
     version_control::{
-        state::ACCOUNT_ADDRESSES, state::MODULE_LIBRARY, state::YANKED_MODULES,
-        AccountBaseResponse, ModulesListResponse, ModulesResponse,
+        state::{ACCOUNT_ADDRESSES, MODULE_LIBRARY, OS_NAMESPACES, YANKED_MODULES},
+        AccountBaseResponse, ModuleFilter, ModulesListResponse, ModulesResponse,
+        NamespaceListResponse,
     },
 };
 use cosmwasm_std::{to_binary, Binary, Deps, Order, StdError, StdResult};
@@ -131,21 +129,21 @@ pub fn handle_namespace_list_query(
     deps: Deps,
     start_after: Option<String>,
     limit: Option<u8>,
-    filter: Option<OsId>,
+    filter: Option<AccountId>,
 ) -> StdResult<Binary> {
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
     let namespace = start_after.map(Namespace::from);
     let start_bound = namespace.as_ref().map(Bound::exclusive);
 
-    let mut namespaces: Vec<(Namespace, OsId)> = vec![];
+    let mut namespaces: Vec<(Namespace, AccountId)> = vec![];
 
-    if let Some(os_id) = filter {
+    if let Some(account_id) = filter {
         namespaces.extend(
             OS_NAMESPACES
                 .range(deps.storage, start_bound, None, Order::Ascending)
                 .collect::<StdResult<Vec<_>>>()?
                 .into_iter()
-                .filter(|v| v.1 == os_id)
+                .filter(|v| v.1 == account_id)
                 .take(limit),
         );
     } else {
