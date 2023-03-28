@@ -90,8 +90,8 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             filter,
             start_after,
             limit,
-            yank,
-        } => queries::handle_module_list_query(deps, start_after, limit, filter, yank),
+            yanked,
+        } => queries::handle_module_list_query(deps, start_after, limit, filter, yanked),
     }
 }
 

@@ -71,11 +71,11 @@ pub fn handle_module_list_query(
     start_after: Option<ModuleInfo>,
     limit: Option<u8>,
     filter: Option<ModuleFilter>,
-    yank: bool,
+    yanked: bool,
 ) -> StdResult<Binary> {
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
 
-    let mod_lib = if yank {
+    let mod_lib = if yanked {
         &YANKED_MODULES
     } else {
         &MODULE_LIBRARY
@@ -95,7 +95,7 @@ pub fn handle_module_list_query(
             limit,
             provider_filter,
             name_filter,
-            yank,
+            yanked,
         )?);
     } else {
         let start_bound: Option<Bound<&ModuleInfo>> = start_after.as_ref().map(Bound::exclusive);
@@ -131,9 +131,9 @@ fn filter_modules_by_provider(
     limit: usize,
     provider: &str,
     name: &Option<String>,
-    yank: bool,
+    yanked: bool,
 ) -> StdResult<Vec<(ModuleInfo, ModuleReference)>> {
-    let mod_lib = if yank {
+    let mod_lib = if yanked {
         &YANKED_MODULES
     } else {
         &MODULE_LIBRARY
@@ -333,7 +333,7 @@ mod test {
         assert_that!(&res).is_ok();
     }
 
-    /// Add the provided modules to the version control
+    /// Yank the provided module in the version control
     fn yank_module(deps: DepsMut, module_info: ModuleInfo) {
         let yank_msg = ExecuteMsg::RemoveModule {
             module: module_info,
@@ -431,7 +431,7 @@ mod test {
                 filter: Some(filter),
                 start_after: None,
                 limit: None,
-                yank: false,
+                yanked: false,
             }
         }
 
@@ -496,7 +496,7 @@ mod test {
                 filter: Some(filter),
                 start_after: None,
                 limit: None,
-                yank: true,
+                yanked: true,
             };
 
             let res = query_helper(deps.as_ref(), list_msg);

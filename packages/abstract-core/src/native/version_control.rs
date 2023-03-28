@@ -99,7 +99,7 @@ pub enum QueryMsg {
         filter: Option<ModuleFilter>,
         start_after: Option<ModuleInfo>,
         limit: Option<u8>,
-        yank: bool,
+        yanked: bool,
     },
 }
 
