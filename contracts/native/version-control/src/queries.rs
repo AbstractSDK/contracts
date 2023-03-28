@@ -7,8 +7,8 @@ use abstract_sdk::core::{
         module_reference::ModuleReference,
     },
     version_control::{
-        state::MODULE_LIBRARY, state::OS_ADDRESSES, state::YANKED_MODULES, AccountBaseResponse,
-        ModulesListResponse, ModulesResponse, OsCoreResponse,
+        state::ACCOUNT_ADDRESSES, state::MODULE_LIBRARY, state::YANKED_MODULES,
+        AccountBaseResponse, ModulesListResponse, ModulesResponse,
     },
 };
 use cosmwasm_std::{to_binary, Binary, Deps, Order, StdError, StdResult};
