@@ -26,6 +26,7 @@ pub fn fix_versions() -> anyhow::Result<()> {
     let deployment = Abstract::new(chain, abstract_version);
 
     let ModulesListResponse { modules } = deployment.version_control.module_list(
+        false,
         Some(ModuleFilter {
             provider: Some(PROVIDER.to_string()),
             version: Some(WRONG_VERSION.to_string()),
@@ -42,7 +43,7 @@ pub fn fix_versions() -> anyhow::Result<()> {
             provider,
         } = info.clone();
         if version.to_string() == *WRONG_VERSION && provider == *PROVIDER {
-            deployment.version_control.remove_module(info)?;
+            deployment.version_control.remove_module(info, false)?;
             deployment.version_control.add_modules(vec![(
                 ModuleInfo {
                     name,

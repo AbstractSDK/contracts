@@ -7,8 +7,8 @@ use abstract_sdk::core::{
         module_reference::ModuleReference,
     },
     version_control::{
-        state::ACCOUNT_ADDRESSES, state::MODULE_LIBRARY, AccountBaseResponse, ModulesListResponse,
-        ModulesResponse,
+        state::ACCOUNT_ADDRESSES, state::MODULE_LIBRARY, state::YANKED_MODULES,
+        AccountBaseResponse, ModulesListResponse, ModulesResponse,
     },
 };
 use cosmwasm_std::{to_binary, Binary, Deps, Order, StdError, StdResult};
@@ -71,9 +71,15 @@ pub fn handle_module_list_query(
     start_after: Option<ModuleInfo>,
     limit: Option<u8>,
     filter: Option<ModuleFilter>,
+    yanked: bool,
 ) -> StdResult<Binary> {
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
 
+    let mod_lib = if yanked {
+        &YANKED_MODULES
+    } else {
+        &MODULE_LIBRARY
+    };
     let mut modules: Vec<(ModuleInfo, ModuleReference)> = vec![];
 
     let ModuleFilter {
@@ -89,13 +95,14 @@ pub fn handle_module_list_query(
             limit,
             provider_filter,
             name_filter,
+            yanked,
         )?);
     } else {
         let start_bound: Option<Bound<&ModuleInfo>> = start_after.as_ref().map(Bound::exclusive);
 
         // Load all modules
         modules.extend(
-            MODULE_LIBRARY
+            mod_lib
                 .range(deps.storage, start_bound, None, Order::Ascending)
                 .take(limit)
                 .collect::<StdResult<Vec<_>>>()?
@@ -124,7 +131,13 @@ fn filter_modules_by_provider(
     limit: usize,
     provider: &str,
     name: &Option<String>,
+    yanked: bool,
 ) -> StdResult<Vec<(ModuleInfo, ModuleReference)>> {
+    let mod_lib = if yanked {
+        &YANKED_MODULES
+    } else {
+        &MODULE_LIBRARY
+    };
     let mut modules: Vec<(ModuleInfo, ModuleReference)> = vec![];
 
     // Filter by name using full prefix
@@ -133,7 +146,7 @@ fn filter_modules_by_provider(
             start_after.map(|token| Bound::exclusive(token.provider));
 
         modules.extend(
-            MODULE_LIBRARY
+            mod_lib
                 .prefix((provider.to_owned(), name.clone()))
                 .range(deps.storage, start_bound, None, Order::Ascending)
                 .take(limit)
@@ -156,7 +169,7 @@ fn filter_modules_by_provider(
             start_after.map(|token| Bound::exclusive((token.provider, token.name)));
 
         modules.extend(
-            MODULE_LIBRARY
+            mod_lib
                 .sub_prefix(provider.to_owned())
                 .range(deps.storage, start_bound, None, Order::Ascending)
                 .take(limit)
@@ -320,6 +333,16 @@ mod test {
         assert_that!(&res).is_ok();
     }
 
+    /// Yank the provided module in the version control
+    fn yank_module(deps: DepsMut, module_info: ModuleInfo) {
+        let yank_msg = ExecuteMsg::RemoveModule {
+            module: module_info,
+            yank: true,
+        };
+        let res = execute_as_admin(deps, yank_msg);
+        assert_that!(&res).is_ok();
+    }
+
     /// Init verison control with some test modules.
     fn init_with_mods(mut deps: DepsMut) {
         mock_init(deps.branch()).unwrap();
@@ -408,6 +431,7 @@ mod test {
                 filter: Some(filter),
                 start_after: None,
                 limit: None,
+                yanked: false,
             }
         }
 
@@ -429,6 +453,57 @@ mod test {
             assert_that!(res).is_ok().map(|res| {
                 let ModulesListResponse { modules } = from_binary(res).unwrap();
                 assert_that!(modules).has_length(3);
+
+                for entry in modules {
+                    assert_that!(entry.info.provider).is_equal_to(filtered_provider.clone());
+                }
+
+                res
+            });
+        }
+
+        #[test]
+        fn filter_yanked_by_provider_existing() {
+            let mut deps = mock_dependencies();
+
+            init_with_mods(deps.as_mut());
+
+            let cw_mods = vec![
+                ModuleInfo::from_id("cw-plus:module4", ModuleVersion::Version("0.1.2".into()))
+                    .unwrap(),
+                ModuleInfo::from_id("cw-plus:module5", ModuleVersion::Version("0.1.2".into()))
+                    .unwrap(),
+            ];
+            add_modules(deps.as_mut(), cw_mods);
+            yank_module(
+                deps.as_mut(),
+                ModuleInfo::from_id("cw-plus:module4", ModuleVersion::Version("0.1.2".into()))
+                    .unwrap(),
+            );
+            yank_module(
+                deps.as_mut(),
+                ModuleInfo::from_id("cw-plus:module5", ModuleVersion::Version("0.1.2".into()))
+                    .unwrap(),
+            );
+
+            let filtered_provider = "cw-plus".to_string();
+
+            let filter = ModuleFilter {
+                provider: Some(filtered_provider.clone()),
+                ..Default::default()
+            };
+            let list_msg = QueryMsg::ModuleList {
+                filter: Some(filter),
+                start_after: None,
+                limit: None,
+                yanked: true,
+            };
+
+            let res = query_helper(deps.as_ref(), list_msg);
+
+            assert_that!(res).is_ok().map(|res| {
+                let ModulesListResponse { modules } = from_binary(res).unwrap();
+                assert_that!(modules).has_length(2);
 
                 for entry in modules {
                     assert_that!(entry.info.provider).is_equal_to(filtered_provider.clone());

@@ -24,8 +24,9 @@ pub fn fix_names() -> anyhow::Result<()> {
 
     let deployment = Abstract::new(chain, abstract_version);
 
-    let ModulesListResponse { modules } =
-        deployment.version_control.module_list(None, None, None)?;
+    let ModulesListResponse { modules } = deployment
+        .version_control
+        .module_list(false, None, None, None)?;
 
     for Module { info, reference } in modules {
         let ModuleInfo {
@@ -34,7 +35,7 @@ pub fn fix_names() -> anyhow::Result<()> {
             provider,
         } = info.clone();
         if provider == PROVIDER && name.to_string().contains('_') {
-            deployment.version_control.remove_module(info)?;
+            deployment.version_control.remove_module(info, false)?;
             deployment.version_control.add_modules(vec![(
                 ModuleInfo {
                     name: name.replace('_', "-"),

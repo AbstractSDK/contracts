@@ -41,7 +41,7 @@ pub fn add_modules(
     modules: Vec<(ModuleInfo, ModuleReference)>,
 ) -> VCResult {
     for (module, mod_ref) in modules {
-        if MODULE_LIBRARY.has(deps.storage, &module) {
+        if MODULE_LIBRARY.has(deps.storage, &module) || YANKED_MODULES.has(deps.storage, &module) {
             return Err(VCError::NotUpdateableModule(module));
         }
         module.validate()?;
@@ -60,11 +60,19 @@ pub fn add_modules(
 }
 
 /// Remove a module
-pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -> VCResult {
+pub fn remove_module(
+    deps: DepsMut,
+    msg_info: MessageInfo,
+    module: ModuleInfo,
+    yank: bool,
+) -> VCResult {
     // Only Admin can update code-ids
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
     module.assert_version_variant()?;
-    if MODULE_LIBRARY.has(deps.storage, &module) {
+    if let Some(mod_ref) = MODULE_LIBRARY.may_load(deps.storage, &module)? {
+        if yank {
+            YANKED_MODULES.save(deps.storage, &module, &mod_ref)?;
+        }
         MODULE_LIBRARY.remove(deps.storage, &module);
     } else {
         return Err(VCError::ModuleNotFound(module));
@@ -72,7 +80,10 @@ pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -
 
     Ok(VcResponse::new(
         "remove_module",
-        vec![("module", &module.to_string())],
+        vec![
+            ("module", &module.to_string()),
+            ("yank", &(if yank { "yes" } else { "no" }).to_string()),
+        ],
     ))
 }
 
@@ -252,6 +263,7 @@ mod test {
             // then remove
             let msg = ExecuteMsg::RemoveModule {
                 module: rm_module.clone(),
+                yank: false,
             };
             // as other
             let res = execute_as(deps.as_mut(), TEST_OTHER, msg.clone());
@@ -263,6 +275,40 @@ mod test {
 
             let module = MODULE_LIBRARY.load(&deps.storage, &rm_module);
             assert_that!(&module).is_err();
+            Ok(())
+        }
+
+        #[test]
+        fn yank_module() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+            let rm_module = test_module();
+
+            // first add module
+            let msg = ExecuteMsg::AddModules {
+                modules: vec![(rm_module.clone(), ModuleReference::App(0))],
+            };
+            execute_as(deps.as_mut(), TEST_OTHER, msg)?;
+            let module = MODULE_LIBRARY.load(&deps.storage, &rm_module)?;
+            assert_that!(&module).is_equal_to(&ModuleReference::App(0));
+
+            // then remove
+            let msg = ExecuteMsg::RemoveModule {
+                module: rm_module.clone(),
+                yank: true,
+            };
+            // as other
+            let res = execute_as(deps.as_mut(), TEST_OTHER, msg.clone());
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
+
+            execute_as_admin(deps.as_mut(), msg)?;
+
+            let module = MODULE_LIBRARY.load(&deps.storage, &rm_module);
+            assert_that!(&module).is_err();
+            let module = YANKED_MODULES.load(&deps.storage, &rm_module)?;
+            assert_that!(&module).is_equal_to(&ModuleReference::App(0));
             Ok(())
         }
 

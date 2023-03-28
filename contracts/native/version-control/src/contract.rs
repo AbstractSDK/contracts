@@ -63,7 +63,7 @@ pub fn instantiate(
 pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> VCResult {
     match msg {
         ExecuteMsg::AddModules { modules } => add_modules(deps, info, modules),
-        ExecuteMsg::RemoveModule { module } => remove_module(deps, info, module),
+        ExecuteMsg::RemoveModule { module, yank } => remove_module(deps, info, module, yank),
         ExecuteMsg::AddAccount {
             account_id,
             account_base: base,
@@ -89,7 +89,8 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             filter,
             start_after,
             limit,
-        } => queries::handle_module_list_query(deps, start_after, limit, filter),
+            yanked,
+        } => queries::handle_module_list_query(deps, start_after, limit, filter, yanked),
     }
 }
 
