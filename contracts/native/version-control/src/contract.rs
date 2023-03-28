@@ -96,10 +96,9 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             yanked,
         } => queries::handle_module_list_query(deps, start_after, limit, filter, yanked),
         QueryMsg::NamespaceList {
-            filter,
             start_after,
             limit,
-        } => queries::handle_namespace_list_query(deps, start_after, limit, filter),
+        } => queries::handle_namespace_list_query(deps, start_after, limit),
     }
 }
 

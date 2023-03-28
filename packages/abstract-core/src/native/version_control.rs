@@ -115,7 +115,6 @@ pub enum QueryMsg {
     /// Returns [`NamespaceListResponse`]
     #[returns(NamespaceListResponse)]
     NamespaceList {
-        filter: Option<AccountId>,
         start_after: Option<String>,
         limit: Option<u8>,
     },
