@@ -84,7 +84,7 @@ mod test {
 
     #[test]
     fn test_namespace() {
-        let mut namespace = Namespace::new("test");
+        let namespace = Namespace::new("test");
         assert_that!(namespace.as_str()).is_equal_to("test");
     }
 

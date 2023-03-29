@@ -209,10 +209,12 @@ fn filter_modules_by_provider(
 
 #[cfg(test)]
 mod test {
+    use abstract_testing::MockQuerierBuilder;
+    use abstract_testing::prelude::{TEST_VERSION_CONTROL, TEST_MODULE_FACTORY, TEST_ACCOUNT_ID, TEST_ACCOUNT_FACTORY};
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-    use cosmwasm_std::{DepsMut, StdError};
+    use cosmwasm_std::{Addr, DepsMut, StdError, Uint64};
 
-    use abstract_core::version_control::*;
+    use abstract_core::{version_control::*, manager};
 
     use crate::contract;
     use crate::contract::VCResult;
@@ -223,11 +225,51 @@ mod test {
     type VersionControlTestResult = Result<(), VCError>;
 
     const TEST_ADMIN: &str = "testadmin";
+    const TEST_PROXY_ADDR: &str = "proxy";
+    const TEST_MANAGER_ADDR: &str = "manager";
 
-    /// Initialize the version_control with admin as creator and factory
-    fn mock_init(mut deps: DepsMut) -> VCResult {
+    pub fn mock_manager_querier() -> MockQuerierBuilder {
+        MockQuerierBuilder::default().with_smart_handler(TEST_MANAGER_ADDR, |msg| {
+            match from_binary(msg).unwrap() {
+                manager::QueryMsg::Config {} => {
+                    let resp = manager::ConfigResponse {
+                        owner: TEST_ADMIN.to_owned(),
+                        version_control_address: TEST_VERSION_CONTROL.to_owned(),
+                        module_factory_address: TEST_MODULE_FACTORY.to_owned(),
+                        account_id: Uint64::from(TEST_ACCOUNT_ID), // mock value, not used
+                    };
+                    Ok(to_binary(&resp).unwrap())
+                }
+                _ => panic!("unexpected message"),
+            }
+        })
+    }
+
+    /// Initialize the version_control with admin as creator and test account
+    fn mock_init_with_account(mut deps: DepsMut) -> VCResult {
         let info = mock_info(TEST_ADMIN, &[]);
-        contract::instantiate(deps.branch(), mock_env(), info, InstantiateMsg {})
+        contract::instantiate(deps.branch(), mock_env(), info, InstantiateMsg {})?;
+        execute_as_admin(
+            deps.branch(),
+            ExecuteMsg::SetFactory {
+                new_factory: TEST_ACCOUNT_FACTORY.to_string(),
+            },
+        )?;
+        execute_as(
+            deps.branch(),
+            TEST_ACCOUNT_FACTORY,
+            ExecuteMsg::AddAccount {
+                account_id: TEST_ACCOUNT_ID,
+                account_base: AccountBase {
+                    manager: Addr::unchecked(TEST_MANAGER_ADDR),
+                    proxy: Addr::unchecked(TEST_PROXY_ADDR),
+                },
+            },
+        )
+    }
+
+    fn execute_as(deps: DepsMut, sender: &str, msg: ExecuteMsg) -> VCResult {
+        contract::execute(deps, mock_env(), mock_info(sender, &[]), msg)
     }
 
     fn execute_as_admin(deps: DepsMut, msg: ExecuteMsg) -> VCResult {
@@ -244,6 +286,16 @@ mod test {
 
         use cosmwasm_std::from_binary;
 
+        fn add_namespace(deps: DepsMut, namespace: &str) {
+            let msg = ExecuteMsg::ClaimNamespaces {
+                account_id: TEST_ACCOUNT_ID,
+                namespaces: vec![namespace.to_string()],
+            };
+
+            let res = execute_as_admin(deps, msg);
+            assert_that!(&res).is_ok();
+        }
+
         fn add_module(deps: DepsMut, new_module_info: ModuleInfo) {
             let add_msg = ExecuteMsg::AddModules {
                 modules: vec![(new_module_info, ModuleReference::App(0))],
@@ -256,12 +308,14 @@ mod test {
         #[test]
         fn get_module() -> VersionControlTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            deps.querier = mock_manager_querier().build();
+            mock_init_with_account(deps.as_mut())?;
             let new_module_info =
                 ModuleInfo::from_id("test:module", ModuleVersion::Version("0.1.2".into())).unwrap();
 
             let ModuleInfo { name, provider, .. } = new_module_info.clone();
 
+            add_namespace(deps.as_mut(), "test");
             add_module(deps.as_mut(), new_module_info.clone());
 
             let query_msg = QueryMsg::Modules {
@@ -281,12 +335,14 @@ mod test {
         #[test]
         fn none_when_no_matching_version() -> VersionControlTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            deps.querier = mock_manager_querier().build();
+            mock_init_with_account(deps.as_mut())?;
             let new_module_info =
                 ModuleInfo::from_id("test:module", ModuleVersion::Version("0.1.2".into())).unwrap();
 
             let ModuleInfo { name, provider, .. } = new_module_info.clone();
 
+            add_namespace(deps.as_mut(), "test");
             add_module(deps.as_mut(), new_module_info);
 
             let query_msg = QueryMsg::Modules {
@@ -307,7 +363,10 @@ mod test {
         #[test]
         fn get_latest_when_multiple_registered() -> VersionControlTestResult {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
+            deps.querier = mock_manager_querier().build();
+            mock_init_with_account(deps.as_mut())?;
+
+            add_namespace(deps.as_mut(), "test");
 
             let module_id = "test:module";
             let oldest_version =
@@ -339,6 +398,17 @@ mod test {
 
     use cosmwasm_std::from_binary;
 
+    /// Add namespaces
+    fn add_namespaces(deps: DepsMut, namespaces: Vec<String>) {
+        let msg = ExecuteMsg::ClaimNamespaces {
+            account_id: TEST_ACCOUNT_ID,
+            namespaces,
+        };
+
+        let res = execute_as_admin(deps, msg);
+        assert_that!(&res).is_ok();
+    }
+
     /// Add the provided modules to the version control
     fn add_modules(deps: DepsMut, new_module_infos: Vec<ModuleInfo>) {
         let modules = new_module_infos
@@ -362,7 +432,14 @@ mod test {
 
     /// Init verison control with some test modules.
     fn init_with_mods(mut deps: DepsMut) {
-        mock_init(deps.branch()).unwrap();
+        mock_init_with_account(deps.branch()).unwrap();
+
+        let namespaces = vec![
+            "cw-plus".to_string(),
+            "4t2".to_string()
+        ];
+        add_namespaces(deps.branch(), namespaces);
+
         let cw_mods = vec![
             ModuleInfo::from_id("cw-plus:module1", ModuleVersion::Version("0.1.2".into())).unwrap(),
             ModuleInfo::from_id("cw-plus:module2", ModuleVersion::Version("0.1.2".into())).unwrap(),
@@ -384,6 +461,7 @@ mod test {
         #[test]
         fn get_cw_plus_modules() -> VersionControlTestResult {
             let mut deps = mock_dependencies();
+            deps.querier = mock_manager_querier().build();
             init_with_mods(deps.as_mut());
 
             let provider = "cw-plus".to_string();
@@ -422,6 +500,7 @@ mod test {
         #[test]
         fn get_modules_not_found() -> VersionControlTestResult {
             let mut deps = mock_dependencies();
+            deps.querier = mock_manager_querier().build();
             init_with_mods(deps.as_mut());
 
             let query_msg = QueryMsg::Modules {
@@ -455,7 +534,7 @@ mod test {
         #[test]
         fn filter_by_provider_existing() {
             let mut deps = mock_dependencies();
-
+            deps.querier = mock_manager_querier().build();
             init_with_mods(deps.as_mut());
             let filtered_provider = "cw-plus".to_string();
 
@@ -482,7 +561,7 @@ mod test {
         #[test]
         fn filter_yanked_by_provider_existing() {
             let mut deps = mock_dependencies();
-
+            deps.querier = mock_manager_querier().build();
             init_with_mods(deps.as_mut());
 
             let cw_mods = vec![
@@ -533,7 +612,13 @@ mod test {
         #[test]
         fn filter_by_provider_non_existing() {
             let mut deps = mock_dependencies();
-            mock_init(deps.as_mut()).unwrap();
+            deps.querier = mock_manager_querier().build();
+            mock_init_with_account(deps.as_mut()).unwrap();
+            add_namespaces(deps.as_mut(), vec![
+                "cw-plus".to_string(),
+                "aoeu".to_string(),
+                "snth".to_string(),
+            ]);
             let cw_mods = vec![
                 ModuleInfo::from_id("cw-plus:module1", ModuleVersion::Version("0.1.2".into()))
                     .unwrap(),
@@ -566,7 +651,7 @@ mod test {
         #[test]
         fn filter_by_provider_and_name() {
             let mut deps = mock_dependencies();
-
+            deps.querier = mock_manager_querier().build();
             init_with_mods(deps.as_mut());
 
             let filtered_provider = "cw-plus".to_string();
@@ -596,7 +681,7 @@ mod test {
         #[test]
         fn filter_by_provider_and_name_with_multiple_versions() {
             let mut deps = mock_dependencies();
-
+            deps.querier = mock_manager_querier().build();
             init_with_mods(deps.as_mut());
 
             let filtered_provider = "cw-plus".to_string();
@@ -636,7 +721,7 @@ mod test {
         #[test]
         fn filter_by_only_version_many() {
             let mut deps = mock_dependencies();
-
+            deps.querier = mock_manager_querier().build();
             init_with_mods(deps.as_mut());
 
             let filtered_version = "0.1.2".to_string();
@@ -665,7 +750,7 @@ mod test {
         #[test]
         fn filter_by_only_version_none() {
             let mut deps = mock_dependencies();
-
+            deps.querier = mock_manager_querier().build();
             init_with_mods(deps.as_mut());
 
             let filtered_version = "5555".to_string();
@@ -690,7 +775,7 @@ mod test {
         #[test]
         fn filter_by_name_and_version() {
             let mut deps = mock_dependencies();
-
+            deps.querier = mock_manager_querier().build();
             init_with_mods(deps.as_mut());
 
             let filtered_name = "module2".to_string();
@@ -723,7 +808,7 @@ mod test {
         #[test]
         fn filter_by_provider_and_version() {
             let mut deps = mock_dependencies();
-
+            deps.querier = mock_manager_querier().build();
             init_with_mods(deps.as_mut());
 
             let filtered_provider = "cw-plus".to_string();
