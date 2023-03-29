@@ -1,5 +1,7 @@
 use crate::contract::{VCResult, ABSTRACT_NAMESPACE};
 use crate::error::VCError;
+
+use abstract_core::objects::module::ModuleVersion;
 use abstract_macros::abstract_response;
 use abstract_sdk::core::{
     manager::{ConfigResponse as ManagerConfigResponse, QueryMsg as ManagerQueryMsg},
@@ -10,8 +12,7 @@ use abstract_sdk::core::{
     VERSION_CONTROL,
 };
 use cosmwasm_std::{
-    to_binary, Addr, DepsMut, Empty, MessageInfo, QuerierWrapper, QueryRequest, StdResult,
-    WasmQuery,
+    to_binary, Addr, Deps, DepsMut, Empty, MessageInfo, Order, QuerierWrapper, StdResult,
 };
 
 #[abstract_response(VERSION_CONTROL)]
@@ -58,22 +59,8 @@ pub fn add_modules(
             // Only Admin can update abstract contracts
             ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
         } else {
-            // Only root user can add modules
-            let namespace = Namespace::from(module.provider.clone());
-            if let Some(account_id) = OS_NAMESPACES.may_load(deps.storage, &namespace)? {
-                let os_core = ACCOUNT_ADDRESSES.load(deps.storage, account_id)?;
-                let root_user = query_manager_root_user(&deps.querier, &os_core.manager)?;
-                if msg_info.sender != root_user {
-                    return Err(VCError::RootUserMistmatch {
-                        sender: msg_info.sender.into_string(),
-                        root: root_user,
-                    });
-                }
-            } else {
-                return Err(VCError::MissingNamespace {
-                    namespace: module.provider,
-                });
-            }
+            // Only owner can add modules
+            validate_account_owner(deps.as_ref(), &module.provider, &msg_info.sender)?;
         }
         MODULE_LIBRARY.save(deps.storage, &module, &mod_ref)?;
     }
@@ -88,17 +75,19 @@ pub fn remove_module(
     module: ModuleInfo,
     yank: bool,
 ) -> VCResult {
-    // Only Admin can update code-ids
-    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
-    module.assert_version_variant()?;
-    if let Some(mod_ref) = MODULE_LIBRARY.may_load(deps.storage, &module)? {
-        if yank {
-            YANKED_MODULES.save(deps.storage, &module, &mod_ref)?;
-        }
-        MODULE_LIBRARY.remove(deps.storage, &module);
-    } else {
-        return Err(VCError::ModuleNotFound(module));
+    // Only Admin or owner can update code-ids
+    if !ADMIN.is_admin(deps.as_ref(), &msg_info.sender)? {
+        validate_account_owner(deps.as_ref(), &module.provider, &msg_info.sender)?;
     }
+
+    module.assert_version_variant()?;
+    let mod_ref = MODULE_LIBRARY
+        .may_load(deps.storage, &module)?
+        .ok_or_else(|| VCError::ModuleNotFound(module.clone()))?;
+    if yank {
+        YANKED_MODULES.save(deps.storage, &module, &mod_ref)?;
+    }
+    MODULE_LIBRARY.remove(deps.storage, &module);
 
     Ok(VcResponse::new(
         "remove_module",
@@ -110,28 +99,26 @@ pub fn remove_module(
 }
 
 /// Claim namespaces
-/// Only the root user of the OS can do this
+/// Only the Account Owner can do this
 pub fn claim_namespaces(
     deps: DepsMut,
     msg_info: MessageInfo,
     account_id: AccountId,
     namespaces: Vec<String>,
 ) -> VCResult {
-    // verify root user of OS
-    let os_core = ACCOUNT_ADDRESSES.load(deps.storage, account_id)?;
-    let root_user = query_manager_root_user(&deps.querier, &os_core.manager)?;
-    if msg_info.sender != root_user {
-        return Err(VCError::RootUserMistmatch {
+    // verify account owner
+    let account_base = ACCOUNT_ADDRESSES.load(deps.storage, account_id)?;
+    let account_owner = query_account_owner(&deps.querier, &account_base.manager)?;
+    if msg_info.sender != account_owner {
+        return Err(VCError::AccountOwnerMismatch {
             sender: msg_info.sender.into_string(),
-            root: root_user,
+            owner: account_owner,
         });
     }
 
-    let mut all_namespaces = "".to_owned();
     for namespace in namespaces.iter() {
         let item = Namespace::from(namespace);
         item.validate()?;
-        // verify namespace already claimed
         if let Some(id) = OS_NAMESPACES.may_load(deps.storage, &item)? {
             return Err(VCError::NamespaceOccupied {
                 namespace: namespace.to_string(),
@@ -139,18 +126,19 @@ pub fn claim_namespaces(
             });
         }
         OS_NAMESPACES.save(deps.storage, &item, &account_id)?;
-        all_namespaces.push(',');
-        all_namespaces.push_str(namespace);
     }
 
     Ok(VcResponse::new(
         "claim_namespaces",
-        vec![("namespaces", &all_namespaces)],
+        vec![
+            ("account_id", &account_id.to_string()),
+            ("namespaces", &namespaces.join(",")),
+        ],
     ))
 }
 
 /// Remove a module
-/// Only admin or the root user can do this
+/// Only admin or the account owner can do this
 pub fn remove_namespaces(
     deps: DepsMut,
     msg_info: MessageInfo,
@@ -158,30 +146,32 @@ pub fn remove_namespaces(
 ) -> VCResult {
     let is_admin = ADMIN.is_admin(deps.as_ref(), &msg_info.sender)?;
 
-    let mut all_namespaces = "".to_owned();
     for namespace in namespaces.iter() {
-        let item = Namespace::from(namespace);
-        // skip if namespace not exists
-        if let Some(account_id) = OS_NAMESPACES.may_load(deps.storage, &item)? {
-            // verify remove permission
-            let os_core = ACCOUNT_ADDRESSES.load(deps.storage, account_id)?;
-            let root_user = query_manager_root_user(&deps.querier, &os_core.manager)?;
-            if !is_admin && msg_info.sender != root_user {
-                return Err(VCError::RootUserMistmatch {
-                    sender: msg_info.sender.into_string(),
-                    root: root_user,
-                });
-            }
-
-            OS_NAMESPACES.remove(deps.storage, &item);
-            all_namespaces.push(',');
-            all_namespaces.push_str(namespace);
+        if !is_admin {
+            validate_account_owner(deps.as_ref(), namespace, &msg_info.sender)?;
         }
+
+        for ((name, version), mod_ref) in MODULE_LIBRARY
+            .sub_prefix(namespace.to_owned())
+            .range(deps.storage, None, None, Order::Ascending)
+            .collect::<StdResult<Vec<_>>>()?
+            .into_iter()
+        {
+            let module = ModuleInfo {
+                provider: namespace.to_owned(),
+                name,
+                version: ModuleVersion::Version(version),
+            };
+            MODULE_LIBRARY.remove(deps.storage, &module);
+            YANKED_MODULES.save(deps.storage, &module, &mod_ref)?;
+        }
+
+        OS_NAMESPACES.remove(deps.storage, &Namespace::from(namespace));
     }
 
     Ok(VcResponse::new(
         "remove_namespaces",
-        vec![("namespaces", &all_namespaces)],
+        vec![("namespaces", &namespaces.join(","))],
     ))
 }
 
@@ -199,17 +189,29 @@ pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> VCResult {
     ))
 }
 
-pub fn query_manager_root_user(
-    querier: &QuerierWrapper,
-    contract_addr: &Addr,
-) -> StdResult<String> {
-    let root_user = querier
-        .query(&QueryRequest::Wasm(WasmQuery::Smart {
-            contract_addr: contract_addr.into(),
-            msg: to_binary(&ManagerQueryMsg::Config {})?,
-        }))
-        .map_or_else(|_| "".to_string(), |v: ManagerConfigResponse| v.owner);
-    Ok(root_user)
+pub fn query_account_owner(querier: &QuerierWrapper, contract_addr: &Addr) -> StdResult<String> {
+    let config_resp: ManagerConfigResponse =
+        querier.query_wasm_smart(contract_addr, &to_binary(&ManagerQueryMsg::Config {})?)?;
+    Ok(config_resp.owner)
+}
+
+pub fn validate_account_owner(deps: Deps, provider: &str, sender: &Addr) -> Result<(), VCError> {
+    let sender = sender.clone();
+    let namespace = Namespace::from(provider);
+    let account_id = OS_NAMESPACES
+        .may_load(deps.storage, &namespace)?
+        .ok_or_else(|| VCError::MissingNamespace {
+            namespace: provider.to_string(),
+        })?;
+    let account_base = ACCOUNT_ADDRESSES.load(deps.storage, account_id)?;
+    let account_owner = query_account_owner(&deps.querier, &account_base.manager)?;
+    if sender != account_owner {
+        return Err(VCError::AccountOwnerMismatch {
+            sender: sender.into_string(),
+            owner: account_owner,
+        });
+    }
+    Ok(())
 }
 
 #[cfg(test)]
