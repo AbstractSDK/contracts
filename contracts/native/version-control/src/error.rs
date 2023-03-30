@@ -35,7 +35,7 @@ pub enum VCError {
     #[error("Namespace {} is not in version control register", namespace)]
     MissingNamespace { namespace: String },
 
-    #[error("Root user mismatch sender: {}, owner: {}", sender, owner)]
+    #[error("Account owner mismatch sender: {}, owner: {}", sender, owner)]
     AccountOwnerMismatch { sender: String, owner: String },
 
     #[error("Namespace {} is already occupied by {}", namespace, id)]

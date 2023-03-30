@@ -137,7 +137,7 @@ pub fn claim_namespaces(
     ))
 }
 
-/// Remove a module
+/// Remove namespaes
 /// Only admin or the account owner can do this
 pub fn remove_namespaces(
     deps: DepsMut,
