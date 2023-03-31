@@ -8,7 +8,9 @@ use abstract_macros::abstract_response;
 use abstract_sdk::{
     core::{
         manager::state::DEPENDENTS,
-        manager::state::{OsInfo, Subscribed, CONFIG, INFO, OS_MODULES, OWNER, STATUS},
+        manager::state::{
+            OsInfo, Subscribed, CONFIG, INFO, OS_MODULES, OWNER, SUBSCRIPTION_STATUS,
+        },
         manager::{CallbackMsg, ExecuteMsg},
         module_factory::ExecuteMsg as ModuleFactoryMsg,
         objects::{
@@ -442,7 +444,7 @@ pub fn update_suspension_status(
     // Only the subscription contract can load
     if let Some(sub_addr) = config.subscription_address {
         if sub_addr.eq(&info.sender) {
-            STATUS.save(deps.storage, &suspension_status)?;
+            SUBSCRIPTION_STATUS.save(deps.storage, &suspension_status)?;
             return Ok(response.add_abstract_attributes(vec![(
                 "suspension_status",
                 suspension_status.to_string(),
@@ -1460,7 +1462,7 @@ mod test {
             let res = execute_as_subscription(deps.as_mut(), msg);
 
             assert_that(&res).is_ok();
-            let actual_status = STATUS.load(&deps.storage).unwrap();
+            let actual_status = SUBSCRIPTION_STATUS.load(&deps.storage).unwrap();
             assert_that(&actual_status).is_equal_to(true);
             Ok(())
         }
@@ -1477,7 +1479,7 @@ mod test {
             let res = execute_as_subscription(deps.as_mut(), msg);
 
             assert_that(&res).is_ok();
-            let actual_status = STATUS.load(&deps.storage).unwrap();
+            let actual_status = SUBSCRIPTION_STATUS.load(&deps.storage).unwrap();
             assert_that(&actual_status).is_equal_to(false);
             Ok(())
         }

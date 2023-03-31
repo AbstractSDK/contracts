@@ -42,7 +42,7 @@ pub mod state {
     }
 
     /// Subscription status
-    pub const STATUS: Item<Subscribed> = Item::new("\u{0}{6}status");
+    pub const SUBSCRIPTION_STATUS: Item<Subscribed> = Item::new("\u{0}{6}status");
     /// Configuration
     pub const CONFIG: Item<Config> = Item::new("\u{0}{6}config");
     /// Info about the Account
