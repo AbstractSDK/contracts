@@ -89,4 +89,7 @@ pub enum ManagerError {
 
     #[error("Cannot remove proxy")]
     CannotRemoveProxy {},
+
+    #[error("No updates were included")]
+    NoUpdates {},
 }

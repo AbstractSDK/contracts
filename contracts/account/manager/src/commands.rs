@@ -27,9 +27,10 @@ use abstract_sdk::{
 use abstract_core::api::{
     BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as ApiExecMsg, QueryMsg as ApiQuery, TradersResponse,
 };
+use abstract_sdk::cw_helpers::cosmwasm_std::AbstractAttributes;
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo,
-    StdResult, Storage, WasmMsg,
+    Response, StdResult, Storage, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
 use cw_storage_plus::Item;
@@ -132,7 +133,7 @@ pub fn register_module(
             // assert version requirements
             let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
             versioning::set_as_dependent(deps.storage, id, dependencies)?;
-            response = response.add_message(whitelist_dapp_on_proxy(
+            response = response.add_message(allowlist_dapp_on_proxy(
                 deps.as_ref(),
                 proxy_addr.into_string(),
                 module_address,
@@ -146,7 +147,7 @@ pub fn register_module(
             // assert version requirements
             let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
             versioning::set_as_dependent(deps.storage, id, dependencies)?;
-            response = response.add_message(whitelist_dapp_on_proxy(
+            response = response.add_message(allowlist_dapp_on_proxy(
                 deps.as_ref(),
                 proxy_addr.into_string(),
                 module_address,
@@ -398,7 +399,7 @@ pub fn replace_api(
         old_api_addr.into_string(),
     )?);
     // Add new api to proxy
-    msgs.push(whitelist_dapp_on_proxy(
+    msgs.push(allowlist_dapp_on_proxy(
         deps.as_ref(),
         proxy_addr.into_string(),
         new_api_addr.into_string(),
@@ -430,34 +431,40 @@ pub fn update_info(
     Ok(ManagerResponse::action("update_info"))
 }
 
-pub fn update_subscription_status(
+pub fn update_suspension_status(
     deps: DepsMut,
     info: MessageInfo,
-    new_status: Subscribed,
+    suspension_status: Subscribed,
+    response: Response,
 ) -> ManagerResult {
     let config = CONFIG.load(deps.storage)?;
 
     // Only the subscription contract can load
     if let Some(sub_addr) = config.subscription_address {
         if sub_addr.eq(&info.sender) {
-            STATUS.save(deps.storage, &new_status)?;
-            return Ok(ManagerResponse::new(
-                "update_subscription_status",
-                vec![("new_status", new_status.to_string())],
-            ));
+            STATUS.save(deps.storage, &suspension_status)?;
+            return Ok(response.add_abstract_attributes(vec![(
+                "suspension_status",
+                suspension_status.to_string(),
+            )]));
         }
     }
     Err(ManagerError::CallerNotSubscriptionContract {})
 }
 
-pub fn enable_ibc(deps: DepsMut, msg_info: MessageInfo, enable_ibc: bool) -> ManagerResult {
+pub fn update_ibc_status(
+    deps: DepsMut,
+    msg_info: MessageInfo,
+    ibc_enabled: bool,
+    response: Response,
+) -> ManagerResult {
     // only owner can update IBC status
     OWNER.assert_admin(deps.as_ref(), &msg_info.sender)?;
     let proxy = OS_MODULES.load(deps.storage, PROXY)?;
 
     let maybe_client = OS_MODULES.may_load(deps.storage, IBC_CLIENT)?;
 
-    let proxy_callback_msg = if enable_ibc {
+    let proxy_callback_msg = if ibc_enabled {
         // we have an IBC client so can't add more
         if maybe_client.is_some() {
             return Err(ManagerError::ModuleAlreadyInstalled(IBC_CLIENT.to_string()));
@@ -471,10 +478,9 @@ pub fn enable_ibc(deps: DepsMut, msg_info: MessageInfo, enable_ibc: bool) -> Man
         }
     };
 
-    Ok(
-        ManagerResponse::new("enable_ibc", vec![("new_status", enable_ibc.to_string())])
-            .add_message(proxy_callback_msg),
-    )
+    Ok(response
+        .add_abstract_attributes(vec![("ibc_enabled", ibc_enabled.to_string())])
+        .add_message(proxy_callback_msg))
 }
 
 fn install_ibc_client(deps: DepsMut, proxy: Addr) -> Result<CosmosMsg, ManagerError> {
@@ -486,7 +492,7 @@ fn install_ibc_client(deps: DepsMut, proxy: Addr) -> Result<CosmosMsg, ManagerEr
 
     OS_MODULES.save(deps.storage, IBC_CLIENT, &ibc_client_addr)?;
 
-    Ok(whitelist_dapp_on_proxy(
+    Ok(allowlist_dapp_on_proxy(
         deps.as_ref(),
         proxy.into_string(),
         ibc_client_addr.to_string(),
@@ -557,7 +563,7 @@ fn upgrade_self(
     }
 }
 
-fn whitelist_dapp_on_proxy(
+fn allowlist_dapp_on_proxy(
     _deps: Deps,
     proxy_address: String,
     dapp_address: String,
@@ -1271,7 +1277,9 @@ mod test {
 
         #[test]
         fn only_owner() -> ManagerTestResult {
-            let msg = ExecuteMsg::EnableIBC { new_status: true };
+            let msg = ExecuteMsg::UpdateSettings {
+                enable_ibc: Some(true),
+            };
 
             test_only_owner(msg)
         }
@@ -1281,7 +1289,9 @@ mod test {
             let mut deps = mock_dependencies();
             init_with_proxy(&mut deps);
 
-            let msg = ExecuteMsg::EnableIBC { new_status: false };
+            let msg = ExecuteMsg::UpdateSettings {
+                enable_ibc: Some(false),
+            };
 
             let res = execute_as_owner(deps.as_mut(), msg);
             assert_that(&res)
@@ -1298,7 +1308,9 @@ mod test {
 
             mock_installed_ibc_client(&mut deps)?;
 
-            let msg = ExecuteMsg::EnableIBC { new_status: true };
+            let msg = ExecuteMsg::UpdateSettings {
+                enable_ibc: Some(true),
+            };
 
             let res = execute_as_owner(deps.as_mut(), msg);
             assert_that(&res)
@@ -1315,7 +1327,9 @@ mod test {
 
             mock_installed_ibc_client(&mut deps)?;
 
-            let msg = ExecuteMsg::EnableIBC { new_status: false };
+            let msg = ExecuteMsg::UpdateSettings {
+                enable_ibc: Some(false),
+            };
 
             let res = execute_as_owner(deps.as_mut(), msg);
             assert_that(&res).is_ok();
@@ -1405,7 +1419,9 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init_with_subscription(deps.as_mut())?;
 
-            let msg = ExecuteMsg::SuspendAccount { new_status: true };
+            let msg = ExecuteMsg::UpdateStatus {
+                suspend: Some(true),
+            };
 
             let res = execute_as(deps.as_mut(), "not subscsription", msg);
             assert_that(&res)
@@ -1420,7 +1436,9 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let msg = ExecuteMsg::SuspendAccount { new_status: true };
+            let msg = ExecuteMsg::UpdateStatus {
+                suspend: Some(true),
+            };
 
             let res = execute_as_subscription(deps.as_mut(), msg);
             assert_that(&res)
@@ -1435,7 +1453,9 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init_with_subscription(deps.as_mut())?;
 
-            let msg = ExecuteMsg::SuspendAccount { new_status: true };
+            let msg = ExecuteMsg::UpdateStatus {
+                suspend: Some(true),
+            };
 
             let res = execute_as_subscription(deps.as_mut(), msg);
 
@@ -1450,7 +1470,9 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init_with_subscription(deps.as_mut())?;
 
-            let msg = ExecuteMsg::SuspendAccount { new_status: false };
+            let msg = ExecuteMsg::UpdateStatus {
+                suspend: Some(false),
+            };
 
             let res = execute_as_subscription(deps.as_mut(), msg);
 

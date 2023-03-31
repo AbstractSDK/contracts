@@ -91,11 +91,8 @@ pub struct CallbackMsg {}
 #[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
 pub enum ExecuteMsg {
     /// Forward execution message to module
-    ExecOnModule {
-        module_id: String,
-        exec_msg: Binary,
-    },
-    /// Updates the `OS_MODULES` map
+    ExecOnModule { module_id: String, exec_msg: Binary },
+    /// Updates the `ACCOUNT_MODULES` map
     /// Only callable by account factory or owner.
     UpdateModuleAddresses {
         to_add: Option<Vec<(String, String)>>,
@@ -110,14 +107,9 @@ pub enum ExecuteMsg {
     },
     /// Registers a module after creation.
     /// Used as a callback *only* by the Module Factory to register the module on the Account.
-    RegisterModule {
-        module_addr: String,
-        module: Module,
-    },
+    RegisterModule { module_addr: String, module: Module },
     /// Remove a module
-    RemoveModule {
-        module_id: String,
-    },
+    RemoveModule { module_id: String },
     /// Upgrade the module to a new version
     /// If module is `abstract::manager` then the contract will do a self-migration.
     Upgrade {
@@ -134,13 +126,11 @@ pub enum ExecuteMsg {
         owner: String,
         governance_type: Option<String>,
     },
-    /// Suspend manager contract
-    SuspendAccount {
-        new_status: bool,
-    },
-    EnableIBC {
-        new_status: bool,
-    },
+    /// Update suspension status
+    UpdateStatus { suspend: Option<bool> },
+    /// Update settings for the Account, including IBC enabled, etc.
+    UpdateSettings { enable_ibc: Option<bool> },
+    /// Callback endpoint
     Callback(CallbackMsg),
 }
 

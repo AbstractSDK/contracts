@@ -100,8 +100,18 @@ pub fn instantiate(
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> ManagerResult {
     match msg {
-        ExecuteMsg::SuspendAccount { new_status } => {
-            update_subscription_status(deps, info, new_status)
+        ExecuteMsg::UpdateStatus {
+            suspend: suspension_status,
+        } => {
+            let mut response = ManagerResponse::action("update_status");
+
+            if let Some(suspension_status) = suspension_status {
+                response = update_suspension_status(deps, info, suspension_status, response)?;
+            } else {
+                return Err(ManagerError::NoUpdates {});
+            }
+
+            Ok(response)
         }
         msg => {
             // Block actions if user is not subscribed
@@ -141,7 +151,19 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     description,
                     link,
                 } => update_info(deps, info, name, description, link),
-                ExecuteMsg::EnableIBC { new_status } => enable_ibc(deps, info, new_status),
+                ExecuteMsg::UpdateSettings {
+                    enable_ibc: new_status,
+                } => {
+                    let mut response: Response = ManagerResponse::action("update_settings");
+
+                    if let Some(enable_ibc) = new_status {
+                        response = update_ibc_status(deps, info, enable_ibc, response)?;
+                    } else {
+                        return Err(ManagerError::NoUpdates {});
+                    }
+
+                    Ok(response)
+                }
                 ExecuteMsg::Callback(CallbackMsg {}) => handle_callback(deps, env, info),
                 _ => panic!(),
             }
