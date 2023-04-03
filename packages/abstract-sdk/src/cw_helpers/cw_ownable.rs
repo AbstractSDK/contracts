@@ -1,3 +1,15 @@
+/// Macro to update the ownership of an Abstract contract.
+///
+/// ```rustignore
+/// pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> ContractResult {
+///     match msg {
+///         ...
+///         ExecuteMsg::UpdateOwnership(action) => {
+///             execute_update_ownership!(ContractResponse, deps, env, info, action)
+///         }
+///     }
+/// }
+/// ```
 #[macro_export]
 macro_rules! execute_update_ownership {
     ($response_type:ident, $deps:expr, $env:expr, $info:expr, $action:expr) => {{
@@ -9,9 +21,15 @@ macro_rules! execute_update_ownership {
     }};
 }
 
+/// Macro to query the ownership of a contract.
 ///
-/// ```rust
-///
+/// ```rustignore
+/// pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
+///     match msg {
+///         ...
+///         QueryMsg::Ownership {} => query_ownership!(deps),
+///     }
+/// }
 /// ```
 #[macro_export]
 macro_rules! query_ownership {
