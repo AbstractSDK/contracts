@@ -2,13 +2,14 @@ use crate::{
     commands::*,
     error::ManagerError,
     queries,
-    queries::{handle_config_query, handle_module_info_query, handle_os_info_query},
+    queries::{handle_account_info_query, handle_config_query, handle_module_info_query},
     validation::{validate_description, validate_link, validate_name_or_gov_type},
     versioning,
 };
+use abstract_core::manager::state::AccountInfo;
 use abstract_sdk::core::{
     manager::{
-        state::{Config, OsInfo, ACCOUNT_FACTORY, CONFIG, INFO, OWNER, SUSPENSION_STATUS},
+        state::{Config, ACCOUNT_FACTORY, CONFIG, INFO, OWNER, SUSPENSION_STATUS},
         CallbackMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     },
     objects::module_version::{migrate_module_data, set_module_data},
@@ -72,7 +73,7 @@ pub fn instantiate(
     validate_link(&msg.link)?;
     validate_name_or_gov_type(&msg.name)?;
 
-    let os_info = OsInfo {
+    let account_info = AccountInfo {
         name: msg.name,
         governance_type: msg.governance_type,
         chain_id: env.block.chain_id,
@@ -80,7 +81,7 @@ pub fn instantiate(
         link: msg.link,
     };
 
-    INFO.save(deps.storage, &os_info)?;
+    INFO.save(deps.storage, &account_info)?;
     MIGRATE_CONTEXT.save(deps.storage, &vec![])?;
 
     // Set oner
@@ -179,7 +180,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::ModuleInfos { start_after, limit } => {
             handle_module_info_query(deps, start_after, limit)
         }
-        QueryMsg::Info {} => handle_os_info_query(deps),
+        QueryMsg::Info {} => handle_account_info_query(deps),
         QueryMsg::Config {} => handle_config_query(deps),
     }
 }

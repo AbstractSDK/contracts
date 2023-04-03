@@ -9,7 +9,7 @@ use abstract_sdk::{
     core::{
         manager::state::DEPENDENTS,
         manager::state::{
-            OsInfo, SuspensionStatus, CONFIG, INFO, OS_MODULES, OWNER, SUSPENSION_STATUS,
+            AccountInfo, SuspensionStatus, ACCOUNT_MODULES, CONFIG, INFO, OWNER, SUSPENSION_STATUS,
         },
         manager::{CallbackMsg, ExecuteMsg},
         module_factory::ExecuteMsg as ModuleFactoryMsg,
@@ -57,7 +57,7 @@ pub fn update_module_addresses(
                 return Err(ManagerError::InvalidModuleName {});
             };
             // validate addr
-            OS_MODULES.save(
+            ACCOUNT_MODULES.save(
                 deps.storage,
                 id.as_str(),
                 &deps.api.addr_validate(&new_address)?,
@@ -68,7 +68,7 @@ pub fn update_module_addresses(
     if let Some(modules_to_remove) = to_remove {
         for id in modules_to_remove.into_iter() {
             validation::validate_not_proxy(&id)?;
-            OS_MODULES.remove(deps.storage, id.as_str());
+            ACCOUNT_MODULES.remove(deps.storage, id.as_str());
         }
     }
 
@@ -87,7 +87,10 @@ pub fn install_module(
     OWNER.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
     // Check if module is already enabled.
-    if OS_MODULES.may_load(deps.storage, &module.id())?.is_some() {
+    if ACCOUNT_MODULES
+        .may_load(deps.storage, &module.id())?
+        .is_some()
+    {
         return Err(ManagerError::ModuleAlreadyInstalled(module.id()));
     }
 
@@ -113,7 +116,7 @@ pub fn register_module(
     module_address: String,
 ) -> ManagerResult {
     let config = CONFIG.load(deps.storage)?;
-    let proxy_addr = OS_MODULES.load(deps.storage, PROXY)?;
+    let proxy_addr = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
 
     // check if sender is module factory
     if msg_info.sender != config.module_factory_address {
@@ -185,7 +188,7 @@ pub fn exec_on_module(
 
 /// Checked load of a module addresss
 fn load_module_addr(storage: &dyn Storage, module_id: &String) -> Result<Addr, ManagerError> {
-    OS_MODULES
+    ACCOUNT_MODULES
         .may_load(storage, module_id)?
         .ok_or_else(|| ManagerError::ModuleNotFound(module_id.clone()))
 }
@@ -212,14 +215,14 @@ pub fn uninstall_module(deps: DepsMut, msg_info: MessageInfo, module_id: String)
     let module_dependencies = versioning::load_module_dependencies(deps.as_ref(), &module_id)?;
     versioning::remove_as_dependent(deps.storage, &module_id, module_dependencies)?;
 
-    let proxy = OS_MODULES.load(deps.storage, PROXY)?;
+    let proxy = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
     let module_addr = load_module_addr(deps.storage, &module_id)?;
     let remove_from_proxy_msg = remove_dapp_from_proxy_msg(
         deps.as_ref(),
         proxy.into_string(),
         module_addr.into_string(),
     )?;
-    OS_MODULES.remove(deps.storage, &module_id);
+    ACCOUNT_MODULES.remove(deps.storage, &module_id);
 
     Ok(
         ManagerResponse::new("uninstall_module", vec![("module", module_id)])
@@ -367,7 +370,7 @@ pub fn replace_api(
 ) -> Result<Vec<CosmosMsg>, ManagerError> {
     let mut msgs = vec![];
     // Makes sure we already have the api installed
-    let proxy_addr = OS_MODULES.load(deps.storage, PROXY)?;
+    let proxy_addr = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
     let TradersResponse { traders } = deps.querier.query(&wasm_smart_query(
         old_api_addr.to_string(),
         &<ApiQuery<Empty>>::Base(BaseQueryMsg::Traders {
@@ -419,7 +422,7 @@ pub fn update_info(
     link: Option<String>,
 ) -> ManagerResult {
     OWNER.assert_admin(deps.as_ref(), &info.sender)?;
-    let mut info: OsInfo = INFO.load(deps.storage)?;
+    let mut info: AccountInfo = INFO.load(deps.storage)?;
     if let Some(name) = name {
         validate_name_or_gov_type(&name)?;
         info.name = name;
@@ -462,9 +465,9 @@ pub fn update_ibc_status(
 ) -> ManagerResult {
     // only owner can update IBC status
     OWNER.assert_admin(deps.as_ref(), &msg_info.sender)?;
-    let proxy = OS_MODULES.load(deps.storage, PROXY)?;
+    let proxy = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
 
-    let maybe_client = OS_MODULES.may_load(deps.storage, IBC_CLIENT)?;
+    let maybe_client = ACCOUNT_MODULES.may_load(deps.storage, IBC_CLIENT)?;
 
     let proxy_callback_msg = if ibc_enabled {
         // we have an IBC client so can't add more
@@ -492,7 +495,7 @@ fn install_ibc_client(deps: DepsMut, proxy: Addr) -> Result<CosmosMsg, ManagerEr
 
     let ibc_client_addr = ibc_client_module.reference.unwrap_native()?;
 
-    OS_MODULES.save(deps.storage, IBC_CLIENT, &ibc_client_addr)?;
+    ACCOUNT_MODULES.save(deps.storage, IBC_CLIENT, &ibc_client_addr)?;
 
     Ok(allowlist_dapp_on_proxy(
         deps.as_ref(),
@@ -502,7 +505,7 @@ fn install_ibc_client(deps: DepsMut, proxy: Addr) -> Result<CosmosMsg, ManagerEr
 }
 
 fn uninstall_ibc_client(deps: DepsMut, proxy: Addr, ibc_client: Addr) -> StdResult<CosmosMsg> {
-    OS_MODULES.remove(deps.storage, IBC_CLIENT);
+    ACCOUNT_MODULES.remove(deps.storage, IBC_CLIENT);
 
     remove_dapp_from_proxy_msg(deps.as_ref(), proxy.into_string(), ibc_client.into_string())
 }
@@ -649,7 +652,7 @@ mod test {
 
     fn mock_installed_proxy(deps: DepsMut) -> StdResult<()> {
         let _info = mock_info(TEST_OWNER, &[]);
-        OS_MODULES.save(deps.storage, PROXY, &Addr::unchecked(TEST_PROXY_ADDR))
+        ACCOUNT_MODULES.save(deps.storage, PROXY, &Addr::unchecked(TEST_PROXY_ADDR))
     }
 
     fn execute_as(deps: DepsMut, sender: &str, msg: ExecuteMsg) -> ManagerResult {
@@ -669,8 +672,8 @@ mod test {
         mock_installed_proxy(deps.as_mut()).unwrap();
     }
 
-    fn load_os_modules(storage: &dyn Storage) -> Result<Vec<(String, Addr)>, StdError> {
-        OS_MODULES
+    fn load_account_modules(storage: &dyn Storage) -> Result<Vec<(String, Addr)>, StdError> {
+        ACCOUNT_MODULES
             .range(storage, None, None, Order::Ascending)
             .collect()
     }
@@ -769,7 +772,7 @@ mod test {
         use super::*;
 
         #[test]
-        fn manual_adds_module_to_os_modules() -> ManagerTestResult {
+        fn manual_adds_module_to_account_modules() -> ManagerTestResult {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut()).unwrap();
 
@@ -781,7 +784,7 @@ mod test {
             let res = update_module_addresses(deps.as_mut(), Some(to_add.clone()), Some(vec![]));
             assert_that(&res).is_ok();
 
-            let actual_modules = load_os_modules(&deps.storage)?;
+            let actual_modules = load_account_modules(&deps.storage)?;
 
             speculoos::prelude::VecAssertions::has_length(
                 &mut assert_that(&actual_modules),
@@ -813,12 +816,12 @@ mod test {
         }
 
         #[test]
-        fn manual_removes_module_from_os_modules() -> ManagerTestResult {
+        fn manual_removes_module_from_account_modules() -> ManagerTestResult {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
             // manually add module
-            OS_MODULES.save(
+            ACCOUNT_MODULES.save(
                 &mut deps.storage,
                 "test:module",
                 &Addr::unchecked("test_module_addr"),
@@ -829,7 +832,7 @@ mod test {
             let res = update_module_addresses(deps.as_mut(), Some(vec![]), Some(to_remove));
             assert_that(&res).is_ok();
 
-            let actual_modules = load_os_modules(&deps.storage)?;
+            let actual_modules = load_account_modules(&deps.storage)?;
 
             speculoos::prelude::VecAssertions::is_empty(&mut assert_that(&actual_modules));
 
@@ -867,7 +870,7 @@ mod test {
             let res = execute_as_owner(deps.as_mut(), msg.clone());
             assert_that(&res).is_ok();
 
-            let res = execute_as(deps.as_mut(), "not_os_factory", msg);
+            let res = execute_as(deps.as_mut(), "not_account_factory", msg);
             assert_that(&res)
                 .is_err()
                 .is_equal_to(ManagerError::Admin(AdminError::NotAdmin {}));
@@ -880,7 +883,7 @@ mod test {
         use super::*;
 
         #[test]
-        fn only_os_owner() -> ManagerTestResult {
+        fn only_account_owner() -> ManagerTestResult {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
@@ -908,7 +911,7 @@ mod test {
             };
 
             // manual installation
-            OS_MODULES.save(
+            ACCOUNT_MODULES.save(
                 &mut deps.storage,
                 "test:module",
                 &Addr::unchecked("test_module_addr"),
@@ -924,7 +927,7 @@ mod test {
         }
 
         #[test]
-        fn adds_module_to_os_modules() -> ManagerTestResult {
+        fn adds_module_to_account_modules() -> ManagerTestResult {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
@@ -1174,7 +1177,7 @@ mod test {
             let prev_name = "name".to_string();
             INFO.save(
                 deps.as_mut().storage,
-                &OsInfo {
+                &AccountInfo {
                     name: prev_name.clone(),
                     governance_type: "".to_string(),
                     chain_id: "".to_string(),
@@ -1270,7 +1273,7 @@ mod test {
         fn mock_installed_ibc_client(
             deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
         ) -> StdResult<()> {
-            OS_MODULES.save(
+            ACCOUNT_MODULES.save(
                 &mut deps.storage,
                 IBC_CLIENT,
                 &Addr::unchecked(TEST_IBC_CLIENT_ADDR),
