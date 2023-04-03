@@ -71,7 +71,7 @@ impl<Chain: BootEnvironment> Manager<Chain> {
         module_id: impl Into<String>,
     ) -> Result<(), crate::AbstractBootError> {
         self.execute(
-            &ExecuteMsg::RemoveModule {
+            &ExecuteMsg::UninstallModule {
                 module_id: module_id.into(),
             },
             None,
