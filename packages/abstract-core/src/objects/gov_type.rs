@@ -12,6 +12,7 @@ const MAX_GOV_TYPE_LENGTH: usize = 64;
 
 /// Governance types
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[non_exhaustive]
 pub enum GovernanceDetails<T: AddressLike> {
     /// A single address is admin
     Monarchy {
