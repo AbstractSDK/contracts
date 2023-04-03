@@ -9,6 +9,10 @@ macro_rules! execute_update_ownership {
     }};
 }
 
+///
+/// ```rust
+///
+/// ```
 #[macro_export]
 macro_rules! query_ownership {
     ($deps:expr) => {{
@@ -97,10 +101,9 @@ mod tests {
     #[test]
     fn test_query_ownership_macro() -> Result<(), MockError> {
         let mut deps = mock_dependencies();
-        let env = mock_env();
+        let _env = mock_env();
 
         let old_owner = "owner1";
-        let new_owner = "owner2";
 
         cw_ownable::initialize_owner(&mut deps.storage, &deps.api, Some(old_owner))?;
 
