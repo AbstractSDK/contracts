@@ -161,29 +161,26 @@ pub fn register_module(
     Ok(response)
 }
 
+/// Execute the [`exec_msg`] on the provided [`module_id`],
 pub fn exec_on_module(
     deps: DepsMut,
     msg_info: MessageInfo,
     module_id: String,
     exec_msg: Binary,
 ) -> ManagerResult {
-    // only owner can update module configs
+    // only owner can forward messages to modules
     OWNER.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
     let module_addr = load_module_addr(deps.storage, &module_id)?;
+    let module_msg = wasm_execute(module_addr, &exec_msg, vec![])?;
 
-    let response = ManagerResponse::new("exec_on_module", vec![("module", module_id)]).add_message(
-        CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: module_addr.into(),
-            msg: exec_msg,
-            funds: vec![],
-        }),
-    );
+    let response =
+        ManagerResponse::new("exec_on_module", vec![("module", module_id)]).add_message(module_msg);
 
     Ok(response)
 }
 
-/// Checked load of a module addresss
+/// Checked load of a module address
 fn load_module_addr(storage: &dyn Storage, module_id: &String) -> Result<Addr, ManagerError> {
     ACCOUNT_MODULES
         .may_load(storage, module_id)?
