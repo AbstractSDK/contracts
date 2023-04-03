@@ -5,7 +5,7 @@ use abstract_sdk::core::{
     ACCOUNT_FACTORY,
 };
 use cosmwasm_std::{
-    to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
+    to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
 use cw2::{get_contract_version, set_contract_version};
 use cw_asset::Asset;
