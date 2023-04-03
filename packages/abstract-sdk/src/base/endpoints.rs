@@ -122,9 +122,9 @@
 //!
 //! ## Reply
 //! The reply endpoint is used to handle internal replies. Each reply handler is matched with a reply-id. Both are supplied to the contract builder.
-//! 
+//!
 //! ## Sudo
-//! The sudo endpoint can only be called by the chain's governance address. 
+//! The sudo endpoint can only be called by the chain's governance address.
 
 mod execute;
 mod ibc_callback;
