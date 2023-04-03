@@ -30,7 +30,6 @@ pub mod state {
     pub struct Config {
         pub version_control_address: Addr,
         pub module_factory_address: Addr,
-        pub subscription_address: Option<Addr>,
     }
 
     #[cosmwasm_schema::cw_serde]
@@ -42,7 +41,7 @@ pub mod state {
         pub link: Option<String>,
     }
 
-    /// Subscription status
+    /// Suspension status
     pub const SUSPENSION_STATUS: Item<SuspensionStatus> = Item::new("\u{0}{12}is_suspended");
     /// Configuration
     pub const CONFIG: Item<Config> = Item::new("\u{0}{6}config");
@@ -60,6 +59,7 @@ pub mod state {
 }
 
 use self::state::AccountInfo;
+use crate::manager::state::SuspensionStatus;
 use crate::objects::{
     core::AccountId,
     module::{Module, ModuleInfo},
@@ -77,7 +77,6 @@ pub struct InstantiateMsg {
     pub owner: String,
     pub version_control_address: String,
     pub module_factory_address: String,
-    pub subscription_address: Option<String>,
     pub governance_type: String,
     pub name: String,
     pub description: Option<String>,
@@ -127,8 +126,8 @@ pub enum ExecuteMsg {
         owner: String,
         governance_type: Option<String>,
     },
-    /// Update suspension status
-    UpdateStatus { suspend: Option<bool> },
+    /// Update account statuses
+    UpdateStatus { is_suspended: Option<bool> },
     /// Update settings for the Account, including IBC enabled, etc.
     UpdateSettings { ibc_enabled: Option<bool> },
     /// Callback endpoint
@@ -171,10 +170,11 @@ pub struct ModuleAddressesResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
+    pub account_id: Uint64,
     pub owner: String,
+    pub is_suspended: SuspensionStatus,
     pub version_control_address: String,
     pub module_factory_address: String,
-    pub account_id: Uint64,
 }
 
 #[cosmwasm_schema::cw_serde]

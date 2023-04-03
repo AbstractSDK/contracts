@@ -438,23 +438,16 @@ pub fn update_info(
 
 pub fn update_suspension_status(
     deps: DepsMut,
-    info: MessageInfo,
-    suspension_status: SuspensionStatus,
+    msg_info: MessageInfo,
+    is_suspended: SuspensionStatus,
     response: Response,
 ) -> ManagerResult {
-    let config = CONFIG.load(deps.storage)?;
+    // only owner can update suspension status
+    OWNER.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
-    // Only the subscription contract can load
-    if let Some(sub_addr) = config.subscription_address {
-        if sub_addr.eq(&info.sender) {
-            SUSPENSION_STATUS.save(deps.storage, &suspension_status)?;
-            return Ok(response.add_abstract_attributes(vec![(
-                "suspension_status",
-                suspension_status.to_string(),
-            )]));
-        }
-    }
-    Err(ManagerError::CallerNotSubscriptionContract {})
+    SUSPENSION_STATUS.save(deps.storage, &is_suspended)?;
+
+    Ok(response.add_abstract_attributes(vec![("is_suspended", is_suspended.to_string())]))
 }
 
 pub fn update_ibc_status(
@@ -641,7 +634,6 @@ mod test {
                 owner: TEST_OWNER.to_string(),
                 version_control_address: TEST_VERSION_CONTROL.to_string(),
                 module_factory_address: TEST_MODULE_FACTORY.to_string(),
-                subscription_address: None,
                 governance_type: "monarchy".to_string(),
                 name: "test".to_string(),
                 description: None,
@@ -1391,99 +1383,83 @@ mod test {
     mod update_suspension_status {
         use super::*;
 
-        const SUSPENSION: &str = "subscription";
-
-        fn mock_init_with_subscription(mut deps: DepsMut) -> ManagerResult {
-            let info = mock_info(TEST_ACCOUNT_FACTORY, &[]);
-
-            contract::instantiate(
-                deps.branch(),
-                mock_env(),
-                info,
-                InstantiateMsg {
-                    account_id: 1,
-                    owner: TEST_OWNER.to_string(),
-                    version_control_address: TEST_VERSION_CONTROL.to_string(),
-                    module_factory_address: TEST_MODULE_FACTORY.to_string(),
-                    subscription_address: Some(SUSPENSION.to_string()),
-                    governance_type: "monarchy".to_string(),
-                    name: "test".to_string(),
-                    description: None,
-                    link: None,
-                },
-            )
-        }
-
-        fn execute_as_subscription(deps: DepsMut, msg: ExecuteMsg) -> ManagerResult {
-            let info = mock_info(SUSPENSION, &[]);
-            contract::execute(deps, mock_env(), info, msg)
-        }
-
         #[test]
-        fn only_subscription() -> ManagerTestResult {
-            let mut deps = mock_dependencies();
-            mock_init_with_subscription(deps.as_mut())?;
-
-            let msg = ExecuteMsg::UpdateStatus {
-                suspend: Some(true),
-            };
-
-            let res = execute_as(deps.as_mut(), "not subscsription", msg);
-            assert_that(&res)
-                .is_err()
-                .is_equal_to(ManagerError::CallerNotSubscriptionContract {});
-
-            Ok(())
-        }
-
-        #[test]
-        fn fails_without_subscription() -> ManagerTestResult {
+        fn only_owner() -> ManagerTestResult {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
             let msg = ExecuteMsg::UpdateStatus {
-                suspend: Some(true),
+                is_suspended: Some(true),
             };
 
-            let res = execute_as_subscription(deps.as_mut(), msg);
+            let res = execute_as(deps.as_mut(), "not owner", msg);
             assert_that(&res)
                 .is_err()
-                .is_equal_to(ManagerError::CallerNotSubscriptionContract {});
+                .is_equal_to(ManagerError::Admin(AdminError::NotAdmin {}));
 
             Ok(())
         }
 
         #[test]
-        fn subscribed() -> ManagerTestResult {
+        fn exec_fails_when_suspended() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            mock_init_with_subscription(deps.as_mut())?;
+            mock_init(deps.as_mut())?;
 
             let msg = ExecuteMsg::UpdateStatus {
-                suspend: Some(true),
+                is_suspended: Some(true),
             };
 
-            let res = execute_as_subscription(deps.as_mut(), msg);
+            let res = execute_as_owner(deps.as_mut(), msg);
+            assert_that!(res).is_ok();
+            let actual_is_suspended = SUSPENSION_STATUS.load(&deps.storage).unwrap();
+            assert_that(&actual_is_suspended).is_true();
 
-            assert_that(&res).is_ok();
-            let actual_status = SUSPENSION_STATUS.load(&deps.storage).unwrap();
-            assert_that(&actual_status).is_equal_to(true);
+            let update_info_msg = ExecuteMsg::UpdateInfo {
+                name: Some("asonetuh".to_string()),
+                description: None,
+                link: None,
+            };
+
+            let res = execute_as_owner(deps.as_mut(), update_info_msg);
+
+            assert_that(&res)
+                .is_err()
+                .is_equal_to(ManagerError::AccountSuspended {});
+
             Ok(())
         }
 
         #[test]
-        fn unsubscribed() -> ManagerTestResult {
+        fn suspend_account() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            mock_init_with_subscription(deps.as_mut())?;
+            mock_init(deps.as_mut())?;
 
             let msg = ExecuteMsg::UpdateStatus {
-                suspend: Some(false),
+                is_suspended: Some(true),
             };
 
-            let res = execute_as_subscription(deps.as_mut(), msg);
+            let res = execute_as_owner(deps.as_mut(), msg);
+
+            assert_that(&res).is_ok();
+            let actual_is_suspended = SUSPENSION_STATUS.load(&deps.storage).unwrap();
+            assert_that(&actual_is_suspended).is_true();
+            Ok(())
+        }
+
+        #[test]
+        fn unsuspend_account() -> ManagerTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let msg = ExecuteMsg::UpdateStatus {
+                is_suspended: Some(false),
+            };
+
+            let res = execute_as_owner(deps.as_mut(), msg);
 
             assert_that(&res).is_ok();
             let actual_status = SUSPENSION_STATUS.load(&deps.storage).unwrap();
-            assert_that(&actual_status).is_equal_to(false);
+            assert_that(&actual_status).is_false();
             Ok(())
         }
     }
