@@ -129,7 +129,7 @@ pub enum ExecuteMsg {
     /// Update suspension status
     UpdateStatus { suspend: Option<bool> },
     /// Update settings for the Account, including IBC enabled, etc.
-    UpdateSettings { enable_ibc: Option<bool> },
+    UpdateSettings { ibc_enabled: Option<bool> },
     /// Callback endpoint
     Callback(CallbackMsg),
 }

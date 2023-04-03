@@ -152,12 +152,12 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     link,
                 } => update_info(deps, info, name, description, link),
                 ExecuteMsg::UpdateSettings {
-                    enable_ibc: new_status,
+                    ibc_enabled: new_status,
                 } => {
                     let mut response: Response = ManagerResponse::action("update_settings");
 
-                    if let Some(enable_ibc) = new_status {
-                        response = update_ibc_status(deps, info, enable_ibc, response)?;
+                    if let Some(ibc_enabled) = new_status {
+                        response = update_ibc_status(deps, info, ibc_enabled, response)?;
                     } else {
                         return Err(ManagerError::NoUpdates {});
                     }

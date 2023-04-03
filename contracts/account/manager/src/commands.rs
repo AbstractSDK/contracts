@@ -1262,7 +1262,7 @@ mod test {
         }
     }
 
-    mod enable_ibc {
+    mod ibc_enabled {
         use super::*;
 
         const TEST_IBC_CLIENT_ADDR: &str = "ibc_client";
@@ -1280,7 +1280,7 @@ mod test {
         #[test]
         fn only_owner() -> ManagerTestResult {
             let msg = ExecuteMsg::UpdateSettings {
-                enable_ibc: Some(true),
+                ibc_enabled: Some(true),
             };
 
             test_only_owner(msg)
@@ -1292,7 +1292,7 @@ mod test {
             init_with_proxy(&mut deps);
 
             let msg = ExecuteMsg::UpdateSettings {
-                enable_ibc: Some(false),
+                ibc_enabled: Some(false),
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
@@ -1311,7 +1311,7 @@ mod test {
             mock_installed_ibc_client(&mut deps)?;
 
             let msg = ExecuteMsg::UpdateSettings {
-                enable_ibc: Some(true),
+                ibc_enabled: Some(true),
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
@@ -1330,7 +1330,7 @@ mod test {
             mock_installed_ibc_client(&mut deps)?;
 
             let msg = ExecuteMsg::UpdateSettings {
-                enable_ibc: Some(false),
+                ibc_enabled: Some(false),
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
