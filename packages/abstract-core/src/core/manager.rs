@@ -23,7 +23,7 @@ pub mod state {
     use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
 
-    pub type Subscribed = bool;
+    pub type SuspensionStatus = bool;
 
     /// Manager configuration
     #[cosmwasm_schema::cw_serde]
@@ -42,7 +42,7 @@ pub mod state {
     }
 
     /// Subscription status
-    pub const SUBSCRIPTION_STATUS: Item<Subscribed> = Item::new("\u{0}{6}status");
+    pub const SUSPENSION_STATUS: Item<SuspensionStatus> = Item::new("\u{0}{12}is_suspended");
     /// Configuration
     pub const CONFIG: Item<Config> = Item::new("\u{0}{6}config");
     /// Info about the Account

@@ -8,7 +8,7 @@ use crate::{
 };
 use abstract_sdk::core::{
     manager::{
-        state::{Config, OsInfo, ACCOUNT_FACTORY, CONFIG, INFO, OWNER, SUBSCRIPTION_STATUS},
+        state::{Config, OsInfo, ACCOUNT_FACTORY, CONFIG, INFO, OWNER, SUSPENSION_STATUS},
         CallbackMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     },
     objects::module_version::{migrate_module_data, set_module_data},
@@ -86,7 +86,7 @@ pub fn instantiate(
     // Set oner
     let owner = deps.api.addr_validate(&msg.owner)?;
     OWNER.set(deps.branch(), Some(owner))?;
-    SUBSCRIPTION_STATUS.save(deps.storage, &true)?;
+    SUSPENSION_STATUS.save(deps.storage, &true)?;
     ACCOUNT_FACTORY.set(deps, Some(info.sender))?;
     Ok(ManagerResponse::new(
         "instantiate",
@@ -115,7 +115,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
         }
         msg => {
             // Block actions if user is not subscribed
-            let is_subscribed = SUBSCRIPTION_STATUS.load(deps.storage)?;
+            let is_subscribed = SUSPENSION_STATUS.load(deps.storage)?;
             if !is_subscribed {
                 return Err(ManagerError::NotSubscribed {});
             }

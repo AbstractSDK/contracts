@@ -9,7 +9,7 @@ use abstract_sdk::{
     core::{
         manager::state::DEPENDENTS,
         manager::state::{
-            OsInfo, Subscribed, CONFIG, INFO, OS_MODULES, OWNER, SUBSCRIPTION_STATUS,
+            OsInfo, SuspensionStatus, CONFIG, INFO, OS_MODULES, OWNER, SUSPENSION_STATUS,
         },
         manager::{CallbackMsg, ExecuteMsg},
         module_factory::ExecuteMsg as ModuleFactoryMsg,
@@ -436,7 +436,7 @@ pub fn update_info(
 pub fn update_suspension_status(
     deps: DepsMut,
     info: MessageInfo,
-    suspension_status: Subscribed,
+    suspension_status: SuspensionStatus,
     response: Response,
 ) -> ManagerResult {
     let config = CONFIG.load(deps.storage)?;
@@ -444,7 +444,7 @@ pub fn update_suspension_status(
     // Only the subscription contract can load
     if let Some(sub_addr) = config.subscription_address {
         if sub_addr.eq(&info.sender) {
-            SUBSCRIPTION_STATUS.save(deps.storage, &suspension_status)?;
+            SUSPENSION_STATUS.save(deps.storage, &suspension_status)?;
             return Ok(response.add_abstract_attributes(vec![(
                 "suspension_status",
                 suspension_status.to_string(),
@@ -1385,10 +1385,10 @@ mod test {
         }
     }
 
-    mod update_subscription_status {
+    mod update_suspension_status {
         use super::*;
 
-        const SUBSCRIPTION: &str = "subscription";
+        const SUSPENSION: &str = "subscription";
 
         fn mock_init_with_subscription(mut deps: DepsMut) -> ManagerResult {
             let info = mock_info(TEST_ACCOUNT_FACTORY, &[]);
@@ -1402,7 +1402,7 @@ mod test {
                     owner: TEST_OWNER.to_string(),
                     version_control_address: TEST_VERSION_CONTROL.to_string(),
                     module_factory_address: TEST_MODULE_FACTORY.to_string(),
-                    subscription_address: Some(SUBSCRIPTION.to_string()),
+                    subscription_address: Some(SUSPENSION.to_string()),
                     governance_type: "monarchy".to_string(),
                     name: "test".to_string(),
                     description: None,
@@ -1412,7 +1412,7 @@ mod test {
         }
 
         fn execute_as_subscription(deps: DepsMut, msg: ExecuteMsg) -> ManagerResult {
-            let info = mock_info(SUBSCRIPTION, &[]);
+            let info = mock_info(SUSPENSION, &[]);
             contract::execute(deps, mock_env(), info, msg)
         }
 
@@ -1462,7 +1462,7 @@ mod test {
             let res = execute_as_subscription(deps.as_mut(), msg);
 
             assert_that(&res).is_ok();
-            let actual_status = SUBSCRIPTION_STATUS.load(&deps.storage).unwrap();
+            let actual_status = SUSPENSION_STATUS.load(&deps.storage).unwrap();
             assert_that(&actual_status).is_equal_to(true);
             Ok(())
         }
@@ -1479,7 +1479,7 @@ mod test {
             let res = execute_as_subscription(deps.as_mut(), msg);
 
             assert_that(&res).is_ok();
-            let actual_status = SUBSCRIPTION_STATUS.load(&deps.storage).unwrap();
+            let actual_status = SUSPENSION_STATUS.load(&deps.storage).unwrap();
             assert_that(&actual_status).is_equal_to(false);
             Ok(())
         }
