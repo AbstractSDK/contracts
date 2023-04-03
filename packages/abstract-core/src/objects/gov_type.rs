@@ -85,23 +85,11 @@ impl From<GovernanceDetails<Addr>> for GovernanceDetails<String> {
                 governance_type,
             } => GovernanceDetails::External {
                 governance_address: governance_address.to_string(),
-                governance_type: governance_type,
+                governance_type,
             },
         }
     }
 }
-
-// impl ToString for GovernanceDetails {
-//     fn to_string(&self) -> String {
-//         match self {
-//             GovernanceDetails::Monarchy { monarch: _ } => "monarchy".to_string(),
-//             GovernanceDetails::External {
-//                 governance_address: _,
-//                 governance_type,
-//             } => governance_type.clone(),
-//         }
-//     }
-// }
 
 #[cfg(test)]
 mod test {
