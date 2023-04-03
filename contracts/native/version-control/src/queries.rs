@@ -135,27 +135,20 @@ pub fn handle_namespace_list_query(
     let namespace = start_after.map(Namespace::from);
     let start_bound = namespace.as_ref().map(Bound::exclusive);
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
-    let mut namespaces = vec![];
-    if let Some(account_id) = account_id {
-        namespaces.extend(
-            namespaces_info()
-                .idx
-                .account_id
-                .prefix(account_id)
-                .range(deps.storage, start_bound, None, Order::Ascending)
-                .take(limit)
-                .collect::<StdResult<Vec<_>>>()?
-                .into_iter(),
-        );
+    let namespaces = if let Some(account_id) = account_id {
+        namespaces_info()
+            .idx
+            .account_id
+            .prefix(account_id)
+            .range(deps.storage, start_bound, None, Order::Ascending)
+            .take(limit)
+            .collect::<StdResult<Vec<_>>>()?
     } else {
-        namespaces.extend(
-            namespaces_info()
-                .range(deps.storage, start_bound, None, Order::Ascending)
-                .take(limit)
-                .collect::<StdResult<Vec<_>>>()?
-                .into_iter(),
-        );
-    }
+        namespaces_info()
+            .range(deps.storage, start_bound, None, Order::Ascending)
+            .take(limit)
+            .collect::<StdResult<Vec<_>>>()?
+    };
 
     to_binary(&NamespaceListResponse { namespaces })
 }
