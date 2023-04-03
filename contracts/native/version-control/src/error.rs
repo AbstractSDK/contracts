@@ -40,6 +40,9 @@ pub enum VCError {
 
     #[error("Namespace {} is already occupied by {}", namespace, id)]
     NamespaceOccupied { namespace: String, id: AccountId },
+
+    #[error("Exceeds namespace limit: {}, current: {}", limit, current)]
+    ExceedsNamespaceLimit { limit: usize, current: usize },
 }
 impl From<cw_semver::Error> for VCError {
     fn from(err: cw_semver::Error) -> Self {

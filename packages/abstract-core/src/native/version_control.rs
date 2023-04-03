@@ -12,11 +12,11 @@ pub type ModuleMapEntry = (ModuleInfo, ModuleReference);
 
 pub mod state {
     use cw_controllers::Admin;
-    use cw_storage_plus::Map;
+    use cw_storage_plus::{Item, Map};
 
     use crate::objects::{
         common_namespace::ADMIN_NAMESPACE, core::AccountId, module::ModuleInfo,
-        module_reference::ModuleReference, namespace::Namespace,
+        module_reference::ModuleReference,
     };
 
     use super::AccountBase;
@@ -30,8 +30,28 @@ pub mod state {
     pub const YANKED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("yanked_modules");
     /// Maps Account ID to the address of its core contracts
     pub const ACCOUNT_ADDRESSES: Map<AccountId, AccountBase> = Map::new("account");
-    /// Maps OS ID to the namespaces
-    pub const OS_NAMESPACES: Map<&Namespace, AccountId> = Map::new("os_namespace");
+    /// Maximum namespaces an account can claim
+    pub const NAMESPACES_LIMIT: Item<u32> = Item::new("namespaces_limit");
+}
+
+// Sub Indexes
+pub struct NamespaceIndexes<'a> {
+    pub account_id: MultiIndex<'a, AccountId, AccountId, &'a Namespace>,
+}
+
+impl<'a> IndexList<AccountId> for NamespaceIndexes<'a> {
+    fn get_indexes(&'_ self) -> Box<dyn Iterator<Item = &'_ dyn Index<AccountId>> + '_> {
+        let v: Vec<&dyn Index<AccountId>> = vec![&self.account_id];
+        Box::new(v.into_iter())
+    }
+}
+
+// Primary Index
+pub fn namespaces_info<'a>() -> IndexedMap<'a, &'a Namespace, AccountId, NamespaceIndexes<'a>> {
+    let indexes = NamespaceIndexes {
+        account_id: MultiIndex::new(|_pk, d| *d, "NAMESPACE", "NAMESPACE_ACCOUNT"),
+    };
+    IndexedMap::new("NAMESPACE", indexes)
 }
 
 use crate::objects::{
@@ -42,6 +62,7 @@ use crate::objects::{
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
+use cw_storage_plus::{Index, IndexList, IndexedMap, MultiIndex};
 
 /// Contains the minimal Abstract Account contract addresses.
 #[cosmwasm_schema::cw_serde]
@@ -74,6 +95,8 @@ pub enum ExecuteMsg {
         account_id: AccountId,
         account_base: AccountBase,
     },
+    /// Updates namespace limit per account
+    UpdateNamespacesLimit { new_limit: u32 },
     /// Sets a new Admin
     SetAdmin { new_admin: String },
     /// Sets a new Factory
@@ -117,6 +140,7 @@ pub enum QueryMsg {
     NamespaceList {
         start_after: Option<String>,
         limit: Option<u8>,
+        account_id: Option<AccountId>,
     },
 }
 

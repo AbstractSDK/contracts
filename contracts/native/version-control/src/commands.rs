@@ -8,12 +8,10 @@ use abstract_sdk::core::{
     objects::{
         module::ModuleInfo, module_reference::ModuleReference, namespace::Namespace, AccountId,
     },
-    version_control::{state::*, AccountBase},
+    version_control::{namespaces_info, state::*, AccountBase},
     VERSION_CONTROL,
 };
-use cosmwasm_std::{
-    Addr, Deps, DepsMut, Empty, MessageInfo, Order, QuerierWrapper, StdResult,
-};
+use cosmwasm_std::{Addr, Deps, DepsMut, Empty, MessageInfo, Order, QuerierWrapper, StdResult};
 
 #[abstract_response(VERSION_CONTROL)]
 pub struct VcResponse;
@@ -116,16 +114,27 @@ pub fn claim_namespaces(
         });
     }
 
+    let limit = NAMESPACES_LIMIT.load(deps.storage)? as usize;
+    let current = namespaces_info()
+        .idx
+        .account_id
+        .prefix(account_id)
+        .range(deps.storage, None, None, Order::Ascending)
+        .count();
+    if current + namespaces.len() > limit {
+        return Err(VCError::ExceedsNamespaceLimit { limit, current });
+    }
+
     for namespace in namespaces.iter() {
         let item = Namespace::from(namespace);
         item.validate()?;
-        if let Some(id) = OS_NAMESPACES.may_load(deps.storage, &item)? {
+        if let Some(id) = namespaces_info().may_load(deps.storage, &item)? {
             return Err(VCError::NamespaceOccupied {
                 namespace: namespace.to_string(),
                 id,
             });
         }
-        OS_NAMESPACES.save(deps.storage, &item, &account_id)?;
+        namespaces_info().save(deps.storage, &item, &account_id)?;
     }
 
     Ok(VcResponse::new(
@@ -166,12 +175,26 @@ pub fn remove_namespaces(
             YANKED_MODULES.save(deps.storage, &module, &mod_ref)?;
         }
 
-        OS_NAMESPACES.remove(deps.storage, &Namespace::from(namespace));
+        namespaces_info().remove(deps.storage, &Namespace::from(namespace))?;
     }
 
     Ok(VcResponse::new(
         "remove_namespaces",
         vec![("namespaces", &namespaces.join(","))],
+    ))
+}
+
+pub fn update_namespaces_limit(deps: DepsMut, info: MessageInfo, new_limit: u32) -> VCResult {
+    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
+    let previous_limit = NAMESPACES_LIMIT.load(deps.storage)?;
+    NAMESPACES_LIMIT.save(deps.storage, &new_limit)?;
+
+    Ok(VcResponse::new(
+        "update_namespaces_limit",
+        vec![
+            ("previous_limit", previous_limit.to_string()),
+            ("limit", new_limit.to_string()),
+        ],
     ))
 }
 
@@ -198,7 +221,7 @@ pub fn query_account_owner(querier: &QuerierWrapper, contract_addr: &Addr) -> St
 pub fn validate_account_owner(deps: Deps, provider: &str, sender: &Addr) -> Result<(), VCError> {
     let sender = sender.clone();
     let namespace = Namespace::from(provider);
-    let account_id = OS_NAMESPACES
+    let account_id = namespaces_info()
         .may_load(deps.storage, &namespace)?
         .ok_or_else(|| VCError::MissingNamespace {
             namespace: provider.to_string(),
@@ -218,7 +241,7 @@ pub fn validate_account_owner(deps: Deps, provider: &str, sender: &Addr) -> Resu
 mod test {
     use abstract_testing::MockQuerierBuilder;
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-    use cosmwasm_std::{from_binary, Addr, Uint64, to_binary};
+    use cosmwasm_std::{from_binary, to_binary, Addr, Uint64};
 
     use abstract_core::version_control::*;
 
@@ -227,8 +250,8 @@ mod test {
 
     use super::*;
     use abstract_testing::prelude::{
-        TEST_ACCOUNT_FACTORY, TEST_ACCOUNT_ID, TEST_ADMIN,
-        TEST_MODULE_FACTORY, TEST_VERSION, TEST_VERSION_CONTROL,
+        TEST_ACCOUNT_FACTORY, TEST_ACCOUNT_ID, TEST_ADMIN, TEST_MODULE_FACTORY, TEST_VERSION,
+        TEST_VERSION_CONTROL,
     };
 
     type VersionControlTestResult = Result<(), VCError>;
@@ -410,9 +433,9 @@ mod test {
 
             let res = execute_as(deps.as_mut(), TEST_OWNER, msg);
             assert_that!(&res).is_ok();
-            let account_id = OS_NAMESPACES.load(&deps.storage, &new_namespace1)?;
+            let account_id = namespaces_info().load(&deps.storage, &new_namespace1)?;
             assert_that!(account_id).is_equal_to(TEST_ACCOUNT_ID);
-            let account_id = OS_NAMESPACES.load(&deps.storage, &new_namespace2)?;
+            let account_id = namespaces_info().load(&deps.storage, &new_namespace2)?;
             assert_that!(account_id).is_equal_to(TEST_ACCOUNT_ID);
             Ok(())
         }
@@ -450,7 +473,7 @@ mod test {
             };
             let res = execute_as(deps.as_mut(), TEST_ADMIN, msg);
             assert_that!(&res).is_ok();
-            let exists = OS_NAMESPACES.has(&deps.storage, &new_namespace1);
+            let exists = namespaces_info().has(&deps.storage, &new_namespace1);
             assert_that!(exists).is_equal_to(false);
 
             // remove same again
@@ -470,7 +493,7 @@ mod test {
             };
             let res = execute_as(deps.as_mut(), TEST_ADMIN, msg);
             assert_that!(&res).is_ok();
-            let exists = OS_NAMESPACES.has(&deps.storage, &new_namespace1);
+            let exists = namespaces_info().has(&deps.storage, &new_namespace1);
             assert_that!(exists).is_equal_to(false);
 
             Ok(())
@@ -515,7 +538,7 @@ mod test {
 
     mod add_modules {
         use super::*;
-        use abstract_core::objects::{module_reference::ModuleReference};
+        use abstract_core::objects::module_reference::ModuleReference;
         use abstract_core::AbstractError;
 
         fn test_module() -> ModuleInfo {

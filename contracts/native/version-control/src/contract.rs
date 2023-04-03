@@ -2,7 +2,7 @@ use crate::error::VCError;
 use abstract_sdk::core::{
     objects::{module_version::migrate_module_data, module_version::set_module_data},
     version_control::{
-        state::{ADMIN, FACTORY},
+        state::{ADMIN, FACTORY, NAMESPACES_LIMIT},
         ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     },
     VERSION_CONTROL,
@@ -52,6 +52,7 @@ pub fn instantiate(
         &[],
         None::<String>,
     )?;
+    NAMESPACES_LIMIT.save(deps.storage, &10)?;
     // Setup the admin as the creator of the contract
     ADMIN.set(deps.branch(), Some(info.sender))?;
     FACTORY.set(deps, None)?;
@@ -64,14 +65,18 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
     match msg {
         ExecuteMsg::AddModules { modules } => add_modules(deps, info, modules),
         ExecuteMsg::RemoveModule { module, yank } => remove_module(deps, info, module, yank),
-        ExecuteMsg::ClaimNamespaces { account_id, namespaces } => {
-            claim_namespaces(deps, info, account_id, namespaces)
-        }
+        ExecuteMsg::ClaimNamespaces {
+            account_id,
+            namespaces,
+        } => claim_namespaces(deps, info, account_id, namespaces),
         ExecuteMsg::RemoveNamespaces { namespaces } => remove_namespaces(deps, info, namespaces),
         ExecuteMsg::AddAccount {
             account_id,
             account_base: base,
         } => add_account(deps, info, account_id, base),
+        ExecuteMsg::UpdateNamespacesLimit { new_limit } => {
+            update_namespaces_limit(deps, info, new_limit)
+        }
         ExecuteMsg::SetAdmin { new_admin } => set_admin(deps, info, new_admin),
         ExecuteMsg::SetFactory { new_factory } => {
             authorized_set_admin(deps, info, &ADMIN, &FACTORY, new_factory).map_err(|e| e.into())
@@ -98,7 +103,8 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::NamespaceList {
             start_after,
             limit,
-        } => queries::handle_namespace_list_query(deps, start_after, limit),
+            account_id,
+        } => queries::handle_namespace_list_query(deps, start_after, limit, account_id),
     }
 }
 

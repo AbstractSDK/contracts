@@ -7,7 +7,8 @@ use abstract_sdk::core::{
         AccountId,
     },
     version_control::{
-        state::{ACCOUNT_ADDRESSES, MODULE_LIBRARY, OS_NAMESPACES, YANKED_MODULES},
+        namespaces_info,
+        state::{ACCOUNT_ADDRESSES, MODULE_LIBRARY, YANKED_MODULES},
         AccountBaseResponse, ModuleFilter, ModulesListResponse, ModulesResponse,
         NamespaceListResponse,
     },
@@ -129,14 +130,32 @@ pub fn handle_namespace_list_query(
     deps: Deps,
     start_after: Option<String>,
     limit: Option<u8>,
+    account_id: Option<AccountId>,
 ) -> StdResult<Binary> {
     let namespace = start_after.map(Namespace::from);
     let start_bound = namespace.as_ref().map(Bound::exclusive);
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
-    let namespaces = OS_NAMESPACES
-            .range(deps.storage, start_bound, None, Order::Ascending)
-            .take(limit)
-            .collect::<StdResult<Vec<_>>>()?;
+    let mut namespaces = vec![];
+    if let Some(account_id) = account_id {
+        namespaces.extend(
+            namespaces_info()
+                .idx
+                .account_id
+                .prefix(account_id)
+                .range(deps.storage, start_bound, None, Order::Ascending)
+                .take(limit)
+                .collect::<StdResult<Vec<_>>>()?
+                .into_iter(),
+        );
+    } else {
+        namespaces.extend(
+            namespaces_info()
+                .range(deps.storage, start_bound, None, Order::Ascending)
+                .take(limit)
+                .collect::<StdResult<Vec<_>>>()?
+                .into_iter(),
+        );
+    }
 
     to_binary(&NamespaceListResponse { namespaces })
 }
@@ -209,12 +228,14 @@ fn filter_modules_by_provider(
 
 #[cfg(test)]
 mod test {
+    use abstract_testing::prelude::{
+        TEST_ACCOUNT_FACTORY, TEST_ACCOUNT_ID, TEST_MODULE_FACTORY, TEST_VERSION_CONTROL,
+    };
     use abstract_testing::MockQuerierBuilder;
-    use abstract_testing::prelude::{TEST_VERSION_CONTROL, TEST_MODULE_FACTORY, TEST_ACCOUNT_ID, TEST_ACCOUNT_FACTORY};
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use cosmwasm_std::{Addr, DepsMut, StdError, Uint64};
 
-    use abstract_core::{version_control::*, manager};
+    use abstract_core::{manager, version_control::*};
 
     use crate::contract;
     use crate::contract::VCResult;
@@ -434,10 +455,7 @@ mod test {
     fn init_with_mods(mut deps: DepsMut) {
         mock_init_with_account(deps.branch()).unwrap();
 
-        let namespaces = vec![
-            "cw-plus".to_string(),
-            "4t2".to_string()
-        ];
+        let namespaces = vec!["cw-plus".to_string(), "4t2".to_string()];
         add_namespaces(deps.branch(), namespaces);
 
         let cw_mods = vec![
@@ -614,11 +632,14 @@ mod test {
             let mut deps = mock_dependencies();
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut()).unwrap();
-            add_namespaces(deps.as_mut(), vec![
-                "cw-plus".to_string(),
-                "aoeu".to_string(),
-                "snth".to_string(),
-            ]);
+            add_namespaces(
+                deps.as_mut(),
+                vec![
+                    "cw-plus".to_string(),
+                    "aoeu".to_string(),
+                    "snth".to_string(),
+                ],
+            );
             let cw_mods = vec![
                 ModuleInfo::from_id("cw-plus:module1", ModuleVersion::Version("0.1.2".into()))
                     .unwrap(),
@@ -832,6 +853,58 @@ mod test {
                     assert_that!(module.info.provider).is_equal_to(filtered_provider.clone());
                     assert_that!(module.info.version.to_string())
                         .is_equal_to(filtered_version.clone());
+                }
+
+                res
+            });
+        }
+    }
+
+    mod list_namespaces {
+        use super::*;
+
+        fn filtered_list_msg(account_id: Option<AccountId>) -> QueryMsg {
+            QueryMsg::NamespaceList {
+                start_after: None,
+                limit: None,
+                account_id,
+            }
+        }
+
+        #[test]
+        fn filter_namespaces() {
+            let mut deps = mock_dependencies();
+            deps.querier = mock_manager_querier().build();
+            init_with_mods(deps.as_mut());
+
+            // get all
+            let list_msg = filtered_list_msg(None);
+            let res = query_helper(deps.as_ref(), list_msg);
+
+            assert_that!(res).is_ok().map(|res| {
+                let NamespaceListResponse { namespaces } = from_binary(res).unwrap();
+                assert_that!(namespaces).has_length(2);
+                res
+            });
+
+            // get by another id
+            let list_msg = filtered_list_msg(Some(101));
+            let res = query_helper(deps.as_ref(), list_msg);
+            assert_that!(res).is_ok().map(|res| {
+                let NamespaceListResponse { namespaces } = from_binary(res).unwrap();
+                assert_that!(namespaces).has_length(0);
+                res
+            });
+
+            // get by admin id
+            let list_msg = filtered_list_msg(Some(TEST_ACCOUNT_ID));
+            let res = query_helper(deps.as_ref(), list_msg);
+            assert_that!(res).is_ok().map(|res| {
+                let NamespaceListResponse { namespaces } = from_binary(res).unwrap();
+                assert_that!(namespaces).has_length(2);
+
+                for entry in namespaces {
+                    assert_that!(entry.1).is_equal_to(TEST_ACCOUNT_ID);
                 }
 
                 res
