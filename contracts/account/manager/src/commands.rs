@@ -187,6 +187,7 @@ fn load_module_addr(storage: &dyn Storage, module_id: &String) -> Result<Addr, M
         .ok_or_else(|| ManagerError::ModuleNotFound(module_id.clone()))
 }
 
+/// Uninstall the module with the ID [`module_id`]
 pub fn uninstall_module(deps: DepsMut, msg_info: MessageInfo, module_id: String) -> ManagerResult {
     // only owner can uninstall modules
     OWNER.assert_admin(deps.as_ref(), &msg_info.sender)?;
@@ -975,7 +976,7 @@ mod test {
 
         #[test]
         fn only_owner() -> ManagerTestResult {
-            let msg = ExecuteMsg::RemoveModule {
+            let msg = ExecuteMsg::UninstallModule {
                 module_id: "test:module".to_string(),
             };
 
@@ -988,7 +989,7 @@ mod test {
             init_with_proxy(&mut deps);
 
             let test_module = "test:module";
-            let msg = ExecuteMsg::RemoveModule {
+            let msg = ExecuteMsg::UninstallModule {
                 module_id: test_module.to_string(),
             };
 
@@ -1011,7 +1012,7 @@ mod test {
             let mut deps = mock_dependencies();
             init_with_proxy(&mut deps);
 
-            let msg = ExecuteMsg::RemoveModule {
+            let msg = ExecuteMsg::UninstallModule {
                 module_id: PROXY.to_string(),
             };
 
