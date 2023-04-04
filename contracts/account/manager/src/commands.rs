@@ -172,10 +172,14 @@ pub fn exec_on_module(
     OWNER.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
     let module_addr = load_module_addr(deps.storage, &module_id)?;
-    let module_msg = wasm_execute(module_addr, &exec_msg, vec![])?;
 
-    let response =
-        ManagerResponse::new("exec_on_module", vec![("module", module_id)]).add_message(module_msg);
+    let response = ManagerResponse::new("exec_on_module", vec![("module", module_id)]).add_message(
+        CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: module_addr.into(),
+            msg: exec_msg,
+            funds: vec![],
+        }),
+    );
 
     Ok(response)
 }
@@ -1099,19 +1103,19 @@ mod test {
 
             let msg = ExecuteMsg::ExecOnModule {
                 module_id: PROXY.to_string(),
-                exec_msg: to_binary(exec_msg.clone())?,
+                exec_msg: to_binary(&exec_msg)?,
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
-            assert_that(&res).is_ok();
+            assert_that!(&res).is_ok();
 
             let msgs = res.unwrap().messages;
-            assert_that(&msgs).has_length(1);
+            assert_that!(&msgs).has_length(1);
 
             let expected_msg: CosmosMsg = wasm_execute(TEST_PROXY_ADDR, &exec_msg, vec![])?.into();
 
             let actual_msg = &msgs[0];
-            assert_that(&actual_msg.msg).is_equal_to(&expected_msg);
+            assert_that!(&actual_msg.msg).is_equal_to(&expected_msg);
 
             Ok(())
         }
