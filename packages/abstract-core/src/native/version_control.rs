@@ -49,9 +49,9 @@ impl<'a> IndexList<AccountId> for NamespaceIndexes<'a> {
 // Primary Index
 pub fn namespaces_info<'a>() -> IndexedMap<'a, &'a Namespace, AccountId, NamespaceIndexes<'a>> {
     let indexes = NamespaceIndexes {
-        account_id: MultiIndex::new(|_pk, d| *d, "NAMESPACE", "NAMESPACE_ACCOUNT"),
+        account_id: MultiIndex::new(|_pk, d| *d, "namespace", "namespace_account"),
     };
-    IndexedMap::new("NAMESPACE", indexes)
+    IndexedMap::new("namespace", indexes)
 }
 
 use crate::objects::{

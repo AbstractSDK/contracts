@@ -242,21 +242,41 @@ mod test {
     const TEST_PROXY_ADDR: &str = "proxy";
     const TEST_MANAGER_ADDR: &str = "manager";
 
+    const TEST_OTHER: &str = "testother";
+    const TEST_OTHER_ACCOUNT_ID: u32 = 1;
+    const TEST_OTHER_PROXY_ADDR: &str = "proxy1";
+    const TEST_OTHER_MANAGER_ADDR: &str = "manager1";
+
     pub fn mock_manager_querier() -> MockQuerierBuilder {
-        MockQuerierBuilder::default().with_smart_handler(TEST_MANAGER_ADDR, |msg| {
-            match from_binary(msg).unwrap() {
-                manager::QueryMsg::Config {} => {
-                    let resp = manager::ConfigResponse {
-                        owner: TEST_ADMIN.to_owned(),
-                        version_control_address: TEST_VERSION_CONTROL.to_owned(),
-                        module_factory_address: TEST_MODULE_FACTORY.to_owned(),
-                        account_id: Uint64::from(TEST_ACCOUNT_ID), // mock value, not used
-                    };
-                    Ok(to_binary(&resp).unwrap())
+        MockQuerierBuilder::default()
+            .with_smart_handler(TEST_MANAGER_ADDR, |msg| {
+                match from_binary(msg).unwrap() {
+                    manager::QueryMsg::Config {} => {
+                        let resp = manager::ConfigResponse {
+                            owner: TEST_ADMIN.to_owned(),
+                            version_control_address: TEST_VERSION_CONTROL.to_owned(),
+                            module_factory_address: TEST_MODULE_FACTORY.to_owned(),
+                            account_id: Uint64::from(TEST_ACCOUNT_ID), // mock value, not used
+                        };
+                        Ok(to_binary(&resp).unwrap())
+                    }
+                    _ => panic!("unexpected message"),
                 }
-                _ => panic!("unexpected message"),
-            }
-        })
+            })
+            .with_smart_handler(TEST_OTHER_MANAGER_ADDR, |msg| {
+                match from_binary(msg).unwrap() {
+                    manager::QueryMsg::Config {} => {
+                        let resp = manager::ConfigResponse {
+                            owner: TEST_OTHER.to_owned(),
+                            version_control_address: TEST_VERSION_CONTROL.to_owned(),
+                            module_factory_address: TEST_MODULE_FACTORY.to_owned(),
+                            account_id: Uint64::from(TEST_OTHER_ACCOUNT_ID), // mock value, not used
+                        };
+                        Ok(to_binary(&resp).unwrap())
+                    }
+                    _ => panic!("unexpected message"),
+                }
+            })
     }
 
     /// Initialize the version_control with admin as creator and test account
@@ -277,6 +297,17 @@ mod test {
                 account_base: AccountBase {
                     manager: Addr::unchecked(TEST_MANAGER_ADDR),
                     proxy: Addr::unchecked(TEST_PROXY_ADDR),
+                },
+            },
+        )?;
+        execute_as(
+            deps.branch(),
+            TEST_ACCOUNT_FACTORY,
+            ExecuteMsg::AddAccount {
+                account_id: TEST_OTHER_ACCOUNT_ID,
+                account_base: AccountBase {
+                    manager: Addr::unchecked(TEST_OTHER_MANAGER_ADDR),
+                    proxy: Addr::unchecked(TEST_OTHER_PROXY_ADDR),
                 },
             },
         )
@@ -413,13 +444,13 @@ mod test {
     use cosmwasm_std::from_binary;
 
     /// Add namespaces
-    fn add_namespaces(deps: DepsMut, namespaces: Vec<String>) {
+    fn add_namespaces(deps: DepsMut, namespaces: Vec<String>, account_id: u32, sender: &str) {
         let msg = ExecuteMsg::ClaimNamespaces {
-            account_id: TEST_ACCOUNT_ID,
+            account_id,
             namespaces,
         };
 
-        let res = execute_as_admin(deps, msg);
+        let res = execute_as(deps, sender, msg);
         assert_that!(&res).is_ok();
     }
 
@@ -449,7 +480,7 @@ mod test {
         mock_init_with_account(deps.branch()).unwrap();
 
         let namespaces = vec!["cw-plus".to_string(), "4t2".to_string()];
-        add_namespaces(deps.branch(), namespaces);
+        add_namespaces(deps.branch(), namespaces, TEST_ACCOUNT_ID, TEST_ADMIN);
 
         let cw_mods = vec![
             ModuleInfo::from_id("cw-plus:module1", ModuleVersion::Version("0.1.2".into())).unwrap(),
@@ -632,6 +663,8 @@ mod test {
                     "aoeu".to_string(),
                     "snth".to_string(),
                 ],
+                TEST_ACCOUNT_ID,
+                TEST_ADMIN,
             );
             let cw_mods = vec![
                 ModuleInfo::from_id("cw-plus:module1", ModuleVersion::Version("0.1.2".into()))
@@ -870,22 +903,37 @@ mod test {
             deps.querier = mock_manager_querier().build();
             init_with_mods(deps.as_mut());
 
+            // add namespaces as others
+            let namespaces = vec![
+                "other1".to_string(),
+                "other2".to_string(),
+                "other3".to_string(),
+            ];
+            add_namespaces(deps.as_mut(), namespaces.clone(), TEST_OTHER_ACCOUNT_ID, TEST_OTHER);
+
             // get all
             let list_msg = filtered_list_msg(None);
             let res = query_helper(deps.as_ref(), list_msg);
 
             assert_that!(res).is_ok().map(|res| {
-                let NamespaceListResponse { namespaces } = from_binary(res).unwrap();
-                assert_that!(namespaces).has_length(2);
+                let NamespaceListResponse { namespaces: resp } = from_binary(res).unwrap();
+                println!("{:?}", resp);
+                assert_that!(resp).has_length(5);
                 res
             });
 
             // get by another id
-            let list_msg = filtered_list_msg(Some(101));
+            let list_msg = filtered_list_msg(Some(TEST_OTHER_ACCOUNT_ID));
             let res = query_helper(deps.as_ref(), list_msg);
             assert_that!(res).is_ok().map(|res| {
-                let NamespaceListResponse { namespaces } = from_binary(res).unwrap();
-                assert_that!(namespaces).has_length(0);
+                let NamespaceListResponse { namespaces: resp } = from_binary(res).unwrap();
+                assert_that!(resp).has_length(3);
+
+                for entry in resp {
+                    assert_that!(namespaces.contains(&entry.0.to_string())).is_equal_to(true);
+                    assert_that!(entry.1).is_equal_to(TEST_OTHER_ACCOUNT_ID);
+                }
+
                 res
             });
 
@@ -893,10 +941,10 @@ mod test {
             let list_msg = filtered_list_msg(Some(TEST_ACCOUNT_ID));
             let res = query_helper(deps.as_ref(), list_msg);
             assert_that!(res).is_ok().map(|res| {
-                let NamespaceListResponse { namespaces } = from_binary(res).unwrap();
-                assert_that!(namespaces).has_length(2);
+                let NamespaceListResponse { namespaces: resp } = from_binary(res).unwrap();
+                assert_that!(resp).has_length(2);
 
-                for entry in namespaces {
+                for entry in resp {
                     assert_that!(entry.1).is_equal_to(TEST_ACCOUNT_ID);
                 }
 
