@@ -15,7 +15,7 @@ use cosmwasm_std::{Empty, Response};
 pub mod mock {
     use abstract_boot::AppDeployer;
     pub use abstract_core::app;
-    use boot_core::{BootEnvironment, ContractWrapper};
+    use boot_core::{CwEnv, ContractWrapper};
     pub use cosmwasm_std::testing::*;
     use cosmwasm_std::{from_binary, to_binary, Addr, StdError};
 
@@ -125,9 +125,9 @@ pub mod mock {
     #[boot_core::contract(Init, Exec, Query, Migrate)]
     pub struct BootMockApp;
 
-    impl<Chain: BootEnvironment> AppDeployer<Chain> for BootMockApp<Chain> {}
+    impl<Chain: CwEnv> AppDeployer<Chain> for BootMockApp<Chain> {}
 
-    impl<Chain: boot_core::BootEnvironment> BootMockApp<Chain> {
+    impl<Chain: boot_core::CwEnv> BootMockApp<Chain> {
         pub fn new(name: &str, chain: Chain) -> Self {
             Self(
                 boot_core::Contract::new(name, chain).with_mock(Box::new(
@@ -194,9 +194,9 @@ pub mod mock {
         #[boot_core::contract(Init, Exec, Query, Migrate)]
         pub struct $name;
 
-        impl<Chain: ::boot_core::BootEnvironment> ::abstract_boot::AppDeployer<Chain> for $name <Chain> {}
+        impl<Chain: ::boot_core::CwEnv> ::abstract_boot::AppDeployer<Chain> for $name <Chain> {}
 
-        impl<Chain: ::boot_core::BootEnvironment> $name <Chain> {
+        impl<Chain: ::boot_core::CwEnv> $name <Chain> {
             pub fn new(chain: Chain) -> Self {
                 Self(
                     boot_core::Contract::new($id,chain).with_mock(Box::new(::boot_core::ContractWrapper::<

@@ -6,7 +6,7 @@ use abstract_core::{
     ANS_HOST,
 };
 use boot_core::{
-    BootEnvironment, BootError, Contract, IndexResponse, TxResponse,
+    CwEnv, BootError, Contract, IndexResponse, TxResponse,
     {contract, ContractInstance},
 };
 use cosmwasm_std::Addr;
@@ -18,7 +18,7 @@ use std::{cmp::min, collections::HashSet, env, fs::File};
 #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct AnsHost<Chain>;
 
-impl<Chain: BootEnvironment> AnsHost<Chain>
+impl<Chain: CwEnv> AnsHost<Chain>
 where
     TxResponse<Chain>: IndexResponse,
 {

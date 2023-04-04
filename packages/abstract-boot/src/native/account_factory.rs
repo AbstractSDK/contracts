@@ -6,7 +6,7 @@ use abstract_core::{
     account_factory::*, objects::gov_type::GovernanceDetails, ABSTRACT_EVENT_NAME, MANAGER, PROXY,
 };
 use boot_core::{
-    contract, BootEnvironment, Contract, IndexResponse, StateInterface, TxResponse,
+    contract, CwEnv, Contract, IndexResponse, StateInterface, TxResponse,
     {BootExecute, ContractInstance},
 };
 use cosmwasm_std::Addr;
@@ -22,7 +22,7 @@ pub struct AccountDetails {
 #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct AccountFactory<Chain>;
 
-impl<Chain: BootEnvironment> AccountFactory<Chain> {
+impl<Chain: CwEnv> AccountFactory<Chain> {
     pub fn new(name: &str, chain: Chain) -> Self {
         let mut contract = Contract::new(name, chain);
         contract = contract.with_wasm_path("abstract_account_factory");

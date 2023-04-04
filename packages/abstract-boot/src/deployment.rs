@@ -7,7 +7,7 @@ use boot_core::*;
 
 use semver::Version;
 
-pub struct Abstract<Chain: BootEnvironment> {
+pub struct Abstract<Chain: CwEnv> {
     pub chain: Chain,
     pub version: Version,
     pub ans_host: AnsHost<Chain>,
@@ -20,7 +20,7 @@ use abstract_core::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY, V
 #[cfg(feature = "integration")]
 use boot_core::ContractWrapper;
 
-impl<Chain: BootEnvironment> boot_core::Deploy<Chain> for Abstract<Chain> {
+impl<Chain: CwEnv> boot_core::Deploy<Chain> for Abstract<Chain> {
     // We don't have a custom error type
     type Error = BootError;
     type DeployData = semver::Version;
@@ -118,7 +118,7 @@ impl<Chain: BootEnvironment> boot_core::Deploy<Chain> for Abstract<Chain> {
     }
 }
 
-impl<Chain: BootEnvironment> Abstract<Chain> {
+impl<Chain: CwEnv> Abstract<Chain> {
     pub fn new(chain: Chain, version: Version) -> Self {
         let (ans_host, account_factory, version_control, module_factory, _ibc_client) =
             get_native_contracts(chain.clone());
