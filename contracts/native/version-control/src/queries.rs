@@ -909,7 +909,12 @@ mod test {
                 "other2".to_string(),
                 "other3".to_string(),
             ];
-            add_namespaces(deps.as_mut(), namespaces.clone(), TEST_OTHER_ACCOUNT_ID, TEST_OTHER);
+            add_namespaces(
+                deps.as_mut(),
+                namespaces.clone(),
+                TEST_OTHER_ACCOUNT_ID,
+                TEST_OTHER,
+            );
 
             // get all
             let list_msg = filtered_list_msg(None);

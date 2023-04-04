@@ -39,7 +39,8 @@ fn install_app_successful() -> AResult {
     let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
     let account = create_default_account(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy: _ } = &account;
-    abstr.version_control
+    abstr
+        .version_control
         .claim_namespaces(0, vec!["tester".to_string()])?;
     deploy_modules(&chain);
 
@@ -77,7 +78,8 @@ fn install_app_versions_not_met() -> AResult {
     let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
     let account = create_default_account(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy: _ } = &account;
-    abstr.version_control
+    abstr
+        .version_control
         .claim_namespaces(0, vec!["tester".to_string()])?;
     deploy_modules(&chain);
 
@@ -103,7 +105,8 @@ fn upgrade_app_() -> AResult {
     let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
     let account = create_default_account(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy: _ } = &account;
-    abstr.version_control
+    abstr
+        .version_control
         .claim_namespaces(0, vec!["tester".to_string()])?;
     deploy_modules(&chain);
 
@@ -255,7 +258,8 @@ fn uninstall_modules() -> AResult {
     let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
     let account = create_default_account(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy: _ } = &account;
-    abstr.version_control
+    abstr
+        .version_control
         .claim_namespaces(0, vec!["tester".to_string()])?;
     deploy_modules(&chain);
 
@@ -289,7 +293,8 @@ fn update_api_with_traders() -> AResult {
     let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
     let account = create_default_account(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy } = &account;
-    abstr.version_control
+    abstr
+        .version_control
         .claim_namespaces(0, vec!["tester".to_string()])?;
     deploy_modules(&chain);
 
