@@ -28,7 +28,7 @@ impl<Chain: CwEnv> boot_core::Deploy<Chain> for Abstract<Chain> {
         let mut version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
         let mut module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
         let mut manager = Manager::new(MANAGER, chain.clone());
-        let mut proxy = Proxy::new(PROXY, chain.clone());
+        let mut proxy = Proxy::new(PROXY, chain);
         #[cfg(feature = "integration")]
         if cfg!(feature = "integration") {
             ans_host.as_instance_mut().set_mock(Box::new(
@@ -143,7 +143,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
     pub fn new(chain: Chain) -> Self {
         let (ans_host, account_factory, version_control, module_factory, _ibc_client) =
             get_native_contracts(chain.clone());
-        let (manager, proxy) = get_account_contracts(chain.clone(), None);
+        let (manager, proxy) = get_account_contracts(chain, None);
         Self {
             account: AbstractAccount { manager, proxy },
             ans_host,
