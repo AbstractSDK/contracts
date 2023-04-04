@@ -5,7 +5,7 @@ use abstract_core::{
     proxy::*,
     MANAGER, PROXY,
 };
-use boot_core::{contract, CwEnv, Contract, ContractInstance};
+use boot_core::{contract, Contract, ContractInstance, CwEnv};
 
 #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Proxy<Chain>;

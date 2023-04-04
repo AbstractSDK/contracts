@@ -1,6 +1,6 @@
 use crate::Abstract;
 use abstract_core::objects::module::ModuleVersion;
-use boot_core::{CwEnv, BootError::StdErr, Deploy, *};
+use boot_core::{BootError::StdErr, CwEnv, Deploy, *};
 
 use semver::Version;
 use serde::Serialize;

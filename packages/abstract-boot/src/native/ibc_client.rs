@@ -1,5 +1,5 @@
 use abstract_core::ibc_client::*;
-use boot_core::{CwEnv, Contract};
+use boot_core::{Contract, CwEnv};
 
 pub use abstract_core::ibc_client::{
     ExecuteMsgFns as IbcClientExecFns, QueryMsgFns as IbcClientQueryFns,

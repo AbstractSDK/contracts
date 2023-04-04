@@ -26,7 +26,7 @@ pub mod mock {
     use abstract_testing::prelude::{
         TEST_ADMIN, TEST_ANS_HOST, TEST_MODULE_ID, TEST_VERSION, TEST_VERSION_CONTROL,
     };
-    use boot_core::{CwEnv, ContractWrapper};
+    use boot_core::{ContractWrapper, CwEnv};
     use cosmwasm_std::{
         testing::{mock_env, mock_info},
         DepsMut, Empty, Env, MessageInfo, Response, StdError,

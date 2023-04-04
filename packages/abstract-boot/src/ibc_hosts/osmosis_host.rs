@@ -1,5 +1,5 @@
 use abstract_core::ibc_host::*;
-use boot_core::{contract, CwEnv, Contract};
+use boot_core::{contract, Contract, CwEnv};
 use cosmwasm_std::Empty;
 
 #[contract(InstantiateMsg, Empty, QueryMsg, MigrateMsg)]

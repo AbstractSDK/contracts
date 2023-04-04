@@ -4,7 +4,7 @@ use abstract_core::{
     manager::*,
     objects::module::{ModuleInfo, ModuleVersion},
 };
-use boot_core::{contract, CwEnv, BootExecute, Contract};
+use boot_core::{contract, BootExecute, Contract, CwEnv};
 use cosmwasm_std::{to_binary, Empty};
 use serde::Serialize;
 

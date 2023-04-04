@@ -15,7 +15,7 @@ use cosmwasm_std::{Empty, Response};
 pub mod mock {
     use abstract_boot::AppDeployer;
     pub use abstract_core::app;
-    use boot_core::{CwEnv, ContractWrapper};
+    use boot_core::{ContractWrapper, CwEnv};
     pub use cosmwasm_std::testing::*;
     use cosmwasm_std::{from_binary, to_binary, Addr, StdError};
 
