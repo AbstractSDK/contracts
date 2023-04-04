@@ -4,9 +4,9 @@ use boot_core::{BootEnvironment, Contract};
 pub use abstract_core::ibc_client::{
     ExecuteMsgFns as IbcClientExecFns, QueryMsgFns as IbcClientQueryFns,
 };
-use boot_core::boot_contract;
+use boot_core::contract;
 
-#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+#[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct IbcClient<Chain>;
 
 impl<Chain: BootEnvironment> IbcClient<Chain> {

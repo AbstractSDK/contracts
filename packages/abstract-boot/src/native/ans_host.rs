@@ -7,7 +7,7 @@ use abstract_core::{
 };
 use boot_core::{
     BootEnvironment, BootError, Contract, IndexResponse, TxResponse,
-    {boot_contract, ContractInstance},
+    {contract, ContractInstance},
 };
 use cosmwasm_std::Addr;
 use cw_asset::AssetInfoUnchecked;
@@ -15,7 +15,7 @@ use log::info;
 use serde_json::from_reader;
 use std::{cmp::min, collections::HashSet, env, fs::File};
 
-#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+#[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct AnsHost<Chain>;
 
 impl<Chain: BootEnvironment> AnsHost<Chain>

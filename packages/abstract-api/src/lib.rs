@@ -119,7 +119,7 @@ pub mod mock {
     type Exec = api::ExecuteMsg<MockExecMsg>;
     type Query = api::QueryMsg<MockQueryMsg>;
     type Init = api::InstantiateMsg<MockInitMsg>;
-    #[boot_core::boot_contract(Init, Exec, Query, Empty)]
+    #[boot_core::contract(Init, Exec, Query, Empty)]
     pub struct BootMockApi;
 
     impl<Chain: BootEnvironment> ApiDeployer<Chain, MockInitMsg> for BootMockApi<Chain> {}
@@ -181,7 +181,7 @@ pub mod mock {
         type Exec = ::abstract_core::api::ExecuteMsg<MockExecMsg, MockReceiveMsg>;
         type Query = ::abstract_core::api::QueryMsg<MockQueryMsg>;
         type Init = ::abstract_core::api::InstantiateMsg<MockInitMsg>;
-        #[boot_core::boot_contract(Init, Exec, Query, Empty)]
+        #[boot_core::contract(Init, Exec, Query, Empty)]
         pub struct $name ;
 
         impl<Chain: ::boot_core::BootEnvironment> ::abstract_boot::ApiDeployer<Chain, MockInitMsg> for $name <Chain> {}

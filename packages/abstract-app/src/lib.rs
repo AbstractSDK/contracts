@@ -122,7 +122,7 @@ pub mod mock {
     type Query = app::QueryMsg<MockQueryMsg>;
     type Init = app::InstantiateMsg<MockInitMsg>;
     type Migrate = app::MigrateMsg<MockMigrateMsg>;
-    #[boot_core::boot_contract(Init, Exec, Query, Migrate)]
+    #[boot_core::contract(Init, Exec, Query, Migrate)]
     pub struct BootMockApp;
 
     impl<Chain: BootEnvironment> AppDeployer<Chain> for BootMockApp<Chain> {}
@@ -191,7 +191,7 @@ pub mod mock {
             MOCK_APP.migrate(deps, env, msg)
         }
 
-        #[boot_core::boot_contract(Init, Exec, Query, Migrate)]
+        #[boot_core::contract(Init, Exec, Query, Migrate)]
         pub struct $name;
 
         impl<Chain: ::boot_core::BootEnvironment> ::abstract_boot::AppDeployer<Chain> for $name <Chain> {}

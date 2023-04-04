@@ -12,14 +12,14 @@ use abstract_core::{
 #[cfg(feature = "daemon")]
 use boot_core::Daemon;
 use boot_core::{
-    boot_contract, BootEnvironment, Contract, IndexResponse, TxResponse,
-    {BootQuery, ContractInstance},
+    BootEnvironment, Contract, IndexResponse, TxResponse,
+    {BootQuery, ContractInstance}, contract,
 };
 use cosmwasm_std::Addr;
 use semver::Version;
 
-#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
-pub struct VersionControl<Chain>;
+#[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+pub struct VersionControl;
 
 impl<Chain: BootEnvironment> VersionControl<Chain>
 where

@@ -1,11 +1,11 @@
 use abstract_core::abstract_token::*;
 use boot_core::{
-    boot_contract, BootEnvironment, Contract, TxResponse,
+    contract, BootEnvironment, Contract, TxResponse,
     {BootExecute, BootInstantiate, ContractInstance},
 };
 use cosmwasm_std::{Addr, Binary, Uint128};
 
-#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+#[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Idea<Chain>;
 
 impl<Chain: BootEnvironment> Idea<Chain> {

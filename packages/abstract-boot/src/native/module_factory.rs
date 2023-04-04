@@ -6,9 +6,9 @@ use boot_core::{BootEnvironment, Contract, TxResponse};
 pub use abstract_core::module_factory::{
     ExecuteMsgFns as MFactoryExecFns, QueryMsgFns as MFactoryQueryFns,
 };
-use boot_core::{boot_contract, BootExecute};
+use boot_core::{contract, BootExecute};
 
-#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+#[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct ModuleFactory<Chain>;
 
 impl<Chain: BootEnvironment> ModuleFactory<Chain> {
