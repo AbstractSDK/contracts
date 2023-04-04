@@ -76,21 +76,4 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
             governance_details,
         )
     }
-
-    pub fn set_subscription_contract(
-        &self,
-        addr: String,
-    ) -> Result<TxResponse<Chain>, crate::AbstractBootError> {
-        self.execute(
-            &ExecuteMsg::UpdateConfig {
-                admin: None,
-                ans_host_contract: None,
-                version_control_contract: None,
-                module_factory_address: None,
-                subscription_address: Some(addr),
-            },
-            None,
-        )
-        .map_err(Into::into)
-    }
 }
