@@ -108,8 +108,8 @@ pub enum ExecuteMsg {
     /// Registers a module after creation.
     /// Used as a callback *only* by the Module Factory to register the module on the Account.
     RegisterModule { module_addr: String, module: Module },
-    /// Remove a module
-    RemoveModule { module_id: String },
+    /// Uninstall a module given its ID.
+    UninstallModule { module_id: String },
     /// Upgrade the module to a new version
     /// If module is `abstract::manager` then the contract will do a self-migration.
     Upgrade {
