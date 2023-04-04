@@ -23,12 +23,17 @@ pub type IbcCallbackHandlerFn<Module, Error> =
     fn(DepsMut, Env, MessageInfo, Module, String, StdAck) -> Result<Response, Error>;
 
 pub type MigrateHandlerFn<Module, MigrateMsg, Error> =
-    fn(DepsMut, Env, Module, MigrateMsg) -> Result<Response, Error>;
+fn(DepsMut, Env, Module, MigrateMsg) -> Result<Response, Error>;
+
+pub type SudoHandlerFn<Module, SudoMsg, Error> =
+    fn(DepsMut, Env, Module, SudoMsg) -> Result<Response, Error>;
 
 pub type ReceiveHandlerFn<App, Msg, Error> =
     fn(DepsMut, Env, MessageInfo, App, Msg) -> Result<Response, Error>;
 
 pub type ReplyHandlerFn<Module, Error> = fn(DepsMut, Env, Module, Reply) -> Result<Response, Error>;
+
+
 
 /// There can be two locations where reply handlers are added.
 /// 1. Base implementation of the contract.
@@ -43,6 +48,7 @@ pub struct AbstractContract<
     CustomExecMsg = Empty,
     CustomQueryMsg = Empty,
     CustomMigrateMsg = Empty,
+    SudoMsg = Empty,
     ReceiveMsg = Empty,
 > {
     /// Static info about the contract, used for migration
@@ -59,6 +65,8 @@ pub struct AbstractContract<
     pub(crate) query_handler: Option<QueryHandlerFn<Module, CustomQueryMsg, Error>>,
     /// Handler for migrations.
     pub(crate) migrate_handler: Option<MigrateHandlerFn<Module, CustomMigrateMsg, Error>>,
+    /// Handler for sudo messages.
+    pub(crate) sudo_handler: Option<SudoHandlerFn<Module, SudoMsg, Error>>,
     /// List of reply handlers per reply ID.
     pub reply_handlers: [&'static [(u64, ReplyHandlerFn<Module, Error>)]; MAX_REPLY_COUNT],
     /// Handler of `Receive variant Execute messages.
