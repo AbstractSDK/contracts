@@ -12,8 +12,10 @@ pub type AnsHostResult = Result<Response, AnsHostError>;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-use abstract_core::objects::module_version::{migrate_module_data, set_module_data};
-use abstract_core::ANS_HOST;
+use abstract_core::objects::module_version::{
+    assert_contract_upgrade, migrate_module_data, set_module_data,
+};
+use abstract_core::{ANS_HOST};
 use abstract_sdk::query_ownership;
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
@@ -105,13 +107,12 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
+pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> AnsHostResult {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
-    if storage_version < version {
-        set_contract_version(deps.storage, ANS_HOST, CONTRACT_VERSION)?;
-        migrate_module_data(deps.storage, ANS_HOST, CONTRACT_VERSION, None::<String>)?;
-    }
+    assert_contract_upgrade(storage_version, version)?;
+    set_contract_version(deps.storage, ANS_HOST, CONTRACT_VERSION)?;
+    migrate_module_data(deps.storage, ANS_HOST, CONTRACT_VERSION, None::<String>)?;
 
     Ok(Response::default())
 }
