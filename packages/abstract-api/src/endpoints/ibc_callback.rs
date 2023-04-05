@@ -7,7 +7,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
 {
 }
 
-// to test this, add ibc client to version control 
+// to test this, add ibc client to version control
 
 // #[cfg(test)]
 // mod tests {
