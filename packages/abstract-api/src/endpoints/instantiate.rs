@@ -1,7 +1,7 @@
 use crate::state::{ApiContract, ApiState, ContractError};
 use abstract_core::{api::InstantiateMsg, objects::module_version::set_module_data};
 use abstract_sdk::{
-    base::{endpoints::InstantiateEndpoint, Handler},
+    base::{Handler, InstantiateEndpoint},
     feature_objects::AnsHost,
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
@@ -64,14 +64,14 @@ mod tests {
     use speculoos::prelude::*;
 
     use crate::{
-        mock::{ApiMockResult, MockInitMsg, MOCK_API, TEST_METADATA},
+        mock::{ApiMockResult, MockInitMsg, MOCK_API, MOCK_DEP, TEST_METADATA},
         state::ApiState,
     };
     use abstract_testing::prelude::*;
 
     #[test]
     fn successful() -> ApiMockResult {
-        let api = MOCK_API;
+        let api = MOCK_API.with_dependencies(&[MOCK_DEP]);
         let env = mock_env();
         let info = mock_info(TEST_MANAGER, &[]);
         let mut deps = mock_dependencies();
@@ -86,13 +86,13 @@ mod tests {
         let res = api.instantiate(deps.as_mut(), env, info, init_msg)?;
         assert_that!(&res.messages.len()).is_equal_to(0);
         // confirm mock init handler executed
-        assert_that!(&res.data).is_equal_to(Some("mock_response".as_bytes().into()));
+        assert_that!(&res.data).is_equal_to(Some("mock_init".as_bytes().into()));
 
         let module_data = MODULE.load(&deps.storage)?;
         assert_that!(module_data).is_equal_to(ModuleData {
             module: TEST_MODULE_ID.into(),
             version: TEST_VERSION.into(),
-            dependencies: vec![],
+            dependencies: vec![(&crate::mock::MOCK_DEP).into()],
             metadata: Some(TEST_METADATA.into()),
         });
 

@@ -4,6 +4,7 @@ use crate::{
 };
 use abstract_core::objects::dependency::StaticDependency;
 use abstract_sdk::{
+    base::SudoHandlerFn,
     feature_objects::AnsHost,
     namespaces::{ADMIN_NAMESPACE, BASE_STATE},
     AbstractSdkError,
@@ -115,6 +116,14 @@ impl<
         self
     }
 
+    pub const fn with_migrate(
+        mut self,
+        migrate_handler: MigrateHandlerFn<Self, CustomMigrateMsg, Error>,
+    ) -> Self {
+        self.contract = self.contract.with_migrate(migrate_handler);
+        self
+    }
+
     pub const fn with_replies(
         mut self,
         reply_handlers: &'static [(u64, ReplyHandlerFn<Self, Error>)],
@@ -123,12 +132,8 @@ impl<
         self
     }
 
-    /// add IBC callback handler to contract
-    pub const fn with_ibc_callbacks(
-        mut self,
-        callbacks: &'static [(&'static str, IbcCallbackHandlerFn<Self, Error>)],
-    ) -> Self {
-        self.contract = self.contract.with_ibc_callbacks(callbacks);
+    pub const fn with_sudo(mut self, sudo_handler: SudoHandlerFn<Self, SudoMsg, Error>) -> Self {
+        self.contract = self.contract.with_sudo(sudo_handler);
         self
     }
 
@@ -140,11 +145,12 @@ impl<
         self
     }
 
-    pub const fn with_migrate(
+    /// add IBC callback handler to contract
+    pub const fn with_ibc_callbacks(
         mut self,
-        migrate_handler: MigrateHandlerFn<Self, CustomMigrateMsg, Error>,
+        callbacks: &'static [(&'static str, IbcCallbackHandlerFn<Self, Error>)],
     ) -> Self {
-        self.contract = self.contract.with_migrate(migrate_handler);
+        self.contract = self.contract.with_ibc_callbacks(callbacks);
         self
     }
 }

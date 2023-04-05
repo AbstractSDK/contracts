@@ -1,4 +1,4 @@
-use abstract_sdk::base::endpoints::SudoEndpoint;
+use abstract_sdk::base::SudoEndpoint;
 
 use crate::{state::ContractError, AppContract};
 

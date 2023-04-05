@@ -1,5 +1,5 @@
 use crate::{state::ContractError, Host};
-use abstract_sdk::base::endpoints::{InstantiateEndpoint, MigrateEndpoint, QueryEndpoint};
+use abstract_sdk::base::{InstantiateEndpoint, MigrateEndpoint, QueryEndpoint};
 use cosmwasm_schema::{export_schema_with_title, schema_for};
 use schemars::JsonSchema;
 use serde::Serialize;

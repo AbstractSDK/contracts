@@ -8,7 +8,7 @@ use abstract_core::objects::AccountId;
 use abstract_sdk::{
     base::{
         AbstractContract, ExecuteHandlerFn, InstantiateHandlerFn, QueryHandlerFn, ReceiveHandlerFn,
-        ReplyHandlerFn,
+        ReplyHandlerFn, SudoHandlerFn,
     },
     core::ibc_host::PacketMsg,
     feature_objects::AnsHost,
@@ -100,18 +100,6 @@ impl<
         }
     }
 
-    /// add reply handler to contract
-    pub const fn with_replies(
-        mut self,
-        reply_handlers: &'static [(u64, ReplyHandlerFn<Self, Error>)],
-    ) -> Self {
-        // update this to store static iterators
-        let mut new_reply_handlers = self.contract.reply_handlers;
-        new_reply_handlers[1] = reply_handlers;
-        self.contract = self.contract.with_replies(new_reply_handlers);
-        self
-    }
-
     pub fn state(&self, store: &dyn Storage) -> StdResult<HostState> {
         self.base_state.load(store)
     }
@@ -128,14 +116,6 @@ impl<
         self
     }
 
-    pub const fn with_receive(
-        mut self,
-        receive_handler: ReceiveHandlerFn<Self, ReceiveMsg, Error>,
-    ) -> Self {
-        self.contract = self.contract.with_receive(receive_handler);
-        self
-    }
-
     pub const fn with_execute(
         mut self,
         execute_handler: ExecuteHandlerFn<Self, CustomExecMsg, Error>,
@@ -149,6 +129,30 @@ impl<
         query_handler: QueryHandlerFn<Self, CustomQueryMsg, Error>,
     ) -> Self {
         self.contract = self.contract.with_query(query_handler);
+        self
+    }
+    /// add reply handler to contract
+    pub const fn with_replies(
+        mut self,
+        reply_handlers: &'static [(u64, ReplyHandlerFn<Self, Error>)],
+    ) -> Self {
+        // update this to store static iterators
+        let mut new_reply_handlers = self.contract.reply_handlers;
+        new_reply_handlers[1] = reply_handlers;
+        self.contract = self.contract.with_replies(new_reply_handlers);
+        self
+    }
+
+    pub const fn with_sudo(mut self, sudo_handler: SudoHandlerFn<Self, SudoMsg, Error>) -> Self {
+        self.contract = self.contract.with_sudo(sudo_handler);
+        self
+    }
+
+    pub const fn with_receive(
+        mut self,
+        receive_handler: ReceiveHandlerFn<Self, ReceiveMsg, Error>,
+    ) -> Self {
+        self.contract = self.contract.with_receive(receive_handler);
         self
     }
 }

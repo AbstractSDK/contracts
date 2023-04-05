@@ -8,10 +8,7 @@ use abstract_core::{
     version_control::AccountBase,
 };
 use abstract_sdk::{
-    base::{
-        endpoints::{ExecuteEndpoint, IbcCallbackEndpoint, ReceiveEndpoint},
-        Handler,
-    },
+    base::{ExecuteEndpoint, Handler, IbcCallbackEndpoint, ReceiveEndpoint},
     features::ModuleIdentification,
     AbstractResponse, Execution, ModuleInterface, OsVerification,
 };

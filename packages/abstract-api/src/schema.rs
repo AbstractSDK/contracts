@@ -1,7 +1,7 @@
 use crate::{ApiContract, ApiError};
 use abstract_core::api::{ApiExecuteMsg, ApiQueryMsg};
 use abstract_sdk::{
-    base::endpoints::{ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint},
+    base::{ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint},
     core::api::{ApiConfigResponse, TradersResponse},
 };
 use cosmwasm_schema::{export_schema_with_title, schema_for, write_api, QueryResponses};

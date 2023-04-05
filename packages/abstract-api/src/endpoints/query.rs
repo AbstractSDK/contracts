@@ -1,6 +1,6 @@
 use crate::state::{ApiContract, ContractError};
 use abstract_core::api::{ApiConfigResponse, ApiQueryMsg, BaseQueryMsg, QueryMsg, TradersResponse};
-use abstract_sdk::base::{endpoints::QueryEndpoint, Handler};
+use abstract_sdk::base::{Handler, QueryEndpoint};
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
 
 /// Where we dispatch the queries for the ApiContract

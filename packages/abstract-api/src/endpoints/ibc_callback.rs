@@ -1,5 +1,5 @@
 use crate::{state::ContractError, ApiContract};
-use abstract_sdk::base::endpoints::IbcCallbackEndpoint;
+use abstract_sdk::base::IbcCallbackEndpoint;
 
 impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg, ReceiveMsg>
     IbcCallbackEndpoint

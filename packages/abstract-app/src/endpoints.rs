@@ -68,6 +68,17 @@ macro_rules! export_endpoints {
             use ::abstract_sdk::base::ReplyEndpoint;
             $app_const.reply(deps, env, msg)
         }
+
+        // Sudo entrypoint
+        #[::cosmwasm_std::entry_point]
+        pub fn sudo(
+            deps: ::cosmwasm_std::DepsMut,
+            env: ::cosmwasm_std::Env,
+            msg: <$app_type as ::abstract_sdk::base::Handler>::SudoMsg,
+        ) -> Result<::cosmwasm_std::Response, <$app_type as ::abstract_sdk::base::Handler>::Error> {
+            use ::abstract_sdk::base::SudoEndpoint;
+            $app_const.sudo(deps, env, msg)
+        }
     };
 }
 
