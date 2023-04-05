@@ -46,16 +46,7 @@ pub struct AppContract<
     pub(crate) base_state: Item<'static, AppState>,
 
     // Scaffolding contract that handles type safety and provides helper methods
-    pub(crate) contract: AbstractContract<
-        Self,
-        Error,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        SudoMsg,
-        Receive,
-    >,
+    pub(crate) contract: AbstractContract<Self, Error>,
 }
 
 /// Constructor

@@ -13,9 +13,7 @@ impl<Error: ContractError, InitMsg, ExecMsg, QueryMsg, SudoMsg, Receive> Handler
     type SudoMsg = SudoMsg;
     type ReceiveMsg = Receive;
 
-    fn contract(
-        &self,
-    ) -> &AbstractContract<Self, Error, InitMsg, ExecMsg, QueryMsg, Empty, SudoMsg, Receive> {
+    fn contract(&self) -> &AbstractContract<Self, Error> {
         &self.contract
     }
 }

@@ -10,6 +10,15 @@ pub type ModuleId = &'static str;
 pub type VersionString = &'static str;
 pub type ModuleMetadata = Option<&'static str>;
 
+pub trait MessageTypes {
+    type CustomInitMsg;
+    type CustomExecMsg;
+    type CustomQueryMsg;
+    type CustomMigrateMsg;
+    type SudoMsg;
+    type ReceiveMsg;
+}
+
 pub type InstantiateHandlerFn<Module, InitMsg, Error> =
     fn(DepsMut, Env, MessageInfo, Module, InitMsg) -> Result<Response, Error>;
 
@@ -39,16 +48,7 @@ pub type ReplyHandlerFn<Module, Error> = fn(DepsMut, Env, Module, Reply) -> Resu
 const MAX_REPLY_COUNT: usize = 2;
 
 /// Abstract generic contract
-pub struct AbstractContract<
-    Module: Handler + 'static,
-    Error: From<AbstractSdkError> + 'static,
-    CustomInitMsg,
-    CustomExecMsg,
-    CustomQueryMsg,
-    CustomMigrateMsg,
-    SudoMsg,
-    ReceiveMsg,
-> {
+pub struct AbstractContract<Module: Handler + 'static, Error: From<AbstractSdkError> + 'static> {
     /// Static info about the contract, used for migration
     pub(crate) info: (ModuleId, VersionString, ModuleMetadata),
     /// On-chain storage of the same info.
@@ -56,44 +56,30 @@ pub struct AbstractContract<
     /// Modules that this contract depends on.
     pub(crate) dependencies: &'static [StaticDependency],
     /// Handler of instantiate messages.
-    pub(crate) instantiate_handler: Option<InstantiateHandlerFn<Module, CustomInitMsg, Error>>,
+    pub(crate) instantiate_handler:
+        Option<InstantiateHandlerFn<Module, <Module as Handler>::CustomInitMsg, Error>>,
     /// Handler of execute messages.
-    pub(crate) execute_handler: Option<ExecuteHandlerFn<Module, CustomExecMsg, Error>>,
+    pub(crate) execute_handler:
+        Option<ExecuteHandlerFn<Module, <Module as Handler>::CustomExecMsg, Error>>,
     /// Handler of query messages.
-    pub(crate) query_handler: Option<QueryHandlerFn<Module, CustomQueryMsg, Error>>,
+    pub(crate) query_handler:
+        Option<QueryHandlerFn<Module, <Module as Handler>::CustomQueryMsg, Error>>,
     /// Handler for migrations.
-    pub(crate) migrate_handler: Option<MigrateHandlerFn<Module, CustomMigrateMsg, Error>>,
+    pub(crate) migrate_handler:
+        Option<MigrateHandlerFn<Module, <Module as Handler>::CustomMigrateMsg, Error>>,
     /// Handler for sudo messages.
-    pub(crate) sudo_handler: Option<SudoHandlerFn<Module, SudoMsg, Error>>,
+    pub(crate) sudo_handler: Option<SudoHandlerFn<Module, <Module as Handler>::SudoMsg, Error>>,
     /// List of reply handlers per reply ID.
     pub reply_handlers: [&'static [(u64, ReplyHandlerFn<Module, Error>)]; MAX_REPLY_COUNT],
     /// Handler of `Receive variant Execute messages.
-    pub(crate) receive_handler: Option<ReceiveHandlerFn<Module, ReceiveMsg, Error>>,
+    pub(crate) receive_handler:
+        Option<ReceiveHandlerFn<Module, <Module as Handler>::ReceiveMsg, Error>>,
     /// IBC callbacks handlers following an IBC action, per callback ID.
     pub(crate) ibc_callback_handlers:
         &'static [(&'static str, IbcCallbackHandlerFn<Module, Error>)],
 }
 
-impl<
-        Module,
-        Error: From<AbstractSdkError>,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        SudoMsg,
-        ReceiveMsg,
-    >
-    AbstractContract<
-        Module,
-        Error,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        SudoMsg,
-        ReceiveMsg,
-    >
+impl<Module, Error: From<AbstractSdkError>> AbstractContract<Module, Error>
 where
     Module: Handler,
 {
@@ -144,7 +130,11 @@ where
 
     pub const fn with_instantiate(
         mut self,
-        instantiate_handler: InstantiateHandlerFn<Module, CustomInitMsg, Error>,
+        instantiate_handler: InstantiateHandlerFn<
+            Module,
+            <Module as Handler>::CustomInitMsg,
+            Error,
+        >,
     ) -> Self {
         self.instantiate_handler = Some(instantiate_handler);
         self
@@ -152,20 +142,23 @@ where
 
     pub const fn with_migrate(
         mut self,
-        migrate_handler: MigrateHandlerFn<Module, CustomMigrateMsg, Error>,
+        migrate_handler: MigrateHandlerFn<Module, <Module as Handler>::CustomMigrateMsg, Error>,
     ) -> Self {
         self.migrate_handler = Some(migrate_handler);
         self
     }
 
-    pub const fn with_sudo(mut self, sudo_handler: SudoHandlerFn<Module, SudoMsg, Error>) -> Self {
+    pub const fn with_sudo(
+        mut self,
+        sudo_handler: SudoHandlerFn<Module, <Module as Handler>::SudoMsg, Error>,
+    ) -> Self {
         self.sudo_handler = Some(sudo_handler);
         self
     }
 
     pub const fn with_receive(
         mut self,
-        receive_handler: ReceiveHandlerFn<Module, ReceiveMsg, Error>,
+        receive_handler: ReceiveHandlerFn<Module, <Module as Handler>::ReceiveMsg, Error>,
     ) -> Self {
         self.receive_handler = Some(receive_handler);
         self
@@ -173,7 +166,7 @@ where
 
     pub const fn with_execute(
         mut self,
-        execute_handler: ExecuteHandlerFn<Module, CustomExecMsg, Error>,
+        execute_handler: ExecuteHandlerFn<Module, <Module as Handler>::CustomExecMsg, Error>,
     ) -> Self {
         self.execute_handler = Some(execute_handler);
         self
@@ -181,7 +174,7 @@ where
 
     pub const fn with_query(
         mut self,
-        query_handler: QueryHandlerFn<Module, CustomQueryMsg, Error>,
+        query_handler: QueryHandlerFn<Module, <Module as Handler>::CustomQueryMsg, Error>,
     ) -> Self {
         self.query_handler = Some(query_handler);
         self
@@ -223,16 +216,7 @@ mod test {
 
     struct MockModule;
 
-    type MockAppContract = AbstractContract<
-        MockModule,
-        MockError,
-        MockInitMsg,
-        MockExecMsg,
-        MockQueryMsg,
-        MockMigrateMsg,
-        MockSudoMsg,
-        MockReceiveMsg,
-    >;
+    type MockAppContract = AbstractContract<MockModule, MockError>;
 
     impl Handler for MockModule {
         type Error = MockError;
@@ -243,18 +227,7 @@ mod test {
         type SudoMsg = MockSudoMsg;
         type ReceiveMsg = MockReceiveMsg;
 
-        fn contract(
-            &self,
-        ) -> &AbstractContract<
-            Self,
-            Self::Error,
-            Self::CustomInitMsg,
-            Self::CustomExecMsg,
-            Self::CustomQueryMsg,
-            Self::CustomMigrateMsg,
-            Self::SudoMsg,
-            Self::ReceiveMsg,
-        > {
+        fn contract(&self) -> &AbstractContract<Self, Self::Error> {
             unimplemented!()
         }
     }

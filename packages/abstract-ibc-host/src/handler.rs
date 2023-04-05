@@ -27,18 +27,7 @@ impl<
     type SudoMsg = SudoMsg;
     type ReceiveMsg = ReceiveMsg;
 
-    fn contract(
-        &self,
-    ) -> &abstract_sdk::base::AbstractContract<
-        Self,
-        Self::Error,
-        Self::CustomInitMsg,
-        Self::CustomExecMsg,
-        Self::CustomQueryMsg,
-        Self::CustomMigrateMsg,
-        Self::SudoMsg,
-        Self::ReceiveMsg,
-    > {
+    fn contract(&self) -> &abstract_sdk::base::AbstractContract<Self, Self::Error> {
         &self.contract
     }
 }

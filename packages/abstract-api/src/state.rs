@@ -2,7 +2,7 @@ use crate::ApiError;
 use abstract_core::objects::dependency::StaticDependency;
 use abstract_sdk::{
     base::{
-        AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
+        AbstractContract, ExecuteHandlerFn, Handler, IbcCallbackHandlerFn, InstantiateHandlerFn,
         QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
     },
     core::version_control::AccountBase,
@@ -10,7 +10,7 @@ use abstract_sdk::{
     namespaces::BASE_STATE,
     AbstractSdkError,
 };
-use cosmwasm_std::{Addr, Empty, StdError, StdResult, Storage};
+use cosmwasm_std::{Addr, StdError, StdResult, Storage};
 use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -45,17 +45,10 @@ pub struct ApiContract<
     CustomQueryMsg: 'static,
     SudoMsg: 'static,
     Receive: 'static,
-> {
-    pub(crate) contract: AbstractContract<
-        Self,
-        Error,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        Empty,
-        SudoMsg,
-        Receive,
-    >,
+> where
+    Self: Handler,
+{
+    pub(crate) contract: AbstractContract<Self, Error>,
     pub(crate) base_state: Item<'static, ApiState>,
     /// Map ProxyAddr -> WhitelistedTraders
     pub traders: Map<'static, Addr, HashSet<Addr>>,

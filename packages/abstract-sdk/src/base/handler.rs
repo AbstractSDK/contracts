@@ -18,25 +18,20 @@ where
     Self: Sized + 'static,
 {
     type Error: From<AbstractSdkError>;
+    /// Custom init message for the contract
     type CustomInitMsg;
+    /// Custom execute message for the contract
     type CustomExecMsg;
+    /// Custom query message for the contract
     type CustomQueryMsg;
+    /// Custom migrate message for the contract
     type CustomMigrateMsg;
+    /// Sudo message for the contract
     type SudoMsg;
+    /// Receive message for the contract
     type ReceiveMsg;
-    #[allow(clippy::type_complexity)]
-    fn contract(
-        &self,
-    ) -> &AbstractContract<
-        Self,
-        Self::Error,
-        Self::CustomInitMsg,
-        Self::CustomExecMsg,
-        Self::CustomQueryMsg,
-        Self::CustomMigrateMsg,
-        Self::SudoMsg,
-        Self::ReceiveMsg,
-    >;
+
+    fn contract(&self) -> &AbstractContract<Self, Self::Error>;
 
     fn stored_version(&self, store: &dyn Storage) -> AbstractSdkResult<ContractVersion> {
         let contract = self.contract();

@@ -57,16 +57,7 @@ pub struct Host<
     Receive: 'static,
 > {
     // Scaffolding contract that handles type safety and provides helper methods
-    pub(crate) contract: AbstractContract<
-        Self,
-        Error,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        SudoMsg,
-        Receive,
-    >,
+    pub(crate) contract: AbstractContract<Self, Error>,
     pub admin: Admin<'static>,
     // Custom state for every Host
     pub proxy_address: Option<Addr>,
