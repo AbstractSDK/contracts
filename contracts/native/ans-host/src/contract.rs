@@ -8,15 +8,20 @@ use cw2::{get_contract_version, set_contract_version};
 use cw_ownable::initialize_owner;
 use semver::Version;
 
-pub type AnsHostResult = Result<Response, AnsHostError>;
-
-const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-
 use abstract_core::objects::module_version::{
     assert_contract_upgrade, migrate_module_data, set_module_data,
 };
-use abstract_core::{ANS_HOST};
+
+use abstract_core::ANS_HOST;
+use abstract_macros::abstract_response;
 use abstract_sdk::query_ownership;
+
+#[abstract_response(ANS_HOST)]
+pub struct AnsHostResponse;
+
+pub type AnsHostResult = Result<Response, AnsHostError>;
+
+const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(
@@ -48,7 +53,7 @@ pub fn instantiate(
     // Setup the admin as the creator of the contract
     initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
 
-    Ok(Response::default())
+    Ok(AnsHostResponse::action("instantiate"))
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
@@ -110,9 +115,10 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> AnsHostResult {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
+
     assert_contract_upgrade(storage_version, version)?;
     set_contract_version(deps.storage, ANS_HOST, CONTRACT_VERSION)?;
     migrate_module_data(deps.storage, ANS_HOST, CONTRACT_VERSION, None::<String>)?;
 
-    Ok(Response::default())
+    Ok(AnsHostResponse::action("migrate"))
 }

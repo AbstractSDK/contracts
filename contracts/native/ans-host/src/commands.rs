@@ -1,4 +1,4 @@
-use crate::contract::AnsHostResult;
+use crate::contract::{AnsHostResponse, AnsHostResult};
 use crate::error::AnsHostError;
 use crate::error::AnsHostError::InvalidAssetCount;
 use abstract_core::{
@@ -11,9 +11,7 @@ use abstract_core::{
         AssetEntry, DexAssetPairing, DexName, UncheckedChannelEntry, UncheckedContractEntry,
         UniquePoolId,
     },
-    ANS_HOST,
 };
-use abstract_macros::abstract_response;
 use abstract_sdk::execute_update_ownership;
 use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, StdError, StdResult, Storage};
 use cw_asset::AssetInfoUnchecked;
@@ -21,9 +19,6 @@ use cw_ownable::assert_owner;
 
 const MIN_POOL_ASSETS: usize = 2;
 const MAX_POOL_ASSETS: usize = 5;
-
-#[abstract_response(ANS_HOST)]
-pub struct AnsHostResponse;
 
 /// Handles the common base execute messages
 pub fn handle_message(
