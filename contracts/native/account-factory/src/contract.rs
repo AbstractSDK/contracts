@@ -1,4 +1,6 @@
 use crate::{commands, error::AccountFactoryError, state::*};
+use abstract_core::objects::module_version::assert_contract_upgrade;
+use abstract_macros::abstract_response;
 use abstract_sdk::core::{
     account_factory::*,
     objects::module_version::{migrate_module_data, set_module_data},
@@ -12,6 +14,9 @@ use cw_asset::Asset;
 use semver::Version;
 
 pub type AccountFactoryResult = Result<Response, AccountFactoryError>;
+
+#[abstract_response(ACCOUNT_FACTORY)]
+pub struct AccountFactoryResponse;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -40,7 +45,7 @@ pub fn instantiate(
 
     CONFIG.save(deps.storage, &config)?;
     ADMIN.set(deps, Some(info.sender))?;
-    Ok(Response::new())
+    Ok(AccountFactoryResponse::action("instantiate"))
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
@@ -124,18 +129,18 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
+pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> AccountFactoryResult {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
 
-    if storage_version < version {
-        set_contract_version(deps.storage, ACCOUNT_FACTORY, CONTRACT_VERSION)?;
-        migrate_module_data(
-            deps.storage,
-            ACCOUNT_FACTORY,
-            CONTRACT_VERSION,
-            None::<String>,
-        )?;
-    }
-    Ok(Response::default())
+    assert_contract_upgrade(storage_version, version)?;
+    set_contract_version(deps.storage, ACCOUNT_FACTORY, CONTRACT_VERSION)?;
+    migrate_module_data(
+        deps.storage,
+        ACCOUNT_FACTORY,
+        CONTRACT_VERSION,
+        None::<String>,
+    )?;
+
+    Ok(AccountFactoryResponse::action("migrate"))
 }
