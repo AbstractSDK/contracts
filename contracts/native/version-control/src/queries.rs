@@ -1,4 +1,5 @@
 use crate::error::VCError;
+use abstract_core::version_control::NamespaceFilter;
 use abstract_sdk::core::{
     objects::{
         module::{Module, ModuleInfo, ModuleVersion},
@@ -73,9 +74,15 @@ pub fn handle_module_list_query(
     start_after: Option<ModuleInfo>,
     limit: Option<u8>,
     filter: Option<ModuleFilter>,
-    yanked: bool,
 ) -> StdResult<Binary> {
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
+
+    let ModuleFilter {
+        provider: ref provider_filter,
+        name: ref name_filter,
+        version: version_filter,
+        yanked,
+    } = filter.unwrap_or_default();
 
     let mod_lib = if yanked {
         &YANKED_MODULES
@@ -83,12 +90,6 @@ pub fn handle_module_list_query(
         &MODULE_LIBRARY
     };
     let mut modules: Vec<(ModuleInfo, ModuleReference)> = vec![];
-
-    let ModuleFilter {
-        provider: ref provider_filter,
-        name: ref name_filter,
-        version: version_filter,
-    } = filter.unwrap_or_default();
 
     if let Some(provider_filter) = provider_filter {
         modules.extend(filter_modules_by_provider(
@@ -126,15 +127,35 @@ pub fn handle_module_list_query(
     to_binary(&ModulesListResponse { modules })
 }
 
+pub fn handle_namespaces_query(deps: Deps, accounts: Vec<AccountId>) -> StdResult<Binary> {
+    let mut namespaces_response = NamespaceListResponse { namespaces: vec![] };
+    for account_id in accounts {
+        namespaces_response.namespaces.extend(
+            namespaces_info()
+                .idx
+                .account_id
+                .prefix(account_id)
+                .range(deps.storage, None, None, Order::Ascending)
+                .collect::<StdResult<Vec<_>>>()?
+                .into_iter(),
+        );
+    }
+
+    to_binary(&namespaces_response)
+}
+
 pub fn handle_namespace_list_query(
     deps: Deps,
     start_after: Option<String>,
     limit: Option<u8>,
-    account_id: Option<AccountId>,
+    filter: Option<NamespaceFilter>,
 ) -> StdResult<Binary> {
     let namespace = start_after.map(Namespace::from);
     let start_bound = namespace.as_ref().map(Bound::exclusive);
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
+
+    let NamespaceFilter { account_id } = filter.unwrap_or_default();
+
     let namespaces = if let Some(account_id) = account_id {
         namespaces_info()
             .idx
@@ -334,7 +355,7 @@ mod test {
         fn add_namespace(deps: DepsMut, namespace: &str) {
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
-                namespaces: vec![namespace.to_string()],
+                namespaces_to_claim: vec![namespace.to_string()],
             };
 
             let res = execute_as_admin(deps, msg);
@@ -444,10 +465,15 @@ mod test {
     use cosmwasm_std::from_binary;
 
     /// Add namespaces
-    fn add_namespaces(deps: DepsMut, namespaces: Vec<String>, account_id: u32, sender: &str) {
+    fn add_namespaces(
+        deps: DepsMut,
+        namespaces_to_claim: Vec<String>,
+        account_id: u32,
+        sender: &str,
+    ) {
         let msg = ExecuteMsg::ClaimNamespaces {
             account_id,
-            namespaces,
+            namespaces_to_claim,
         };
 
         let res = execute_as(deps, sender, msg);
@@ -569,7 +595,6 @@ mod test {
                 filter: Some(filter),
                 start_after: None,
                 limit: None,
-                yanked: false,
             }
         }
 
@@ -627,6 +652,7 @@ mod test {
             let filtered_provider = "cw-plus".to_string();
 
             let filter = ModuleFilter {
+                yanked: true,
                 provider: Some(filtered_provider.clone()),
                 ..Default::default()
             };
@@ -634,7 +660,6 @@ mod test {
                 filter: Some(filter),
                 start_after: None,
                 limit: None,
-                yanked: true,
             };
 
             let res = query_helper(deps.as_ref(), list_msg);
@@ -889,11 +914,11 @@ mod test {
     mod list_namespaces {
         use super::*;
 
-        fn filtered_list_msg(account_id: Option<AccountId>) -> QueryMsg {
+        fn filtered_list_msg(filter: NamespaceFilter) -> QueryMsg {
             QueryMsg::NamespaceList {
+                filter: Some(filter),
                 start_after: None,
                 limit: None,
-                account_id,
             }
         }
 
@@ -917,7 +942,7 @@ mod test {
             );
 
             // get all
-            let list_msg = filtered_list_msg(None);
+            let list_msg = filtered_list_msg(NamespaceFilter { account_id: None });
             let res = query_helper(deps.as_ref(), list_msg);
 
             assert_that!(res).is_ok().map(|res| {
@@ -928,7 +953,9 @@ mod test {
             });
 
             // get by another id
-            let list_msg = filtered_list_msg(Some(TEST_OTHER_ACCOUNT_ID));
+            let list_msg = filtered_list_msg(NamespaceFilter {
+                account_id: Some(TEST_OTHER_ACCOUNT_ID),
+            });
             let res = query_helper(deps.as_ref(), list_msg);
             assert_that!(res).is_ok().map(|res| {
                 let NamespaceListResponse { namespaces: resp } = from_binary(res).unwrap();
@@ -943,7 +970,9 @@ mod test {
             });
 
             // get by admin id
-            let list_msg = filtered_list_msg(Some(TEST_ACCOUNT_ID));
+            let list_msg = filtered_list_msg(NamespaceFilter {
+                account_id: Some(TEST_ACCOUNT_ID),
+            });
             let res = query_helper(deps.as_ref(), list_msg);
             assert_that!(res).is_ok().map(|res| {
                 let NamespaceListResponse { namespaces: resp } = from_binary(res).unwrap();

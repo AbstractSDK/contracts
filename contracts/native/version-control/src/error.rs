@@ -43,6 +43,13 @@ pub enum VCError {
 
     #[error("Exceeds namespace limit: {}, current: {}", limit, current)]
     ExceedsNamespaceLimit { limit: usize, current: usize },
+
+    #[error(
+        "Decrease namespace limit not allowed: {}, current: {}",
+        limit,
+        current
+    )]
+    DecreaseNamespaceLimit { limit: u32, current: u32 },
 }
 impl From<cw_semver::Error> for VCError {
     fn from(err: cw_semver::Error) -> Self {

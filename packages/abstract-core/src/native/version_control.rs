@@ -84,7 +84,7 @@ pub enum ExecuteMsg {
     /// Claim namespaces
     ClaimNamespaces {
         account_id: AccountId,
-        namespaces: Vec<String>,
+        namespaces_to_claim: Vec<String>,
     },
     /// Remove namespace claims
     /// Only admin or root user can call this
@@ -110,6 +110,14 @@ pub struct ModuleFilter {
     pub provider: Option<String>,
     pub name: Option<String>,
     pub version: Option<String>,
+    pub yanked: bool,
+}
+
+/// A NamespaceFilter for [`Namespaces`].
+#[derive(Default)]
+#[cosmwasm_schema::cw_serde]
+pub struct NamespaceFilter {
+    pub account_id: Option<AccountId>,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -124,6 +132,10 @@ pub enum QueryMsg {
     /// Returns [`ModulesResponse`]
     #[returns(ModulesResponse)]
     Modules { infos: Vec<ModuleInfo> },
+    /// Queries namespaces
+    /// Returns [`NamespacesResponse`]
+    #[returns(NamespacesResponse)]
+    Namespaces { accounts: Vec<AccountId> },
     /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]
     Config {},
@@ -133,14 +145,13 @@ pub enum QueryMsg {
         filter: Option<ModuleFilter>,
         start_after: Option<ModuleInfo>,
         limit: Option<u8>,
-        yanked: bool,
     },
     /// Returns [`NamespaceListResponse`]
     #[returns(NamespaceListResponse)]
     NamespaceList {
+        filter: Option<NamespaceFilter>,
         start_after: Option<String>,
         limit: Option<u8>,
-        account_id: Option<AccountId>,
     },
 }
 
@@ -157,6 +168,11 @@ pub struct ModulesResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct ModulesListResponse {
     pub modules: Vec<Module>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct NamespacesResponse {
+    pub modules: Vec<(Namespace, AccountId)>,
 }
 
 #[cosmwasm_schema::cw_serde]

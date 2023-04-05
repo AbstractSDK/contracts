@@ -19,6 +19,7 @@ use crate::queries;
 pub type VCResult = Result<Response, VCError>;
 
 pub const ABSTRACT_NAMESPACE: &str = "abstract";
+const DEFAULT_NAMESPACES_LIMIT: u32 = 10;
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VCResult {
@@ -52,7 +53,7 @@ pub fn instantiate(
         &[],
         None::<String>,
     )?;
-    NAMESPACES_LIMIT.save(deps.storage, &10)?;
+    NAMESPACES_LIMIT.save(deps.storage, &DEFAULT_NAMESPACES_LIMIT)?;
     // Setup the admin as the creator of the contract
     ADMIN.set(deps.branch(), Some(info.sender))?;
     FACTORY.set(deps, None)?;
@@ -67,8 +68,8 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
         ExecuteMsg::RemoveModule { module, yank } => remove_module(deps, info, module, yank),
         ExecuteMsg::ClaimNamespaces {
             account_id,
-            namespaces,
-        } => claim_namespaces(deps, info, account_id, namespaces),
+            namespaces_to_claim,
+        } => claim_namespaces(deps, info, account_id, namespaces_to_claim),
         ExecuteMsg::RemoveNamespaces { namespaces } => remove_namespaces(deps, info, namespaces),
         ExecuteMsg::AddAccount {
             account_id,
@@ -89,6 +90,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::AccountBase { account_id } => queries::handle_os_address_query(deps, account_id),
         QueryMsg::Modules { infos } => queries::handle_modules_query(deps, infos),
+        QueryMsg::Namespaces { accounts } => queries::handle_namespaces_query(deps, accounts),
         QueryMsg::Config {} => {
             let admin = ADMIN.get(deps)?.unwrap().into_string();
             let factory = FACTORY.get(deps)?.unwrap().into_string();
@@ -98,13 +100,12 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             filter,
             start_after,
             limit,
-            yanked,
-        } => queries::handle_module_list_query(deps, start_after, limit, filter, yanked),
+        } => queries::handle_module_list_query(deps, start_after, limit, filter),
         QueryMsg::NamespaceList {
+            filter,
             start_after,
             limit,
-            account_id,
-        } => queries::handle_namespace_list_query(deps, start_after, limit, account_id),
+        } => queries::handle_namespace_list_query(deps, start_after, limit, filter),
     }
 }
 

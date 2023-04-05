@@ -102,7 +102,7 @@ pub fn claim_namespaces(
     deps: DepsMut,
     msg_info: MessageInfo,
     account_id: AccountId,
-    namespaces: Vec<String>,
+    namespaces_to_claim: Vec<String>,
 ) -> VCResult {
     // verify account owner
     let account_base = ACCOUNT_ADDRESSES.load(deps.storage, account_id)?;
@@ -115,17 +115,20 @@ pub fn claim_namespaces(
     }
 
     let limit = NAMESPACES_LIMIT.load(deps.storage)? as usize;
-    let current = namespaces_info()
+    let existing_namespace_count = namespaces_info()
         .idx
         .account_id
         .prefix(account_id)
         .range(deps.storage, None, None, Order::Ascending)
         .count();
-    if current + namespaces.len() > limit {
-        return Err(VCError::ExceedsNamespaceLimit { limit, current });
+    if existing_namespace_count + namespaces_to_claim.len() > limit {
+        return Err(VCError::ExceedsNamespaceLimit {
+            limit,
+            current: existing_namespace_count,
+        });
     }
 
-    for namespace in namespaces.iter() {
+    for namespace in namespaces_to_claim.iter() {
         let item = Namespace::from(namespace);
         item.validate()?;
         if let Some(id) = namespaces_info().may_load(deps.storage, &item)? {
@@ -141,7 +144,7 @@ pub fn claim_namespaces(
         "claim_namespaces",
         vec![
             ("account_id", &account_id.to_string()),
-            ("namespaces", &namespaces.join(",")),
+            ("namespaces", &namespaces_to_claim.join(",")),
         ],
     ))
 }
@@ -187,6 +190,13 @@ pub fn remove_namespaces(
 pub fn update_namespaces_limit(deps: DepsMut, info: MessageInfo, new_limit: u32) -> VCResult {
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
     let previous_limit = NAMESPACES_LIMIT.load(deps.storage)?;
+    if previous_limit > new_limit {
+        return Err(VCError::DecreaseNamespaceLimit {
+            limit: new_limit,
+            current: previous_limit,
+        });
+    }
+
     NAMESPACES_LIMIT.save(deps.storage, &new_limit)?;
 
     Ok(VcResponse::new(
@@ -421,7 +431,7 @@ mod test {
             let new_namespace2 = Namespace::from("namespace2");
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
-                namespaces: vec![new_namespace1.to_string(), new_namespace2.to_string()],
+                namespaces_to_claim: vec![new_namespace1.to_string(), new_namespace2.to_string()],
             };
             let res = execute_as(deps.as_mut(), TEST_OTHER, msg.clone());
             assert_that!(&res)
@@ -451,7 +461,7 @@ mod test {
             // add namespaces
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
-                namespaces: vec![new_namespace1.to_string(), new_namespace2.to_string()],
+                namespaces_to_claim: vec![new_namespace1.to_string(), new_namespace2.to_string()],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg.clone())?;
 
@@ -510,7 +520,7 @@ mod test {
             let new_namespace2 = Namespace::from("namespace2");
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
-                namespaces: vec![new_namespace1.to_string(), new_namespace2.to_string()],
+                namespaces_to_claim: vec![new_namespace1.to_string(), new_namespace2.to_string()],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
 
@@ -588,7 +598,7 @@ mod test {
                 TEST_OWNER,
                 ExecuteMsg::ClaimNamespaces {
                     account_id: TEST_ACCOUNT_ID,
-                    namespaces: vec![new_module.provider.clone()],
+                    namespaces_to_claim: vec![new_module.provider.clone()],
                 },
             )?;
 
@@ -610,7 +620,7 @@ mod test {
             // add namespaces
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
-                namespaces: vec![rm_module.provider.clone()],
+                namespaces_to_claim: vec![rm_module.provider.clone()],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg.clone())?;
 
@@ -653,7 +663,7 @@ mod test {
             // add namespaces
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
-                namespaces: vec![rm_module.provider.clone()],
+                namespaces_to_claim: vec![rm_module.provider.clone()],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg.clone())?;
 
@@ -697,7 +707,7 @@ mod test {
             // add namespaces
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
-                namespaces: vec!["provider".to_string()],
+                namespaces_to_claim: vec!["provider".to_string()],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg.clone())?;
 
