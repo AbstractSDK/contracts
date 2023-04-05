@@ -209,7 +209,7 @@ impl<
             }
         }
 
-        if authorized_addrs.len() > 10 {
+        if authorized_addrs.len() > MAXIMUM_AUTHORIZED_ADDRESSES as usize {
             return Err(ApiError::TooManyAuthorizedAddresses {
                 max: MAXIMUM_AUTHORIZED_ADDRESSES,
             });
