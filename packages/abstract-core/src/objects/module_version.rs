@@ -18,8 +18,10 @@ For more information on this specification, please check out the
 */
 
 use super::dependency::{Dependency, StaticDependency};
+use crate::AbstractError;
 use cosmwasm_std::{Empty, Querier, QuerierWrapper, QueryRequest, StdResult, Storage, WasmQuery};
 use cw_storage_plus::Item;
+use semver::Version;
 use serde::{Deserialize, Serialize};
 
 pub const MODULE: Item<ModuleData> = Item::new("module_data");
@@ -63,10 +65,18 @@ pub fn set_module_data<T: Into<String>, U: Into<String>, M: Into<String>>(
     MODULE.save(store, &val).map_err(Into::into)
 }
 
+/// Assert that the new version is greater than the stored version.
+pub fn assert_contract_upgrade(stored: Version, requested: Version) -> Result<(), AbstractError> {
+    if stored >= requested {
+        return Err(AbstractError::CannotDowngradeContract { stored, requested });
+    }
+    Ok(())
+}
+
 /// Migrate the module data to the new state.
 /// If there was no moduleData stored, it will be set to the given values with an empty dependency array.
-/// If the metadata is None, the old metadata will be kept.
-/// If the metadata is Some, the old metadata will be overwritten.
+/// If the metadata is `None`, the old metadata will be kept.
+/// If the metadata is `Some`, the old metadata will be overwritten.
 pub fn migrate_module_data(
     store: &mut dyn Storage,
     name: &str,
