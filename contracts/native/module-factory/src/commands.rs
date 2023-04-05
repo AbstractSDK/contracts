@@ -1,13 +1,12 @@
+use crate::contract::ModuleFactoryResponse;
 use crate::{
     contract::ModuleFactoryResult, error::ModuleFactoryError,
     response::MsgInstantiateContractResponse, state::*,
 };
-use abstract_macros::abstract_response;
 use abstract_sdk::{
     core::{
         manager::ExecuteMsg as ManagerMsg,
         objects::{module::ModuleInfo, module_reference::ModuleReference},
-        MODULE_FACTORY,
     },
     feature_objects::VersionControlContract,
     *,
@@ -20,9 +19,6 @@ use protobuf::Message;
 
 pub const CREATE_APP_RESPONSE_ID: u64 = 1u64;
 pub const CREATE_STANDALONE_RESPONSE_ID: u64 = 4u64;
-
-#[abstract_response(MODULE_FACTORY)]
-struct ModuleFactoryResponse;
 
 /// Function that starts the creation of the Account
 pub fn execute_create_module(
