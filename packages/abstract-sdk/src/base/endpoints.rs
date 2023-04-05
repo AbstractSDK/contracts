@@ -72,8 +72,8 @@
 //! # use schemars::JsonSchema;
 //! # use serde::Serialize;
 //!
-//! impl <Error: From<cosmwasm_std::StdError> + From<AppError> + 'static, CustomExecMsg: Serialize + JsonSchema + AppExecuteMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg: Serialize + JsonSchema >
-//! ExecuteEndpoint for AppContract <Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg > {
+//! impl <Error: From<cosmwasm_std::StdError> + From<AppError> + 'static, CustomExecMsg: Serialize + JsonSchema + AppExecuteMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg, ReceiveMsg: Serialize + JsonSchema >
+//! ExecuteEndpoint for AppContract <Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg, ReceiveMsg > {
 //!     
 //!     // Expected entrypoint ExecuteMsg type, imported from abstract_core.
 //!     // As you can see from the type definition, the `AppContract` accepts a custom `AppExecuteMsg`

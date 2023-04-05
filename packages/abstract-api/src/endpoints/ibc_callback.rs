@@ -1,13 +1,8 @@
-use crate::{ApiContract, ApiError};
-use abstract_sdk::{base::endpoints::IbcCallbackEndpoint, AbstractSdkError};
+use crate::{state::ContractError, ApiContract};
+use abstract_sdk::base::endpoints::IbcCallbackEndpoint;
 
-impl<
-        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        ReceiveMsg,
-    > IbcCallbackEndpoint
-    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg>
+impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg, ReceiveMsg>
+    IbcCallbackEndpoint
+    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg, ReceiveMsg>
 {
 }

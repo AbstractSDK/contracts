@@ -1,17 +1,17 @@
-use crate::base::handler::Handler;
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
-use schemars::JsonSchema;
-use serde::Serialize;
+use crate::{base::handler::Handler, AbstractSdkError};
+use cosmwasm_std::{DepsMut, Env, Response};
 
 pub trait SudoEndpoint: Handler {
-    type SudoMsg: Serialize + JsonSchema;
-
     /// Handler for the Sudo endpoint.
-    fn execute(
-        self,
-        deps: DepsMut,
-        env: Env,
-        info: MessageInfo,
-        msg: Self::SudoMsg,
-    ) -> Result<Response, Self::Error>;
+    fn sudo(self, deps: DepsMut, env: Env, msg: Self::SudoMsg) -> Result<Response, Self::Error> {
+        let maybe_handler = self.maybe_sudo_handler();
+        maybe_handler.map_or_else(
+            || {
+                Err(Self::Error::from(AbstractSdkError::MissingHandler {
+                    endpoint: "sudo".to_string(),
+                }))
+            },
+            |f| f(deps, env, self, msg),
+        )
+    }
 }

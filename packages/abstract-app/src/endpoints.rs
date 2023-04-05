@@ -5,6 +5,7 @@ mod migrate;
 mod query;
 mod receive;
 mod reply;
+mod sudo;
 
 #[macro_export]
 /// Exports all entrypoints

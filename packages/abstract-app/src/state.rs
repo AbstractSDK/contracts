@@ -6,12 +6,22 @@ use abstract_core::objects::dependency::StaticDependency;
 use abstract_sdk::{
     feature_objects::AnsHost,
     namespaces::{ADMIN_NAMESPACE, BASE_STATE},
+    AbstractSdkError,
 };
-use cosmwasm_std::{Addr, Empty, StdResult, Storage};
+use cosmwasm_std::{Addr, StdResult, Storage};
 use cw_controllers::Admin;
 use cw_storage_plus::Item;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+
+pub trait ContractError:
+    From<cosmwasm_std::StdError> + From<AppError> + From<AbstractSdkError> + 'static
+{
+}
+impl<T> ContractError for T where
+    T: From<cosmwasm_std::StdError> + From<AppError> + From<AbstractSdkError> + 'static
+{
+}
 
 /// The BaseState contains the main addresses needed for sending and verifying messages
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -23,12 +33,13 @@ pub struct AppState {
 }
 /// The state variables for our AppContract.
 pub struct AppContract<
-    Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError> + 'static,
-    CustomInitMsg: 'static = Empty,
-    CustomExecMsg: 'static = Empty,
-    CustomQueryMsg: 'static = Empty,
-    CustomMigrateMsg: 'static = Empty,
-    Receive: 'static = Empty,
+    Error: ContractError,
+    CustomInitMsg: 'static,
+    CustomExecMsg: 'static,
+    CustomQueryMsg: 'static,
+    CustomMigrateMsg: 'static,
+    SudoMsg: 'static,
+    Receive: 'static,
 > {
     // Custom state for every App
     pub admin: Admin<'static>,
@@ -42,20 +53,30 @@ pub struct AppContract<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
+        SudoMsg,
         Receive,
     >,
 }
 
 /// Constructor
 impl<
-        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
+        Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
+        SudoMsg,
         ReceiveMsg,
     >
-    AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+    AppContract<
+        Error,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        SudoMsg,
+        ReceiveMsg,
+    >
 {
     pub const fn new(
         name: &'static str,

@@ -13,8 +13,9 @@ use abstract_sdk::{
     core::ibc_host::PacketMsg,
     feature_objects::AnsHost,
     namespaces::{ADMIN_NAMESPACE, BASE_STATE},
+    AbstractSdkError,
 };
-use cosmwasm_std::{Addr, Binary, Empty, StdResult, Storage};
+use cosmwasm_std::{Addr, Binary, StdResult, Storage};
 use cw_controllers::Admin;
 use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
@@ -36,14 +37,24 @@ pub const CLOSED_CHANNELS: Item<Vec<String>> = Item::new("closed");
 // this stores all results from current dispatch
 pub const RESULTS: Item<Vec<Binary>> = Item::new("results");
 
+pub trait ContractError:
+    From<cosmwasm_std::StdError> + From<HostError> + From<AbstractSdkError> + 'static
+{
+}
+impl<T> ContractError for T where
+    T: From<cosmwasm_std::StdError> + From<HostError> + From<AbstractSdkError> + 'static
+{
+}
+
 /// The state variables for our host contract.
 pub struct Host<
-    Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError> + 'static,
-    CustomInitMsg: 'static = Empty,
-    CustomExecMsg: 'static = Empty,
-    CustomQueryMsg: 'static = Empty,
-    CustomMigrateMsg: 'static = Empty,
-    Receive: 'static = Empty,
+    Error: ContractError,
+    CustomInitMsg: 'static,
+    CustomExecMsg: 'static,
+    CustomQueryMsg: 'static,
+    CustomMigrateMsg: 'static,
+    SudoMsg: 'static,
+    Receive: 'static,
 > {
     // Scaffolding contract that handles type safety and provides helper methods
     pub(crate) contract: AbstractContract<
@@ -53,6 +64,7 @@ pub struct Host<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
+        SudoMsg,
         Receive,
     >,
     pub admin: Admin<'static>,
@@ -64,13 +76,15 @@ pub struct Host<
 
 // Constructor
 impl<
-        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
+        Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
+        SudoMsg,
         ReceiveMsg,
-    > Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+    >
+    Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg, ReceiveMsg>
 {
     pub const fn new(
         name: &'static str,

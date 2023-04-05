@@ -1,6 +1,6 @@
 use super::contract_base::{
     AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
-    MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn,
+    MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, SudoHandlerFn,
 };
 use crate::{
     base::{
@@ -22,6 +22,7 @@ where
     type CustomExecMsg;
     type CustomQueryMsg;
     type CustomMigrateMsg;
+    type SudoMsg;
     type ReceiveMsg;
     #[allow(clippy::type_complexity)]
     fn contract(
@@ -33,6 +34,7 @@ where
         Self::CustomExecMsg,
         Self::CustomQueryMsg,
         Self::CustomMigrateMsg,
+        Self::SudoMsg,
         Self::ReceiveMsg,
     >;
 
@@ -110,6 +112,18 @@ where
     ) -> AbstractSdkResult<MigrateHandlerFn<Self, Self::CustomMigrateMsg, Self::Error>> {
         let Some(handler) = self.maybe_migrate_handler() else {
             return Err(AbstractSdkError::MissingHandler { endpoint: "migrate".to_string() })
+        };
+        Ok(handler)
+    }
+
+    // Sudo
+    fn maybe_sudo_handler(&self) -> Option<SudoHandlerFn<Self, Self::SudoMsg, Self::Error>> {
+        let contract = self.contract();
+        contract.sudo_handler
+    }
+    fn sudo_handler(&self) -> AbstractSdkResult<SudoHandlerFn<Self, Self::SudoMsg, Self::Error>> {
+        let Some(handler) = self.maybe_sudo_handler() else {
+            return Err(AbstractSdkError::MissingHandler { endpoint: "sudo".to_string() })
         };
         Ok(handler)
     }

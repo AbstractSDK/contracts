@@ -67,9 +67,12 @@ pub mod mock {
     #[cosmwasm_schema::cw_serde]
     pub struct MockReceiveMsg;
 
+    #[cosmwasm_schema::cw_serde]
+    pub struct MockSudoMsg;
+
     /// Mock API type
     pub type MockApiContract =
-        ApiContract<MockError, MockInitMsg, MockExecMsg, MockQueryMsg, MockReceiveMsg>;
+        ApiContract<MockError, MockInitMsg, MockExecMsg, MockQueryMsg, MockSudoMsg, MockReceiveMsg>;
 
     /// use for testing
     pub const MOCK_API: MockApiContract =

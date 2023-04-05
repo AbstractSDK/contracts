@@ -3,6 +3,8 @@ mod ibc_callback;
 pub mod instantiate;
 mod query;
 mod receive;
+mod reply;
+mod sudo;
 
 #[macro_export]
 macro_rules! export_endpoints {

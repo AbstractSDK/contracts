@@ -18,6 +18,15 @@ use std::{collections::HashSet, fmt::Debug};
 
 pub const TRADER_NAMESPACE: &str = "traders";
 
+pub trait ContractError:
+    From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError> + 'static
+{
+}
+impl<T> ContractError for T where
+    T: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError> + 'static
+{
+}
+
 /// The BaseState contains the main addresses needed for sending and verifying messages
 /// Every DApp should use the provided **ans_host** contract for token/contract address resolution.
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -30,14 +39,23 @@ pub struct ApiState {
 
 /// The state variables for our ApiContract.
 pub struct ApiContract<
-    Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError> + 'static,
-    CustomInitMsg: 'static = Empty,
-    CustomExecMsg: 'static = Empty,
-    CustomQueryMsg: 'static = Empty,
-    Receive: 'static = Empty,
+    Error: ContractError,
+    CustomInitMsg: 'static,
+    CustomExecMsg: 'static,
+    CustomQueryMsg: 'static,
+    SudoMsg: 'static,
+    Receive: 'static,
 > {
-    pub(crate) contract:
-        AbstractContract<Self, Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Empty, Receive>,
+    pub(crate) contract: AbstractContract<
+        Self,
+        Error,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        Empty,
+        SudoMsg,
+        Receive,
+    >,
     pub(crate) base_state: Item<'static, ApiState>,
     /// Map ProxyAddr -> WhitelistedTraders
     pub traders: Map<'static, Addr, HashSet<Addr>>,
@@ -46,13 +64,8 @@ pub struct ApiContract<
 }
 
 /// Constructor
-impl<
-        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        ReceiveMsg,
-    > ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg>
+impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg, ReceiveMsg>
+    ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg, ReceiveMsg>
 {
     pub const fn new(
         name: &'static str,

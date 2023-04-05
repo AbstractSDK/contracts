@@ -1,12 +1,8 @@
-use crate::{
-    state::{ApiContract, ApiState},
-    ApiError,
-};
+use crate::state::{ApiContract, ApiState, ContractError};
 use abstract_core::{api::InstantiateMsg, objects::module_version::set_module_data};
 use abstract_sdk::{
     base::{endpoints::InstantiateEndpoint, Handler},
     feature_objects::AnsHost,
-    AbstractSdkError,
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;
@@ -14,13 +10,14 @@ use schemars::JsonSchema;
 use serde::Serialize;
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
+        Error: ContractError,
         CustomInitMsg: Serialize + JsonSchema,
         CustomExecMsg,
         CustomQueryMsg,
+        SudoMsg,
         ReceiveMsg,
     > InstantiateEndpoint
-    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg>
+    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg, ReceiveMsg>
 {
     type InstantiateMsg = InstantiateMsg<CustomInitMsg>;
     /// Instantiate the api
