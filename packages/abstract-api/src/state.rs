@@ -14,9 +14,9 @@ use cosmwasm_std::{Addr, Empty, StdError, StdResult, Storage};
 use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::{collections::BTreeSet, fmt::Debug};
+use std::fmt::Debug;
 
-pub const AUTHORIZED_ADDRS_NAMESPACE: &str = "authorizees";
+pub const AUTHORIZED_ADDRESSES_NAMESPACE: &str = "authorized_addresses";
 
 /// The BaseState contains the main addresses needed for sending and verifying messages
 /// Every DApp should use the provided **ans_host** contract for token/contract address resolution.
@@ -40,7 +40,7 @@ pub struct ApiContract<
         AbstractContract<Self, Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Empty, Receive>,
     pub(crate) base_state: Item<'static, ApiState>,
     /// Map ProxyAddr -> AuthorizedAddrs
-    pub authorized_addresses: Map<'static, Addr, BTreeSet<Addr>>,
+    pub authorized_addresses: Map<'static, Addr, Vec<Addr>>,
     /// The Account on which commands are executed. Set each time in the [`abstract_core::api::ExecuteMsg::Base`] handler.
     pub target_account: Option<AccountBase>,
 }
@@ -62,7 +62,7 @@ impl<
         Self {
             contract: AbstractContract::new(name, version, metadata),
             base_state: Item::new(BASE_STATE),
-            authorized_addresses: Map::new(AUTHORIZED_ADDRS_NAMESPACE),
+            authorized_addresses: Map::new(AUTHORIZED_ADDRESSES_NAMESPACE),
             target_account: None,
         }
     }

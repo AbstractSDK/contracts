@@ -46,6 +46,8 @@ impl<
     }
 }
 
+const MAXIMUM_AUTHORIZED_ADDRESSES: u32 = 10;
+
 /// The api-contract base implementation.
 impl<
         Error: From<StdError> + From<ApiError> + From<AbstractSdkError>,
@@ -185,23 +187,33 @@ impl<
             .unwrap_or_default();
 
         // Handle the addition of authorized addresses
-        for new_authorizee in to_add {
-            let authorized_addr = deps.api.addr_validate(new_authorizee.as_str())?;
-            if !authorized_addrs.insert(authorized_addr) {
+        for authorized in to_add {
+            let authorized_addr = deps.api.addr_validate(authorized.as_str())?;
+            if authorized_addrs.contains(&authorized_addr) {
                 return Err(ApiError::AuthorizedAddressAlreadyPresent {
-                    address: new_authorizee,
+                    address: authorized,
                 });
+            } else {
+                authorized_addrs.push(authorized_addr);
             }
         }
 
         // Handling the removal of authorized addresses
         for deauthorized in to_remove {
             let deauthorized_addr = deps.api.addr_validate(deauthorized.as_str())?;
-            if !authorized_addrs.remove(&deauthorized_addr) {
+            if !authorized_addrs.contains(&deauthorized_addr) {
                 return Err(ApiError::AuthorizedAddressNotPresent {
                     address: deauthorized,
                 });
+            } else {
+                authorized_addrs.retain(|addr| addr != &deauthorized_addr);
             }
+        }
+
+        if authorized_addrs.len() > 10 {
+            return Err(ApiError::TooManyAuthorizedAddresses {
+                max: MAXIMUM_AUTHORIZED_ADDRESSES,
+            });
         }
 
         self.authorized_addresses
@@ -246,11 +258,11 @@ mod tests {
 
     mod update_authorized_addresses {
         use crate::mock::TEST_AUTHORIZED_ADDRESS;
-        use std::collections::BTreeSet;
+        
 
         use super::*;
 
-        fn load_test_proxy_authorized_addresses(storage: &dyn Storage) -> BTreeSet<Addr> {
+        fn load_test_proxy_authorized_addresses(storage: &dyn Storage) -> Vec<Addr> {
             MOCK_API
                 .authorized_addresses
                 .load(storage, Addr::unchecked(TEST_PROXY))

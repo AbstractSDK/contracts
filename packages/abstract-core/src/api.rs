@@ -120,11 +120,7 @@ pub enum BaseQueryMsg {
     Config {},
     /// Returns [`AuthorizedAddressesResponse`].
     #[returns(AuthorizedAddressesResponse)]
-    AuthorizedAddresses {
-        proxy_address: String,
-        start_after: Option<String>,
-        limit: Option<u8>,
-    },
+    AuthorizedAddresses { proxy_address: String },
 }
 
 impl<T> From<BaseQueryMsg> for QueryMsg<T> {

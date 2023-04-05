@@ -55,7 +55,7 @@ fn installing_one_api_should_succeed() -> AResult {
     });
 
     // no authorized addresses registered
-    let authorized = staking_api.authorized_addresses(account.proxy.addr_str()?, None, None)?;
+    let authorized = staking_api.authorized_addresses(account.proxy.addr_str()?)?;
     assert_that!(authorized).is_equal_to(api::AuthorizedAddressesResponse { addresses: vec![] });
 
     Ok(())

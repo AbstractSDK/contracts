@@ -308,12 +308,12 @@ fn update_api_with_authorized_addrs() -> AResult {
 
     let api = api_1::BootMockApi1V2::new(chain);
     use abstract_core::api::BaseQueryMsgFns as _;
-    let authorized = api.authorized_addresses(proxy.addr_str()?, None, None)?;
+    let authorized = api.authorized_addresses(proxy.addr_str()?)?;
     assert_that!(authorized.addresses).contains(Addr::unchecked("authorizee"));
 
     // assert that authorized address was removed from old API
     api.set_address(&Addr::unchecked(api1));
-    let authorized = api.authorized_addresses(proxy.addr_str()?, None, None)?;
+    let authorized = api.authorized_addresses(proxy.addr_str()?)?;
     assert_that!(authorized.addresses).is_empty();
     Ok(())
 }

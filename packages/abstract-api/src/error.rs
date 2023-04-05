@@ -22,6 +22,9 @@ pub enum ApiError {
     #[error("The authorized address to add: {} is already present", address)]
     AuthorizedAddressAlreadyPresent { address: String },
 
+    #[error("Maximum authorized addresses ({}) reached", max)]
+    TooManyAuthorizedAddresses { max: u32 },
+
     #[error("This api does not implement any custom queries")]
     NoCustomQueries,
 
