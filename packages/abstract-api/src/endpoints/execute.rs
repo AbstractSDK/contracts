@@ -1,3 +1,4 @@
+use crate::state::MAXIMUM_AUTHORIZED_ADDRESSES;
 use crate::{error::ApiError, state::ApiContract, ApiResult};
 use abstract_core::{
     api::{ApiExecuteMsg, ApiRequestMsg, BaseExecuteMsg, ExecuteMsg},
@@ -45,8 +46,6 @@ impl<
         }
     }
 }
-
-const MAXIMUM_AUTHORIZED_ADDRESSES: u32 = 10;
 
 /// The api-contract base implementation.
 impl<
@@ -258,7 +257,6 @@ mod tests {
 
     mod update_authorized_addresses {
         use crate::mock::TEST_AUTHORIZED_ADDRESS;
-        
 
         use super::*;
 

@@ -17,6 +17,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 
 pub const AUTHORIZED_ADDRESSES_NAMESPACE: &str = "authorized_addresses";
+pub const MAXIMUM_AUTHORIZED_ADDRESSES: u32 = 15;
 
 /// The BaseState contains the main addresses needed for sending and verifying messages
 /// Every DApp should use the provided **ans_host** contract for token/contract address resolution.
