@@ -1,5 +1,7 @@
 use crate::{state::ApiContract, ApiError};
-use abstract_core::api::{ApiConfigResponse, ApiQueryMsg, BaseQueryMsg, QueryMsg, TradersResponse};
+use abstract_core::api::{
+    ApiConfigResponse, ApiQueryMsg, AuthorizedAddressesResponse, BaseQueryMsg, QueryMsg,
+};
 use abstract_sdk::{
     base::{endpoints::QueryEndpoint, Handler},
     AbstractSdkError,
@@ -43,7 +45,7 @@ impl<
             BaseQueryMsg::Config {} => {
                 to_binary(&self.dapp_config(deps).map_err(Error::from)?).map_err(Into::into)
             }
-            BaseQueryMsg::Traders {
+            BaseQueryMsg::AuthorizedAddresses {
                 proxy_address,
                 limit,
                 start_after,
@@ -54,19 +56,22 @@ impl<
                 let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
 
                 let proxy_address = deps.api.addr_validate(&proxy_address)?;
-                let traders: BTreeSet<Addr> = self
-                    .traders
+                let authorized_addrs: BTreeSet<Addr> = self
+                    .authorized_addresses
                     .may_load(deps.storage, proxy_address)?
                     .unwrap_or_default();
 
-                let traders_iter = traders.range((
+                let authorized_iter = authorized_addrs.range((
                     start_after.map_or(Bound::Unbounded, Bound::Excluded),
                     Bound::Unbounded,
                 ));
 
-                let traders: Vec<Addr> = traders_iter.take(limit).cloned().collect();
+                let authorized_addrs: Vec<Addr> = authorized_iter.take(limit).cloned().collect();
 
-                to_binary(&TradersResponse { traders }).map_err(Into::into)
+                to_binary(&AuthorizedAddressesResponse {
+                    addresses: authorized_addrs,
+                })
+                .map_err(Into::into)
             }
         }
     }

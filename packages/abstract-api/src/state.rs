@@ -16,7 +16,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeSet, fmt::Debug};
 
-pub const TRADER_NAMESPACE: &str = "traders";
+pub const AUTHORIZED_ADDRS_NAMESPACE: &str = "authorizees";
 
 /// The BaseState contains the main addresses needed for sending and verifying messages
 /// Every DApp should use the provided **ans_host** contract for token/contract address resolution.
@@ -39,8 +39,8 @@ pub struct ApiContract<
     pub(crate) contract:
         AbstractContract<Self, Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Empty, Receive>,
     pub(crate) base_state: Item<'static, ApiState>,
-    /// Map ProxyAddr -> WhitelistedTraders
-    pub traders: Map<'static, Addr, BTreeSet<Addr>>,
+    /// Map ProxyAddr -> AuthorizedAddrs
+    pub authorized_addresses: Map<'static, Addr, BTreeSet<Addr>>,
     /// The Account on which commands are executed. Set each time in the [`abstract_core::api::ExecuteMsg::Base`] handler.
     pub target_account: Option<AccountBase>,
 }
@@ -62,7 +62,7 @@ impl<
         Self {
             contract: AbstractContract::new(name, version, metadata),
             base_state: Item::new(BASE_STATE),
-            traders: Map::new(TRADER_NAMESPACE),
+            authorized_addresses: Map::new(AUTHORIZED_ADDRS_NAMESPACE),
             target_account: None,
         }
     }

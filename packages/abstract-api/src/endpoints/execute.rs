@@ -63,8 +63,8 @@ impl<
         message: BaseExecuteMsg,
     ) -> ApiResult {
         match message {
-            BaseExecuteMsg::UpdateTraders { to_add, to_remove } => {
-                self.update_traders(deps, info, to_add, to_remove)
+            BaseExecuteMsg::UpdateAuthorizedAddresses { to_add, to_remove } => {
+                self.update_authorized_addresses(deps, info, to_add, to_remove)
             }
             BaseExecuteMsg::Remove {} => self.remove_self_from_deps(deps.as_ref(), env, info),
         }
@@ -72,7 +72,7 @@ impl<
 
     /// Handle a custom execution message sent to this api.
     /// Two success scenarios are possible:
-    /// 1. The sender is a trader of the given proxy address and has provided the proxy address in the message.
+    /// 1. The sender is an authorized address of the given proxy address and has provided the proxy address in the message.
     /// 2. The sender is a manager of the given proxy address.
     fn handle_app_msg(
         mut self,
@@ -82,7 +82,7 @@ impl<
         request: ApiRequestMsg<CustomExecMsg>,
     ) -> Result<Response, Error> {
         let sender = &info.sender;
-        let unauthorized_sender = |_| ApiError::UnauthorizedTraderApiRequest {
+        let unauthorized_sender = |_| ApiError::UnauthorizedAddressApiRequest {
             api: self.module_id().to_string(),
             sender: sender.to_string(),
         };
@@ -90,23 +90,23 @@ impl<
         let account_registry = self.account_registry(deps.as_ref());
 
         let account_base = match request.proxy_address {
-            // The sender must either be a trader or manager.
+            // The sender must either be an authorized address or manager.
             Some(requested_proxy) => {
                 let proxy_address = deps.api.addr_validate(&requested_proxy)?;
                 let requested_core = account_registry.assert_proxy(&proxy_address)?;
 
-                // Load the traders for the given proxy address.
-                let traders = self
-                    .traders
+                // Load the authorized addresses for the given proxy address.
+                let authorized = self
+                    .authorized_addresses
                     .load(deps.storage, proxy_address)
                     .map_err(Into::into)
                     .map_err(unauthorized_sender)?;
 
-                if traders.contains(sender) {
-                    // If the sender is a trader, return the account_base.
+                if authorized.contains(sender) {
+                    // If the sender is an authorized address, return the account_base.
                     requested_core
                 } else {
-                    // If the sender is NOT a trader, check that it is a manager of some Account.
+                    // If the sender is NOT an authorized address, check that it is a manager of some Account.
                     account_registry
                         .assert_manager(sender)
                         .map_err(unauthorized_sender)?
@@ -142,14 +142,14 @@ impl<
         let modules = self.modules(deps);
         for dep in dependencies {
             let api_addr = modules.module_address(dep.id);
-            // just skip if dep is already removed. This means all the traders are already removed.
+            // just skip if dep is already removed. This means all the authorized addresses are already removed.
             if api_addr.is_err() {
                 continue;
             };
             msgs.push(
                 wasm_execute(
                     api_addr?.into_string(),
-                    &BaseExecuteMsg::UpdateTraders {
+                    &BaseExecuteMsg::UpdateAuthorizedAddresses {
                         to_add: vec![],
                         to_remove: vec![env.contract.address.to_string()],
                     },
@@ -163,8 +163,8 @@ impl<
             .map_err(Into::into)
     }
 
-    /// Remove traders from the api.
-    fn update_traders(
+    /// Remove authorized addresses from the api.
+    fn update_authorized_addresses(
         &self,
         deps: DepsMut,
         info: MessageInfo,
@@ -172,36 +172,45 @@ impl<
         to_remove: Vec<String>,
     ) -> ApiResult {
         let AccountBase {
-            // Manager can only change traders for associated proxy
+            // Manager can only change authorized addresses for associated proxy
             proxy,
             ..
         } = self
             .account_registry(deps.as_ref())
             .assert_manager(&info.sender)?;
 
-        let mut traders = self
-            .traders
+        let mut authorized_addrs = self
+            .authorized_addresses
             .may_load(deps.storage, proxy.clone())?
             .unwrap_or_default();
 
-        // Handle the addition of traders
-        for trader in to_add {
-            let trader_addr = deps.api.addr_validate(trader.as_str())?;
-            if !traders.insert(trader_addr) {
-                return Err(ApiError::TraderAlreadyPresent { trader });
+        // Handle the addition of authorized addresses
+        for new_authorizee in to_add {
+            let authorized_addr = deps.api.addr_validate(new_authorizee.as_str())?;
+            if !authorized_addrs.insert(authorized_addr) {
+                return Err(ApiError::AuthorizedAddressAlreadyPresent {
+                    address: new_authorizee,
+                });
             }
         }
 
-        // Handling the removal of traders
-        for trader in to_remove {
-            let trader_addr = deps.api.addr_validate(trader.as_str())?;
-            if !traders.remove(&trader_addr) {
-                return Err(ApiError::TraderNotPresent { trader });
+        // Handling the removal of authorized addresses
+        for deauthorized in to_remove {
+            let deauthorized_addr = deps.api.addr_validate(deauthorized.as_str())?;
+            if !authorized_addrs.remove(&deauthorized_addr) {
+                return Err(ApiError::AuthorizedAddressNotPresent {
+                    address: deauthorized,
+                });
             }
         }
 
-        self.traders.save(deps.storage, proxy.clone(), &traders)?;
-        Ok(self.custom_tag_response(Response::new(), "update_traders", vec![("proxy", proxy)]))
+        self.authorized_addresses
+            .save(deps.storage, proxy.clone(), &authorized_addrs)?;
+        Ok(self.custom_tag_response(
+            Response::new(),
+            "update_authorized_addresses",
+            vec![("proxy", proxy)],
+        ))
     }
 }
 
@@ -235,101 +244,102 @@ mod tests {
         execute_as(deps, sender, api::ExecuteMsg::Base(msg))
     }
 
-    mod update_traders {
-        use crate::mock::TEST_TRADER;
+    mod update_authorized_addresses {
+        use crate::mock::TEST_AUTHORIZED_ADDRESS;
         use std::collections::BTreeSet;
 
         use super::*;
 
-        fn load_test_proxy_traders(storage: &dyn Storage) -> BTreeSet<Addr> {
+        fn load_test_proxy_authorized_addresses(storage: &dyn Storage) -> BTreeSet<Addr> {
             MOCK_API
-                .traders
+                .authorized_addresses
                 .load(storage, Addr::unchecked(TEST_PROXY))
                 .unwrap()
         }
 
         #[test]
-        fn add_trader() -> ApiMockResult {
+        fn authorize_address() -> ApiMockResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_querier();
 
             mock_init(deps.as_mut())?;
 
             let _api = MOCK_API;
-            let msg = BaseExecuteMsg::UpdateTraders {
-                to_add: vec![TEST_TRADER.into()],
+            let msg = BaseExecuteMsg::UpdateAuthorizedAddresses {
+                to_add: vec![TEST_AUTHORIZED_ADDRESS.into()],
                 to_remove: vec![],
             };
 
             base_execute_as(deps.as_mut(), TEST_MANAGER, msg)?;
 
             let api = MOCK_API;
-            assert_that!(api.traders.is_empty(&deps.storage)).is_false();
+            assert_that!(api.authorized_addresses.is_empty(&deps.storage)).is_false();
 
-            let test_proxy_traders = load_test_proxy_traders(&deps.storage);
+            let test_proxy_authorized_addrs = load_test_proxy_authorized_addresses(&deps.storage);
 
-            assert_that!(test_proxy_traders.len()).is_equal_to(1);
-            assert_that!(test_proxy_traders).contains(Addr::unchecked(TEST_TRADER));
+            assert_that!(test_proxy_authorized_addrs.len()).is_equal_to(1);
+            assert_that!(test_proxy_authorized_addrs)
+                .contains(Addr::unchecked(TEST_AUTHORIZED_ADDRESS));
             Ok(())
         }
 
         #[test]
-        fn remove_trader() -> ApiMockResult {
+        fn revoke_address_authorization() -> ApiMockResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_querier();
 
             mock_init(deps.as_mut())?;
 
             let _api = MOCK_API;
-            let msg = BaseExecuteMsg::UpdateTraders {
-                to_add: vec![TEST_TRADER.into()],
+            let msg = BaseExecuteMsg::UpdateAuthorizedAddresses {
+                to_add: vec![TEST_AUTHORIZED_ADDRESS.into()],
                 to_remove: vec![],
             };
 
             base_execute_as(deps.as_mut(), TEST_MANAGER, msg)?;
 
-            let traders = load_test_proxy_traders(&deps.storage);
-            assert_that!(traders.len()).is_equal_to(1);
+            let authorized_addrs = load_test_proxy_authorized_addresses(&deps.storage);
+            assert_that!(authorized_addrs.len()).is_equal_to(1);
 
-            let msg = BaseExecuteMsg::UpdateTraders {
+            let msg = BaseExecuteMsg::UpdateAuthorizedAddresses {
                 to_add: vec![],
-                to_remove: vec![TEST_TRADER.into()],
+                to_remove: vec![TEST_AUTHORIZED_ADDRESS.into()],
             };
 
             base_execute_as(deps.as_mut(), TEST_MANAGER, msg)?;
-            let traders = load_test_proxy_traders(&deps.storage);
-            assert_that!(traders.len()).is_equal_to(0);
+            let authorized_addrs = load_test_proxy_authorized_addresses(&deps.storage);
+            assert_that!(authorized_addrs.len()).is_equal_to(0);
             Ok(())
         }
 
         #[test]
-        fn add_existing_trader() -> ApiMockResult {
+        fn add_existing_authorized_address() -> ApiMockResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_querier();
 
             mock_init(deps.as_mut())?;
 
             let _api = MOCK_API;
-            let msg = BaseExecuteMsg::UpdateTraders {
-                to_add: vec![TEST_TRADER.into()],
+            let msg = BaseExecuteMsg::UpdateAuthorizedAddresses {
+                to_add: vec![TEST_AUTHORIZED_ADDRESS.into()],
                 to_remove: vec![],
             };
 
             base_execute_as(deps.as_mut(), TEST_MANAGER, msg)?;
 
-            let msg = BaseExecuteMsg::UpdateTraders {
-                to_add: vec![TEST_TRADER.into()],
+            let msg = BaseExecuteMsg::UpdateAuthorizedAddresses {
+                to_add: vec![TEST_AUTHORIZED_ADDRESS.into()],
                 to_remove: vec![],
             };
 
             let res = base_execute_as(deps.as_mut(), TEST_MANAGER, msg);
 
-            let _test_trader_string = TEST_TRADER.to_string();
+            let _test_authorized_address_string = TEST_AUTHORIZED_ADDRESS.to_string();
             assert_that!(res).is_err().matches(|e| {
                 matches!(
                     e,
-                    MockError::Api(ApiError::TraderAlreadyPresent {
-                        trader: _test_trader_string
+                    MockError::Api(ApiError::AuthorizedAddressAlreadyPresent {
+                        address: _test_authorized_address_string
                     })
                 )
             });
@@ -338,26 +348,25 @@ mod tests {
         }
 
         #[test]
-        fn remove_trader_dne() -> ApiMockResult {
+        fn remove_authorized_address_dne() -> ApiMockResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_querier();
 
             mock_init(deps.as_mut())?;
 
             let _api = MOCK_API;
-            let msg = BaseExecuteMsg::UpdateTraders {
+            let msg = BaseExecuteMsg::UpdateAuthorizedAddresses {
                 to_add: vec![],
-                to_remove: vec![TEST_TRADER.into()],
+                to_remove: vec![TEST_AUTHORIZED_ADDRESS.into()],
             };
 
             let res = base_execute_as(deps.as_mut(), TEST_MANAGER, msg);
 
-            let _test_trader_string = TEST_TRADER.to_string();
             assert_that!(res).is_err().matches(|e| {
                 matches!(
                     e,
-                    MockError::Api(ApiError::TraderNotPresent {
-                        trader: _test_trader_string
+                    MockError::Api(ApiError::AuthorizedAddressNotPresent {
+                        address: _test_authorized_address_string
                     })
                 )
             });
@@ -367,24 +376,24 @@ mod tests {
     }
 
     mod execute_app {
-        use crate::mock::{MOCK_API, TEST_TRADER};
+        use crate::mock::{MOCK_API, TEST_AUTHORIZED_ADDRESS};
 
         use super::*;
 
         use abstract_testing::prelude::mocked_account_querier_builder;
 
         /// This sets up the test with the following:
-        /// TEST_PROXY has a single trader, TEST_TRADER
+        /// TEST_PROXY has a single authorized address, test_authorized_address
         /// TEST_MANAGER and TEST_PROXY are the Account base
         ///
         /// Note that the querier needs to mock the Account base, as the proxy will
-        /// query the Account base to get the list of traders.
-        fn setup_with_traders(mut deps: DepsMut, traders: Vec<&str>) {
+        /// query the Account base to get the list of authorized addresses.
+        fn setup_with_authorized_addresses(mut deps: DepsMut, authorized: Vec<&str>) {
             mock_init(deps.branch()).unwrap();
 
             let _api = MOCK_API;
-            let msg = BaseExecuteMsg::UpdateTraders {
-                to_add: traders.into_iter().map(Into::into).collect(),
+            let msg = BaseExecuteMsg::UpdateAuthorizedAddresses {
+                to_add: authorized.into_iter().map(Into::into).collect(),
                 to_remove: vec![],
             };
 
@@ -392,29 +401,29 @@ mod tests {
         }
 
         #[test]
-        fn not_traders_are_unauthorized() {
+        fn unauthorized_addresses_are_unauthorized() {
             let mut deps = mock_dependencies();
             deps.querier = mocked_account_querier_builder().build();
 
-            setup_with_traders(deps.as_mut(), vec![]);
+            setup_with_authorized_addresses(deps.as_mut(), vec![]);
 
             let msg = ExecuteMsg::Module(ApiRequestMsg {
                 proxy_address: None,
                 request: MockExecMsg,
             });
 
-            let not_trader: String = "someoone".into();
-            let res = execute_as(deps.as_mut(), &not_trader, msg);
+            let unauthorized: String = "someoone".into();
+            let res = execute_as(deps.as_mut(), &unauthorized, msg);
 
-            assert_unauthorized(res, not_trader);
+            assert_unauthorized(res, unauthorized);
         }
 
-        fn assert_unauthorized(res: Result<Response, MockError>, _trader: String) {
+        fn assert_unauthorized(res: Result<Response, MockError>, _unauthorized: String) {
             assert_that!(res).is_err().matches(|e| {
                 matches!(
                     e,
-                    MockError::Api(ApiError::UnauthorizedTraderApiRequest {
-                        sender: _trader,
+                    MockError::Api(ApiError::UnauthorizedAddressApiRequest {
+                        sender: _unauthorized,
                         ..
                     })
                 )
@@ -426,7 +435,7 @@ mod tests {
             let mut deps = mock_dependencies();
             deps.querier = mocked_account_querier_builder().build();
 
-            setup_with_traders(deps.as_mut(), vec![]);
+            setup_with_authorized_addresses(deps.as_mut(), vec![]);
 
             let msg = ExecuteMsg::Module(ApiRequestMsg {
                 proxy_address: None,
@@ -439,57 +448,57 @@ mod tests {
         }
 
         #[test]
-        fn executing_as_trader_not_allowed_without_proxy() {
+        fn executing_as_authorized_address_not_allowed_without_proxy() {
             let mut deps = mock_dependencies();
             deps.querier = mocked_account_querier_builder().build();
 
-            setup_with_traders(deps.as_mut(), vec![TEST_TRADER]);
+            setup_with_authorized_addresses(deps.as_mut(), vec![TEST_AUTHORIZED_ADDRESS]);
 
             let msg = ExecuteMsg::Module(ApiRequestMsg {
                 proxy_address: None,
                 request: MockExecMsg,
             });
 
-            let res = execute_as(deps.as_mut(), TEST_TRADER, msg);
+            let res = execute_as(deps.as_mut(), TEST_AUTHORIZED_ADDRESS, msg);
 
-            assert_unauthorized(res, TEST_TRADER.into());
+            assert_unauthorized(res, TEST_AUTHORIZED_ADDRESS.into());
         }
 
         #[test]
-        fn executing_as_trader_is_allowed_via_proxy() {
+        fn executing_as_authorized_address_is_allowed_via_proxy() {
             let mut deps = mock_dependencies();
             deps.querier = mocked_account_querier_builder().build();
 
-            setup_with_traders(deps.as_mut(), vec![TEST_TRADER]);
+            setup_with_authorized_addresses(deps.as_mut(), vec![TEST_AUTHORIZED_ADDRESS]);
 
             let msg = ExecuteMsg::Module(ApiRequestMsg {
                 proxy_address: Some(TEST_PROXY.into()),
                 request: MockExecMsg,
             });
 
-            let res = execute_as(deps.as_mut(), TEST_TRADER, msg);
+            let res = execute_as(deps.as_mut(), TEST_AUTHORIZED_ADDRESS, msg);
 
             assert_that!(res).is_ok();
         }
 
         #[test]
-        fn executing_as_trader_on_diff_proxy_should_err() {
+        fn executing_as_authorized_address_on_diff_proxy_should_err() {
             let other_proxy = "some_other_proxy";
             let mut deps = mock_dependencies();
             deps.querier = mocked_account_querier_builder()
                 .account("some_other_manager", other_proxy, 69420u32)
                 .build();
 
-            setup_with_traders(deps.as_mut(), vec![TEST_TRADER]);
+            setup_with_authorized_addresses(deps.as_mut(), vec![TEST_AUTHORIZED_ADDRESS]);
 
             let msg = ExecuteMsg::Module(ApiRequestMsg {
                 proxy_address: Some(other_proxy.into()),
                 request: MockExecMsg,
             });
 
-            let res = execute_as(deps.as_mut(), TEST_TRADER, msg);
+            let res = execute_as(deps.as_mut(), TEST_AUTHORIZED_ADDRESS, msg);
 
-            assert_unauthorized(res, TEST_TRADER.into());
+            assert_unauthorized(res, TEST_AUTHORIZED_ADDRESS.into());
         }
     }
 }
