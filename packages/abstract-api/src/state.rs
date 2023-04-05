@@ -14,7 +14,7 @@ use cosmwasm_std::{Addr, Empty, StdError, StdResult, Storage};
 use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashSet, fmt::Debug};
+use std::{collections::BTreeSet, fmt::Debug};
 
 pub const TRADER_NAMESPACE: &str = "traders";
 
@@ -40,7 +40,7 @@ pub struct ApiContract<
         AbstractContract<Self, Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Empty, Receive>,
     pub(crate) base_state: Item<'static, ApiState>,
     /// Map ProxyAddr -> WhitelistedTraders
-    pub traders: Map<'static, Addr, HashSet<Addr>>,
+    pub traders: Map<'static, Addr, BTreeSet<Addr>>,
     /// The Account on which commands are executed. Set each time in the [`abstract_core::api::ExecuteMsg::Base`] handler.
     pub target_account: Option<AccountBase>,
 }

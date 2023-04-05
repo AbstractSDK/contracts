@@ -55,7 +55,7 @@ fn installing_one_api_should_succeed() -> AResult {
     });
 
     // no traders registered
-    let traders = staking_api.traders(account.proxy.addr_str()?)?;
+    let traders = staking_api.traders(account.proxy.addr_str()?, None, None)?;
     assert_that!(traders).is_equal_to(api::TradersResponse { traders: vec![] });
 
     Ok(())

@@ -304,12 +304,12 @@ fn update_api_with_traders() -> AResult {
 
     let api = api_1::BootMockApi1V2::new(chain);
     use abstract_core::api::BaseQueryMsgFns as _;
-    let traders = api.traders(proxy.addr_str()?)?;
+    let traders = api.traders(proxy.addr_str()?, None, None)?;
     assert_that!(traders.traders).contains(Addr::unchecked("trader"));
 
     // assert that trader was removed from old API
     api.set_address(&Addr::unchecked(api1));
-    let traders = api.traders(proxy.addr_str()?)?;
+    let traders = api.traders(proxy.addr_str()?, None, None)?;
     assert_that!(traders.traders).is_empty();
     Ok(())
 }

@@ -215,7 +215,6 @@ mod tests {
         testing::{mock_dependencies, mock_env, mock_info},
         Addr, Storage,
     };
-    use std::collections::HashSet;
 
     use crate::mock::*;
     use speculoos::prelude::*;
@@ -238,10 +237,11 @@ mod tests {
 
     mod update_traders {
         use crate::mock::TEST_TRADER;
+        use std::collections::BTreeSet;
 
         use super::*;
 
-        fn load_test_proxy_traders(storage: &dyn Storage) -> HashSet<Addr> {
+        fn load_test_proxy_traders(storage: &dyn Storage) -> BTreeSet<Addr> {
             MOCK_API
                 .traders
                 .load(storage, Addr::unchecked(TEST_PROXY))
@@ -268,7 +268,7 @@ mod tests {
 
             let test_proxy_traders = load_test_proxy_traders(&deps.storage);
 
-            assert_that!(test_proxy_traders).has_length(1);
+            assert_that!(test_proxy_traders.len()).is_equal_to(1);
             assert_that!(test_proxy_traders).contains(Addr::unchecked(TEST_TRADER));
             Ok(())
         }
@@ -289,7 +289,7 @@ mod tests {
             base_execute_as(deps.as_mut(), TEST_MANAGER, msg)?;
 
             let traders = load_test_proxy_traders(&deps.storage);
-            assert_that!(traders).has_length(1);
+            assert_that!(traders.len()).is_equal_to(1);
 
             let msg = BaseExecuteMsg::UpdateTraders {
                 to_add: vec![],
@@ -298,7 +298,7 @@ mod tests {
 
             base_execute_as(deps.as_mut(), TEST_MANAGER, msg)?;
             let traders = load_test_proxy_traders(&deps.storage);
-            assert_that!(traders).is_empty();
+            assert_that!(traders.len()).is_equal_to(0);
             Ok(())
         }
 

@@ -373,10 +373,13 @@ pub fn replace_api(
     let mut msgs = vec![];
     // Makes sure we already have the api installed
     let proxy_addr = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
+    // TODO: page limit loop
     let TradersResponse { traders } = deps.querier.query(&wasm_smart_query(
         old_api_addr.to_string(),
         &<ApiQuery<Empty>>::Base(BaseQueryMsg::Traders {
             proxy_address: proxy_addr.to_string(),
+            limit: None,
+            start_after: None,
         }),
     )?)?;
     let traders_to_migrate: Vec<String> =

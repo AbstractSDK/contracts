@@ -4,7 +4,11 @@ use abstract_sdk::{
     base::{endpoints::QueryEndpoint, Handler},
     AbstractSdkError,
 };
-use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
+use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, StdResult};
+use std::collections::{BTreeSet, Bound};
+
+pub(crate) const DEFAULT_LIMIT: u8 = 15;
+pub(crate) const MAX_LIMIT: u8 = 25;
 
 /// Where we dispatch the queries for the ApiContract
 /// These ApiQueryMsg declarations can be found in `abstract_sdk::core::common_module::app_msg`
@@ -39,15 +43,30 @@ impl<
             BaseQueryMsg::Config {} => {
                 to_binary(&self.dapp_config(deps).map_err(Error::from)?).map_err(Into::into)
             }
-            BaseQueryMsg::Traders { proxy_address } => {
-                let traders = self
+            BaseQueryMsg::Traders {
+                proxy_address,
+                limit,
+                start_after,
+            } => {
+                let start_after = start_after
+                    .map(|s| deps.api.addr_validate(&s))
+                    .transpose()?;
+                let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
+
+                let proxy_address = deps.api.addr_validate(&proxy_address)?;
+                let traders: BTreeSet<Addr> = self
                     .traders
-                    .may_load(deps.storage, deps.api.addr_validate(&proxy_address)?)?
+                    .may_load(deps.storage, proxy_address)?
                     .unwrap_or_default();
-                to_binary(&TradersResponse {
-                    traders: traders.into_iter().collect(),
-                })
-                .map_err(Into::into)
+
+                let traders_iter = traders.range((
+                    start_after.map_or(Bound::Unbounded, Bound::Excluded),
+                    Bound::Unbounded,
+                ));
+
+                let traders: Vec<Addr> = traders_iter.take(limit).cloned().collect();
+
+                to_binary(&TradersResponse { traders }).map_err(Into::into)
             }
         }
     }

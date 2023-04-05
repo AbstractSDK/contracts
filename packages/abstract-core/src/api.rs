@@ -119,9 +119,12 @@ pub enum BaseQueryMsg {
     #[returns(ApiConfigResponse)]
     Config {},
     /// Returns [`TradersResponse`].
-    /// TODO: enable pagination
     #[returns(TradersResponse)]
-    Traders { proxy_address: String },
+    Traders {
+        proxy_address: String,
+        start_after: Option<String>,
+        limit: Option<u8>,
+    },
 }
 
 impl<T> From<BaseQueryMsg> for QueryMsg<T> {
