@@ -4,7 +4,10 @@ use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
 use cw_controllers::AdminResponse;
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
+        Error: From<cosmwasm_std::StdError>
+            + From<AppError>
+            + From<abstract_sdk::AbstractSdkError>
+            + From<abstract_core::AbstractError>,
         CustomInitMsg,
         CustomExecMsg,
         CustomQueryMsg: AppQueryMsg,
@@ -32,7 +35,10 @@ impl<
 /// Where we dispatch the queries for the AppContract
 /// These BaseQueryMsg declarations can be found in `abstract_sdk::core::common_module::app_msg`
 impl<
-        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
+        Error: From<cosmwasm_std::StdError>
+            + From<AppError>
+            + From<abstract_sdk::AbstractSdkError>
+            + From<abstract_core::AbstractError>,
         CustomInitMsg,
         CustomExecMsg,
         CustomQueryMsg,

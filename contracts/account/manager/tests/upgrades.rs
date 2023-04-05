@@ -93,7 +93,7 @@ fn install_app_versions_not_met() -> AResult {
 }
 
 #[test]
-fn upgrade_app_() -> AResult {
+fn upgrade_app() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
