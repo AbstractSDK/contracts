@@ -90,8 +90,8 @@ pub mod mock {
             .with_ibc_callbacks(&[("c_id", |_, _, _, _, _, _| {
                 Ok(Response::new().set_data("mock_callback".as_bytes()))
             })])
-            .with_replies(&[(1u64, |_, _, _, _| {
-                Ok(Response::new().set_data("mock_reply".as_bytes()))
+            .with_replies(&[(1u64, |_, _, _, msg| {
+                Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
             })]);
 
     pub type ApiMockResult = Result<(), MockError>;
