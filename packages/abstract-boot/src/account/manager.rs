@@ -4,14 +4,14 @@ use abstract_core::{
     manager::*,
     objects::module::{ModuleInfo, ModuleVersion},
 };
-use boot_core::{boot_contract, BootEnvironment, BootExecute, Contract};
+use boot_core::{contract, BootExecute, Contract, CwEnv};
 use cosmwasm_std::{to_binary, Empty};
 use serde::Serialize;
 
-#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+#[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Manager<Chain>;
 
-impl<Chain: BootEnvironment> Manager<Chain> {
+impl<Chain: CwEnv> Manager<Chain> {
     pub fn new(name: &str, chain: Chain) -> Self {
         let mut contract = Contract::new(name, chain);
         contract = contract.with_wasm_path("abstract_manager");
@@ -37,7 +37,7 @@ impl<Chain: BootEnvironment> Manager<Chain> {
 
     pub fn replace_api(&self, module_id: &str) -> Result<(), crate::AbstractBootError> {
         // this should check if installed?
-        self.uninstall_module(module_id)?;
+        self.uninstall_module(module_id.to_string())?;
 
         self.install_module(module_id, &Empty {})
     }
@@ -60,19 +60,6 @@ impl<Chain: BootEnvironment> Manager<Chain> {
             &ExecuteMsg::InstallModule {
                 module: ModuleInfo::from_id(module_id, version)?,
                 init_msg: Some(to_binary(init_msg).unwrap()),
-            },
-            None,
-        )?;
-        Ok(())
-    }
-
-    pub fn uninstall_module(
-        &self,
-        module_id: impl Into<String>,
-    ) -> Result<(), crate::AbstractBootError> {
-        self.execute(
-            &ExecuteMsg::RemoveModule {
-                module_id: module_id.into(),
             },
             None,
         )?;

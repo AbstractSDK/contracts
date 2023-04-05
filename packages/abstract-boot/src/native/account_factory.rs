@@ -6,7 +6,7 @@ use abstract_core::{
     account_factory::*, objects::gov_type::GovernanceDetails, ABSTRACT_EVENT_NAME, MANAGER, PROXY,
 };
 use boot_core::{
-    boot_contract, BootEnvironment, Contract, IndexResponse, StateInterface, TxResponse,
+    contract, Contract, CwEnv, IndexResponse, StateInterface, TxResponse,
     {BootExecute, ContractInstance},
 };
 use cosmwasm_std::Addr;
@@ -19,10 +19,10 @@ pub struct AccountDetails {
     link: Option<String>,
 }
 
-#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+#[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct AccountFactory<Chain>;
 
-impl<Chain: BootEnvironment> AccountFactory<Chain> {
+impl<Chain: CwEnv> AccountFactory<Chain> {
     pub fn new(name: &str, chain: Chain) -> Self {
         let mut contract = Contract::new(name, chain);
         contract = contract.with_wasm_path("abstract_account_factory");
@@ -75,22 +75,5 @@ impl<Chain: BootEnvironment> AccountFactory<Chain> {
             },
             governance_details,
         )
-    }
-
-    pub fn set_subscription_contract(
-        &self,
-        addr: String,
-    ) -> Result<TxResponse<Chain>, crate::AbstractBootError> {
-        self.execute(
-            &ExecuteMsg::UpdateConfig {
-                admin: None,
-                ans_host_contract: None,
-                version_control_contract: None,
-                module_factory_address: None,
-                subscription_address: Some(addr),
-            },
-            None,
-        )
-        .map_err(Into::into)
     }
 }

@@ -40,6 +40,8 @@ cw20 = { version = "1.0" }
 cw20-base = { version = "1.0", features = ["library"] }
 # wait for my pr to be merged
 cw-asset = { version = "3.0" }
+cw-ownable = { version = "0.5.1" }
+cw-address-like = { version = "1.0.4" }
 schemars = "0.8"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0" }
@@ -48,8 +50,8 @@ protobuf = { version = "2", features = ["with-bytes"] }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0"}
-boot-core = { version = "0.8.0" }
-boot-cw-plus = { version = "0.8.0" }
+boot-core = { version = "0.10.0" }
+boot-cw-plus = { git = "https://github.com/Abstract-OS/BOOT.git", tag = "v0.10.0" }
 tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
@@ -84,6 +86,7 @@ rstest = "0.16.0"
 speculoos = "0.11.0"
 anyhow = "1"
 
+# Backup release profile, will result in warnings during optimization
 [profile.release]
 rpath = false
 lto = true

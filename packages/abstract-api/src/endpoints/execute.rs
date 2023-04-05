@@ -156,7 +156,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg
             );
         }
         self.executor(deps)
-            .execute_with_response(msgs, "remove api from dependencies")
+            .execute_with_response(msgs, "remove_api_from_dependencies")
             .map_err(Into::into)
     }
 
