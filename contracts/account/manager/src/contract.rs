@@ -7,6 +7,7 @@ use crate::{
     versioning,
 };
 use abstract_core::manager::state::AccountInfo;
+use abstract_core::objects::module_version::assert_contract_upgrade;
 use abstract_sdk::core::{
     manager::{
         state::{Config, ACCOUNT_FACTORY, CONFIG, INFO, OWNER, SUSPENSION_STATUS},
@@ -36,10 +37,10 @@ pub(crate) const MAX_TITLE_LENGTH: usize = 64;
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ManagerResult {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
-    if storage_version < version {
-        set_contract_version(deps.storage, MANAGER, CONTRACT_VERSION)?;
-        migrate_module_data(deps.storage, MANAGER, CONTRACT_VERSION, None::<String>)?;
-    }
+
+    assert_contract_upgrade(storage_version, version)?;
+    set_contract_version(deps.storage, MANAGER, CONTRACT_VERSION)?;
+    migrate_module_data(deps.storage, MANAGER, CONTRACT_VERSION, None::<String>)?;
     Ok(ManagerResponse::action("migrate"))
 }
 
