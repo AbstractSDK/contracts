@@ -10,7 +10,7 @@ use abstract_sdk::{
     namespaces::BASE_STATE,
     AbstractSdkError,
 };
-use cosmwasm_std::{Addr, StdError, StdResult, Storage};
+use cosmwasm_std::{Addr, StdError, StdResult, Storage, Empty};
 use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -43,8 +43,8 @@ pub struct ApiContract<
     CustomInitMsg: 'static,
     CustomExecMsg: 'static,
     CustomQueryMsg: 'static,
-    SudoMsg: 'static,
-    Receive: 'static,
+    SudoMsg: 'static = Empty,
+    Receive: 'static = Empty,
 > where
     Self: Handler,
 {

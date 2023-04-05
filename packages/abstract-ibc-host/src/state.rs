@@ -15,7 +15,7 @@ use abstract_sdk::{
     namespaces::{ADMIN_NAMESPACE, BASE_STATE},
     AbstractSdkError,
 };
-use cosmwasm_std::{Addr, Binary, StdResult, Storage};
+use cosmwasm_std::{Addr, Binary, StdResult, Storage, Empty};
 use cw_controllers::Admin;
 use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
@@ -53,8 +53,8 @@ pub struct Host<
     CustomExecMsg: 'static,
     CustomQueryMsg: 'static,
     CustomMigrateMsg: 'static,
-    SudoMsg: 'static,
-    Receive: 'static,
+    SudoMsg: 'static = Empty,
+    Receive: 'static = Empty,
 > {
     // Scaffolding contract that handles type safety and provides helper methods
     pub(crate) contract: AbstractContract<Self, Error>,

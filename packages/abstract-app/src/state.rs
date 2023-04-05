@@ -8,7 +8,7 @@ use abstract_sdk::{
     namespaces::{ADMIN_NAMESPACE, BASE_STATE},
     AbstractSdkError,
 };
-use cosmwasm_std::{Addr, StdResult, Storage};
+use cosmwasm_std::{Addr, StdResult, Storage, Empty};
 use cw_controllers::Admin;
 use cw_storage_plus::Item;
 use schemars::JsonSchema;
@@ -38,8 +38,8 @@ pub struct AppContract<
     CustomExecMsg: 'static,
     CustomQueryMsg: 'static,
     CustomMigrateMsg: 'static,
-    SudoMsg: 'static,
-    Receive: 'static,
+    SudoMsg: 'static = Empty,
+    Receive: 'static = Empty,
 > {
     // Custom state for every App
     pub admin: Admin<'static>,
