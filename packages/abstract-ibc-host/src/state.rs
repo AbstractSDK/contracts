@@ -15,7 +15,7 @@ use abstract_sdk::{
     namespaces::{ADMIN_NAMESPACE, BASE_STATE},
     AbstractSdkError,
 };
-use cosmwasm_std::{Addr, Binary, StdResult, Storage, Empty};
+use cosmwasm_std::{Addr, Binary, Empty, StdResult, Storage};
 use cw_controllers::Admin;
 use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;

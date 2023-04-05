@@ -10,7 +10,7 @@ use abstract_sdk::{
     namespaces::BASE_STATE,
     AbstractSdkError,
 };
-use cosmwasm_std::{Addr, StdError, StdResult, Storage, Empty};
+use cosmwasm_std::{Addr, Empty, StdError, StdResult, Storage};
 use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
