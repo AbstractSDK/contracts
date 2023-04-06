@@ -66,7 +66,9 @@ pub fn instantiate(
 pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> VCResult {
     match msg {
         ExecuteMsg::AddModules { modules } => add_modules(deps, info, modules),
-        ExecuteMsg::ApproveOrDeclineModule { module, is_approve } => approve_or_decline_module(deps, info, module, is_approve),
+        ExecuteMsg::ApproveOrDeclineModule { module, is_approve } => {
+            approve_or_decline_module(deps, info, module, is_approve)
+        }
         ExecuteMsg::RemoveModule { module, yank } => remove_module(deps, info, module, yank),
         ExecuteMsg::ClaimNamespaces {
             account_id,
