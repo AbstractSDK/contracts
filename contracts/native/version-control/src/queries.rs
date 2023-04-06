@@ -303,7 +303,14 @@ mod test {
     /// Initialize the version_control with admin as creator and test account
     fn mock_init_with_account(mut deps: DepsMut) -> VCResult {
         let info = mock_info(TEST_ADMIN, &[]);
-        contract::instantiate(deps.branch(), mock_env(), info, InstantiateMsg {})?;
+        contract::instantiate(
+            deps.branch(),
+            mock_env(),
+            info,
+            InstantiateMsg {
+                config: Config { is_testnet: true },
+            },
+        );
         execute_as_admin(
             deps.branch(),
             ExecuteMsg::SetFactory {

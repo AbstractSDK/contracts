@@ -2,7 +2,7 @@ use crate::error::VCError;
 use abstract_sdk::core::{
     objects::{module_version::migrate_module_data, module_version::set_module_data},
     version_control::{
-        state::{ADMIN, FACTORY, NAMESPACES_LIMIT},
+        state::{ADMIN, FACTORY, NAMESPACES_LIMIT, CONFIG},
         ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     },
     VERSION_CONTROL,
@@ -43,7 +43,7 @@ pub fn instantiate(
     mut deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    _msg: InstantiateMsg,
+    msg: InstantiateMsg,
 ) -> VCResult {
     set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
     set_module_data(
@@ -55,6 +55,7 @@ pub fn instantiate(
     )?;
     NAMESPACES_LIMIT.save(deps.storage, &DEFAULT_NAMESPACES_LIMIT)?;
     // Setup the admin as the creator of the contract
+    CONFIG.save(deps.storage, &msg.config)?;
     ADMIN.set(deps.branch(), Some(info.sender))?;
     FACTORY.set(deps, None)?;
 
@@ -65,6 +66,7 @@ pub fn instantiate(
 pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> VCResult {
     match msg {
         ExecuteMsg::AddModules { modules } => add_modules(deps, info, modules),
+        ExecuteMsg::ApproveOrDeclineModule { module, is_approve } => approve_or_decline_module(deps, info, module, is_approve),
         ExecuteMsg::RemoveModule { module, yank } => remove_module(deps, info, module, yank),
         ExecuteMsg::ClaimNamespaces {
             account_id,

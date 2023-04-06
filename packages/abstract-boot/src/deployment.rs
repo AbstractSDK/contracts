@@ -162,7 +162,9 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
         )?;
 
         self.version_control.instantiate(
-            &abstract_core::version_control::InstantiateMsg {},
+            &abstract_core::version_control::InstantiateMsg {
+                config: abstract_core::version_control::Config { is_testnet: true },
+            },
             Some(sender),
             None,
         )?;
