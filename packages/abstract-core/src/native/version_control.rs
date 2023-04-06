@@ -10,20 +10,30 @@
 
 pub type ModuleMapEntry = (ModuleInfo, ModuleReference);
 
+/// Contains configuration info of version control.
+#[cosmwasm_schema::cw_serde]
+pub struct Config {
+    pub is_testnet: bool,
+}
+
 pub mod state {
     use cw_controllers::Admin;
-    use cw_storage_plus::Map;
+    use cw_storage_plus::{Item, Map};
 
     use crate::objects::{
         common_namespace::ADMIN_NAMESPACE, core::AccountId, module::ModuleInfo,
         module_reference::ModuleReference,
     };
 
-    use super::AccountBase;
+    use super::{AccountBase, Config};
 
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
     pub const FACTORY: Admin = Admin::new("factory");
 
+    pub const CONFIG: Item<Config> = Item::new("is_testnet");
+
+    // Modules waiting for approvals
+    pub const PENDING_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("pending_modules");
     // We can iterate over the map giving just the prefix to get all the versions
     pub const MODULE_LIBRARY: Map<&ModuleInfo, ModuleReference> = Map::new("module_lib");
     // Yanked Modules
@@ -48,7 +58,9 @@ pub struct AccountBase {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct InstantiateMsg {}
+pub struct InstantiateMsg {
+    pub config: Config,
+}
 
 #[cosmwasm_schema::cw_serde]
 #[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
@@ -57,6 +69,11 @@ pub enum ExecuteMsg {
     RemoveModule { module: ModuleInfo, yank: bool },
     /// Add new modules
     AddModules { modules: Vec<ModuleMapEntry> },
+    /// Approve or decline modules
+    ApproveOrDeclineModule {
+        module: ModuleInfo,
+        is_approve: bool,
+    },
     /// Register a new Account to the deployed Accounts.  
     /// Only Factory can call this
     AddAccount {

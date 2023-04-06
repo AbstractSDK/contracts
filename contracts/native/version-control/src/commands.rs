@@ -40,8 +40,13 @@ pub fn add_modules(
     msg_info: MessageInfo,
     modules: Vec<(ModuleInfo, ModuleReference)>,
 ) -> VCResult {
+    let config = CONFIG.load(deps.storage)?;
+
     for (module, mod_ref) in modules {
-        if MODULE_LIBRARY.has(deps.storage, &module) || YANKED_MODULES.has(deps.storage, &module) {
+        if PENDING_MODULES.has(deps.storage, &module)
+            || MODULE_LIBRARY.has(deps.storage, &module)
+            || YANKED_MODULES.has(deps.storage, &module)
+        {
             return Err(VCError::NotUpdateableModule(module));
         }
         module.validate()?;
@@ -53,10 +58,45 @@ pub fn add_modules(
             // Only Admin can update abstract contracts
             ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
         }
-        MODULE_LIBRARY.save(deps.storage, &module, &mod_ref)?;
+        if config.is_testnet {
+            MODULE_LIBRARY.save(deps.storage, &module, &mod_ref)?;
+        } else {
+            PENDING_MODULES.save(deps.storage, &module, &mod_ref)?;
+        }
     }
 
     Ok(VcResponse::action("add_modules"))
+}
+
+/// Approve or decline a module
+pub fn approve_or_decline_module(
+    deps: DepsMut,
+    msg_info: MessageInfo,
+    module: ModuleInfo,
+    is_approve: bool,
+) -> VCResult {
+    // Only Admin can update code-ids
+    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    module.assert_version_variant()?;
+    if let Some(mod_ref) = PENDING_MODULES.may_load(deps.storage, &module)? {
+        if is_approve {
+            MODULE_LIBRARY.save(deps.storage, &module, &mod_ref)?;
+        }
+        PENDING_MODULES.remove(deps.storage, &module);
+    } else {
+        return Err(VCError::ModuleNotFound(module));
+    }
+
+    Ok(VcResponse::new(
+        "approve_or_decline_module",
+        vec![
+            ("module", &module.to_string()),
+            (
+                "is_approve",
+                &(if is_approve { "yes" } else { "no" }).to_string(),
+            ),
+        ],
+    ))
 }
 
 /// Remove a module
@@ -125,13 +165,27 @@ mod test {
     /// Initialize the version_control with admin as creator and factory
     fn mock_init(mut deps: DepsMut) -> VCResult {
         let info = mock_info(TEST_ADMIN, &[]);
-        contract::instantiate(deps.branch(), mock_env(), info, InstantiateMsg {})
+        contract::instantiate(
+            deps.branch(),
+            mock_env(),
+            info,
+            InstantiateMsg {
+                config: Config { is_testnet: true },
+            },
+        )
     }
 
     /// Initialize the version_control with admin and updated account_factory
     fn mock_init_with_factory(mut deps: DepsMut) -> VCResult {
         let info = mock_info(TEST_ADMIN, &[]);
-        contract::instantiate(deps.branch(), mock_env(), info, InstantiateMsg {})?;
+        contract::instantiate(
+            deps.branch(),
+            mock_env(),
+            info,
+            InstantiateMsg {
+                config: Config { is_testnet: true },
+            },
+        )?;
         execute_as_admin(
             deps,
             ExecuteMsg::SetFactory {
