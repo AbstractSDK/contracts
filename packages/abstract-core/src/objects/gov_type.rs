@@ -60,7 +60,7 @@ impl GovernanceDetails<String> {
                     return Err(AbstractError::FormattingError {
                         object: "governance type".into(),
                         expected: "alphanumeric characters and hyphens".into(),
-                        actual: governance_type.to_string(),
+                        actual: governance_type,
                     });
                 }
 
@@ -68,7 +68,7 @@ impl GovernanceDetails<String> {
                     return Err(AbstractError::FormattingError {
                         object: "governance type".into(),
                         expected: governance_type.to_ascii_lowercase(),
-                        actual: governance_type.to_string(),
+                        actual: governance_type,
                     });
                 }
 
