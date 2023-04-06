@@ -41,18 +41,36 @@ impl GovernanceDetails<String> {
                 governance_type,
             } => {
                 let addr = api.addr_validate(&governance_address)?;
-                if governance_type.len() < MIN_GOV_TYPE_LENGTH
-                    || governance_type.len() > MAX_GOV_TYPE_LENGTH
-                {
+
+                if governance_type.len() < MIN_GOV_TYPE_LENGTH {
                     return Err(AbstractError::FormattingError {
-                        object: "governance_type".to_string(),
-                        expected: format!(
-                            "a string of length between {} and {}",
-                            MIN_GOV_TYPE_LENGTH, MAX_GOV_TYPE_LENGTH
-                        ),
-                        actual: format!("a string of length {}", governance_type.len()),
+                        object: "governance type".into(),
+                        expected: "at least 3 characters".into(),
+                        actual: governance_type.len().to_string(),
                     });
-                };
+                }
+                if governance_type.len() > MAX_GOV_TYPE_LENGTH {
+                    return Err(AbstractError::FormattingError {
+                        object: "governance type".into(),
+                        expected: "at most 64 characters".into(),
+                        actual: governance_type.len().to_string(),
+                    });
+                }
+                if governance_type.contains(|c: char| !c.is_ascii_alphanumeric() && c != '-') {
+                    return Err(AbstractError::FormattingError {
+                        object: "governance type".into(),
+                        expected: "alphanumeric characters and hyphens".into(),
+                        actual: governance_type.to_string(),
+                    });
+                }
+
+                if governance_type != governance_type.to_lowercase() {
+                    return Err(AbstractError::FormattingError {
+                        object: "governance type".into(),
+                        expected: governance_type.to_ascii_lowercase(),
+                        actual: governance_type.to_string(),
+                    });
+                }
 
                 Ok(GovernanceDetails::External {
                     governance_address: addr,
@@ -106,6 +124,12 @@ mod test {
         };
         assert_that!(gov.verify(&deps.api)).is_ok();
 
+        let gov = GovernanceDetails::External {
+            governance_address: "gov_addr".to_string(),
+            governance_type: "external-multisig".to_string(),
+        };
+        assert_that!(gov.verify(&deps.api)).is_ok();
+
         let gov = GovernanceDetails::Monarchy {
             monarch: "NOT_OK".to_string(),
         };
@@ -115,7 +139,8 @@ mod test {
             governance_address: "gov_address".to_string(),
             governance_type: "gov_type".to_string(),
         };
-        assert_that!(gov.verify(&deps.api)).is_ok();
+        // '_' not allowed
+        assert_that!(gov.verify(&deps.api)).is_err();
 
         // too short
         let gov = GovernanceDetails::External {
