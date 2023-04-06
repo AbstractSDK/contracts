@@ -7,9 +7,9 @@ use abstract_core::{
     ABSTRACT_EVENT_NAME,
 };
 use boot_core::{
-    IndexResponse, {instantiate_default_mock_env, ContractInstance},
+    Deploy, IndexResponse, {instantiate_default_mock_env, ContractInstance},
 };
-use common::init_abstract_env;
+use common::TEST_VERSION;
 use cosmwasm_std::{Addr, Uint64};
 use speculoos::prelude::*;
 
@@ -20,8 +20,7 @@ fn instantiate() -> AResult {
     let _not_owner = Addr::unchecked("not_owner");
     let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
-    let (mut deployment, mut account) = init_abstract_env(chain)?;
-    deployment.deploy(&mut account)?;
+    let deployment = Abstract::deploy_on(chain, TEST_VERSION.parse().unwrap())?;
 
     let factory = deployment.account_factory;
     let factory_config = factory.config()?;
@@ -30,7 +29,6 @@ fn instantiate() -> AResult {
         ans_host_contract: deployment.ans_host.address()?.into(),
         version_control_contract: deployment.version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),
-        subscription_address: None,
         next_account_id: 0,
     };
 
@@ -43,8 +41,7 @@ fn create_one_os() -> AResult {
     let _not_owner = Addr::unchecked("not_owner");
     let sender = Addr::unchecked(common::OWNER);
     let (_, chain) = instantiate_default_mock_env(&sender)?;
-    let (mut deployment, mut account) = init_abstract_env(chain)?;
-    deployment.deploy(&mut account)?;
+    let deployment = Abstract::deploy_on(chain, TEST_VERSION.parse().unwrap())?;
 
     let factory = &deployment.account_factory;
     let version_control = &deployment.version_control;
@@ -66,7 +63,6 @@ fn create_one_os() -> AResult {
         ans_host_contract: deployment.ans_host.address()?.into(),
         version_control_contract: deployment.version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),
-        subscription_address: None,
         next_account_id: 1,
     };
 
@@ -95,8 +91,7 @@ fn create_two_account_s() -> AResult {
     let _not_owner = Addr::unchecked("not_owner");
     let sender = Addr::unchecked(common::OWNER);
     let (_, chain) = instantiate_default_mock_env(&sender)?;
-    let (mut deployment, mut account) = init_abstract_env(chain)?;
-    deployment.deploy(&mut account)?;
+    let deployment = Abstract::deploy_on(chain, TEST_VERSION.parse().unwrap())?;
 
     let factory = &deployment.account_factory;
     let version_control = &deployment.version_control;
@@ -131,7 +126,6 @@ fn create_two_account_s() -> AResult {
         ans_host_contract: deployment.ans_host.address()?.into(),
         version_control_contract: deployment.version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),
-        subscription_address: None,
         next_account_id: 2,
     };
 
@@ -165,8 +159,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
     let owner = Addr::unchecked("owner");
     let sender = Addr::unchecked(common::OWNER);
     let (_, chain) = instantiate_default_mock_env(&sender)?;
-    let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
-    deployment.deploy(&mut account)?;
+    let deployment = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse().unwrap())?;
 
     let factory = &deployment.account_factory;
     let version_control = &deployment.version_control;
@@ -184,7 +177,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
 
     let account = version_control.account_base(0)?.account_base;
 
-    let account_1 = AbstractAccount::new(chain, Some(0));
+    let account_1 = AbstractAccount::new(chain.clone(), Some(0));
     assert_that!(AccountBase {
         manager: account_1.manager.address()?,
         proxy: account_1.proxy.address()?,
@@ -204,6 +197,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
         account_id: Uint64::from(0u64),
         version_control_address: version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),
+        is_suspended: false,
     });
 
     Ok(())
@@ -214,8 +208,7 @@ fn sender_is_not_admin_external() -> AResult {
     let owner = Addr::unchecked("owner");
     let sender = Addr::unchecked(common::OWNER);
     let (_, chain) = instantiate_default_mock_env(&sender)?;
-    let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
-    deployment.deploy(&mut account)?;
+    let deployment = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse().unwrap())?;
 
     let factory = &deployment.account_factory;
     let version_control = &deployment.version_control;
@@ -235,6 +228,7 @@ fn sender_is_not_admin_external() -> AResult {
     assert_that!(account_config).is_equal_to(abstract_core::manager::ConfigResponse {
         owner: owner.into_string(),
         account_id: Uint64::from(0u64),
+        is_suspended: false,
         version_control_address: version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),
     });

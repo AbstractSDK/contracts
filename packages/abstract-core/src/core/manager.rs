@@ -24,14 +24,13 @@ pub mod state {
     use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
 
-    pub type Subscribed = bool;
+    pub type SuspensionStatus = bool;
 
     /// Manager configuration
     #[cosmwasm_schema::cw_serde]
     pub struct Config {
         pub version_control_address: Addr,
         pub module_factory_address: Addr,
-        pub subscription_address: Option<Addr>,
     }
 
     #[cosmwasm_schema::cw_serde]
@@ -68,8 +67,8 @@ pub mod state {
         }
     }
 
-    /// Subscription status
-    pub const STATUS: Item<Subscribed> = Item::new("\u{0}{6}status");
+    /// Suspension status
+    pub const SUSPENSION_STATUS: Item<SuspensionStatus> = Item::new("\u{0}{12}is_suspended");
     /// Configuration
     pub const CONFIG: Item<Config> = Item::new("\u{0}{6}config");
     /// Info about the Account
@@ -86,6 +85,7 @@ pub mod state {
 }
 
 use self::state::AccountInfo;
+use crate::manager::state::SuspensionStatus;
 use crate::objects::{
     core::AccountId,
     gov_type::GovernanceDetails,
@@ -104,7 +104,6 @@ pub struct InstantiateMsg {
     pub owner: GovernanceDetails<String>,
     pub version_control_address: String,
     pub module_factory_address: String,
-    pub subscription_address: Option<String>,
     pub name: String,
     pub description: Option<String>,
     pub link: Option<String>,
@@ -118,10 +117,7 @@ pub struct CallbackMsg {}
 #[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
 pub enum ExecuteMsg {
     /// Forward execution message to module
-    ExecOnModule {
-        module_id: String,
-        exec_msg: Binary,
-    },
+    ExecOnModule { module_id: String, exec_msg: Binary },
     /// Updates the `ACCOUNT_MODULES` map
     /// Only callable by account factory or owner.
     UpdateModuleAddresses {
@@ -137,14 +133,9 @@ pub enum ExecuteMsg {
     },
     /// Registers a module after creation.
     /// Used as a callback *only* by the Module Factory to register the module on the Account.
-    RegisterModule {
-        module_addr: String,
-        module: Module,
-    },
+    RegisterModule { module_addr: String, module: Module },
     /// Uninstall a module given its ID.
-    UninstallModule {
-        module_id: String,
-    },
+    UninstallModule { module_id: String },
     /// Upgrade the module to a new version
     /// If module is `abstract::manager` then the contract will do a self-migration.
     Upgrade {
@@ -160,13 +151,11 @@ pub enum ExecuteMsg {
     SetOwner {
         owner: GovernanceDetails<String>,
     },
-    /// Suspend manager contract
-    SuspendAccount {
-        new_status: bool,
-    },
-    EnableIBC {
-        new_status: bool,
-    },
+    /// Update account statuses
+    UpdateStatus { is_suspended: Option<bool> },
+    /// Update settings for the Account, including IBC enabled, etc.
+    UpdateSettings { ibc_enabled: Option<bool> },
+    /// Callback endpoint
     Callback(CallbackMsg),
 }
 
@@ -206,10 +195,11 @@ pub struct ModuleAddressesResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
+    pub account_id: Uint64,
     pub owner: String,
+    pub is_suspended: SuspensionStatus,
     pub version_control_address: String,
     pub module_factory_address: String,
-    pub account_id: Uint64,
 }
 
 #[cosmwasm_schema::cw_serde]
