@@ -148,9 +148,7 @@ pub enum ExecuteMsg {
         link: Option<String>,
     },
     /// Sets a new Owner
-    SetOwner {
-        owner: GovernanceDetails<String>,
-    },
+    SetOwner { owner: GovernanceDetails<String> },
     /// Update account statuses
     UpdateStatus { is_suspended: Option<bool> },
     /// Update settings for the Account, including IBC enabled, etc.
