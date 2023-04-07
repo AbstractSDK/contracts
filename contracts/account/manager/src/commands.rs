@@ -139,7 +139,7 @@ pub fn register_module(
             // assert version requirements
             let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
             versioning::set_as_dependent(deps.storage, id, dependencies)?;
-            response = response.add_message(add_module_on_proxy(
+            response = response.add_message(add_module_from_proxy(
                 proxy_addr.into_string(),
                 module_address,
             )?)
@@ -152,7 +152,7 @@ pub fn register_module(
             // assert version requirements
             let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
             versioning::set_as_dependent(deps.storage, id, dependencies)?;
-            response = response.add_message(add_module_on_proxy(
+            response = response.add_message(add_module_from_proxy(
                 proxy_addr.into_string(),
                 module_address,
             )?)
@@ -219,7 +219,7 @@ pub fn uninstall_module(deps: DepsMut, msg_info: MessageInfo, module_id: String)
     let proxy = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
     let module_addr = load_module_addr(deps.storage, &module_id)?;
     let remove_from_proxy_msg =
-        remove_module_on_proxy(proxy.into_string(), module_addr.into_string())?;
+        remove_module_from_proxy(proxy.into_string(), module_addr.into_string())?;
     ACCOUNT_MODULES.remove(deps.storage, &module_id);
 
     Ok(
@@ -450,12 +450,12 @@ pub fn replace_api(
         },
     )?);
     // Remove api permissions from proxy
-    msgs.push(remove_module_on_proxy(
+    msgs.push(remove_module_from_proxy(
         proxy_addr.to_string(),
         old_api_addr.into_string(),
     )?);
     // Add new api to proxy
-    msgs.push(add_module_on_proxy(
+    msgs.push(add_module_from_proxy(
         proxy_addr.into_string(),
         new_api_addr.into_string(),
     )?);
@@ -540,7 +540,7 @@ fn install_ibc_client(deps: DepsMut, proxy: Addr) -> Result<CosmosMsg, ManagerEr
 
     ACCOUNT_MODULES.save(deps.storage, IBC_CLIENT, &ibc_client_addr)?;
 
-    Ok(add_module_on_proxy(
+    Ok(add_module_from_proxy(
         proxy.into_string(),
         ibc_client_addr.to_string(),
     )?)
@@ -549,7 +549,7 @@ fn install_ibc_client(deps: DepsMut, proxy: Addr) -> Result<CosmosMsg, ManagerEr
 fn uninstall_ibc_client(deps: DepsMut, proxy: Addr, ibc_client: Addr) -> StdResult<CosmosMsg> {
     ACCOUNT_MODULES.remove(deps.storage, IBC_CLIENT);
 
-    remove_module_on_proxy(proxy.into_string(), ibc_client.into_string())
+    remove_module_from_proxy(proxy.into_string(), ibc_client.into_string())
 }
 
 /// Query Version Control for the [`Module`] given the provided [`ContractVersion`]
@@ -611,7 +611,7 @@ fn upgrade_self(
     }
 }
 
-fn add_module_on_proxy(
+fn add_module_from_proxy(
     proxy_address: String,
     module_address: String,
 ) -> StdResult<CosmosMsg<Empty>> {
@@ -625,7 +625,7 @@ fn add_module_on_proxy(
     .into())
 }
 
-fn remove_module_on_proxy(
+fn remove_module_from_proxy(
     proxy_address: String,
     dapp_address: String,
 ) -> StdResult<CosmosMsg<Empty>> {
