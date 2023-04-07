@@ -34,40 +34,11 @@ use abstract_sdk::core::{MANAGER, PROXY};
 #[abstract_response(ACCOUNT_FACTORY)]
 struct AccountFactoryResponse;
 
-pub fn receive_cw20(
-    deps: DepsMut,
-    env: Env,
-    msg_info: MessageInfo,
-    cw20_msg: Cw20ReceiveMsg,
-) -> AccountFactoryResult {
-    match from_binary(&cw20_msg.msg)? {
-        ExecuteMsg::CreateAccount {
-            governance,
-            description,
-            link,
-            name,
-        } => {
-            // Construct deposit asset
-            let asset = Asset {
-                info: AssetInfo::Cw20(msg_info.sender),
-                amount: cw20_msg.amount,
-            };
-            // verify input
-            let gov_details = governance.verify(deps.api)?;
-            execute_create_account(deps, env, gov_details, Some(asset), name, description, link)
-        }
-        _ => Err(AccountFactoryError::Std(StdError::generic_err(
-            "unknown send msg hook",
-        ))),
-    }
-}
-
 /// Function that starts the creation of the Account
 pub fn execute_create_account(
     deps: DepsMut,
     env: Env,
     governance: GovernanceDetails<Addr>,
-    _asset: Option<Asset>,
     name: String,
     description: Option<String>,
     link: Option<String>,

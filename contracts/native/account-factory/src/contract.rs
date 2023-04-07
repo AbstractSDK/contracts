@@ -51,7 +51,6 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> AccountFactoryResult {
     match msg {
-        ExecuteMsg::Receive(msg) => commands::receive_cw20(deps, env, info, msg),
         ExecuteMsg::UpdateConfig {
             admin,
             ans_host_contract,
