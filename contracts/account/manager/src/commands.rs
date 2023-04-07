@@ -246,7 +246,7 @@ pub fn set_owner(
 
     // Update the account information
     let mut acc_info = INFO.load(deps.storage)?;
-    acc_info.governance_details = verified_gov;
+    acc_info.governance_details = verified_gov.clone();
     INFO.save(deps.storage, &acc_info)?;
     // Update the OWNER
     let previous_owner = OWNER.get(deps.as_ref())?.unwrap();
@@ -256,6 +256,7 @@ pub fn set_owner(
         vec![
             ("previous_owner", previous_owner.to_string()),
             ("new_owner", new_owner_addr.to_string()),
+            ("governance_type", verified_gov.to_string()),
         ],
     ))
 }
