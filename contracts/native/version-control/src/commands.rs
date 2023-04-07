@@ -434,7 +434,7 @@ mod test {
             let new_namespace2 = Namespace::from("namespace2");
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
-                namespaces_to_claim: vec![new_namespace1.to_string(), new_namespace2.to_string()],
+                namespaces: vec![new_namespace1.to_string(), new_namespace2.to_string()],
             };
             let res = execute_as(deps.as_mut(), TEST_OWNER, msg);
             assert_that!(&res).is_ok();
@@ -454,7 +454,7 @@ mod test {
             let new_namespace2 = Namespace::from("namespace2");
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
-                namespaces_to_claim: vec![new_namespace1.to_string(), new_namespace2.to_string()],
+                namespaces: vec![new_namespace1.to_string(), new_namespace2.to_string()],
             };
             let res = execute_as(deps.as_mut(), TEST_OTHER, msg.clone());
             assert_that!(&res)
@@ -475,13 +475,13 @@ mod test {
             let new_namespace2 = Namespace::from("namespace2");
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
-                namespaces_to_claim: vec![new_namespace1.to_string(), new_namespace2.to_string()],
+                namespaces: vec![new_namespace1.to_string(), new_namespace2.to_string()],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
 
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
-                namespaces_to_claim: vec![new_namespace1.to_string()],
+                namespaces: vec![new_namespace1.to_string()],
             };
             let res = execute_as(deps.as_mut(), TEST_OWNER, msg);
             assert_that!(&res)
@@ -515,7 +515,7 @@ mod test {
             // add namespaces
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
-                namespaces_to_claim: vec![
+                namespaces: vec![
                     new_namespace1.to_string(),
                     new_namespace2.to_string(),
                     new_namespace3.to_string(),
@@ -567,7 +567,7 @@ mod test {
             // add namespaces
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
-                namespaces_to_claim: vec![new_namespace1.to_string(), new_namespace2.to_string()],
+                namespaces: vec![new_namespace1.to_string(), new_namespace2.to_string()],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg.clone())?;
 
@@ -625,7 +625,7 @@ mod test {
             let new_namespace2 = Namespace::from("namespace2");
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
-                namespaces_to_claim: vec![new_namespace1.to_string(), new_namespace2.to_string()],
+                namespaces: vec![new_namespace1.to_string(), new_namespace2.to_string()],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
 
@@ -703,7 +703,7 @@ mod test {
                 TEST_OWNER,
                 ExecuteMsg::ClaimNamespaces {
                     account_id: TEST_ACCOUNT_ID,
-                    namespaces_to_claim: vec![new_module.provider.clone()],
+                    namespaces: vec![new_module.provider.clone()],
                 },
             )?;
 
@@ -725,7 +725,7 @@ mod test {
             // add namespaces
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
-                namespaces_to_claim: vec![rm_module.provider.clone()],
+                namespaces: vec![rm_module.provider.clone()],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg.clone())?;
 
@@ -768,7 +768,7 @@ mod test {
             // add namespaces
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
-                namespaces_to_claim: vec![rm_module.provider.clone()],
+                namespaces: vec![rm_module.provider.clone()],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg.clone())?;
 
@@ -812,7 +812,7 @@ mod test {
             // add namespaces
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
-                namespaces_to_claim: vec!["provider".to_string()],
+                namespaces: vec!["provider".to_string()],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg.clone())?;
 

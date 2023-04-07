@@ -84,7 +84,7 @@ pub enum ExecuteMsg {
     /// Claim namespaces
     ClaimNamespaces {
         account_id: AccountId,
-        namespaces_to_claim: Vec<String>,
+        namespaces: Vec<String>,
     },
     /// Remove namespace claims
     /// Only admin or root user can call this

@@ -68,8 +68,8 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
         ExecuteMsg::RemoveModule { module, yank } => remove_module(deps, info, module, yank),
         ExecuteMsg::ClaimNamespaces {
             account_id,
-            namespaces_to_claim,
-        } => claim_namespaces(deps, info, account_id, namespaces_to_claim),
+            namespaces,
+        } => claim_namespaces(deps, info, account_id, namespaces),
         ExecuteMsg::RemoveNamespaces { namespaces } => remove_namespaces(deps, info, namespaces),
         ExecuteMsg::AddAccount {
             account_id,

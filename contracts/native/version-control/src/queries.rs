@@ -355,7 +355,7 @@ mod test {
         fn add_namespace(deps: DepsMut, namespace: &str) {
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
-                namespaces_to_claim: vec![namespace.to_string()],
+                namespaces: vec![namespace.to_string()],
             };
 
             let res = execute_as_admin(deps, msg);
@@ -465,15 +465,10 @@ mod test {
     use cosmwasm_std::from_binary;
 
     /// Add namespaces
-    fn add_namespaces(
-        deps: DepsMut,
-        namespaces_to_claim: Vec<String>,
-        account_id: u32,
-        sender: &str,
-    ) {
+    fn add_namespaces(deps: DepsMut, namespaces: Vec<String>, account_id: u32, sender: &str) {
         let msg = ExecuteMsg::ClaimNamespaces {
             account_id,
-            namespaces_to_claim,
+            namespaces,
         };
 
         let res = execute_as(deps, sender, msg);
@@ -619,6 +614,53 @@ mod test {
 
                 for entry in modules {
                     assert_that!(entry.info.provider).is_equal_to(filtered_provider.clone());
+                }
+
+                res
+            });
+        }
+
+        #[test]
+        fn filter_default_returns_only_non_yanked() {
+            let mut deps = mock_dependencies();
+            deps.querier = mock_manager_querier().build();
+            init_with_mods(deps.as_mut());
+
+            let cw_mods = vec![
+                ModuleInfo::from_id("cw-plus:module4", ModuleVersion::Version("0.1.2".into()))
+                    .unwrap(),
+                ModuleInfo::from_id("cw-plus:module5", ModuleVersion::Version("0.1.2".into()))
+                    .unwrap(),
+            ];
+            add_modules(deps.as_mut(), cw_mods);
+            yank_module(
+                deps.as_mut(),
+                ModuleInfo::from_id("cw-plus:module4", ModuleVersion::Version("0.1.2".into()))
+                    .unwrap(),
+            );
+            yank_module(
+                deps.as_mut(),
+                ModuleInfo::from_id("cw-plus:module5", ModuleVersion::Version("0.1.2".into()))
+                    .unwrap(),
+            );
+
+            let list_msg = QueryMsg::ModuleList {
+                filter: None,
+                start_after: None,
+                limit: None,
+            };
+
+            let res = query_helper(deps.as_ref(), list_msg);
+
+            assert_that!(res).is_ok().map(|res| {
+                let ModulesListResponse { modules } = from_binary(res).unwrap();
+                assert_that!(modules).has_length(6);
+
+                let yanked_module_names = ["module4".to_string(), "module5".to_string()];
+                for entry in modules {
+                    if entry.info.provider == "cw-plus" {
+                        assert!(!yanked_module_names.iter().any(|e| e == &entry.info.name));
+                    }
                 }
 
                 res
