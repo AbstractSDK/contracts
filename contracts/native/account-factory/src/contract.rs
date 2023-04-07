@@ -72,14 +72,7 @@ pub fn execute(
             description,
         } => {
             let gov_details = governance.verify(deps.api)?;
-            commands::execute_create_account(
-                deps,
-                env,
-                gov_details,
-                name,
-                description,
-                link,
-            )
+            commands::execute_create_account(deps, env, gov_details, name, description, link)
         }
     }
 }
