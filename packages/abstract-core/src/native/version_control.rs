@@ -12,7 +12,7 @@ pub type ModuleMapEntry = (ModuleInfo, ModuleReference);
 
 pub mod state {
     use cw_controllers::Admin;
-    use cw_storage_plus::Map;
+    use cw_storage_plus::{Item, Map};
 
     use crate::objects::{
         common_namespace::ADMIN_NAMESPACE, core::AccountId, module::ModuleInfo,
@@ -30,15 +30,39 @@ pub mod state {
     pub const YANKED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("yanked_modules");
     /// Maps Account ID to the address of its core contracts
     pub const ACCOUNT_ADDRESSES: Map<AccountId, AccountBase> = Map::new("account");
+    /// Maximum namespaces an account can claim
+    pub const NAMESPACES_LIMIT: Item<u32> = Item::new("namespaces_limit");
+}
+
+// Sub Indexes
+pub struct NamespaceIndexes<'a> {
+    pub account_id: MultiIndex<'a, AccountId, AccountId, &'a Namespace>,
+}
+
+impl<'a> IndexList<AccountId> for NamespaceIndexes<'a> {
+    fn get_indexes(&'_ self) -> Box<dyn Iterator<Item = &'_ dyn Index<AccountId>> + '_> {
+        let v: Vec<&dyn Index<AccountId>> = vec![&self.account_id];
+        Box::new(v.into_iter())
+    }
+}
+
+// Primary Index
+pub fn namespaces_info<'a>() -> IndexedMap<'a, &'a Namespace, AccountId, NamespaceIndexes<'a>> {
+    let indexes = NamespaceIndexes {
+        account_id: MultiIndex::new(|_pk, d| *d, "namespace", "namespace_account"),
+    };
+    IndexedMap::new("namespace", indexes)
 }
 
 use crate::objects::{
     core::AccountId,
     module::{Module, ModuleInfo},
     module_reference::ModuleReference,
+    namespace::Namespace,
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
+use cw_storage_plus::{Index, IndexList, IndexedMap, MultiIndex};
 
 /// Contains the minimal Abstract Account contract addresses.
 #[cosmwasm_schema::cw_serde]
@@ -57,12 +81,22 @@ pub enum ExecuteMsg {
     RemoveModule { module: ModuleInfo, yank: bool },
     /// Add new modules
     AddModules { modules: Vec<ModuleMapEntry> },
+    /// Claim namespaces
+    ClaimNamespaces {
+        account_id: AccountId,
+        namespaces: Vec<String>,
+    },
+    /// Remove namespace claims
+    /// Only admin or root user can call this
+    RemoveNamespaces { namespaces: Vec<String> },
     /// Register a new Account to the deployed Accounts.  
     /// Only Factory can call this
     AddAccount {
         account_id: AccountId,
         account_base: AccountBase,
     },
+    /// Updates namespace limit per account
+    UpdateNamespacesLimit { new_limit: u32 },
     /// Sets a new Admin
     SetAdmin { new_admin: String },
     /// Sets a new Factory
@@ -76,6 +110,14 @@ pub struct ModuleFilter {
     pub provider: Option<String>,
     pub name: Option<String>,
     pub version: Option<String>,
+    pub yanked: bool,
+}
+
+/// A NamespaceFilter for [`Namespaces`].
+#[derive(Default)]
+#[cosmwasm_schema::cw_serde]
+pub struct NamespaceFilter {
+    pub account_id: Option<AccountId>,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -90,6 +132,10 @@ pub enum QueryMsg {
     /// Returns [`ModulesResponse`]
     #[returns(ModulesResponse)]
     Modules { infos: Vec<ModuleInfo> },
+    /// Queries namespaces
+    /// Returns [`NamespacesResponse`]
+    #[returns(NamespacesResponse)]
+    Namespaces { accounts: Vec<AccountId> },
     /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]
     Config {},
@@ -99,7 +145,13 @@ pub enum QueryMsg {
         filter: Option<ModuleFilter>,
         start_after: Option<ModuleInfo>,
         limit: Option<u8>,
-        yanked: bool,
+    },
+    /// Returns [`NamespaceListResponse`]
+    #[returns(NamespaceListResponse)]
+    NamespaceList {
+        filter: Option<NamespaceFilter>,
+        start_after: Option<String>,
+        limit: Option<u8>,
     },
 }
 
@@ -116,6 +168,16 @@ pub struct ModulesResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct ModulesListResponse {
     pub modules: Vec<Module>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct NamespacesResponse {
+    pub modules: Vec<(Namespace, AccountId)>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct NamespaceListResponse {
+    pub namespaces: Vec<(Namespace, AccountId)>,
 }
 
 #[cosmwasm_schema::cw_serde]

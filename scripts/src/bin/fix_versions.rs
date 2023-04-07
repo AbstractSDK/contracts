@@ -26,7 +26,6 @@ pub fn fix_versions() -> anyhow::Result<()> {
     let deployment = Abstract::new(chain, abstract_version);
 
     let ModulesListResponse { modules } = deployment.version_control.module_list(
-        false,
         Some(ModuleFilter {
             provider: Some(PROVIDER.to_string()),
             version: Some(WRONG_VERSION.to_string()),

@@ -24,9 +24,8 @@ pub fn fix_names() -> anyhow::Result<()> {
 
     let deployment = Abstract::new(chain, abstract_version);
 
-    let ModulesListResponse { modules } = deployment
-        .version_control
-        .module_list(false, None, None, None)?;
+    let ModulesListResponse { modules } =
+        deployment.version_control.module_list(None, None, None)?;
 
     for Module { info, reference } in modules {
         let ModuleInfo {

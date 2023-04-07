@@ -31,6 +31,25 @@ pub enum VCError {
 
     #[error("Account ID {} is not in version control register", id)]
     MissingAccountId { id: AccountId },
+
+    #[error("Namespace {} is not in version control register", namespace)]
+    MissingNamespace { namespace: String },
+
+    #[error("Account owner mismatch sender: {}, owner: {}", sender, owner)]
+    AccountOwnerMismatch { sender: String, owner: String },
+
+    #[error("Namespace {} is already occupied by {}", namespace, id)]
+    NamespaceOccupied { namespace: String, id: AccountId },
+
+    #[error("Exceeds namespace limit: {}, current: {}", limit, current)]
+    ExceedsNamespaceLimit { limit: usize, current: usize },
+
+    #[error(
+        "Decrease namespace limit not allowed: {}, current: {}",
+        limit,
+        current
+    )]
+    DecreaseNamespaceLimit { limit: u32, current: u32 },
 }
 impl From<cw_semver::Error> for VCError {
     fn from(err: cw_semver::Error) -> Self {
