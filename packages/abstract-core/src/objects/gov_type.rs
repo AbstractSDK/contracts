@@ -115,8 +115,7 @@ impl<T: AddressLike> ToString for GovernanceDetails<T> {
         match self {
             GovernanceDetails::Monarchy { .. } => "monarch".to_string(),
             GovernanceDetails::External {
-                governance_type,
-                ..
+                governance_type, ..
             } => governance_type.to_owned(),
         }
     }
