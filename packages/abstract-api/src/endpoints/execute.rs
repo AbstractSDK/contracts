@@ -1,5 +1,9 @@
 use crate::state::MAXIMUM_AUTHORIZED_ADDRESSES;
-use crate::{error::ApiError, state::ApiContract, ApiResult, ContractError};
+use crate::{
+    error::ApiError,
+    state::{ApiContract, ContractError},
+    ApiResult,
+};
 use abstract_core::{
     api::{ApiExecuteMsg, ApiRequestMsg, BaseExecuteMsg, ExecuteMsg},
     version_control::AccountBase,
