@@ -32,8 +32,8 @@ use abstract_core::api::{
 };
 use abstract_sdk::cw_helpers::cosmwasm_std::AbstractAttributes;
 use cosmwasm_std::{
-    ensure, to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env,
-    MessageInfo, Response, StdResult, Storage, WasmMsg,
+    ensure, ensure_eq, to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env,
+    MessageInfo, Response, StdError, StdResult, Storage, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
 use cw_storage_plus::Item;
@@ -140,7 +140,6 @@ pub fn register_module(
             let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
             versioning::set_as_dependent(deps.storage, id, dependencies)?;
             response = response.add_message(allowlist_dapp_on_proxy(
-                deps.as_ref(),
                 proxy_addr.into_string(),
                 module_address,
             )?)
@@ -154,7 +153,6 @@ pub fn register_module(
             let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
             versioning::set_as_dependent(deps.storage, id, dependencies)?;
             response = response.add_message(allowlist_dapp_on_proxy(
-                deps.as_ref(),
                 proxy_addr.into_string(),
                 module_address,
             )?)
@@ -220,11 +218,8 @@ pub fn uninstall_module(deps: DepsMut, msg_info: MessageInfo, module_id: String)
 
     let proxy = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
     let module_addr = load_module_addr(deps.storage, &module_id)?;
-    let remove_from_proxy_msg = remove_dapp_from_proxy_msg(
-        deps.as_ref(),
-        proxy.into_string(),
-        module_addr.into_string(),
-    )?;
+    let remove_from_proxy_msg =
+        remove_dapp_from_proxy_msg(proxy.into_string(), module_addr.into_string())?;
     ACCOUNT_MODULES.remove(deps.storage, &module_id);
 
     Ok(
@@ -293,72 +288,119 @@ pub fn upgrade_modules(
 }
 
 pub fn set_migrate_msgs_and_context(
-    mut deps: DepsMut,
+    deps: DepsMut,
     module_info: ModuleInfo,
     migrate_msg: Option<Binary>,
     msgs: &mut Vec<CosmosMsg>,
 ) -> Result<(), ManagerError> {
     let old_module_addr = load_module_addr(deps.storage, &module_info.id())?;
     let old_module_cw2 = query_module_cw2(&deps.as_ref(), old_module_addr.clone())?;
-    let module = query_module(deps.as_ref(), module_info.clone(), Some(old_module_cw2))?;
-    let id = module_info.id();
+    let requested_module = query_module(deps.as_ref(), module_info.clone(), Some(old_module_cw2))?;
 
-    match module.reference {
+    let migrate_msgs = match requested_module.reference {
         // upgrading an api is done by moving the authorized addresses to the new contract address and updating the permissions on the proxy.
-        ModuleReference::Api(addr) => {
-            versioning::assert_migrate_requirements(
-                deps.as_ref(),
-                &id,
-                module.info.version.try_into()?,
-            )?;
-            let old_deps = versioning::load_module_dependencies(deps.as_ref(), &id)?;
-            // Update the address of the api internally
-            update_module_addresses(
-                deps.branch(),
-                Some(vec![(id.clone(), addr.to_string())]),
-                None,
-            )?;
-
-            // Add module upgrade to reply context
-            let update_context = |mut upgraded_modules: Vec<(String, Vec<Dependency>)>| -> StdResult<Vec<(String, Vec<Dependency>)>> {
-                upgraded_modules.push((id, old_deps));
-                Ok(upgraded_modules)
-            };
-            MIGRATE_CONTEXT.update(deps.storage, update_context)?;
-
-            msgs.append(replace_api(deps, addr, old_module_addr)?.as_mut());
+        ModuleReference::Api(new_api_addr) => {
+            handle_api_migration(deps, requested_module.info, old_module_addr, new_api_addr)?
         }
-        ModuleReference::App(code_id) => {
-            versioning::assert_migrate_requirements(
-                deps.as_ref(),
-                &module.info.id(),
-                module.info.version.try_into()?,
-            )?;
-            let old_deps = versioning::load_module_dependencies(deps.as_ref(), &id)?;
-
-            // Add module upgrade to reply context
-            let update_context = |mut upgraded_modules: Vec<(String, Vec<Dependency>)>| -> StdResult<Vec<(String, Vec<Dependency>)>> {
-                upgraded_modules.push((id, old_deps));
-                Ok(upgraded_modules)
-            };
-            MIGRATE_CONTEXT.update(deps.storage, update_context)?;
-
-            msgs.push(get_migrate_msg(
+        ModuleReference::App(code_id) => handle_app_migration(
+            deps,
+            migrate_msg,
+            old_module_addr,
+            requested_module.info,
+            code_id,
+        )?,
+        ModuleReference::AccountBase(code_id) | ModuleReference::Standalone(code_id) => {
+            vec![build_module_migrate_msg(
                 old_module_addr,
                 code_id,
-                migrate_msg.unwrap_or_else(|| to_binary(&Empty {}).unwrap()),
-            ));
+                migrate_msg.unwrap(),
+            )]
         }
-        ModuleReference::AccountBase(code_id) | ModuleReference::Standalone(code_id) => msgs.push(
-            get_migrate_msg(old_module_addr, code_id, migrate_msg.unwrap()),
-        ),
+
         _ => return Err(ManagerError::NotUpgradeable(module_info)),
     };
+    msgs.extend(migrate_msgs);
+    Ok(())
+}
+
+/// Handle API module migration and return the migration messages
+fn handle_api_migration(
+    mut deps: DepsMut,
+    module_info: ModuleInfo,
+    old_api_addr: Addr,
+    new_api_addr: Addr,
+) -> ManagerResult<Vec<CosmosMsg>> {
+    let module_id = module_info.id();
+    versioning::assert_migrate_requirements(
+        deps.as_ref(),
+        &module_id,
+        module_info.version.try_into()?,
+    )?;
+    let old_deps = versioning::load_module_dependencies(deps.as_ref(), &module_id)?;
+    // Update the address of the api internally
+    update_module_addresses(
+        deps.branch(),
+        Some(vec![(module_id.clone(), new_api_addr.to_string())]),
+        None,
+    )?;
+
+    add_module_upgrade_to_context(deps.storage, &module_id, old_deps)?;
+
+    replace_api(deps, new_api_addr, old_api_addr)
+}
+
+/// Handle app module migration and return the migration messages
+fn handle_app_migration(
+    deps: DepsMut,
+    migrate_msg: Option<Binary>,
+    old_module_addr: Addr,
+    module_info: ModuleInfo,
+    code_id: u64,
+) -> ManagerResult<Vec<CosmosMsg>> {
+    let module_id = module_info.id();
+    versioning::assert_migrate_requirements(
+        deps.as_ref(),
+        &module_id,
+        module_info.version.try_into()?,
+    )?;
+    let old_deps = versioning::load_module_dependencies(deps.as_ref(), &module_id)?;
+
+    // Add module upgrade to reply context
+    add_module_upgrade_to_context(deps.storage, &module_id, old_deps)?;
+
+    Ok(vec![build_module_migrate_msg(
+        old_module_addr,
+        code_id,
+        migrate_msg.unwrap_or_else(|| to_binary(&Empty {}).unwrap()),
+    )])
+}
+
+/// Add the module upgrade to the migration context and check for duplicates
+fn add_module_upgrade_to_context(
+    storage: &mut dyn Storage,
+    module_id: &str,
+    module_deps: Vec<Dependency>,
+) -> Result<(), ManagerError> {
+    // Add module upgrade to reply context
+    let update_context = |mut upgraded_modules: Vec<(String, Vec<Dependency>)>| -> StdResult<Vec<(String, Vec<Dependency>)>> {
+        if upgraded_modules.iter().any(|(id, _)| id == module_id) {
+            Err(StdError::generic_err("Module already upgraded.".to_string()))
+        } else {
+            upgraded_modules.push((module_id.to_string(), module_deps));
+            Ok(upgraded_modules)
+        }
+    };
+    MIGRATE_CONTEXT
+        .update(storage, update_context)
+        .map_err(|_| ManagerError::DuplicateModuleMigration {
+            module_id: module_id.to_string(),
+        })?;
+
     Ok(())
 }
 
 // migrates the module to a new version
-fn get_migrate_msg(module_addr: Addr, new_code_id: u64, migrate_msg: Binary) -> CosmosMsg {
+fn build_module_migrate_msg(module_addr: Addr, new_code_id: u64, migrate_msg: Binary) -> CosmosMsg {
     let migration_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Migrate {
         contract_addr: module_addr.into_string(),
         new_code_id,
@@ -409,13 +451,11 @@ pub fn replace_api(
     )?);
     // Remove api permissions from proxy
     msgs.push(remove_dapp_from_proxy_msg(
-        deps.as_ref(),
         proxy_addr.to_string(),
         old_api_addr.into_string(),
     )?);
     // Add new api to proxy
     msgs.push(allowlist_dapp_on_proxy(
-        deps.as_ref(),
         proxy_addr.into_string(),
         new_api_addr.into_string(),
     )?);
@@ -501,7 +541,6 @@ fn install_ibc_client(deps: DepsMut, proxy: Addr) -> Result<CosmosMsg, ManagerEr
     ACCOUNT_MODULES.save(deps.storage, IBC_CLIENT, &ibc_client_addr)?;
 
     Ok(allowlist_dapp_on_proxy(
-        deps.as_ref(),
         proxy.into_string(),
         ibc_client_addr.to_string(),
     )?)
@@ -510,9 +549,10 @@ fn install_ibc_client(deps: DepsMut, proxy: Addr) -> Result<CosmosMsg, ManagerEr
 fn uninstall_ibc_client(deps: DepsMut, proxy: Addr, ibc_client: Addr) -> StdResult<CosmosMsg> {
     ACCOUNT_MODULES.remove(deps.storage, IBC_CLIENT);
 
-    remove_dapp_from_proxy_msg(deps.as_ref(), proxy.into_string(), ibc_client.into_string())
+    remove_dapp_from_proxy_msg(proxy.into_string(), ibc_client.into_string())
 }
 
+/// Query Version Control for the [`Module`] given the provided [`ContractVersion`]
 fn query_module(
     deps: Deps,
     module_info: ModuleInfo,
@@ -572,7 +612,6 @@ fn upgrade_self(
 }
 
 fn allowlist_dapp_on_proxy(
-    _deps: Deps,
     proxy_address: String,
     dapp_address: String,
 ) -> StdResult<CosmosMsg<Empty>> {
@@ -587,7 +626,6 @@ fn allowlist_dapp_on_proxy(
 }
 
 fn remove_dapp_from_proxy_msg(
-    _deps: Deps,
     proxy_address: String,
     dapp_address: String,
 ) -> StdResult<CosmosMsg<Empty>> {
