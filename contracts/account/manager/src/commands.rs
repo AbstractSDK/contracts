@@ -32,7 +32,7 @@ use abstract_core::api::{
 };
 use abstract_sdk::cw_helpers::cosmwasm_std::AbstractAttributes;
 use cosmwasm_std::{
-    ensure, ensure_eq, to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env,
+    ensure, to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env,
     MessageInfo, Response, StdError, StdResult, Storage, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
@@ -1508,6 +1508,51 @@ mod test {
             assert_that(&res).is_ok();
             let actual_status = SUSPENSION_STATUS.load(&deps.storage).unwrap();
             assert_that(&actual_status).is_false();
+            Ok(())
+        }
+    }
+
+    mod add_module_upgrade_to_context {
+        use super::*;
+        use abstract_testing::prelude::TEST_MODULE_ID;
+        use cosmwasm_std::testing::mock_dependencies;
+
+        #[test]
+        fn should_allow_migrate_msg() -> ManagerTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+            let storage = deps.as_mut().storage;
+
+            let result = add_module_upgrade_to_context(storage, TEST_MODULE_ID, vec![]);
+            assert_that!(result).is_ok();
+
+            let upgraded_modules: Vec<(String, Vec<Dependency>)> =
+                MIGRATE_CONTEXT.load(storage).unwrap();
+
+            assert_that!(upgraded_modules).has_length(1);
+            assert_eq!(upgraded_modules[0].0, TEST_MODULE_ID);
+
+            Ok(())
+        }
+
+        #[test]
+        fn should_return_err_with_dup_module() -> ManagerTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+            let storage = deps.as_mut().storage;
+
+            // Add the same module once
+            let result = add_module_upgrade_to_context(storage, TEST_MODULE_ID, vec![]);
+            assert_that!(result).is_ok();
+
+            // Try adding the same module again
+            let result = add_module_upgrade_to_context(storage, TEST_MODULE_ID, vec![]);
+            assert_that!(result)
+                .is_err()
+                .is_equal_to(ManagerError::DuplicateModuleMigration {
+                    module_id: TEST_MODULE_ID.to_string(),
+                });
+
             Ok(())
         }
     }
