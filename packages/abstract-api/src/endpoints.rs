@@ -70,6 +70,8 @@ macro_rules! export_endpoints {
 
 #[cfg(test)]
 mod test {
+    use crate::mock::*;
+    use abstract_core::api::{self, ApiRequestMsg};
     use abstract_sdk::base::{
         ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint, ReplyEndpoint, SudoEndpoint,
     };
@@ -79,8 +81,6 @@ mod test {
         SubMsgResult,
     };
     use speculoos::prelude::*;
-    use abstract_core::api::{self, ApiRequestMsg};
-    use crate::mock::*;
 
     #[test]
     fn exports_endpoints() {
@@ -134,16 +134,8 @@ mod test {
 
         // sudo
         let sudo_msg = MockSudoMsg {};
-        let actual_sudo = sudo(
-            deps.as_mut(),
-            mock_env(),
-            sudo_msg.clone(),
-        );
-        let expected_sudo = MOCK_API.sudo(
-            deps.as_mut(),
-            mock_env(),
-            sudo_msg,
-        );
+        let actual_sudo = sudo(deps.as_mut(), mock_env(), sudo_msg.clone());
+        let expected_sudo = MOCK_API.sudo(deps.as_mut(), mock_env(), sudo_msg);
         assert_that!(actual_sudo).is_equal_to(expected_sudo);
 
         // reply

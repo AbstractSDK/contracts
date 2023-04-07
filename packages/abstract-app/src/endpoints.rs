@@ -85,7 +85,8 @@ macro_rules! export_endpoints {
 #[cfg(test)]
 mod test {
     use abstract_sdk::base::{
-        ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint, ReplyEndpoint, SudoEndpoint,
+        ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint, ReplyEndpoint,
+        SudoEndpoint,
     };
     use abstract_testing::prelude::{TEST_ADMIN, TEST_ANS_HOST};
     use cosmwasm_std::{
@@ -156,16 +157,8 @@ mod test {
 
         // sudo
         let sudo_msg = MockSudoMsg {};
-        let actual_sudo = sudo(
-            deps.as_mut(),
-            mock_env(),
-            sudo_msg.clone(),
-        );
-        let expected_sudo = MOCK_APP.sudo(
-            deps.as_mut(),
-            mock_env(),
-            sudo_msg,
-        );
+        let actual_sudo = sudo(deps.as_mut(), mock_env(), sudo_msg.clone());
+        let expected_sudo = MOCK_APP.sudo(deps.as_mut(), mock_env(), sudo_msg);
         assert_that!(actual_sudo).is_equal_to(expected_sudo);
 
         // reply
