@@ -158,7 +158,13 @@ pub fn remove_namespaces(
 ) -> VCResult {
     let is_admin = ADMIN.is_admin(deps.as_ref(), &msg_info.sender)?;
 
+    let mut logs = vec![];
     for namespace in namespaces.iter() {
+        if !namespaces_info().has(deps.storage, &namespace.into()) {
+            return Err(VCError::MissingNamespace {
+                namespace: namespace.to_string(),
+            });
+        }
         if !is_admin {
             validate_account_owner(deps.as_ref(), namespace, &msg_info.sender)?;
         }
@@ -178,12 +184,17 @@ pub fn remove_namespaces(
             YANKED_MODULES.save(deps.storage, &module, &mod_ref)?;
         }
 
+        logs.push(format!(
+            "({}, {})",
+            namespace,
+            namespaces_info().load(deps.storage, &Namespace::from(namespace))?
+        ));
         namespaces_info().remove(deps.storage, &Namespace::from(namespace))?;
     }
 
     Ok(VcResponse::new(
         "remove_namespaces",
-        vec![("namespaces", &namespaces.join(","))],
+        vec![("namespaces", &logs.join(","))],
     ))
 }
 
@@ -412,18 +423,30 @@ mod test {
     }
 
     mod claim_namespaces {
-
         use super::*;
-        use abstract_core::objects::module_reference::ModuleReference;
-
-        fn test_module() -> ModuleInfo {
-            ModuleInfo::from_id(TEST_MODULE, ModuleVersion::Version(TEST_VERSION.into())).unwrap()
-        }
-
-        // - Query latest
 
         #[test]
-        fn claim_namespaces() -> VersionControlTestResult {
+        fn claim_namespaces_by_owner() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            deps.querier = mock_manager_querier().build();
+            mock_init_with_account(deps.as_mut())?;
+            let new_namespace1 = Namespace::from("namespace1");
+            let new_namespace2 = Namespace::from("namespace2");
+            let msg = ExecuteMsg::ClaimNamespaces {
+                account_id: TEST_ACCOUNT_ID,
+                namespaces_to_claim: vec![new_namespace1.to_string(), new_namespace2.to_string()],
+            };
+            let res = execute_as(deps.as_mut(), TEST_OWNER, msg);
+            assert_that!(&res).is_ok();
+            let account_id = namespaces_info().load(&deps.storage, &new_namespace1)?;
+            assert_that!(account_id).is_equal_to(TEST_ACCOUNT_ID);
+            let account_id = namespaces_info().load(&deps.storage, &new_namespace2)?;
+            assert_that!(account_id).is_equal_to(TEST_ACCOUNT_ID);
+            Ok(())
+        }
+
+        #[test]
+        fn claim_namespaces_not_owner() -> VersionControlTestResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut())?;
@@ -440,18 +463,101 @@ mod test {
                     sender: TEST_OTHER.to_string(),
                     owner: TEST_OWNER.to_string(),
                 });
-
-            let res = execute_as(deps.as_mut(), TEST_OWNER, msg);
-            assert_that!(&res).is_ok();
-            let account_id = namespaces_info().load(&deps.storage, &new_namespace1)?;
-            assert_that!(account_id).is_equal_to(TEST_ACCOUNT_ID);
-            let account_id = namespaces_info().load(&deps.storage, &new_namespace2)?;
-            assert_that!(account_id).is_equal_to(TEST_ACCOUNT_ID);
             Ok(())
         }
 
         #[test]
-        fn remove_namespaces() -> VersionControlTestResult {
+        fn claim_existing_namespaces() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            deps.querier = mock_manager_querier().build();
+            mock_init_with_account(deps.as_mut())?;
+            let new_namespace1 = Namespace::from("namespace1");
+            let new_namespace2 = Namespace::from("namespace2");
+            let msg = ExecuteMsg::ClaimNamespaces {
+                account_id: TEST_ACCOUNT_ID,
+                namespaces_to_claim: vec![new_namespace1.to_string(), new_namespace2.to_string()],
+            };
+            execute_as(deps.as_mut(), TEST_OWNER, msg)?;
+
+            let msg = ExecuteMsg::ClaimNamespaces {
+                account_id: TEST_ACCOUNT_ID,
+                namespaces_to_claim: vec![new_namespace1.to_string()],
+            };
+            let res = execute_as(deps.as_mut(), TEST_OWNER, msg);
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(&VCError::NamespaceOccupied {
+                    namespace: new_namespace1.to_string(),
+                    id: TEST_ACCOUNT_ID,
+                });
+            Ok(())
+        }
+    }
+
+    mod remove_namespaces {
+        use super::*;
+        use abstract_core::objects::module_reference::ModuleReference;
+        use cosmwasm_std::attr;
+
+        fn test_module() -> ModuleInfo {
+            ModuleInfo::from_id(TEST_MODULE, ModuleVersion::Version(TEST_VERSION.into())).unwrap()
+        }
+
+        #[test]
+        fn remove_namespaces_by_admin_or_owner() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            deps.querier = mock_manager_querier().build();
+            mock_init_with_account(deps.as_mut())?;
+            let new_namespace1 = Namespace::from("namespace1");
+            let new_namespace2 = Namespace::from("namespace2");
+            let new_namespace3 = Namespace::from("namespace3");
+
+            // add namespaces
+            let msg = ExecuteMsg::ClaimNamespaces {
+                account_id: TEST_ACCOUNT_ID,
+                namespaces_to_claim: vec![
+                    new_namespace1.to_string(),
+                    new_namespace2.to_string(),
+                    new_namespace3.to_string(),
+                ],
+            };
+            execute_as(deps.as_mut(), TEST_OWNER, msg.clone())?;
+
+            // remove as admin
+            let msg = ExecuteMsg::RemoveNamespaces {
+                namespaces: vec![new_namespace1.to_string()],
+            };
+            let res = execute_as(deps.as_mut(), TEST_ADMIN, msg);
+            assert_that!(&res).is_ok();
+            let exists = namespaces_info().has(&deps.storage, &new_namespace1);
+            assert_that!(exists).is_equal_to(false);
+
+            // remove as owner
+            let msg = ExecuteMsg::RemoveNamespaces {
+                namespaces: vec![new_namespace2.to_string(), new_namespace3.to_string()],
+            };
+            let res = execute_as(deps.as_mut(), TEST_OWNER, msg);
+            assert_that!(&res).is_ok();
+            let exists = namespaces_info().has(&deps.storage, &new_namespace2);
+            assert_that!(exists).is_equal_to(false);
+            let exists = namespaces_info().has(&deps.storage, &new_namespace3);
+            assert_that!(exists).is_equal_to(false);
+            assert_eq!(
+                res.unwrap().events[0].attributes[2],
+                attr(
+                    "namespaces",
+                    format!(
+                        "({}, {}),({}, {})",
+                        new_namespace2, TEST_ACCOUNT_ID, new_namespace3, TEST_ACCOUNT_ID
+                    )
+                )
+            );
+
+            Ok(())
+        }
+
+        #[test]
+        fn remove_namespaces_as_other() -> VersionControlTestResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut())?;
@@ -476,35 +582,34 @@ mod test {
                     sender: TEST_OTHER.to_string(),
                     owner: TEST_OWNER.to_string(),
                 });
+            Ok(())
+        }
 
-            // remove as admin
+        #[test]
+        fn remove_not_existing_namespaces() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            deps.querier = mock_manager_querier().build();
+            mock_init_with_account(deps.as_mut())?;
+            let new_namespace1 = Namespace::from("namespace1");
+
+            // remove as owner
             let msg = ExecuteMsg::RemoveNamespaces {
                 namespaces: vec![new_namespace1.to_string()],
             };
-            let res = execute_as(deps.as_mut(), TEST_ADMIN, msg);
-            assert_that!(&res).is_ok();
-            let exists = namespaces_info().has(&deps.storage, &new_namespace1);
-            assert_that!(exists).is_equal_to(false);
-
-            // remove same again
-            let msg = ExecuteMsg::RemoveNamespaces {
-                namespaces: vec![new_namespace1.to_string()],
-            };
-            let res = execute_as(deps.as_mut(), TEST_OWNER, msg);
+            let res = execute_as(deps.as_mut(), TEST_OWNER, msg.clone());
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(&VCError::MissingNamespace {
                     namespace: new_namespace1.to_string(),
                 });
 
-            // remove as owner
-            let msg = ExecuteMsg::RemoveNamespaces {
-                namespaces: vec![new_namespace2.to_string()],
-            };
+            // remove as admin
             let res = execute_as(deps.as_mut(), TEST_ADMIN, msg);
-            assert_that!(&res).is_ok();
-            let exists = namespaces_info().has(&deps.storage, &new_namespace1);
-            assert_that!(exists).is_equal_to(false);
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(&VCError::MissingNamespace {
+                    namespace: new_namespace1.to_string(),
+                });
 
             Ok(())
         }
