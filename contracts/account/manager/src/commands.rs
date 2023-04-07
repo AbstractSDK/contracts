@@ -32,8 +32,8 @@ use abstract_core::api::{
 };
 use abstract_sdk::cw_helpers::cosmwasm_std::AbstractAttributes;
 use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo,
-    Response, StdResult, Storage, WasmMsg,
+    ensure, to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env,
+    MessageInfo, Response, StdResult, Storage, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
 use cw_storage_plus::Item;
@@ -272,7 +272,10 @@ pub fn upgrade_modules(
     modules: Vec<(ModuleInfo, Option<Binary>)>,
 ) -> ManagerResult {
     OWNER.assert_admin(deps.as_ref(), &info.sender)?;
+    ensure!(!modules.is_empty(), ManagerError::NoUpdates {});
+
     let mut upgrade_msgs = vec![];
+
     for (module_info, migrate_msg) in modules {
         if module_info.id() == MANAGER {
             return upgrade_self(deps, env, module_info, migrate_msg.unwrap_or_default());
