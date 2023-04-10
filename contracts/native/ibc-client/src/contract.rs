@@ -123,10 +123,9 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> IbcClientResult {
 mod tests {
     use super::*;
     use crate::queries::query_config;
-    use cosmwasm_std::testing::MockStorage;
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
-        Addr, OwnedDeps,
+        Addr,
     };
     use cw2::CONTRACT;
 
@@ -191,8 +190,8 @@ mod tests {
             .is_err()
             .is_equal_to(IbcClientError::Abstract(
                 AbstractError::CannotDowngradeContract {
-                    stored: CONTRACT_VERSION.parse().unwrap(),
-                    requested: CONTRACT_VERSION.parse().unwrap(),
+                    from: CONTRACT_VERSION.parse().unwrap(),
+                    to: CONTRACT_VERSION.parse().unwrap(),
                 },
             ));
 

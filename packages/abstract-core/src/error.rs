@@ -29,8 +29,8 @@ pub enum AbstractError {
         actual: String,
     },
 
-    #[error("Cannot downgrade contract from {} to {}", stored, requested)]
-    CannotDowngradeContract { stored: Version, requested: Version },
+    #[error("Cannot downgrade contract from {} to {}", from, to)]
+    CannotDowngradeContract { from: Version, to: Version },
 
     #[error("API {0} not installed on Account")]
     ApiNotInstalled(String),
