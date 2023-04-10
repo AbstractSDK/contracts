@@ -145,11 +145,12 @@ pub enum QueryMsg {
     /// Returns [`AccountBaseResponse`]
     #[returns(AccountBaseResponse)]
     AccountBase { account_id: AccountId },
-    /// Queries api addresses
+    /// Queries module information
+    /// Modules that are yanked are not returned
     /// Returns [`ModulesResponse`]
     #[returns(ModulesResponse)]
     Modules { infos: Vec<ModuleInfo> },
-    /// Queries namespaces
+    /// Queries namespaces for an account
     /// Returns [`NamespacesResponse`]
     #[returns(NamespacesResponse)]
     Namespaces { accounts: Vec<AccountId> },
