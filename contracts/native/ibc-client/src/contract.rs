@@ -18,7 +18,7 @@ use cw_semver::Version;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub(crate) const MAX_RETRIES: u8 = 5;
 
-pub(crate) type IbcClientResult = Result<Response, IbcClientError>;
+pub(crate) type IbcClientResult<T = Response> = Result<T, IbcClientError>;
 
 #[abstract_response(IBC_CLIENT)]
 pub(crate) struct IbcClientResponse;
@@ -29,7 +29,7 @@ pub fn instantiate(
     _env: Env,
     info: MessageInfo,
     msg: InstantiateMsg,
-) -> AbstractResult<Response> {
+) -> IbcClientResult {
     set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
     set_module_data(
         deps.storage,
@@ -123,15 +123,28 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> IbcClientResult {
 mod tests {
     use super::*;
     use crate::queries::query_config;
+    use cosmwasm_std::testing::MockStorage;
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
-        Addr,
+        Addr, OwnedDeps,
     };
     use cw2::CONTRACT;
 
     const CREATOR: &str = "creator";
+
+    use abstract_core::AbstractError;
     use abstract_testing::prelude::{TEST_ANS_HOST, TEST_VERSION_CONTROL};
     use speculoos::prelude::*;
+
+    fn mock_init(deps: DepsMut) -> IbcClientResult {
+        let msg = InstantiateMsg {
+            chain: "test_chain".into(),
+            ans_host_address: TEST_ANS_HOST.into(),
+            version_control_address: TEST_VERSION_CONTROL.into(),
+        };
+        let info = mock_info(CREATOR, &[]);
+        instantiate(deps, mock_env(), info, msg)
+    }
 
     #[test]
     fn instantiate_works() {
@@ -165,5 +178,24 @@ mod tests {
         // ans host
         let actual_ans_host = ANS_HOST.load(deps.as_ref().storage).unwrap();
         assert_that!(actual_ans_host.address.as_str()).is_equal_to(TEST_ANS_HOST);
+    }
+
+    #[test]
+    fn migrate_disallows_downgrade() -> IbcClientResult<()> {
+        let mut deps = mock_dependencies();
+        mock_init(deps.as_mut())?;
+
+        let migrate_msg = MigrateMsg {};
+        let res = migrate(deps.as_mut(), mock_env(), migrate_msg);
+        assert_that!(res)
+            .is_err()
+            .is_equal_to(IbcClientError::Abstract(
+                AbstractError::CannotDowngradeContract {
+                    stored: CONTRACT_VERSION.parse().unwrap(),
+                    requested: CONTRACT_VERSION.parse().unwrap(),
+                },
+            ));
+
+        Ok(())
     }
 }

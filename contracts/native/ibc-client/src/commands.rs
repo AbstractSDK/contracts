@@ -239,7 +239,7 @@ mod test {
         execute_as(deps, TEST_ADMIN, msg)
     }
 
-    fn mock_init(deps: DepsMut) -> AbstractResult<Response> {
+    fn mock_init(deps: DepsMut) -> IbcClientResult {
         let msg = InstantiateMsg {
             ans_host_address: TEST_ANS_HOST.to_string(),
             version_control_address: TEST_VERSION_CONTROL.to_string(),
