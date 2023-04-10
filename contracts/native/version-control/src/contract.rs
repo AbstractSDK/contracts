@@ -10,7 +10,7 @@ use abstract_sdk::core::{
     VERSION_CONTROL,
 };
 use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
-use cw2::{get_contract_version, set_contract_version};
+use cw2::{set_contract_version};
 use cw_controllers::{Admin, AdminError};
 use cw_semver::Version;
 

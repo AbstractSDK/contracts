@@ -1,14 +1,12 @@
-use crate::{AppContract, AppError, ReplyEndpoint};
+use crate::{state::ContractError, AppContract, ReplyEndpoint};
 
 impl<
-        Error: From<cosmwasm_std::StdError>
-            + From<AppError>
-            + From<abstract_sdk::AbstractSdkError>
-            + From<abstract_core::AbstractError>,
+        Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
+        SudoMsg,
         ReceiveMsg,
     > ReplyEndpoint
     for AppContract<
@@ -17,6 +15,7 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
+        SudoMsg,
         ReceiveMsg,
     >
 {

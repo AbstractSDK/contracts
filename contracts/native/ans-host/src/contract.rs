@@ -113,7 +113,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> AnsHostResult {
-    let version: Version = CONTRACT_VERSION.parse().unwrap();
+    let _version: Version = CONTRACT_VERSION.parse().unwrap();
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
 
     assert_contract_upgrade(deps.storage, storage_version, ANS_HOST)?;

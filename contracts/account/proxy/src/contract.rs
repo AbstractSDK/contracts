@@ -15,7 +15,7 @@ use abstract_sdk::{
     feature_objects::AnsHost,
 };
 use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response};
-use cw2::{get_contract_version, set_contract_version};
+use cw2::{set_contract_version};
 use semver::Version;
 
 pub type ProxyResult<T = Response> = Result<T, ProxyError>;

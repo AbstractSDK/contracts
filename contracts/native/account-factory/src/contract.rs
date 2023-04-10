@@ -78,10 +78,11 @@ pub fn execute(
             description,
         } => {
             let maybe_received_coin = info.funds.last().map(Asset::from);
+            let gov_details = governance.verify(deps.api)?;
             commands::execute_create_account(
                 deps,
                 env,
-                governance,
+                gov_details,
                 maybe_received_coin,
                 name,
                 description,
@@ -130,7 +131,7 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> AccountFactoryResult {
-    let version: Version = CONTRACT_VERSION.parse().unwrap();
+    let _version: Version = CONTRACT_VERSION.parse().unwrap();
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
 
     assert_contract_upgrade(deps.storage, storage_version, ACCOUNT_FACTORY)?;

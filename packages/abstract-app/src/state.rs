@@ -3,15 +3,36 @@ use crate::{
     MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
 };
 use abstract_core::objects::dependency::StaticDependency;
+use abstract_core::AbstractError;
 use abstract_sdk::{
+    base::SudoHandlerFn,
     feature_objects::AnsHost,
     namespaces::{ADMIN_NAMESPACE, BASE_STATE},
+    AbstractSdkError,
 };
 use cosmwasm_std::{Addr, Empty, StdResult, Storage};
 use cw_controllers::Admin;
 use cw_storage_plus::Item;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+
+pub trait ContractError:
+    From<cosmwasm_std::StdError>
+    + From<AppError>
+    + From<AbstractSdkError>
+    + From<AbstractError>
+    + 'static
+{
+}
+
+impl<T> ContractError for T where
+    T: From<cosmwasm_std::StdError>
+        + From<AppError>
+        + From<AbstractSdkError>
+        + From<AbstractError>
+        + 'static
+{
+}
 
 /// The BaseState contains the main addresses needed for sending and verifying messages
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -21,17 +42,15 @@ pub struct AppState {
     /// AnsHost contract struct (address)
     pub ans_host: AnsHost,
 }
+
 /// The state variables for our AppContract.
 pub struct AppContract<
-    Error: From<cosmwasm_std::StdError>
-        + From<AppError>
-        + From<abstract_sdk::AbstractSdkError>
-        + From<abstract_core::AbstractError>
-        + 'static,
-    CustomInitMsg: 'static = Empty,
-    CustomExecMsg: 'static = Empty,
-    CustomQueryMsg: 'static = Empty,
-    CustomMigrateMsg: 'static = Empty,
+    Error: ContractError,
+    CustomInitMsg: 'static,
+    CustomExecMsg: 'static,
+    CustomQueryMsg: 'static,
+    CustomMigrateMsg: 'static,
+    SudoMsg: 'static = Empty,
     Receive: 'static = Empty,
 > {
     // Custom state for every App
@@ -39,30 +58,28 @@ pub struct AppContract<
     pub(crate) base_state: Item<'static, AppState>,
 
     // Scaffolding contract that handles type safety and provides helper methods
-    pub(crate) contract: AbstractContract<
-        Self,
+    pub(crate) contract: AbstractContract<Self, Error>,
+}
+
+/// Constructor
+impl<
+        Error: ContractError,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        SudoMsg,
+        ReceiveMsg,
+    >
+    AppContract<
         Error,
         CustomInitMsg,
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        Receive,
-    >,
-}
-
-/// Constructor
-impl<
-        Error: From<cosmwasm_std::StdError>
-            + From<AppError>
-            + From<abstract_sdk::AbstractSdkError>
-            + From<abstract_core::AbstractError>,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
+        SudoMsg,
         ReceiveMsg,
     >
-    AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     pub const fn new(
         name: &'static str,
@@ -110,6 +127,14 @@ impl<
         self
     }
 
+    pub const fn with_migrate(
+        mut self,
+        migrate_handler: MigrateHandlerFn<Self, CustomMigrateMsg, Error>,
+    ) -> Self {
+        self.contract = self.contract.with_migrate(migrate_handler);
+        self
+    }
+
     pub const fn with_replies(
         mut self,
         reply_handlers: &'static [(u64, ReplyHandlerFn<Self, Error>)],
@@ -118,12 +143,8 @@ impl<
         self
     }
 
-    /// add IBC callback handler to contract
-    pub const fn with_ibc_callbacks(
-        mut self,
-        callbacks: &'static [(&'static str, IbcCallbackHandlerFn<Self, Error>)],
-    ) -> Self {
-        self.contract = self.contract.with_ibc_callbacks(callbacks);
+    pub const fn with_sudo(mut self, sudo_handler: SudoHandlerFn<Self, SudoMsg, Error>) -> Self {
+        self.contract = self.contract.with_sudo(sudo_handler);
         self
     }
 
@@ -135,11 +156,12 @@ impl<
         self
     }
 
-    pub const fn with_migrate(
+    /// add IBC callback handler to contract
+    pub const fn with_ibc_callbacks(
         mut self,
-        migrate_handler: MigrateHandlerFn<Self, CustomMigrateMsg, Error>,
+        callbacks: &'static [(&'static str, IbcCallbackHandlerFn<Self, Error>)],
     ) -> Self {
-        self.contract = self.contract.with_migrate(migrate_handler);
+        self.contract = self.contract.with_ibc_callbacks(callbacks);
         self
     }
 }
