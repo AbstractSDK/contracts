@@ -14,11 +14,12 @@ then
 fi
 
 # these are imported by other packages
-# BASE_PACKAGES="abstract-ica abstract-macros"
-UTILS_PACKAGES="abstract_core abstract-sdk abstract-testing"
+BASE_PACKAGES="abstract-ica abstract-macros"
+UTILS_PACKAGES="abstract-core abstract-testing abstract-sdk"
 CORE_CONTRACTS="proxy manager"
 NATIVE_CONTRACTS="ans-host account-factory module-factory version-control"
-ALL_PACKAGES="abstract-boot abstract-api abstract-app abstract-ibc-host"
+ALL_PACKAGES="abstract-api abstract-app abstract-ibc-host"
+#ALL_PACKAGES="abstract-boot abstract-api abstract-app abstract-ibc-host"
 
 # for pack in $BASE_PACKAGES; do
 #   (
@@ -28,29 +29,29 @@ ALL_PACKAGES="abstract-boot abstract-api abstract-app abstract-ibc-host"
 #   )
 # done
 
-for pack in $UTILS_PACKAGES; do
-  (
-    cd "packages/$pack"
-    echo "Publishing util $pack"
-    cargo publish
-  )
-done
+#for pack in $UTILS_PACKAGES; do
+#  (
+#    cd "packages/$pack"
+#    echo "Publishing util $pack"
+#    cargo publish
+#  )
+#done
 
-for con in $CORE_CONTRACTS; do
-  (
-    cd "contracts/account/$con"
-    echo "Publishing account base $con"
-    cargo publish
-  )
-done
-
-for con in $NATIVE_CONTRACTS; do
-  (
-    cd "contracts/native/$con"
-    echo "Publishing native $con"
-    cargo publish
-  )
-done
+#for con in $CORE_CONTRACTS; do
+#  (
+#    cd "contracts/account/$con"
+#    echo "Publishing account base $con"
+#    cargo publish
+#  )
+#done
+#
+#for con in $NATIVE_CONTRACTS; do
+#  (
+#    cd "contracts/native/$con"
+#    echo "Publishing native $con"
+#    cargo publish
+#  )
+#done
 
 for pack in $ALL_PACKAGES; do
   (
