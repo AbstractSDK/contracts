@@ -38,7 +38,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ManagerResult {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
 
-    assert_contract_upgrade(storage_version, version)?;
+    assert_contract_upgrade(deps.storage, storage_version, MANAGER)?;
     set_contract_version(deps.storage, MANAGER, CONTRACT_VERSION)?;
     migrate_module_data(deps.storage, MANAGER, CONTRACT_VERSION, None::<String>)?;
     Ok(ManagerResponse::action("migrate"))

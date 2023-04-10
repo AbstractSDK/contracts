@@ -42,7 +42,7 @@ impl<
         let version: Version =
             Version::parse(version_string).map_err(|e| StdError::generic_err(e.to_string()))?;
         let storage_version: Version = get_module_data(deps.storage)?.version.parse().unwrap();
-        assert_contract_upgrade(storage_version, version)?;
+        assert_contract_upgrade(deps.storage, storage_version, name)?;
         set_module_data(
             deps.storage,
             name,

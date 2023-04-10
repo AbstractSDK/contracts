@@ -69,20 +69,9 @@ pub fn set_module_data<T: Into<String>, U: Into<String>, M: Into<String>>(
 }
 
 /// Assert that the new version is greater than the stored version.
-pub fn assert_contract_upgrade(stored: Version, requested: Version) -> Result<(), AbstractError> {
-    if stored >= requested {
-        return Err(AbstractError::CannotDowngradeContract {
-            from: stored,
-            to: requested,
-        });
-    }
-    Ok(())
-}
-
-/// Assert that the new version is greater than the stored version.
-pub fn assert_cw_contract_upgrade(
+pub fn assert_contract_upgrade(
     storage: &dyn Storage,
-    to_version: cw_semver::Version,
+    to_version: Version,
     to_contract: impl ToString,
 ) -> Result<(), AbstractError> {
     let ContractVersion {
@@ -102,17 +91,30 @@ pub fn assert_cw_contract_upgrade(
         }
     );
 
-    let from_version: cw_semver::Version = from_version.parse().unwrap();
+    let from_version = from_version.parse().unwrap();
 
     // Must be a version upgrade
     ensure!(
         to_version > from_version,
         AbstractError::CannotDowngradeContract {
-            from: from_version.to_string().parse().unwrap(),
-            to: to_version.to_string().parse().unwrap(),
+            from: from_version,
+            to: to_version,
         }
     );
     Ok(())
+}
+
+/// Assert that the new version is greater than the stored version.
+pub fn assert_cw_contract_upgrade(
+    storage: &dyn Storage,
+    to_version: cw_semver::Version,
+    to_contract: impl ToString,
+) -> Result<(), AbstractError> {
+    assert_contract_upgrade(
+        storage,
+        to_version.to_string().parse().unwrap(),
+        to_contract,
+    )
 }
 
 /// Migrate the module data to the new state.
