@@ -272,12 +272,31 @@ pub fn upgrade_modules(
 
     let mut upgrade_msgs = vec![];
 
+    let mut manager_migrate_info = None;
+    // Set the migrate messages for each module that's not the manager and update the dependency store
     for (module_info, migrate_msg) in modules {
         if module_info.id() == MANAGER {
-            return upgrade_self(deps, env, module_info, migrate_msg.unwrap_or_default());
+            manager_migrate_info = Some((module_info, migrate_msg));
+        } else {
+            set_migrate_msgs_and_context(
+                deps.branch(),
+                module_info,
+                migrate_msg,
+                &mut upgrade_msgs,
+            )?;
         }
-        set_migrate_msgs_and_context(deps.branch(), module_info, migrate_msg, &mut upgrade_msgs)?;
     }
+
+    // Upgrade the manager last
+    if let Some((manager_info, manager_migrate_msg)) = manager_migrate_info {
+        return upgrade_self(
+            deps,
+            env,
+            manager_info,
+            manager_migrate_msg.unwrap_or_default(),
+        );
+    }
+
     let callback_msg = wasm_execute(
         env.contract.address,
         &ExecuteMsg::Callback(CallbackMsg {}),
