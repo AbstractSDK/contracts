@@ -1,6 +1,7 @@
 use crate::commands::*;
 use crate::error::ProxyError;
 use crate::queries::*;
+use abstract_core::objects::module_version::assert_contract_upgrade;
 use abstract_core::objects::{module_version::migrate_module_data, oracle::Oracle};
 use abstract_sdk::{
     core::{
@@ -64,12 +65,10 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ProxyResult {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
-    let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
 
-    if storage_version < version {
-        set_contract_version(deps.storage, PROXY, CONTRACT_VERSION)?;
-        migrate_module_data(deps.storage, PROXY, CONTRACT_VERSION, None::<String>)?;
-    }
+    assert_contract_upgrade(deps.storage, version, PROXY)?;
+    set_contract_version(deps.storage, PROXY, CONTRACT_VERSION)?;
+    migrate_module_data(deps.storage, PROXY, CONTRACT_VERSION, None::<String>)?;
     Ok(Response::default())
 }
 
