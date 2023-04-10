@@ -1,4 +1,5 @@
 use crate::{commands, error::IbcClientError, queries};
+use abstract_core::objects::module_version::assert_cw_contract_upgrade;
 use abstract_core::{
     ibc_client::{state::*, *},
     objects::{
@@ -109,15 +110,13 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<QueryResponse> {
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
+pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> IbcClientResult {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
-    if storage_version < version {
-        set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
-        migrate_module_data(deps.storage, IBC_CLIENT, CONTRACT_VERSION, None::<String>)?;
-    }
-    // type migration
-    Ok(Response::default())
+    assert_cw_contract_upgrade(storage_version, version)?;
+    set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
+    migrate_module_data(deps.storage, IBC_CLIENT, CONTRACT_VERSION, None::<String>)?;
+    Ok(IbcClientResponse::action("migrate"))
 }
 
 #[cfg(test)]
