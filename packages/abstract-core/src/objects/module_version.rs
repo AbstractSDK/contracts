@@ -15,11 +15,14 @@ of any CW2-compliant module.
 
 For more information on this specification, please check out the
 [README](https://github.com/CosmWasm/cw-plus/blob/main/packages/cw2/README.md).
-*/
+ */
 
 use super::dependency::{Dependency, StaticDependency};
 use crate::AbstractError;
-use cosmwasm_std::{Empty, Querier, QuerierWrapper, QueryRequest, StdResult, Storage, WasmQuery};
+use cosmwasm_std::{
+    ensure, ensure_eq, Empty, Querier, QuerierWrapper, QueryRequest, StdResult, Storage, WasmQuery,
+};
+use cw2::{get_contract_version, ContractVersion};
 use cw_storage_plus::Item;
 use semver::Version;
 use serde::{Deserialize, Serialize};
@@ -34,7 +37,7 @@ pub struct ModuleData {
     /// version is any string that this implementation knows. It may be simple counter "1", "2".
     /// or semantic version on release tags "v0.7.0", or some custom feature flag list.
     /// the only code that needs to understand the version parsing is code that knows how to
-    /// migrate from the given module (and is tied to it's implementation somehow)
+    /// migrate from the given module (and is tied to i's implementation somehow)
     pub version: String,
     /// dependencies store a list of modules that this module depends on, along with its version requirements.
     pub dependencies: Vec<Dependency>,
@@ -78,15 +81,37 @@ pub fn assert_contract_upgrade(stored: Version, requested: Version) -> Result<()
 
 /// Assert that the new version is greater than the stored version.
 pub fn assert_cw_contract_upgrade(
-    stored: cw_semver::Version,
-    requested: cw_semver::Version,
+    storage: &dyn Storage,
+    to_version: cw_semver::Version,
+    to_contract: impl ToString,
 ) -> Result<(), AbstractError> {
-    if stored >= requested {
-        return Err(AbstractError::CannotDowngradeContract {
-            from: stored.to_string().parse().unwrap(),
-            to: requested.to_string().parse().unwrap(),
-        });
-    }
+    let ContractVersion {
+        version: from_version,
+        contract,
+    } = get_contract_version(storage)?;
+
+    let to_contract = to_contract.to_string();
+
+    // Must be the same contract
+    ensure_eq!(
+        contract,
+        to_contract,
+        AbstractError::ContractNameMismatch {
+            from: contract,
+            to: to_contract,
+        }
+    );
+
+    let from_version: cw_semver::Version = from_version.parse().unwrap();
+
+    // Must be a version upgrade
+    ensure!(
+        to_version > from_version,
+        AbstractError::CannotDowngradeContract {
+            from: from_version.to_string().parse().unwrap(),
+            to: to_version.to_string().parse().unwrap(),
+        }
+    );
     Ok(())
 }
 

@@ -28,10 +28,9 @@ pub const ABSTRACT_NAMESPACE: &str = "abstract";
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VCResult {
-    let version: Version = CONTRACT_VERSION.parse()?;
-    let storage_version: Version = get_contract_version(deps.storage)?.version.parse()?;
+    let to_version: Version = CONTRACT_VERSION.parse()?;
 
-    assert_cw_contract_upgrade(storage_version, version)?;
+    assert_cw_contract_upgrade(deps.storage, to_version, VERSION_CONTROL)?;
     set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
     migrate_module_data(
         deps.storage,

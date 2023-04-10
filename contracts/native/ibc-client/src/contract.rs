@@ -6,13 +6,13 @@ use abstract_core::{
         ans_host::AnsHost,
         module_version::{migrate_module_data, set_module_data},
     },
-    AbstractResult, IBC_CLIENT,
+    IBC_CLIENT,
 };
 use abstract_macros::abstract_response;
 use cosmwasm_std::{
     to_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response, StdResult,
 };
-use cw2::{get_contract_version, set_contract_version};
+use cw2::{set_contract_version, ContractVersion, CONTRACT};
 use cw_semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -111,9 +111,9 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<QueryResponse> {
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> IbcClientResult {
-    let version: Version = CONTRACT_VERSION.parse().unwrap();
-    let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
-    assert_cw_contract_upgrade(storage_version, version)?;
+    let to_version: Version = CONTRACT_VERSION.parse().unwrap();
+
+    assert_cw_contract_upgrade(deps.storage, to_version, IBC_CLIENT)?;
     set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
     migrate_module_data(deps.storage, IBC_CLIENT, CONTRACT_VERSION, None::<String>)?;
     Ok(IbcClientResponse::action("migrate"))

@@ -32,6 +32,9 @@ pub enum AbstractError {
     #[error("Cannot downgrade contract from {} to {}", from, to)]
     CannotDowngradeContract { from: Version, to: Version },
 
+    #[error("Cannot rename contract from {} to {}", from, to)]
+    ContractNameMismatch { from: String, to: String },
+
     #[error("API {0} not installed on Account")]
     ApiNotInstalled(String),
 
