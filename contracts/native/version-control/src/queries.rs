@@ -1,5 +1,8 @@
 use crate::error::VCError;
-use abstract_core::version_control::NamespaceFilter;
+use abstract_core::{
+    objects::module::ModuleStatus,
+    version_control::{state::PENDING_MODULES, NamespaceFilter},
+};
 use abstract_sdk::core::{
     objects::{
         module::{Module, ModuleInfo, ModuleVersion},
@@ -15,7 +18,7 @@ use abstract_sdk::core::{
     },
 };
 use cosmwasm_std::{to_binary, Binary, Deps, Order, StdError, StdResult};
-use cw_storage_plus::Bound;
+use cw_storage_plus::{Bound, Map};
 
 const DEFAULT_LIMIT: u8 = 10;
 const MAX_LIMIT: u8 = 20;
@@ -81,13 +84,14 @@ pub fn handle_module_list_query(
         provider: ref provider_filter,
         name: ref name_filter,
         version: version_filter,
-        yanked,
+        status,
     } = filter.unwrap_or_default();
 
-    let mod_lib = if yanked {
-        &YANKED_MODULES
-    } else {
-        &MODULE_LIBRARY
+    let mod_lib = match status {
+        Some(ModuleStatus::NORMAL) => &MODULE_LIBRARY,
+        Some(ModuleStatus::PENDING) => &PENDING_MODULES,
+        Some(ModuleStatus::YANKED) => &YANKED_MODULES,
+        None => &MODULE_LIBRARY,
     };
     let mut modules: Vec<(ModuleInfo, ModuleReference)> = vec![];
 
@@ -98,7 +102,7 @@ pub fn handle_module_list_query(
             limit,
             provider_filter,
             name_filter,
-            yanked,
+            mod_lib,
         )?);
     } else {
         let start_bound: Option<Bound<&ModuleInfo>> = start_after.as_ref().map(Bound::exclusive);
@@ -181,13 +185,8 @@ fn filter_modules_by_provider(
     limit: usize,
     provider: &str,
     name: &Option<String>,
-    yanked: bool,
+    mod_lib: &Map<&ModuleInfo, ModuleReference>,
 ) -> StdResult<Vec<(ModuleInfo, ModuleReference)>> {
-    let mod_lib = if yanked {
-        &YANKED_MODULES
-    } else {
-        &MODULE_LIBRARY
-    };
     let mut modules: Vec<(ModuleInfo, ModuleReference)> = vec![];
 
     // Filter by name using full prefix
@@ -308,9 +307,10 @@ mod test {
             mock_env(),
             info,
             InstantiateMsg {
-                config: Config { is_testnet: true },
+                is_testnet: true,
+                namespaces_limit: 10,
             },
-        );
+        )?;
         execute_as_admin(
             deps.branch(),
             ExecuteMsg::SetFactory {
@@ -701,7 +701,7 @@ mod test {
             let filtered_provider = "cw-plus".to_string();
 
             let filter = ModuleFilter {
-                yanked: true,
+                status: Some(ModuleStatus::YANKED),
                 provider: Some(filtered_provider.clone()),
                 ..Default::default()
             };

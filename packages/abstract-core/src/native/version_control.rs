@@ -14,6 +14,7 @@ pub type ModuleMapEntry = (ModuleInfo, ModuleReference);
 #[cosmwasm_schema::cw_serde]
 pub struct Config {
     pub is_testnet: bool,
+    pub namespaces_limit: u32,
 }
 
 pub mod state {
@@ -40,8 +41,6 @@ pub mod state {
     pub const YANKED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("yanked_modules");
     /// Maps Account ID to the address of its core contracts
     pub const ACCOUNT_ADDRESSES: Map<AccountId, AccountBase> = Map::new("account");
-    /// Maximum namespaces an account can claim
-    pub const NAMESPACES_LIMIT: Item<u32> = Item::new("namespaces_limit");
 }
 
 // Sub Indexes
@@ -66,7 +65,7 @@ pub fn namespaces_info<'a>() -> IndexedMap<'a, &'a Namespace, AccountId, Namespa
 
 use crate::objects::{
     core::AccountId,
-    module::{Module, ModuleInfo},
+    module::{Module, ModuleInfo, ModuleStatus},
     module_reference::ModuleReference,
     namespace::Namespace,
 };
@@ -83,7 +82,8 @@ pub struct AccountBase {
 
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
-    pub config: Config,
+    pub is_testnet: bool,
+    pub namespaces_limit: u32,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -95,8 +95,8 @@ pub enum ExecuteMsg {
     AddModules { modules: Vec<ModuleMapEntry> },
     /// Approve or decline modules
     ApproveOrDeclineModule {
-        module: ModuleInfo,
-        is_approve: bool,
+        approves: Vec<ModuleInfo>,
+        rejects: Vec<ModuleInfo>,
     },
     /// Claim namespaces
     ClaimNamespaces {
@@ -127,7 +127,7 @@ pub struct ModuleFilter {
     pub provider: Option<String>,
     pub name: Option<String>,
     pub version: Option<String>,
-    pub yanked: bool,
+    pub status: Option<ModuleStatus>,
 }
 
 /// A NamespaceFilter for [`Namespaces`].
