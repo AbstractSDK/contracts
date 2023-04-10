@@ -23,6 +23,7 @@ use cosmwasm_std::{Empty, Querier, QuerierWrapper, QueryRequest, StdResult, Stor
 use cw_storage_plus::Item;
 use semver::Version;
 use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 
 pub const MODULE: Item<ModuleData> = Item::new("module_data");
 
@@ -69,6 +70,20 @@ pub fn set_module_data<T: Into<String>, U: Into<String>, M: Into<String>>(
 pub fn assert_contract_upgrade(stored: Version, requested: Version) -> Result<(), AbstractError> {
     if stored >= requested {
         return Err(AbstractError::CannotDowngradeContract { stored, requested });
+    }
+    Ok(())
+}
+
+/// Assert that the new version is greater than the stored version.
+pub fn assert_cw_contract_upgrade(
+    stored: cw_semver::Version,
+    requested: cw_semver::Version,
+) -> Result<(), AbstractError> {
+    if stored >= requested {
+        return Err(AbstractError::CannotDowngradeContract {
+            stored: stored.to_string().parse().unwrap(),
+            requested: requested.to_string().parse().unwrap(),
+        });
     }
     Ok(())
 }

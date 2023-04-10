@@ -1,4 +1,6 @@
 use crate::error::VCError;
+use abstract_core::objects::module_version::assert_cw_contract_upgrade;
+use abstract_macros::abstract_response;
 use abstract_sdk::core::{
     objects::{module_version::migrate_module_data, module_version::set_module_data},
     version_control::{
@@ -13,10 +15,14 @@ use cw_controllers::{Admin, AdminError};
 use cw_semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+
 use crate::commands::*;
 use crate::queries;
 
 pub type VCResult = Result<Response, VCError>;
+
+#[abstract_response(VERSION_CONTROL)]
+pub struct VcResponse;
 
 pub const ABSTRACT_NAMESPACE: &str = "abstract";
 
@@ -25,16 +31,15 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VCResult {
     let version: Version = CONTRACT_VERSION.parse()?;
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse()?;
 
-    if storage_version < version {
-        set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
-        migrate_module_data(
-            deps.storage,
-            VERSION_CONTROL,
-            CONTRACT_VERSION,
-            None::<String>,
-        )?;
-    }
-    Ok(Response::default())
+    assert_cw_contract_upgrade(storage_version, version)?;
+    set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
+    migrate_module_data(
+        deps.storage,
+        VERSION_CONTROL,
+        CONTRACT_VERSION,
+        None::<String>,
+    )?;
+    Ok(VcResponse::action("migrate"))
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
@@ -56,7 +61,7 @@ pub fn instantiate(
     ADMIN.set(deps.branch(), Some(info.sender))?;
     FACTORY.set(deps, None)?;
 
-    Ok(Response::default())
+    Ok(VcResponse::action("instantiate"))
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
