@@ -31,7 +31,7 @@ pub mod state {
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
     pub const FACTORY: Admin = Admin::new("factory");
 
-    pub const CONFIG: Item<Config> = Item::new("is_testnet");
+    pub const CONFIG: Item<Config> = Item::new("config");
 
     // Modules waiting for approvals
     pub const PENDING_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("pending_modules");
@@ -93,8 +93,8 @@ pub enum ExecuteMsg {
     RemoveModule { module: ModuleInfo, yank: bool },
     /// Add new modules
     AddModules { modules: Vec<ModuleMapEntry> },
-    /// Approve or decline modules
-    ApproveOrDeclineModule {
+    /// Approve or reject modules
+    ApproveOrRejectModule {
         approves: Vec<ModuleInfo>,
         rejects: Vec<ModuleInfo>,
     },

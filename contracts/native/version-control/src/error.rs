@@ -26,6 +26,9 @@ pub enum VCError {
     #[error("Module {0} does not have a stored module reference")]
     ModuleNotFound(ModuleInfo),
 
+    #[error("Module {0} is in both approve and reject")]
+    InvalidApproveList(ModuleInfo),
+
     #[error("Module {0} cannot be updated")]
     NotUpdateableModule(ModuleInfo),
 

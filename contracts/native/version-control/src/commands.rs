@@ -75,28 +75,38 @@ pub fn add_modules(
     Ok(VcResponse::action("add_modules"))
 }
 
-/// Approve or decline a module
-pub fn approve_or_decline_module(
+/// Approve or reject a module
+pub fn approve_or_reject_module(
     deps: DepsMut,
     msg_info: MessageInfo,
     approves: Vec<ModuleInfo>,
     rejects: Vec<ModuleInfo>,
 ) -> VCResult {
-    // Only Admin can update code-ids
+    // Only Admin can approve or rejects a module
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
-    for module in &approves {
-        let mod_ref = PENDING_MODULES.load(deps.storage, module)?;
-        MODULE_LIBRARY.save(deps.storage, module, &mod_ref)?;
+    for module in &rejects {
+        if approves.contains(module) {
+            return Err(VCError::InvalidApproveList(module.clone()));
+        }
+
+        if !PENDING_MODULES.has(deps.storage, module) {
+            return Err(VCError::ModuleNotFound(module.clone()));
+        }
         PENDING_MODULES.remove(deps.storage, module);
     }
-    for module in &rejects {
+
+    for module in &approves {
+        let mod_ref = PENDING_MODULES
+            .may_load(deps.storage, module)?
+            .ok_or_else(|| VCError::ModuleNotFound(module.clone()))?;
+        MODULE_LIBRARY.save(deps.storage, module, &mod_ref)?;
         PENDING_MODULES.remove(deps.storage, module);
     }
 
     let approves: Vec<_> = approves.into_iter().map(|m| m.to_string()).collect();
     let rejects: Vec<_> = rejects.into_iter().map(|m| m.to_string()).collect();
     Ok(VcResponse::new(
-        "approve_or_decline_module",
+        "approve_or_reject_module",
         vec![
             ("approves", approves.join(",")),
             ("rejects", rejects.join(",")),
@@ -841,7 +851,7 @@ mod test {
                 },
             )?;
 
-            let msg = ExecuteMsg::ApproveOrDeclineModule {
+            let msg = ExecuteMsg::ApproveOrRejectModule {
                 approves: vec![new_module.clone()],
                 rejects: vec![],
             };
@@ -888,7 +898,7 @@ mod test {
                 },
             )?;
 
-            let msg = ExecuteMsg::ApproveOrDeclineModule {
+            let msg = ExecuteMsg::ApproveOrRejectModule {
                 approves: vec![],
                 rejects: vec![new_module.clone()],
             };
