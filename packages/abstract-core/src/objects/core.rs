@@ -18,28 +18,28 @@ pub type ChainId = String;
 /// On each chain this is unique, but not across chains.
 #[cosmwasm_schema::cw_serde]
 pub struct AccountId {
-    /// Chain id of the chain that triggered the account creation
+    /// Chain seq of the chain that triggered the account creation
     /// `AccountOrigin::Local` if the account was created locally
     origin: AccountOrigin,
     /// Unique identifier for the account
     /// Account factory sequence number for the origin chain
-    id: u32,
+    seq: u32,
 }
 
 impl Display for AccountId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}-{}", self.origin, self.id)
+        write!(f, "{}-{}", self.origin, self.seq)
     }
 }
 
 impl AccountId {
-    pub fn new(id: u32, origin: AccountOrigin) -> Result<Self, AbstractError> {
+    pub fn new(seq: u32, origin: AccountOrigin) -> Result<Self, AbstractError> {
         origin.verify()?;
-        Ok(Self { id, origin })
+        Ok(Self { seq, origin })
     }
     // used internally for testing
-    pub(crate) const fn const_new(id: u32, origin: AccountOrigin) -> Self {
-        Self { id, origin }
+    pub(crate) const fn const_new(seq: u32, origin: AccountOrigin) -> Self {
+        Self { seq, origin }
     }
 }
 
@@ -94,7 +94,7 @@ impl AccountOrigin {
                     || chain_id.len() > MAX_CHAIN_ID_LENGTH
                 {
                     Err(AbstractError::FormattingError {
-                        object: "chain-id".into(),
+                        object: "chain-seq".into(),
                         expected: format!(
                             "between {MIN_CHAIN_ID_LENGTH} and {MAX_CHAIN_ID_LENGTH}"
                         ),
@@ -104,13 +104,13 @@ impl AccountOrigin {
                     .contains(|c: char| !c.is_ascii_alphanumeric() || c.is_ascii_uppercase())
                 {
                     Err(AbstractError::FormattingError {
-                        object: "chain-id".into(),
+                        object: "chain-seq".into(),
                         expected: "alphanumeric characters".into(),
                         actual: chain_id.clone(),
                     })
                 } else if chain_id.eq(LOCAL) {
                     Err(AbstractError::FormattingError {
-                        object: "chain-id".into(),
+                        object: "chain-seq".into(),
                         expected: "not 'local'".into(),
                         actual: chain_id.clone(),
                     })
@@ -164,14 +164,14 @@ impl<'a> PrimaryKey<'a> for &AccountId {
 
     fn key(&self) -> Vec<cw_storage_plus::Key> {
         let mut keys = self.origin.key();
-        keys.extend(self.id.key());
+        keys.extend(self.seq.key());
         keys
     }
 }
 
 impl<'a> Prefixer<'a> for &AccountId {
     fn prefix(&self) -> Vec<Key> {
-        let mut res = self.id.prefix();
+        let mut res = self.seq.prefix();
         res.extend(self.origin.prefix().into_iter());
         res
     }
@@ -187,7 +187,7 @@ impl KeyDeserialize for &AccountId {
         let u = tu.split_off(t_len);
 
         Ok(AccountId {
-            id: u32::from_vec(tu)?,
+            seq: u32::from_vec(tu)?,
             origin: AccountOrigin::from(String::from_vec(u)?),
         })
     }
@@ -218,7 +218,7 @@ mod test {
 
         fn mock_key() -> AccountId {
             AccountId {
-                id: 1,
+                seq: 1,
                 origin: AccountOrigin::Remote("bitcoin".to_string()),
             }
         }
@@ -226,15 +226,15 @@ mod test {
         fn mock_keys() -> (AccountId, AccountId, AccountId) {
             (
                 AccountId {
-                    id: 1,
+                    seq: 1,
                     origin: AccountOrigin::Local,
                 },
                 AccountId {
-                    id: 1,
+                    seq: 1,
                     origin: AccountOrigin::Remote("bitcoin".to_string()),
                 },
                 AccountId {
-                    id: 2,
+                    seq: 2,
                     origin: AccountOrigin::Remote("ethereum".to_string()),
                 },
             )

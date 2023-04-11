@@ -10,18 +10,17 @@
 pub mod state {
     use cosmwasm_std::Addr;
     use cw_controllers::Admin;
-    use cw_storage_plus::Item;
+    use cw_storage_plus::{Item, Map};
 
     use serde::{Deserialize, Serialize};
 
-    use crate::objects::{common_namespace::ADMIN_NAMESPACE, core::AccountId};
+    use crate::objects::{common_namespace::ADMIN_NAMESPACE, core::{AccountOrigin}};
 
     #[cosmwasm_schema::cw_serde]
     pub struct Config {
         pub version_control_contract: Addr,
         pub ans_host_contract: Addr,
         pub module_factory_address: Addr,
-        pub next_account_id: AccountId,
     }
 
     #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -32,9 +31,11 @@ pub mod state {
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
     pub const CONFIG: Item<Config> = Item::new("\u{0}{5}config");
     pub const CONTEXT: Item<Context> = Item::new("\u{0}{6}context");
+    /// Next account id for a specific origin.
+    pub const ACCOUNT_SEQUENCES:Map<AccountOrigin, u32> = Map::new("acc_seq");
 }
 
-use crate::objects::{core::AccountId, gov_type::GovernanceDetails};
+use crate::objects::{core::{AccountId, AccountOrigin}, gov_type::GovernanceDetails};
 use cosmwasm_schema::QueryResponses;
 
 /// Msg used on instantiation
@@ -71,6 +72,8 @@ pub enum ExecuteMsg {
         name: String,
         description: Option<String>,
         link: Option<String>,
+        /// Creator chain of the account. AccountOrigin::Local if not specified. 
+        origin: Option<AccountOrigin>,
     },
 }
 

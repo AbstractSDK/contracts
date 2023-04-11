@@ -1,4 +1,5 @@
 use crate::{commands, error::AccountFactoryError, state::*};
+use abstract_core::objects::core::AccountOrigin;
 use abstract_sdk::core::{
     account_factory::*,
     objects::module_version::{migrate_module_data, set_module_data},
@@ -26,7 +27,6 @@ pub fn instantiate(
         version_control_contract: deps.api.addr_validate(&msg.version_control_address)?,
         module_factory_address: deps.api.addr_validate(&msg.module_factory_address)?,
         ans_host_contract: deps.api.addr_validate(&msg.ans_host_address)?,
-        next_account_id: 0u32,
     };
 
     set_contract_version(deps.storage, ACCOUNT_FACTORY, CONTRACT_VERSION)?;
@@ -70,9 +70,20 @@ pub fn execute(
             link,
             name,
             description,
+            origin,
         } => {
             let gov_details = governance.verify(deps.api)?;
-            commands::execute_create_account(deps, env, gov_details, name, description, link)
+            let origin = origin.unwrap_or(AccountOrigin::Local);
+            origin.verify()?;
+            commands::execute_create_account(
+                deps,
+                env,
+                gov_details,
+                name,
+                description,
+                link,
+                origin,
+            )
         }
     }
 }
