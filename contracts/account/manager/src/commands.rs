@@ -289,12 +289,12 @@ pub fn upgrade_modules(
 
     // Upgrade the manager last
     if let Some((manager_info, manager_migrate_msg)) = manager_migrate_info {
-        return upgrade_self(
+        upgrade_msgs.push(self_upgrade_msg(
             deps,
-            env,
+            &env.contract.address,
             manager_info,
             manager_migrate_msg.unwrap_or_default(),
-        );
+        )?);
     }
 
     let callback_msg = wasm_execute(
@@ -611,21 +611,21 @@ fn query_module(
     }
 }
 
-fn upgrade_self(
+fn self_upgrade_msg(
     deps: DepsMut,
-    env: Env,
+    self_addr: &Addr,
     module_info: ModuleInfo,
     migrate_msg: Binary,
-) -> ManagerResult {
+) -> ManagerResult<CosmosMsg> {
     let contract = get_contract_version(deps.storage)?;
     let module = query_module(deps.as_ref(), module_info.clone(), Some(contract))?;
     if let ModuleReference::AccountBase(manager_code_id) = module.reference {
         let migration_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Migrate {
-            contract_addr: env.contract.address.into_string(),
+            contract_addr: self_addr.to_string(),
             new_code_id: manager_code_id,
             msg: migrate_msg,
         });
-        Ok(ManagerResponse::action("upgrade_self").add_message(migration_msg))
+        Ok(migration_msg)
     } else {
         Err(ManagerError::InvalidReference(module_info))
     }
@@ -824,9 +824,7 @@ mod test {
             let new_gov = "new_gov".to_string();
 
             let msg = ExecuteMsg::SetOwner {
-                owner: GovernanceDetails::Monarchy {
-                    monarch: new_gov.to_string(),
-                },
+                owner: GovernanceDetails::Monarchy { monarch: new_gov },
             };
 
             execute_as_owner(deps.as_mut(), msg)?;
