@@ -10,12 +10,11 @@ pub(crate) mod contract_entry;
 pub(crate) mod dex_asset_pairing;
 pub(crate) mod lp_token;
 
+pub mod account;
 pub mod oracle;
 pub mod pool;
 
 pub use pool::*;
-
-pub mod core;
 pub mod dependency;
 pub mod deposit_info;
 pub mod deposit_manager;
@@ -28,7 +27,7 @@ pub mod paged_map;
 pub mod price_source;
 pub mod time_weighted_average;
 
-pub use self::core::AccountId;
+pub use self::account::AccountId;
 pub use ans_asset::AnsAsset;
 pub use asset_entry::AssetEntry;
 pub use channel_entry::{ChannelEntry, UncheckedChannelEntry};
