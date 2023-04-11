@@ -521,7 +521,7 @@ mod test {
                 account_id: TEST_ACCOUNT_ID,
                 namespaces: vec![new_namespace1.to_string(), new_namespace2.to_string()],
             };
-            let res = execute_as(deps.as_mut(), TEST_OTHER, msg.clone());
+            let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(&VCError::AccountOwnerMismatch {
@@ -586,7 +586,7 @@ mod test {
                     new_namespace3.to_string(),
                 ],
             };
-            execute_as(deps.as_mut(), TEST_OWNER, msg.clone())?;
+            execute_as(deps.as_mut(), TEST_OWNER, msg)?;
 
             // remove as admin
             let msg = ExecuteMsg::RemoveNamespaces {
@@ -634,7 +634,7 @@ mod test {
                 account_id: TEST_ACCOUNT_ID,
                 namespaces: vec![new_namespace1.to_string(), new_namespace2.to_string()],
             };
-            execute_as(deps.as_mut(), TEST_OWNER, msg.clone())?;
+            execute_as(deps.as_mut(), TEST_OWNER, msg)?;
 
             // remove as other
             let msg = ExecuteMsg::RemoveNamespaces {
@@ -773,7 +773,7 @@ mod test {
             )?;
 
             // add modules
-            let res = execute_as(deps.as_mut(), TEST_OWNER, msg.clone());
+            let res = execute_as(deps.as_mut(), TEST_OWNER, msg);
             assert_that!(&res).is_ok();
             let module = MODULE_LIBRARY.load(&deps.storage, &new_module)?;
             assert_that!(&module).is_equal_to(&ModuleReference::App(0));
@@ -809,7 +809,7 @@ mod test {
             )?;
 
             // add modules
-            let res = execute_as(deps.as_mut(), TEST_OWNER, msg.clone());
+            let res = execute_as(deps.as_mut(), TEST_OWNER, msg);
             assert_that!(&res).is_ok();
             let module = PENDING_MODULES.load(&deps.storage, &new_module)?;
             assert_that!(&module).is_equal_to(&ModuleReference::App(0));
@@ -853,7 +853,7 @@ mod test {
                 .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
 
             // approve by admin
-            let res = execute_as(deps.as_mut(), TEST_ADMIN, msg.clone());
+            let res = execute_as(deps.as_mut(), TEST_ADMIN, msg);
             assert_that!(&res).is_ok();
             let module = MODULE_LIBRARY.load(&deps.storage, &new_module)?;
             assert_that!(&module).is_equal_to(&ModuleReference::App(0));
@@ -900,7 +900,7 @@ mod test {
                 .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
 
             // reject by admin
-            let res = execute_as(deps.as_mut(), TEST_ADMIN, msg.clone());
+            let res = execute_as(deps.as_mut(), TEST_ADMIN, msg);
             assert_that!(&res).is_ok();
             let exists = MODULE_LIBRARY.has(&deps.storage, &new_module);
             assert_that!(exists).is_equal_to(false);
@@ -922,7 +922,7 @@ mod test {
                 account_id: TEST_ACCOUNT_ID,
                 namespaces: vec![rm_module.provider.clone()],
             };
-            execute_as(deps.as_mut(), TEST_OWNER, msg.clone())?;
+            execute_as(deps.as_mut(), TEST_OWNER, msg)?;
 
             // first add module
             let msg = ExecuteMsg::AddModules {
@@ -965,7 +965,7 @@ mod test {
                 account_id: TEST_ACCOUNT_ID,
                 namespaces: vec![rm_module.provider.clone()],
             };
-            execute_as(deps.as_mut(), TEST_OWNER, msg.clone())?;
+            execute_as(deps.as_mut(), TEST_OWNER, msg)?;
 
             // first add module
             let msg = ExecuteMsg::AddModules {
@@ -1009,7 +1009,7 @@ mod test {
                 account_id: TEST_ACCOUNT_ID,
                 namespaces: vec!["provider".to_string()],
             };
-            execute_as(deps.as_mut(), TEST_OWNER, msg.clone())?;
+            execute_as(deps.as_mut(), TEST_OWNER, msg)?;
 
             let bad_version_module = ModuleInfo::from_id(
                 TEST_MODULE,
