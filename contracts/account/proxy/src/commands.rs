@@ -140,6 +140,7 @@ pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: &String) -> ProxyResul
 
 #[cfg(test)]
 mod test {
+    use abstract_core::objects::account::TEST_ACCOUNT_ID;
     use abstract_testing::prelude::TEST_MANAGER;
     use cosmwasm_std::testing::mock_dependencies;
     use cosmwasm_std::testing::{
@@ -161,7 +162,7 @@ mod test {
     fn mock_init(deps: DepsMut) {
         let info = mock_info(TEST_MANAGER, &[]);
         let msg = InstantiateMsg {
-            account_id: 0,
+            account_id: TEST_ACCOUNT_ID,
             ans_host_address: MOCK_CONTRACT_ADDR.to_string(),
         };
         let _res = instantiate(deps, mock_env(), info, msg).unwrap();

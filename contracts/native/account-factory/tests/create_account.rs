@@ -3,7 +3,13 @@ use abstract_boot::{
     AbstractAccount, AccountFactoryExecFns, AccountFactoryQueryFns, VCQueryFns, *,
 };
 use abstract_core::{
-    account_factory, objects::gov_type::GovernanceDetails, version_control::AccountBase,
+    account_factory,
+    objects::{
+        account::{AccountTrace::Local, TEST_ACCOUNT_ID},
+        gov_type::GovernanceDetails,
+        AccountId,
+    },
+    version_control::AccountBase,
     ABSTRACT_EVENT_NAME,
 };
 use boot_core::{
@@ -29,7 +35,6 @@ fn instantiate() -> AResult {
         ans_host_contract: deployment.ans_host.address()?.into(),
         version_control_contract: deployment.version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),
-        next_account_id: 0,
     };
 
     assert_that!(&factory_config).is_equal_to(&expected);
@@ -52,6 +57,7 @@ fn create_one_os() -> AResult {
         String::from("first_os"),
         Some(String::from("account_description")),
         Some(String::from("account_link_of_at_least_11_char")),
+        None,
     )?;
 
     let manager = account_creation.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
@@ -63,7 +69,6 @@ fn create_one_os() -> AResult {
         ans_host_contract: deployment.ans_host.address()?.into(),
         version_control_contract: deployment.version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),
-        next_account_id: 1,
     };
 
     assert_that!(&factory_config).is_equal_to(&expected);
@@ -76,7 +81,7 @@ fn create_one_os() -> AResult {
 
     assert_that!(&vc_config).is_equal_to(&expected);
 
-    let account_list = version_control.account_base(0)?;
+    let account_list = version_control.account_base(TEST_ACCOUNT_ID)?;
 
     assert_that!(&account_list.account_base).is_equal_to(AccountBase {
         manager: Addr::unchecked(manager),
@@ -103,6 +108,7 @@ fn create_two_account_s() -> AResult {
         String::from("first_os"),
         Some(String::from("account_description")),
         Some(String::from("account_link_of_at_least_11_char")),
+        None,
     )?;
     // second account
     let account_2 = factory.create_account(
@@ -112,6 +118,7 @@ fn create_two_account_s() -> AResult {
         String::from("second_os"),
         Some(String::from("account_description")),
         Some(String::from("account_link_of_at_least_11_char")),
+        None,
     )?;
 
     let manager1 = account_1.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
@@ -126,7 +133,6 @@ fn create_two_account_s() -> AResult {
         ans_host_contract: deployment.ans_host.address()?.into(),
         version_control_contract: deployment.version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),
-        next_account_id: 2,
     };
 
     assert_that!(&factory_config).is_equal_to(&expected);
@@ -139,13 +145,17 @@ fn create_two_account_s() -> AResult {
 
     assert_that!(&vc_config).is_equal_to(&expected);
 
-    let account_1 = version_control.account_base(0)?.account_base;
+    let acc_1 = AccountId::new(0     , Local).unwrap();
+
+    let account_1 = version_control.account_base(acc_1)?.account_base;
     assert_that!(&account_1).is_equal_to(AccountBase {
         manager: Addr::unchecked(manager1),
         proxy: Addr::unchecked(proxy1),
     });
 
-    let account_2 = version_control.account_base(1)?.account_base;
+    let acc_2 = AccountId::new(1, Local).unwrap();
+
+    let account_2 = version_control.account_base(acc_2)?.account_base;
     assert_that!(&account_2).is_equal_to(AccountBase {
         manager: Addr::unchecked(manager2),
         proxy: Addr::unchecked(proxy2),
@@ -170,14 +180,15 @@ fn sender_is_not_admin_monarchy() -> AResult {
         String::from("first_os"),
         Some(String::from("account_description")),
         Some(String::from("account_link_of_at_least_11_char")),
+        None,
     )?;
 
     let manager = account_creation.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
     let proxy = account_creation.event_attr_value(ABSTRACT_EVENT_NAME, "proxy_address")?;
 
-    let account = version_control.account_base(0)?.account_base;
+    let account = version_control.account_base(TEST_ACCOUNT_ID)?.account_base;
 
-    let account_1 = AbstractAccount::new(chain, Some(0));
+    let account_1 = AbstractAccount::new(chain, Some(TEST_ACCOUNT_ID));
     assert_that!(AccountBase {
         manager: account_1.manager.address()?,
         proxy: account_1.proxy.address()?,
@@ -194,7 +205,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
 
     assert_that!(account_config).is_equal_to(abstract_core::manager::ConfigResponse {
         owner: owner.into_string(),
-        account_id: Uint64::from(0u64),
+        account_id: TEST_ACCOUNT_ID,
         version_control_address: version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),
         is_suspended: false,
@@ -220,14 +231,15 @@ fn sender_is_not_admin_external() -> AResult {
         String::from("first_os"),
         Some(String::from("account_description")),
         Some(String::from("account_link_of_at_least_11_char")),
+        None,
     )?;
 
-    let account = AbstractAccount::new(chain, Some(0));
+    let account = AbstractAccount::new(chain, Some(TEST_ACCOUNT_ID));
     let account_config = account.manager.config()?;
 
     assert_that!(account_config).is_equal_to(abstract_core::manager::ConfigResponse {
         owner: owner.into_string(),
-        account_id: Uint64::from(0u64),
+        account_id: TEST_ACCOUNT_ID,
         is_suspended: false,
         version_control_address: version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),

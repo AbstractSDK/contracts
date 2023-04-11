@@ -13,8 +13,8 @@ pub const OWNER: &str = "owner";
 pub mod addresses {
     use abstract_core::version_control::AccountBase;
     use cosmwasm_std::Addr;
-
-    pub use abstract_core::objects::core::TEST_ACCOUNT_ID;
+    // re-export because we want to keep the const constructor private
+    pub use abstract_core::objects::account::TEST_ACCOUNT_ID;
     pub const TEST_ADMIN: &str = "admin";
     pub const TEST_VERSION: &str = "1.0.0";
     pub const TEST_PROXY: &str = "proxy_address";

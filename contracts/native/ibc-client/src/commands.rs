@@ -131,7 +131,7 @@ pub fn execute_register_os(
     let packet = PacketMsg {
         retries: 0u8,
         client_chain: cfg.chain,
-        account_id,
+        account_id: account_id.clone(),
         callback_info: None,
         action: HostAction::Internal(InternalAction::Register {
             account_proxy_address: account_base.proxy.into_string(),
@@ -262,7 +262,9 @@ mod test {
 
     mod update_config {
         use super::*;
-        use abstract_core::{abstract_ica::StdAck, ibc_client::state::Config, objects::core::TEST_ACCOUNT_ID};
+        use abstract_core::{
+            abstract_ica::StdAck, ibc_client::state::Config, objects::account::TEST_ACCOUNT_ID,
+        };
         use abstract_testing::prelude::TEST_VERSION_CONTROL;
         use cosmwasm_std::{Empty, Timestamp};
 

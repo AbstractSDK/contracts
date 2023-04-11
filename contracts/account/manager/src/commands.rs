@@ -607,6 +607,8 @@ fn configure_api(api_address: impl Into<String>, message: BaseExecuteMsg) -> Std
 
 #[cfg(test)]
 mod test {
+    use abstract_core::objects::AccountId;
+    use abstract_core::objects::account::AccountTrace;
     use cosmwasm_std::testing::{
         mock_dependencies, mock_env, mock_info, MockApi, MockQuerier, MockStorage,
     };
@@ -638,7 +640,7 @@ mod test {
             mock_env(),
             info,
             InstantiateMsg {
-                account_id: 1,
+                account_id: AccountId::new(1, AccountTrace::Local).unwrap(),
                 owner: GovernanceDetails::Monarchy {
                     monarch: TEST_OWNER.to_string(),
                 },

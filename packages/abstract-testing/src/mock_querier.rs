@@ -392,7 +392,7 @@ mod tests {
             let actual = ACCOUNT_ADDRESSES.query(
                 &wrap_querier(&deps.querier),
                 Addr::unchecked(TEST_VERSION_CONTROL),
-                TEST_ACCOUNT_ID,
+                &TEST_ACCOUNT_ID,
             );
 
             let expected = AccountBase {

@@ -3,7 +3,9 @@ use crate::{
     response::MsgInstantiateContractResponse, state::*,
 };
 use abstract_core::{
-    objects::module::Module, version_control::ModulesResponse, AbstractResult, ACCOUNT_FACTORY,
+    objects::{account::AccountTrace, module::Module, AccountId},
+    version_control::ModulesResponse,
+    AbstractResult, ACCOUNT_FACTORY,
 };
 use abstract_macros::abstract_response;
 use abstract_sdk::{
@@ -40,16 +42,35 @@ pub fn execute_create_account(
     name: String,
     description: Option<String>,
     link: Option<String>,
+    origin: AccountTrace,
 ) -> AccountFactoryResult {
     let config = CONFIG.load(deps.storage)?;
+    // load the next account id
+    // if it doesn't exist then it's the first account so set it to 0.
+    let next_sequence = ACCOUNT_SEQUENCES
+        .may_load(deps.storage, &origin)?
+        .unwrap_or(0);
+    let account_id = AccountId::new(next_sequence, origin.clone())?;
 
     // Query version_control for code_id of Manager contract
     let module: Module = query_module(&deps.querier, &config.version_control_contract, MANAGER)?;
 
+    // Save account id to context for later use
+    CONTEXT.save(
+        deps.storage,
+        &Context {
+            account_id: account_id.clone(),
+            account_manager_address: None,
+        },
+    )?;
+
     if let ModuleReference::AccountBase(manager_code_id) = module.reference {
         Ok(AccountFactoryResponse::new(
             "create_account",
-            vec![("account_id", &config.next_account_id.to_string())],
+            vec![
+                ("account_sequence", &next_sequence.to_string()),
+                ("origin", &origin.to_string()),
+            ],
         )
         // Create manager
         .add_submessage(SubMsg {
@@ -60,9 +81,10 @@ pub fn execute_create_account(
                 funds: vec![],
                 // Currently set admin to self, update later when we know the contract's address.
                 admin: Some(env.contract.address.to_string()),
-                label: format!("Abstract Account: {}", config.next_account_id),
+                // guarantee uniqueness of label
+                label: format!("Abstract Account: {}", account_id),
                 msg: to_binary(&ManagerInstantiateMsg {
-                    account_id: config.next_account_id,
+                    account_id,
                     version_control_address: config.version_control_contract.to_string(),
                     module_factory_address: config.module_factory_address.to_string(),
                     name,
@@ -82,7 +104,7 @@ pub fn execute_create_account(
     }
 }
 
-/// instantiates the Treasury contract of the newly created DAO
+/// instantiates the proxy contract of the newly created Account
 pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> AccountFactoryResult {
     let config = CONFIG.load(deps.storage)?;
 
@@ -93,12 +115,11 @@ pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> Accoun
         })?;
     let manager_address = res.get_contract_address();
 
-    CONTEXT.save(
-        deps.storage,
-        &Context {
-            account_manager_address: deps.api.addr_validate(manager_address)?,
-        },
-    )?;
+    // Add manager address to context
+    let context = CONTEXT.update(deps.storage, |mut ctx| {
+        ctx.account_manager_address = Some(deps.api.addr_validate(manager_address)?);
+        Result::<_, StdError>::Ok(ctx)
+    })?;
 
     // Query version_control for code_id of proxy
     let module: Module = query_module(&deps.querier, &config.version_control_contract, PROXY)?;
@@ -116,9 +137,9 @@ pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> Accoun
                 code_id: proxy_code_id,
                 funds: vec![],
                 admin: Some(manager_address.to_string()),
-                label: format!("Proxy of Account: {}", config.next_account_id),
+                label: format!("Proxy of Account: {}", context.account_id),
                 msg: to_binary(&ProxyInstantiateMsg {
-                    account_id: config.next_account_id,
+                    account_id: context.account_id,
                     ans_host_address: config.ans_host_contract.to_string(),
                 })?,
             }
@@ -154,8 +175,11 @@ pub fn after_proxy_add_to_manager_and_set_admin(
     deps: DepsMut,
     result: SubMsgResult,
 ) -> AccountFactoryResult {
-    let mut config = CONFIG.load(deps.storage)?;
+    let config = CONFIG.load(deps.storage)?;
     let context = CONTEXT.load(deps.storage)?;
+    // get manager address
+    let manager = context.account_manager_address.unwrap();
+    let account_id = context.account_id;
 
     let res: MsgInstantiateContractResponse =
         Message::parse_from_bytes(result.unwrap().data.unwrap().as_slice()).map_err(|_| {
@@ -166,7 +190,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
 
     // construct Account base
     let account_base = AccountBase {
-        manager: context.account_manager_address.clone(),
+        manager: manager.clone(),
         proxy: deps.api.addr_validate(proxy_address)?,
     };
 
@@ -175,7 +199,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
         contract_addr: config.version_control_contract.to_string(),
         funds: vec![],
         msg: to_binary(&VCExecuteMsg::AddAccount {
-            account_id: config.next_account_id,
+            account_id: account_id.clone(),
             account_base,
         })?,
     });
@@ -185,7 +209,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
         contract_addr: proxy_address.to_string(),
         funds: vec![],
         msg: to_binary(&ProxyExecMsg::AddModule {
-            module: context.account_manager_address.to_string(),
+            module: manager.to_string(),
         })?,
     });
 
@@ -193,18 +217,21 @@ pub fn after_proxy_add_to_manager_and_set_admin(
         contract_addr: proxy_address.to_string(),
         funds: vec![],
         msg: to_binary(&ProxyExecMsg::SetAdmin {
-            admin: context.account_manager_address.to_string(),
+            admin: manager.to_string(),
         })?,
     });
 
     let set_manager_admin_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::UpdateAdmin {
-        contract_addr: context.account_manager_address.to_string(),
-        admin: context.account_manager_address.to_string(),
+        contract_addr: manager.to_string(),
+        admin: manager.to_string(),
     });
 
-    // Update id sequence
-    config.next_account_id += 1;
-    CONFIG.save(deps.storage, &config)?;
+    // Add 1 to account sequence for this origin
+    ACCOUNT_SEQUENCES.save(
+        deps.storage,
+        account_id.trace(),
+        &account_id.seq().checked_add(1).unwrap(),
+    )?;
 
     Ok(AccountFactoryResponse::new(
         "create_proxy",
@@ -212,7 +239,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
     )
     .add_message(add_account_to_version_control_msg)
     .add_message(wasm_execute(
-        context.account_manager_address.to_string(),
+        manager.to_string(),
         &UpdateModuleAddresses {
             to_add: Some(vec![(PROXY.to_string(), proxy_address.to_string())]),
             to_remove: None,
@@ -225,10 +252,8 @@ pub fn after_proxy_add_to_manager_and_set_admin(
 }
 
 // Only owner can execute it
-#[allow(clippy::too_many_arguments)]
 pub fn execute_update_config(
     deps: DepsMut,
-    _env: Env,
     info: MessageInfo,
     admin: Option<String>,
     ans_host_contract: Option<String>,

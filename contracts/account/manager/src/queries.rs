@@ -7,7 +7,7 @@ use abstract_sdk::core::manager::{
     ModuleVersionsResponse,
 };
 use cosmwasm_std::{
-    to_binary, Addr, Binary, Deps, Env, Order, QueryRequest, StdError, StdResult, Uint64, WasmQuery,
+    to_binary, Addr, Binary, Deps, Env, Order, QueryRequest, StdError, StdResult, WasmQuery,
 };
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Bound;

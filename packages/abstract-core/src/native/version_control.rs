@@ -15,7 +15,7 @@ pub mod state {
     use cw_storage_plus::Map;
 
     use crate::objects::{
-        common_namespace::ADMIN_NAMESPACE, core::AccountId, module::ModuleInfo,
+        account::AccountId, common_namespace::ADMIN_NAMESPACE, module::ModuleInfo,
         module_reference::ModuleReference,
     };
 
@@ -31,7 +31,7 @@ pub mod state {
 }
 
 use crate::objects::{
-    core::AccountId,
+    account::AccountId,
     module::{Module, ModuleInfo},
     module_reference::ModuleReference,
 };

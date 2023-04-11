@@ -4,7 +4,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
-pub const CHAIN_DELIMITER: &str = ">";
+use crate::constants::CHAIN_DELIMITER;
 
 /// May key to retrieve information on an asset
 #[derive(

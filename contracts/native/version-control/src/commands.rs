@@ -365,6 +365,8 @@ mod test {
     }
 
     mod register_os {
+        use abstract_core::objects::account::TEST_ACCOUNT_ID;
+
         use super::*;
 
         #[test]
@@ -377,7 +379,7 @@ mod test {
                 proxy: Addr::unchecked(TEST_PROXY_ADDR),
             };
             let msg = ExecuteMsg::AddAccount {
-                account_id: 0,
+                account_id: TEST_ACCOUNT_ID,
                 account_base: test_core.clone(),
             };
 
@@ -396,7 +398,7 @@ mod test {
             // as factory
             execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg)?;
 
-            let account = ACCOUNT_ADDRESSES.load(&deps.storage, 0)?;
+            let account = ACCOUNT_ADDRESSES.load(&deps.storage, &TEST_ACCOUNT_ID)?;
             assert_that!(&account).is_equal_to(&test_core);
             Ok(())
         }

@@ -1,7 +1,9 @@
 use crate::{addresses::*, mock_ans::MockAnsHost, MockQuerierBuilder};
 use abstract_core::{
     ans_host::state::ASSET_ADDRESSES,
-    objects::{common_namespace::ADMIN_NAMESPACE, core::AccountId, core::ACCOUNT_ID, AssetEntry},
+    objects::{
+        account::AccountId, account::ACCOUNT_ID, common_namespace::ADMIN_NAMESPACE, AssetEntry,
+    },
     version_control::{state::ACCOUNT_ADDRESSES, AccountBase},
 };
 use cosmwasm_std::{testing::MockQuerier, Addr};

@@ -3,7 +3,8 @@
 use crate::{features::AbstractRegistryAccess, AbstractSdkError, AbstractSdkResult};
 use abstract_core::{
     manager::state::ACCOUNT_ID,
-    version_control::{state::ACCOUNT_ADDRESSES, AccountBase}, objects::AccountId,
+    objects::AccountId,
+    version_control::{state::ACCOUNT_ADDRESSES, AccountBase},
 };
 use cosmwasm_std::{Addr, Deps};
 
@@ -111,9 +112,9 @@ mod test {
                 // Setup the addresses as if the Account was registered
                 .account("not_manager", "not_proxy", TEST_ACCOUNT_ID)
                 // update the proxy to be proxy of a different Account
-                .account(TEST_MANAGER, TEST_PROXY, 1)
+                .account(TEST_MANAGER, TEST_PROXY, TEST_ACCOUNT_ID)
                 .builder()
-                .with_contract_item("not_proxy", ACCOUNT_ID, &1)
+                .with_contract_item("not_proxy", ACCOUNT_ID, &TEST_ACCOUNT_ID)
                 .build();
 
             let binding = MockBinding;
@@ -134,7 +135,7 @@ mod test {
 
             deps.querier = MockQuerierBuilder::default()
                 .with_contract_item(TEST_PROXY, ACCOUNT_ID, &TEST_ACCOUNT_ID)
-                .with_contract_map_key(TEST_VERSION_CONTROL, ACCOUNT_ADDRESSES, TEST_ACCOUNT_ID)
+                .with_contract_map_key(TEST_VERSION_CONTROL, ACCOUNT_ADDRESSES, &TEST_ACCOUNT_ID)
                 .build();
 
             let binding = MockBinding;
@@ -146,7 +147,7 @@ mod test {
             assert_that!(res)
                 .is_err()
                 .matches(|e| matches!(e, AbstractSdkError::UnknownAccountId { .. }))
-                .matches(|e| e.to_string().contains("Unknown Account id 0"));
+                .matches(|e| e.to_string().contains("Unknown Account id"));
         }
 
         #[test]
@@ -158,7 +159,7 @@ mod test {
                 .with_contract_map_entry(
                     TEST_VERSION_CONTROL,
                     ACCOUNT_ADDRESSES,
-                    (TEST_ACCOUNT_ID, test_core()),
+                    (&TEST_ACCOUNT_ID, test_core()),
                 )
                 .build();
 
@@ -181,7 +182,7 @@ mod test {
                     TEST_VERSION_CONTROL,
                     ACCOUNT_ADDRESSES,
                     (
-                        TEST_ACCOUNT_ID,
+                        &TEST_ACCOUNT_ID,
                         AccountBase {
                             manager: Addr::unchecked(TEST_MANAGER),
                             proxy: Addr::unchecked("not_poxry"),
@@ -204,6 +205,8 @@ mod test {
     }
 
     mod assert_manager {
+        use abstract_core::objects::account::TEST_ACCOUNT_ID;
+
         use super::*;
 
         #[test]
@@ -213,9 +216,9 @@ mod test {
                 // Setup the addresses as if the Account was registered
                 .account("not_manager", "not_proxy", TEST_ACCOUNT_ID)
                 // update the proxy to be proxy of a different Account
-                .account(TEST_MANAGER, TEST_PROXY, 1)
+                .account(TEST_MANAGER, TEST_PROXY, TEST_ACCOUNT_ID)
                 .builder()
-                .with_contract_item("not_manager", ACCOUNT_ID, &1)
+                .with_contract_item("not_manager", ACCOUNT_ID, &TEST_ACCOUNT_ID)
                 .build();
 
             let binding = MockBinding;
@@ -236,7 +239,7 @@ mod test {
 
             deps.querier = MockQuerierBuilder::default()
                 .with_contract_item(TEST_MANAGER, ACCOUNT_ID, &TEST_ACCOUNT_ID)
-                .with_contract_map_key(TEST_VERSION_CONTROL, ACCOUNT_ADDRESSES, TEST_ACCOUNT_ID)
+                .with_contract_map_key(TEST_VERSION_CONTROL, ACCOUNT_ADDRESSES, &TEST_ACCOUNT_ID)
                 .build();
 
             let binding = MockBinding;
@@ -264,7 +267,7 @@ mod test {
                 .with_contract_map_entry(
                     TEST_VERSION_CONTROL,
                     ACCOUNT_ADDRESSES,
-                    (TEST_ACCOUNT_ID, test_core()),
+                    (&TEST_ACCOUNT_ID, test_core()),
                 )
                 .build();
 
@@ -287,7 +290,7 @@ mod test {
                     TEST_VERSION_CONTROL,
                     ACCOUNT_ADDRESSES,
                     (
-                        TEST_ACCOUNT_ID,
+                        &TEST_ACCOUNT_ID,
                         AccountBase {
                             manager: Addr::unchecked("not_manager"),
                             proxy: Addr::unchecked(TEST_PROXY),

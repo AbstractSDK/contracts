@@ -14,7 +14,11 @@ pub mod state {
 
     use serde::{Deserialize, Serialize};
 
-    use crate::objects::{common_namespace::ADMIN_NAMESPACE, core::{AccountOrigin}};
+    use crate::objects::{
+        account::{AccountSequence, AccountTrace},
+        common_namespace::ADMIN_NAMESPACE,
+        AccountId,
+    };
 
     #[cosmwasm_schema::cw_serde]
     pub struct Config {
@@ -25,17 +29,21 @@ pub mod state {
 
     #[derive(Serialize, Deserialize, Clone, Debug)]
     pub struct Context {
-        pub account_manager_address: Addr,
+        pub account_manager_address: Option<Addr>,
+        pub account_id: AccountId,
     }
 
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
     pub const CONFIG: Item<Config> = Item::new("\u{0}{5}config");
     pub const CONTEXT: Item<Context> = Item::new("\u{0}{6}context");
     /// Next account id for a specific origin.
-    pub const ACCOUNT_SEQUENCES:Map<AccountOrigin, u32> = Map::new("acc_seq");
+    pub const ACCOUNT_SEQUENCES: Map<&AccountTrace, AccountSequence> = Map::new("acc_seq");
 }
 
-use crate::objects::{core::{AccountId, AccountOrigin}, gov_type::GovernanceDetails};
+use crate::objects::{
+    account::{AccountSequence, AccountTrace},
+    gov_type::GovernanceDetails,
+};
 use cosmwasm_schema::QueryResponses;
 
 /// Msg used on instantiation
@@ -72,8 +80,8 @@ pub enum ExecuteMsg {
         name: String,
         description: Option<String>,
         link: Option<String>,
-        /// Creator chain of the account. AccountOrigin::Local if not specified. 
-        origin: Option<AccountOrigin>,
+        /// Creator chain of the account. AccountTrace::Local if not specified.
+        origin: Option<AccountTrace>,
     },
 }
 
@@ -83,18 +91,41 @@ pub enum ExecuteMsg {
 pub enum QueryMsg {
     #[returns(ConfigResponse)]
     Config {},
+    /// Retrieve the sequence numbers for new accounts from different origins.
+    #[returns(SequencesResponse)]
+    Sequences {
+        filter: Option<AccountTraceFilter>,
+        start_after: Option<AccountTrace>,
+        limit: Option<u8>,
+    },
+    #[returns(SequenceResponse)]
+    Sequence { origin: AccountTrace },
 }
 
-// We define a custom struct for each query response
+// Response for Config query
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     pub owner: String,
     pub ans_host_contract: String,
     pub version_control_contract: String,
     pub module_factory_address: String,
-    pub next_account_id: AccountId,
+}
+
+/// Sequence numbers for each origin.
+#[cosmwasm_schema::cw_serde]
+pub struct SequencesResponse {
+    pub sequences: Vec<(AccountTrace, AccountSequence)>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct SequenceResponse {
+    pub sequence: AccountSequence,
 }
 
 /// We currently take no arguments for migrations
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
+
+/// UNUSED - stub for future use
+#[cosmwasm_schema::cw_serde]
+pub struct AccountTraceFilter {}

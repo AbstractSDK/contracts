@@ -4,7 +4,7 @@ use abstract_core::{
         AccountInfo, AccountResponse, ConfigResponse, LatestQueryResponse, ListAccountsResponse,
         ListChannelsResponse,
     },
-    objects::{AccountId, core::AccountOrigin},
+    objects::AccountId,
 };
 use cosmwasm_std::{Deps, Order, StdResult};
 

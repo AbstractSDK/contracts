@@ -1,5 +1,5 @@
-use crate::{commands, error::AccountFactoryError, state::*};
-use abstract_core::objects::core::AccountOrigin;
+use crate::{commands, error::AccountFactoryError, queries, state::*};
+use abstract_core::objects::account::AccountTrace;
 use abstract_sdk::core::{
     account_factory::*,
     objects::module_version::{migrate_module_data, set_module_data},
@@ -58,7 +58,6 @@ pub fn execute(
             module_factory_address,
         } => commands::execute_update_config(
             deps,
-            env,
             info,
             admin,
             ans_host_contract,
@@ -73,7 +72,7 @@ pub fn execute(
             origin,
         } => {
             let gov_details = governance.verify(deps.api)?;
-            let origin = origin.unwrap_or(AccountOrigin::Local);
+            let origin = origin.unwrap_or(AccountTrace::Local);
             origin.verify()?;
             commands::execute_create_account(
                 deps,
@@ -107,22 +106,14 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> AccountFactoryResult {
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::Config {} => to_binary(&query_config(deps)?),
+        QueryMsg::Config {} => to_binary(&queries::query_config(deps)?),
+        QueryMsg::Sequences {
+            filter: _,
+            start_after,
+            limit,
+        } => to_binary(&queries::query_sequences(deps, start_after, limit)?),
+        QueryMsg::Sequence { origin } => to_binary(&queries::query_sequence(deps, origin)?),
     }
-}
-
-pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
-    let state: Config = CONFIG.load(deps.storage)?;
-    let admin = ADMIN.get(deps)?.unwrap();
-    let resp = ConfigResponse {
-        owner: admin.into(),
-        version_control_contract: state.version_control_contract.into(),
-        ans_host_contract: state.ans_host_contract.into(),
-        module_factory_address: state.module_factory_address.into(),
-        next_account_id: state.next_account_id,
-    };
-
-    Ok(resp)
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
