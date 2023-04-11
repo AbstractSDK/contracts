@@ -26,9 +26,9 @@ pub const PENDING: Item<(String, AccountId)> = Item::new("pending");
 /// Store the processing packet information for processing in Reply along with the channel id it came from
 pub const PROCESSING_PACKET: Item<(PacketMsg, String)> = Item::new("processing");
 /// (channel-id,account_id) -> local_proxy_addr
-pub const ACCOUNTS: Map<(&str, AccountId), Addr> = Map::new("accounts");
+pub const ACCOUNTS: Map<(&str, &AccountId), Addr> = Map::new("accounts");
 /// (channel-id,account_id) -> client_proxy_addr
-pub const CLIENT_PROXY: Map<(&str, AccountId), String> = Map::new("client_proxy");
+pub const CLIENT_PROXY: Map<(&str, &AccountId), String> = Map::new("client_proxy");
 /// List of closed channels
 /// Allows for fund recovery
 pub const CLOSED_CHANNELS: Item<Vec<String>> = Item::new("closed");

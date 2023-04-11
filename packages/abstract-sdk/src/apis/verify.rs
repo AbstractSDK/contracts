@@ -3,7 +3,7 @@
 use crate::{features::AbstractRegistryAccess, AbstractSdkError, AbstractSdkResult};
 use abstract_core::{
     manager::state::ACCOUNT_ID,
-    version_control::{state::ACCOUNT_ADDRESSES, AccountBase},
+    version_control::{state::ACCOUNT_ADDRESSES, AccountBase}, objects::AccountId,
 };
 use cosmwasm_std::{Addr, Deps};
 
@@ -27,7 +27,7 @@ impl<'a, T: OsVerification> OsRegistry<'a, T> {
     /// Verify if the provided manager address is indeed a user.
     pub fn assert_manager(&self, maybe_manager: &Addr) -> AbstractSdkResult<AccountBase> {
         let account_id = self.account_id(maybe_manager)?;
-        let account_base = self.account_base(account_id)?;
+        let account_base = self.account_base(&account_id)?;
         if &account_base.manager != maybe_manager {
             Err(AbstractSdkError::NotManager(
                 maybe_manager.clone(),
@@ -41,7 +41,7 @@ impl<'a, T: OsVerification> OsRegistry<'a, T> {
     /// Verify if the provided proxy address is indeed a user.
     pub fn assert_proxy(&self, maybe_proxy: &Addr) -> AbstractSdkResult<AccountBase> {
         let account_id = self.account_id(maybe_proxy)?;
-        let account_base = self.account_base(account_id)?;
+        let account_base = self.account_base(&account_id)?;
         if &account_base.proxy != maybe_proxy {
             Err(AbstractSdkError::NotProxy(maybe_proxy.clone(), account_id))
         } else {
@@ -49,17 +49,17 @@ impl<'a, T: OsVerification> OsRegistry<'a, T> {
         }
     }
 
-    pub fn proxy_address(&self, account_id: u32) -> AbstractSdkResult<Addr> {
-        self.account_base(account_id)
+    pub fn proxy_address(&self, account_id: &AccountId) -> AbstractSdkResult<Addr> {
+        self.account_base(&account_id)
             .map(|account_base| account_base.proxy)
     }
 
-    pub fn manager_address(&self, account_id: u32) -> AbstractSdkResult<Addr> {
-        self.account_base(account_id)
+    pub fn manager_address(&self, account_id: &AccountId) -> AbstractSdkResult<Addr> {
+        self.account_base(&account_id)
             .map(|account_base| account_base.manager)
     }
 
-    pub fn account_base(&self, account_id: u32) -> AbstractSdkResult<AccountBase> {
+    pub fn account_base(&self, account_id: &AccountId) -> AbstractSdkResult<AccountBase> {
         let maybe_account = ACCOUNT_ADDRESSES.query(
             &self.deps.querier,
             self.base.abstract_registry(self.deps)?,
@@ -67,14 +67,14 @@ impl<'a, T: OsVerification> OsRegistry<'a, T> {
         )?;
         match maybe_account {
             None => Err(AbstractSdkError::UnknownAccountId {
-                account_id,
+                account_id: account_id.clone(),
                 version_control_addr: self.base.abstract_registry(self.deps)?,
             }),
             Some(account_base) => Ok(account_base),
         }
     }
 
-    fn account_id(&self, maybe_core_contract_addr: &Addr) -> AbstractSdkResult<u32> {
+    fn account_id(&self, maybe_core_contract_addr: &Addr) -> AbstractSdkResult<AccountId> {
         ACCOUNT_ID
             .query(&self.deps.querier, maybe_core_contract_addr.clone())
             .map_err(|_| AbstractSdkError::FailedToQueryAccountId {

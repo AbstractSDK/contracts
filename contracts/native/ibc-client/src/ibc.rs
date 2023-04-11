@@ -193,7 +193,7 @@ fn acknowledge_query(
     // store IBC response for later querying from the smart contract??
     LATEST_QUERIES.save(
         deps.storage,
-        (&channel_id, account_id),
+        (&channel_id, &account_id),
         &LatestQueryResponse {
             last_update_time: env.block.time,
             response: msg,
@@ -246,7 +246,7 @@ fn acknowledge_register(
         }
     };
 
-    ACCOUNTS.update(deps.storage, (&channel_id, account_id), |acct| {
+    ACCOUNTS.update(deps.storage, (&channel_id, &account_id), |acct| {
         match acct {
             Some(mut acct) => {
                 // set the account the first time
@@ -280,7 +280,7 @@ fn acknowledge_balances(
         }
     };
 
-    ACCOUNTS.update(deps.storage, (&channel_id, account_id), |acct| match acct {
+    ACCOUNTS.update(deps.storage, (&channel_id, &account_id), |acct| match acct {
         Some(acct) => {
             if let Some(old) = acct.remote_addr {
                 if old != account {

@@ -57,7 +57,7 @@ impl<
             BaseQueryMsg::Account {
                 client_chain,
                 account_id,
-            } => to_binary(&query_account(deps, client_chain, account_id)?),
+            } => to_binary(&query_account(deps, client_chain, &account_id)?),
             BaseQueryMsg::ListAccounts {} => to_binary(&query_list_accounts(deps)?),
         }
     }
@@ -72,7 +72,7 @@ impl<
 pub fn query_account(
     deps: Deps,
     channel_id: String,
-    account_id: AccountId,
+    account_id: &AccountId,
 ) -> StdResult<AccountResponse> {
     let account = ACCOUNTS.may_load(deps.storage, (&channel_id, account_id))?;
     Ok(AccountResponse {

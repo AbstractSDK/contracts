@@ -37,7 +37,7 @@ pub fn handle_account_info_query(deps: Deps) -> StdResult<Binary> {
 }
 
 pub fn handle_config_query(deps: Deps) -> StdResult<Binary> {
-    let account_id = Uint64::from(ACCOUNT_ID.load(deps.storage)?);
+    let account_id = ACCOUNT_ID.load(deps.storage)?;
     let owner = OWNER
         .get(deps)?
         .unwrap_or_else(|| Addr::unchecked(""))

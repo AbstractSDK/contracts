@@ -2,6 +2,7 @@ use crate::{
     state::{ContractError, ACCOUNTS, CLIENT_PROXY, PENDING, PROCESSING_PACKET, RESULTS},
     Host, HostError,
 };
+use abstract_core::objects::AccountId;
 use abstract_sdk::{
     base::{Handler, ReplyEndpoint},
     core::{
@@ -47,8 +48,8 @@ impl<
                 account_id,
                 ..
             } = packet;
-            let client_proxy_addr = CLIENT_PROXY.load(deps.storage, (&channel, account_id))?;
-            let local_proxy_addr = ACCOUNTS.load(deps.storage, (&channel, account_id))?;
+            let client_proxy_addr = CLIENT_PROXY.load(deps.storage, (&channel, &account_id))?;
+            let local_proxy_addr = ACCOUNTS.load(deps.storage, (&channel, &account_id))?;
             self.proxy_address = Some(local_proxy_addr);
             // send everything back to client
             let send_back_msg =
@@ -117,7 +118,7 @@ pub fn reply_init_callback<
     reply: Reply,
 ) -> Result<Response, Error> {
     // we use storage to pass info from the caller to the reply
-    let (channel, account_id) = PENDING.load(deps.storage)?;
+    let (channel, account_id): (String, AccountId) = PENDING.load(deps.storage)?;
     PENDING.remove(deps.storage);
 
     // parse contract info from data
@@ -127,12 +128,12 @@ pub fn reply_init_callback<
     let contract_addr = deps.api.addr_validate(&raw_addr)?;
 
     if ACCOUNTS
-        .may_load(deps.storage, (&channel, account_id))?
+        .may_load(deps.storage, (&channel, &account_id))?
         .is_some()
     {
         return Err(HostError::ChannelAlreadyRegistered.into());
     }
-    ACCOUNTS.save(deps.storage, (&channel, account_id), &contract_addr)?;
+    ACCOUNTS.save(deps.storage, (&channel, &account_id), &contract_addr)?;
     let data = StdAck::success(&RegisterResponse {
         account: contract_addr.into_string(),
     });

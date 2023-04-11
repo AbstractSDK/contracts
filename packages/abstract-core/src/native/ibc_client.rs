@@ -40,9 +40,9 @@ pub mod state {
     pub const CHANNELS: Map<&str, String> = Map::new("channels");
     pub const CONFIG: Item<Config> = Item::new("config");
     /// (channel-id,account_id) -> remote_addr
-    pub const ACCOUNTS: Map<(&str, AccountId), AccountData> = Map::new("accounts");
+    pub const ACCOUNTS: Map<(&str, &AccountId), AccountData> = Map::new("accounts");
     /// Todo: see if we can remove this
-    pub const LATEST_QUERIES: Map<(&str, AccountId), LatestQueryResponse> = Map::new("queries");
+    pub const LATEST_QUERIES: Map<(&str, &AccountId), LatestQueryResponse> = Map::new("queries");
     pub const ANS_HOST: Item<AnsHost> = Item::new(ANS_HOST_KEY);
 }
 

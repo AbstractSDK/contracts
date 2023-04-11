@@ -18,7 +18,7 @@ const DEFAULT_LIMIT: u8 = 10;
 const MAX_LIMIT: u8 = 20;
 
 pub fn handle_account_address_query(deps: Deps, account_id: AccountId) -> StdResult<Binary> {
-    let account_address = ACCOUNT_ADDRESSES.load(deps.storage, account_id);
+    let account_address = ACCOUNT_ADDRESSES.load(deps.storage, &account_id);
     match account_address {
         Err(_) => Err(StdError::generic_err(
             VCError::MissingAccountId { id: account_id }.to_string(),

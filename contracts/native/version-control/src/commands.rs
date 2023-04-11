@@ -22,7 +22,7 @@ pub fn add_account(
 ) -> VCResult {
     // Only Factory can add new Account
     FACTORY.assert_admin(deps.as_ref(), &msg_info.sender)?;
-    ACCOUNT_ADDRESSES.save(deps.storage, account_id, &account_base)?;
+    ACCOUNT_ADDRESSES.save(deps.storage, &account_id, &account_base)?;
 
     Ok(VcResponse::new(
         "add_os",

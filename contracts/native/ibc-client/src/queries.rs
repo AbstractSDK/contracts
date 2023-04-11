@@ -14,7 +14,7 @@ pub fn query_latest_ibc_query_result(
     account_id: AccountId,
 ) -> StdResult<LatestQueryResponse> {
     let channel = CHANNELS.load(deps.storage, &host_chain)?;
-    LATEST_QUERIES.load(deps.storage, (&channel, account_id))
+    LATEST_QUERIES.load(deps.storage, (&channel, &account_id))
 }
 
 // TODO: paging
@@ -55,6 +55,6 @@ pub fn query_account(
     account_id: AccountId,
 ) -> StdResult<AccountResponse> {
     let channel = CHANNELS.load(deps.storage, &host_chain)?;
-    let account = ACCOUNTS.load(deps.storage, (&channel, account_id))?;
+    let account = ACCOUNTS.load(deps.storage, (&channel, &account_id))?;
     Ok(account.into())
 }

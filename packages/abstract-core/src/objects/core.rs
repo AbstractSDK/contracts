@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use cosmwasm_std::{StdError, StdResult};
 use cw_storage_plus::{Item, Key, KeyDeserialize, Prefixer, PrimaryKey};
 
@@ -22,6 +24,12 @@ pub struct AccountId {
     /// Unique identifier for the account
     /// Account factory sequence number for the origin chain
     id: u32,
+}
+
+impl Display for AccountId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}-{}", self.origin, self.id)
+    }
 }
 
 impl AccountId {
@@ -121,11 +129,11 @@ impl AccountOrigin {
     }
 }
 
-impl ToString for AccountOrigin {
-    fn to_string(&self) -> String {
+impl Display for AccountOrigin {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            AccountOrigin::Local => LOCAL.into(),
-            AccountOrigin::Remote(chain_id) => chain_id.clone(),
+            AccountOrigin::Local => write!(f, "{}", LOCAL),
+            AccountOrigin::Remote(chain_id) => write!(f, "{}", chain_id),
         }
     }
 }

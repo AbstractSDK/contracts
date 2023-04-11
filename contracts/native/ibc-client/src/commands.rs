@@ -140,7 +140,7 @@ pub fn execute_register_os(
 
     // save a default value to account
     let account = AccountData::default();
-    ACCOUNTS.save(deps.storage, (&channel_id, account_id), &account)?;
+    ACCOUNTS.save(deps.storage, (&channel_id, &account_id), &account)?;
 
     let msg = IbcMsg::SendPacket {
         channel_id,
@@ -172,7 +172,7 @@ pub fn execute_send_funds(
     // get channel used to communicate to host chain
     let channel = CHANNELS.load(deps.storage, &host_chain)?;
     // load remote account
-    let data = ACCOUNTS.load(deps.storage, (&channel, account_id))?;
+    let data = ACCOUNTS.load(deps.storage, (&channel, &account_id))?;
 
     let remote_addr = match data.remote_addr {
         Some(addr) => addr,
@@ -262,7 +262,7 @@ mod test {
 
     mod update_config {
         use super::*;
-        use abstract_core::{abstract_ica::StdAck, ibc_client::state::Config};
+        use abstract_core::{abstract_ica::StdAck, ibc_client::state::Config, objects::core::TEST_ACCOUNT_ID};
         use abstract_testing::prelude::TEST_VERSION_CONTROL;
         use cosmwasm_std::{Empty, Timestamp};
 
@@ -329,7 +329,7 @@ mod test {
 
             ACCOUNTS.save(
                 deps.as_mut().storage,
-                ("channel", 5u32),
+                ("channel", &TEST_ACCOUNT_ID),
                 &AccountData {
                     last_update_time: Timestamp::from_nanos(5u64),
                     remote_addr: None,
@@ -339,7 +339,7 @@ mod test {
 
             LATEST_QUERIES.save(
                 deps.as_mut().storage,
-                ("channel", 5u32),
+                ("channel", &TEST_ACCOUNT_ID),
                 &LatestQueryResponse {
                     last_update_time: Timestamp::from_nanos(5u64),
                     response: StdAck::Result(to_binary(&Empty {})?),
