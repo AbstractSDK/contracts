@@ -1,10 +1,12 @@
-use crate::{
-    contract::AccountFactoryResult, error::AccountFactoryError,
-    response::MsgInstantiateContractResponse, state::*,
+use cosmwasm_std::{
+    to_binary, wasm_execute, Addr, CosmosMsg, DepsMut, Empty, Env, MessageInfo, QuerierWrapper,
+    ReplyOn, StdError, SubMsg, SubMsgResult, WasmMsg,
 };
+use protobuf::Message;
+
+use abstract_sdk::core::{MANAGER, PROXY};
 use abstract_sdk::{
     core::{
-        account_factory::ExecuteMsg,
         manager::{ExecuteMsg::UpdateModuleAddresses, InstantiateMsg as ManagerInstantiateMsg},
         objects::{
             gov_type::GovernanceDetails, module::Module, module::ModuleInfo,
@@ -18,54 +20,21 @@ use abstract_sdk::{
     },
     cw_helpers::cosmwasm_std::wasm_smart_query,
 };
-use cosmwasm_std::{
-    from_binary, to_binary, wasm_execute, Addr, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
-    QuerierWrapper, ReplyOn, StdError, SubMsg, SubMsgResult, WasmMsg,
+
+use crate::contract::AccountFactoryResponse;
+use crate::{
+    contract::AccountFactoryResult, error::AccountFactoryError,
+    response::MsgInstantiateContractResponse, state::*,
 };
-use cw20::Cw20ReceiveMsg;
-use cw_asset::{Asset, AssetInfo};
-use protobuf::Message;
 
 pub const CREATE_ACCOUNT_MANAGER_MSG_ID: u64 = 1u64;
 pub const CREATE_ACCOUNT_PROXY_MSG_ID: u64 = 2u64;
-
-use crate::contract::AccountFactoryResponse;
-use abstract_sdk::core::{MANAGER, PROXY};
-
-pub fn receive_cw20(
-    deps: DepsMut,
-    env: Env,
-    msg_info: MessageInfo,
-    cw20_msg: Cw20ReceiveMsg,
-) -> AccountFactoryResult {
-    match from_binary(&cw20_msg.msg)? {
-        ExecuteMsg::CreateAccount {
-            governance,
-            description,
-            link,
-            name,
-        } => {
-            // Construct deposit asset
-            let asset = Asset {
-                info: AssetInfo::Cw20(msg_info.sender),
-                amount: cw20_msg.amount,
-            };
-            // verify input
-            let gov_details = governance.verify(deps.api)?;
-            execute_create_account(deps, env, gov_details, Some(asset), name, description, link)
-        }
-        _ => Err(AccountFactoryError::Std(StdError::generic_err(
-            "unknown send msg hook",
-        ))),
-    }
-}
 
 /// Function that starts the creation of the Account
 pub fn execute_create_account(
     deps: DepsMut,
     env: Env,
     governance: GovernanceDetails<Addr>,
-    _asset: Option<Asset>,
     name: String,
     description: Option<String>,
     link: Option<String>,
