@@ -765,7 +765,7 @@ mod test {
 
             let msg = ExecuteMsg::SetOwner {
                 owner: GovernanceDetails::Monarchy {
-                    monarch: new_gov.to_string(),
+                    monarch: new_gov,
                 },
             };
 
