@@ -13,7 +13,7 @@ pub type ModuleId<'a> = &'a str;
 #[cosmwasm_schema::cw_serde]
 pub enum ModuleStatus {
     /// Modules in use
-    IN_USE,
+    REGISTERED,
     /// Pending modules
     PENDING,
     /// Yanked modules

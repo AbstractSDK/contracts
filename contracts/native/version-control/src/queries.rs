@@ -88,7 +88,7 @@ pub fn handle_module_list_query(
     } = filter.unwrap_or_default();
 
     let mod_lib = match status {
-        Some(ModuleStatus::IN_USE) => &MODULE_LIBRARY,
+        Some(ModuleStatus::REGISTERED) => &MODULE_LIBRARY,
         Some(ModuleStatus::PENDING) => &PENDING_MODULES,
         Some(ModuleStatus::YANKED) => &YANKED_MODULES,
         None => &MODULE_LIBRARY,
