@@ -379,6 +379,38 @@ fn upgrade_manager_last() -> AResult {
     Ok(())
 }
 
+#[test]
+fn no_duplicate_migrations() -> AResult {
+    let sender = Addr::unchecked(common::OWNER);
+    let (_state, chain) = instantiate_default_mock_env(&sender)?;
+    let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
+    deploy_modules(&chain);
+    let account = create_default_account(&abstr.account_factory)?;
+    let AbstractAccount { manager, proxy: _ } = &account;
+
+    // Install api 1
+    let api1 = install_module_version(manager, &abstr, api_1::MOCK_API_ID, V1)?;
+
+    account.expect_modules(vec![api1])?;
+
+    // Upgrade all modules, including the manager module
+    let res = manager.upgrade(vec![
+        (ModuleInfo::from_id_latest(api_1::MOCK_API_ID)?, None),
+        (ModuleInfo::from_id_latest(api_1::MOCK_API_ID)?, None),
+    ]);
+
+    assert_that!(res).is_err();
+
+    assert_that!(res.unwrap_err().root().to_string()).is_equal_to(
+        ManagerError::DuplicateModuleMigration {
+            module_id: api_1::MOCK_API_ID.to_string(),
+        }
+        .to_string(),
+    );
+
+    Ok(())
+}
+
 // TODO:
 // - api-api dependencies
 // - app-api dependencies

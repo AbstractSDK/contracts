@@ -1587,4 +1587,6 @@ mod test {
             Ok(())
         }
     }
+
+    // upgrade_modules tests are in the integration tests `upgrades`
 }
