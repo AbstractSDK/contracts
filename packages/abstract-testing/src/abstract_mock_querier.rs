@@ -1,7 +1,7 @@
 use crate::{addresses::*, mock_ans::MockAnsHost, MockQuerierBuilder};
 use abstract_core::{
     ans_host::state::ASSET_ADDRESSES,
-    objects::{common_namespace::ADMIN_NAMESPACE, core::ACCOUNT_ID, AssetEntry},
+    objects::{common_namespace::ADMIN_NAMESPACE, core::AccountId, core::ACCOUNT_ID, AssetEntry},
     version_control::{state::ACCOUNT_ADDRESSES, AccountBase},
 };
 use cosmwasm_std::{testing::MockQuerier, Addr};
@@ -29,7 +29,7 @@ impl Default for AbstractMockQuerierBuilder {
 
 impl AbstractMockQuerierBuilder {
     /// Mock the existence of an Account by setting the Account id for the proxy and manager along with registering the account to version control.
-    pub fn account(mut self, manager: &str, proxy: &str, account_id: u32) -> Self {
+    pub fn account(mut self, manager: &str, proxy: &str, account_id: AccountId) -> Self {
         self.builder = self
             .builder
             .with_contract_item(proxy, ACCOUNT_ID, &account_id)
@@ -43,7 +43,7 @@ impl AbstractMockQuerierBuilder {
                 self.version_control,
                 ACCOUNT_ADDRESSES,
                 (
-                    account_id,
+                    &account_id,
                     AccountBase {
                         manager: Addr::unchecked(manager),
                         proxy: Addr::unchecked(proxy),

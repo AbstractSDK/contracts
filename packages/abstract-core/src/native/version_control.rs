@@ -27,7 +27,7 @@ pub mod state {
     // We can iterate over the map giving just the prefix to get all the versions
     pub const MODULE_LIBRARY: Map<&ModuleInfo, ModuleReference> = Map::new("module_lib");
     /// Maps Account ID to the address of its core contracts
-    pub const ACCOUNT_ADDRESSES: Map<AccountId, AccountBase> = Map::new("account");
+    pub const ACCOUNT_ADDRESSES: Map<&AccountId, AccountBase> = Map::new("account");
 }
 
 use crate::objects::{
