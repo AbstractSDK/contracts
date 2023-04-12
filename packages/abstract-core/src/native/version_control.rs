@@ -43,7 +43,7 @@ pub mod state {
     pub const ACCOUNT_ADDRESSES: Map<AccountId, AccountBase> = Map::new("account");
 }
 
-// Sub Indexes
+/// Sub indexes for namespaces.
 pub struct NamespaceIndexes<'a> {
     pub account_id: MultiIndex<'a, AccountId, AccountId, &'a Namespace>,
 }
@@ -55,7 +55,7 @@ impl<'a> IndexList<AccountId> for NamespaceIndexes<'a> {
     }
 }
 
-// Primary Index
+/// Primary index for namespaces.
 pub fn namespaces_info<'a>() -> IndexedMap<'a, &'a Namespace, AccountId, NamespaceIndexes<'a>> {
     let indexes = NamespaceIndexes {
         account_id: MultiIndex::new(|_pk, d| *d, "namespace", "namespace_account"),
