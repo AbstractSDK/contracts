@@ -127,7 +127,7 @@ pub fn remove_module(
     // if the caller is a namespace owner
     if !cw_ownable::is_owner(deps.storage, &msg_info.sender)? {
         // if the module wants to be removed, it must be yanked. Only the admin can remove a module
-        if yank == false {
+        if !yank {
             return Err(VCError::OnlyYankAllowed);
         }
         // validate the caller is the owner of the namespace
