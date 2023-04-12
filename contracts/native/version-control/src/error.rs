@@ -55,6 +55,9 @@ pub enum VCError {
         current
     )]
     DecreaseNamespaceLimit { limit: u32, current: u32 },
+
+    #[error("As namespace owner you can only yank a module, not remove it.")]
+    OnlyYankAllowed,
 }
 
 impl From<cw_semver::Error> for VCError {
