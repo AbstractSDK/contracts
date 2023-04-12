@@ -1,19 +1,14 @@
-use crate::{ApiContract, ApiError};
+use crate::{state::ContractError, ApiContract};
 use abstract_sdk::{
     feature_objects::AnsHost,
     features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification},
-    AbstractSdkError, AbstractSdkResult,
+    AbstractSdkResult,
 };
 use cosmwasm_std::{Addr, Deps, StdError};
 
-impl<
-        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        ReceiveMsg,
-    > AbstractNameService
-    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg>
+impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    AbstractNameService
+    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
     fn ans_host(&self, deps: Deps) -> AbstractSdkResult<AnsHost> {
         Ok(self.base_state.load(deps.storage)?.ans_host)
@@ -21,14 +16,9 @@ impl<
 }
 
 /// Retrieve identifying information about the calling Account
-impl<
-        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        ReceiveMsg,
-    > AccountIdentification
-    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg>
+impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    AccountIdentification
+    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
     fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
         if let Some(target) = &self.target_account {
@@ -59,14 +49,9 @@ impl<
 }
 
 /// Get the version control contract
-impl<
-        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        ReceiveMsg,
-    > AbstractRegistryAccess
-    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg>
+impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    AbstractRegistryAccess
+    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
     fn abstract_registry(&self, deps: Deps) -> AbstractSdkResult<Addr> {
         Ok(self.state(deps.storage)?.version_control)
@@ -128,7 +113,7 @@ mod tests {
     #[test]
     fn custom_exec() {
         let mut deps = mock_dependencies();
-        deps.querier = mocked_os_querier_builder().build();
+        deps.querier = mocked_account_querier_builder().build();
 
         mock_init_custom(deps.as_mut(), featured_api()).unwrap();
 
@@ -146,7 +131,7 @@ mod tests {
     #[test]
     fn targets_not_set() {
         let mut deps = mock_dependencies();
-        deps.querier = mocked_os_querier_builder().build();
+        deps.querier = mocked_account_querier_builder().build();
 
         mock_init(deps.as_mut()).unwrap();
 

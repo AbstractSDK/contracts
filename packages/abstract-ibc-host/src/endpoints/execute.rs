@@ -1,7 +1,7 @@
 use crate::{
     error::HostError,
     host_commands::{receive_query, receive_register, receive_who_am_i},
-    state::{Host, ACCOUNTS, CLIENT_PROXY, CLOSED_CHANNELS, PROCESSING_PACKET},
+    state::{ContractError, Host, ACCOUNTS, CLIENT_PROXY, CLOSED_CHANNELS, PROCESSING_PACKET},
 };
 use abstract_sdk::{
     base::{ExecuteEndpoint, Handler},
@@ -19,14 +19,23 @@ type HostResult = Result<Response, HostError>;
 
 /// The host contract base implementation.
 impl<
-        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
+        Error: ContractError,
         CustomInitMsg,
         CustomExecMsg: Serialize + DeserializeOwned + JsonSchema,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg: Serialize + JsonSchema,
+        SudoMsg,
     > ExecuteEndpoint
-    for Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+    for Host<
+        Error,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+        SudoMsg,
+    >
 {
     type ExecuteMsg = ExecuteMsg<CustomExecMsg, ReceiveMsg>;
 
@@ -49,19 +58,19 @@ impl<
 
 /// The host contract base implementation.
 impl<
-        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
+        Error: ContractError,
         CustomExecMsg: DeserializeOwned,
         CustomInitMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-    > Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+        SudoMsg,
+    >
+    Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg, SudoMsg>
 {
     /// Takes ibc request, matches and executes
     /// This fn is the only way to get an Host instance.
-    pub fn handle_packet<
-        RequestError: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
-    >(
+    pub fn handle_packet<RequestError: ContractError>(
         mut self,
         deps: DepsMut,
         env: Env,
@@ -85,9 +94,9 @@ impl<
         // fill the local proxy address
         self.proxy_address = ACCOUNTS.may_load(deps.storage, (&channel, account_id))?;
         match action {
-            HostAction::Internal(InternalAction::Register { os_proxy_address }) => {
-                receive_register(deps, env, self, channel, account_id, os_proxy_address)
-            }
+            HostAction::Internal(InternalAction::Register {
+                account_proxy_address,
+            }) => receive_register(deps, env, self, channel, account_id, account_proxy_address),
             HostAction::Internal(InternalAction::WhoAmI) => {
                 let this_chain = self.base_state.load(deps.storage)?.chain;
                 receive_who_am_i(this_chain)
