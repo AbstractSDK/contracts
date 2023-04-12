@@ -6,11 +6,11 @@ use abstract_core::manager::ManagerModuleInfo;
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion};
 use abstract_core::{api::BaseQueryMsgFns, *};
 use abstract_testing::prelude::{OWNER, TEST_MODULE_ID, TEST_VERSION};
+use boot_core::BootExecute;
 use boot_core::{
     BootError, Mock, {instantiate_default_mock_env, CallAs, ContractInstance},
 };
-use boot_core::{BootExecute, Deploy};
-use common::{create_default_account, init_mock_api, AResult, TEST_COIN};
+use common::{create_default_account, init_abstract_env, init_mock_api, AResult, TEST_COIN};
 use cosmwasm_std::{Addr, Coin, Empty};
 // use cw_multi_test::StakingInfo;
 use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};
@@ -21,7 +21,7 @@ fn install_api(manager: &Manager<Mock>, api: &str) -> AResult {
 
 pub(crate) fn uninstall_module(manager: &Manager<Mock>, api: &str) -> AResult {
     manager
-        .uninstall_module(api.to_string())
+        .remove_module(api.to_string())
         .map_err(Into::<BootError>::into)?;
     Ok(())
 }
@@ -30,7 +30,8 @@ pub(crate) fn uninstall_module(manager: &Manager<Mock>, api: &str) -> AResult {
 fn installing_one_api_should_succeed() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
-    let deployment = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse().unwrap())?;
+    let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
+    deployment.deploy(&mut account)?;
     let account = create_default_account(&deployment.account_factory)?;
     let staking_api = init_mock_api(chain, &deployment, None)?;
     install_api(&account.manager, TEST_MODULE_ID)?;
@@ -54,9 +55,9 @@ fn installing_one_api_should_succeed() -> AResult {
         version_control_address: deployment.version_control.address()?,
     });
 
-    // no authorized addresses registered
-    let authorized = staking_api.authorized_addresses(account.proxy.addr_str()?)?;
-    assert_that!(authorized).is_equal_to(api::AuthorizedAddressesResponse { addresses: vec![] });
+    // no traders registered
+    let traders = staking_api.traders(account.proxy.addr_str()?)?;
+    assert_that!(traders).is_equal_to(api::TradersResponse { traders: vec![] });
 
     Ok(())
 }
@@ -65,7 +66,8 @@ fn installing_one_api_should_succeed() -> AResult {
 fn install_non_existent_apiname_should_fail() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
-    let deployment = Abstract::deploy_on(chain, TEST_VERSION.parse().unwrap())?;
+    let (mut deployment, mut account) = init_abstract_env(chain)?;
+    deployment.deploy(&mut account)?;
     let account = create_default_account(&deployment.account_factory)?;
 
     let res = install_api(&account.manager, "lol:no_chance");
@@ -78,7 +80,8 @@ fn install_non_existent_apiname_should_fail() -> AResult {
 fn install_non_existent_version_should_fail() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
-    let deployment = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse().unwrap())?;
+    let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
+    deployment.deploy(&mut account)?;
     let account = create_default_account(&deployment.account_factory)?;
     init_mock_api(chain, &deployment, None)?;
 
@@ -98,7 +101,8 @@ fn install_non_existent_version_should_fail() -> AResult {
 fn installation_of_duplicate_api_should_fail() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
-    let deployment = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse().unwrap())?;
+    let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
+    deployment.deploy(&mut account)?;
     let account = create_default_account(&deployment.account_factory)?;
     let staking_api = init_mock_api(chain, &deployment, None)?;
 
@@ -132,7 +136,8 @@ fn installation_of_duplicate_api_should_fail() -> AResult {
 fn reinstalling_api_should_be_allowed() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
-    let deployment = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse().unwrap())?;
+    let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
+    deployment.deploy(&mut account)?;
     let account = create_default_account(&deployment.account_factory)?;
     let staking_api = init_mock_api(chain, &deployment, None)?;
 
@@ -169,7 +174,9 @@ fn reinstalling_api_should_be_allowed() -> AResult {
 fn reinstalling_new_version_should_install_latest() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
-    let deployment = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse().unwrap())?;
+    let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
+
+    deployment.deploy(&mut account)?;
     let account = create_default_account(&deployment.account_factory)?;
     let staking_api = init_mock_api(chain.clone(), &deployment, Some("1.0.0".to_string()))?;
 
@@ -234,27 +241,27 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
 // struct TestModule = AppContract
 
 #[test]
-fn unauthorized_exec() -> AResult {
+fn not_trader_exec() -> AResult {
     let sender = Addr::unchecked(OWNER);
-    let unauthorized = Addr::unchecked("unauthorized");
+    let not_trader = Addr::unchecked("not_trader");
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
-    let deployment = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse().unwrap())?;
+    let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
+    deployment.deploy(&mut account)?;
     let account = create_default_account(&deployment.account_factory)?;
     let staking_api = init_mock_api(chain, &deployment, None)?;
     install_api(&account.manager, TEST_MODULE_ID)?;
-    // non-authorized address cannot execute
+    // non-trader cannot execute
     let res = staking_api
-        .call_as(&unauthorized)
+        .call_as(&not_trader)
         .execute(&MockExecMsg.into(), None)
         .unwrap_err();
     assert_that!(res.root().to_string()).contains(
-        "Sender: unauthorized of request to tester:test-module-id is not a Manager or Authorized Address",
+        "Sender: not_trader of request to tester:test-module-id is not a Manager or Trader",
     );
     // neither can the ROOT directly
     let res = staking_api.execute(&MockExecMsg.into(), None).unwrap_err();
-    assert_that!(&res.root().to_string()).contains(
-        "Sender: owner of request to tester:test-module-id is not a Manager or Authorized Address",
-    );
+    assert_that!(&res.root().to_string())
+        .contains("Sender: owner of request to tester:test-module-id is not a Manager or Trader");
     Ok(())
 }
 
@@ -262,7 +269,9 @@ fn unauthorized_exec() -> AResult {
 fn manager_api_exec_staking_delegation() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
-    let deployment = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse().unwrap())?;
+    let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
+
+    deployment.deploy(&mut account)?;
     let account = create_default_account(&deployment.account_factory)?;
     let _staking_api_one = init_mock_api(chain.clone(), &deployment, Some("1.2.3".to_string()))?;
 
@@ -285,7 +294,8 @@ fn manager_api_exec_staking_delegation() -> AResult {
 fn installing_specific_version_should_install_expected() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
-    let deployment = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse().unwrap())?;
+    let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
+    deployment.deploy(&mut account)?;
     let account = create_default_account(&deployment.account_factory)?;
     let _staking_api_one = init_mock_api(chain.clone(), &deployment, Some("1.2.3".to_string()))?;
     let expected_version = "2.3.4".to_string();

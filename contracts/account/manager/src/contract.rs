@@ -2,14 +2,13 @@ use crate::{
     commands::*,
     error::ManagerError,
     queries,
-    queries::{handle_account_info_query, handle_config_query, handle_module_info_query},
-    validation::{validate_description, validate_link, validate_name},
+    queries::{handle_config_query, handle_module_info_query, handle_os_info_query},
+    validation::{validate_description, validate_link, validate_name_or_gov_type},
     versioning,
 };
-use abstract_core::manager::state::AccountInfo;
 use abstract_sdk::core::{
     manager::{
-        state::{Config, ACCOUNT_FACTORY, CONFIG, INFO, OWNER, SUSPENSION_STATUS},
+        state::{Config, OsInfo, ACCOUNT_FACTORY, CONFIG, INFO, OWNER, STATUS},
         CallbackMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     },
     objects::module_version::{migrate_module_data, set_module_data},
@@ -53,43 +52,47 @@ pub fn instantiate(
     set_contract_version(deps.storage, MANAGER, CONTRACT_VERSION)?;
     set_module_data(deps.storage, MANAGER, CONTRACT_VERSION, &[], None::<String>)?;
 
+    let subscription_address = msg
+        .subscription_address
+        .map(|a| deps.api.addr_validate(&a))
+        .transpose()?;
+
     ACCOUNT_ID.save(deps.storage, &msg.account_id)?;
     CONFIG.save(
         deps.storage,
         &Config {
             version_control_address: deps.api.addr_validate(&msg.version_control_address)?,
             module_factory_address: deps.api.addr_validate(&msg.module_factory_address)?,
+            subscription_address,
         },
     )?;
 
     // Verify info
     validate_description(&msg.description)?;
     validate_link(&msg.link)?;
-    validate_name(&msg.name)?;
+    validate_name_or_gov_type(&msg.name)?;
 
-    let governance_details = msg.owner.verify(deps.api)?;
-    let owner = governance_details.owner_address();
-
-    let account_info = AccountInfo {
+    let os_info = OsInfo {
         name: msg.name,
-        governance_details,
+        governance_type: msg.governance_type,
         chain_id: env.block.chain_id,
         description: msg.description,
         link: msg.link,
     };
 
-    INFO.save(deps.storage, &account_info)?;
+    INFO.save(deps.storage, &os_info)?;
     MIGRATE_CONTEXT.save(deps.storage, &vec![])?;
 
-    // Set owner
-    OWNER.set(deps.branch(), Some(owner.clone()))?;
-    SUSPENSION_STATUS.save(deps.storage, &false)?;
+    // Set oner
+    let owner = deps.api.addr_validate(&msg.owner)?;
+    OWNER.set(deps.branch(), Some(owner))?;
+    STATUS.save(deps.storage, &true)?;
     ACCOUNT_FACTORY.set(deps, Some(info.sender))?;
     Ok(ManagerResponse::new(
         "instantiate",
         vec![
             ("account_id", msg.account_id.to_string()),
-            ("owner", owner.to_string()),
+            ("owner", msg.owner),
         ],
     ))
 }
@@ -97,21 +100,24 @@ pub fn instantiate(
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> ManagerResult {
     match msg {
-        ExecuteMsg::UpdateStatus {
-            is_suspended: suspension_status,
-        } => update_account_status(deps, info, suspension_status),
+        ExecuteMsg::SuspendAccount { new_status } => {
+            update_subscription_status(deps, info, new_status)
+        }
         msg => {
             // Block actions if user is not subscribed
-            let is_suspended = SUSPENSION_STATUS.load(deps.storage)?;
-            if is_suspended {
-                return Err(ManagerError::AccountSuspended {});
+            let is_subscribed = STATUS.load(deps.storage)?;
+            if !is_subscribed {
+                return Err(ManagerError::NotSubscribed {});
             }
 
             match msg {
-                ExecuteMsg::SetOwner { owner } => set_owner(deps, info, owner),
+                ExecuteMsg::SetOwner {
+                    owner,
+                    governance_type,
+                } => set_owner_and_gov_type(deps, info, owner, governance_type),
                 ExecuteMsg::UpdateModuleAddresses { to_add, to_remove } => {
-                    // only Account Factory/Owner can add custom modules.
-                    // required to add Proxy after init by Account Factory.
+                    // only factory/owner can add custom modules.
+                    // required to add Proxy after init by account factory.
                     ACCOUNT_FACTORY
                         .assert_admin(deps.as_ref(), &info.sender)
                         .or_else(|_| OWNER.assert_admin(deps.as_ref(), &info.sender))?;
@@ -120,9 +126,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                 ExecuteMsg::InstallModule { module, init_msg } => {
                     install_module(deps, info, env, module, init_msg)
                 }
-                ExecuteMsg::UninstallModule { module_id } => {
-                    uninstall_module(deps, info, module_id)
-                }
+                ExecuteMsg::RemoveModule { module_id } => uninstall_module(deps, info, module_id),
                 ExecuteMsg::RegisterModule {
                     module,
                     module_addr,
@@ -137,40 +141,12 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     description,
                     link,
                 } => update_info(deps, info, name, description, link),
-                ExecuteMsg::UpdateSettings {
-                    ibc_enabled: new_status,
-                } => {
-                    let mut response: Response = ManagerResponse::action("update_settings");
-
-                    if let Some(ibc_enabled) = new_status {
-                        response = update_ibc_status(deps, info, ibc_enabled, response)?;
-                    } else {
-                        return Err(ManagerError::NoUpdates {});
-                    }
-
-                    Ok(response)
-                }
+                ExecuteMsg::EnableIBC { new_status } => enable_ibc(deps, info, new_status),
                 ExecuteMsg::Callback(CallbackMsg {}) => handle_callback(deps, env, info),
                 _ => panic!(),
             }
         }
     }
-}
-
-fn update_account_status(
-    deps: DepsMut,
-    info: MessageInfo,
-    suspension_status: Option<bool>,
-) -> Result<Response, ManagerError> {
-    let mut response = ManagerResponse::action("update_status");
-
-    if let Some(suspension_status) = suspension_status {
-        response = update_suspension_status(deps, info, suspension_status, response)?;
-    } else {
-        return Err(ManagerError::NoUpdates {});
-    }
-
-    Ok(response)
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
@@ -181,7 +157,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::ModuleInfos { start_after, limit } => {
             handle_module_info_query(deps, start_after, limit)
         }
-        QueryMsg::Info {} => handle_account_info_query(deps),
+        QueryMsg::Info {} => handle_os_info_query(deps),
         QueryMsg::Config {} => handle_config_query(deps),
     }
 }

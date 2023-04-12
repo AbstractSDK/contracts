@@ -1,13 +1,12 @@
-use crate::{state::ContractError, AppContract, IbcCallbackEndpoint};
+use crate::{AppContract, AppError, IbcCallbackEndpoint};
 
 impl<
-        Error: ContractError,
+        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
         CustomInitMsg,
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-        SudoMsg,
     > IbcCallbackEndpoint
     for AppContract<
         Error,
@@ -16,7 +15,6 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-        SudoMsg,
     >
 {
 }

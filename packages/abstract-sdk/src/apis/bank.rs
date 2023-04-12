@@ -38,7 +38,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     }
 
     /// Transfer the provided **funds** from the Account' vault to the **recipient**.
-    /// The caller must be a whitelisted module or authorized address.
+    /// The caller must be a whitelisted module or trader.
     /// ```rust
     /// # use cosmwasm_std::{Addr, Response, Deps, DepsMut, MessageInfo};
     /// # use abstract_core::objects::AnsAsset;

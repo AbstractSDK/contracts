@@ -1,10 +1,14 @@
 use crate::{
-    contract::AccountFactoryResult, error::AccountFactoryError,
+    contract::OsFactoryResult, error::AccountFactoryError,
     response::MsgInstantiateContractResponse, state::*,
 };
-use abstract_core::{objects::module::Module, version_control::ModulesResponse, AbstractResult};
+use abstract_core::{
+    objects::module::Module, version_control::ModulesResponse, AbstractResult, ACCOUNT_FACTORY,
+};
+use abstract_macros::abstract_response;
 use abstract_sdk::{
     core::{
+        account_factory::ExecuteMsg,
         manager::{ExecuteMsg::UpdateModuleAddresses, InstantiateMsg as ManagerInstantiateMsg},
         objects::{
             gov_type::GovernanceDetails, module::ModuleInfo, module_reference::ModuleReference,
@@ -15,35 +19,81 @@ use abstract_sdk::{
     cw_helpers::cosmwasm_std::wasm_smart_query,
 };
 use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, CosmosMsg, DepsMut, Empty, Env, MessageInfo, QuerierWrapper,
-    ReplyOn, StdError, SubMsg, SubMsgResult, WasmMsg,
+    from_binary, to_binary, wasm_execute, Addr, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
+    QuerierWrapper, ReplyOn, StdError, SubMsg, SubMsgResult, WasmMsg,
 };
-use cw_ownable::assert_owner;
-
+use cw20::Cw20ReceiveMsg;
+use cw_asset::{Asset, AssetInfo};
 use protobuf::Message;
 
 pub const CREATE_ACCOUNT_MANAGER_MSG_ID: u64 = 1u64;
 pub const CREATE_ACCOUNT_PROXY_MSG_ID: u64 = 2u64;
 
-use crate::contract::AccountFactoryResponse;
 use abstract_sdk::core::{MANAGER, PROXY};
+
+#[abstract_response(ACCOUNT_FACTORY)]
+struct OsFactoryResponse;
+
+pub fn receive_cw20(
+    deps: DepsMut,
+    env: Env,
+    msg_info: MessageInfo,
+    cw20_msg: Cw20ReceiveMsg,
+) -> OsFactoryResult {
+    match from_binary(&cw20_msg.msg)? {
+        ExecuteMsg::CreateAccount {
+            governance,
+            description,
+            link,
+            name,
+        } => {
+            // Construct deposit asset
+            let asset = Asset {
+                info: AssetInfo::Cw20(msg_info.sender),
+                amount: cw20_msg.amount,
+            };
+            execute_create_account(deps, env, governance, Some(asset), name, description, link)
+        }
+        _ => Err(AccountFactoryError::Std(StdError::generic_err(
+            "unknown send msg hook",
+        ))),
+    }
+}
 
 /// Function that starts the creation of the Account
 pub fn execute_create_account(
     deps: DepsMut,
     env: Env,
-    governance: GovernanceDetails<Addr>,
+    governance: GovernanceDetails,
+    _asset: Option<Asset>,
     name: String,
     description: Option<String>,
     link: Option<String>,
-) -> AccountFactoryResult {
+) -> OsFactoryResult {
     let config = CONFIG.load(deps.storage)?;
+
+    if let Some(_sub_addr) = &config.subscription_address {
+        panic!("not implemented");
+        // let subscription_fee: SubscriptionFeeResponse =
+        //     query_subscription_fee(&deps.querier, sub_addr)?;
+        // if !subscription_fee.fee.amount.is_zero() {
+        //     forward_payment(asset, &config, &mut msgs, sub_addr)?;
+        // }
+    }
+    // Get address of Account owner, depends on gov-type
+    let owner: Addr = match &governance {
+        GovernanceDetails::Monarchy { monarch } => deps.api.addr_validate(monarch)?,
+        GovernanceDetails::External {
+            governance_address,
+            governance_type: _,
+        } => deps.api.addr_validate(governance_address)?,
+    };
 
     // Query version_control for code_id of Manager contract
     let module: Module = query_module(&deps.querier, &config.version_control_contract, MANAGER)?;
 
     if let ModuleReference::AccountBase(manager_code_id) = module.reference {
-        Ok(AccountFactoryResponse::new(
+        Ok(OsFactoryResponse::new(
             "create_account",
             vec![("account_id", &config.next_account_id.to_string())],
         )
@@ -59,12 +109,14 @@ pub fn execute_create_account(
                 label: format!("Abstract Account: {}", config.next_account_id),
                 msg: to_binary(&ManagerInstantiateMsg {
                     account_id: config.next_account_id,
+                    owner: owner.to_string(),
                     version_control_address: config.version_control_contract.to_string(),
+                    subscription_address: config.subscription_address.map(Addr::into),
                     module_factory_address: config.module_factory_address.to_string(),
                     name,
                     description,
                     link,
-                    owner: governance.into(),
+                    governance_type: governance.to_string(),
                 })?,
             }
             .into(),
@@ -79,7 +131,7 @@ pub fn execute_create_account(
 }
 
 /// instantiates the Treasury contract of the newly created DAO
-pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> AccountFactoryResult {
+pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> OsFactoryResult {
     let config = CONFIG.load(deps.storage)?;
 
     // Get address of Manager contract
@@ -92,7 +144,7 @@ pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> Accoun
     CONTEXT.save(
         deps.storage,
         &Context {
-            account_manager_address: deps.api.addr_validate(manager_address)?,
+            os_manager_address: deps.api.addr_validate(manager_address)?,
         },
     )?;
 
@@ -100,7 +152,7 @@ pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> Accoun
     let module: Module = query_module(&deps.querier, &config.version_control_contract, PROXY)?;
 
     if let ModuleReference::AccountBase(proxy_code_id) = module.reference {
-        Ok(AccountFactoryResponse::new(
+        Ok(OsFactoryResponse::new(
             "create_manager",
             vec![("manager_address", manager_address.to_string())],
         )
@@ -149,7 +201,7 @@ fn query_module(
 pub fn after_proxy_add_to_manager_and_set_admin(
     deps: DepsMut,
     result: SubMsgResult,
-) -> AccountFactoryResult {
+) -> OsFactoryResult {
     let mut config = CONFIG.load(deps.storage)?;
     let context = CONTEXT.load(deps.storage)?;
 
@@ -162,7 +214,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
 
     // construct Account base
     let account_base = AccountBase {
-        manager: context.account_manager_address.clone(),
+        manager: context.os_manager_address.clone(),
         proxy: deps.api.addr_validate(proxy_address)?,
     };
 
@@ -181,7 +233,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
         contract_addr: proxy_address.to_string(),
         funds: vec![],
         msg: to_binary(&ProxyExecMsg::AddModule {
-            module: context.account_manager_address.to_string(),
+            module: context.os_manager_address.to_string(),
         })?,
     });
 
@@ -189,26 +241,26 @@ pub fn after_proxy_add_to_manager_and_set_admin(
         contract_addr: proxy_address.to_string(),
         funds: vec![],
         msg: to_binary(&ProxyExecMsg::SetAdmin {
-            admin: context.account_manager_address.to_string(),
+            admin: context.os_manager_address.to_string(),
         })?,
     });
 
     let set_manager_admin_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::UpdateAdmin {
-        contract_addr: context.account_manager_address.to_string(),
-        admin: context.account_manager_address.to_string(),
+        contract_addr: context.os_manager_address.to_string(),
+        admin: context.os_manager_address.to_string(),
     });
 
     // Update id sequence
     config.next_account_id += 1;
     CONFIG.save(deps.storage, &config)?;
 
-    Ok(AccountFactoryResponse::new(
+    Ok(OsFactoryResponse::new(
         "create_proxy",
         vec![("proxy_address", res.get_contract_address())],
     )
     .add_message(add_account_to_version_control_msg)
     .add_message(wasm_execute(
-        context.account_manager_address.to_string(),
+        context.os_manager_address.to_string(),
         &UpdateModuleAddresses {
             to_add: Some(vec![(PROXY.to_string(), proxy_address.to_string())]),
             to_remove: None,
@@ -226,11 +278,13 @@ pub fn execute_update_config(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
+    admin: Option<String>,
     ans_host_contract: Option<String>,
     version_control_contract: Option<String>,
     module_factory_address: Option<String>,
-) -> AccountFactoryResult {
-    assert_owner(deps.storage, &info.sender)?;
+    subscription_address: Option<String>,
+) -> OsFactoryResult {
+    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
 
     let mut config: Config = CONFIG.load(deps.storage)?;
 
@@ -249,7 +303,63 @@ pub fn execute_update_config(
         config.module_factory_address = deps.api.addr_validate(&module_factory_address)?;
     }
 
+    if let Some(subscription_address) = subscription_address {
+        config.subscription_address = Some(deps.api.addr_validate(&subscription_address)?);
+    }
+
     CONFIG.save(deps.storage, &config)?;
 
-    Ok(AccountFactoryResponse::action("update_config"))
+    if let Some(admin) = admin {
+        let addr = deps.api.addr_validate(&admin)?;
+        ADMIN.set(deps, Some(addr))?;
+    }
+
+    Ok(OsFactoryResponse::action("update_config"))
 }
+
+// fn query_subscription_fee(
+//     querier: &QuerierWrapper,
+//     subscription_address: &Addr,
+// ) -> StdResult<SubscriptionFeeResponse> {
+//     let subscription_fee_response: SubscriptionFeeResponse = querier.query(&wasm_smart_query(
+//         subscription_address.to_string(),
+//         &app::QueryMsg::App(SubscriptionQueryMsg::Fee {}),
+//     )?)?;
+//     Ok(subscription_fee_response)
+// }
+
+// Does not do any payment verifications.
+// This provides more flexibility on the subscription contract to handle different payment options
+// fn forward_payment(
+//     maybe_received_payment: Option<Asset>,
+//     config: &Config,
+//     msgs: &mut Vec<CosmosMsg>,
+//     sub_addr: &Addr,
+// ) -> Result<(), OsFactoryError> {
+//     if let Some(received_payment) = maybe_received_payment {
+//         // Forward payment to subscription module and registers the Account
+//         let forward_payment_to_module: CosmosMsg<Empty> = match received_payment.info {
+//             AssetInfoBase::Cw20(_) => received_payment.send_msg(
+//                 sub_addr,
+//                 to_binary(&SubDepositHook::Pay {
+//                     account_id: config.next_account_id,
+//                 })?,
+//             )?,
+//             AssetInfoBase::Native(denom) => CosmosMsg::Wasm(WasmMsg::Execute {
+//                 contract_addr: sub_addr.into(),
+//                 msg: to_binary::<app::ExecuteMsg<SubscriptionExecuteMsg>>(&app::ExecuteMsg::App(
+//                     SubscriptionExecuteMsg::Pay {
+//                         account_id: config.next_account_id,
+//                     },
+//                 ))?,
+//                 funds: vec![Coin::new(received_payment.amount.u128(), denom)],
+//             }),
+//             _ => panic!("unsupported asset"),
+//         };
+
+//         msgs.push(forward_payment_to_module);
+//         Ok(())
+//     } else {
+//         Err(OsFactoryError::NoPaymentReceived {})
+//     }
+// }

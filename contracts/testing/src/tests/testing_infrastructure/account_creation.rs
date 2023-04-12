@@ -1,7 +1,7 @@
 use super::common_integration::NativeContracts;
-use super::{upload::upload_base_contracts, verify::account_store_as_expected};
+use super::{upload::upload_base_contracts, verify::os_store_as_expected};
 use crate::tests::{
-    common::{ACCOUNT_NAME, SUBSCRIPTION_COST, TEST_CREATOR},
+    common::{OS_NAME, SUBSCRIPTION_COST, TEST_CREATOR},
     subscription::register_subscription,
     testing_infrastructure::common_integration::mock_app,
 };
@@ -9,7 +9,7 @@ use abstract_sdk::core::SUBSCRIPTION;
 use abstract_sdk::core::*;
 use abstract_sdk::core::{
     app::BaseInstantiateMsg, objects::module::ModuleInfo,
-    subscription::InstantiateMsg as SubInitMsg, version_control::AccountBase,
+    subscription::InstantiateMsg as SubInitMsg, version_control::Core,
 };
 use abstract_sdk::core::{objects::module::ModuleVersion, version_control::AccountBaseResponse};
 use anyhow::Result as AnyResult;
@@ -20,13 +20,13 @@ use cw_multi_test::App;
 use cw_multi_test::Executor;
 use std::{collections::HashMap, str::FromStr};
 
-pub fn init_account(
+pub fn init_os(
     app: &mut App,
     sender: &Addr,
     native_contracts: &NativeContracts,
-    account_store: &mut HashMap<u32, AccountBase>,
+    os_store: &mut HashMap<u32, Core>,
 ) -> AnyResult<()> {
-    let funds = if account_store.is_empty() {
+    let funds = if os_store.is_empty() {
         vec![]
     } else {
         vec![Coin::new(43200, "uusd")]
@@ -39,7 +39,7 @@ pub fn init_account(
             governance: abstract_sdk::core::objects::gov_type::GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
             },
-            name: ACCOUNT_NAME.to_string(),
+            name: OS_NAME.to_string(),
             description: None,
             link: None,
         },
@@ -55,15 +55,11 @@ pub fn init_account(
     // Check Account
     let core: AccountBaseResponse = app.wrap().query_wasm_smart(
         &native_contracts.version_control,
-        &version_control::QueryMsg::OsAccountBase { account_id },
+        &version_control::QueryMsg::OsCore { account_id },
     )?;
 
-    account_store.insert(account_id, account_base.account);
-    assert!(account_store_as_expected(
-        app,
-        native_contracts,
-        account_store,
-    ));
+    os_store.insert(account_id, account_base.account);
+    assert!(os_store_as_expected(app, native_contracts, os_store));
     Ok(())
 }
 
@@ -73,11 +69,11 @@ pub fn init_primary_os(
     app: &mut App,
     sender: &Addr,
     native_contracts: &NativeContracts,
-    account_store: &mut HashMap<u32, AccountBase>,
+    os_store: &mut HashMap<u32, Core>,
 ) -> AnyResult<()> {
     register_subscription(app, sender, &native_contracts.version_control)?;
 
-    let account_base = account_store.get(&0u32).unwrap();
+    let account_base = os_store.get(&0u32).unwrap();
 
     let init_msg = to_binary(&app::InstantiateMsg {
         app: SubInitMsg {
@@ -122,6 +118,7 @@ pub fn init_primary_os(
         ans_host_contract: None,
         version_control_contract: None,
         module_factory_address: None,
+        subscription_address: Some(resp.events[4].attributes[1].value.clone()),
     };
 
     app.execute_contract(
@@ -140,14 +137,13 @@ fn proper_initialization() {
     let mut app = mock_app();
     let sender = Addr::unchecked(TEST_CREATOR);
     let (_code_ids, native_contracts) = upload_base_contracts(&mut app);
-    let mut account_store: HashMap<u32, AccountBase> = HashMap::new();
+    let mut os_store: HashMap<u32, Core> = HashMap::new();
 
-    init_account(&mut app, &sender, &native_contracts, &mut account_store)
-        .expect("created first account");
+    init_os(&mut app, &sender, &native_contracts, &mut os_store).expect("created first account");
 
     // TODO: review on release
-    // init_os(&mut app, &sender, &native_contracts, &mut account_store)
+    // init_os(&mut app, &sender, &native_contracts, &mut os_store)
     //     .expect_err("first Account needs to have subscriptions");
 
-    init_primary_os(&mut app, &sender, &native_contracts, &mut account_store).unwrap();
+    init_primary_os(&mut app, &sender, &native_contracts, &mut os_store).unwrap();
 }

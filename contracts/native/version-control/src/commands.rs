@@ -11,9 +11,7 @@ use abstract_sdk::core::{
     version_control::{namespaces_info, state::*, AccountBase},
     VERSION_CONTROL,
 };
-use cosmwasm_std::Response;
-use cosmwasm_std::{Addr, Deps, DepsMut, MessageInfo, Order, QuerierWrapper, StdResult};
-use cw_ownable::assert_owner;
+use cosmwasm_std::{Addr, Deps, DepsMut, Empty, MessageInfo, Order, QuerierWrapper, StdResult};
 
 #[abstract_response(VERSION_CONTROL)]
 pub struct VcResponse;
@@ -31,7 +29,7 @@ pub fn add_account(
     ACCOUNT_ADDRESSES.save(deps.storage, account_id, &account_base)?;
 
     Ok(VcResponse::new(
-        "add_account",
+        "add_os",
         vec![
             ("account_id", account_id.to_string().as_str()),
             ("manager", account_base.manager.as_ref()),
@@ -60,12 +58,12 @@ pub fn add_modules(
         // version must be set in order to add the new version
         module.assert_version_variant()?;
 
-        if module.namespace == ABSTRACT_NAMESPACE {
+        if module.provider == ABSTRACT_NAMESPACE {
             // Only Admin can update abstract contracts
-            assert_owner(deps.storage, &msg_info.sender)?;
+            ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
         } else {
             // Only owner can add modules
-            validate_account_owner(deps.as_ref(), &module.namespace, &msg_info.sender)?;
+            validate_account_owner(deps.as_ref(), &module.provider, &msg_info.sender)?;
         }
         if config.is_testnet {
             MODULE_LIBRARY.save(deps.storage, &module, &mod_ref)?;
@@ -85,8 +83,7 @@ pub fn approve_or_reject_module(
     rejects: Vec<ModuleInfo>,
 ) -> VCResult {
     // Only Admin can approve or rejects a module
-    assert_owner(deps.storage, &msg_info.sender)?;
-
+    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
     for module in &rejects {
         if approves.contains(module) {
             return Err(VCError::InvalidApproveList(module.clone()));
@@ -124,14 +121,9 @@ pub fn remove_module(
     module: ModuleInfo,
     yank: bool,
 ) -> VCResult {
-    // if the caller is a namespace owner
-    if !cw_ownable::is_owner(deps.storage, &msg_info.sender)? {
-        // if the module wants to be removed, it must be yanked. Only the admin can remove a module
-        if !yank {
-            return Err(VCError::OnlyYankAllowed);
-        }
-        // validate the caller is the owner of the namespace
-        validate_account_owner(deps.as_ref(), &module.namespace, &msg_info.sender)?;
+    // Only Admin or owner can update code-ids
+    if !ADMIN.is_admin(deps.as_ref(), &msg_info.sender)? {
+        validate_account_owner(deps.as_ref(), &module.provider, &msg_info.sender)?;
     }
 
     module.assert_version_variant()?;
@@ -213,7 +205,7 @@ pub fn remove_namespaces(
     msg_info: MessageInfo,
     namespaces: Vec<String>,
 ) -> VCResult {
-    let is_admin = cw_ownable::is_owner(deps.storage, &msg_info.sender)?;
+    let is_admin = ADMIN.is_admin(deps.as_ref(), &msg_info.sender)?;
 
     let mut logs = vec![];
     for namespace in namespaces.iter() {
@@ -233,7 +225,7 @@ pub fn remove_namespaces(
             .into_iter()
         {
             let module = ModuleInfo {
-                namespace: namespace.to_owned(),
+                provider: namespace.to_owned(),
                 name,
                 version: ModuleVersion::Version(version),
             };
@@ -256,7 +248,7 @@ pub fn remove_namespaces(
 }
 
 pub fn update_namespaces_limit(deps: DepsMut, info: MessageInfo, new_limit: u32) -> VCResult {
-    cw_ownable::assert_owner(deps.storage, &info.sender)?;
+    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
     let mut config = CONFIG.load(deps.storage)?;
     let previous_limit = config.namespaces_limit;
     if previous_limit > new_limit {
@@ -278,19 +270,33 @@ pub fn update_namespaces_limit(deps: DepsMut, info: MessageInfo, new_limit: u32)
     ))
 }
 
+pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> VCResult {
+    let admin_addr = deps.api.addr_validate(&admin)?;
+    let previous_admin = ADMIN.get(deps.as_ref())?.unwrap();
+    // Admin is asserted here
+    ADMIN.execute_update_admin::<Empty, Empty>(deps, info, Some(admin_addr))?;
+    Ok(VcResponse::new(
+        "set_admin",
+        vec![
+            ("previous_admin", previous_admin.to_string()),
+            ("admin", admin),
+        ],
+    ))
+}
+
 pub fn query_account_owner(querier: &QuerierWrapper, contract_addr: &Addr) -> StdResult<String> {
     let config_resp: ManagerConfigResponse =
         querier.query_wasm_smart(contract_addr, &ManagerQueryMsg::Config {})?;
     Ok(config_resp.owner)
 }
 
-pub fn validate_account_owner(deps: Deps, namespace: &str, sender: &Addr) -> Result<(), VCError> {
+pub fn validate_account_owner(deps: Deps, provider: &str, sender: &Addr) -> Result<(), VCError> {
     let sender = sender.clone();
-    let namespace = Namespace::from(namespace);
+    let namespace = Namespace::from(provider);
     let account_id = namespaces_info()
         .may_load(deps.storage, &namespace)?
         .ok_or_else(|| VCError::MissingNamespace {
-            namespace: namespace.to_string(),
+            namespace: provider.to_string(),
         })?;
     let account_base = ACCOUNT_ADDRESSES.load(deps.storage, account_id)?;
     let account_owner = query_account_owner(&deps.querier, &account_base.manager)?;
@@ -323,9 +329,8 @@ mod test {
     type VersionControlTestResult = Result<(), VCError>;
 
     const TEST_OTHER: &str = "test-other";
+    const TEST_MODULE: &str = "provider:test";
     const TEST_OWNER: &str = "test-owner";
-    const TEST_MODULE: &str = "namespace:test";
-    const TEST_OTHER_ACCOUNT_ID: u32 = 1;
 
     const TEST_PROXY_ADDR: &str = "proxy";
     const TEST_MANAGER_ADDR: &str = "manager";
@@ -339,7 +344,6 @@ mod test {
                         version_control_address: TEST_VERSION_CONTROL.to_owned(),
                         module_factory_address: TEST_MODULE_FACTORY.to_owned(),
                         account_id: Uint64::from(TEST_ACCOUNT_ID), // mock value, not used
-                        is_suspended: false,
                     };
                     Ok(to_binary(&resp).unwrap())
                 }
@@ -374,7 +378,7 @@ mod test {
                 namespaces_limit: 10,
             },
         )?;
-        execute_as_owner(
+        execute_as_admin(
             deps,
             ExecuteMsg::SetFactory {
                 new_factory: TEST_ACCOUNT_FACTORY.to_string(),
@@ -394,7 +398,7 @@ mod test {
                 namespaces_limit: 10,
             },
         )?;
-        execute_as_owner(
+        execute_as_admin(
             deps.branch(),
             ExecuteMsg::SetFactory {
                 new_factory: TEST_ACCOUNT_FACTORY.to_string(),
@@ -417,38 +421,32 @@ mod test {
         contract::execute(deps, mock_env(), mock_info(sender, &[]), msg)
     }
 
-    fn execute_as_owner(deps: DepsMut, msg: ExecuteMsg) -> VCResult {
+    fn execute_as_admin(deps: DepsMut, msg: ExecuteMsg) -> VCResult {
         execute_as(deps, TEST_ADMIN, msg)
     }
 
-    fn test_only_owner(msg: ExecuteMsg) -> VersionControlTestResult {
+    fn test_only_admin(msg: ExecuteMsg) -> VersionControlTestResult {
         let mut deps = mock_dependencies();
         mock_init(deps.as_mut())?;
 
-        let _info = mock_info("not_owner", &[]);
-
-        let res = execute_as(deps.as_mut(), "not_owner", msg);
-        assert_that(&res)
+        let res = execute_as(deps.as_mut(), "not_admin", msg);
+        assert_that!(&res)
             .is_err()
-            .is_equal_to(VCError::Ownership(OwnershipError::NotOwner {}));
+            .is_equal_to(VCError::Admin(AdminError::NotAdmin {}));
 
         Ok(())
     }
-
     use cw_controllers::AdminError;
-    use cw_ownable::OwnershipError;
 
     mod set_admin_and_factory {
         use super::*;
 
         #[test]
         fn only_admin_admin() -> VersionControlTestResult {
-            let msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::TransferOwnership {
-                new_owner: "new_admin".to_string(),
-                expiry: None,
-            });
-
-            test_only_owner(msg)
+            let msg = ExecuteMsg::SetAdmin {
+                new_admin: "new_admin".to_string(),
+            };
+            test_only_admin(msg)
         }
 
         #[test]
@@ -456,7 +454,7 @@ mod test {
             let msg = ExecuteMsg::SetFactory {
                 new_factory: "new_factory".to_string(),
             };
-            test_only_owner(msg)
+            test_only_admin(msg)
         }
 
         #[test]
@@ -465,23 +463,16 @@ mod test {
             mock_init(deps.as_mut())?;
 
             let new_admin = "new_admin";
-            // First update to transfer
-            let transfer_msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::TransferOwnership {
-                new_owner: new_admin.to_string(),
-                expiry: None,
-            });
+            let msg = ExecuteMsg::SetAdmin {
+                new_admin: new_admin.to_string(),
+            };
 
-            let transfer_res = execute_as_owner(deps.as_mut(), transfer_msg).unwrap();
-            assert_eq!(0, transfer_res.messages.len());
+            let res = execute_as_admin(deps.as_mut(), msg);
+            assert_that!(&res).is_ok();
 
-            // Then update and accept as the new owner
-            let accept_msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership);
-            let accept_res = execute_as(deps.as_mut(), new_admin, accept_msg).unwrap();
-            assert_eq!(0, accept_res.messages.len());
+            let actual_admin = ADMIN.get(deps.as_ref())?.unwrap();
 
-            assert_that!(cw_ownable::get_ownership(&deps.storage).unwrap().owner)
-                .is_some()
-                .is_equal_to(Addr::unchecked(new_admin));
+            assert_that!(&actual_admin).is_equal_to(Addr::unchecked(new_admin));
 
             Ok(())
         }
@@ -496,7 +487,7 @@ mod test {
                 new_factory: new_factory.to_string(),
             };
 
-            let res = execute_as_owner(deps.as_mut(), msg);
+            let res = execute_as_admin(deps.as_mut(), msg);
             assert_that!(&res).is_ok();
 
             let actual_factory = FACTORY.get(deps.as_ref())?.unwrap();
@@ -715,7 +706,7 @@ mod test {
 
             // first add module
             let mut new_module = test_module();
-            new_module.namespace = new_namespace1.to_string();
+            new_module.provider = new_namespace1.to_string();
             let msg = ExecuteMsg::AddModules {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
@@ -752,7 +743,7 @@ mod test {
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), true)?;
             let mut new_module = test_module();
-            new_module.namespace = ABSTRACT_NAMESPACE.to_owned();
+            new_module.provider = ABSTRACT_NAMESPACE.to_owned();
             let msg = ExecuteMsg::AddModules {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
@@ -778,7 +769,7 @@ mod test {
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(&VCError::MissingNamespace {
-                    namespace: new_module.namespace.clone(),
+                    namespace: new_module.provider.clone(),
                 });
 
             // add namespaces
@@ -787,7 +778,7 @@ mod test {
                 TEST_OWNER,
                 ExecuteMsg::ClaimNamespaces {
                     account_id: TEST_ACCOUNT_ID,
-                    namespaces: vec![new_module.namespace.clone()],
+                    namespaces: vec![new_module.provider.clone()],
                 },
             )?;
 
@@ -814,7 +805,7 @@ mod test {
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(&VCError::MissingNamespace {
-                    namespace: new_module.namespace.clone(),
+                    namespace: new_module.provider.clone(),
                 });
 
             // add namespaces
@@ -823,7 +814,7 @@ mod test {
                 TEST_OWNER,
                 ExecuteMsg::ClaimNamespaces {
                     account_id: TEST_ACCOUNT_ID,
-                    namespaces: vec![new_module.namespace.clone()],
+                    namespaces: vec![new_module.provider.clone()],
                 },
             )?;
 
@@ -848,7 +839,7 @@ mod test {
                 TEST_OWNER,
                 ExecuteMsg::ClaimNamespaces {
                     account_id: TEST_ACCOUNT_ID,
-                    namespaces: vec![new_module.namespace.clone()],
+                    namespaces: vec![new_module.provider.clone()],
                 },
             )?;
             // add modules
@@ -869,7 +860,7 @@ mod test {
             let res = execute_as(deps.as_mut(), TEST_OWNER, msg.clone());
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::Ownership(OwnershipError::NotOwner {}));
+                .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
 
             // approve by admin
             let res = execute_as(deps.as_mut(), TEST_ADMIN, msg);
@@ -895,7 +886,7 @@ mod test {
                 TEST_OWNER,
                 ExecuteMsg::ClaimNamespaces {
                     account_id: TEST_ACCOUNT_ID,
-                    namespaces: vec![new_module.namespace.clone()],
+                    namespaces: vec![new_module.provider.clone()],
                 },
             )?;
             // add modules
@@ -916,7 +907,7 @@ mod test {
             let res = execute_as(deps.as_mut(), TEST_OWNER, msg.clone());
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::Ownership(OwnershipError::NotOwner {}));
+                .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
 
             // reject by admin
             let res = execute_as(deps.as_mut(), TEST_ADMIN, msg);
@@ -939,7 +930,7 @@ mod test {
             // add namespaces
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
-                namespaces: vec![rm_module.namespace.clone()],
+                namespaces: vec![rm_module.provider.clone()],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
 
@@ -956,14 +947,16 @@ mod test {
                 module: rm_module.clone(),
                 yank: false,
             };
-            // as other, should fail
+            // as other
             let res = execute_as(deps.as_mut(), TEST_OTHER, msg.clone());
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::OnlyYankAllowed);
+                .is_equal_to(&VCError::AccountOwnerMismatch {
+                    sender: TEST_OTHER.to_string(),
+                    owner: TEST_OWNER.to_string(),
+                });
 
-            // only admin can remove modules.
-            execute_as_owner(deps.as_mut(), msg)?;
+            execute_as_admin(deps.as_mut(), msg)?;
 
             let module = MODULE_LIBRARY.load(&deps.storage, &rm_module);
             assert_that!(&module).is_err();
@@ -980,7 +973,7 @@ mod test {
             // add namespaces
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
-                namespaces: vec![rm_module.namespace.clone()],
+                namespaces: vec![rm_module.provider.clone()],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
 
@@ -1006,7 +999,7 @@ mod test {
                     owner: TEST_OWNER.to_string(),
                 });
 
-            execute_as_owner(deps.as_mut(), msg)?;
+            execute_as_admin(deps.as_mut(), msg)?;
 
             let module = MODULE_LIBRARY.load(&deps.storage, &rm_module);
             assert_that!(&module).is_err();
@@ -1024,7 +1017,7 @@ mod test {
             // add namespaces
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
-                namespaces: vec!["namespace".to_string()],
+                namespaces: vec!["provider".to_string()],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
 
@@ -1068,9 +1061,9 @@ mod test {
             let res = execute_as(deps.as_mut(), TEST_OTHER, msg.clone());
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::Ownership(OwnershipError::NotOwner {}));
+                .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
 
-            execute_as_owner(deps.as_mut(), msg)?;
+            execute_as_admin(deps.as_mut(), msg)?;
             let module = MODULE_LIBRARY.load(&deps.storage, &new_module)?;
             assert_that!(&module).is_equal_to(&ModuleReference::App(0));
             Ok(())
@@ -1085,22 +1078,22 @@ mod test {
                 ModuleInfo {
                     name: "test-module".to_string(),
                     version: ModuleVersion::Version("0.0.1".to_string()),
-                    namespace: "".to_string(),
+                    provider: "".to_string(),
                 },
                 ModuleInfo {
                     name: "test-module".to_string(),
                     version: ModuleVersion::Version("0.0.1".to_string()),
-                    namespace: "".to_string(),
+                    provider: "".to_string(),
                 },
                 ModuleInfo {
                     name: "".to_string(),
                     version: ModuleVersion::Version("0.0.1".to_string()),
-                    namespace: "test".to_string(),
+                    provider: "test".to_string(),
                 },
                 ModuleInfo {
                     name: "test-module".to_string(),
                     version: ModuleVersion::Version("aoeu".to_string()),
-                    namespace: "".to_string(),
+                    provider: "".to_string(),
                 },
             ];
 
@@ -1147,7 +1140,7 @@ mod test {
                 .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
 
             // as admin
-            let res = execute_as_owner(deps.as_mut(), msg.clone());
+            let res = execute_as_admin(deps.as_mut(), msg.clone());
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
@@ -1166,31 +1159,23 @@ mod test {
         use super::*;
 
         #[test]
-        fn update_admin() -> VersionControlTestResult {
+        fn set_admin() -> VersionControlTestResult {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let transfer_msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::TransferOwnership {
-                new_owner: TEST_OTHER.to_string(),
-                expiry: None,
-            });
+            let msg = ExecuteMsg::SetAdmin {
+                new_admin: TEST_OTHER.into(),
+            };
 
             // as other
-            let transfer_res = execute_as(deps.as_mut(), TEST_OTHER, transfer_msg.clone());
-            assert_that!(&transfer_res)
+            let res = execute_as(deps.as_mut(), TEST_OTHER, msg.clone());
+            assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::Ownership(OwnershipError::NotOwner {}));
+                .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
 
-            execute_as_owner(deps.as_mut(), transfer_msg)?;
-
-            // Then update and accept as the new owner
-            let accept_msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership);
-            let accept_res = execute_as(deps.as_mut(), TEST_OTHER, accept_msg).unwrap();
-            assert_eq!(0, accept_res.messages.len());
-
-            assert_that!(cw_ownable::get_ownership(&deps.storage).unwrap().owner)
-                .is_some()
-                .is_equal_to(Addr::unchecked(TEST_OTHER));
+            execute_as_admin(deps.as_mut(), msg)?;
+            let new_admin = ADMIN.query_admin(deps.as_ref())?.admin;
+            assert_that!(new_admin).is_equal_to(&Some(TEST_OTHER.into()));
             Ok(())
         }
 
@@ -1203,20 +1188,16 @@ mod test {
                 new_factory: TEST_ACCOUNT_FACTORY.into(),
             };
 
-            test_only_owner(msg.clone())?;
+            // as other
+            let res = execute_as(deps.as_mut(), TEST_OTHER, msg.clone());
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
 
-            execute_as_owner(deps.as_mut(), msg)?;
+            execute_as_admin(deps.as_mut(), msg)?;
             let new_factory = FACTORY.query_admin(deps.as_ref())?.admin;
             assert_that!(new_factory).is_equal_to(&Some(TEST_ACCOUNT_FACTORY.into()));
             Ok(())
         }
     }
-}
-
-pub fn set_factory(deps: DepsMut, info: MessageInfo, new_admin: String) -> VCResult {
-    assert_owner(deps.storage, &info.sender)?;
-
-    let new_factory_addr = deps.api.addr_validate(&new_admin)?;
-    FACTORY.set(deps, Some(new_factory_addr))?;
-    Ok(Response::new().add_attribute("set_factory", new_admin))
 }

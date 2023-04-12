@@ -1,5 +1,5 @@
 use crate::{
-    state::{ContractError, ACCOUNTS, CLIENT_PROXY, PENDING, PROCESSING_PACKET, RESULTS},
+    state::{ACCOUNTS, CLIENT_PROXY, PENDING, PROCESSING_PACKET, RESULTS},
     Host, HostError,
 };
 use abstract_sdk::{
@@ -16,23 +16,14 @@ pub const RECEIVE_DISPATCH_ID: u64 = 1234;
 pub const INIT_CALLBACK_ID: u64 = 7890;
 
 impl<
-        Error: ContractError,
+        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
         CustomInitMsg,
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-        SudoMsg,
     > ReplyEndpoint
-    for Host<
-        Error,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        ReceiveMsg,
-        SudoMsg,
-    >
+    for Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     fn reply(mut self, deps: DepsMut, env: Env, msg: Reply) -> Result<Response, Self::Error> {
         let id = msg.id;
@@ -62,25 +53,16 @@ impl<
 }
 
 pub fn reply_dispatch_callback<
-    Error: ContractError,
+    Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
     CustomExecMsg,
     CustomInitMsg,
     CustomQueryMsg,
     CustomMigrateMsg,
     ReceiveMsg,
-    SudoMsg,
 >(
     deps: DepsMut,
     _env: Env,
-    _host: Host<
-        Error,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        ReceiveMsg,
-        SudoMsg,
-    >,
+    _host: Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>,
     reply: Reply,
 ) -> Result<Response, Error> {
     // add the new result to the current tracker
@@ -94,25 +76,16 @@ pub fn reply_dispatch_callback<
 }
 
 pub fn reply_init_callback<
-    Error: ContractError,
+    Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
     CustomExecMsg,
     CustomInitMsg,
     CustomQueryMsg,
     CustomMigrateMsg,
-    SudoMsg,
     ReceiveMsg,
 >(
     deps: DepsMut,
     _env: Env,
-    _host: Host<
-        Error,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        ReceiveMsg,
-        SudoMsg,
-    >,
+    _host: Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>,
 
     reply: Reply,
 ) -> Result<Response, Error> {

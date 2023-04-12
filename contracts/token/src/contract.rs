@@ -182,7 +182,7 @@ fn assert_recipient_allowed(deps: Deps, recipient: &str) -> Result<(), ContractE
         address: config.version_control_address,
     };
     verify_feature
-        .account_registry(deps)
+        .os_registry(deps)
         .assert_proxy(&deps.api.addr_validate(recipient)?)
         .map_err(|_| StdError::generic_err("receiver must be a valid Abstract proxy contract"))?;
     Ok(())
@@ -226,5 +226,5 @@ fn update_whitelist(
         config.transfers_restricted = restict;
     };
     CONFIG.save(deps.storage, &config)?;
-    Ok(Response::new().add_attribute("action", "updated_contract_addresses"))
+    Ok(Response::new().add_attribute("action", "updated contract addresses"))
 }

@@ -11,7 +11,7 @@ resolver = "2"
 
 
 [features]
-test-utils = ["dep:abstract-testing", "dep:abstract-boot", "dep:boot-core"]
+test-utils = ["abstract-testing", "abstract-boot", "boot-core"]
 
 
 [dependencies]

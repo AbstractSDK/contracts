@@ -8,7 +8,7 @@ use boot_core::{ContractInstance, Mock};
 
 pub const OWNER: &str = "owner";
 
-pub fn init_abstract_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, AbstractAccount<Mock>)> {
+pub fn init_test_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, AbstractAccount<Mock>)> {
     let mut ans_host = AnsHost::new(ANS_HOST, chain.clone());
     let mut account_factory = AccountFactory::new(ACCOUNT_FACTORY, chain.clone());
     let mut version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
@@ -26,11 +26,11 @@ pub fn init_abstract_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, Abstrac
 
     account_factory.as_instance_mut().set_mock(Box::new(
         ContractWrapper::new_with_empty(
-            ::abstract_account_factory::contract::execute,
-            ::abstract_account_factory::contract::instantiate,
-            ::abstract_account_factory::contract::query,
+            ::account_factory::contract::execute,
+            ::account_factory::contract::instantiate,
+            ::account_factory::contract::query,
         )
-        .with_reply_empty(::abstract_account_factory::contract::reply),
+        .with_reply_empty(::account_factory::contract::reply),
     ));
 
     module_factory.as_instance_mut().set_mock(Box::new(
@@ -44,9 +44,9 @@ pub fn init_abstract_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, Abstrac
 
     version_control.as_instance_mut().set_mock(Box::new(
         boot_core::ContractWrapper::new_with_empty(
-            ::version_control::contract::execute,
-            ::version_control::contract::instantiate,
-            ::version_control::contract::query,
+            ::abstract_version_control::contract::execute,
+            ::abstract_version_control::contract::instantiate,
+            ::abstract_version_control::contract::query,
         ),
     ));
 

@@ -1,6 +1,6 @@
 use crate::{
     endpoints::reply::INIT_CALLBACK_ID,
-    state::{ContractError, CLIENT_PROXY, CLOSED_CHANNELS, PENDING},
+    state::{CLIENT_PROXY, CLOSED_CHANNELS, PENDING},
     Host, HostError,
 };
 use abstract_core::objects::AccountId;
@@ -127,28 +127,19 @@ pub fn receive_query(
 // processes PacketMsg::Register variant
 /// Creates and registers proxy for remote Account
 pub fn receive_register<
-    Error: ContractError,
+    Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
     CustomExecMsg,
     CustomInitMsg,
     CustomQueryMsg,
     CustomMigrateMsg,
     ReceiveMsg,
-    SudoMsg,
 >(
     deps: DepsMut,
     env: Env,
-    host: Host<
-        Error,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        ReceiveMsg,
-        SudoMsg,
-    >,
+    host: Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>,
     channel: String,
     account_id: AccountId,
-    account_proxy_address: String,
+    os_proxy_address: String,
 ) -> Result<IbcReceiveResponse, HostError> {
     let cfg = host.base_state.load(deps.storage)?;
     let init_msg = cw1_whitelist::msg::InstantiateMsg {
@@ -165,7 +156,7 @@ pub fn receive_register<
     let msg = SubMsg::reply_on_success(msg, INIT_CALLBACK_ID);
 
     // store the proxy address of the Account on the client chain.
-    CLIENT_PROXY.save(deps.storage, (&channel, account_id), &account_proxy_address)?;
+    CLIENT_PROXY.save(deps.storage, (&channel, account_id), &os_proxy_address)?;
     // store the account info for the reply handler
     PENDING.save(deps.storage, &(channel, account_id))?;
 

@@ -1,4 +1,4 @@
-use crate::{state::ContractError, Host};
+use crate::{Host, HostError};
 use abstract_core::objects::module_version::{get_module_data, set_module_data};
 use abstract_sdk::{
     base::{Handler, MigrateEndpoint},
@@ -11,23 +11,14 @@ use semver::Version;
 use serde::Serialize;
 
 impl<
-        Error: ContractError,
+        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
         CustomInitMsg,
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg: Serialize + JsonSchema,
         ReceiveMsg,
-        SudoMsg,
     > MigrateEndpoint
-    for Host<
-        Error,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        ReceiveMsg,
-        SudoMsg,
-    >
+    for Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     type MigrateMsg = MigrateMsg<CustomMigrateMsg>;
 

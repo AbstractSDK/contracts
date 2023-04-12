@@ -1,16 +1,17 @@
 use crate::{AbstractAccount, Manager, Proxy};
 pub use abstract_core::account_factory::{
-    ExecuteMsgFns as AccountFactoryExecFns, QueryMsgFns as AccountFactoryQueryFns,
+    ExecuteMsgFns as OsFactoryExecFns, QueryMsgFns as OsFactoryQueryFns,
 };
 use abstract_core::{
     account_factory::*, objects::gov_type::GovernanceDetails, ABSTRACT_EVENT_NAME, MANAGER, PROXY,
 };
 use boot_core::{
-    contract, Contract, CwEnv, IndexResponse, StateInterface, {BootExecute, ContractInstance},
+    boot_contract, BootEnvironment, Contract, IndexResponse, StateInterface, TxResponse,
+    {BootExecute, ContractInstance},
 };
 use cosmwasm_std::Addr;
 
-/// A helper struct that contains fields from [`abstract_core::manager::state::AccountInfo`]
+/// A helper struct that contains fields from [`abstract_core::manager::state::OsInfo`]
 #[derive(Default)]
 pub struct AccountDetails {
     name: String,
@@ -18,10 +19,10 @@ pub struct AccountDetails {
     link: Option<String>,
 }
 
-#[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct AccountFactory<Chain>;
 
-impl<Chain: CwEnv> AccountFactory<Chain> {
+impl<Chain: BootEnvironment> AccountFactory<Chain> {
     pub fn new(name: &str, chain: Chain) -> Self {
         let mut contract = Contract::new(name, chain);
         contract = contract.with_wasm_path("abstract_account_factory");
@@ -30,14 +31,14 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
 
     pub fn create_new_account(
         &self,
-        account_details: AccountDetails,
-        governance_details: GovernanceDetails<String>,
+        os_details: AccountDetails,
+        governance_details: GovernanceDetails,
     ) -> Result<AbstractAccount<Chain>, crate::AbstractBootError> {
         let AccountDetails {
             name,
             link,
             description,
-        } = account_details;
+        } = os_details;
 
         let result = self.execute(
             &ExecuteMsg::CreateAccount {
@@ -65,7 +66,7 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
 
     pub fn create_default_account(
         &self,
-        governance_details: GovernanceDetails<String>,
+        governance_details: GovernanceDetails,
     ) -> Result<AbstractAccount<Chain>, crate::AbstractBootError> {
         self.create_new_account(
             AccountDetails {
@@ -74,5 +75,22 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
             },
             governance_details,
         )
+    }
+
+    pub fn set_subscription_contract(
+        &self,
+        addr: String,
+    ) -> Result<TxResponse<Chain>, crate::AbstractBootError> {
+        self.execute(
+            &ExecuteMsg::UpdateConfig {
+                admin: None,
+                ans_host_contract: None,
+                version_control_contract: None,
+                module_factory_address: None,
+                subscription_address: Some(addr),
+            },
+            None,
+        )
+        .map_err(Into::into)
     }
 }

@@ -31,7 +31,7 @@ pub fn deploy_api() -> anyhow::Result<()> {
         let res = version_control.remove_module(
             ModuleInfo {
                 name: "autocompounder".to_string(),
-                namespace: "4t2".into(),
+                provider: "4t2".into(),
                 version: ModuleVersion::from(version),
             },
             false,
@@ -44,7 +44,7 @@ pub fn deploy_api() -> anyhow::Result<()> {
         let res = version_control.remove_module(
             ModuleInfo {
                 name: "cw_staking".to_string(),
-                namespace: "4t2".into(),
+                provider: "4t2".into(),
                 version: ModuleVersion::from(version),
             },
             false,

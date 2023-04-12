@@ -41,4 +41,3 @@ abstract-ica = { workspace = true }
 doc-comment = "0.3.3"
 # Set our own feature when running tests!
 abstract-sdk = { path = ".", features = ["test-utils"] }
-cw-ownable = { workspace = true }

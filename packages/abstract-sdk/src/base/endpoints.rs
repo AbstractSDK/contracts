@@ -72,8 +72,8 @@
 //! # use schemars::JsonSchema;
 //! # use serde::Serialize;
 //!
-//! impl <Error: From<cosmwasm_std::StdError> + From<AppError> + 'static, CustomExecMsg: Serialize + JsonSchema + AppExecuteMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg, SudoMsg: Serialize + JsonSchema >
-//! ExecuteEndpoint for AppContract <Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg, SudoMsg > {
+//! impl <Error: From<cosmwasm_std::StdError> + From<AppError> + 'static, CustomExecMsg: Serialize + JsonSchema + AppExecuteMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg: Serialize + JsonSchema >
+//! ExecuteEndpoint for AppContract <Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg > {
 //!     
 //!     // Expected entrypoint ExecuteMsg type, imported from abstract_core.
 //!     // As you can see from the type definition, the `AppContract` accepts a custom `AppExecuteMsg`
@@ -104,6 +104,9 @@
 //! ```
 //! Two variants reside in the ExecuteMsg enum:
 //!
+//! #### Receive
+//! The receive endpoint is used to handle messages sent from external contracts, most commonly the [CW20](https://crates.io/crates/cw20) contract.
+//!
 //! #### IbcCallback
 //! The IbcCallback endpoint is used to handle IBC responses that indicate that a certain IBC action has been completed.
 //!
@@ -119,12 +122,6 @@
 //!
 //! ## Reply
 //! The reply endpoint is used to handle internal replies. Each reply handler is matched with a reply-id. Both are supplied to the contract builder.
-//!
-//! ## Sudo
-//! The sudo endpoint can only be called by the chain's governance address.
-//!
-//! #### Receive
-//! The receive endpoint is used to handle messages sent from external contracts, most commonly the [CW20](https://crates.io/crates/cw20) contract.
 
 mod execute;
 mod ibc_callback;
@@ -133,7 +130,6 @@ pub(crate) mod migrate;
 mod query;
 mod receive;
 mod reply;
-mod sudo;
 
 // Provide endpoints under ::base::traits::
 pub use execute::ExecuteEndpoint;
@@ -143,4 +139,3 @@ pub use migrate::MigrateEndpoint;
 pub use query::QueryEndpoint;
 pub use receive::ReceiveEndpoint;
 pub use reply::ReplyEndpoint;
-pub use sudo::SudoEndpoint;

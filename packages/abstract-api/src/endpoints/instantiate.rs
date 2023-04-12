@@ -1,8 +1,12 @@
-use crate::state::{ApiContract, ApiState, ContractError};
+use crate::{
+    state::{ApiContract, ApiState},
+    ApiError,
+};
 use abstract_core::{api::InstantiateMsg, objects::module_version::set_module_data};
 use abstract_sdk::{
-    base::{Handler, InstantiateEndpoint},
+    base::{endpoints::InstantiateEndpoint, Handler},
     feature_objects::AnsHost,
+    AbstractSdkError,
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;
@@ -10,14 +14,13 @@ use schemars::JsonSchema;
 use serde::Serialize;
 
 impl<
-        Error: ContractError,
+        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
         CustomInitMsg: Serialize + JsonSchema,
         CustomExecMsg,
         CustomQueryMsg,
         ReceiveMsg,
-        SudoMsg,
     > InstantiateEndpoint
-    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg>
 {
     type InstantiateMsg = InstantiateMsg<CustomInitMsg>;
     /// Instantiate the api
@@ -64,14 +67,14 @@ mod tests {
     use speculoos::prelude::*;
 
     use crate::{
-        mock::{ApiMockResult, MockInitMsg, MOCK_API, MOCK_DEP, TEST_METADATA},
+        mock::{ApiMockResult, MockInitMsg, MOCK_API, TEST_METADATA},
         state::ApiState,
     };
     use abstract_testing::prelude::*;
 
     #[test]
     fn successful() -> ApiMockResult {
-        let api = MOCK_API.with_dependencies(&[MOCK_DEP]);
+        let api = MOCK_API;
         let env = mock_env();
         let info = mock_info(TEST_MANAGER, &[]);
         let mut deps = mock_dependencies();
@@ -86,13 +89,13 @@ mod tests {
         let res = api.instantiate(deps.as_mut(), env, info, init_msg)?;
         assert_that!(&res.messages.len()).is_equal_to(0);
         // confirm mock init handler executed
-        assert_that!(&res.data).is_equal_to(Some("mock_init".as_bytes().into()));
+        assert_that!(&res.data).is_equal_to(Some("mock_response".as_bytes().into()));
 
         let module_data = MODULE.load(&deps.storage)?;
         assert_that!(module_data).is_equal_to(ModuleData {
             module: TEST_MODULE_ID.into(),
             version: TEST_VERSION.into(),
-            dependencies: vec![(&crate::mock::MOCK_DEP).into()],
+            dependencies: vec![],
             metadata: Some(TEST_METADATA.into()),
         });
 
@@ -103,8 +106,8 @@ mod tests {
         });
 
         let api = MOCK_API;
-        let none_authorized = api.authorized_addresses.is_empty(&deps.storage);
-        assert!(none_authorized);
+        let no_traders_registered = api.traders.is_empty(&deps.storage);
+        assert!(no_traders_registered);
 
         let state = api.base_state.load(&deps.storage)?;
         assert_that!(state).is_equal_to(ApiState {

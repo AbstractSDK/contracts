@@ -3,16 +3,14 @@ use abstract_core::version_control::Config;
 use abstract_sdk::core::{
     objects::{module_version::migrate_module_data, module_version::set_module_data},
     version_control::{
-        state::{CONFIG, FACTORY},
+        state::{ADMIN, CONFIG, FACTORY},
         ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     },
     VERSION_CONTROL,
 };
-use abstract_sdk::{execute_update_ownership, query_ownership};
 use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::{get_contract_version, set_contract_version};
-
-use cw_ownable::{get_ownership, initialize_owner, Ownership};
+use cw_controllers::{Admin, AdminError};
 use cw_semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -41,7 +39,12 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VCResult {
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: InstantiateMsg) -> VCResult {
+pub fn instantiate(
+    mut deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    msg: InstantiateMsg,
+) -> VCResult {
     set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
     set_module_data(
         deps.storage,
@@ -58,15 +61,14 @@ pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: Instantiate
         },
     )?;
     // Setup the admin as the creator of the contract
-    initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
-
+    ADMIN.set(deps.branch(), Some(info.sender))?;
     FACTORY.set(deps, None)?;
 
     Ok(Response::default())
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> VCResult {
+pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> VCResult {
     match msg {
         ExecuteMsg::AddModules { modules } => add_modules(deps, info, modules),
         ExecuteMsg::ApproveOrRejectModule { approves, rejects } => {
@@ -85,9 +87,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
         ExecuteMsg::UpdateNamespacesLimit { new_limit } => {
             update_namespaces_limit(deps, info, new_limit)
         }
-        ExecuteMsg::SetFactory { new_factory } => set_factory(deps, info, new_factory),
-        ExecuteMsg::UpdateOwnership(action) => {
-            execute_update_ownership!(VcResponse, deps, env, info, action)
+        ExecuteMsg::SetAdmin { new_admin } => set_admin(deps, info, new_admin),
+        ExecuteMsg::SetFactory { new_factory } => {
+            authorized_set_admin(deps, info, &ADMIN, &FACTORY, new_factory).map_err(|e| e.into())
         }
     }
 }
@@ -95,19 +97,13 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::AccountBase { account_id } => {
-            queries::handle_account_address_query(deps, account_id)
-        }
+        QueryMsg::AccountBase { account_id } => queries::handle_os_address_query(deps, account_id),
         QueryMsg::Modules { infos } => queries::handle_modules_query(deps, infos),
         QueryMsg::Namespaces { accounts } => queries::handle_namespaces_query(deps, accounts),
         QueryMsg::Config {} => {
-            let Ownership { owner, .. } = get_ownership(deps.storage)?;
-
-            let factory = FACTORY.get(deps)?.unwrap();
-            to_binary(&ConfigResponse {
-                admin: owner.unwrap(),
-                factory,
-            })
+            let admin = ADMIN.get(deps)?.unwrap().into_string();
+            let factory = FACTORY.get(deps)?.unwrap().into_string();
+            to_binary(&ConfigResponse { admin, factory })
         }
         QueryMsg::ModuleList {
             filter,
@@ -119,6 +115,19 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             start_after,
             limit,
         } => queries::handle_namespace_list_query(deps, start_after, limit, filter),
-        QueryMsg::Ownership {} => query_ownership!(deps),
     }
+}
+
+fn authorized_set_admin<C: std::clone::Clone + std::fmt::Debug + std::cmp::PartialEq>(
+    deps: DepsMut,
+    info: MessageInfo,
+    authorized_user: &Admin,
+    admin_to_update: &Admin,
+    new_admin: String,
+) -> Result<Response<C>, AdminError> {
+    authorized_user.assert_admin(deps.as_ref(), &info.sender)?;
+
+    let new_admin_addr = deps.api.addr_validate(&new_admin)?;
+    admin_to_update.set(deps, Some(new_admin_addr))?;
+    Ok(Response::new().add_attribute("Set admin item to:", new_admin))
 }
