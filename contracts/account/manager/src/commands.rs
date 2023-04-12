@@ -140,7 +140,7 @@ pub fn register_module(
             // assert version requirements
             let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
             versioning::set_as_dependent(deps.storage, id, dependencies)?;
-            response = response.add_message(add_module_from_proxy(
+            response = response.add_message(add_module_to_proxy(
                 proxy_addr.into_string(),
                 module_address,
             )?)
@@ -153,7 +153,7 @@ pub fn register_module(
             // assert version requirements
             let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
             versioning::set_as_dependent(deps.storage, id, dependencies)?;
-            response = response.add_message(add_module_from_proxy(
+            response = response.add_message(add_module_to_proxy(
                 proxy_addr.into_string(),
                 module_address,
             )?)
@@ -475,7 +475,7 @@ pub fn replace_api(
         old_api_addr.into_string(),
     )?);
     // Add new api to proxy
-    msgs.push(add_module_from_proxy(
+    msgs.push(add_module_to_proxy(
         proxy_addr.into_string(),
         new_api_addr.into_string(),
     )?);
@@ -560,7 +560,7 @@ fn install_ibc_client(deps: DepsMut, proxy: Addr) -> Result<CosmosMsg, ManagerEr
 
     ACCOUNT_MODULES.save(deps.storage, IBC_CLIENT, &ibc_client_addr)?;
 
-    Ok(add_module_from_proxy(
+    Ok(add_module_to_proxy(
         proxy.into_string(),
         ibc_client_addr.to_string(),
     )?)
@@ -631,7 +631,7 @@ fn self_upgrade_msg(
     }
 }
 
-fn add_module_from_proxy(
+fn add_module_to_proxy(
     proxy_address: String,
     module_address: String,
 ) -> StdResult<CosmosMsg<Empty>> {
