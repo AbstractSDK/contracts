@@ -9,6 +9,17 @@ use std::fmt::{self, Display};
 /// ID of the module
 pub type ModuleId<'a> = &'a str;
 
+/// Module status
+#[cosmwasm_schema::cw_serde]
+pub enum ModuleStatus {
+    /// Modules in use
+    REGISTERED,
+    /// Pending modules
+    PENDING,
+    /// Yanked modules
+    YANKED,
+}
+
 /// Stores the provider, name, and version of an Abstract module.
 #[cosmwasm_schema::cw_serde]
 pub struct ModuleInfo {

@@ -10,6 +10,13 @@
 
 pub type ModuleMapEntry = (ModuleInfo, ModuleReference);
 
+/// Contains configuration info of version control.
+#[cosmwasm_schema::cw_serde]
+pub struct Config {
+    pub is_testnet: bool,
+    pub namespaces_limit: u32,
+}
+
 pub mod state {
     use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
@@ -19,19 +26,21 @@ pub mod state {
         module_reference::ModuleReference,
     };
 
-    use super::AccountBase;
+    use super::{AccountBase, Config};
 
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
     pub const FACTORY: Admin = Admin::new("factory");
 
+    pub const CONFIG: Item<Config> = Item::new("config");
+
+    // Modules waiting for approvals
+    pub const PENDING_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("pending_modules");
     // We can iterate over the map giving just the prefix to get all the versions
     pub const MODULE_LIBRARY: Map<&ModuleInfo, ModuleReference> = Map::new("module_lib");
     // Yanked Modules
     pub const YANKED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("yanked_modules");
     /// Maps Account ID to the address of its core contracts
     pub const ACCOUNT_ADDRESSES: Map<AccountId, AccountBase> = Map::new("account");
-    /// Maximum namespaces an account can claim
-    pub const NAMESPACES_LIMIT: Item<u32> = Item::new("namespaces_limit");
 }
 
 // Sub Indexes
@@ -56,7 +65,7 @@ pub fn namespaces_info<'a>() -> IndexedMap<'a, &'a Namespace, AccountId, Namespa
 
 use crate::objects::{
     core::AccountId,
-    module::{Module, ModuleInfo},
+    module::{Module, ModuleInfo, ModuleStatus},
     module_reference::ModuleReference,
     namespace::Namespace,
 };
@@ -72,7 +81,10 @@ pub struct AccountBase {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct InstantiateMsg {}
+pub struct InstantiateMsg {
+    pub is_testnet: bool,
+    pub namespaces_limit: u32,
+}
 
 #[cosmwasm_schema::cw_serde]
 #[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
@@ -81,6 +93,11 @@ pub enum ExecuteMsg {
     RemoveModule { module: ModuleInfo, yank: bool },
     /// Add new modules
     AddModules { modules: Vec<ModuleMapEntry> },
+    /// Approve or reject modules
+    ApproveOrRejectModule {
+        approves: Vec<ModuleInfo>,
+        rejects: Vec<ModuleInfo>,
+    },
     /// Claim namespaces
     ClaimNamespaces {
         account_id: AccountId,
@@ -110,7 +127,7 @@ pub struct ModuleFilter {
     pub provider: Option<String>,
     pub name: Option<String>,
     pub version: Option<String>,
-    pub yanked: bool,
+    pub status: Option<ModuleStatus>,
 }
 
 /// A NamespaceFilter for [`Namespaces`].

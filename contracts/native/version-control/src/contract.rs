@@ -1,8 +1,9 @@
 use crate::error::VCError;
+use abstract_core::version_control::Config;
 use abstract_sdk::core::{
     objects::{module_version::migrate_module_data, module_version::set_module_data},
     version_control::{
-        state::{ADMIN, FACTORY, NAMESPACES_LIMIT},
+        state::{ADMIN, CONFIG, FACTORY},
         ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     },
     VERSION_CONTROL,
@@ -19,7 +20,6 @@ use crate::queries;
 pub type VCResult = Result<Response, VCError>;
 
 pub const ABSTRACT_NAMESPACE: &str = "abstract";
-const DEFAULT_NAMESPACES_LIMIT: u32 = 10;
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VCResult {
@@ -43,7 +43,7 @@ pub fn instantiate(
     mut deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    _msg: InstantiateMsg,
+    msg: InstantiateMsg,
 ) -> VCResult {
     set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
     set_module_data(
@@ -53,7 +53,13 @@ pub fn instantiate(
         &[],
         None::<String>,
     )?;
-    NAMESPACES_LIMIT.save(deps.storage, &DEFAULT_NAMESPACES_LIMIT)?;
+    CONFIG.save(
+        deps.storage,
+        &Config {
+            is_testnet: msg.is_testnet,
+            namespaces_limit: msg.namespaces_limit,
+        },
+    )?;
     // Setup the admin as the creator of the contract
     ADMIN.set(deps.branch(), Some(info.sender))?;
     FACTORY.set(deps, None)?;
@@ -65,6 +71,9 @@ pub fn instantiate(
 pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> VCResult {
     match msg {
         ExecuteMsg::AddModules { modules } => add_modules(deps, info, modules),
+        ExecuteMsg::ApproveOrRejectModule { approves, rejects } => {
+            approve_or_reject_module(deps, info, approves, rejects)
+        }
         ExecuteMsg::RemoveModule { module, yank } => remove_module(deps, info, module, yank),
         ExecuteMsg::ClaimNamespaces {
             account_id,
