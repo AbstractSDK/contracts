@@ -25,6 +25,7 @@ pub mod state {
         pub version_control_contract: Addr,
         pub ans_host_contract: Addr,
         pub module_factory_address: Addr,
+        pub ibc_host: Option<Addr>,
     }
 
     #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -71,6 +72,8 @@ pub enum ExecuteMsg {
         version_control_contract: Option<String>,
         // New module factory contract
         module_factory_address: Option<String>,
+        // New ibc host contract
+        ibc_host: Option<String>,
     },
     /// Creates the core contracts and sets the permissions.
     /// [`crate::manager`] and [`crate::proxy`]

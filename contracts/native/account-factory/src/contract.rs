@@ -27,6 +27,7 @@ pub fn instantiate(
         version_control_contract: deps.api.addr_validate(&msg.version_control_address)?,
         module_factory_address: deps.api.addr_validate(&msg.module_factory_address)?,
         ans_host_contract: deps.api.addr_validate(&msg.ans_host_address)?,
+        ibc_host: None,
     };
 
     set_contract_version(deps.storage, ACCOUNT_FACTORY, CONTRACT_VERSION)?;
@@ -56,6 +57,7 @@ pub fn execute(
             ans_host_contract,
             version_control_contract,
             module_factory_address,
+            ibc_host,
         } => commands::execute_update_config(
             deps,
             info,
@@ -63,6 +65,7 @@ pub fn execute(
             ans_host_contract,
             version_control_contract,
             module_factory_address,
+            ibc_host,
         ),
         ExecuteMsg::CreateAccount {
             governance,

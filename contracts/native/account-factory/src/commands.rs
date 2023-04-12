@@ -259,6 +259,7 @@ pub fn execute_update_config(
     ans_host_contract: Option<String>,
     version_control_contract: Option<String>,
     module_factory_address: Option<String>,
+    ibc_host: Option<String>,
 ) -> AccountFactoryResult {
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
 
@@ -277,6 +278,11 @@ pub fn execute_update_config(
     if let Some(module_factory_address) = module_factory_address {
         // validate address format
         config.module_factory_address = deps.api.addr_validate(&module_factory_address)?;
+    }
+
+    if let Some(ibc_host) = ibc_host {
+        // validate address format
+        config.ibc_host = Some(deps.api.addr_validate(&ibc_host)?);
     }
 
     CONFIG.save(deps.storage, &config)?;
