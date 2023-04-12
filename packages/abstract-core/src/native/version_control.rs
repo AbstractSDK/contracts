@@ -93,6 +93,8 @@ pub struct InstantiateMsg {
 #[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
 pub enum ExecuteMsg {
     /// Remove some version of a module
+    /// If `yank` is true, the module is yanked and can not be installed
+    /// If `yank` is false, the module is removed from the library (only Admin can do this)
     RemoveModule { module: ModuleInfo, yank: bool },
     /// Add new modules
     AddModules { modules: Vec<ModuleMapEntry> },
