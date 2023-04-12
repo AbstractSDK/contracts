@@ -1,25 +1,27 @@
+use abstract_core::ans_host::{
+    AssetInfoListResponse, AssetInfoMapEntry, AssetInfosResponse, AssetMapEntry, ContractMapEntry,
+};
+use abstract_core::{ans_host::state::REV_ASSET_ADDRESSES, objects::DexName};
 use abstract_core::{
+    ans_host::state::{Config, ADMIN, ASSET_PAIRINGS, CONFIG, POOL_METADATA},
     ans_host::{
-        state::{
-            Config, ASSET_ADDRESSES, ASSET_PAIRINGS, CHANNELS, CONFIG, CONTRACT_ADDRESSES,
-            POOL_METADATA, REGISTERED_DEXES, REV_ASSET_ADDRESSES,
-        },
-        AssetInfoListResponse, AssetInfoMapEntry, AssetInfosResponse, AssetListResponse,
-        AssetMapEntry, AssetPairingFilter, AssetPairingMapEntry, AssetsResponse,
-        ChannelListResponse, ChannelMapEntry, ChannelsResponse, ConfigResponse,
-        ContractListResponse, ContractMapEntry, ContractsResponse, PoolAddressListResponse,
-        PoolMetadataFilter, PoolMetadataListResponse, PoolMetadataMapEntry, PoolMetadatasResponse,
-        PoolsResponse, RegisteredDexesResponse,
+        state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES, REGISTERED_DEXES},
+        AssetListResponse, AssetsResponse, ChannelListResponse, ChannelsResponse,
+        ContractListResponse, ContractsResponse,
+    },
+    ans_host::{
+        AssetPairingFilter, AssetPairingMapEntry, ChannelMapEntry, ConfigResponse,
+        PoolAddressListResponse, PoolMetadataFilter, PoolMetadataListResponse,
+        PoolMetadataMapEntry, PoolMetadatasResponse, PoolsResponse, RegisteredDexesResponse,
     },
     objects::{
-        AssetEntry, ChannelEntry, ContractEntry, DexAssetPairing, DexName, PoolMetadata,
-        PoolReference, UniquePoolId,
+        AssetEntry, ChannelEntry, ContractEntry, DexAssetPairing, PoolMetadata, PoolReference,
+        UniquePoolId,
     },
 };
 use abstract_sdk::cw_helpers::cw_storage_plus::load_many;
 use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdError, StdResult, Storage};
 use cw_asset::AssetInfoUnchecked;
-use cw_ownable::{get_ownership, Ownership};
 use cw_storage_plus::Bound;
 
 pub(crate) const DEFAULT_LIMIT: u8 = 15;
@@ -30,11 +32,11 @@ pub fn query_config(deps: Deps) -> StdResult<Binary> {
         next_unique_pool_id,
     } = CONFIG.load(deps.storage)?;
 
-    let Ownership { owner, .. } = get_ownership(deps.storage)?;
+    let admin = ADMIN.get(deps)?.unwrap();
 
     let res = ConfigResponse {
         next_unique_pool_id,
-        admin: owner.unwrap(),
+        admin,
     };
 
     to_binary(&res)

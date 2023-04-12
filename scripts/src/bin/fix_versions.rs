@@ -7,26 +7,27 @@ use boot_core::{
     networks::{NetworkInfo, UNI_6},
     *,
 };
-
+use semver::Version;
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 
 const NETWORK: NetworkInfo = UNI_6;
 const WRONG_VERSION: &str = "0.1.0-rc.3";
 const NEW_VERSION: &str = env!("CARGO_PKG_VERSION");
-const NAMESPACE: &str = "abstract";
+const PROVIDER: &str = "abstract";
 
 /// Script that takes existing versions in Version control, removes them, and swaps them wit ha new version
 pub fn fix_versions() -> anyhow::Result<()> {
+    let abstract_version: Version = NEW_VERSION.parse().unwrap();
     let rt = Arc::new(Runtime::new()?);
     let options = DaemonOptionsBuilder::default().network(NETWORK).build();
     let (_sender, chain) = instantiate_daemon_env(&rt, options?)?;
 
-    let deployment = Abstract::new(chain);
+    let deployment = Abstract::new(chain, abstract_version);
 
     let ModulesListResponse { modules } = deployment.version_control.module_list(
         Some(ModuleFilter {
-            namespace: Some(NAMESPACE.to_string()),
+            provider: Some(PROVIDER.to_string()),
             version: Some(WRONG_VERSION.to_string()),
             ..Default::default()
         }),
@@ -38,14 +39,14 @@ pub fn fix_versions() -> anyhow::Result<()> {
         let ModuleInfo {
             version,
             name,
-            namespace,
+            provider,
         } = info.clone();
-        if version.to_string() == *WRONG_VERSION && namespace == *NAMESPACE {
+        if version.to_string() == *WRONG_VERSION && provider == *PROVIDER {
             deployment.version_control.remove_module(info, false)?;
             deployment.version_control.add_modules(vec![(
                 ModuleInfo {
                     name,
-                    namespace,
+                    provider,
                     version: ModuleVersion::from(NEW_VERSION),
                 },
                 reference,

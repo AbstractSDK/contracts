@@ -1,4 +1,4 @@
-use crate::{state::ContractError, Host};
+use crate::{Host, HostError};
 use abstract_core::objects::AccountId;
 use abstract_sdk::{
     features::{AbstractNameService, AccountIdentification},
@@ -7,23 +7,14 @@ use abstract_sdk::{
 use cosmwasm_std::Deps;
 
 impl<
-        Error: ContractError,
+        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
         CustomInitMsg,
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-        SudoMsg,
     > AbstractNameService
-    for Host<
-        Error,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        ReceiveMsg,
-        SudoMsg,
-    >
+    for Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     fn ans_host(&self, deps: Deps) -> AbstractSdkResult<abstract_sdk::feature_objects::AnsHost> {
         Ok(self.base_state.load(deps.storage)?.ans_host)
@@ -31,23 +22,14 @@ impl<
 }
 
 impl<
-        Error: ContractError,
+        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
         CustomInitMsg,
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-        SudoMsg,
     > AccountIdentification
-    for Host<
-        Error,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        ReceiveMsg,
-        SudoMsg,
-    >
+    for Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<cosmwasm_std::Addr> {
         self.target()

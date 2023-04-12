@@ -4,25 +4,14 @@ use crate::{
 };
 use abstract_core::objects::dependency::StaticDependency;
 use abstract_sdk::{
-    base::SudoHandlerFn,
     feature_objects::AnsHost,
     namespaces::{ADMIN_NAMESPACE, BASE_STATE},
-    AbstractSdkError,
 };
 use cosmwasm_std::{Addr, Empty, StdResult, Storage};
 use cw_controllers::Admin;
 use cw_storage_plus::Item;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-
-pub trait ContractError:
-    From<cosmwasm_std::StdError> + From<AppError> + From<AbstractSdkError> + 'static
-{
-}
-impl<T> ContractError for T where
-    T: From<cosmwasm_std::StdError> + From<AppError> + From<AbstractSdkError> + 'static
-{
-}
 
 /// The BaseState contains the main addresses needed for sending and verifying messages
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -34,41 +23,38 @@ pub struct AppState {
 }
 /// The state variables for our AppContract.
 pub struct AppContract<
-    Error: ContractError,
-    CustomInitMsg: 'static,
-    CustomExecMsg: 'static,
-    CustomQueryMsg: 'static,
-    CustomMigrateMsg: 'static,
+    Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError> + 'static,
+    CustomInitMsg: 'static = Empty,
+    CustomExecMsg: 'static = Empty,
+    CustomQueryMsg: 'static = Empty,
+    CustomMigrateMsg: 'static = Empty,
     Receive: 'static = Empty,
-    SudoMsg: 'static = Empty,
 > {
-    // Custom state for every App
-    pub admin: Admin<'static>,
-    pub(crate) base_state: Item<'static, AppState>,
-
     // Scaffolding contract that handles type safety and provides helper methods
-    pub(crate) contract: AbstractContract<Self, Error>,
-}
-
-/// Constructor
-impl<
-        Error: ContractError,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        ReceiveMsg,
-        SudoMsg,
-    >
-    AppContract<
+    pub(crate) contract: AbstractContract<
+        Self,
         Error,
         CustomInitMsg,
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
+        Receive,
+    >,
+    // Custom state for every App
+    pub admin: Admin<'static>,
+    pub(crate) base_state: Item<'static, AppState>,
+}
+
+/// Constructor
+impl<
+        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
         ReceiveMsg,
-        SudoMsg,
     >
+    AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     pub const fn new(
         name: &'static str,
@@ -116,14 +102,6 @@ impl<
         self
     }
 
-    pub const fn with_migrate(
-        mut self,
-        migrate_handler: MigrateHandlerFn<Self, CustomMigrateMsg, Error>,
-    ) -> Self {
-        self.contract = self.contract.with_migrate(migrate_handler);
-        self
-    }
-
     pub const fn with_replies(
         mut self,
         reply_handlers: &'static [(u64, ReplyHandlerFn<Self, Error>)],
@@ -132,8 +110,12 @@ impl<
         self
     }
 
-    pub const fn with_sudo(mut self, sudo_handler: SudoHandlerFn<Self, SudoMsg, Error>) -> Self {
-        self.contract = self.contract.with_sudo(sudo_handler);
+    /// add IBC callback handler to contract
+    pub const fn with_ibc_callbacks(
+        mut self,
+        callbacks: &'static [(&'static str, IbcCallbackHandlerFn<Self, Error>)],
+    ) -> Self {
+        self.contract = self.contract.with_ibc_callbacks(callbacks);
         self
     }
 
@@ -145,12 +127,11 @@ impl<
         self
     }
 
-    /// add IBC callback handler to contract
-    pub const fn with_ibc_callbacks(
+    pub const fn with_migrate(
         mut self,
-        callbacks: &'static [(&'static str, IbcCallbackHandlerFn<Self, Error>)],
+        migrate_handler: MigrateHandlerFn<Self, CustomMigrateMsg, Error>,
     ) -> Self {
-        self.contract = self.contract.with_ibc_callbacks(callbacks);
+        self.contract = self.contract.with_migrate(migrate_handler);
         self
     }
 }

@@ -7,20 +7,22 @@ use boot_core::{
     networks::{terra::PISCO_1, NetworkInfo},
     *,
 };
-
+use semver::Version;
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 
 const NETWORK: NetworkInfo = PISCO_1;
-const NAMESPACE: &str = "abstract";
+const NEW_VERSION: &str = env!("CARGO_PKG_VERSION");
+const PROVIDER: &str = "abstract";
 
 /// Script that takes existing versions in Version control, removes them, and swaps them wit ha new version
 pub fn fix_names() -> anyhow::Result<()> {
+    let abstract_version: Version = NEW_VERSION.parse().unwrap();
     let rt = Arc::new(Runtime::new()?);
     let options = DaemonOptionsBuilder::default().network(NETWORK).build();
     let (_sender, chain) = instantiate_daemon_env(&rt, options?)?;
 
-    let deployment = Abstract::new(chain);
+    let deployment = Abstract::new(chain, abstract_version);
 
     let ModulesListResponse { modules } =
         deployment.version_control.module_list(None, None, None)?;
@@ -29,14 +31,14 @@ pub fn fix_names() -> anyhow::Result<()> {
         let ModuleInfo {
             version,
             name,
-            namespace,
+            provider,
         } = info.clone();
-        if namespace == NAMESPACE && name.to_string().contains('_') {
+        if provider == PROVIDER && name.to_string().contains('_') {
             deployment.version_control.remove_module(info, false)?;
             deployment.version_control.add_modules(vec![(
                 ModuleInfo {
                     name: name.replace('_', "-"),
-                    namespace,
+                    provider,
                     version,
                 },
                 reference,

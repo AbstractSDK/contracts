@@ -2,7 +2,7 @@ use super::common::CW20;
 use super::testing_infrastructure::env::{init_os, CoreActions};
 use super::{
     common::TEST_CREATOR,
-    testing_infrastructure::env::{get_account_state, mock_app, register_module, AbstractEnv},
+    testing_infrastructure::env::{get_os_state, mock_app, register_module, AbstractEnv},
 };
 use crate::tests::common::RANDOM_USER;
 use crate::tests::testing_infrastructure::env::{exec_msg_on_manager, mint_tokens, token_balance};
@@ -22,7 +22,7 @@ fn proper_initialization() {
     let sender = Addr::unchecked(TEST_CREATOR);
     let mut env = AbstractEnv::new(&mut app, &sender);
 
-    let account_state = get_account_state(&app, &env.account_store, &0u32).unwrap();
+    let os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
     // upload vault contract
     let vault_contract = Box::new(
         ContractWrapper::new_with_empty(
@@ -47,7 +47,7 @@ fn proper_initialization() {
     // create second account
     init_os(&mut app, &sender, &mut env).unwrap();
     // add vault module, no defaults.
-    let account = env.account_store.get(&1).unwrap();
+    let account = env.os_store.get(&1).unwrap();
     account
         .add_module(
             &mut app,
@@ -65,7 +65,7 @@ fn proper_initialization() {
                 },
                 deposit_asset: "test".into(),
                 fee: Decimal::from_str("0.91").unwrap(),
-                namespace_addr: sender.to_string(),
+                provider_addr: sender.to_string(),
                 token_code_id: env.code_ids.get(CW20).unwrap().clone(),
                 vault_lp_token_name: None,
                 vault_lp_token_symbol: None,

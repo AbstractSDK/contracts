@@ -1,8 +1,8 @@
 use crate::{ApiContract, ApiError};
 use abstract_core::api::{ApiExecuteMsg, ApiQueryMsg};
 use abstract_sdk::{
-    base::{ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint},
-    core::api::{ApiConfigResponse, AuthorizedAddressesResponse},
+    base::endpoints::{ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint},
+    core::api::{ApiConfigResponse, TradersResponse},
 };
 use cosmwasm_schema::{export_schema_with_title, schema_for, write_api, QueryResponses};
 use cosmwasm_std::Empty;
@@ -19,8 +19,7 @@ impl<
         CustomInitMsg: Serialize + JsonSchema,
         CustomQueryMsg: Serialize + JsonSchema + ApiQueryMsg + QueryResponses,
         ReceiveMsg: Serialize + JsonSchema,
-        SudoMsg,
-    > ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    > ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg>
 {
     pub fn export_schema(out_dir: &Path) {
         // write out the module schema
@@ -47,11 +46,7 @@ impl<
             out_dir,
             "QueryMsg",
         );
-        export_schema_with_title(
-            &schema_for!(AuthorizedAddressesResponse),
-            out_dir,
-            "AuthorizedAddressesResponse",
-        );
+        export_schema_with_title(&schema_for!(TradersResponse), out_dir, "TradersResponse");
         export_schema_with_title(&schema_for!(ApiConfigResponse), out_dir, "ConfigResponse");
     }
 }

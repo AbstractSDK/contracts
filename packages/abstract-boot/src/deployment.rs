@@ -1,44 +1,47 @@
 use crate::{
-    get_account_contracts, get_native_contracts, AbstractAccount, AbstractBootError,
-    AccountFactory, AnsHost, Manager, ModuleFactory, Proxy, VersionControl,
+    get_native_contracts, AbstractAccount, AccountFactory, AnsHost, Manager, ModuleFactory, Proxy,
+    VersionControl,
 };
 
 use boot_core::*;
 
-pub struct Abstract<Chain: CwEnv> {
+use semver::Version;
+
+pub struct Abstract<Chain: BootEnvironment> {
+    pub chain: Chain,
+    pub version: Version,
     pub ans_host: AnsHost<Chain>,
     pub version_control: VersionControl<Chain>,
     pub account_factory: AccountFactory<Chain>,
     pub module_factory: ModuleFactory<Chain>,
-    pub account: AbstractAccount<Chain>,
 }
 
 use abstract_core::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY, VERSION_CONTROL};
 #[cfg(feature = "integration")]
 use boot_core::ContractWrapper;
 
-impl<Chain: CwEnv> boot_core::Deploy<Chain> for Abstract<Chain> {
+impl<Chain: BootEnvironment> boot_core::Deploy<Chain> for Abstract<Chain> {
     // We don't have a custom error type
-    type Error = AbstractBootError;
+    type Error = BootError;
     type DeployData = semver::Version;
 
-    fn store_on(chain: Chain) -> Result<Self, Self::Error> {
+    #[allow(unused_mut)]
+    fn deploy_on(chain: Chain, version: semver::Version) -> Result<Self, BootError> {
         let mut ans_host = AnsHost::new(ANS_HOST, chain.clone());
         let mut account_factory = AccountFactory::new(ACCOUNT_FACTORY, chain.clone());
         let mut version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
         let mut module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
         let mut manager = Manager::new(MANAGER, chain.clone());
-        let mut proxy = Proxy::new(PROXY, chain);
+        let mut proxy = Proxy::new(PROXY, chain.clone());
         #[cfg(feature = "integration")]
         if cfg!(feature = "integration") {
-            ans_host.as_instance_mut().set_mock(Box::new(
-                ContractWrapper::new_with_empty(
+            ans_host
+                .as_instance_mut()
+                .set_mock(Box::new(ContractWrapper::new_with_empty(
                     ::ans_host::contract::execute,
                     ::ans_host::contract::instantiate,
                     ::ans_host::contract::query,
-                )
-                .with_migrate(::ans_host::contract::migrate),
-            ));
+                )));
 
             account_factory.as_instance_mut().set_mock(Box::new(
                 ContractWrapper::new_with_empty(
@@ -46,8 +49,7 @@ impl<Chain: CwEnv> boot_core::Deploy<Chain> for Abstract<Chain> {
                     ::account_factory::contract::instantiate,
                     ::account_factory::contract::query,
                 )
-                .with_reply_empty(::account_factory::contract::reply)
-                .with_migrate(::account_factory::contract::migrate),
+                .with_reply_empty(::account_factory::contract::reply),
             ));
 
             module_factory.as_instance_mut().set_mock(Box::new(
@@ -56,8 +58,7 @@ impl<Chain: CwEnv> boot_core::Deploy<Chain> for Abstract<Chain> {
                     ::module_factory::contract::instantiate,
                     ::module_factory::contract::query,
                 )
-                .with_reply_empty(::module_factory::contract::reply)
-                .with_migrate(::module_factory::contract::migrate),
+                .with_reply_empty(::module_factory::contract::reply),
             ));
 
             version_control.as_instance_mut().set_mock(Box::new(
@@ -65,8 +66,7 @@ impl<Chain: CwEnv> boot_core::Deploy<Chain> for Abstract<Chain> {
                     ::version_control::contract::execute,
                     ::version_control::contract::instantiate,
                     ::version_control::contract::query,
-                )
-                .with_migrate(::version_control::contract::migrate),
+                ),
             ));
 
             manager.as_instance_mut().set_mock(Box::new(
@@ -74,87 +74,86 @@ impl<Chain: CwEnv> boot_core::Deploy<Chain> for Abstract<Chain> {
                     ::manager::contract::execute,
                     ::manager::contract::instantiate,
                     ::manager::contract::query,
-                )
-                .with_migrate(::manager::contract::migrate),
+                ),
             ));
 
-            proxy.as_instance_mut().set_mock(Box::new(
-                boot_core::ContractWrapper::new_with_empty(
+            proxy
+                .as_instance_mut()
+                .set_mock(Box::new(boot_core::ContractWrapper::new_with_empty(
                     ::proxy::contract::execute,
                     ::proxy::contract::instantiate,
                     ::proxy::contract::query,
-                )
-                .with_migrate(::proxy::contract::migrate),
-            ));
+                )));
         }
 
-        let mut account = AbstractAccount { manager, proxy };
-
-        ans_host.upload()?;
-        version_control.upload()?;
-        account_factory.upload()?;
-        module_factory.upload()?;
-        account.upload()?;
-
-        let deployment = Abstract {
+        let mut deployment = Abstract {
+            chain,
+            version,
             ans_host,
             account_factory,
             version_control,
             module_factory,
-            account,
         };
 
-        Ok(deployment)
-    }
-
-    fn deploy_on(chain: Chain, version: semver::Version) -> Result<Self, Self::Error> {
-        // upload
-        let mut deployment = Self::store_on(chain.clone())?;
-
-        // ########### Instantiate ##############
-        deployment.instantiate(&chain)?;
-
-        // Set Factory
-        deployment.version_control.execute(
-            &abstract_core::version_control::ExecuteMsg::SetFactory {
-                new_factory: deployment.account_factory.address()?.into_string(),
-            },
-            None,
-        )?;
-
-        // ########### upload modules and token ##############
+        let mut account = AbstractAccount { manager, proxy };
 
         deployment
-            .version_control
-            .register_base(&deployment.account, &version.to_string())?;
-
-        deployment
-            .version_control
-            .register_natives(deployment.contracts(), &version)?;
+            .deploy(&mut account)
+            .map_err(|e| BootError::StdErr(e.to_string()))?;
         Ok(deployment)
     }
 
     fn load_from(chain: Chain) -> Result<Self, Self::Error> {
-        Ok(Self::new(chain))
-    }
-}
-
-impl<Chain: CwEnv> Abstract<Chain> {
-    pub fn new(chain: Chain) -> Self {
         let (ans_host, account_factory, version_control, module_factory, _ibc_client) =
             get_native_contracts(chain.clone());
-        let (manager, proxy) = get_account_contracts(chain, None);
-        Self {
-            account: AbstractAccount { manager, proxy },
+        let version = env!("CARGO_PKG_VERSION").parse().unwrap();
+        Ok(Self {
+            chain,
+            version,
             ans_host,
             version_control,
             account_factory,
             module_factory,
+        })
+    }
+}
+
+impl<Chain: BootEnvironment> Abstract<Chain> {
+    pub fn new(chain: Chain, version: Version) -> Self {
+        let (ans_host, account_factory, version_control, module_factory, _ibc_client) =
+            get_native_contracts(chain.clone());
+
+        Self {
+            chain,
+            ans_host,
+            version_control,
+            account_factory,
+            module_factory,
+            version,
         }
     }
 
-    pub fn instantiate(&mut self, chain: &Chain) -> Result<(), BootError> {
-        let sender = &chain.sender();
+    #[allow(unused)]
+    fn get_chain(&self) -> Chain {
+        self.chain.clone()
+    }
+
+    pub fn upload(
+        &mut self,
+        account: &mut AbstractAccount<Chain>,
+    ) -> Result<(), crate::AbstractBootError> {
+        self.ans_host.upload()?;
+        self.version_control.upload()?;
+        self.account_factory.upload()?;
+        self.module_factory.upload()?;
+
+        account.upload()?;
+
+        Ok(())
+    }
+
+    pub fn instantiate(&mut self) -> Result<(), crate::AbstractBootError> {
+        let sender = &self.chain.sender();
 
         self.ans_host.instantiate(
             &abstract_core::ans_host::InstantiateMsg {},
@@ -189,6 +188,34 @@ impl<Chain: CwEnv> Abstract<Chain> {
             Some(sender),
             None,
         )?;
+
+        Ok(())
+    }
+
+    pub fn deploy(
+        &mut self,
+        account: &mut AbstractAccount<Chain>,
+    ) -> Result<(), crate::AbstractBootError> {
+        // ########### Upload ##############
+        self.upload(account)?;
+
+        // ########### Instantiate ##############
+        self.instantiate()?;
+
+        // Set Factory
+        self.version_control.execute(
+            &abstract_core::version_control::ExecuteMsg::SetFactory {
+                new_factory: self.account_factory.address()?.into_string(),
+            },
+            None,
+        )?;
+
+        // ########### upload modules and token ##############
+
+        self.version_control
+            .register_base(account, &self.version.to_string())?;
+
+        self.version_control.register_deployment(self)?;
 
         Ok(())
     }

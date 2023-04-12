@@ -1,8 +1,9 @@
-use abstract_core::{objects::AccountId, AbstractError};
-use abstract_sdk::{core::objects::module::ModuleInfo, AbstractSdkError};
+use abstract_core::objects::AccountId;
+use abstract_core::AbstractError;
+use abstract_sdk::core::objects::module::ModuleInfo;
+use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use cw_controllers::AdminError;
-use cw_ownable::OwnershipError;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
@@ -18,9 +19,6 @@ pub enum VCError {
 
     #[error("{0}")]
     Admin(#[from] AdminError),
-
-    #[error("{0}")]
-    Ownership(#[from] OwnershipError),
 
     #[error("Semver parsing error: {0}")]
     SemVer(String),
@@ -55,11 +53,7 @@ pub enum VCError {
         current
     )]
     DecreaseNamespaceLimit { limit: u32, current: u32 },
-
-    #[error("As namespace owner you can only yank a module, not remove it.")]
-    OnlyYankAllowed,
 }
-
 impl From<cw_semver::Error> for VCError {
     fn from(err: cw_semver::Error) -> Self {
         Self::SemVer(err.to_string())

@@ -9,7 +9,7 @@ use cw_asset::AssetInfo;
 use std::convert::TryInto;
 
 /**
- * Test disallowed address update
+ * Test unallowed address update
  */
 #[test]
 fn unauthorized_ans_host_update() {
@@ -28,7 +28,7 @@ fn unauthorized_ans_host_update() {
     let res = execute(deps.as_mut(), env.clone(), info.clone(), msg);
 
     match res {
-        Err(AnsHostError::Ownership(_)) => (),
+        Err(AnsHostError::Admin(_)) => (),
         Ok(_) => panic!("Should return NotFound Err"),
         _ => panic!("Should return NotFound Err"),
     }
@@ -45,7 +45,7 @@ fn unauthorized_ans_host_update() {
     let res = execute(deps.as_mut(), env, info, msg);
 
     match res {
-        Err(AnsHostError::Ownership(_)) => (),
+        Err(AnsHostError::Admin(_)) => (),
         Ok(_) => panic!("Should return NotFound Err"),
         _ => panic!("Should return NotFound Err"),
     }

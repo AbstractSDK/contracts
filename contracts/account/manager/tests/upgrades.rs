@@ -268,26 +268,26 @@ fn uninstall_modules() -> AResult {
     let app1 = install_module_version(manager, &abstr, app_1::MOCK_APP_ID, V1)?;
     account.expect_modules(vec![api1, api2, app1])?;
 
-    let res = manager.uninstall_module(api_1::MOCK_API_ID.to_string());
+    let res = manager.uninstall_module(api_1::MOCK_API_ID);
     // fails because app is depends on api 1
     assert_that!(res.unwrap_err().root().to_string())
         .contains(ManagerError::ModuleHasDependents(vec![app_1::MOCK_APP_ID.into()]).to_string());
     // same for api 2
-    let res = manager.uninstall_module(api_2::MOCK_API_ID.to_string());
+    let res = manager.uninstall_module(api_2::MOCK_API_ID);
     assert_that!(res.unwrap_err().root().to_string())
         .contains(ManagerError::ModuleHasDependents(vec![app_1::MOCK_APP_ID.into()]).to_string());
 
     // we can only uninstall if the app is uninstalled first
-    manager.uninstall_module(app_1::MOCK_APP_ID.to_string())?;
+    manager.uninstall_module(app_1::MOCK_APP_ID)?;
     // now we can uninstall api 1
-    manager.uninstall_module(api_1::MOCK_API_ID.to_string())?;
+    manager.uninstall_module(api_1::MOCK_API_ID)?;
     // and api 2
-    manager.uninstall_module(api_2::MOCK_API_ID.to_string())?;
+    manager.uninstall_module(api_2::MOCK_API_ID)?;
     Ok(())
 }
 
 #[test]
-fn update_api_with_authorized_addrs() -> AResult {
+fn update_api_with_traders() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
@@ -302,12 +302,8 @@ fn update_api_with_authorized_addrs() -> AResult {
     let api1 = install_module_version(manager, &abstr, api_1::MOCK_API_ID, V1)?;
     account.expect_modules(vec![api1.clone()])?;
 
-    // register a authorized address on API1
-    manager.update_api_authorized_addresses(
-        api_1::MOCK_API_ID,
-        vec!["authorizee".to_string()],
-        vec![],
-    )?;
+    // register a trader on API1
+    manager.update_api_traders(api_1::MOCK_API_ID, vec!["trader".to_string()], vec![])?;
 
     // upgrade api 1 to version 2
     manager.upgrade_module(
@@ -324,13 +320,13 @@ fn update_api_with_authorized_addrs() -> AResult {
 
     let api = api_1::BootMockApi1V2::new(chain);
     use abstract_core::api::BaseQueryMsgFns as _;
-    let authorized = api.authorized_addresses(proxy.addr_str()?)?;
-    assert_that!(authorized.addresses).contains(Addr::unchecked("authorizee"));
+    let traders = api.traders(proxy.addr_str()?)?;
+    assert_that!(traders.traders).contains(Addr::unchecked("trader"));
 
-    // assert that authorized address was removed from old API
+    // assert that trader was removed from old API
     api.set_address(&Addr::unchecked(api1));
-    let authorized = api.authorized_addresses(proxy.addr_str()?)?;
-    assert_that!(authorized.addresses).is_empty();
+    let traders = api.traders(proxy.addr_str()?)?;
+    assert_that!(traders.traders).is_empty();
     Ok(())
 }
 

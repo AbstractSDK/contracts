@@ -13,12 +13,15 @@ exclude = [
   "hash.txt",
 ]
 
+
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [features]
 default = ["export"]
 export = []
+# for quicker tests, cargo test --lib
+
 
 [dependencies]
 abstract-core =  { workspace = true }
@@ -35,27 +38,16 @@ protobuf = { workspace = true }
 semver = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
-cw-ownable = { workspace = true }
 
 [dev-dependencies]
-abstract-boot = { workspace = true }
-boot-core = { workspace = true }
-anyhow = { workspace = true }
+abstract-boot = {workspace = true}
+boot-core = { workspace = true}
+anyhow = {workspace = true}
+
 module-factory = { workspace = true }
 ans-host = { workspace = true }
 version-control = { workspace = true }
 proxy = { workspace = true }
 manager = { workspace = true }
-speculoos = { workspace = true }
-abstract-testing = { workspace = true }
 
-[profile.release]
-rpath = false
-lto = true
-overflow-checks = true
-opt-level = 3
-debug = false
-debug-assertions = false
-codegen-units = 1
-panic = 'abort'
-incremental = false
+speculoos = { workspace = true }

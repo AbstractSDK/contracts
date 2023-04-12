@@ -1,19 +1,33 @@
-use crate::{state::ContractError, ApiContract};
-use abstract_sdk::base::{AbstractContract, Handler};
+use crate::{ApiContract, ApiError};
+use abstract_sdk::{
+    base::{AbstractContract, Handler},
+    AbstractSdkError,
+};
 use cosmwasm_std::Empty;
 
-impl<Error: ContractError, InitMsg, ExecMsg, QueryMsg, ReceiveMsg, SudoMsg> Handler
-    for ApiContract<Error, InitMsg, ExecMsg, QueryMsg, ReceiveMsg, SudoMsg>
+impl<
+        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
+        InitMsg,
+        ExecMsg,
+        QueryMsg,
+        Receive,
+    > Handler for ApiContract<Error, InitMsg, ExecMsg, QueryMsg, Receive>
 {
     type Error = Error;
-    type CustomInitMsg = InitMsg;
-    type CustomExecMsg = ExecMsg;
-    type CustomQueryMsg = QueryMsg;
-    type CustomMigrateMsg = Empty;
-    type ReceiveMsg = ReceiveMsg;
-    type SudoMsg = SudoMsg;
 
-    fn contract(&self) -> &AbstractContract<Self, Error> {
+    type CustomExecMsg = ExecMsg;
+
+    type CustomInitMsg = InitMsg;
+
+    type CustomQueryMsg = QueryMsg;
+
+    type CustomMigrateMsg = Empty;
+
+    type ReceiveMsg = Receive;
+
+    fn contract(
+        &self,
+    ) -> &AbstractContract<Self, Error, InitMsg, ExecMsg, QueryMsg, Empty, Receive> {
         &self.contract
     }
 }

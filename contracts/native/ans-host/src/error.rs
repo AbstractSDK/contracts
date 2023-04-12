@@ -2,7 +2,7 @@ use abstract_core::AbstractError;
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use cw_asset::AssetError;
-use cw_ownable::OwnershipError;
+use cw_controllers::AdminError;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
@@ -20,7 +20,7 @@ pub enum AnsHostError {
     Asset(#[from] AssetError),
 
     #[error("{0}")]
-    Ownership(#[from] OwnershipError),
+    Admin(#[from] AdminError),
 
     #[error("You must provide exactly two assets when adding liquidity")]
     NotTwoAssets {},

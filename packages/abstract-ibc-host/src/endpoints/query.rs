@@ -1,4 +1,7 @@
-use crate::state::{ContractError, Host, ACCOUNTS};
+use crate::{
+    state::{Host, ACCOUNTS},
+    HostError,
+};
 use abstract_core::objects::AccountId;
 use abstract_sdk::{
     base::{Handler, QueryEndpoint},
@@ -12,23 +15,14 @@ use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult};
 /// Where we dispatch the queries for the Host
 /// These ApiQueryMsg declarations can be found in `abstract_sdk::core::common_module::app_msg`
 impl<
-        Error: ContractError,
+        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
         CustomInitMsg,
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-        SudoMsg,
     > QueryEndpoint
-    for Host<
-        Error,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        ReceiveMsg,
-        SudoMsg,
-    >
+    for Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     type QueryMsg = QueryMsg<Self::CustomQueryMsg>;
     fn query(&self, deps: Deps, env: Env, msg: Self::QueryMsg) -> Result<Binary, Error> {
@@ -41,15 +35,13 @@ impl<
     }
 }
 impl<
-        Error: ContractError,
+        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
         CustomInitMsg,
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-        SudoMsg,
-    >
-    Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg, SudoMsg>
+    > Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     fn base_query(&self, deps: Deps, _env: Env, query: BaseQueryMsg) -> StdResult<Binary> {
         match query {

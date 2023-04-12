@@ -1,20 +1,18 @@
-use crate::{state::ContractError, Host};
-use abstract_sdk::base::{InstantiateEndpoint, MigrateEndpoint, QueryEndpoint};
+use crate::{Host, HostError};
+use abstract_sdk::base::endpoints::{InstantiateEndpoint, MigrateEndpoint, QueryEndpoint};
 use cosmwasm_schema::{export_schema_with_title, schema_for};
 use schemars::JsonSchema;
 use serde::Serialize;
 use std::path::Path;
 
 impl<
-        Error: ContractError,
+        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
         CustomExecMsg: Serialize + JsonSchema,
         CustomInitMsg: Serialize + JsonSchema,
         CustomQueryMsg: Serialize + JsonSchema,
         CustomMigrateMsg: Serialize + JsonSchema,
         ReceiveMsg: Serialize + JsonSchema,
-        SudoMsg: Serialize + JsonSchema,
-    >
-    Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg, SudoMsg>
+    > Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     pub fn export_schema(out_dir: &Path) {
         export_schema_with_title(

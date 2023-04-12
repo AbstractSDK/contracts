@@ -1,5 +1,5 @@
 use abstract_sdk::core::{
-    api::{ApiConfigResponse, AuthorizedAddressesResponse},
+    api::{ApiConfigResponse, TradersResponse},
     dex::SimulateSwapResponse,
 };
 use cosmwasm_schema::{export_schema_with_title, remove_schemas, schema_for};
@@ -18,11 +18,7 @@ fn main() {
     export_schema_with_title(&schema_for!(SimulateSwapResponse), &out_dir, "ApiResponse");
 
     // export_schema_with_title(&schema_for!(ExecuteMsg<DexRequestMsg>), &out_dir, "ExecuteMsg");
-    export_schema_with_title(
-        &schema_for!(AuthorizedAddressesResponse),
-        &out_dir,
-        "AuthorizedAddressesResponse",
-    );
+    export_schema_with_title(&schema_for!(TradersResponse), &out_dir, "TradersResponse");
     export_schema_with_title(&schema_for!(ApiConfigResponse), &out_dir, "ConfigResponse");
 
     // export_schema_with_title(&schema_for!(ApiQueryMsg), &out_dir, "QueryMsg");

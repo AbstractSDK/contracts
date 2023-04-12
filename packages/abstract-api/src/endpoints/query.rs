@@ -1,21 +1,21 @@
-use crate::state::{ApiContract, ContractError};
-use abstract_core::api::{
-    ApiConfigResponse, ApiQueryMsg, AuthorizedAddressesResponse, BaseQueryMsg, QueryMsg,
+use crate::{state::ApiContract, ApiError};
+use abstract_core::api::{ApiConfigResponse, ApiQueryMsg, BaseQueryMsg, QueryMsg, TradersResponse};
+use abstract_sdk::{
+    base::{endpoints::QueryEndpoint, Handler},
+    AbstractSdkError,
 };
-use abstract_sdk::base::{Handler, QueryEndpoint};
-use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, StdResult};
+use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
 
 /// Where we dispatch the queries for the ApiContract
 /// These ApiQueryMsg declarations can be found in `abstract_sdk::core::common_module::app_msg`
 impl<
-        Error: ContractError,
+        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
         CustomInitMsg,
         CustomExecMsg,
         CustomQueryMsg: ApiQueryMsg,
         ReceiveMsg,
-        SudoMsg,
     > QueryEndpoint
-    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg>
 {
     type QueryMsg = QueryMsg<CustomQueryMsg>;
     fn query(&self, deps: Deps, env: Env, msg: Self::QueryMsg) -> Result<Binary, Error> {
@@ -26,23 +26,26 @@ impl<
     }
 }
 
-impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
-    ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+impl<
+        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        ReceiveMsg,
+    > ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg>
 {
     fn base_query(&self, deps: Deps, _env: Env, query: BaseQueryMsg) -> Result<Binary, Error> {
         match query {
             BaseQueryMsg::Config {} => {
                 to_binary(&self.dapp_config(deps).map_err(Error::from)?).map_err(Into::into)
             }
-            BaseQueryMsg::AuthorizedAddresses { proxy_address } => {
-                let proxy_address = deps.api.addr_validate(&proxy_address)?;
-                let authorized_addrs: Vec<Addr> = self
-                    .authorized_addresses
-                    .may_load(deps.storage, proxy_address)?
+            BaseQueryMsg::Traders { proxy_address } => {
+                let traders = self
+                    .traders
+                    .may_load(deps.storage, deps.api.addr_validate(&proxy_address)?)?
                     .unwrap_or_default();
-
-                to_binary(&AuthorizedAddressesResponse {
-                    addresses: authorized_addrs,
+                to_binary(&TradersResponse {
+                    traders: traders.into_iter().collect(),
                 })
                 .map_err(Into::into)
             }

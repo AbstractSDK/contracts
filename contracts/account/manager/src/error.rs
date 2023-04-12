@@ -34,14 +34,20 @@ pub enum ManagerError {
     #[error("Registering module fails because caller is not module factory")]
     CallerNotFactory {},
 
+    #[error("only the subscription contract can change the Account status")]
+    CallerNotSubscriptionContract {},
+
     #[error("A migratemsg is required when when migrating this module")]
     MsgRequired {},
 
     #[error("{0} not upgradable")]
     NotUpgradeable(ModuleInfo),
 
-    #[error("Your account is currently suspended")]
-    AccountSuspended {},
+    #[error("you need a subscription to use this contract")]
+    NotSubscribed {},
+
+    #[error("A valid subscriber addr is required")]
+    NoSubscriptionAddrProvided {},
 
     #[error("The provided contract version {0} is lower than the current version {1}")]
     OlderVersion(String, String),
@@ -83,7 +89,4 @@ pub enum ManagerError {
 
     #[error("Cannot remove proxy")]
     CannotRemoveProxy {},
-
-    #[error("No updates were included")]
-    NoUpdates {},
 }

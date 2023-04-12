@@ -1,13 +1,14 @@
 use abstract_core::abstract_token::*;
 use boot_core::{
-    contract, Contract, CwEnv, TxResponse, {BootExecute, BootInstantiate, ContractInstance},
+    boot_contract, BootEnvironment, Contract, TxResponse,
+    {BootExecute, BootInstantiate, ContractInstance},
 };
 use cosmwasm_std::{Addr, Binary, Uint128};
 
-#[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Idea<Chain>;
 
-impl<Chain: CwEnv> Idea<Chain> {
+impl<Chain: BootEnvironment> Idea<Chain> {
     pub fn new(name: &str, chain: Chain) -> Self {
         Self(
             Contract::new(name, chain).with_wasm_path("abstract_abstract_token"), // .with_mock(Box::new(

@@ -99,9 +99,9 @@ impl<Request: Serialize> ApiRequestMsg<Request> {
 #[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
 #[cfg_attr(feature = "boot", impl_into(ExecuteMsg<T>))]
 pub enum BaseExecuteMsg {
-    /// Add or remove authorized addresses
-    /// If an authorized address is both in to_add and to_remove, it will be removed.
-    UpdateAuthorizedAddresses {
+    /// Add or remove traders
+    /// If a trader is both in to_add and to_remove, it will be removed.
+    UpdateTraders {
         to_add: Vec<String>,
         to_remove: Vec<String>,
     },
@@ -118,9 +118,10 @@ pub enum BaseQueryMsg {
     /// Returns [`ApiConfigResponse`].
     #[returns(ApiConfigResponse)]
     Config {},
-    /// Returns [`AuthorizedAddressesResponse`].
-    #[returns(AuthorizedAddressesResponse)]
-    AuthorizedAddresses { proxy_address: String },
+    /// Returns [`TradersResponse`].
+    /// TODO: enable pagination
+    #[returns(TradersResponse)]
+    Traders { proxy_address: String },
 }
 
 impl<T> From<BaseQueryMsg> for QueryMsg<T> {
@@ -136,7 +137,7 @@ pub struct ApiConfigResponse {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct AuthorizedAddressesResponse {
-    /// Contains all authorized addresses
-    pub addresses: Vec<Addr>,
+pub struct TradersResponse {
+    /// Contains all traders
+    pub traders: Vec<Addr>,
 }

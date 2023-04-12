@@ -4,14 +4,14 @@ use abstract_core::{
     manager::*,
     objects::module::{ModuleInfo, ModuleVersion},
 };
-use boot_core::{contract, BootExecute, Contract, CwEnv};
+use boot_core::{boot_contract, BootEnvironment, BootExecute, Contract};
 use cosmwasm_std::{to_binary, Empty};
 use serde::Serialize;
 
-#[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Manager<Chain>;
 
-impl<Chain: CwEnv> Manager<Chain> {
+impl<Chain: BootEnvironment> Manager<Chain> {
     pub fn new(name: &str, chain: Chain) -> Self {
         let mut contract = Contract::new(name, chain);
         contract = contract.with_wasm_path("abstract_manager");
@@ -37,7 +37,7 @@ impl<Chain: CwEnv> Manager<Chain> {
 
     pub fn replace_api(&self, module_id: &str) -> Result<(), crate::AbstractBootError> {
         // this should check if installed?
-        self.uninstall_module(module_id.to_string())?;
+        self.uninstall_module(module_id)?;
 
         self.install_module(module_id, &Empty {})
     }
@@ -66,6 +66,19 @@ impl<Chain: CwEnv> Manager<Chain> {
         Ok(())
     }
 
+    pub fn uninstall_module(
+        &self,
+        module_id: impl Into<String>,
+    ) -> Result<(), crate::AbstractBootError> {
+        self.execute(
+            &ExecuteMsg::RemoveModule {
+                module_id: module_id.into(),
+            },
+            None,
+        )?;
+        Ok(())
+    }
+
     pub fn execute_on_module(
         &self,
         module: &str,
@@ -81,7 +94,7 @@ impl<Chain: CwEnv> Manager<Chain> {
         Ok(())
     }
 
-    pub fn update_api_authorized_addresses(
+    pub fn update_api_traders(
         &self,
         module_id: &str,
         to_add: Vec<String>,
@@ -89,7 +102,7 @@ impl<Chain: CwEnv> Manager<Chain> {
     ) -> Result<(), crate::AbstractBootError> {
         self.execute_on_module(
             module_id,
-            api::ExecuteMsg::<Empty, Empty>::Base(api::BaseExecuteMsg::UpdateAuthorizedAddresses {
+            api::ExecuteMsg::<Empty, Empty>::Base(api::BaseExecuteMsg::UpdateTraders {
                 to_add,
                 to_remove,
             }),

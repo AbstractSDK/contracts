@@ -1,6 +1,6 @@
 use crate::{
-    state::{AppContract, AppState, ContractError},
-    Handler, InstantiateEndpoint,
+    state::{AppContract, AppState},
+    AppError, Handler, InstantiateEndpoint,
 };
 use abstract_core::{
     app::{BaseInstantiateMsg, InstantiateMsg},
@@ -17,13 +17,12 @@ use schemars::JsonSchema;
 use serde::Serialize;
 
 impl<
-        Error: ContractError,
+        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
         CustomInitMsg: Serialize + JsonSchema,
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-        SudoMsg,
     > InstantiateEndpoint
     for AppContract<
         Error,
@@ -32,7 +31,6 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-        SudoMsg,
     >
 {
     type InstantiateMsg = InstantiateMsg<Self::CustomInitMsg>;
