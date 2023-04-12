@@ -16,7 +16,7 @@ use boot_core::{
     Deploy, IndexResponse, {instantiate_default_mock_env, ContractInstance},
 };
 use common::TEST_VERSION;
-use cosmwasm_std::{Addr, Uint64};
+use cosmwasm_std::Addr;
 use speculoos::prelude::*;
 
 type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>

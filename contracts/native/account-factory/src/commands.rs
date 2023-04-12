@@ -36,6 +36,7 @@ use abstract_sdk::core::{MANAGER, PROXY};
 struct AccountFactoryResponse;
 
 /// Function that starts the creation of the Account
+#[allow(clippy::too_many_arguments)]
 pub fn execute_create_account(
     deps: DepsMut,
     env: Env,
