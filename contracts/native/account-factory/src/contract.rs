@@ -12,7 +12,7 @@ use cw2::{get_contract_version, set_contract_version};
 
 use semver::Version;
 
-pub type AccountFactoryResult = Result<Response, AccountFactoryError>;
+pub type AccountFactoryResult<T = Response> = Result<T, AccountFactoryError>;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -80,6 +80,7 @@ pub fn execute(
             commands::execute_create_account(
                 deps,
                 env,
+                info,
                 gov_details,
                 name,
                 description,

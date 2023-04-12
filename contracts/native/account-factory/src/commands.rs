@@ -28,6 +28,7 @@ use protobuf::Message;
 
 pub const CREATE_ACCOUNT_MANAGER_MSG_ID: u64 = 1u64;
 pub const CREATE_ACCOUNT_PROXY_MSG_ID: u64 = 2u64;
+pub const MAX_TRACE_LENGTH: usize = 6;
 
 use abstract_sdk::core::{MANAGER, PROXY};
 
@@ -38,6 +39,7 @@ struct AccountFactoryResponse;
 pub fn execute_create_account(
     deps: DepsMut,
     env: Env,
+    info: MessageInfo,
     governance: GovernanceDetails<Addr>,
     name: String,
     description: Option<String>,
@@ -45,6 +47,10 @@ pub fn execute_create_account(
     origin: AccountTrace,
 ) -> AccountFactoryResult {
     let config = CONFIG.load(deps.storage)?;
+
+    // check that account creation is allowed from this sender
+    // if the trace is remote, assert that the trace limit is not exceeded
+    assert_account_creation_rules(&deps.querier, config.ibc_host, &info.sender, &origin)?;
     // load the next account id
     // if it doesn't exist then it's the first account so set it to 0.
     let next_sequence = ACCOUNT_SEQUENCES
@@ -293,4 +299,34 @@ pub fn execute_update_config(
     }
 
     Ok(AccountFactoryResponse::action("update_config"))
+}
+
+/// Verify that the sender is allowed to create an account
+/// If account trace = Local then the sender must be a user (not a contract)
+/// if the account trace = Remote then the sender must be the ibc-host
+fn assert_account_creation_rules(
+    querier: &QuerierWrapper<Empty>,
+    ibc_host: Option<Addr>,
+    sender: &Addr,
+    origin: &AccountTrace,
+) -> AccountFactoryResult<()> {
+    match origin {
+        AccountTrace::Local => {
+            // verify that sender is a user
+            querier
+                .query_wasm_contract_info(sender)
+                .expect_err("msg sender is not a user");
+        }
+        AccountTrace::Remote(trace) => {
+            let ibc_host = ibc_host.ok_or(AccountFactoryError::NoIbcHost)?;
+            assert_eq!(ibc_host, *sender, "msg sender is not the ibc host");
+            if trace.is_empty() || trace.len() > MAX_TRACE_LENGTH {
+                return Err(AccountFactoryError::InvalidTrace(
+                    MAX_TRACE_LENGTH,
+                    trace.len(),
+                ));
+            }
+        }
+    }
+    Ok(())
 }
