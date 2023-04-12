@@ -277,6 +277,7 @@ mod test {
                             version_control_address: TEST_VERSION_CONTROL.to_owned(),
                             module_factory_address: TEST_MODULE_FACTORY.to_owned(),
                             account_id: Uint64::from(TEST_ACCOUNT_ID), // mock value, not used
+                            is_suspended: false,
                         };
                         Ok(to_binary(&resp).unwrap())
                     }
@@ -291,6 +292,7 @@ mod test {
                             version_control_address: TEST_VERSION_CONTROL.to_owned(),
                             module_factory_address: TEST_MODULE_FACTORY.to_owned(),
                             account_id: Uint64::from(TEST_OTHER_ACCOUNT_ID), // mock value, not used
+                            is_suspended: false,
                         };
                         Ok(to_binary(&resp).unwrap())
                     }

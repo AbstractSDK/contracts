@@ -11,8 +11,8 @@ use abstract_sdk::core::{
     version_control::{namespaces_info, state::*, AccountBase},
     VERSION_CONTROL,
 };
-use cosmwasm_std::{Addr, Deps, DepsMut, Empty, MessageInfo, Order, QuerierWrapper, StdResult};
-use cosmwasm_std::{DepsMut, MessageInfo, Response};
+use cosmwasm_std::Response;
+use cosmwasm_std::{Addr, Deps, DepsMut, MessageInfo, Order, QuerierWrapper, StdResult};
 use cw_ownable::assert_owner;
 
 #[abstract_response(VERSION_CONTROL)]
@@ -65,7 +65,7 @@ pub fn add_modules(
             assert_owner(deps.storage, &msg_info.sender)?;
         } else {
             // Only owner can add modules
-            validate_account_owner(deps.as_ref(), &module.provider, &msg_info.sender)?;
+            validate_account_owner(deps.as_ref(), &module.namespace, &msg_info.sender)?;
         }
         if config.is_testnet {
             MODULE_LIBRARY.save(deps.storage, &module, &mod_ref)?;
@@ -126,7 +126,7 @@ pub fn remove_module(
 ) -> VCResult {
     // Only Admin or owner can update code-ids
     if !ADMIN.is_admin(deps.as_ref(), &msg_info.sender)? {
-        validate_account_owner(deps.as_ref(), &module.provider, &msg_info.sender)?;
+        validate_account_owner(deps.as_ref(), &module.namespace, &msg_info.sender)?;
     }
 
     module.assert_version_variant()?;
@@ -332,7 +332,6 @@ mod test {
     type VersionControlTestResult = Result<(), VCError>;
 
     const TEST_OTHER: &str = "test-other";
-    const TEST_MODULE: &str = "provider:test";
     const TEST_OWNER: &str = "test-owner";
     const TEST_MODULE: &str = "namespace:test";
 
@@ -724,7 +723,7 @@ mod test {
 
             // first add module
             let mut new_module = test_module();
-            new_module.provider = new_namespace1.to_string();
+            new_module.namespace = new_namespace1.to_string();
             let msg = ExecuteMsg::AddModules {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
@@ -761,7 +760,7 @@ mod test {
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), true)?;
             let mut new_module = test_module();
-            new_module.provider = ABSTRACT_NAMESPACE.to_owned();
+            new_module.namespace = ABSTRACT_NAMESPACE.to_owned();
             let msg = ExecuteMsg::AddModules {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
@@ -787,7 +786,7 @@ mod test {
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(&VCError::MissingNamespace {
-                    namespace: new_module.provider.clone(),
+                    namespace: new_module.namespace.clone(),
                 });
 
             // add namespaces
@@ -796,7 +795,7 @@ mod test {
                 TEST_OWNER,
                 ExecuteMsg::ClaimNamespaces {
                     account_id: TEST_ACCOUNT_ID,
-                    namespaces: vec![new_module.provider.clone()],
+                    namespaces: vec![new_module.namespace.clone()],
                 },
             )?;
 
@@ -823,7 +822,7 @@ mod test {
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(&VCError::MissingNamespace {
-                    namespace: new_module.provider.clone(),
+                    namespace: new_module.namespace.clone(),
                 });
 
             // add namespaces
@@ -832,7 +831,7 @@ mod test {
                 TEST_OWNER,
                 ExecuteMsg::ClaimNamespaces {
                     account_id: TEST_ACCOUNT_ID,
-                    namespaces: vec![new_module.provider.clone()],
+                    namespaces: vec![new_module.namespace.clone()],
                 },
             )?;
 
@@ -857,7 +856,7 @@ mod test {
                 TEST_OWNER,
                 ExecuteMsg::ClaimNamespaces {
                     account_id: TEST_ACCOUNT_ID,
-                    namespaces: vec![new_module.provider.clone()],
+                    namespaces: vec![new_module.namespace.clone()],
                 },
             )?;
             // add modules
@@ -904,7 +903,7 @@ mod test {
                 TEST_OWNER,
                 ExecuteMsg::ClaimNamespaces {
                     account_id: TEST_ACCOUNT_ID,
-                    namespaces: vec![new_module.provider.clone()],
+                    namespaces: vec![new_module.namespace.clone()],
                 },
             )?;
             // add modules
@@ -948,7 +947,7 @@ mod test {
             // add namespaces
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
-                namespaces: vec![rm_module.provider.clone()],
+                namespaces: vec![rm_module.namespace.clone()],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
 
@@ -988,7 +987,7 @@ mod test {
             // add namespaces
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
-                namespaces: vec![rm_module.provider.clone()],
+                namespaces: vec![rm_module.namespace.clone()],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
 
