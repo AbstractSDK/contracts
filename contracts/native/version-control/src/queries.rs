@@ -23,9 +23,9 @@ use cw_storage_plus::{Bound, Map};
 const DEFAULT_LIMIT: u8 = 10;
 const MAX_LIMIT: u8 = 20;
 
-pub fn handle_os_address_query(deps: Deps, account_id: AccountId) -> StdResult<Binary> {
-    let os_address = ACCOUNT_ADDRESSES.load(deps.storage, account_id);
-    match os_address {
+pub fn handle_account_address_query(deps: Deps, account_id: AccountId) -> StdResult<Binary> {
+    let account_address = ACCOUNT_ADDRESSES.load(deps.storage, account_id);
+    match account_address {
         Err(_) => Err(StdError::generic_err(
             VCError::MissingAccountId { id: account_id }.to_string(),
         )),
@@ -41,7 +41,7 @@ pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<B
         } else {
             // get latest
             let versions: StdResult<Vec<(String, ModuleReference)>> = MODULE_LIBRARY
-                .prefix((module.provider.clone(), module.name.clone()))
+                .prefix((module.namespace.clone(), module.name.clone()))
                 .range(deps.storage, None, None, Order::Descending)
                 .take(1)
                 .collect();
@@ -81,7 +81,7 @@ pub fn handle_module_list_query(
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
 
     let ModuleFilter {
-        provider: ref provider_filter,
+        namespace: ref namespace_filter,
         name: ref name_filter,
         version: version_filter,
         status,
@@ -95,12 +95,12 @@ pub fn handle_module_list_query(
     };
     let mut modules: Vec<(ModuleInfo, ModuleReference)> = vec![];
 
-    if let Some(provider_filter) = provider_filter {
-        modules.extend(filter_modules_by_provider(
+    if let Some(namespace_filter) = namespace_filter {
+        modules.extend(filter_modules_by_namespace(
             deps,
             start_after,
             limit,
-            provider_filter,
+            namespace_filter,
             name_filter,
             mod_lib,
         )?);
@@ -118,7 +118,7 @@ pub fn handle_module_list_query(
     };
 
     // handle name and version filter after loading all modules
-    if provider_filter.is_none() && name_filter.is_some() {
+    if namespace_filter.is_none() && name_filter.is_some() {
         let name_filter = name_filter.as_ref().unwrap();
         modules.retain(|(module_info, _)| &module_info.name == name_filter);
     }
@@ -178,12 +178,12 @@ pub fn handle_namespace_list_query(
     to_binary(&NamespaceListResponse { namespaces })
 }
 
-/// Filter the modules with their primary key prefix (provider)
-fn filter_modules_by_provider(
+/// Filter the modules with their primary key prefix (namespace)
+fn filter_modules_by_namespace(
     deps: Deps,
     start_after: Option<ModuleInfo>,
     limit: usize,
-    provider: &str,
+    namespace: &str,
     name: &Option<String>,
     mod_lib: &Map<&ModuleInfo, ModuleReference>,
 ) -> StdResult<Vec<(ModuleInfo, ModuleReference)>> {
@@ -192,11 +192,11 @@ fn filter_modules_by_provider(
     // Filter by name using full prefix
     if let Some(name) = name {
         let start_bound: Option<Bound<String>> =
-            start_after.map(|token| Bound::exclusive(token.provider));
+            start_after.map(|token| Bound::exclusive(token.namespace));
 
         modules.extend(
             mod_lib
-                .prefix((provider.to_owned(), name.clone()))
+                .prefix((namespace.to_owned(), name.clone()))
                 .range(deps.storage, start_bound, None, Order::Ascending)
                 .take(limit)
                 .collect::<StdResult<Vec<_>>>()?
@@ -204,7 +204,7 @@ fn filter_modules_by_provider(
                 .map(|(version, reference)| {
                     (
                         ModuleInfo {
-                            provider: provider.to_owned(),
+                            namespace: namespace.to_owned(),
                             name: name.clone(),
                             version: ModuleVersion::Version(version),
                         },
@@ -213,13 +213,13 @@ fn filter_modules_by_provider(
                 }),
         )
     } else {
-        // Filter by just provider using sub prefix
+        // Filter by just namespace using sub prefix
         let start_bound: Option<Bound<(String, String)>> =
-            start_after.map(|token| Bound::exclusive((token.provider, token.name)));
+            start_after.map(|token| Bound::exclusive((token.namespace, token.name)));
 
         modules.extend(
             mod_lib
-                .sub_prefix(provider.to_owned())
+                .sub_prefix(namespace.to_owned())
                 .range(deps.storage, start_bound, None, Order::Ascending)
                 .take(limit)
                 .collect::<StdResult<Vec<_>>>()?
@@ -227,7 +227,7 @@ fn filter_modules_by_provider(
                 .map(|((name, version), reference)| {
                     (
                         ModuleInfo {
-                            provider: provider.to_owned(),
+                            namespace: namespace.to_owned(),
                             name,
                             version: ModuleVersion::Version(version),
                         },
@@ -386,14 +386,16 @@ mod test {
             let new_module_info =
                 ModuleInfo::from_id("test:module", ModuleVersion::Version("0.1.2".into())).unwrap();
 
-            let ModuleInfo { name, provider, .. } = new_module_info.clone();
+            let ModuleInfo {
+                name, namespace, ..
+            } = new_module_info.clone();
 
             add_namespace(deps.as_mut(), "test");
             add_module(deps.as_mut(), new_module_info.clone());
 
             let query_msg = QueryMsg::Modules {
                 infos: vec![ModuleInfo {
-                    provider,
+                    namespace,
                     name,
                     version: Latest {},
                 }],
@@ -413,14 +415,16 @@ mod test {
             let new_module_info =
                 ModuleInfo::from_id("test:module", ModuleVersion::Version("0.1.2".into())).unwrap();
 
-            let ModuleInfo { name, provider, .. } = new_module_info.clone();
+            let ModuleInfo {
+                name, namespace, ..
+            } = new_module_info.clone();
 
             add_namespace(deps.as_mut(), "test");
             add_module(deps.as_mut(), new_module_info);
 
             let query_msg = QueryMsg::Modules {
                 infos: vec![ModuleInfo {
-                    provider,
+                    namespace,
                     name,
                     version: ModuleVersion::Version("024209.902.902".to_string()),
                 }],
@@ -456,7 +460,7 @@ mod test {
 
             let query_msg = QueryMsg::Modules {
                 infos: vec![ModuleInfo {
-                    provider: "test".to_string(),
+                    namespace: "test".to_string(),
                     name: "module".to_string(),
                     version: Latest {},
                 }],
@@ -534,22 +538,22 @@ mod test {
             deps.querier = mock_manager_querier().build();
             init_with_mods(deps.as_mut());
 
-            let provider = "cw-plus".to_string();
+            let namespace = "cw-plus".to_string();
 
             let query_msg = QueryMsg::Modules {
                 infos: vec![
                     ModuleInfo {
-                        provider: provider.clone(),
+                        namespace: namespace.clone(),
                         name: "module1".to_string(),
                         version: ModuleVersion::Latest {},
                     },
                     ModuleInfo {
-                        provider: provider.clone(),
+                        namespace: namespace.clone(),
                         name: "module2".to_string(),
                         version: ModuleVersion::Latest {},
                     },
                     ModuleInfo {
-                        provider: provider.clone(),
+                        namespace: namespace.clone(),
                         name: "module3".to_string(),
                         version: ModuleVersion::Latest {},
                     },
@@ -560,7 +564,7 @@ mod test {
                 from_binary(&query_helper(deps.as_ref(), query_msg)?)?;
             assert_that!(modules).has_length(3);
             for module in modules {
-                assert_that!(module.info.provider).is_equal_to(provider.clone());
+                assert_that!(module.info.namespace).is_equal_to(namespace.clone());
                 assert_that!(module.info.version)
                     .is_equal_to(&ModuleVersion::Version("0.1.2".into()));
             }
@@ -575,7 +579,7 @@ mod test {
 
             let query_msg = QueryMsg::Modules {
                 infos: vec![ModuleInfo {
-                    provider: "not".to_string(),
+                    namespace: "not".to_string(),
                     name: "found".to_string(),
                     version: ModuleVersion::Latest {},
                 }],
@@ -601,14 +605,14 @@ mod test {
         }
 
         #[test]
-        fn filter_by_provider_existing() {
+        fn filter_by_namespace_existing() {
             let mut deps = mock_dependencies();
             deps.querier = mock_manager_querier().build();
             init_with_mods(deps.as_mut());
-            let filtered_provider = "cw-plus".to_string();
+            let filtered_namespace = "cw-plus".to_string();
 
             let filter = ModuleFilter {
-                provider: Some(filtered_provider.clone()),
+                namespace: Some(filtered_namespace.clone()),
                 ..Default::default()
             };
             let list_msg = filtered_list_msg(filter);
@@ -620,7 +624,7 @@ mod test {
                 assert_that!(modules).has_length(3);
 
                 for entry in modules {
-                    assert_that!(entry.info.provider).is_equal_to(filtered_provider.clone());
+                    assert_that!(entry.info.namespace).is_equal_to(filtered_namespace.clone());
                 }
 
                 res
@@ -665,7 +669,7 @@ mod test {
 
                 let yanked_module_names = ["module4".to_string(), "module5".to_string()];
                 for entry in modules {
-                    if entry.info.provider == "cw-plus" {
+                    if entry.info.namespace == "cw-plus" {
                         assert!(!yanked_module_names.iter().any(|e| e == &entry.info.name));
                     }
                 }
@@ -675,7 +679,7 @@ mod test {
         }
 
         #[test]
-        fn filter_yanked_by_provider_existing() {
+        fn filter_yanked_by_namespace_existing() {
             let mut deps = mock_dependencies();
             deps.querier = mock_manager_querier().build();
             init_with_mods(deps.as_mut());
@@ -698,11 +702,11 @@ mod test {
                     .unwrap(),
             );
 
-            let filtered_provider = "cw-plus".to_string();
+            let filtered_namespace = "cw-plus".to_string();
 
             let filter = ModuleFilter {
                 status: Some(ModuleStatus::YANKED),
-                provider: Some(filtered_provider.clone()),
+                namespace: Some(filtered_namespace.clone()),
                 ..Default::default()
             };
             let list_msg = QueryMsg::ModuleList {
@@ -718,7 +722,7 @@ mod test {
                 assert_that!(modules).has_length(2);
 
                 for entry in modules {
-                    assert_that!(entry.info.provider).is_equal_to(filtered_provider.clone());
+                    assert_that!(entry.info.namespace).is_equal_to(filtered_namespace.clone());
                 }
 
                 res
@@ -726,7 +730,7 @@ mod test {
         }
 
         #[test]
-        fn filter_by_provider_non_existing() {
+        fn filter_by_namespace_non_existing() {
             let mut deps = mock_dependencies();
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut()).unwrap();
@@ -750,10 +754,10 @@ mod test {
             ];
             add_modules(deps.as_mut(), cw_mods);
 
-            let filtered_provider = "dne".to_string();
+            let filtered_namespace = "dne".to_string();
 
             let filter = ModuleFilter {
-                provider: Some(filtered_provider),
+                namespace: Some(filtered_namespace),
                 ..Default::default()
             };
 
@@ -770,16 +774,16 @@ mod test {
         }
 
         #[test]
-        fn filter_by_provider_and_name() {
+        fn filter_by_namespace_and_name() {
             let mut deps = mock_dependencies();
             deps.querier = mock_manager_querier().build();
             init_with_mods(deps.as_mut());
 
-            let filtered_provider = "cw-plus".to_string();
+            let filtered_namespace = "cw-plus".to_string();
             let filtered_name = "module2".to_string();
 
             let filter = ModuleFilter {
-                provider: Some(filtered_provider.clone()),
+                namespace: Some(filtered_namespace.clone()),
                 name: Some(filtered_name.clone()),
                 ..Default::default()
             };
@@ -793,32 +797,32 @@ mod test {
                 assert_that!(modules).has_length(1);
 
                 let module = modules[0].clone();
-                assert_that!(module.info.provider).is_equal_to(filtered_provider.clone());
+                assert_that!(module.info.namespace).is_equal_to(filtered_namespace.clone());
                 assert_that!(module.info.name).is_equal_to(filtered_name.clone());
                 res
             });
         }
 
         #[test]
-        fn filter_by_provider_and_name_with_multiple_versions() {
+        fn filter_by_namespace_and_name_with_multiple_versions() {
             let mut deps = mock_dependencies();
             deps.querier = mock_manager_querier().build();
             init_with_mods(deps.as_mut());
 
-            let filtered_provider = "cw-plus".to_string();
+            let filtered_namespace = "cw-plus".to_string();
             let filtered_name = "module2".to_string();
 
             add_modules(
                 deps.as_mut(),
                 vec![ModuleInfo::from_id(
-                    format!("{filtered_provider}:{filtered_name}").as_str(),
+                    format!("{filtered_namespace}:{filtered_name}").as_str(),
                     ModuleVersion::Version("0.1.3".into()),
                 )
                 .unwrap()],
             );
 
             let filter = ModuleFilter {
-                provider: Some(filtered_provider.clone()),
+                namespace: Some(filtered_namespace.clone()),
                 name: Some(filtered_name.clone()),
                 ..Default::default()
             };
@@ -832,7 +836,7 @@ mod test {
                 assert_that!(modules).has_length(2);
 
                 for module in modules {
-                    assert_that!(module.info.provider).is_equal_to(filtered_provider.clone());
+                    assert_that!(module.info.namespace).is_equal_to(filtered_namespace.clone());
                     assert_that!(module.info.name).is_equal_to(filtered_name.clone());
                 }
                 res
@@ -927,16 +931,16 @@ mod test {
         }
 
         #[test]
-        fn filter_by_provider_and_version() {
+        fn filter_by_namespace_and_version() {
             let mut deps = mock_dependencies();
             deps.querier = mock_manager_querier().build();
             init_with_mods(deps.as_mut());
 
-            let filtered_provider = "cw-plus".to_string();
+            let filtered_namespace = "cw-plus".to_string();
             let filtered_version = "0.1.2".to_string();
 
             let filter = ModuleFilter {
-                provider: Some(filtered_provider.clone()),
+                namespace: Some(filtered_namespace.clone()),
                 version: Some(filtered_version.clone()),
                 ..Default::default()
             };
@@ -950,7 +954,7 @@ mod test {
                 assert_that!(modules).has_length(3);
 
                 for module in modules {
-                    assert_that!(module.info.provider).is_equal_to(filtered_provider.clone());
+                    assert_that!(module.info.namespace).is_equal_to(filtered_namespace.clone());
                     assert_that!(module.info.version.to_string())
                         .is_equal_to(filtered_version.clone());
                 }

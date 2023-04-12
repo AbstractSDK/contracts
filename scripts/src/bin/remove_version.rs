@@ -28,27 +28,21 @@ pub fn deploy_api() -> anyhow::Result<()> {
     let old_versions = vec!["0.1.0", "0.1.1", "0.1.2", "0.1.3", "0.1.4", "0.1.5"];
 
     for version in old_versions {
-        let res = version_control.remove_module(
-            ModuleInfo {
-                name: "autocompounder".to_string(),
-                provider: "4t2".into(),
-                version: ModuleVersion::from(version),
-            },
-            false,
-        );
+        let res = version_control.remove_module(ModuleInfo {
+            name: "autocompounder".to_string(),
+            namespace: "4t2".into(),
+            version: ModuleVersion::from(version),
+        }, false);
 
         if res.is_err() {
             println!("Error removing autocompounder version {version}");
         }
 
-        let res = version_control.remove_module(
-            ModuleInfo {
-                name: "cw_staking".to_string(),
-                provider: "4t2".into(),
-                version: ModuleVersion::from(version),
-            },
-            false,
-        );
+        let res = version_control.remove_module(ModuleInfo {
+            name: "cw_staking".to_string(),
+            namespace: "4t2".into(),
+            version: ModuleVersion::from(version),
+        }, false);
 
         if res.is_err() {
             println!("Error removing autocompounder version {version}");

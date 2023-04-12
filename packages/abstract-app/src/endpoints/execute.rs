@@ -1,5 +1,6 @@
 use crate::{
-    state::AppContract, AppError, AppResult, ExecuteEndpoint, Handler, IbcCallbackEndpoint,
+    state::{AppContract, ContractError},
+    AppError, AppResult, ExecuteEndpoint, Handler, IbcCallbackEndpoint,
 };
 use abstract_core::app::{AppExecuteMsg, BaseExecuteMsg, ExecuteMsg};
 use abstract_sdk::{base::ReceiveEndpoint, features::AbstractResponse};
@@ -17,6 +18,7 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg: Serialize + JsonSchema,
+        SudoMsg,
     > ExecuteEndpoint
     for AppContract<
         Error,
@@ -25,6 +27,7 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
+        SudoMsg,
     >
 {
     type ExecuteMsg = ExecuteMsg<CustomExecMsg, ReceiveMsg>;
@@ -50,14 +53,23 @@ impl<
 }
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
+        Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
+        SudoMsg,
     >
-    AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+    AppContract<
+        Error,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+        SudoMsg,
+    >
 {
     fn base_execute(
         &self,

@@ -20,11 +20,11 @@ pub enum ModuleStatus {
     YANKED,
 }
 
-/// Stores the provider, name, and version of an Abstract module.
+/// Stores the namespace, name, and version of an Abstract module.
 #[cosmwasm_schema::cw_serde]
 pub struct ModuleInfo {
-    /// Provider of the module
-    pub provider: String,
+    /// Namespace of the module
+    pub namespace: String,
     /// Name of the contract
     pub name: String,
     /// Version of the module
@@ -75,12 +75,12 @@ impl ModuleInfo {
         if split.len() != 2 {
             return Err(AbstractError::FormattingError {
                 object: "contract id".into(),
-                expected: "provider:contract_name".to_string(),
+                expected: "namespace:contract_name".to_string(),
                 actual: id.to_string(),
             });
         }
         Ok(ModuleInfo {
-            provider: split[0].to_lowercase(),
+            namespace: split[0].to_lowercase(),
             name: split[1].to_lowercase(),
             version,
         })
@@ -90,7 +90,7 @@ impl ModuleInfo {
     }
 
     pub fn validate(&self) -> AbstractResult<()> {
-        validate_name(&self.provider)?;
+        validate_name(&self.namespace)?;
         validate_name(&self.name)?;
         self.version.validate().map_err(|e| {
             StdError::generic_err(format!("Invalid version for module {}: {}", self.id(), e))
@@ -99,7 +99,7 @@ impl ModuleInfo {
     }
 
     pub fn id(&self) -> String {
-        format!("{}:{}", self.provider, self.name)
+        format!("{}:{}", self.namespace, self.name)
     }
 
     pub fn id_with_version(&self) -> String {
@@ -131,7 +131,7 @@ impl<'a> PrimaryKey<'a> for &ModuleInfo {
     type SuperSuffix = (String, String);
 
     fn key(&self) -> Vec<cw_storage_plus::Key> {
-        let mut keys = self.provider.key();
+        let mut keys = self.namespace.key();
         keys.extend(self.name.key());
         let temp = match &self.version {
             ModuleVersion::Latest => "latest".key(),
@@ -144,7 +144,7 @@ impl<'a> PrimaryKey<'a> for &ModuleInfo {
 
 impl<'a> Prefixer<'a> for &ModuleInfo {
     fn prefix(&self) -> Vec<Key> {
-        let mut res = self.provider.prefix();
+        let mut res = self.namespace.prefix();
         res.extend(self.name.prefix().into_iter());
         res.extend(self.version.prefix().into_iter());
         res
@@ -175,7 +175,7 @@ impl KeyDeserialize for &ModuleInfo {
         let ver = name_ver.split_off(ver_len);
 
         Ok(ModuleInfo {
-            provider: String::from_vec(prov_name_ver)?,
+            namespace: String::from_vec(prov_name_ver)?,
             name: String::from_vec(name_ver)?,
             version: ModuleVersion::from_vec(ver)?,
         })
@@ -250,7 +250,7 @@ impl fmt::Display for ModuleInfo {
         write!(
             f,
             "{} provided by {} with version {}",
-            self.name, self.provider, self.version,
+            self.name, self.namespace, self.version,
         )
     }
 }
@@ -277,12 +277,12 @@ impl TryFrom<ContractVersion> for ModuleInfo {
         if split.len() != 2 {
             return Err(AbstractError::FormattingError {
                 object: "contract id".to_string(),
-                expected: "provider:contract_name".into(),
+                expected: "namespace:contract_name".into(),
                 actual: value.contract,
             });
         }
         Ok(ModuleInfo {
-            provider: split[0].to_lowercase(),
+            namespace: split[0].to_lowercase(),
             name: split[1].to_lowercase(),
             version: ModuleVersion::Version(value.version),
         })
@@ -356,7 +356,7 @@ mod test {
 
         fn mock_key() -> ModuleInfo {
             ModuleInfo {
-                provider: "abstract".to_string(),
+                namespace: "abstract".to_string(),
                 name: "rocket-ship".to_string(),
                 version: ModuleVersion::Version("1.9.9".into()),
             }
@@ -365,22 +365,22 @@ mod test {
         fn mock_keys() -> (ModuleInfo, ModuleInfo, ModuleInfo, ModuleInfo) {
             (
                 ModuleInfo {
-                    provider: "abstract".to_string(),
+                    namespace: "abstract".to_string(),
                     name: "boat".to_string(),
                     version: ModuleVersion::Version("1.9.9".into()),
                 },
                 ModuleInfo {
-                    provider: "abstract".to_string(),
+                    namespace: "abstract".to_string(),
                     name: "rocket-ship".to_string(),
                     version: ModuleVersion::Version("1.0.0".into()),
                 },
                 ModuleInfo {
-                    provider: "abstract".to_string(),
+                    namespace: "abstract".to_string(),
                     name: "rocket-ship".to_string(),
                     version: ModuleVersion::Version("2.0.0".into()),
                 },
                 ModuleInfo {
-                    provider: "astroport".to_string(),
+                    namespace: "astroport".to_string(),
                     name: "liquidity-pool".to_string(),
                     version: ModuleVersion::Version("10.5.7".into()),
                 },
@@ -407,10 +407,10 @@ mod test {
         }
 
         #[test]
-        fn storage_key_with_overlapping_name_provider() {
+        fn storage_key_with_overlapping_name_namespace() {
             let mut deps = mock_dependencies();
             let info1 = ModuleInfo {
-                provider: "abstract".to_string(),
+                namespace: "abstract".to_string(),
                 name: "ans".to_string(),
                 version: ModuleVersion::Version("1.9.9".into()),
             };
@@ -418,7 +418,7 @@ mod test {
             let _key1 = (&info1).joined_key();
 
             let info2 = ModuleInfo {
-                provider: "abs".to_string(),
+                namespace: "abs".to_string(),
                 name: "tractans".to_string(),
                 version: ModuleVersion::Version("1.9.9".into()),
             };
@@ -545,7 +545,7 @@ mod test {
         #[test]
         fn validate_with_empty_name() {
             let info = ModuleInfo {
-                provider: "abstract".to_string(),
+                namespace: "abstract".to_string(),
                 name: "".to_string(),
                 version: ModuleVersion::Version("1.9.9".into()),
             };
@@ -556,9 +556,9 @@ mod test {
         }
 
         #[test]
-        fn validate_with_empty_provider() {
+        fn validate_with_empty_namespace() {
             let info = ModuleInfo {
-                provider: "".to_string(),
+                namespace: "".to_string(),
                 name: "ans".to_string(),
                 version: ModuleVersion::Version("1.9.9".into()),
             };
@@ -576,7 +576,7 @@ mod test {
         #[case("ans-host&")]
         fn validate_fails_with_non_alphanumeric(#[case] name: &str) {
             let info = ModuleInfo {
-                provider: "abstract".to_string(),
+                namespace: "abstract".to_string(),
                 name: name.to_string(),
                 version: ModuleVersion::Version("1.9.9".into()),
             };
@@ -591,7 +591,7 @@ mod test {
         #[case("bad-")]
         fn validate_with_bad_versions(#[case] version: &str) {
             let info = ModuleInfo {
-                provider: "abstract".to_string(),
+                namespace: "abstract".to_string(),
                 name: "ans".to_string(),
                 version: ModuleVersion::Version(version.into()),
             };
@@ -605,11 +605,11 @@ mod test {
         fn id() {
             let info = ModuleInfo {
                 name: "name".to_string(),
-                provider: "provider".to_string(),
+                namespace: "namespace".to_string(),
                 version: ModuleVersion::Version("1.0.0".into()),
             };
 
-            let expected = "provider:name".to_string();
+            let expected = "namespace:name".to_string();
 
             assert_that!(info.id()).is_equal_to(expected);
         }
@@ -618,11 +618,11 @@ mod test {
         fn id_with_version() {
             let info = ModuleInfo {
                 name: "name".to_string(),
-                provider: "provider".to_string(),
+                namespace: "namespace".to_string(),
                 version: ModuleVersion::Version("1.0.0".into()),
             };
 
-            let expected = "provider:name:1.0.0".to_string();
+            let expected = "namespace:name:1.0.0".to_string();
 
             assert_that!(info.id_with_version()).is_equal_to(expected);
         }

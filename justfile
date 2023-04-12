@@ -9,11 +9,15 @@ format:
   cargo fmt --all
 
 lint:
-  cargo clippy --all -- -D warnings
+  cargo clippy --all --all-features -- -D warnings
 #  cargo clippy --all --all-targets --all-features -- -D warnings
 
 lintfix:
-  cargo clippy --fix --allow-staged --allow-dirty
+  cargo clippy --fix --allow-staged --allow-dirty --all-features
+  cargo fmt --all
+
+check:
+  cargo check --all-features
 
 refresh:
   cargo clean && cargo update

@@ -80,12 +80,15 @@ pub struct AccountBase {
     pub proxy: Addr,
 }
 
+/// Version Control Instantiate Msg
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
     pub is_testnet: bool,
     pub namespaces_limit: u32,
 }
 
+/// Version Control Execute Msg
+#[cw_ownable::cw_ownable_execute]
 #[cosmwasm_schema::cw_serde]
 #[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
 pub enum ExecuteMsg {
@@ -114,8 +117,6 @@ pub enum ExecuteMsg {
     },
     /// Updates namespace limit per account
     UpdateNamespacesLimit { new_limit: u32 },
-    /// Sets a new Admin
-    SetAdmin { new_admin: String },
     /// Sets a new Factory
     SetFactory { new_factory: String },
 }
@@ -124,7 +125,7 @@ pub enum ExecuteMsg {
 #[derive(Default)]
 #[cosmwasm_schema::cw_serde]
 pub struct ModuleFilter {
-    pub provider: Option<String>,
+    pub namespace: Option<String>,
     pub name: Option<String>,
     pub version: Option<String>,
     pub status: Option<ModuleStatus>,
@@ -137,6 +138,8 @@ pub struct NamespaceFilter {
     pub account_id: Option<AccountId>,
 }
 
+/// Version Control Query Msg
+#[cw_ownable::cw_ownable_query]
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
 #[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
@@ -200,8 +203,8 @@ pub struct NamespaceListResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
-    pub admin: String,
-    pub factory: String,
+    pub admin: Addr,
+    pub factory: Addr,
 }
 
 #[cosmwasm_schema::cw_serde]
