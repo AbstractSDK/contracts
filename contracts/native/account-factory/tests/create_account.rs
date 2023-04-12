@@ -145,7 +145,7 @@ fn create_two_account_s() -> AResult {
 
     assert_that!(&vc_config).is_equal_to(&expected);
 
-    let acc_1 = AccountId::new(0     , Local).unwrap();
+    let acc_1 = AccountId::new(0, Local).unwrap();
 
     let account_1 = version_control.account_base(acc_1)?.account_base;
     assert_that!(&account_1).is_equal_to(AccountBase {

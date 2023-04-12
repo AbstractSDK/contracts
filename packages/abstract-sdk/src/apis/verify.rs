@@ -51,12 +51,12 @@ impl<'a, T: OsVerification> OsRegistry<'a, T> {
     }
 
     pub fn proxy_address(&self, account_id: &AccountId) -> AbstractSdkResult<Addr> {
-        self.account_base(&account_id)
+        self.account_base(account_id)
             .map(|account_base| account_base.proxy)
     }
 
     pub fn manager_address(&self, account_id: &AccountId) -> AbstractSdkResult<Addr> {
-        self.account_base(&account_id)
+        self.account_base(account_id)
             .map(|account_base| account_base.manager)
     }
 

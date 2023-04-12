@@ -1,6 +1,6 @@
 mod common;
 use abstract_boot::*;
-use abstract_core::{manager::ManagerModuleInfo, PROXY, objects::account::TEST_ACCOUNT_ID};
+use abstract_core::{manager::ManagerModuleInfo, objects::account::TEST_ACCOUNT_ID, PROXY};
 use abstract_manager::contract::CONTRACT_VERSION;
 use abstract_testing::prelude::TEST_VERSION;
 use boot_core::{instantiate_default_mock_env, ContractInstance, Deploy};

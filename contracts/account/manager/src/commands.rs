@@ -607,8 +607,8 @@ fn configure_api(api_address: impl Into<String>, message: BaseExecuteMsg) -> Std
 
 #[cfg(test)]
 mod test {
-    use abstract_core::objects::AccountId;
     use abstract_core::objects::account::AccountTrace;
+    use abstract_core::objects::AccountId;
     use cosmwasm_std::testing::{
         mock_dependencies, mock_env, mock_info, MockApi, MockQuerier, MockStorage,
     };
