@@ -32,7 +32,7 @@ pub fn fix_names() -> anyhow::Result<()> {
             namespace,
         } = info.clone();
         if namespace == NAMESPACE && name.to_string().contains('_') {
-            deployment.version_control.remove_module(info, false)?;
+            deployment.version_control.remove_module(info)?;
             deployment.version_control.add_modules(vec![(
                 ModuleInfo {
                     name: name.replace('_', "-"),

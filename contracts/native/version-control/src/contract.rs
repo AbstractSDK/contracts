@@ -69,10 +69,11 @@ pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: Instantiate
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> VCResult {
     match msg {
         ExecuteMsg::AddModules { modules } => add_modules(deps, info, modules),
-        ExecuteMsg::ApproveOrRejectModule { approves, rejects } => {
+        ExecuteMsg::ApproveOrRejectModules { approves, rejects } => {
             approve_or_reject_module(deps, info, approves, rejects)
         }
-        ExecuteMsg::RemoveModule { module, yank } => remove_module(deps, info, module, yank),
+        ExecuteMsg::RemoveModule { module } => remove_module(deps, info, module),
+        ExecuteMsg::YankModule { module } => yank_module(deps, info, module),
         ExecuteMsg::ClaimNamespaces {
             account_id,
             namespaces,
@@ -82,7 +83,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
             account_id,
             account_base: base,
         } => add_account(deps, info, account_id, base),
-        ExecuteMsg::UpdateNamespacesLimit { new_limit } => {
+        ExecuteMsg::UpdateNamespaceLimit { new_limit } => {
             update_namespaces_limit(deps, info, new_limit)
         }
         ExecuteMsg::SetFactory { new_factory } => set_factory(deps, info, new_factory),

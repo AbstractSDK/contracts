@@ -93,13 +93,14 @@ pub struct InstantiateMsg {
 #[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
 pub enum ExecuteMsg {
     /// Remove some version of a module
-    /// If `yank` is true, the module is yanked and can not be installed
-    /// If `yank` is false, the module is removed from the library (only Admin can do this)
-    RemoveModule { module: ModuleInfo, yank: bool },
+    RemoveModule { module: ModuleInfo },
+    /// Yank a version of a module so that it may not be installed
+    /// Only callable by Admin
+    YankModule { module: ModuleInfo },
     /// Add new modules
     AddModules { modules: Vec<ModuleMapEntry> },
     /// Approve or reject modules
-    ApproveOrRejectModule {
+    ApproveOrRejectModules {
         approves: Vec<ModuleInfo>,
         rejects: Vec<ModuleInfo>,
     },
@@ -117,8 +118,8 @@ pub enum ExecuteMsg {
         account_id: AccountId,
         account_base: AccountBase,
     },
-    /// Updates namespace limit per account
-    UpdateNamespacesLimit { new_limit: u32 },
+    /// Updates the number of namespaces an Account can claim
+    UpdateNamespaceLimit { new_limit: u32 },
     /// Sets a new Factory
     SetFactory { new_factory: String },
 }

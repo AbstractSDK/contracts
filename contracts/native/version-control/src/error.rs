@@ -35,10 +35,10 @@ pub enum VCError {
     NotUpdateableModule(ModuleInfo),
 
     #[error("Account ID {} is not in version control register", id)]
-    MissingAccountId { id: AccountId },
+    UnknownAccountId { id: AccountId },
 
     #[error("Namespace {} is not in version control register", namespace)]
-    MissingNamespace { namespace: String },
+    UnknownNamespace { namespace: String },
 
     #[error("Account owner mismatch sender: {}, owner: {}", sender, owner)]
     AccountOwnerMismatch { sender: String, owner: String },

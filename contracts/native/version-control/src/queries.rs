@@ -27,7 +27,7 @@ pub fn handle_account_address_query(deps: Deps, account_id: AccountId) -> StdRes
     let account_address = ACCOUNT_ADDRESSES.load(deps.storage, account_id);
     match account_address {
         Err(_) => Err(StdError::generic_err(
-            VCError::MissingAccountId { id: account_id }.to_string(),
+            VCError::UnknownAccountId { id: account_id }.to_string(),
         )),
         Ok(base) => to_binary(&AccountBaseResponse { account_base: base }),
     }
@@ -242,7 +242,8 @@ fn filter_modules_by_namespace(
 #[cfg(test)]
 mod test {
     use abstract_testing::prelude::{
-        TEST_ACCOUNT_FACTORY, TEST_ACCOUNT_ID, TEST_MODULE_FACTORY, TEST_VERSION_CONTROL,
+        test_account_base, TEST_ACCOUNT_FACTORY, TEST_ACCOUNT_ID, TEST_MANAGER,
+        TEST_MODULE_FACTORY, TEST_VERSION_CONTROL,
     };
     use abstract_testing::MockQuerierBuilder;
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
@@ -259,8 +260,6 @@ mod test {
     type VersionControlTestResult = Result<(), VCError>;
 
     const TEST_ADMIN: &str = "testadmin";
-    const TEST_PROXY_ADDR: &str = "proxy";
-    const TEST_MANAGER_ADDR: &str = "manager";
 
     const TEST_OTHER: &str = "testother";
     const TEST_OTHER_ACCOUNT_ID: u32 = 1;
@@ -269,7 +268,7 @@ mod test {
 
     pub fn mock_manager_querier() -> MockQuerierBuilder {
         MockQuerierBuilder::default()
-            .with_smart_handler(TEST_MANAGER_ADDR, |msg| {
+            .with_smart_handler(TEST_MANAGER, |msg| {
                 match from_binary(msg).unwrap() {
                     manager::QueryMsg::Config {} => {
                         let resp = manager::ConfigResponse {
@@ -301,8 +300,7 @@ mod test {
             })
     }
 
-    /// Initialize the version_control with admin as creator and test account
-    fn mock_init_with_account(mut deps: DepsMut) -> VCResult {
+    fn mock_init(mut deps: DepsMut) -> VersionControlTestResult {
         let info = mock_info(TEST_ADMIN, &[]);
         contract::instantiate(
             deps.branch(),
@@ -319,15 +317,19 @@ mod test {
                 new_factory: TEST_ACCOUNT_FACTORY.to_string(),
             },
         )?;
+
+        Ok(())
+    }
+
+    /// Initialize the version_control with admin as creator and test account
+    fn mock_init_with_account(mut deps: DepsMut) -> VCResult {
+        mock_init(deps.branch())?;
         execute_as(
             deps.branch(),
             TEST_ACCOUNT_FACTORY,
             ExecuteMsg::AddAccount {
                 account_id: TEST_ACCOUNT_ID,
-                account_base: AccountBase {
-                    manager: Addr::unchecked(TEST_MANAGER_ADDR),
-                    proxy: Addr::unchecked(TEST_PROXY_ADDR),
-                },
+                account_base: test_account_base(),
             },
         )?;
         execute_as(
@@ -501,9 +503,8 @@ mod test {
 
     /// Yank the provided module in the version control
     fn yank_module(deps: DepsMut, module_info: ModuleInfo) {
-        let yank_msg = ExecuteMsg::RemoveModule {
+        let yank_msg = ExecuteMsg::YankModule {
             module: module_info,
-            yank: true,
         };
         let res = execute_as_admin(deps, yank_msg);
         assert_that!(&res).is_ok();
@@ -1039,6 +1040,56 @@ mod test {
 
                 res
             });
+        }
+    }
+
+    mod handle_account_address_query {
+        use super::*;
+        use abstract_testing::prelude::test_account_base;
+
+        #[test]
+        fn not_registered_should_be_unknown() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let not_registered = 15;
+            let res = query_helper(
+                deps.as_ref(),
+                QueryMsg::AccountBase {
+                    account_id: not_registered,
+                },
+            );
+
+            // let res2 = from_binary(&res.unwrap())?;
+
+            assert_that!(res)
+                .is_err()
+                .is_equal_to(StdError::generic_err(
+                    VCError::UnknownAccountId { id: not_registered }.to_string(),
+                ));
+
+            Ok(())
+        }
+
+        #[test]
+        fn registered_should_return_account_base() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            mock_init_with_account(deps.as_mut())?;
+
+            let res = query_helper(
+                deps.as_ref(),
+                QueryMsg::AccountBase {
+                    account_id: TEST_ACCOUNT_ID,
+                },
+            );
+
+            assert_that!(res).is_ok().map(|res| {
+                let AccountBaseResponse { account_base } = from_binary(res).unwrap();
+                assert_that!(account_base).is_equal_to(test_account_base());
+                res
+            });
+
+            Ok(())
         }
     }
 }
