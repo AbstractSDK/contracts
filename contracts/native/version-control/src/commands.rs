@@ -132,6 +132,7 @@ pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -
     );
 
     MODULE_LIBRARY.remove(deps.storage, &module);
+    PENDING_MODULES.remove(deps.storage, &module);
 
     Ok(VcResponse::new(
         "remove_module",
@@ -333,15 +334,16 @@ mod test {
 
     use super::*;
     use abstract_testing::prelude::{
-        TEST_ACCOUNT_FACTORY, TEST_ACCOUNT_ID, TEST_ADMIN, TEST_MODULE_FACTORY, TEST_VERSION,
-        TEST_VERSION_CONTROL,
+        TEST_ACCOUNT_FACTORY, TEST_ACCOUNT_ID, TEST_ADMIN, TEST_MODULE_FACTORY, TEST_NAMESPACE,
+        TEST_VERSION, TEST_VERSION_CONTROL,
     };
+    use cw_controllers::AdminError;
+    use cw_ownable::OwnershipError;
 
     type VersionControlTestResult = Result<(), VCError>;
 
     const TEST_OTHER: &str = "test-other";
     const TEST_OWNER: &str = "test-owner";
-    const TEST_MODULE: &str = "namespace:test";
     const TEST_OTHER_ACCOUNT_ID: u32 = 1;
 
     const TEST_PROXY_ADDR: &str = "proxy";
@@ -451,9 +453,6 @@ mod test {
 
         Ok(())
     }
-
-    use cw_controllers::AdminError;
-    use cw_ownable::OwnershipError;
 
     mod set_admin_and_factory {
         use super::*;
@@ -595,13 +594,16 @@ mod test {
         }
     }
 
+    use abstract_testing::prelude::TEST_MODULE_ID;
+
     mod remove_namespaces {
         use super::*;
         use abstract_core::objects::module_reference::ModuleReference;
         use cosmwasm_std::attr;
 
         fn test_module() -> ModuleInfo {
-            ModuleInfo::from_id(TEST_MODULE, ModuleVersion::Version(TEST_VERSION.into())).unwrap()
+            ModuleInfo::from_id(TEST_MODULE_ID, ModuleVersion::Version(TEST_VERSION.into()))
+                .unwrap()
         }
 
         #[test]
@@ -756,9 +758,11 @@ mod test {
         use super::*;
         use abstract_core::objects::module_reference::ModuleReference;
         use abstract_core::AbstractError;
+        use abstract_testing::prelude::TEST_MODULE_ID;
 
         fn test_module() -> ModuleInfo {
-            ModuleInfo::from_id(TEST_MODULE, ModuleVersion::Version(TEST_VERSION.into())).unwrap()
+            ModuleInfo::from_id(TEST_MODULE_ID, ModuleVersion::Version(TEST_VERSION.into()))
+                .unwrap()
         }
 
         // - Query latest
@@ -1072,7 +1076,7 @@ mod test {
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
 
             let bad_version_module = ModuleInfo::from_id(
-                TEST_MODULE,
+                TEST_MODULE_ID,
                 ModuleVersion::Version("non_compliant_version".into()),
             )?;
             let msg = ExecuteMsg::AddModules {
@@ -1083,7 +1087,7 @@ mod test {
                 .is_err()
                 .matches(|e| e.to_string().contains("Invalid version"));
 
-            let latest_version_module = ModuleInfo::from_id(TEST_MODULE, ModuleVersion::Latest)?;
+            let latest_version_module = ModuleInfo::from_id(TEST_MODULE_ID, ModuleVersion::Latest)?;
             let msg = ExecuteMsg::AddModules {
                 modules: vec![(latest_version_module, ModuleReference::App(0))],
             };
@@ -1162,6 +1166,74 @@ mod test {
                     }));
             }
 
+            Ok(())
+        }
+    }
+
+    fn claim_test_namespace_as_owner(deps: DepsMut) -> VersionControlTestResult {
+        let msg = ExecuteMsg::ClaimNamespaces {
+            account_id: TEST_ACCOUNT_ID,
+            namespaces: vec![TEST_NAMESPACE.to_string()],
+        };
+        execute_as(deps, TEST_OWNER, msg)?;
+        Ok(())
+    }
+
+    mod remove_module {
+        use super::*;
+
+        #[test]
+        fn test_only_admin() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            deps.querier = mock_manager_querier().build();
+            mock_init_with_account(deps.as_mut(), true)?;
+            claim_test_namespace_as_owner(deps.as_mut())?;
+
+            // add a module as the owner
+            let mut new_module = ModuleInfo::from_id(TEST_MODULE_ID, TEST_VERSION.into())?;
+            new_module.namespace = TEST_NAMESPACE.to_string();
+            let msg = ExecuteMsg::AddModules {
+                modules: vec![(new_module.clone(), ModuleReference::App(0))],
+            };
+            execute_as(deps.as_mut(), TEST_OWNER, msg)?;
+
+            // Load the module from the library to check its presence
+            assert_that!(MODULE_LIBRARY.has(&deps.storage, &new_module)).is_true();
+
+            // now, remove the module as the admin
+            let msg = ExecuteMsg::RemoveModule { module: new_module };
+            let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
+
+            assert_that!(res)
+                .is_err()
+                .is_equal_to(&VCError::Ownership(OwnershipError::NotOwner {}));
+            Ok(())
+        }
+
+        #[test]
+        fn remove_from_library() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            deps.querier = mock_manager_querier().build();
+            mock_init_with_account(deps.as_mut(), true)?;
+            claim_test_namespace_as_owner(deps.as_mut())?;
+
+            // add a module as the owner
+            let new_module = ModuleInfo::from_id(TEST_MODULE_ID, TEST_VERSION.into())?;
+            let msg = ExecuteMsg::AddModules {
+                modules: vec![(new_module.clone(), ModuleReference::App(0))],
+            };
+            execute_as(deps.as_mut(), TEST_OWNER, msg)?;
+
+            // Load the module from the library to check its presence
+            assert_that!(MODULE_LIBRARY.has(&deps.storage, &new_module)).is_true();
+
+            // now, remove the module as the admin
+            let msg = ExecuteMsg::RemoveModule {
+                module: new_module.clone(),
+            };
+            execute_as_admin(deps.as_mut(), msg)?;
+
+            assert_that!(MODULE_LIBRARY.has(&deps.storage, &new_module)).is_false();
             Ok(())
         }
     }
