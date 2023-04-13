@@ -12,8 +12,9 @@ use abstract_sdk::core::{
     version_control::{namespaces_info, state::*, AccountBase},
     VERSION_CONTROL,
 };
-use cosmwasm_std::{ensure, Response};
-use cosmwasm_std::{Addr, Deps, DepsMut, MessageInfo, Order, QuerierWrapper, StdResult};
+use cosmwasm_std::{
+    ensure, Addr, Deps, DepsMut, MessageInfo, Order, QuerierWrapper, Response, StdResult,
+};
 use cw_ownable::assert_owner;
 
 #[abstract_response(VERSION_CONTROL)]
@@ -63,7 +64,7 @@ pub fn add_modules(
 
         if module.namespace == ABSTRACT_NAMESPACE {
             // Only Admin can update abstract contracts
-            assert_owner(deps.storage, &msg_info.sender)?;
+            cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
         } else {
             // Only owner can add modules
             validate_account_owner(deps.as_ref(), &module.namespace, &msg_info.sender)?;

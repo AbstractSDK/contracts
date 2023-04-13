@@ -12,10 +12,10 @@ use abstract_sdk::{execute_update_ownership, query_ownership};
 use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::{get_contract_version, set_contract_version};
 
-use cw_ownable::{get_ownership, initialize_owner, Ownership};
 use cw_semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+
 use crate::commands::*;
 use crate::queries;
 
@@ -50,15 +50,22 @@ pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: Instantiate
         &[],
         None::<String>,
     )?;
+
+    let InstantiateMsg {
+        is_testnet,
+        namespaces_limit,
+    } = msg;
+
     CONFIG.save(
         deps.storage,
         &Config {
-            is_testnet: msg.is_testnet,
-            namespaces_limit: msg.namespaces_limit,
+            is_testnet,
+            namespaces_limit,
         },
     )?;
-    // Setup the admin as the creator of the contract
-    initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
+
+    // Set up the admin as the creator of the contract
+    cw_ownable::initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
 
     FACTORY.set(deps, None)?;
 
@@ -102,7 +109,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::Modules { infos } => queries::handle_modules_query(deps, infos),
         QueryMsg::Namespaces { accounts } => queries::handle_namespaces_query(deps, accounts),
         QueryMsg::Config {} => {
-            let Ownership { owner, .. } = get_ownership(deps.storage)?;
+            let cw_ownable::Ownership { owner, .. } = cw_ownable::get_ownership(deps.storage)?;
 
             let factory = FACTORY.get(deps)?.unwrap();
             to_binary(&ConfigResponse {
