@@ -17,7 +17,7 @@ Form the graph we can draw some conclusions:
 
 ## Versioning
 
-Most of the versioning information is contained within the workspace level [`Cargo.toml`](./Cargo.toml). The version defined in the `[workspace]` section is used as the version for all contracts in the workspace, as well as the. The version can be overridden for individual packages in the `[package]` section.
+Most of the versioning information is contained within the workspace level [`Cargo.toml`](./Cargo.toml). The version defined in the `[workspace]` section is used as the version for all contracts in the workspace, as well as the lower level packages. The only exceptions are `abstract-api` and `abstract-app`, which can be versioned independently.
 
 ## Contracts
 
