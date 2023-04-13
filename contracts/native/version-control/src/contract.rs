@@ -9,8 +9,8 @@ use abstract_sdk::core::{
 use abstract_sdk::{execute_update_ownership, query_ownership};
 use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::{get_contract_version, set_contract_version};
-use cw_controllers::{Admin, AdminError};
-use cw_ownable::{assert_owner, get_ownership, initialize_owner, Ownership};
+
+use cw_ownable::{get_ownership, initialize_owner, Ownership};
 use cw_semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
