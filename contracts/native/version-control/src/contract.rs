@@ -14,6 +14,7 @@ use cw_ownable::{get_ownership, initialize_owner, Ownership};
 use cw_semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+
 use crate::commands::*;
 use crate::queries;
 
@@ -49,8 +50,8 @@ pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, _msg: Instantiat
         None::<String>,
     )?;
 
-    // Setup the admin as the creator of the contract
-    initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
+    // Set up the admin as the creator of the contract
+    cw_ownable::initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
 
     FACTORY.set(deps, None)?;
 
@@ -81,7 +82,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         }
         QueryMsg::Modules { infos } => queries::handle_modules_query(deps, infos),
         QueryMsg::Config {} => {
-            let Ownership { owner, .. } = get_ownership(deps.storage)?;
+            let cw_ownable::Ownership { owner, .. } = cw_ownable::get_ownership(deps.storage)?;
 
             let factory = FACTORY.get(deps)?.unwrap();
             to_binary(&ConfigResponse {
