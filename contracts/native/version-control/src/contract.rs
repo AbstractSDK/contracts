@@ -19,7 +19,7 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 use crate::commands::*;
 use crate::queries;
 
-pub type VCResult = Result<Response, VCError>;
+pub type VCResult<T = Response> = Result<T, VCError>;
 
 pub const ABSTRACT_NAMESPACE: &str = "abstract";
 
@@ -77,7 +77,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
     match msg {
         ExecuteMsg::AddModules { modules } => add_modules(deps, info, modules),
         ExecuteMsg::ApproveOrRejectModules { approves, rejects } => {
-            approve_or_reject_module(deps, info, approves, rejects)
+            approve_or_reject_modules(deps, info, approves, rejects)
         }
         ExecuteMsg::RemoveModule { module } => remove_module(deps, info, module),
         ExecuteMsg::YankModule { module } => yank_module(deps, info, module),

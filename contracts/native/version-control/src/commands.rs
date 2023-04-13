@@ -13,9 +13,9 @@ use abstract_sdk::core::{
     VERSION_CONTROL,
 };
 use cosmwasm_std::{
-    ensure, Addr, Deps, DepsMut, MessageInfo, Order, QuerierWrapper, Response, StdResult,
+    ensure, Addr, Attribute, Deps, DepsMut, MessageInfo, Order, QuerierWrapper, Response,
+    StdResult, Storage,
 };
-use cw_ownable::assert_owner;
 
 #[abstract_response(VERSION_CONTROL)]
 pub struct VcResponse;
@@ -79,44 +79,57 @@ pub fn add_modules(
     Ok(VcResponse::action("add_modules"))
 }
 
-/// Approve or reject a module
-pub fn approve_or_reject_module(
+/// Approve and reject modules
+pub fn approve_or_reject_modules(
     deps: DepsMut,
     msg_info: MessageInfo,
     approves: Vec<ModuleInfo>,
     rejects: Vec<ModuleInfo>,
 ) -> VCResult {
     // Only Admin can approve or rejects a module
-    assert_owner(deps.storage, &msg_info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
 
-    for module in &rejects {
-        if approves.contains(module) {
-            return Err(VCError::InvalidApproveList(module.clone()));
-        }
-
-        if !PENDING_MODULES.has(deps.storage, module) {
-            return Err(VCError::ModuleNotFound(module.clone()));
-        }
-        PENDING_MODULES.remove(deps.storage, module);
+    let mut attributes = vec![];
+    if !approves.is_empty() {
+        attributes.push(approve_modules(deps.storage, approves)?);
+    }
+    if !rejects.is_empty() {
+        attributes.push(reject_modules(deps.storage, rejects)?);
+    }
+    if attributes.is_empty() {
+        return Err(VCError::NoAction);
     }
 
+    Ok(VcResponse::new("approve_or_reject_modules", attributes))
+}
+
+/// Admin approve modules
+fn approve_modules(storage: &mut dyn Storage, approves: Vec<ModuleInfo>) -> VCResult<Attribute> {
     for module in &approves {
         let mod_ref = PENDING_MODULES
-            .may_load(deps.storage, module)?
+            .may_load(storage, module)?
             .ok_or_else(|| VCError::ModuleNotFound(module.clone()))?;
-        REGISTERED_MODULES.save(deps.storage, module, &mod_ref)?;
-        PENDING_MODULES.remove(deps.storage, module);
+        // Register the module
+        REGISTERED_MODULES.save(storage, module, &mod_ref)?;
+        // Remove from pending
+        PENDING_MODULES.remove(storage, module);
     }
 
     let approves: Vec<_> = approves.into_iter().map(|m| m.to_string()).collect();
+    Ok(("approves", approves.join(",")).into())
+}
+
+/// Admin reject modules
+fn reject_modules(storage: &mut dyn Storage, rejects: Vec<ModuleInfo>) -> VCResult<Attribute> {
+    for module in &rejects {
+        if !PENDING_MODULES.has(storage, module) {
+            return Err(VCError::ModuleNotFound(module.clone()));
+        }
+        PENDING_MODULES.remove(storage, module);
+    }
+
     let rejects: Vec<_> = rejects.into_iter().map(|m| m.to_string()).collect();
-    Ok(VcResponse::new(
-        "approve_or_reject_module",
-        vec![
-            ("approves", approves.join(",")),
-            ("rejects", rejects.join(",")),
-        ],
-    ))
+    Ok(("rejects", rejects.join(",")).into())
 }
 
 /// Remove a module from the Version Control registry.
@@ -315,7 +328,7 @@ pub fn validate_account_owner(deps: Deps, namespace: &str, sender: &Addr) -> Res
 }
 
 pub fn set_factory(deps: DepsMut, info: MessageInfo, new_admin: String) -> VCResult {
-    assert_owner(deps.storage, &info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &info.sender)?;
 
     let new_factory_addr = deps.api.addr_validate(&new_admin)?;
     FACTORY.set(deps, Some(new_factory_addr))?;

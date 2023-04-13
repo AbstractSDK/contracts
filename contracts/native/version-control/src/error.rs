@@ -57,6 +57,9 @@ pub enum VCError {
 
     #[error("As namespace owner you can only yank a module, not remove it.")]
     OnlyYankAllowed,
+
+    #[error("No action specified")]
+    NoAction,
 }
 
 impl From<cw_semver::Error> for VCError {
