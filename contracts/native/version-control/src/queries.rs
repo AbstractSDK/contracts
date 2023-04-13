@@ -12,7 +12,7 @@ use abstract_sdk::core::{
     },
     version_control::{
         namespaces_info,
-        state::{ACCOUNT_ADDRESSES, MODULE_LIBRARY, YANKED_MODULES},
+        state::{ACCOUNT_ADDRESSES, REGISTERED_MODULES, YANKED_MODULES},
         AccountBaseResponse, ModuleFilter, ModulesListResponse, ModulesResponse,
         NamespaceListResponse,
     },
@@ -37,10 +37,10 @@ pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<B
     let mut modules_response = ModulesResponse { modules: vec![] };
     for mut module in modules {
         let maybe_module_ref = if let ModuleVersion::Version(_) = module.version {
-            MODULE_LIBRARY.load(deps.storage, &module)
+            REGISTERED_MODULES.load(deps.storage, &module)
         } else {
             // get latest
-            let versions: StdResult<Vec<(String, ModuleReference)>> = MODULE_LIBRARY
+            let versions: StdResult<Vec<(String, ModuleReference)>> = REGISTERED_MODULES
                 .prefix((module.namespace.clone(), module.name.clone()))
                 .range(deps.storage, None, None, Order::Descending)
                 .take(1)
@@ -88,10 +88,10 @@ pub fn handle_module_list_query(
     } = filter.unwrap_or_default();
 
     let mod_lib = match status {
-        Some(ModuleStatus::REGISTERED) => &MODULE_LIBRARY,
+        Some(ModuleStatus::REGISTERED) => &REGISTERED_MODULES,
         Some(ModuleStatus::PENDING) => &PENDING_MODULES,
         Some(ModuleStatus::YANKED) => &YANKED_MODULES,
-        None => &MODULE_LIBRARY,
+        None => &REGISTERED_MODULES,
     };
     let mut modules: Vec<(ModuleInfo, ModuleReference)> = vec![];
 

@@ -51,7 +51,7 @@ pub fn add_modules(
 
     for (module, mod_ref) in modules {
         if PENDING_MODULES.has(deps.storage, &module)
-            || MODULE_LIBRARY.has(deps.storage, &module)
+            || REGISTERED_MODULES.has(deps.storage, &module)
             || YANKED_MODULES.has(deps.storage, &module)
         {
             return Err(VCError::NotUpdateableModule(module));
@@ -69,7 +69,7 @@ pub fn add_modules(
             validate_account_owner(deps.as_ref(), &module.namespace, &msg_info.sender)?;
         }
         if config.is_testnet {
-            MODULE_LIBRARY.save(deps.storage, &module, &mod_ref)?;
+            REGISTERED_MODULES.save(deps.storage, &module, &mod_ref)?;
         } else {
             PENDING_MODULES.save(deps.storage, &module, &mod_ref)?;
         }
@@ -103,7 +103,7 @@ pub fn approve_or_reject_module(
         let mod_ref = PENDING_MODULES
             .may_load(deps.storage, module)?
             .ok_or_else(|| VCError::ModuleNotFound(module.clone()))?;
-        MODULE_LIBRARY.save(deps.storage, module, &mod_ref)?;
+        REGISTERED_MODULES.save(deps.storage, module, &mod_ref)?;
         PENDING_MODULES.remove(deps.storage, module);
     }
 
@@ -127,12 +127,12 @@ pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -
     module.assert_version_variant()?;
 
     ensure!(
-        MODULE_LIBRARY.has(deps.storage, &module),
+        REGISTERED_MODULES.has(deps.storage, &module) || YANKED_MODULES.has(deps.storage, &module),
         VCError::ModuleNotFound(module)
     );
 
-    MODULE_LIBRARY.remove(deps.storage, &module);
-    PENDING_MODULES.remove(deps.storage, &module);
+    REGISTERED_MODULES.remove(deps.storage, &module);
+    YANKED_MODULES.remove(deps.storage, &module);
 
     Ok(VcResponse::new(
         "remove_module",
@@ -147,12 +147,12 @@ pub fn yank_module(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -> 
 
     // Only specific versions may be yanked
     module.assert_version_variant()?;
-    let mod_ref = MODULE_LIBRARY
+    let mod_ref = REGISTERED_MODULES
         .may_load(deps.storage, &module)?
         .ok_or_else(|| VCError::ModuleNotFound(module.clone()))?;
 
     YANKED_MODULES.save(deps.storage, &module, &mod_ref)?;
-    MODULE_LIBRARY.remove(deps.storage, &module);
+    REGISTERED_MODULES.remove(deps.storage, &module);
 
     Ok(VcResponse::new(
         "yank_module",
@@ -236,7 +236,7 @@ pub fn remove_namespaces(
             validate_account_owner(deps.as_ref(), namespace, &msg_info.sender)?;
         }
 
-        for ((name, version), mod_ref) in MODULE_LIBRARY
+        for ((name, version), mod_ref) in REGISTERED_MODULES
             .sub_prefix(namespace.to_owned())
             .range(deps.storage, None, None, Order::Ascending)
             .collect::<StdResult<Vec<_>>>()?
@@ -247,7 +247,7 @@ pub fn remove_namespaces(
                 name,
                 version: ModuleVersion::Version(version),
             };
-            MODULE_LIBRARY.remove(deps.storage, &module);
+            REGISTERED_MODULES.remove(deps.storage, &module);
             YANKED_MODULES.save(deps.storage, &module, &mod_ref)?;
         }
 
@@ -746,7 +746,7 @@ mod test {
             };
             execute_as(deps.as_mut(), TEST_ADMIN, msg)?;
 
-            let module = MODULE_LIBRARY.load(&deps.storage, &new_module);
+            let module = REGISTERED_MODULES.load(&deps.storage, &new_module);
             assert_that!(&module).is_err();
             let module = YANKED_MODULES.load(&deps.storage, &new_module)?;
             assert_that!(&module).is_equal_to(&ModuleReference::App(0));
@@ -779,7 +779,7 @@ mod test {
             };
             let res = execute_as(deps.as_mut(), TEST_ADMIN, msg);
             assert_that!(&res).is_ok();
-            let module = MODULE_LIBRARY.load(&deps.storage, &new_module)?;
+            let module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
             assert_that!(&module).is_equal_to(&ModuleReference::App(0));
             Ok(())
         }
@@ -815,7 +815,7 @@ mod test {
             // add modules
             let res = execute_as(deps.as_mut(), TEST_OWNER, msg);
             assert_that!(&res).is_ok();
-            let module = MODULE_LIBRARY.load(&deps.storage, &new_module)?;
+            let module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
             assert_that!(&module).is_equal_to(&ModuleReference::App(0));
             Ok(())
         }
@@ -895,7 +895,7 @@ mod test {
             // approve by admin
             let res = execute_as(deps.as_mut(), TEST_ADMIN, msg);
             assert_that!(&res).is_ok();
-            let module = MODULE_LIBRARY.load(&deps.storage, &new_module)?;
+            let module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
             assert_that!(&module).is_equal_to(&ModuleReference::App(0));
             let pending = PENDING_MODULES.has(&deps.storage, &new_module);
             assert_that!(pending).is_equal_to(false);
@@ -942,7 +942,7 @@ mod test {
             // reject by admin
             let res = execute_as(deps.as_mut(), TEST_ADMIN, msg);
             assert_that!(&res).is_ok();
-            let exists = MODULE_LIBRARY.has(&deps.storage, &new_module);
+            let exists = REGISTERED_MODULES.has(&deps.storage, &new_module);
             assert_that!(exists).is_equal_to(false);
             let pending = PENDING_MODULES.has(&deps.storage, &new_module);
             assert_that!(pending).is_equal_to(false);
@@ -969,7 +969,7 @@ mod test {
                 modules: vec![(rm_module.clone(), ModuleReference::App(0))],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
-            let module = MODULE_LIBRARY.load(&deps.storage, &rm_module)?;
+            let module = REGISTERED_MODULES.load(&deps.storage, &rm_module)?;
             assert_that!(&module).is_equal_to(&ModuleReference::App(0));
 
             // then remove
@@ -985,7 +985,7 @@ mod test {
             // only admin can remove modules.
             execute_as_admin(deps.as_mut(), msg)?;
 
-            let module = MODULE_LIBRARY.load(&deps.storage, &rm_module);
+            let module = REGISTERED_MODULES.load(&deps.storage, &rm_module);
             assert_that!(&module).is_err();
             Ok(())
         }
@@ -1009,7 +1009,7 @@ mod test {
                 modules: vec![(rm_module.clone(), ModuleReference::App(0))],
             };
             execute_as(deps.as_mut(), TEST_OWNER, add_modules_msg)?;
-            let added_module = MODULE_LIBRARY.load(&deps.storage, &rm_module)?;
+            let added_module = REGISTERED_MODULES.load(&deps.storage, &rm_module)?;
             assert_that!(&added_module).is_equal_to(&ModuleReference::App(0));
 
             // then yank the module as the other
@@ -1045,7 +1045,7 @@ mod test {
                 modules: vec![(rm_module.clone(), ModuleReference::App(0))],
             };
             execute_as(deps.as_mut(), TEST_OWNER, add_modules_msg)?;
-            let added_module = MODULE_LIBRARY.load(&deps.storage, &rm_module)?;
+            let added_module = REGISTERED_MODULES.load(&deps.storage, &rm_module)?;
             assert_that!(&added_module).is_equal_to(&ModuleReference::App(0));
 
             // then yank as owner
@@ -1055,7 +1055,7 @@ mod test {
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
 
             // check that the yanked module is in the yanked modules and no longer in the library
-            let module = MODULE_LIBRARY.load(&deps.storage, &rm_module);
+            let module = REGISTERED_MODULES.load(&deps.storage, &rm_module);
             assert_that!(&module).is_err();
             let yanked_module = YANKED_MODULES.load(&deps.storage, &rm_module)?;
             assert_that!(&yanked_module).is_equal_to(&ModuleReference::App(0));
@@ -1118,7 +1118,7 @@ mod test {
                 .is_equal_to(&VCError::Ownership(OwnershipError::NotOwner {}));
 
             execute_as_admin(deps.as_mut(), msg)?;
-            let module = MODULE_LIBRARY.load(&deps.storage, &new_module)?;
+            let module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
             assert_that!(&module).is_equal_to(&ModuleReference::App(0));
             Ok(())
         }
@@ -1198,7 +1198,7 @@ mod test {
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
 
             // Load the module from the library to check its presence
-            assert_that!(MODULE_LIBRARY.has(&deps.storage, &new_module)).is_true();
+            assert_that!(REGISTERED_MODULES.has(&deps.storage, &new_module)).is_true();
 
             // now, remove the module as the admin
             let msg = ExecuteMsg::RemoveModule { module: new_module };
@@ -1225,7 +1225,7 @@ mod test {
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
 
             // Load the module from the library to check its presence
-            assert_that!(MODULE_LIBRARY.has(&deps.storage, &new_module)).is_true();
+            assert_that!(REGISTERED_MODULES.has(&deps.storage, &new_module)).is_true();
 
             // now, remove the module as the admin
             let msg = ExecuteMsg::RemoveModule {
@@ -1233,7 +1233,56 @@ mod test {
             };
             execute_as_admin(deps.as_mut(), msg)?;
 
-            assert_that!(MODULE_LIBRARY.has(&deps.storage, &new_module)).is_false();
+            assert_that!(REGISTERED_MODULES.has(&deps.storage, &new_module)).is_false();
+            Ok(())
+        }
+
+        #[test]
+        fn leaves_pending() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            deps.querier = mock_manager_querier().build();
+            mock_init_with_account(deps.as_mut(), true)?;
+            claim_test_namespace_as_owner(deps.as_mut())?;
+
+            // add a module as the owner
+            let new_module = ModuleInfo::from_id(TEST_MODULE_ID, TEST_VERSION.into())?;
+            PENDING_MODULES.save(deps.as_mut().storage, &new_module, &ModuleReference::App(0))?;
+
+            // yank the module as the owner
+            let msg = ExecuteMsg::RemoveModule {
+                module: new_module.clone(),
+            };
+            let res = execute_as_admin(deps.as_mut(), msg);
+
+            assert_that!(res)
+                .is_err()
+                .is_equal_to(&VCError::ModuleNotFound(new_module));
+            Ok(())
+        }
+
+        #[test]
+        fn remove_from_yanked() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            deps.querier = mock_manager_querier().build();
+            mock_init_with_account(deps.as_mut(), true)?;
+            claim_test_namespace_as_owner(deps.as_mut())?;
+
+            // add a module as the owner
+            let new_module = ModuleInfo::from_id(TEST_MODULE_ID, TEST_VERSION.into())?;
+            YANKED_MODULES.save(deps.as_mut().storage, &new_module, &ModuleReference::App(0))?;
+
+            // should be removed from library and added to yanked
+            assert_that!(REGISTERED_MODULES.has(&deps.storage, &new_module)).is_false();
+            assert_that!(YANKED_MODULES.has(&deps.storage, &new_module)).is_true();
+
+            // now, remove the module as the admin
+            let msg = ExecuteMsg::RemoveModule {
+                module: new_module.clone(),
+            };
+            execute_as_admin(deps.as_mut(), msg)?;
+
+            assert_that!(REGISTERED_MODULES.has(&deps.storage, &new_module)).is_false();
+            assert_that!(YANKED_MODULES.has(&deps.storage, &new_module)).is_false();
             Ok(())
         }
     }

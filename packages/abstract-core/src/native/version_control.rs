@@ -36,7 +36,7 @@ pub mod state {
     // Modules waiting for approvals
     pub const PENDING_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("pending_modules");
     // We can iterate over the map giving just the prefix to get all the versions
-    pub const MODULE_LIBRARY: Map<&ModuleInfo, ModuleReference> = Map::new("module_lib");
+    pub const REGISTERED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("module_lib");
     // Yanked Modules
     pub const YANKED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("yanked_modules");
     /// Maps Account ID to the address of its core contracts
