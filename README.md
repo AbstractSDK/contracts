@@ -51,3 +51,14 @@ VERSION=0.4.0 \
 ## CI
 
 Read the [CI](./CI.md) document for more information.
+
+## Formatting
+
+We use `rustfmt` and [`taplo`](https://taplo.tamasfe.dev/cli/introduction.html) to format our code. To format the code, run the following command:
+
+```bash
+# format rust code
+cargo fmt
+# format toml files
+find . -type f -iname "*.toml" -print0 | xargs -0 taplo format
+```
