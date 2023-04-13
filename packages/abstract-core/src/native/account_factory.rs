@@ -41,10 +41,10 @@ pub mod state {
     pub const ACCOUNT_SEQUENCES: Map<&AccountTrace, AccountSequence> = Map::new("acc_seq");
 }
 
-use crate::objects::{
+use crate::{objects::{
     account::{AccountSequence, AccountTrace},
-    gov_type::GovernanceDetails,
-};
+    gov_type::GovernanceDetails, AccountId,
+}, manager::state::AccountInfo};
 use cosmwasm_schema::QueryResponses;
 
 /// Msg used on instantiation
@@ -84,7 +84,7 @@ pub enum ExecuteMsg {
         description: Option<String>,
         link: Option<String>,
         /// Creator chain of the account. AccountTrace::Local if not specified.
-        origin: Option<AccountTrace>,
+        origin: Option<(AccountId,AccountInfo)>,
     },
 }
 

@@ -29,9 +29,6 @@ pub const PROCESSING_PACKET: Item<(PacketMsg, String)> = Item::new("processing")
 pub const ACCOUNTS: Map<(&str, &AccountId), Addr> = Map::new("accounts");
 /// (channel-id,account_id) -> client_proxy_addr
 pub const CLIENT_PROXY: Map<(&str, &AccountId), String> = Map::new("client_proxy");
-/// List of closed channels
-/// Allows for fund recovery
-pub const CLOSED_CHANNELS: Item<Vec<String>> = Item::new("closed");
 // this stores all results from current dispatch
 pub const RESULTS: Item<Vec<Binary>> = Item::new("results");
 
