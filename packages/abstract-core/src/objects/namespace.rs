@@ -8,6 +8,7 @@ use crate::AbstractResult;
 
 use super::module::validate_name;
 
+/// Represents an Abstract namespace for modules
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Namespace(String);
 
@@ -18,6 +19,7 @@ impl Namespace {
     pub fn as_str(&self) -> &str {
         &self.0
     }
+    /// Check that the namespace is valid
     pub fn validate(&self) -> AbstractResult<()> {
         validate_name(&self.0)?;
         Ok(())
