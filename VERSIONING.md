@@ -1,6 +1,23 @@
-# Abstract and related versioning
+# Abstract Publishing & Versioning
 
-This document describes the current versioning system for Abstract's various libraries and components. It is intended to be a living document that is updated as the project evolves.
+This document describes the current versioning system for Abstract's contracts and packages. It is intended to be a living document that is updated as the project evolves. Discussions and suggestions are welcome.
+
+The versioning setup is based on the dependency graph of the project, which is shown below:
+
+> To generate the dependency graph run:  
+>`cargo depgraph --dedup-transitive-deps --exclude abstract-boot-scripts,boot-core --build-deps | dot -Tpng > dep_graph.png`  
+> *Ensure you have [graphviz](https://graphviz.gitlab.io/download/) installed.*
+
+![Abstract's dependency graph](./docs/dep_graph.png)
+
+Form the graph we can draw some conclusions:
+
+1. `abstract-api` and `abstract-app` depend on `abstract-boot` and are the top-level packages within Abstract. Hence they can be independently versioned.
+2. `abstract-boot` depends on all the contracts in the repository. The contracts should share their version with `abstract-boot`.
+
+## Versioning
+
+Most of the versioning information is contained within the workspace level [`Cargo.toml`](./Cargo.toml). The version defined in the `[workspace]` section is used as the version for all contracts in the workspace, as well as the. The version can be overridden for individual packages in the `[package]` section.
 
 ## Contracts
 
