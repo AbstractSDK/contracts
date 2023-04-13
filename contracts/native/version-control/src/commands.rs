@@ -230,7 +230,7 @@ pub fn claim_namespaces(
     ))
 }
 
-/// Remove namespaes
+/// Remove namespaces
 /// Only admin or the account owner can do this
 pub fn remove_namespaces(
     deps: DepsMut,
