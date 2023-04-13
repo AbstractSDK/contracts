@@ -62,6 +62,6 @@ done
 
 echo "Everything is published!"
 
-VERSION=$(cmd < Cargo.toml | grep -m 1 version | sed 's/-/_/g' | grep -o '".*"' | sed 's/"//g');
+VERSION=$(cat Cargo.toml | grep -m 1 version | sed 's/-/_/g' | grep -o '".*"' | sed 's/"//g');
 git tag v"$VERSION"
 git push origin v"$VERSION"
