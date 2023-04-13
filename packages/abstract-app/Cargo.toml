@@ -28,7 +28,7 @@ cw-asset = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-core =  { workspace = true }
 abstract-testing = { workspace = true, optional = true }
-abstract-boot = { version = "0.14.0", workspace = true, optional = true }
+abstract-boot = { workspace = true, optional = true }
 boot-core = { workspace = true, optional = true }
 
 [dev-dependencies]
