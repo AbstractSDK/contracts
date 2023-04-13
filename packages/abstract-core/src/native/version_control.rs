@@ -196,7 +196,7 @@ pub struct ModulesListResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct NamespacesResponse {
-    pub modules: Vec<(Namespace, AccountId)>,
+    pub namespaces: Vec<(Namespace, AccountId)>,
 }
 
 #[cosmwasm_schema::cw_serde]
