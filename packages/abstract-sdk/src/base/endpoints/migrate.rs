@@ -12,5 +12,5 @@ pub trait MigrateEndpoint: Handler {
         deps: DepsMut,
         env: Env,
         msg: Self::MigrateMsg,
-    ) -> Result<Response, Self::Error>;
+    ) -> Result<Response<Self::CustomResponse>, Self::Error>;
 }

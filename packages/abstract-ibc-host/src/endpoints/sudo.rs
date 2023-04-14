@@ -9,8 +9,8 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-        SudoMsg, 
-CResp,
+        SudoMsg,
+        CResp,
     > SudoEndpoint
     for Host<
         Error,
@@ -19,8 +19,8 @@ CResp,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-        SudoMsg, 
-CResp,
+        SudoMsg,
+        CResp,
     >
 {
 }

@@ -9,7 +9,7 @@ use abstract_sdk::{
         ibc_host::PacketMsg,
     },
 };
-use cosmwasm_std::{DepsMut, Empty, Env, Reply, Response};
+use cosmwasm_std::{DepsMut, Empty, Env, Reply, Response, CosmosMsg};
 use cw_utils::parse_reply_instantiate_data;
 
 pub const RECEIVE_DISPATCH_ID: u64 = 1234;
@@ -22,8 +22,8 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-        SudoMsg, 
-CResp,
+        SudoMsg,
+        CResp,
     > ReplyEndpoint
     for Host<
         Error,
@@ -32,11 +32,11 @@ CResp,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-        SudoMsg, 
-CResp,
+        SudoMsg,
+        CResp,
     >
 {
-    fn reply(mut self, deps: DepsMut, env: Env, msg: Reply) -> Result<Response, Self::Error> {
+    fn reply(mut self, deps: DepsMut, env: Env, msg: Reply) -> Result<Response<Self::CustomResponse>, Self::Error> {
         let id = msg.id;
         let maybe_handler = self.maybe_reply_handler(id);
         if let Some(reply_fn) = maybe_handler {
@@ -53,10 +53,10 @@ CResp,
             let local_proxy_addr = ACCOUNTS.load(deps.storage, (&channel, account_id))?;
             self.proxy_address = Some(local_proxy_addr);
             // send everything back to client
-            let send_back_msg =
+            let send_back_msg: CosmosMsg<CResp> =
                 self.send_all_back(deps.as_ref(), env, client_proxy_addr, client_chain)?;
 
-            Ok(Response::new()
+            Ok(Response::<CResp>::new()
                 .add_message(send_back_msg)
                 .set_data(StdAck::success(&Empty {})))
         }
@@ -70,8 +70,8 @@ pub fn reply_dispatch_callback<
     CustomQueryMsg,
     CustomMigrateMsg,
     ReceiveMsg,
-    SudoMsg, 
-CResp,
+    SudoMsg,
+    CResp,
 >(
     deps: DepsMut,
     _env: Env,
@@ -82,8 +82,8 @@ CResp,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-        SudoMsg, 
-CResp,
+        SudoMsg,
+        CResp,
     >,
     reply: Reply,
 ) -> Result<Response, Error> {
@@ -103,8 +103,8 @@ pub fn reply_init_callback<
     CustomInitMsg,
     CustomQueryMsg,
     CustomMigrateMsg,
-    SudoMsg, 
-CResp,
+    SudoMsg,
+    CResp,
     ReceiveMsg,
 >(
     deps: DepsMut,
@@ -116,8 +116,8 @@ CResp,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-        SudoMsg, 
-CResp,
+        SudoMsg,
+        CResp,
     >,
 
     reply: Reply,

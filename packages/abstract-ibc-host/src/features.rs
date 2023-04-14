@@ -13,8 +13,8 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-        SudoMsg, 
-CResp,
+        SudoMsg,
+        CResp,
     > AbstractNameService
     for Host<
         Error,
@@ -23,8 +23,8 @@ CResp,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-        SudoMsg, 
-CResp,
+        SudoMsg,
+        CResp,
     >
 {
     fn ans_host(&self, deps: Deps) -> AbstractSdkResult<abstract_sdk::feature_objects::AnsHost> {
@@ -39,8 +39,8 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-        SudoMsg, 
-CResp,
+        SudoMsg,
+        CResp,
     > AccountIdentification
     for Host<
         Error,
@@ -49,8 +49,8 @@ CResp,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-        SudoMsg, 
-CResp,
+        SudoMsg,
+        CResp,
     >
 {
     fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<cosmwasm_std::Addr> {

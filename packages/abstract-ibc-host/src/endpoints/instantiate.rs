@@ -17,8 +17,8 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-        SudoMsg, 
-CResp,
+        SudoMsg,
+        CResp,
     > InstantiateEndpoint
     for Host<
         Error,
@@ -27,8 +27,8 @@ CResp,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-        SudoMsg, 
-CResp,
+        SudoMsg,
+        CResp,
     >
 {
     /// Instantiate the api
@@ -39,7 +39,7 @@ CResp,
         env: Env,
         info: MessageInfo,
         msg: Self::InstantiateMsg,
-    ) -> Result<Response, Error> {
+    ) -> Result<Response<CResp>, Error> {
         let ans_host = AnsHost {
             address: deps.api.addr_validate(&msg.base.ans_host_address)?,
         };

@@ -17,8 +17,8 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg: Serialize + JsonSchema,
         ReceiveMsg,
-        SudoMsg, 
-CResp,
+        SudoMsg,
+        CResp,
     > MigrateEndpoint
     for Host<
         Error,
@@ -27,8 +27,8 @@ CResp,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-        SudoMsg, 
-CResp,
+        SudoMsg,
+        CResp,
     >
 {
     type MigrateMsg = MigrateMsg<CustomMigrateMsg>;
@@ -38,7 +38,7 @@ CResp,
         deps: cosmwasm_std::DepsMut,
         env: cosmwasm_std::Env,
         msg: Self::MigrateMsg,
-    ) -> Result<cosmwasm_std::Response, Self::Error> {
+    ) -> Result<Response<Self::CustomResponse>, Self::Error> {
         let (name, version_string, metadata) = self.info();
         let version: Version =
             Version::parse(version_string).map_err(|e| StdError::generic_err(e.to_string()))?;

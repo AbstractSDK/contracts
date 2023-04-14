@@ -72,10 +72,19 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-        SudoMsg, 
-CResp,
+        SudoMsg,
+        CResp,
     >
-    Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg, SudoMsg, CResp>
+    Host<
+        Error,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+        SudoMsg,
+        CResp,
+    >
 {
     pub const fn new(
         name: &'static str,
@@ -110,7 +119,7 @@ CResp,
 
     pub const fn with_instantiate(
         mut self,
-        instantiate_handler: InstantiateHandlerFn<Self, CustomInitMsg, Error>,
+        instantiate_handler: InstantiateHandlerFn<Self, CustomInitMsg, Error, CResp>,
     ) -> Self {
         self.contract = self.contract.with_instantiate(instantiate_handler);
         self
@@ -118,7 +127,7 @@ CResp,
 
     pub const fn with_execute(
         mut self,
-        execute_handler: ExecuteHandlerFn<Self, CustomExecMsg, Error>,
+        execute_handler: ExecuteHandlerFn<Self, CustomExecMsg, Error, CResp>,
     ) -> Self {
         self.contract = self.contract.with_execute(execute_handler);
         self
@@ -134,7 +143,7 @@ CResp,
     /// add reply handler to contract
     pub const fn with_replies(
         mut self,
-        reply_handlers: &'static [(u64, ReplyHandlerFn<Self, Error>)],
+        reply_handlers: &'static [(u64, ReplyHandlerFn<Self, Error, CResp>)],
     ) -> Self {
         // update this to store static iterators
         let mut new_reply_handlers = self.contract.reply_handlers;
@@ -143,14 +152,14 @@ CResp,
         self
     }
 
-    pub const fn with_sudo(mut self, sudo_handler: SudoHandlerFn<Self, SudoMsg, Error>) -> Self {
+    pub const fn with_sudo(mut self, sudo_handler: SudoHandlerFn<Self, SudoMsg, Error, CResp>) -> Self {
         self.contract = self.contract.with_sudo(sudo_handler);
         self
     }
 
     pub const fn with_receive(
         mut self,
-        receive_handler: ReceiveHandlerFn<Self, ReceiveMsg, Error>,
+        receive_handler: ReceiveHandlerFn<Self, ReceiveMsg, Error, CResp>,
     ) -> Self {
         self.contract = self.contract.with_receive(receive_handler);
         self

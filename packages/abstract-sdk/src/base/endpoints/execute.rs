@@ -13,5 +13,5 @@ pub trait ExecuteEndpoint: Handler {
         env: Env,
         info: MessageInfo,
         msg: Self::ExecuteMsg,
-    ) -> Result<Response, Self::Error>;
+    ) -> Result<Response<Self::CustomResponse>, Self::Error>;
 }

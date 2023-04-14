@@ -23,10 +23,19 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-        SudoMsg, 
-CResp,
+        SudoMsg,
+        CResp,
     >
-    Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg, SudoMsg, CResp>
+    Host<
+        Error,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+        SudoMsg,
+        CResp,
+    >
 {
     // processes PacketMsg::Balances variant
     pub fn receive_balances(&self, deps: DepsMut) -> Result<IbcReceiveResponse, HostError> {
@@ -94,13 +103,13 @@ CResp,
     }
 
     /// construct the msg to send all the assets back
-    pub fn send_all_back(
+    pub fn send_all_back<T>(
         &self,
         deps: Deps,
         env: Env,
         client_proxy_address: String,
         client_chain: String,
-    ) -> Result<CosmosMsg, HostError> {
+    ) -> Result<CosmosMsg<T>, HostError> {
         let ans = self.name_service(deps);
         let ics20_channel_entry = ChannelEntry {
             connected_chain: client_chain,
@@ -125,7 +134,7 @@ CResp,
         }
         // create the message to re-dispatch to the reflect contract
         let reflect_msg = cw1_whitelist::msg::ExecuteMsg::Execute { msgs };
-        let wasm_msg: CosmosMsg<Empty> = wasm_execute(reflect_addr, &reflect_msg, vec![])?.into();
+        let wasm_msg: CosmosMsg<T> = wasm_execute(reflect_addr, &reflect_msg, vec![])?.into();
         Ok(wasm_msg)
     }
 }

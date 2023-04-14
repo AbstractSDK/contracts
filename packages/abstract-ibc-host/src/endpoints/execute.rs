@@ -15,7 +15,7 @@ use cosmwasm_std::{
 use schemars::JsonSchema;
 use serde::{de::DeserializeOwned, Serialize};
 
-type HostResult = Result<Response, HostError>;
+type HostResult<T = Response> = Result<T, HostError>;
 
 /// The host contract base implementation.
 impl<
@@ -25,8 +25,8 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg: Serialize + JsonSchema,
-        SudoMsg, 
-CResp,
+        SudoMsg,
+        CResp,
     > ExecuteEndpoint
     for Host<
         Error,
@@ -35,8 +35,8 @@ CResp,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-        SudoMsg, 
-CResp,
+        SudoMsg,
+        CResp,
     >
 {
     type ExecuteMsg = ExecuteMsg<CustomExecMsg, ReceiveMsg>;
@@ -47,7 +47,7 @@ CResp,
         env: Env,
         info: MessageInfo,
         msg: Self::ExecuteMsg,
-    ) -> Result<Response, Self::Error> {
+    ) -> Result<Response<Self::CustomResponse>, Self::Error> {
         match msg {
             ExecuteMsg::Module(request) => self.execute_handler()?(deps, env, info, self, request),
             ExecuteMsg::Base(exec_msg) => self
@@ -66,10 +66,19 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-        SudoMsg, 
-CResp,
+        SudoMsg,
+        CResp,
     >
-    Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg, SudoMsg, CResp>
+    Host<
+        Error,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+        SudoMsg,
+        CResp,
+    >
 {
     /// Takes ibc request, matches and executes
     /// This fn is the only way to get an Host instance.
@@ -121,13 +130,13 @@ CResp,
         .map_err(Into::into)
     }
 
-    pub fn base_execute(
+    pub fn base_execute<T>(
         mut self,
         deps: DepsMut,
         _env: Env,
         info: MessageInfo,
         message: BaseExecuteMsg,
-    ) -> HostResult {
+    ) -> HostResult<Response<T>> {
         match message {
             BaseExecuteMsg::UpdateAdmin { admin } => {
                 let new_admin = deps.api.addr_validate(&admin)?;
@@ -166,7 +175,7 @@ CResp,
         info: MessageInfo,
         ans_host_address: Option<String>,
         cw1_code_id: Option<u64>,
-    ) -> HostResult {
+    ) -> HostResult<Response<T>> {
         let mut state = self.state(deps.storage)?;
 
         self.admin.assert_admin(deps.as_ref(), &info.sender)?;
