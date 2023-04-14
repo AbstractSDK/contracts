@@ -1,3 +1,5 @@
+use std::fmt;
+
 use crate::{
     error::HostError,
     host_commands::{receive_query, receive_register, receive_who_am_i},
@@ -50,9 +52,9 @@ impl<
     ) -> Result<Response<Self::CustomResponse>, Self::Error> {
         match msg {
             ExecuteMsg::Module(request) => self.execute_handler()?(deps, env, info, self, request),
-            ExecuteMsg::Base(exec_msg) => self
+            ExecuteMsg::Base(exec_msg) => abstract_sdk::cw_helpers::value_cosmos_msg::into_empty(self
                 .base_execute(deps, env, info, exec_msg)
-                .map_err(From::from),
+                .map_err(From::from)?),
             _ => Err(StdError::generic_err("Unsupported Host execute message variant").into()),
         }
     }
@@ -130,13 +132,13 @@ impl<
         .map_err(Into::into)
     }
 
-    pub fn base_execute<T>(
+    pub fn base_execute(
         mut self,
         deps: DepsMut,
         _env: Env,
         info: MessageInfo,
         message: BaseExecuteMsg,
-    ) -> HostResult<Response<T>> {
+    ) -> HostResult<Response> {
         match message {
             BaseExecuteMsg::UpdateAdmin { admin } => {
                 let new_admin = deps.api.addr_validate(&admin)?;
@@ -175,7 +177,7 @@ impl<
         info: MessageInfo,
         ans_host_address: Option<String>,
         cw1_code_id: Option<u64>,
-    ) -> HostResult<Response<T>> {
+    ) -> HostResult<Response> {
         let mut state = self.state(deps.storage)?;
 
         self.admin.assert_admin(deps.as_ref(), &info.sender)?;

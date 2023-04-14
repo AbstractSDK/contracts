@@ -9,7 +9,7 @@ use abstract_sdk::{
         ibc_host::PacketMsg,
     },
 };
-use cosmwasm_std::{DepsMut, Empty, Env, Reply, Response, CosmosMsg};
+use cosmwasm_std::{CosmosMsg, DepsMut, Empty, Env, Reply, Response};
 use cw_utils::parse_reply_instantiate_data;
 
 pub const RECEIVE_DISPATCH_ID: u64 = 1234;
@@ -36,7 +36,12 @@ impl<
         CResp,
     >
 {
-    fn reply(mut self, deps: DepsMut, env: Env, msg: Reply) -> Result<Response<Self::CustomResponse>, Self::Error> {
+    fn reply(
+        mut self,
+        deps: DepsMut,
+        env: Env,
+        msg: Reply,
+    ) -> Result<Response<Self::CustomResponse>, Self::Error> {
         let id = msg.id;
         let maybe_handler = self.maybe_reply_handler(id);
         if let Some(reply_fn) = maybe_handler {

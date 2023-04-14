@@ -23,9 +23,10 @@ use crate::{
     },
 };
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{CosmosMsg, Empty, Uint128};
+use cosmwasm_std::{CosmosMsg, Empty, StdError, StdResult, Uint128};
 use cw_asset::{Asset, AssetInfo};
 use schemars::JsonSchema;
+use serde::Serialize;
 
 pub mod state {
     pub use crate::objects::core::ACCOUNT_ID;
@@ -51,15 +52,14 @@ pub struct InstantiateMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-// #[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
-pub enum ExecuteMsg<T = Empty>
-    where
-        T: Clone + fmt::Debug + PartialEq + JsonSchema,
- {
+#[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
+pub enum ExecuteMsg {
     /// Sets the admin
     SetAdmin { admin: String },
     /// Executes the provided messages if sender is whitelisted
-    ModuleAction { msgs: Vec<CosmosMsg<T>> },
+    ModuleAction {
+        msgs: Vec<CosmosMsg<serde_cw_value::Value>>,
+    },
     /// Execute IBC action on Client
     IbcAction { msgs: Vec<IbcClientMsg> },
     /// Adds the provided address to whitelisted dapps
@@ -72,6 +72,7 @@ pub enum ExecuteMsg<T = Empty>
         to_remove: Vec<AssetEntry>,
     },
 }
+
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
 

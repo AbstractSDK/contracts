@@ -2,18 +2,24 @@
 //! The executor provides function for executing commands on the Account.
 //!
 
+use std::marker::PhantomData;
+
 use crate::{
     features::{AccountIdentification, ModuleIdentification},
-    AbstractSdkResult,
+    AbstractSdkResult, cw_helpers::{CustomCosmosMsg},
 };
-use abstract_core::proxy::ExecuteMsg;
+use abstract_core::proxy::{ExecuteMsg};
 use abstract_macros::with_abstract_event;
-use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, ReplyOn, Response, SubMsg};
+use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, Empty, ReplyOn, Response, SubMsg, StdResult};
+use serde::Serialize;
 
 /// Execute an arbitrary `CosmosMsg` action on the Account.
 pub trait Execution: AccountIdentification + ModuleIdentification {
     fn executor<'a>(&'a self, deps: Deps<'a>) -> Executor<Self> {
-        Executor { base: self, deps }
+        Executor::<'a, _> {
+            base: self,
+            deps,
+        }
     }
 }
 
@@ -28,10 +34,11 @@ pub struct Executor<'a, T: Execution> {
 impl<'a, T: Execution> Executor<'a, T> {
     /// Execute the msgs on the Account.
     /// These messages will be executed on the proxy contract and the sending module must be whitelisted.
-    pub fn execute(&self, msgs: Vec<CosmosMsg>) -> AbstractSdkResult<CosmosMsg> {
+    pub fn execute<CResp: Serialize>(&self, msgs: Vec<CosmosMsg<CResp>>) -> AbstractSdkResult<CosmosMsg<CResp>> {
         Ok(wasm_execute(
             self.base.proxy_address(self.deps)?.to_string(),
-            &ExecuteMsg::ModuleAction { msgs },
+            // convert message customs to generic `serde-cw-value::Value` type. 
+            &ExecuteMsg::ModuleAction { msgs: msgs.into_value()? },
             vec![],
         )?
         .into())
@@ -40,14 +47,14 @@ impl<'a, T: Execution> Executor<'a, T> {
     /// Execute the msgs on the Account.
     /// These messages will be executed on the proxy contract and the sending module must be whitelisted.
     /// The execution will be executed in a submessage and the reply will be sent to the provided `reply_on`.
-    pub fn execute_with_reply(
+    pub fn execute_with_reply<CResp: Serialize>(
         &self,
-        msgs: Vec<CosmosMsg>,
+        msgs: Vec<CosmosMsg<CResp>>,
         reply_on: ReplyOn,
         id: u64,
-    ) -> AbstractSdkResult<SubMsg> {
+    ) -> AbstractSdkResult<SubMsg<CResp>> {
         let msg = self.execute(msgs)?;
-        let sub_msg = SubMsg {
+        let sub_msg = SubMsg::<CResp>{
             id,
             msg,
             gas_limit: None,
@@ -59,13 +66,13 @@ impl<'a, T: Execution> Executor<'a, T> {
     /// Execute the msgs on the Account.
     /// These messages will be executed on the proxy contract and the sending module must be whitelisted.
     /// Return a "standard" response for the executed messages. (with the provided action).
-    pub fn execute_with_response(
+    pub fn execute_with_response<CResp: Serialize>(
         &self,
-        msgs: Vec<CosmosMsg>,
+        msgs: Vec<CosmosMsg<CResp>>,
         action: &str,
-    ) -> AbstractSdkResult<Response> {
-        let msg = self.execute(msgs)?;
-        let resp = Response::default();
+    ) -> AbstractSdkResult<Response<CResp>> {
+        let msg = self.execute::<CResp>(msgs)?;
+        let resp = Response::<CResp>::default();
 
         Ok(with_abstract_event!(resp, self.base.module_id(), action).add_message(msg))
     }
@@ -124,7 +131,7 @@ mod test {
 
             let expected = CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: TEST_PROXY.to_string(),
-                msg: to_binary(&ExecuteMsg::ModuleAction { msgs: messages }).unwrap(),
+                msg: to_binary(&ExecuteMsg::ModuleAction { msgs: messages.into_value().unwrap() }).unwrap(),
                 // funds should be empty
                 funds: vec![],
             });
@@ -189,7 +196,7 @@ mod test {
                 id: expected_reply_id,
                 msg: CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: TEST_PROXY.to_string(),
-                    msg: to_binary(&ExecuteMsg::ModuleAction { msgs: messages }).unwrap(),
+                    msg: to_binary(&ExecuteMsg::ModuleAction { msgs: messages.into_value().unwrap() }).unwrap(),
                     // funds should be empty
                     funds: vec![],
                 }),
@@ -247,7 +254,7 @@ mod test {
 
             let expected_msg = CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: TEST_PROXY.to_string(),
-                msg: to_binary(&ExecuteMsg::ModuleAction { msgs: messages }).unwrap(),
+                msg: to_binary(&ExecuteMsg::ModuleAction { msgs: messages.into_value().unwrap() }).unwrap(),
                 // funds should be empty
                 funds: vec![],
             });

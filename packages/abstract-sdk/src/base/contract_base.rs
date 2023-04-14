@@ -270,6 +270,9 @@ mod test {
     #[cosmwasm_schema::cw_serde]
     struct MockSudoMsg;
 
+    #[cosmwasm_schema::cw_serde]
+    struct MockResponse;
+
     use thiserror::Error;
 
     #[derive(Error, Debug, PartialEq)]
@@ -290,6 +293,7 @@ mod test {
         type CustomMigrateMsg = MockMigrateMsg;
         type ReceiveMsg = MockReceiveMsg;
         type SudoMsg = MockSudoMsg;
+        type CustomResponse = MockResponse;
 
         fn contract(&self) -> &AbstractContract<Self, Self::Error> {
             unimplemented!()
@@ -386,7 +390,7 @@ mod test {
     #[test]
     fn test_with_reply_handlers() {
         const REPLY_ID: u64 = 50u64;
-        const HANDLER: ReplyHandlerFn<MockModule, MockError, Empty> =
+        const HANDLER: ReplyHandlerFn<MockModule, MockError, MockResponse> =
             |_, _, _, _| Ok(Response::default().add_attribute("test", "reply"));
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
             .with_replies([&[(REPLY_ID, HANDLER)], &[]]);
@@ -398,7 +402,7 @@ mod test {
     #[test]
     fn test_with_ibc_callback_handlers() {
         const IBC_ID: &str = "aoeu";
-        const HANDLER: IbcCallbackHandlerFn<MockModule, MockError, Empty> =
+        const HANDLER: IbcCallbackHandlerFn<MockModule, MockError, MockResponse> =
             |_, _, _, _, _, _| Ok(Response::default().add_attribute("test", "ibc"));
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
             .with_ibc_callbacks(&[(IBC_ID, HANDLER)]);

@@ -152,7 +152,10 @@ impl<
         self
     }
 
-    pub const fn with_sudo(mut self, sudo_handler: SudoHandlerFn<Self, SudoMsg, Error, CResp>) -> Self {
+    pub const fn with_sudo(
+        mut self,
+        sudo_handler: SudoHandlerFn<Self, SudoMsg, Error, CResp>,
+    ) -> Self {
         self.contract = self.contract.with_sudo(sudo_handler);
         self
     }
