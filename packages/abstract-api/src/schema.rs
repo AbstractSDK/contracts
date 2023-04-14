@@ -6,10 +6,12 @@ use serde::Serialize;
 
 #[cfg(feature = "schema")]
 use {
-    crate::{ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint},
-    abstract_sdk::core::app::AppConfigResponse,
-    cosmwasm_schema::{export_schema_with_title, schema_for, write_api, QueryResponses},
-    cw_controllers::AdminResponse,
+    abstract_sdk::{
+        base::{ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint},
+        core::api::{ApiConfigResponse, AuthorizedAddressesResponse},
+    },
+    cosmwasm_schema::{export_schema_with_title, schema_for, write_api},
+    cosmwasm_std::Empty,
     std::path::Path,
 };
 

@@ -8,7 +8,7 @@ use serde::Serialize;
 use {
     crate::{ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint},
     abstract_sdk::core::app::AppConfigResponse,
-    cosmwasm_schema::{export_schema_with_title, schema_for, write_api, QueryResponses},
+    cosmwasm_schema::{export_schema_with_title, schema_for, write_api},
     cw_controllers::AdminResponse,
     std::path::Path,
 };
