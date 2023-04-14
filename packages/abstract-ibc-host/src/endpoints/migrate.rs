@@ -17,7 +17,8 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg: Serialize + JsonSchema,
         ReceiveMsg,
-        SudoMsg,
+        SudoMsg, 
+CResp,
     > MigrateEndpoint
     for Host<
         Error,
@@ -26,7 +27,8 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-        SudoMsg,
+        SudoMsg, 
+CResp,
     >
 {
     type MigrateMsg = MigrateMsg<CustomMigrateMsg>;

@@ -9,7 +9,7 @@ pub trait ReceiveEndpoint: Handler {
         env: Env,
         info: MessageInfo,
         msg: <Self as Handler>::ReceiveMsg,
-    ) -> Result<Response, <Self as Handler>::Error> {
+    ) -> Result<Response<Self::CustomResponse>, <Self as Handler>::Error> {
         let maybe_handler = self.maybe_receive_handler();
         maybe_handler.map_or_else(
             || {

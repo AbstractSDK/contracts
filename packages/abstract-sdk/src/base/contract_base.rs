@@ -19,28 +19,29 @@ pub trait MessageTypes {
     type SudoMsg;
 }
 
-pub type InstantiateHandlerFn<Module, InitMsg, Error> =
-    fn(DepsMut, Env, MessageInfo, Module, InitMsg) -> Result<Response, Error>;
+pub type InstantiateHandlerFn<Module, InitMsg, Error, CResp> =
+    fn(DepsMut, Env, MessageInfo, Module, InitMsg) -> Result<Response<CResp>, Error>;
 
-pub type ExecuteHandlerFn<Module, RequestMsg, Error> =
-    fn(DepsMut, Env, MessageInfo, Module, RequestMsg) -> Result<Response, Error>;
+pub type ExecuteHandlerFn<Module, RequestMsg, Error, CResp> =
+    fn(DepsMut, Env, MessageInfo, Module, RequestMsg) -> Result<Response<CResp>, Error>;
 
 pub type QueryHandlerFn<Module, QueryMsg, Error> =
     fn(Deps, Env, &Module, QueryMsg) -> Result<Binary, Error>;
 
-pub type IbcCallbackHandlerFn<Module, Error> =
-    fn(DepsMut, Env, MessageInfo, Module, String, StdAck) -> Result<Response, Error>;
+pub type IbcCallbackHandlerFn<Module, Error, CResp> =
+    fn(DepsMut, Env, MessageInfo, Module, String, StdAck) -> Result<Response<CResp>, Error>;
 
-pub type MigrateHandlerFn<Module, MigrateMsg, Error> =
-    fn(DepsMut, Env, Module, MigrateMsg) -> Result<Response, Error>;
+pub type MigrateHandlerFn<Module, MigrateMsg, Error, CResp> =
+    fn(DepsMut, Env, Module, MigrateMsg) -> Result<Response<CResp>, Error>;
 
-pub type ReceiveHandlerFn<App, Msg, Error> =
-    fn(DepsMut, Env, MessageInfo, App, Msg) -> Result<Response, Error>;
+pub type ReceiveHandlerFn<App, Msg, Error, CResp> =
+    fn(DepsMut, Env, MessageInfo, App, Msg) -> Result<Response<CResp>, Error>;
 
-pub type SudoHandlerFn<Module, SudoMsg, Error> =
-    fn(DepsMut, Env, Module, SudoMsg) -> Result<Response, Error>;
+pub type SudoHandlerFn<Module, SudoMsg, Error, CResp> =
+    fn(DepsMut, Env, Module, SudoMsg) -> Result<Response<CResp>, Error>;
 
-pub type ReplyHandlerFn<Module, Error> = fn(DepsMut, Env, Module, Reply) -> Result<Response, Error>;
+pub type ReplyHandlerFn<Module, Error, CResp> =
+    fn(DepsMut, Env, Module, Reply) -> Result<Response<CResp>, Error>;
 
 /// There can be two locations where reply handlers are added.
 /// 1. Base implementation of the contract.
@@ -56,27 +57,63 @@ pub struct AbstractContract<Module: Handler + 'static, Error: From<AbstractSdkEr
     /// Modules that this contract depends on.
     pub(crate) dependencies: &'static [StaticDependency],
     /// Handler of instantiate messages.
-    pub(crate) instantiate_handler:
-        Option<InstantiateHandlerFn<Module, <Module as Handler>::CustomInitMsg, Error>>,
+    pub(crate) instantiate_handler: Option<
+        InstantiateHandlerFn<
+            Module,
+            <Module as Handler>::CustomInitMsg,
+            Error,
+            <Module as Handler>::CustomResponse,
+        >,
+    >,
     /// Handler of execute messages.
-    pub(crate) execute_handler:
-        Option<ExecuteHandlerFn<Module, <Module as Handler>::CustomExecMsg, Error>>,
+    pub(crate) execute_handler: Option<
+        ExecuteHandlerFn<
+            Module,
+            <Module as Handler>::CustomExecMsg,
+            Error,
+            <Module as Handler>::CustomResponse,
+        >,
+    >,
     /// Handler of query messages.
     pub(crate) query_handler:
         Option<QueryHandlerFn<Module, <Module as Handler>::CustomQueryMsg, Error>>,
     /// Handler for migrations.
-    pub(crate) migrate_handler:
-        Option<MigrateHandlerFn<Module, <Module as Handler>::CustomMigrateMsg, Error>>,
+    pub(crate) migrate_handler: Option<
+        MigrateHandlerFn<
+            Module,
+            <Module as Handler>::CustomMigrateMsg,
+            Error,
+            <Module as Handler>::CustomResponse,
+        >,
+    >,
     /// Handler for sudo messages.
-    pub(crate) sudo_handler: Option<SudoHandlerFn<Module, <Module as Handler>::SudoMsg, Error>>,
+    pub(crate) sudo_handler: Option<
+        SudoHandlerFn<
+            Module,
+            <Module as Handler>::SudoMsg,
+            Error,
+            <Module as Handler>::CustomResponse,
+        >,
+    >,
     /// List of reply handlers per reply ID.
-    pub reply_handlers: [&'static [(u64, ReplyHandlerFn<Module, Error>)]; MAX_REPLY_COUNT],
+    pub reply_handlers: [&'static [(
+        u64,
+        ReplyHandlerFn<Module, Error, <Module as Handler>::CustomResponse>,
+    )]; MAX_REPLY_COUNT],
     /// Handler of `Receive variant Execute messages.
-    pub(crate) receive_handler:
-        Option<ReceiveHandlerFn<Module, <Module as Handler>::ReceiveMsg, Error>>,
+    pub(crate) receive_handler: Option<
+        ReceiveHandlerFn<
+            Module,
+            <Module as Handler>::ReceiveMsg,
+            Error,
+            <Module as Handler>::CustomResponse,
+        >,
+    >,
     /// IBC callbacks handlers following an IBC action, per callback ID.
-    pub(crate) ibc_callback_handlers:
-        &'static [(&'static str, IbcCallbackHandlerFn<Module, Error>)],
+    pub(crate) ibc_callback_handlers: &'static [(
+        &'static str,
+        IbcCallbackHandlerFn<Module, Error, <Module as Handler>::CustomResponse>,
+    )],
 }
 
 impl<Module, Error: From<AbstractSdkError>> AbstractContract<Module, Error>
@@ -113,7 +150,10 @@ where
 
     pub const fn with_replies(
         mut self,
-        reply_handlers: [&'static [(u64, ReplyHandlerFn<Module, Error>)]; MAX_REPLY_COUNT],
+        reply_handlers: [&'static [(
+            u64,
+            ReplyHandlerFn<Module, Error, <Module as Handler>::CustomResponse>,
+        )]; MAX_REPLY_COUNT],
     ) -> Self {
         self.reply_handlers = reply_handlers;
         self
@@ -122,7 +162,10 @@ where
     /// add IBC callback handler to contract
     pub const fn with_ibc_callbacks(
         mut self,
-        callbacks: &'static [(&'static str, IbcCallbackHandlerFn<Module, Error>)],
+        callbacks: &'static [(
+            &'static str,
+            IbcCallbackHandlerFn<Module, Error, <Module as Handler>::CustomResponse>,
+        )],
     ) -> Self {
         self.ibc_callback_handlers = callbacks;
         self
@@ -134,6 +177,7 @@ where
             Module,
             <Module as Handler>::CustomInitMsg,
             Error,
+            <Module as Handler>::CustomResponse,
         >,
     ) -> Self {
         self.instantiate_handler = Some(instantiate_handler);
@@ -142,7 +186,12 @@ where
 
     pub const fn with_migrate(
         mut self,
-        migrate_handler: MigrateHandlerFn<Module, <Module as Handler>::CustomMigrateMsg, Error>,
+        migrate_handler: MigrateHandlerFn<
+            Module,
+            <Module as Handler>::CustomMigrateMsg,
+            Error,
+            <Module as Handler>::CustomResponse,
+        >,
     ) -> Self {
         self.migrate_handler = Some(migrate_handler);
         self
@@ -150,7 +199,12 @@ where
 
     pub const fn with_sudo(
         mut self,
-        sudo_handler: SudoHandlerFn<Module, <Module as Handler>::SudoMsg, Error>,
+        sudo_handler: SudoHandlerFn<
+            Module,
+            <Module as Handler>::SudoMsg,
+            Error,
+            <Module as Handler>::CustomResponse,
+        >,
     ) -> Self {
         self.sudo_handler = Some(sudo_handler);
         self
@@ -158,7 +212,12 @@ where
 
     pub const fn with_receive(
         mut self,
-        receive_handler: ReceiveHandlerFn<Module, <Module as Handler>::ReceiveMsg, Error>,
+        receive_handler: ReceiveHandlerFn<
+            Module,
+            <Module as Handler>::ReceiveMsg,
+            Error,
+            <Module as Handler>::CustomResponse,
+        >,
     ) -> Self {
         self.receive_handler = Some(receive_handler);
         self
@@ -166,7 +225,12 @@ where
 
     pub const fn with_execute(
         mut self,
-        execute_handler: ExecuteHandlerFn<Module, <Module as Handler>::CustomExecMsg, Error>,
+        execute_handler: ExecuteHandlerFn<
+            Module,
+            <Module as Handler>::CustomExecMsg,
+            Error,
+            <Module as Handler>::CustomResponse,
+        >,
     ) -> Self {
         self.execute_handler = Some(execute_handler);
         self
@@ -322,7 +386,7 @@ mod test {
     #[test]
     fn test_with_reply_handlers() {
         const REPLY_ID: u64 = 50u64;
-        const HANDLER: ReplyHandlerFn<MockModule, MockError> =
+        const HANDLER: ReplyHandlerFn<MockModule, MockError, Empty> =
             |_, _, _, _| Ok(Response::default().add_attribute("test", "reply"));
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
             .with_replies([&[(REPLY_ID, HANDLER)], &[]]);
@@ -334,7 +398,7 @@ mod test {
     #[test]
     fn test_with_ibc_callback_handlers() {
         const IBC_ID: &str = "aoeu";
-        const HANDLER: IbcCallbackHandlerFn<MockModule, MockError> =
+        const HANDLER: IbcCallbackHandlerFn<MockModule, MockError, Empty> =
             |_, _, _, _, _, _| Ok(Response::default().add_attribute("test", "ibc"));
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
             .with_ibc_callbacks(&[(IBC_ID, HANDLER)]);

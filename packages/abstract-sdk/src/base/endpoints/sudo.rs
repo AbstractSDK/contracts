@@ -8,7 +8,7 @@ pub trait SudoEndpoint: Handler {
         deps: DepsMut,
         env: Env,
         msg: <Self as Handler>::SudoMsg,
-    ) -> Result<Response, Self::Error> {
+    ) -> Result<Response<Self::CustomResponse>, Self::Error> {
         let maybe_handler = self.maybe_sudo_handler();
         maybe_handler.map_or_else(
             || {

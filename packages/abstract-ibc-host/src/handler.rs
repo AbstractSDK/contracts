@@ -7,7 +7,8 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-        SudoMsg,
+        SudoMsg, 
+CResp,
     > Handler
     for Host<
         Error,
@@ -16,7 +17,8 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-        SudoMsg,
+        SudoMsg, 
+CResp,
     >
 {
     type Error = Error;

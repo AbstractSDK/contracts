@@ -23,9 +23,10 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-        SudoMsg,
+        SudoMsg, 
+CResp,
     >
-    Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg, SudoMsg>
+    Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg, SudoMsg, CResp>
 {
     // processes PacketMsg::Balances variant
     pub fn receive_balances(&self, deps: DepsMut) -> Result<IbcReceiveResponse, HostError> {

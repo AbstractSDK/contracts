@@ -10,7 +10,7 @@ pub trait IbcCallbackEndpoint: Handler + ModuleInterface {
         env: Env,
         info: MessageInfo,
         msg: IbcResponseMsg,
-    ) -> Result<Response, Self::Error> {
+    ) -> Result<Response<Self::CustomResponse>, Self::Error> {
         // Todo: Change to use version control instead?
         let ibc_client = self.modules(deps.as_ref()).module_address(IBC_CLIENT)?;
         if info.sender.ne(&ibc_client) {
@@ -24,7 +24,7 @@ pub trait IbcCallbackEndpoint: Handler + ModuleInterface {
         let IbcResponseMsg { id, msg: ack } = msg;
         let maybe_handler = self.maybe_ibc_callback_handler(&id);
         maybe_handler.map_or_else(
-            || Ok(Response::new()),
+            || Ok(Response::<Self::CustomResponse>::new()),
             |handler| handler(deps, env, info, self, id, ack),
         )
     }
