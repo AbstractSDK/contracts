@@ -1,13 +1,17 @@
-use crate::{
-    AppContract, AppError, ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint,
-};
+use crate::{AppContract, AppError};
 use abstract_core::app::{AppExecuteMsg, AppQueryMsg};
-use abstract_sdk::core::app::AppConfigResponse;
-use cosmwasm_schema::{export_schema_with_title, schema_for, write_api, QueryResponses};
-use cw_controllers::AdminResponse;
+use cosmwasm_schema::QueryResponses;
 use schemars::JsonSchema;
 use serde::Serialize;
-use std::path::Path;
+
+#[cfg(feature = "schema")]
+use {
+    crate::{ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint},
+    abstract_sdk::core::app::AppConfigResponse,
+    cosmwasm_schema::{export_schema_with_title, schema_for, write_api, QueryResponses},
+    cw_controllers::AdminResponse,
+    std::path::Path,
+};
 
 impl<
         Error: From<cosmwasm_std::StdError>
@@ -31,6 +35,7 @@ impl<
         SudoMsg,
     >
 {
+    #[cfg(feature = "schema")]
     pub fn export_schema(out_dir: &Path) {
         // write out the module-specific schema
         write_api! {

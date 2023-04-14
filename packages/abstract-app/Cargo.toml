@@ -13,7 +13,6 @@ resolver = "2"
 [features]
 test-utils = ["dep:abstract-testing", "dep:abstract-boot", "dep:boot-core"]
 
-
 [dependencies]
 cosmwasm-std = { workspace = true }
 cosmwasm-schema = { workspace = true }
