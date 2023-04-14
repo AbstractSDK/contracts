@@ -10,6 +10,8 @@
 //! [price sources](crate::objects::price_source) are what allow the proxy contract to provide value queries for its assets. It needs to be configured using the [`ExecuteMsg::UpdateAssets`] endpoint.
 //! After configuring the price sources [`QueryMsg::TotalValue`] can be called to get the total holding value.
 
+use std::fmt;
+
 #[allow(unused_imports)]
 use crate::{
     ibc_client::ExecuteMsg as IbcClientMsg,
@@ -23,6 +25,7 @@ use crate::{
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{CosmosMsg, Empty, Uint128};
 use cw_asset::{Asset, AssetInfo};
+use schemars::JsonSchema;
 
 pub mod state {
     pub use crate::objects::core::ACCOUNT_ID;
@@ -48,12 +51,15 @@ pub struct InstantiateMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
-pub enum ExecuteMsg {
+// #[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
+pub enum ExecuteMsg<T = Empty>
+    where
+        T: Clone + fmt::Debug + PartialEq + JsonSchema,
+ {
     /// Sets the admin
     SetAdmin { admin: String },
     /// Executes the provided messages if sender is whitelisted
-    ModuleAction { msgs: Vec<CosmosMsg<Empty>> },
+    ModuleAction { msgs: Vec<CosmosMsg<T>> },
     /// Execute IBC action on Client
     IbcAction { msgs: Vec<IbcClientMsg> },
     /// Adds the provided address to whitelisted dapps

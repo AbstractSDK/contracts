@@ -34,6 +34,8 @@ abstract-macros = { workspace = true }
 abstract-testing = { workspace = true, optional = true }
 cosmwasm-schema = { workspace = true, optional = true }
 
+serde-cw-value = {git = "https://github.com/nicolaslara/serde-cw-value.git", features = ["json_schema"], branch = "nicolas/conditional-json-schema"}
+
 [dev-dependencies]
 speculoos = { workspace = true }
 cosmwasm-schema = { workspace = true }

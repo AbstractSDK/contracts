@@ -33,6 +33,9 @@ abstract-ica = { workspace = true }
 boot-core = { workspace = true, optional = true }
 cw-ownable = { workspace = true }
 
+# Allows us to use a JSON Value in the proxy execute message
+serde-cw-value = {git = "https://github.com/nicolaslara/serde-cw-value.git", features = ["json_schema"], branch = "nicolas/conditional-json-schema"}
+
 [dev-dependencies]
 speculoos = { workspace = true }
 rstest = { workspace = true }
