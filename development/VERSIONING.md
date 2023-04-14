@@ -8,7 +8,7 @@ The versioning setup is based on the dependency graph of the project, which is s
 >`cargo depgraph --dedup-transitive-deps --exclude abstract-boot-scripts,boot-core --build-deps | dot -Tpng > dep_graph.png`  
 > *Ensure you have [graphviz](https://graphviz.gitlab.io/download/) installed.*
 
-![Abstract's dependency graph](./docs/dep_graph.png)
+![Abstract's dependency graph](../docs/dep_graph.png)
 
 Form the graph we can draw some conclusions:
 
@@ -18,6 +18,11 @@ Form the graph we can draw some conclusions:
 ## Versioning
 
 Most of the versioning information is contained within the workspace level [`Cargo.toml`](./Cargo.toml). The version defined in the `[workspace]` section is used as the version for all contracts in the workspace, as well as the lower level packages. The only exceptions are `abstract-api` and `abstract-app`, which can be versioned independently.
+
+## Periphery
+
+1. Update the version of Abstract in the integration-bundles repository.
+2. Create a new release on the periphery repository (run `just publish`)
 
 ## Contracts
 
