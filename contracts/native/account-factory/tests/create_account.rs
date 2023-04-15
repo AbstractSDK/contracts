@@ -195,8 +195,8 @@ fn sender_is_not_admin_monarchy() -> AResult {
     assert_that!(account_config).is_equal_to(abstract_core::manager::ConfigResponse {
         owner: owner.into_string(),
         account_id: Uint64::from(0u64),
-        version_control_address: version_control.address()?.into_string(),
-        module_factory_address: deployment.module_factory.address()?.into_string(),
+        version_control_address: version_control.address()?,
+        module_factory_address: deployment.module_factory.address()?,
         is_suspended: false,
     });
 
@@ -229,8 +229,8 @@ fn sender_is_not_admin_external() -> AResult {
         owner: owner.into_string(),
         account_id: Uint64::from(0u64),
         is_suspended: false,
-        version_control_address: version_control.address()?.into_string(),
-        module_factory_address: deployment.module_factory.address()?.into_string(),
+        version_control_address: version_control.address()?,
+        module_factory_address: deployment.module_factory.address()?,
     });
 
     Ok(())
