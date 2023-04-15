@@ -118,7 +118,7 @@ pub fn receive_query(
     }
     let response = IbcQueryResponse { results };
 
-    let acknowledgement = StdAck::success(&response);
+    let acknowledgement = StdAck::success(response);
     Ok(IbcReceiveResponse::new()
         .set_ack(acknowledgement)
         .add_attribute("action", "receive_ibc_query"))
@@ -132,8 +132,8 @@ pub fn receive_register<
     CustomInitMsg,
     CustomQueryMsg,
     CustomMigrateMsg,
-    SudoMsg,
     ReceiveMsg,
+    SudoMsg,
 >(
     deps: DepsMut,
     env: Env,
@@ -143,8 +143,8 @@ pub fn receive_register<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        SudoMsg,
         ReceiveMsg,
+        SudoMsg,
     >,
     channel: String,
     account_id: AccountId,
@@ -182,7 +182,7 @@ pub fn receive_register<
 pub fn receive_who_am_i(this_chain: String) -> Result<IbcReceiveResponse, HostError> {
     // let them know we're fine
     let response = WhoAmIResponse { chain: this_chain };
-    let acknowledgement = StdAck::success(&response);
+    let acknowledgement = StdAck::success(response);
     Ok(IbcReceiveResponse::new()
         .set_ack(acknowledgement)
         .add_attribute("action", "who_am_i"))

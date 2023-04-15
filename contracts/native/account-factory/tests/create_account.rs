@@ -25,7 +25,7 @@ fn instantiate() -> AResult {
     let factory = deployment.account_factory;
     let factory_config = factory.config()?;
     let expected = account_factory::ConfigResponse {
-        owner: sender.into_string(),
+        owner: sender,
         ans_host_contract: deployment.ans_host.address()?.into(),
         version_control_contract: deployment.version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),
@@ -59,7 +59,7 @@ fn create_one_os() -> AResult {
 
     let factory_config = factory.config()?;
     let expected = account_factory::ConfigResponse {
-        owner: sender.clone().into_string(),
+        owner: sender.clone(),
         ans_host_contract: deployment.ans_host.address()?.into(),
         version_control_contract: deployment.version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),
@@ -70,8 +70,8 @@ fn create_one_os() -> AResult {
 
     let vc_config = version_control.config()?;
     let expected = abstract_core::version_control::ConfigResponse {
-        admin: sender.into_string(),
-        factory: factory.address()?.into_string(),
+        admin: sender,
+        factory: factory.address()?,
     };
 
     assert_that!(&vc_config).is_equal_to(&expected);
@@ -122,7 +122,7 @@ fn create_two_account_s() -> AResult {
 
     let factory_config = factory.config()?;
     let expected = account_factory::ConfigResponse {
-        owner: sender.clone().into_string(),
+        owner: sender.clone(),
         ans_host_contract: deployment.ans_host.address()?.into(),
         version_control_contract: deployment.version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),
@@ -133,8 +133,8 @@ fn create_two_account_s() -> AResult {
 
     let vc_config = version_control.config()?;
     let expected = abstract_core::version_control::ConfigResponse {
-        admin: sender.into_string(),
-        factory: factory.address()?.into_string(),
+        admin: sender,
+        factory: factory.address()?,
     };
 
     assert_that!(&vc_config).is_equal_to(&expected);

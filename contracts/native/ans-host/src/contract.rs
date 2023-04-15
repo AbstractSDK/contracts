@@ -1,18 +1,18 @@
 use crate::commands::*;
 use crate::error::AnsHostError;
 use crate::queries;
-use abstract_core::ans_host::state::{Config, CONFIG, REGISTERED_DEXES};
-use abstract_core::ans_host::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
+use abstract_core::{
+    ans_host::{
+        state::{Config, CONFIG, REGISTERED_DEXES},
+        ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
+    },
+    objects::module_version::{assert_contract_upgrade, migrate_module_data, set_module_data},
+    ANS_HOST,
+};
 use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::{get_contract_version, set_contract_version};
-use cw_ownable::initialize_owner;
 use semver::Version;
 
-use abstract_core::objects::module_version::{
-    assert_contract_upgrade, migrate_module_data, set_module_data,
-};
-
-use abstract_core::ANS_HOST;
 use abstract_macros::abstract_response;
 use abstract_sdk::query_ownership;
 
@@ -50,8 +50,8 @@ pub fn instantiate(
     // Initialize the dexes
     REGISTERED_DEXES.save(deps.storage, &vec![])?;
 
-    // Setup the admin as the creator of the contract
-    initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
+    // Set up the admin as the creator of the contract
+    cw_ownable::initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
 
     Ok(AnsHostResponse::action("instantiate"))
 }

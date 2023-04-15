@@ -228,12 +228,11 @@ pub fn execute_update_config(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    admin: Option<String>,
     ans_host_contract: Option<String>,
     version_control_contract: Option<String>,
     module_factory_address: Option<String>,
 ) -> AccountFactoryResult {
-    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &info.sender)?;
 
     let mut config: Config = CONFIG.load(deps.storage)?;
 
@@ -253,11 +252,6 @@ pub fn execute_update_config(
     }
 
     CONFIG.save(deps.storage, &config)?;
-
-    if let Some(admin) = admin {
-        let addr = deps.api.addr_validate(&admin)?;
-        ADMIN.set(deps, Some(addr))?;
-    }
 
     Ok(AccountFactoryResponse::action("update_config"))
 }

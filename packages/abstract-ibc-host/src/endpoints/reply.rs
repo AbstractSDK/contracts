@@ -21,8 +21,8 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        SudoMsg,
         ReceiveMsg,
+        SudoMsg,
     > ReplyEndpoint
     for Host<
         Error,
@@ -30,8 +30,8 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        SudoMsg,
         ReceiveMsg,
+        SudoMsg,
     >
 {
     fn reply(mut self, deps: DepsMut, env: Env, msg: Reply) -> Result<Response, Self::Error> {
@@ -67,8 +67,8 @@ pub fn reply_dispatch_callback<
     CustomInitMsg,
     CustomQueryMsg,
     CustomMigrateMsg,
-    SudoMsg,
     ReceiveMsg,
+    SudoMsg,
 >(
     deps: DepsMut,
     _env: Env,
@@ -78,8 +78,8 @@ pub fn reply_dispatch_callback<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        SudoMsg,
         ReceiveMsg,
+        SudoMsg,
     >,
     reply: Reply,
 ) -> Result<Response, Error> {
@@ -89,7 +89,7 @@ pub fn reply_dispatch_callback<
     RESULTS.save(deps.storage, &results)?;
 
     // update result data if this is the last
-    let data = StdAck::success(&DispatchResponse { results });
+    let data = StdAck::success(DispatchResponse { results });
     Ok(Response::new().set_data(data))
 }
 
@@ -110,8 +110,8 @@ pub fn reply_init_callback<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        SudoMsg,
         ReceiveMsg,
+        SudoMsg,
     >,
 
     reply: Reply,
@@ -133,7 +133,7 @@ pub fn reply_init_callback<
         return Err(HostError::ChannelAlreadyRegistered.into());
     }
     ACCOUNTS.save(deps.storage, (&channel, account_id), &contract_addr)?;
-    let data = StdAck::success(&RegisterResponse {
+    let data = StdAck::success(RegisterResponse {
         account: contract_addr.into_string(),
     });
     Ok(Response::new().set_data(data))

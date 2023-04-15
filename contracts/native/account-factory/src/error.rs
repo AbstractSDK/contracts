@@ -20,6 +20,9 @@ pub enum AccountFactoryError {
     Asset(#[from] AssetError),
 
     #[error("{0}")]
+    Ownership(#[from] cw_ownable::OwnershipError),
+
+    #[error("{0}")]
     Admin(#[from] AdminError),
 
     #[error("Contract got an unexpected Reply")]
