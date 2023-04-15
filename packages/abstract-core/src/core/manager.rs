@@ -188,7 +188,7 @@ pub struct ModuleVersionsResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ModuleAddressesResponse {
-    pub modules: Vec<(String, String)>,
+    pub modules: Vec<(String, Addr)>,
 }
 
 #[cosmwasm_schema::cw_serde]

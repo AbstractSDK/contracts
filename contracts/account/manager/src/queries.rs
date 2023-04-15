@@ -18,10 +18,7 @@ const MAX_LIMIT: u8 = 10;
 
 pub fn handle_module_address_query(deps: Deps, env: Env, ids: Vec<String>) -> StdResult<Binary> {
     let contracts = query_module_addresses(deps, &env.contract.address, &ids)?;
-    let vector = contracts
-        .into_iter()
-        .map(|(v, k)| (v, k.to_string()))
-        .collect();
+    let vector = contracts.into_iter().map(|(v, k)| (v, k)).collect();
     to_binary(&ModuleAddressesResponse { modules: vector })
 }
 
@@ -33,7 +30,7 @@ pub fn handle_contract_versions_query(deps: Deps, env: Env, ids: Vec<String>) ->
 
 pub fn handle_account_info_query(deps: Deps) -> StdResult<Binary> {
     let info: AccountInfo = INFO.load(deps.storage)?;
-    to_binary(&InfoResponse { info: info.into() })
+    to_binary(&InfoResponse { info })
 }
 
 pub fn handle_config_query(deps: Deps) -> StdResult<Binary> {
