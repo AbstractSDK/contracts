@@ -5,7 +5,10 @@ use crate::{
 use abstract_core::{objects::module::Module, version_control::ModulesResponse, AbstractResult};
 use abstract_sdk::{
     core::{
-        manager::{ExecuteMsg::UpdateModuleAddresses, InstantiateMsg as ManagerInstantiateMsg},
+        manager::{
+            ExecuteMsg as ManagerExecMsg, ExecuteMsg::UpdateModuleAddresses,
+            InstantiateMsg as ManagerInstantiateMsg,
+        },
         objects::{
             gov_type::GovernanceDetails, module::ModuleInfo, module_reference::ModuleReference,
         },
@@ -21,11 +24,11 @@ use cosmwasm_std::{
 
 use protobuf::Message;
 
-pub const CREATE_ACCOUNT_MANAGER_MSG_ID: u64 = 1u64;
-pub const CREATE_ACCOUNT_PROXY_MSG_ID: u64 = 2u64;
-
 use crate::contract::AccountFactoryResponse;
 use abstract_sdk::core::{MANAGER, PROXY};
+
+pub const CREATE_ACCOUNT_MANAGER_MSG_ID: u64 = 1u64;
+pub const CREATE_ACCOUNT_PROXY_MSG_ID: u64 = 2u64;
 
 /// Function that starts the creation of the Account
 pub fn execute_create_account(
@@ -39,9 +42,10 @@ pub fn execute_create_account(
     let config = CONFIG.load(deps.storage)?;
 
     // Query version_control for code_id of Manager contract
-    let module: Module = query_module(&deps.querier, &config.version_control_contract, MANAGER)?;
+    let manager_module: Module =
+        query_module(&deps.querier, &config.version_control_contract, MANAGER)?;
 
-    if let ModuleReference::AccountBase(manager_code_id) = module.reference {
+    if let ModuleReference::AccountBase(manager_code_id) = manager_module.reference {
         Ok(AccountFactoryResponse::new(
             "create_account",
             vec![("account_id", &config.next_account_id.to_string())],
@@ -71,7 +75,7 @@ pub fn execute_create_account(
         }))
     } else {
         Err(AccountFactoryError::WrongModuleKind(
-            module.info.to_string(),
+            manager_module.info.to_string(),
             "core".to_string(),
         ))
     }
@@ -150,51 +154,70 @@ pub fn after_proxy_add_to_manager_and_set_admin(
     result: SubMsgResult,
 ) -> AccountFactoryResult {
     let mut config = CONFIG.load(deps.storage)?;
-    let context = CONTEXT.load(deps.storage)?;
+    let Context {
+        account_manager_address: manager_address,
+        ..
+    } = CONTEXT.load(deps.storage)?;
 
-    let res: MsgInstantiateContractResponse =
+    let proxy_init_res: MsgInstantiateContractResponse =
         Message::parse_from_bytes(result.unwrap().data.unwrap().as_slice()).map_err(|_| {
             StdError::parse_err("MsgInstantiateContractResponse", "failed to parse data")
         })?;
 
-    let proxy_address = res.get_contract_address();
+    let proxy_address = proxy_init_res.get_contract_address();
 
     // construct Account base
     let account_base = AccountBase {
-        manager: context.account_manager_address.clone(),
+        manager: manager_address.clone(),
         proxy: deps.api.addr_validate(proxy_address)?,
     };
 
     // Add Account base to version_control
-    let add_account_to_version_control_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: config.version_control_contract.to_string(),
-        funds: vec![],
-        msg: to_binary(&VCExecuteMsg::AddAccount {
+    let add_account_to_version_control_msg: CosmosMsg<Empty> = wasm_execute(
+        config.version_control_contract.to_string(),
+        &VCExecuteMsg::AddAccount {
             account_id: config.next_account_id,
             account_base,
-        })?,
-    });
+        },
+        vec![],
+    )?
+    .into();
 
-    // add manager to whitelisted addresses
-    let whitelist_manager: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: proxy_address.to_string(),
-        funds: vec![],
-        msg: to_binary(&ProxyExecMsg::AddModule {
-            module: context.account_manager_address.to_string(),
-        })?,
-    });
+    // add manager to allowlisted addresses on the proxy
+    let allowlist_manager: CosmosMsg<Empty> = wasm_execute(
+        proxy_address.to_string(),
+        &ProxyExecMsg::AddModule {
+            module: manager_address.to_string(),
+        },
+        vec![],
+    )?
+    .into();
 
-    let set_proxy_admin_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: proxy_address.to_string(),
-        funds: vec![],
-        msg: to_binary(&ProxyExecMsg::SetAdmin {
-            admin: context.account_manager_address.to_string(),
-        })?,
-    });
+    // Set manager address in the proxy
+    let set_proxy_admin_msg: CosmosMsg<Empty> = wasm_execute(
+        proxy_address.to_string(),
+        &ProxyExecMsg::UpdateOwnership(cw_ownable::Action::TransferOwnership {
+            new_owner: manager_address.to_string(),
+            expiry: None,
+        }),
+        vec![],
+    )?
+    .into();
 
+    // THe manager needs to accept ownership of the proxy
+    let manager_accept_proxy_ownership_msg: CosmosMsg<Empty> = wasm_execute(
+        manager_address.to_string(),
+        &ManagerExecMsg::AcceptProxyOwnership {
+            proxy_address: proxy_address.to_string(),
+        },
+        vec![],
+    )?
+    .into();
+
+    // Update the migration admin on the manager to itself
     let set_manager_admin_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::UpdateAdmin {
-        contract_addr: context.account_manager_address.to_string(),
-        admin: context.account_manager_address.to_string(),
+        contract_addr: manager_address.to_string(),
+        admin: manager_address.to_string(),
     });
 
     // Update id sequence
@@ -203,19 +226,20 @@ pub fn after_proxy_add_to_manager_and_set_admin(
 
     Ok(AccountFactoryResponse::new(
         "create_proxy",
-        vec![("proxy_address", res.get_contract_address())],
+        vec![("proxy_address", proxy_init_res.get_contract_address())],
     )
     .add_message(add_account_to_version_control_msg)
     .add_message(wasm_execute(
-        context.account_manager_address.to_string(),
+        manager_address.to_string(),
         &UpdateModuleAddresses {
             to_add: Some(vec![(PROXY.to_string(), proxy_address.to_string())]),
             to_remove: None,
         },
         vec![],
     )?)
-    .add_message(whitelist_manager)
+    .add_message(allowlist_manager)
     .add_message(set_proxy_admin_msg)
+    .add_message(manager_accept_proxy_ownership_msg)
     .add_message(set_manager_admin_msg))
 }
 

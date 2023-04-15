@@ -18,17 +18,20 @@ pub enum ProxyError {
     #[error("{0}")]
     Asset(#[from] AssetError),
 
+    #[error("{0}")]
+    Ownership(#[from] cw_ownable::OwnershipError),
+
     #[error(transparent)]
     Admin(#[from] ::cw_controllers::AdminError),
 
-    #[error("Module with address {0} is already whitelisted")]
-    AlreadyWhitelisted(String),
+    #[error("Module with address {0} is already allowlisted")]
+    AlreadyAllowlisted(String),
 
-    #[error("Module with address {0} not found in whitelist")]
-    NotWhitelisted(String),
+    #[error("Module with address {0} not found in allowlist")]
+    ModuleNotAllowlisted(String),
 
-    #[error("Sender is not whitelisted")]
-    SenderNotWhitelisted {},
+    #[error("Sender is not allowlisted")]
+    SenderNotAllowlisted {},
 
     #[error("Max amount of assets registered")]
     AssetsLimitReached,

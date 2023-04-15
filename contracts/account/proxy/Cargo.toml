@@ -35,6 +35,7 @@ semver = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 abstract-macros = { workspace = true }
+cw-ownable = { workspace = true }
 
 [dev-dependencies]
 cw20 = { workspace = true }

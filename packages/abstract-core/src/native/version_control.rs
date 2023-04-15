@@ -21,14 +21,10 @@ pub mod state {
     use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
 
-    use crate::objects::{
-        common_namespace::ADMIN_NAMESPACE, core::AccountId, module::ModuleInfo,
-        module_reference::ModuleReference,
-    };
+    use crate::objects::{core::AccountId, module::ModuleInfo, module_reference::ModuleReference};
 
     use super::{AccountBase, Config};
 
-    pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
     pub const FACTORY: Admin = Admin::new("factory");
 
     pub const CONFIG: Item<Config> = Item::new("config");

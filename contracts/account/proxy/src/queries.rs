@@ -1,6 +1,7 @@
 use crate::contract::ProxyResult;
 
 use abstract_core::objects::oracle::{AccountValue, Oracle};
+use abstract_core::proxy::state::State;
 use abstract_core::proxy::{
     AssetsConfigResponse, BaseAssetResponse, HoldingAmountResponse, OracleAsset, TokenValueResponse,
 };
@@ -8,7 +9,7 @@ use abstract_sdk::core::objects::AssetEntry;
 use abstract_sdk::core::proxy::state::{ANS_HOST, STATE};
 use abstract_sdk::core::proxy::{AssetsInfoResponse, ConfigResponse};
 use abstract_sdk::Resolve;
-use cosmwasm_std::{Addr, Deps, Env, StdResult};
+use cosmwasm_std::{Addr, Deps, Env, StdResult, Storage};
 use cw_asset::{Asset, AssetInfo};
 
 /// get the assets pricing information
@@ -48,9 +49,10 @@ pub fn query_oracle_asset_config(
 
 /// Returns the whitelisted modules
 pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
-    let state = STATE.load(deps.storage)?;
-    let modules: Vec<Addr> = state.modules;
+    let State { modules } = STATE.load(deps.storage)?;
+    let manager = get_manager(deps.storage)?;
     let resp = ConfigResponse {
+        manager,
         modules: modules
             .iter()
             .map(|module| -> String { module.to_string() })
@@ -205,6 +207,7 @@ mod test {
         assert_eq!(
             config,
             ConfigResponse {
+                manager: Addr::unchecked(TEST_CREATOR),
                 modules: vec!["test_module".to_string()],
             }
         );
@@ -375,4 +378,14 @@ mod test {
             }
         );
     }
+}
+
+/// Retrieve the manager from the ownership.
+pub(crate) fn get_manager(storage: &dyn Storage) -> StdResult<Addr> {
+    let cw_ownable::Ownership {
+        owner: manager_address,
+        ..
+    } = cw_ownable::get_ownership(storage)?;
+
+    Ok(manager_address.unwrap())
 }

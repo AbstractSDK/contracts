@@ -100,6 +100,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
         ExecuteMsg::UpdateStatus {
             is_suspended: suspension_status,
         } => update_account_status(deps, info, suspension_status),
+        ExecuteMsg::AcceptProxyOwnership { proxy_address } => {
+            accept_proxy_ownership(deps, info, &proxy_address)
+        }
         msg => {
             // Block actions if user is not subscribed
             let is_suspended = SUSPENSION_STATUS.load(deps.storage)?;

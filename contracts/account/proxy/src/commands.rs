@@ -1,18 +1,15 @@
-use crate::contract::ProxyResult;
+use crate::contract::{ProxyResponse, ProxyResult};
 use crate::error::ProxyError;
+use crate::queries;
 use abstract_core::objects::{oracle::Oracle, price_source::UncheckedPriceSource, AssetEntry};
-use abstract_macros::abstract_response;
 use abstract_sdk::core::{
     ibc_client::ExecuteMsg as IbcClientMsg,
-    proxy::state::{ADMIN, ANS_HOST, STATE},
-    IBC_CLIENT, PROXY,
+    proxy::state::{ANS_HOST, STATE},
+    IBC_CLIENT,
 };
 use cosmwasm_std::{wasm_execute, CosmosMsg, DepsMut, Empty, MessageInfo, StdError};
 
 const LIST_SIZE_LIMIT: usize = 15;
-
-#[abstract_response(PROXY)]
-struct ProxyResponse;
 
 /// Executes actions forwarded by whitelisted contracts
 /// This contracts acts as a proxy contract for the dApps
@@ -26,7 +23,7 @@ pub fn execute_module_action(
         .modules
         .contains(&deps.api.addr_validate(msg_info.sender.as_str())?)
     {
-        return Err(ProxyError::SenderNotWhitelisted {});
+        return Err(ProxyError::SenderNotAllowlisted {});
     }
 
     Ok(ProxyResponse::action("execute_module_action").add_messages(msgs))
@@ -44,11 +41,12 @@ pub fn execute_ibc_action(
         .modules
         .contains(&deps.api.addr_validate(msg_info.sender.as_str())?)
     {
-        return Err(ProxyError::SenderNotWhitelisted {});
+        return Err(ProxyError::SenderNotAllowlisted {});
     }
-    let manager_address = ADMIN.get(deps.as_ref())?.unwrap();
+    let manager_address = queries::get_manager(deps.storage);
+
     let ibc_client_address = abstract_sdk::core::manager::state::ACCOUNT_MODULES
-        .query(&deps.querier, manager_address, IBC_CLIENT)?
+        .query(&deps.querier, manager_address.unwrap(), IBC_CLIENT)?
         .ok_or_else(|| {
             StdError::generic_err(format!(
                 "ibc_client not found on manager. Add it under the {IBC_CLIENT} name."
@@ -70,7 +68,7 @@ pub fn update_assets(
     to_remove: Vec<AssetEntry>,
 ) -> ProxyResult {
     // Only Admin can call this method
-    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
     let ans_host = &ANS_HOST.load(deps.storage)?;
 
     let oracle = Oracle::new();
@@ -80,7 +78,7 @@ pub fn update_assets(
 
 /// Add a contract to the whitelist
 pub fn add_module(deps: DepsMut, msg_info: MessageInfo, module: String) -> ProxyResult {
-    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
 
     let mut state = STATE.load(deps.storage)?;
 
@@ -92,7 +90,7 @@ pub fn add_module(deps: DepsMut, msg_info: MessageInfo, module: String) -> Proxy
     let module_addr = deps.api.addr_validate(&module)?;
 
     if state.modules.contains(&module_addr) {
-        return Err(ProxyError::AlreadyWhitelisted(module));
+        return Err(ProxyError::AlreadyAllowlisted(module));
     }
 
     // Add contract to whitelist.
@@ -105,13 +103,13 @@ pub fn add_module(deps: DepsMut, msg_info: MessageInfo, module: String) -> Proxy
 
 /// Remove a contract from the whitelist
 pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module: String) -> ProxyResult {
-    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
 
     STATE.update(deps.storage, |mut state| {
         let module_address = deps.api.addr_validate(&module)?;
 
         if !state.modules.contains(&module_address) {
-            return Err(ProxyError::NotWhitelisted(module.clone()));
+            return Err(ProxyError::ModuleNotAllowlisted(module.clone()));
         }
         // Remove contract from whitelist.
         state.modules.retain(|addr| *addr != module_address);
@@ -122,19 +120,6 @@ pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module: String) -> Pr
     Ok(ProxyResponse::new(
         "remove_module",
         vec![("module", module)],
-    ))
-}
-
-pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: &String) -> ProxyResult {
-    let admin_addr = deps.api.addr_validate(admin)?;
-    let previous_admin = ADMIN.get(deps.as_ref())?.unwrap();
-    ADMIN.execute_update_admin::<Empty, Empty>(deps, info, Some(admin_addr))?;
-    Ok(ProxyResponse::new(
-        "set_admin",
-        vec![
-            ("previous_admin", previous_admin.to_string()),
-            ("admin", admin.to_string()),
-        ],
     ))
 }
 
@@ -176,27 +161,37 @@ mod test {
         STATE.load(storage).unwrap().modules
     }
 
+    fn execute_as(deps: DepsMut, sender: &str, msg: ExecuteMsg) -> ProxyResult {
+        execute(deps, mock_env(), mock_info(sender, &[]), msg)
+    }
+
+    fn test_only_owner(deps: DepsMut, msg: ExecuteMsg) -> ProxyTestResult {
+        let res = execute_as(deps, "not_admin", msg);
+        assert_that!(&res)
+            .is_err()
+            .is_equal_to(ProxyError::Ownership(
+                cw_ownable::OwnershipError::NotOwner {},
+            ));
+
+        Ok(())
+    }
+
     mod add_module {
         use cosmwasm_std::testing::mock_dependencies;
         use cosmwasm_std::Addr;
-        use cw_controllers::AdminError;
 
         use super::*;
 
         #[test]
-        fn only_admin_can_add_module() {
+        fn only_admin_can_add_module() -> ProxyTestResult {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut());
 
             let msg = ExecuteMsg::AddModule {
                 module: TEST_MODULE.to_string(),
             };
-            let info = mock_info("not_admin", &[]);
 
-            let res = execute(deps.as_mut(), mock_env(), info, msg);
-            assert_that(&res)
-                .is_err()
-                .is_equal_to(ProxyError::Admin(AdminError::NotAdmin {}))
+            test_only_owner(deps.as_mut(), msg)
         }
 
         #[test]
@@ -231,7 +226,7 @@ mod test {
             let res = execute_as_admin(&mut deps, msg);
             assert_that(&res)
                 .is_err()
-                .is_equal_to(ProxyError::AlreadyWhitelisted(TEST_MODULE.to_string()));
+                .is_equal_to(ProxyError::AlreadyAllowlisted(TEST_MODULE.to_string()));
         }
 
         #[test]
@@ -263,26 +258,20 @@ mod test {
     mod remove_module {
         use cosmwasm_std::testing::mock_dependencies;
         use cosmwasm_std::Addr;
-        use cw_controllers::AdminError;
 
         use abstract_core::proxy::state::State;
 
         use super::*;
 
         #[test]
-        fn only_admin() {
+        fn only_admin() -> ProxyTestResult {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut());
 
             let msg = ExecuteMsg::RemoveModule {
                 module: TEST_MODULE.to_string(),
             };
-            let info = mock_info("not_admin", &[]);
-
-            let res = execute(deps.as_mut(), mock_env(), info, msg);
-            assert_that(&res)
-                .is_err()
-                .is_equal_to(ProxyError::Admin(AdminError::NotAdmin {}))
+            test_only_owner(deps.as_mut(), msg)
         }
 
         #[test]
@@ -321,7 +310,7 @@ mod test {
             let res = execute_as_admin(&mut deps, msg);
             assert_that(&res)
                 .is_err()
-                .is_equal_to(ProxyError::NotWhitelisted(TEST_MODULE.to_string()));
+                .is_equal_to(ProxyError::ModuleNotAllowlisted(TEST_MODULE.to_string()));
         }
     }
 
@@ -330,18 +319,18 @@ mod test {
         use abstract_core::proxy::state::State;
 
         #[test]
-        fn only_whitelisted_can_execute() {
+        fn only_allowlisted_can_execute() {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut());
 
             let msg = ExecuteMsg::ModuleAction { msgs: vec![] };
 
-            let info = mock_info("not_whitelisted", &[]);
+            let info = mock_info("not_allowlisted", &[]);
 
             let res = execute(deps.as_mut(), mock_env(), info, msg);
             assert_that(&res)
                 .is_err()
-                .is_equal_to(ProxyError::SenderNotWhitelisted {});
+                .is_equal_to(ProxyError::SenderNotAllowlisted {});
         }
 
         #[test]
@@ -360,9 +349,10 @@ mod test {
             let action: CosmosMsg = wasm_execute(
                 MOCK_CONTRACT_ADDR.to_string(),
                 // example garbage
-                &ExecuteMsg::SetAdmin {
-                    admin: TEST_MANAGER.to_string(),
-                },
+                &ExecuteMsg::UpdateOwnership(cw_ownable::Action::TransferOwnership {
+                    new_owner: TEST_MANAGER.to_string(),
+                    expiry: None,
+                }),
                 vec![],
             )?
             .into();
@@ -439,6 +429,23 @@ mod test {
                     funds: vec![],
                 },
             )));
+        }
+    }
+
+    mod update_assets {
+        use super::*;
+
+        #[test]
+        fn only_admin_can_add_module() -> ProxyTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut());
+
+            let msg = ExecuteMsg::UpdateAssets {
+                to_add: vec![],
+                to_remove: vec![],
+            };
+
+            test_only_owner(deps.as_mut(), msg)
         }
     }
 }

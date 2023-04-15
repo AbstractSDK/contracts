@@ -31,10 +31,11 @@ use abstract_core::api::{
     AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as ApiExecMsg,
     QueryMsg as ApiQuery,
 };
+use abstract_core::manager::state::{ACCOUNT_FACTORY, ACCOUNT_ID};
 use abstract_sdk::cw_helpers::cosmwasm_std::AbstractAttributes;
 use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo,
-    Response, StdResult, Storage, WasmMsg,
+    ensure_eq, to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env,
+    MessageInfo, Response, StdResult, Storage, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
 use cw_storage_plus::Item;
@@ -122,7 +123,7 @@ pub fn register_module(
 
     // check if sender is module factory
     if msg_info.sender != config.module_factory_address {
-        return Err(ManagerError::CallerNotFactory {});
+        return Err(ManagerError::CallerNotModuleFactory {});
     }
 
     let mut response = update_module_addresses(
@@ -569,6 +570,42 @@ fn upgrade_self(
     }
 }
 
+/// Accept the ownership request for the proxy contract. Only callable by the factory.
+pub fn accept_proxy_ownership(
+    deps: DepsMut,
+    info: MessageInfo,
+    proxy_address: &str,
+) -> ManagerResult {
+    // Only the account factory can have the manager accept its ownership.
+    ACCOUNT_FACTORY
+        .assert_admin(deps.as_ref(), &info.sender)
+        .map_err(|_| ManagerError::CallerNotAccountFactory {})?;
+    let proxy_addr = deps.api.addr_validate(proxy_address)?;
+
+    // assert that the proxy account id is the same as ours
+    let proxy_account_id = ACCOUNT_ID.query(&deps.querier, proxy_addr)?;
+    let manager_account_id = ACCOUNT_ID.load(deps.storage)?;
+
+    ensure_eq!(
+        manager_account_id,
+        proxy_account_id,
+        ManagerError::UnknownProxy {
+            proxy: proxy_address.to_string(),
+            manager_account_id,
+            proxy_account_id,
+        }
+    );
+
+    // Accept ownership of the proxy
+    let accept_ownership_msg =
+        abstract_core::proxy::ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership);
+
+    Ok(
+        ManagerResponse::new("accept_proxy_ownership", vec![("proxy", proxy_address)])
+            .add_message(wasm_execute(proxy_address, &accept_ownership_msg, vec![])?),
+    )
+}
+
 fn allowlist_dapp_on_proxy(
     _deps: Deps,
     proxy_address: String,
@@ -618,6 +655,7 @@ mod test {
     use speculoos::prelude::*;
 
     use super::*;
+    use abstract_testing::prelude::*;
 
     type ManagerTestResult = Result<(), ManagerError>;
 
@@ -626,8 +664,6 @@ mod test {
     const TEST_MODULE_FACTORY: &str = "module_factory";
 
     const TEST_VERSION_CONTROL: &str = "version_control";
-
-    const TEST_PROXY_ADDR: &str = "proxy";
 
     /// Initialize the manager with the test owner as the owner
     fn mock_init(mut deps: DepsMut) -> ManagerResult {
@@ -638,7 +674,7 @@ mod test {
             mock_env(),
             info,
             InstantiateMsg {
-                account_id: 1,
+                account_id: TEST_ACCOUNT_ID,
                 owner: GovernanceDetails::Monarchy {
                     monarch: TEST_OWNER.to_string(),
                 },
@@ -653,7 +689,7 @@ mod test {
 
     fn mock_installed_proxy(deps: DepsMut) -> StdResult<()> {
         let _info = mock_info(TEST_OWNER, &[]);
-        ACCOUNT_MODULES.save(deps.storage, PROXY, &Addr::unchecked(TEST_PROXY_ADDR))
+        ACCOUNT_MODULES.save(deps.storage, PROXY, &Addr::unchecked(TEST_PROXY))
     }
 
     fn execute_as(deps: DepsMut, sender: &str, msg: ExecuteMsg) -> ManagerResult {
@@ -1071,7 +1107,7 @@ mod test {
             let res = execute_as(deps.as_mut(), "not_module_factory", msg);
             assert_that(&res)
                 .is_err()
-                .is_equal_to(ManagerError::CallerNotFactory {});
+                .is_equal_to(ManagerError::CallerNotModuleFactory {});
 
             Ok(())
         }
@@ -1127,7 +1163,7 @@ mod test {
             let msgs = res.unwrap().messages;
             assert_that!(&msgs).has_length(1);
 
-            let expected_msg: CosmosMsg = wasm_execute(TEST_PROXY_ADDR, &exec_msg, vec![])?.into();
+            let expected_msg: CosmosMsg = wasm_execute(TEST_PROXY, &exec_msg, vec![])?.into();
 
             let actual_msg = &msgs[0];
             assert_that!(&actual_msg.msg).is_equal_to(&expected_msg);
@@ -1356,7 +1392,7 @@ mod test {
             let msg = &msgs[0];
 
             let expected_msg: CosmosMsg = wasm_execute(
-                TEST_PROXY_ADDR.to_string(),
+                TEST_PROXY.to_string(),
                 &ProxyMsg::RemoveModule {
                     module: TEST_IBC_CLIENT_ADDR.to_string(),
                 },
@@ -1479,6 +1515,78 @@ mod test {
             assert_that(&res).is_ok();
             let actual_status = SUSPENSION_STATUS.load(&deps.storage).unwrap();
             assert_that(&actual_status).is_false();
+            Ok(())
+        }
+    }
+
+    mod accept_proxy_ownership {
+        use super::*;
+        use abstract_testing::MockQuerierBuilder;
+
+        #[test]
+        fn only_account_factory() -> ManagerTestResult {
+            let mut deps = mock_dependencies();
+            deps.querier = MockQuerierBuilder::default().build();
+            mock_init(deps.as_mut())?;
+
+            let res =
+                accept_proxy_ownership(deps.as_mut(), mock_info("not_factory", &[]), TEST_PROXY);
+
+            assert_that!(res)
+                .is_err()
+                .is_equal_to(ManagerError::CallerNotAccountFactory {});
+
+            Ok(())
+        }
+
+        #[test]
+        fn success_when_matching_account_ids() -> ManagerTestResult {
+            let mut deps = mock_dependencies();
+            deps.querier = mocked_account_querier_builder().build();
+            mock_init(deps.as_mut())?;
+
+            let mut res = accept_proxy_ownership(
+                deps.as_mut(),
+                mock_info(TEST_ACCOUNT_FACTORY, &[]),
+                TEST_PROXY,
+            )?;
+
+            assert_that!(&res.messages).has_length(1);
+            let accept_msg = res.messages.pop().unwrap();
+            assert_that!(accept_msg.msg).is_equal_to(CosmosMsg::Wasm(WasmMsg::Execute {
+                contract_addr: TEST_PROXY.to_string(),
+                msg: to_binary(&ProxyMsg::UpdateOwnership(
+                    cw_ownable::Action::AcceptOwnership,
+                ))?,
+                funds: vec![],
+            }));
+            Ok(())
+        }
+
+        #[test]
+        fn mismatched_account_ids_fails() -> ManagerTestResult {
+            let mut deps = mock_dependencies();
+            deps.querier = mocked_account_querier_builder().build();
+            mock_init(deps.as_mut())?;
+
+            // Mock a different account id for the manager
+            let bad_account_id = 5;
+            ACCOUNT_ID.save(deps.as_mut().storage, &bad_account_id)?;
+
+            let res = accept_proxy_ownership(
+                deps.as_mut(),
+                mock_info(TEST_ACCOUNT_FACTORY, &[]),
+                TEST_PROXY,
+            );
+
+            assert_that!(res)
+                .is_err()
+                .is_equal_to(ManagerError::UnknownProxy {
+                    proxy: TEST_PROXY.into(),
+                    proxy_account_id: TEST_ACCOUNT_ID,
+                    manager_account_id: bad_account_id,
+                });
+
             Ok(())
         }
     }

@@ -2,11 +2,12 @@ use crate::commands::*;
 use crate::error::ProxyError;
 use crate::queries::*;
 use abstract_core::objects::{module_version::migrate_module_data, oracle::Oracle};
+use abstract_macros::abstract_response;
 use abstract_sdk::{
     core::{
         objects::{core::ACCOUNT_ID, module_version::set_module_data},
         proxy::{
-            state::{State, ADMIN, ANS_HOST, STATE},
+            state::{State, ANS_HOST, STATE},
             AssetConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
         },
         PROXY,
@@ -16,6 +17,10 @@ use abstract_sdk::{
 use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response};
 use cw2::{get_contract_version, set_contract_version};
 use semver::Version;
+
+/// Abstract proxy response
+#[abstract_response(PROXY)]
+pub struct ProxyResponse;
 
 pub type ProxyResult<T = Response> = Result<T, ProxyError>;
 /*
@@ -42,21 +47,23 @@ pub fn instantiate(
             address: deps.api.addr_validate(&msg.ans_host_address)?,
         },
     )?;
-    let admin_addr = Some(info.sender);
-    ADMIN.set(deps, admin_addr)?;
+    let admin_addr = Some(info.sender.as_str());
+    cw_ownable::initialize_owner(deps.storage, deps.api, admin_addr)?;
     Ok(Response::default())
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> ProxyResult {
+pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> ProxyResult {
     match msg {
         ExecuteMsg::ModuleAction { msgs } => execute_module_action(deps, info, msgs),
         ExecuteMsg::IbcAction { msgs } => execute_ibc_action(deps, info, msgs),
-        ExecuteMsg::SetAdmin { admin } => set_admin(deps, info, &admin),
         ExecuteMsg::AddModule { module } => add_module(deps, info, module),
         ExecuteMsg::RemoveModule { module } => remove_module(deps, info, module),
         ExecuteMsg::UpdateAssets { to_add, to_remove } => {
             update_assets(deps, info, to_add, to_remove)
+        }
+        ExecuteMsg::UpdateOwnership(action) => {
+            abstract_sdk::execute_update_ownership!(ProxyResponse, deps, env, info, action)
         }
     }
 }
@@ -94,6 +101,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> ProxyResult<Binary> {
             to_binary(&query_oracle_asset_info(deps, start_after, limit)?)
         }
         QueryMsg::BaseAsset {} => to_binary(&query_base_asset(deps)?),
+        QueryMsg::Ownership {} => abstract_sdk::query_ownership!(deps),
     }
     .map_err(Into::into)
 }

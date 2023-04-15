@@ -86,9 +86,9 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
         Ok(manager_modules)
     }
-    /// Checks that the proxy's whitelist includes the expected module addresses.
+    /// Checks that the proxy's module list includes the expected module addresses.
     /// Automatically includes the manager in the expected whitelist.
-    pub fn expect_whitelist(
+    pub fn expect_module_list(
         &self,
         whitelisted_addrs: Vec<String>,
     ) -> Result<Vec<String>, crate::AbstractBootError> {
@@ -101,6 +101,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         // check proxy config
         let abstract_core::proxy::ConfigResponse {
             modules: proxy_whitelist,
+            ..
         } = self.proxy.config()?;
 
         let actual_proxy_whitelist = HashSet::from_iter(proxy_whitelist.clone());

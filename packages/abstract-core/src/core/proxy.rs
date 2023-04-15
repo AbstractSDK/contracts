@@ -21,37 +21,38 @@ use crate::{
     },
 };
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{CosmosMsg, Empty, Uint128};
+use cosmwasm_std::{Addr, CosmosMsg, Empty, Uint128};
 use cw_asset::{Asset, AssetInfo};
 
 pub mod state {
     pub use crate::objects::core::ACCOUNT_ID;
-    use cw_controllers::Admin;
 
     use cosmwasm_std::Addr;
     use cw_storage_plus::Item;
 
-    use crate::objects::{ans_host::AnsHost, common_namespace::ADMIN_NAMESPACE};
+    use crate::objects::ans_host::AnsHost;
+
     #[cosmwasm_schema::cw_serde]
     pub struct State {
         pub modules: Vec<Addr>,
     }
+
     pub const ANS_HOST: Item<AnsHost> = Item::new("\u{0}{6}ans_host");
     pub const STATE: Item<State> = Item::new("\u{0}{5}state");
-    pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
 }
 
+/// Proxy instantiate msg
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
     pub account_id: AccountId,
     pub ans_host_address: String,
 }
 
+/// Proxy Execute Messages
+#[cw_ownable::cw_ownable_execute]
 #[cosmwasm_schema::cw_serde]
 #[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
 pub enum ExecuteMsg {
-    /// Sets the admin
-    SetAdmin { admin: String },
     /// Executes the provided messages if sender is whitelisted
     ModuleAction { msgs: Vec<CosmosMsg<Empty>> },
     /// Execute IBC action on Client
@@ -66,9 +67,13 @@ pub enum ExecuteMsg {
         to_remove: Vec<AssetEntry>,
     },
 }
+
+/// Proxy migrate msg
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
 
+/// Proxy query messages
+#[cw_ownable::cw_ownable_query]
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
 #[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
@@ -115,6 +120,7 @@ pub enum QueryMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
+    pub manager: Addr,
     pub modules: Vec<String>,
 }
 

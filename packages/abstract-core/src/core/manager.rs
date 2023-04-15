@@ -153,6 +153,8 @@ pub enum ExecuteMsg {
     UpdateStatus { is_suspended: Option<bool> },
     /// Update settings for the Account, including IBC enabled, etc.
     UpdateSettings { ibc_enabled: Option<bool> },
+    /// Accept ownership of the proxy
+    AcceptProxyOwnership { proxy_address: String },
     /// Callback endpoint
     Callback(CallbackMsg),
 }

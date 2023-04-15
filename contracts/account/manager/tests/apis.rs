@@ -5,7 +5,7 @@ use abstract_boot::*;
 use abstract_core::manager::ManagerModuleInfo;
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion};
 use abstract_core::{api::BaseQueryMsgFns, *};
-use abstract_testing::prelude::{OWNER, TEST_MODULE_ID, TEST_VERSION};
+use abstract_testing::prelude::{TEST_MODULE_ID, TEST_VERSION};
 use boot_core::{
     BootError, Mock, {instantiate_default_mock_env, CallAs, ContractInstance},
 };
@@ -235,7 +235,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
 
 #[test]
 fn unauthorized_exec() -> AResult {
-    let sender = Addr::unchecked(OWNER);
+    let sender = Addr::unchecked("owner");
     let unauthorized = Addr::unchecked("unauthorized");
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let deployment = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse().unwrap())?;

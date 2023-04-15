@@ -9,7 +9,6 @@ use cosmwasm_std::{
 pub use mock_ans::MockAnsHost;
 pub use mock_querier::{map_key, mock_querier, raw_map_key, wrap_querier, MockQuerierBuilder};
 pub type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
-pub const OWNER: &str = "owner";
 pub mod addresses {
     use abstract_core::objects::AccountId;
     use abstract_core::version_control::AccountBase;
@@ -51,7 +50,6 @@ pub mod addresses {
 pub mod prelude {
     use super::*;
 
-    pub use super::OWNER;
     pub use abstract_mock_querier::{mocked_account_querier_builder, AbstractMockQuerierBuilder};
     pub use addresses::*;
     pub use mock_querier::{map_key, mock_querier, raw_map_key, wrap_querier, MockQuerierBuilder};

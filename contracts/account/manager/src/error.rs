@@ -1,3 +1,4 @@
+use abstract_core::objects::AccountId;
 use abstract_core::AbstractError;
 use abstract_sdk::core::objects::module::ModuleInfo;
 use abstract_sdk::AbstractSdkError;
@@ -32,7 +33,10 @@ pub enum ManagerError {
     InvalidModuleName {},
 
     #[error("Registering module fails because caller is not module factory")]
-    CallerNotFactory {},
+    CallerNotModuleFactory {},
+
+    #[error("Caller is not account factory.")]
+    CallerNotAccountFactory {},
 
     #[error("A migratemsg is required when when migrating this module")]
     MsgRequired {},
@@ -86,4 +90,16 @@ pub enum ManagerError {
 
     #[error("No updates were included")]
     NoUpdates {},
+
+    #[error(
+        "Unknown proxy {} with account_id: {}, manager_account_id: {}",
+        proxy,
+        proxy_account_id,
+        manager_account_id
+    )]
+    UnknownProxy {
+        proxy: String,
+        proxy_account_id: AccountId,
+        manager_account_id: AccountId,
+    },
 }
