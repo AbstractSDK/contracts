@@ -27,8 +27,8 @@ fn instantiate() -> AResult {
     let expected = account_factory::ConfigResponse {
         owner: sender,
         ans_host_contract: deployment.ans_host.address()?.into(),
-        version_control_contract: deployment.version_control.address()?.into_string(),
-        module_factory_address: deployment.module_factory.address()?.into_string(),
+        version_control_contract: deployment.version_control.address()?,
+        module_factory_address: deployment.module_factory.address()?,
         next_account_id: 0,
     };
 
@@ -60,9 +60,9 @@ fn create_one_os() -> AResult {
     let factory_config = factory.config()?;
     let expected = account_factory::ConfigResponse {
         owner: sender.clone(),
-        ans_host_contract: deployment.ans_host.address()?.into(),
-        version_control_contract: deployment.version_control.address()?.into_string(),
-        module_factory_address: deployment.module_factory.address()?.into_string(),
+        ans_host_contract: deployment.ans_host.address()?,
+        version_control_contract: deployment.version_control.address()?,
+        module_factory_address: deployment.module_factory.address()?,
         next_account_id: 1,
     };
 
@@ -124,8 +124,8 @@ fn create_two_account_s() -> AResult {
     let expected = account_factory::ConfigResponse {
         owner: sender.clone(),
         ans_host_contract: deployment.ans_host.address()?.into(),
-        version_control_contract: deployment.version_control.address()?.into_string(),
-        module_factory_address: deployment.module_factory.address()?.into_string(),
+        version_control_contract: deployment.version_control.address()?,
+        module_factory_address: deployment.module_factory.address()?,
         next_account_id: 2,
     };
 

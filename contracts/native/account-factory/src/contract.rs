@@ -114,9 +114,9 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
 
     let resp = ConfigResponse {
         owner: owner.unwrap(),
-        version_control_contract: state.version_control_contract.into(),
-        ans_host_contract: state.ans_host_contract.into(),
-        module_factory_address: state.module_factory_address.into(),
+        version_control_contract: state.version_control_contract,
+        ans_host_contract: state.ans_host_contract,
+        module_factory_address: state.module_factory_address,
         next_account_id: state.next_account_id,
     };
 
