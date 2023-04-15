@@ -34,7 +34,7 @@ use abstract_core::api::{
 use abstract_sdk::cw_helpers::cosmwasm_std::AbstractAttributes;
 use cosmwasm_std::{
     ensure, to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env,
-    MessageInfo, Response, StdError, StdResult, Storage, WasmMsg,
+    MessageInfo, Response, StdResult, Storage, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
 use cw_storage_plus::Item;
@@ -273,9 +273,21 @@ pub fn upgrade_modules(
     let mut upgrade_msgs = vec![];
 
     let mut manager_migrate_info = None;
+
+    let mut upgraded_module_ids = Vec::new();
+
     // Set the migrate messages for each module that's not the manager and update the dependency store
     for (module_info, migrate_msg) in modules {
-        if module_info.id() == MANAGER {
+        let module_id = module_info.id();
+
+        // Check for duplicates
+        if upgraded_module_ids.contains(&module_id) {
+            return Err(ManagerError::DuplicateModuleMigration { module_id });
+        } else {
+            upgraded_module_ids.push(module_id.clone());
+        }
+
+        if module_id == MANAGER {
             manager_migrate_info = Some((module_info, migrate_msg));
         } else {
             set_migrate_msgs_and_context(
@@ -302,9 +314,12 @@ pub fn upgrade_modules(
         &ExecuteMsg::Callback(CallbackMsg {}),
         vec![],
     )?;
-    Ok(ManagerResponse::action("upgrade_modules")
-        .add_messages(upgrade_msgs)
-        .add_message(callback_msg))
+    Ok(ManagerResponse::new(
+        "upgrade_modules",
+        vec![("upgraded_modules", upgraded_module_ids.join(","))],
+    )
+    .add_messages(upgrade_msgs)
+    .add_message(callback_msg))
 }
 
 pub fn set_migrate_msgs_and_context(
@@ -403,18 +418,10 @@ fn add_module_upgrade_to_context(
 ) -> Result<(), ManagerError> {
     // Add module upgrade to reply context
     let update_context = |mut upgraded_modules: Vec<(String, Vec<Dependency>)>| -> StdResult<Vec<(String, Vec<Dependency>)>> {
-        if upgraded_modules.iter().any(|(id, _)| id == module_id) {
-            Err(StdError::generic_err("Module already upgraded.".to_string()))
-        } else {
-            upgraded_modules.push((module_id.to_string(), module_deps));
-            Ok(upgraded_modules)
-        }
+        upgraded_modules.push((module_id.to_string(), module_deps));
+        Ok(upgraded_modules)
     };
-    MIGRATE_CONTEXT
-        .update(storage, update_context)
-        .map_err(|_| ManagerError::DuplicateModuleMigration {
-            module_id: module_id.to_string(),
-        })?;
+    MIGRATE_CONTEXT.update(storage, update_context)?;
 
     Ok(())
 }
@@ -1562,27 +1569,6 @@ mod test {
 
             assert_that!(upgraded_modules).has_length(1);
             assert_eq!(upgraded_modules[0].0, TEST_MODULE_ID);
-
-            Ok(())
-        }
-
-        #[test]
-        fn should_return_err_with_dup_module() -> ManagerTestResult {
-            let mut deps = mock_dependencies();
-            mock_init(deps.as_mut())?;
-            let storage = deps.as_mut().storage;
-
-            // Add the same module once
-            let result = add_module_upgrade_to_context(storage, TEST_MODULE_ID, vec![]);
-            assert_that!(result).is_ok();
-
-            // Try adding the same module again
-            let result = add_module_upgrade_to_context(storage, TEST_MODULE_ID, vec![]);
-            assert_that!(result)
-                .is_err()
-                .is_equal_to(ManagerError::DuplicateModuleMigration {
-                    module_id: TEST_MODULE_ID.to_string(),
-                });
 
             Ok(())
         }
