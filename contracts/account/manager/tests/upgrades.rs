@@ -9,6 +9,7 @@ use abstract_core::{
 };
 
 use abstract_manager::error::ManagerError;
+use abstract_testing::addresses::TEST_NAMESPACE;
 use abstract_testing::prelude::TEST_VERSION;
 use boot_core::{instantiate_default_mock_env, Addr, ContractInstance, Deploy, Empty, Mock};
 use common::mock_modules::*;
@@ -45,7 +46,7 @@ fn install_app_successful() -> AResult {
     let AbstractAccount { manager, proxy: _ } = &account;
     abstr
         .version_control
-        .claim_namespaces(0, vec!["tester".to_string()])?;
+        .claim_namespaces(0, vec![TEST_NAMESPACE.to_string()])?;
     deploy_modules(&chain);
 
     // dependency for mock_api1 not met
@@ -84,7 +85,7 @@ fn install_app_versions_not_met() -> AResult {
     let AbstractAccount { manager, proxy: _ } = &account;
     abstr
         .version_control
-        .claim_namespaces(0, vec!["tester".to_string()])?;
+        .claim_namespaces(0, vec![TEST_NAMESPACE.to_string()])?;
     deploy_modules(&chain);
 
     // install api 2
@@ -111,7 +112,7 @@ fn upgrade_app_() -> AResult {
     let AbstractAccount { manager, proxy: _ } = &account;
     abstr
         .version_control
-        .claim_namespaces(0, vec!["tester".to_string()])?;
+        .claim_namespaces(0, vec![TEST_NAMESPACE.to_string()])?;
     deploy_modules(&chain);
 
     // install api 1
@@ -264,7 +265,7 @@ fn uninstall_modules() -> AResult {
     let AbstractAccount { manager, proxy: _ } = &account;
     abstr
         .version_control
-        .claim_namespaces(0, vec!["tester".to_string()])?;
+        .claim_namespaces(0, vec![TEST_NAMESPACE.to_string()])?;
     deploy_modules(&chain);
 
     let api1 = install_module_version(manager, &abstr, api_1::MOCK_API_ID, V1)?;
@@ -299,7 +300,7 @@ fn update_api_with_authorized_addrs() -> AResult {
     let AbstractAccount { manager, proxy } = &account;
     abstr
         .version_control
-        .claim_namespaces(0, vec!["tester".to_string()])?;
+        .claim_namespaces(0, vec![TEST_NAMESPACE.to_string()])?;
     deploy_modules(&chain);
 
     // install api 1
@@ -343,9 +344,13 @@ fn upgrade_manager_last() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
-    deploy_modules(&chain);
     let account = create_default_account(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy: _ } = &account;
+
+    abstr
+        .version_control
+        .claim_namespaces(0, vec![TEST_NAMESPACE.to_string()])?;
+    deploy_modules(&chain);
 
     // install api 1
     let api1 = install_module_version(manager, &abstr, api_1::MOCK_API_ID, V1)?;
@@ -400,9 +405,14 @@ fn no_duplicate_migrations() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
-    deploy_modules(&chain);
+
     let account = create_default_account(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy: _ } = &account;
+
+    abstr
+        .version_control
+        .claim_namespaces(0, vec![TEST_NAMESPACE.to_string()])?;
+    deploy_modules(&chain);
 
     // Install api 1
     let api1 = install_module_version(manager, &abstr, api_1::MOCK_API_ID, V1)?;
