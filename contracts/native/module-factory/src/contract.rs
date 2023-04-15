@@ -99,8 +99,8 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
     let admin = ADMIN.get(deps)?.unwrap();
     let resp = ConfigResponse {
         owner: admin.into(),
-        version_control_address: state.version_control_address.into(),
-        ans_host_address: state.ans_host_address.into(),
+        version_control_address: state.version_control_address,
+        ans_host_address: state.ans_host_address,
     };
 
     Ok(resp)

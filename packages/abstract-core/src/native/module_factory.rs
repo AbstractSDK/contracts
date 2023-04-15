@@ -41,7 +41,7 @@ use crate::{
     version_control::AccountBase,
 };
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::Binary;
+use cosmwasm_std::{Addr, Binary};
 
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
@@ -90,8 +90,8 @@ pub enum QueryMsg {
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     pub owner: String,
-    pub ans_host_address: String,
-    pub version_control_address: String,
+    pub ans_host_address: Addr,
+    pub version_control_address: Addr,
 }
 
 #[cosmwasm_schema::cw_serde]
