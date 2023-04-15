@@ -209,7 +209,7 @@ pub struct InfoResponse {
 pub struct ManagerModuleInfo {
     pub id: String,
     pub version: ContractVersion,
-    pub address: String,
+    pub address: Addr,
 }
 
 #[cosmwasm_schema::cw_serde]

@@ -73,7 +73,7 @@ pub fn handle_module_info_query(
         resp_vec.push(ManagerModuleInfo {
             id,
             version,
-            address: address.to_string(),
+            address,
         })
     }
 
