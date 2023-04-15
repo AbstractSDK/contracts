@@ -2,6 +2,7 @@ pub(crate) mod abstract_mock_querier;
 pub mod map_tester;
 pub mod mock_ans;
 pub(crate) mod mock_querier;
+
 use cosmwasm_std::{
     testing::{MockApi, MockQuerier, MockStorage},
     OwnedDeps,
@@ -25,6 +26,7 @@ pub mod addresses {
     pub const TEST_MODULE_FACTORY: &str = "module_factory_address";
     pub const TEST_MODULE_ADDRESS: &str = "test_module_address";
     pub const TEST_MODULE_ID: &str = "tester:test-module-id";
+    pub const TEST_OWNER: &str = "owner";
 
     pub const TEST_MODULE_RESPONSE: &str = "test_module_response";
 

@@ -22,6 +22,7 @@ speculoos = { workspace = true }
 serde_json = "1.0.79"
 cw2 = { workspace = true }
 cw-asset = { workspace = true }
+cw-multi-test = { workspace = true }
 
 [dev-dependencies]
 abstract-sdk = { path = "../abstract-sdk", features = ["test-utils"] }
