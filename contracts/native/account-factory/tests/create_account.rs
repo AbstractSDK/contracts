@@ -193,7 +193,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
     let account_config = account_1.manager.config()?;
 
     assert_that!(account_config).is_equal_to(abstract_core::manager::ConfigResponse {
-        owner: owner.into_string(),
+        owner,
         account_id: Uint64::from(0u64),
         version_control_address: version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),
@@ -226,7 +226,7 @@ fn sender_is_not_admin_external() -> AResult {
     let account_config = account.manager.config()?;
 
     assert_that!(account_config).is_equal_to(abstract_core::manager::ConfigResponse {
-        owner: owner.into_string(),
+        owner,
         account_id: Uint64::from(0u64),
         is_suspended: false,
         version_control_address: version_control.address()?.into_string(),

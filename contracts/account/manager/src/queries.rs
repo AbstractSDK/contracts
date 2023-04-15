@@ -1,7 +1,5 @@
 use abstract_core::manager::state::SUSPENSION_STATUS;
-use abstract_sdk::core::manager::state::{
-    AccountInfo, ACCOUNT_ID, ACCOUNT_MODULES, CONFIG, INFO, OWNER,
-};
+use abstract_sdk::core::manager::state::{AccountInfo, ACCOUNT_ID, ACCOUNT_MODULES, CONFIG, INFO};
 use abstract_sdk::core::manager::{
     ConfigResponse, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse, ModuleInfosResponse,
     ModuleVersionsResponse,
@@ -38,20 +36,18 @@ pub fn handle_account_info_query(deps: Deps) -> StdResult<Binary> {
 
 pub fn handle_config_query(deps: Deps) -> StdResult<Binary> {
     let account_id = Uint64::from(ACCOUNT_ID.load(deps.storage)?);
-    let owner = OWNER
-        .get(deps)?
-        .unwrap_or_else(|| Addr::unchecked(""))
-        .to_string();
+    let owner = cw_ownable::get_ownership(deps.storage)?.owner;
     let config = CONFIG.load(deps.storage)?;
     let is_suspended = SUSPENSION_STATUS.load(deps.storage)?;
     to_binary(&ConfigResponse {
-        owner,
+        owner: owner.unwrap_or_else(|| Addr::unchecked("")),
         account_id,
         is_suspended,
         version_control_address: config.version_control_address.to_string(),
         module_factory_address: config.module_factory_address.into_string(),
     })
 }
+
 pub fn handle_module_info_query(
     deps: Deps,
     last_module_id: Option<String>,

@@ -22,6 +22,7 @@ pub mod state {
     use cosmwasm_std::{Addr, Api};
     use cw_address_like::AddressLike;
     use cw_controllers::Admin;
+    use cw_ownable::Ownership;
     use cw_storage_plus::{Item, Map};
 
     pub type SuspensionStatus = bool;
@@ -75,8 +76,8 @@ pub mod state {
     pub const INFO: Item<AccountInfo<Addr>> = Item::new("\u{0}{4}info");
     /// Contract Admin
     pub const ACCOUNT_FACTORY: Admin = Admin::new("\u{0}{7}factory");
-    /// Account owner
-    pub const OWNER: Admin = Admin::new("owner");
+    /// Account owner - managed by cw-ownable
+    pub const OWNER: Item<Ownership<Addr>> = Item::new("ownership");
     /// Enabled Abstract modules
     pub const ACCOUNT_MODULES: Map<ModuleId, Addr> = Map::new("modules");
     /// Stores the dependency relationship between modules
@@ -92,7 +93,7 @@ use crate::objects::{
     module::{Module, ModuleInfo},
 };
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Binary, Uint64};
+use cosmwasm_std::{Addr, Binary, Uint64};
 use cw2::ContractVersion;
 
 #[cosmwasm_schema::cw_serde]
@@ -112,7 +113,8 @@ pub struct InstantiateMsg {
 #[cosmwasm_schema::cw_serde]
 pub struct CallbackMsg {}
 
-/// Execute messages
+/// Manager execute messages
+#[cw_ownable::cw_ownable_execute]
 #[cosmwasm_schema::cw_serde]
 #[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
 pub enum ExecuteMsg {
@@ -157,6 +159,8 @@ pub enum ExecuteMsg {
     Callback(CallbackMsg),
 }
 
+/// Manager query messages
+#[cw_ownable::cw_ownable_query]
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
 #[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
@@ -194,7 +198,7 @@ pub struct ModuleAddressesResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     pub account_id: Uint64,
-    pub owner: String,
+    pub owner: Addr,
     pub is_suspended: SuspensionStatus,
     pub version_control_address: String,
     pub module_factory_address: String,

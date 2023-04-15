@@ -187,7 +187,7 @@ pub fn claim_namespaces(
     let account_owner = query_account_owner(&deps.querier, &account_base.manager)?;
     if msg_info.sender != account_owner {
         return Err(VCError::AccountOwnerMismatch {
-            sender: msg_info.sender.into_string(),
+            sender: msg_info.sender,
             owner: account_owner,
         });
     }
@@ -302,7 +302,7 @@ pub fn update_namespaces_limit(deps: DepsMut, info: MessageInfo, new_limit: u32)
     ))
 }
 
-pub fn query_account_owner(querier: &QuerierWrapper, manager_addr: &Addr) -> StdResult<String> {
+pub fn query_account_owner(querier: &QuerierWrapper, manager_addr: &Addr) -> StdResult<Addr> {
     let ManagerConfigResponse { owner, .. } =
         querier.query_wasm_smart(manager_addr, &ManagerQueryMsg::Config {})?;
     Ok(owner)
@@ -320,7 +320,7 @@ pub fn validate_account_owner(deps: Deps, namespace: &str, sender: &Addr) -> Res
     let account_owner = query_account_owner(&deps.querier, &account_base.manager)?;
     if sender != account_owner {
         return Err(VCError::AccountOwnerMismatch {
-            sender: sender.into_string(),
+            sender,
             owner: account_owner,
         });
     }
@@ -367,7 +367,7 @@ mod test {
             match from_binary(msg).unwrap() {
                 ManagerQueryMsg::Config {} => {
                     let resp = ManagerConfigResponse {
-                        owner: TEST_OWNER.to_owned(),
+                        owner: Addr::unchecked(TEST_OWNER),
                         version_control_address: TEST_VERSION_CONTROL.to_owned(),
                         module_factory_address: TEST_MODULE_FACTORY.to_owned(),
                         account_id: Uint64::from(TEST_ACCOUNT_ID), // mock value, not used
@@ -573,8 +573,8 @@ mod test {
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(&VCError::AccountOwnerMismatch {
-                    sender: TEST_OTHER.to_string(),
-                    owner: TEST_OWNER.to_string(),
+                    sender: Addr::unchecked(TEST_OTHER),
+                    owner: Addr::unchecked(TEST_OWNER),
                 });
             Ok(())
         }
@@ -695,8 +695,8 @@ mod test {
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(&VCError::AccountOwnerMismatch {
-                    sender: TEST_OTHER.to_string(),
-                    owner: TEST_OWNER.to_string(),
+                    sender: Addr::unchecked(TEST_OTHER),
+                    owner: Addr::unchecked(TEST_OWNER),
                 });
             Ok(())
         }
@@ -1032,8 +1032,8 @@ mod test {
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(&VCError::AccountOwnerMismatch {
-                    sender: TEST_OTHER.to_string(),
-                    owner: TEST_OWNER.to_string(),
+                    sender: Addr::unchecked(TEST_OTHER),
+                    owner: Addr::unchecked(TEST_OWNER),
                 });
 
             Ok(())

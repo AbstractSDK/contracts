@@ -110,7 +110,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
 pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
     let state: Config = CONFIG.load(deps.storage)?;
-    let cw_ownable::Ownership { owner, .. } = cw_ownable::get_ownership(deps.storage)?;
+    let owner = cw_ownable::get_ownership(deps.storage)?.owner;
 
     let resp = ConfigResponse {
         owner: owner.unwrap(),

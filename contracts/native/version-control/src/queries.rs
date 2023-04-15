@@ -272,7 +272,7 @@ mod test {
                 match from_binary(msg).unwrap() {
                     manager::QueryMsg::Config {} => {
                         let resp = manager::ConfigResponse {
-                            owner: TEST_ADMIN.to_owned(),
+                            owner: Addr::unchecked(TEST_ADMIN),
                             version_control_address: TEST_VERSION_CONTROL.to_owned(),
                             module_factory_address: TEST_MODULE_FACTORY.to_owned(),
                             account_id: Uint64::from(TEST_ACCOUNT_ID), // mock value, not used
@@ -287,7 +287,7 @@ mod test {
                 match from_binary(msg).unwrap() {
                     manager::QueryMsg::Config {} => {
                         let resp = manager::ConfigResponse {
-                            owner: TEST_OTHER.to_owned(),
+                            owner: Addr::unchecked(TEST_OTHER),
                             version_control_address: TEST_VERSION_CONTROL.to_owned(),
                             module_factory_address: TEST_MODULE_FACTORY.to_owned(),
                             account_id: Uint64::from(TEST_OTHER_ACCOUNT_ID), // mock value, not used

@@ -30,7 +30,7 @@ fn instantiate() -> AResult {
 
     // assert manager config
     assert_that!(account.manager.config()?).is_equal_to(abstract_core::manager::ConfigResponse {
-        owner: sender.to_string(),
+        owner: sender,
         version_control_address: deployment.version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),
         account_id: 0u32.into(),
