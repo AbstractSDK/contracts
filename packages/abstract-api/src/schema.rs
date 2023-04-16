@@ -1,19 +1,17 @@
-use crate::{ApiContract, ApiError};
-use abstract_core::api::{ApiExecuteMsg, ApiQueryMsg};
-use cosmwasm_schema::QueryResponses;
+use std::path::Path;
+
+use cosmwasm_schema::{export_schema_with_title, schema_for, write_api, QueryResponses};
+use cosmwasm_std::Empty;
 use schemars::JsonSchema;
 use serde::Serialize;
 
-#[cfg(feature = "schema")]
-use {
-    abstract_sdk::{
-        base::{ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint},
-        core::api::{ApiConfigResponse, AuthorizedAddressesResponse},
-    },
-    cosmwasm_schema::{export_schema_with_title, schema_for, write_api},
-    cosmwasm_std::Empty,
-    std::path::Path,
+use abstract_core::api::{ApiExecuteMsg, ApiQueryMsg};
+use abstract_sdk::{
+    base::{ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint},
+    core::api::{ApiConfigResponse, AuthorizedAddressesResponse},
 };
+
+use crate::{ApiContract, ApiError};
 
 impl<
         Error: From<cosmwasm_std::StdError>
@@ -27,7 +25,6 @@ impl<
         SudoMsg,
     > ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
-    #[cfg(feature = "schema")]
     pub fn export_schema(out_dir: &Path) {
         // write out the module schema
         write_api! {
