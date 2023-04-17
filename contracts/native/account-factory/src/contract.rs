@@ -9,7 +9,7 @@ use abstract_sdk::core::{
 use cosmwasm_std::{
     to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
-use cw2::{get_contract_version, set_contract_version};
+use cw2::{set_contract_version};
 
 use abstract_sdk::{execute_update_ownership, query_ownership};
 use semver::Version;
@@ -126,10 +126,9 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> AccountFactoryResult {
-    let _version: Version = CONTRACT_VERSION.parse().unwrap();
-    let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
+    let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-    assert_contract_upgrade(deps.storage, ACCOUNT_FACTORY, storage_version)?;
+    assert_contract_upgrade(deps.storage, ACCOUNT_FACTORY, version)?;
     set_contract_version(deps.storage, ACCOUNT_FACTORY, CONTRACT_VERSION)?;
     migrate_module_data(
         deps.storage,
@@ -144,6 +143,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> AccountFactoryResu
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_common::*;
     use abstract_testing::prelude::*;
     use cosmwasm_std::testing::*;
     use cosmwasm_std::Addr;
@@ -163,19 +163,6 @@ mod tests {
 
     fn execute_as_owner(deps: DepsMut, msg: ExecuteMsg) -> AccountFactoryResult {
         execute_as(deps, TEST_ADMIN, msg)
-    }
-
-    fn mock_init(deps: DepsMut) -> AccountFactoryResult {
-        instantiate(
-            deps,
-            mock_env(),
-            mock_info(TEST_ADMIN, &[]),
-            InstantiateMsg {
-                version_control_address: TEST_VERSION_CONTROL.to_string(),
-                ans_host_address: TEST_ANS_HOST.to_string(),
-                module_factory_address: TEST_MODULE_FACTORY.to_string(),
-            },
-        )
     }
 
     fn test_only_owner(deps: DepsMut, msg: ExecuteMsg) -> AccountFactoryTestResult {
@@ -390,5 +377,97 @@ mod tests {
             .is_equal_to(Addr::unchecked(TEST_ADMIN));
 
         Ok(())
+    }
+
+    mod migrate {
+        use super::*;
+        use crate::contract;
+        use abstract_core::AbstractError;
+
+        #[test]
+        fn disallow_same_version() -> AccountFactoryResult<()> {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let version: Version = CONTRACT_VERSION.parse().unwrap();
+
+            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+
+            assert_that!(res)
+                .is_err()
+                .is_equal_to(AccountFactoryError::Abstract(
+                    AbstractError::CannotDowngradeContract {
+                        from: version.clone(),
+                        to: version,
+                    },
+                ));
+
+            Ok(())
+        }
+
+        #[test]
+        fn disallow_downgrade() -> AccountFactoryResult<()> {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let big_version = "999.999.999";
+            set_contract_version(deps.as_mut().storage, ACCOUNT_FACTORY, big_version)?;
+
+            let version: Version = CONTRACT_VERSION.parse().unwrap();
+
+            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+
+            assert_that!(res)
+                .is_err()
+                .is_equal_to(AccountFactoryError::Abstract(
+                    AbstractError::CannotDowngradeContract {
+                        from: big_version.parse().unwrap(),
+                        to: version,
+                    },
+                ));
+
+            Ok(())
+        }
+
+        #[test]
+        fn disallow_name_change() -> AccountFactoryResult<()> {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let old_version = "0.0.0";
+            let old_name = "old:contract";
+            set_contract_version(deps.as_mut().storage, old_name, old_version)?;
+
+            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+
+            assert_that!(res)
+                .is_err()
+                .is_equal_to(AccountFactoryError::Abstract(
+                    AbstractError::ContractNameMismatch {
+                        from: old_name.parse().unwrap(),
+                        to: ACCOUNT_FACTORY.parse().unwrap(),
+                    },
+                ));
+
+            Ok(())
+        }
+
+        #[test]
+        fn works() -> AccountFactoryResult<()> {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let small_version = "0.0.0";
+            set_contract_version(deps.as_mut().storage, ACCOUNT_FACTORY, small_version)?;
+
+            let version: Version = CONTRACT_VERSION.parse().unwrap();
+
+            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {})?;
+            assert_that!(res.messages).has_length(0);
+
+            assert_that!(get_contract_version(&deps.storage)?.version)
+                .is_equal_to(version.to_string());
+            Ok(())
+        }
     }
 }
