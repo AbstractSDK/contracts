@@ -348,6 +348,7 @@ mod test {
     use crate::contract;
 
     use super::*;
+    use crate::test_common::*;
 
     type VersionControlTestResult = Result<(), VCError>;
 
@@ -373,20 +374,6 @@ mod test {
                 _ => panic!("unexpected message"),
             }
         })
-    }
-
-    /// Initialize the version_control with admin as creator and factory
-    fn mock_init(mut deps: DepsMut) -> VCResult {
-        let info = mock_info(TEST_ADMIN, &[]);
-        contract::instantiate(
-            deps.branch(),
-            mock_env(),
-            info,
-            InstantiateMsg {
-                is_testnet: true,
-                namespaces_limit: 10,
-            },
-        )
     }
 
     /// Initialize the version_control with admin and updated account_factory
