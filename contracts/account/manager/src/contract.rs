@@ -201,7 +201,7 @@ mod tests {
     mod migrate {
         use super::*;
         use abstract_core::AbstractError;
-        use cw2::{get_contract_version};
+        use cw2::get_contract_version;
 
         #[test]
         fn disallow_same_version() -> ManagerResult<()> {

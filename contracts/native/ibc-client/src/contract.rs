@@ -12,7 +12,7 @@ use abstract_macros::abstract_response;
 use cosmwasm_std::{
     to_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response, StdResult,
 };
-use cw2::{set_contract_version};
+use cw2::set_contract_version;
 use cw_semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
