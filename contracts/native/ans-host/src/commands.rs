@@ -365,25 +365,18 @@ mod test {
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use cosmwasm_std::{Addr, DepsMut};
 
-    use abstract_core::ans_host::InstantiateMsg;
-
     use crate::contract;
-    use crate::contract::{instantiate, AnsHostResult};
+
     use crate::error::AnsHostError;
     use abstract_testing::map_tester::CwMapTester;
 
     use super::*;
+    use abstract_testing::prelude::TEST_CREATOR;
     use speculoos::prelude::*;
 
+    use crate::test_common::*;
+
     type AnsHostTestResult = Result<(), AnsHostError>;
-
-    const TEST_CREATOR: &str = "creator";
-
-    fn mock_init(mut deps: DepsMut) -> AnsHostResult {
-        let info = mock_info(TEST_CREATOR, &[]);
-
-        instantiate(deps.branch(), mock_env(), info, InstantiateMsg {})
-    }
 
     fn execute_helper(deps: DepsMut, msg: ExecuteMsg) -> AnsHostTestResult {
         contract::execute(deps, mock_env(), mock_info(TEST_CREATOR, &[]), msg)?;

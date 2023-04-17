@@ -16,6 +16,7 @@ pub mod addresses {
     use abstract_core::version_control::AccountBase;
     use cosmwasm_std::Addr;
 
+    pub const TEST_CREATOR: &str = "creator";
     pub const TEST_ADMIN: &str = "admin";
     pub const TEST_ACCOUNT_ID: AccountId = 0;
     pub const TEST_VERSION: &str = "1.0.0";

@@ -156,7 +156,7 @@ mod tests {
 
             assert_that!(res).is_err().is_equal_to(VCError::Abstract(
                 AbstractError::CannotDowngradeContract {
-                    from: version.clone().to_string().parse().unwrap(),
+                    from: version.to_string().parse().unwrap(),
                     to: version.to_string().parse().unwrap(),
                 },
             ));

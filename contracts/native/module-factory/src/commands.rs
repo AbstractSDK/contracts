@@ -222,10 +222,10 @@ mod test {
     use super::*;
     use speculoos::prelude::*;
 
-    use crate::contract::{execute, instantiate};
+    use crate::contract::execute;
     use crate::test_common::*;
-    use abstract_core::module_factory::{ExecuteMsg, InstantiateMsg};
-    use abstract_testing::prelude::{TEST_ANS_HOST, TEST_VERSION_CONTROL};
+    use abstract_core::module_factory::ExecuteMsg;
+
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 
     type ModuleFactoryTestResult = Result<(), ModuleFactoryError>;
