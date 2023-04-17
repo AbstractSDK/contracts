@@ -187,6 +187,7 @@ mod tests {
                 .is_err()
                 .is_equal_to(IbcClientError::Abstract(
                     AbstractError::CannotDowngradeContract {
+                        contract: IBC_CLIENT.to_string(),
                         from: version.to_string().parse().unwrap(),
                         to: version.to_string().parse().unwrap(),
                     },
@@ -211,6 +212,7 @@ mod tests {
                 .is_err()
                 .is_equal_to(IbcClientError::Abstract(
                     AbstractError::CannotDowngradeContract {
+                        contract: IBC_CLIENT.to_string(),
                         from: big_version.parse().unwrap(),
                         to: version.to_string().parse().unwrap(),
                     },

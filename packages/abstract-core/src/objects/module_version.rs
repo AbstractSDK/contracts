@@ -97,6 +97,7 @@ pub fn assert_contract_upgrade(
     ensure!(
         to_version > from_version,
         AbstractError::CannotDowngradeContract {
+            contract,
             from: from_version,
             to: to_version,
         }

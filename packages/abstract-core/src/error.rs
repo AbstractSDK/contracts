@@ -29,8 +29,12 @@ pub enum AbstractError {
         actual: String,
     },
 
-    #[error("Cannot downgrade contract from {} to {}", from, to)]
-    CannotDowngradeContract { from: Version, to: Version },
+    #[error("Cannot downgrade contract {} from {} to {}", contract, from, to)]
+    CannotDowngradeContract {
+        contract: String,
+        from: Version,
+        to: Version,
+    },
 
     #[error("Cannot rename contract from {} to {}", from, to)]
     ContractNameMismatch { from: String, to: String },

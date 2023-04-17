@@ -1,7 +1,6 @@
 use core::{objects::AssetEntry, AbstractError};
 use cosmwasm_std::Addr;
 use cw_asset::AssetError;
-use semver::Version;
 use std::fmt::{Display, Formatter};
 use thiserror::Error;
 
@@ -28,9 +27,6 @@ pub enum AbstractSdkError {
 
     #[error("Asset error encountered in sdk while handling assets: {0}")]
     Asset(#[from] AssetError),
-
-    #[error("Cannot downgrade contract from {} to {}", stored, requested)]
-    CannotDowngradeContract { stored: Version, requested: Version },
 
     // #[error("cw math overflow error: {0}")]
     // Overflow(#[from] OverflowError),

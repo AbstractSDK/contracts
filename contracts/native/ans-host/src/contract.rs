@@ -148,6 +148,7 @@ mod tests {
                 .is_err()
                 .is_equal_to(AnsHostError::Abstract(
                     AbstractError::CannotDowngradeContract {
+                        contract: ANS_HOST.to_string(),
                         from: version.clone(),
                         to: version,
                     },
@@ -172,6 +173,7 @@ mod tests {
                 .is_err()
                 .is_equal_to(AnsHostError::Abstract(
                     AbstractError::CannotDowngradeContract {
+                        contract: ANS_HOST.to_string(),
                         from: big_version.parse().unwrap(),
                         to: version,
                     },

@@ -126,6 +126,7 @@ mod tests {
 
             assert_that!(res).is_err().is_equal_to(ProxyError::Abstract(
                 AbstractError::CannotDowngradeContract {
+                    contract: PROXY.to_string(),
                     from: version.clone(),
                     to: version,
                 },
@@ -148,6 +149,7 @@ mod tests {
 
             assert_that!(res).is_err().is_equal_to(ProxyError::Abstract(
                 AbstractError::CannotDowngradeContract {
+                    contract: PROXY.to_string(),
                     from: big_version.parse().unwrap(),
                     to: version,
                 },

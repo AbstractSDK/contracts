@@ -161,6 +161,7 @@ mod tests {
                 .is_err()
                 .is_equal_to(ModuleFactoryError::Abstract(
                     AbstractError::CannotDowngradeContract {
+                        contract: MODULE_FACTORY.to_string(),
                         from: version.clone(),
                         to: version,
                     },
@@ -185,6 +186,7 @@ mod tests {
                 .is_err()
                 .is_equal_to(ModuleFactoryError::Abstract(
                     AbstractError::CannotDowngradeContract {
+                        contract: MODULE_FACTORY.to_string(),
                         from: big_version.parse().unwrap(),
                         to: version,
                     },

@@ -396,6 +396,7 @@ mod tests {
                 .is_err()
                 .is_equal_to(AccountFactoryError::Abstract(
                     AbstractError::CannotDowngradeContract {
+                        contract: ACCOUNT_FACTORY.to_string(),
                         from: version.clone(),
                         to: version,
                     },
@@ -420,6 +421,7 @@ mod tests {
                 .is_err()
                 .is_equal_to(AccountFactoryError::Abstract(
                     AbstractError::CannotDowngradeContract {
+                        contract: ACCOUNT_FACTORY.to_string(),
                         from: big_version.parse().unwrap(),
                         to: version,
                     },

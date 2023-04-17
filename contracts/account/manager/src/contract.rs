@@ -216,6 +216,7 @@ mod tests {
                 .is_err()
                 .is_equal_to(ManagerError::Abstract(
                     AbstractError::CannotDowngradeContract {
+                        contract: MANAGER.to_string(),
                         from: version.clone(),
                         to: version,
                     },
@@ -240,6 +241,7 @@ mod tests {
                 .is_err()
                 .is_equal_to(ManagerError::Abstract(
                     AbstractError::CannotDowngradeContract {
+                        contract: MANAGER.to_string(),
                         from: big_version.parse().unwrap(),
                         to: version,
                     },
