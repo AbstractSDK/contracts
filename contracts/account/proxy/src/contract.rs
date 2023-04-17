@@ -66,7 +66,7 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ProxyResult {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-    assert_contract_upgrade(deps.storage, version, PROXY)?;
+    assert_contract_upgrade(deps.storage, PROXY, version)?;
     set_contract_version(deps.storage, PROXY, CONTRACT_VERSION)?;
     migrate_module_data(deps.storage, PROXY, CONTRACT_VERSION, None::<String>)?;
     Ok(Response::default())

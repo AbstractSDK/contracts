@@ -113,7 +113,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<QueryResponse> {
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> IbcClientResult {
     let to_version: Version = CONTRACT_VERSION.parse().unwrap();
 
-    assert_cw_contract_upgrade(deps.storage, to_version, IBC_CLIENT)?;
+    assert_cw_contract_upgrade(deps.storage, IBC_CLIENT, to_version)?;
     set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
     migrate_module_data(deps.storage, IBC_CLIENT, CONTRACT_VERSION, None::<String>)?;
     Ok(IbcClientResponse::action("migrate"))

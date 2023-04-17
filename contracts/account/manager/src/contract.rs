@@ -37,7 +37,7 @@ pub(crate) const MAX_TITLE_LENGTH: usize = 64;
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ManagerResult {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
 
-    assert_contract_upgrade(deps.storage, version, MANAGER)?;
+    assert_contract_upgrade(deps.storage, MANAGER, version)?;
     set_contract_version(deps.storage, MANAGER, CONTRACT_VERSION)?;
     migrate_module_data(deps.storage, MANAGER, CONTRACT_VERSION, None::<String>)?;
     Ok(ManagerResponse::action("migrate"))
@@ -242,6 +242,29 @@ mod tests {
                     AbstractError::CannotDowngradeContract {
                         from: big_version.parse().unwrap(),
                         to: version,
+                    },
+                ));
+
+            Ok(())
+        }
+
+        #[test]
+        fn disallow_name_change() -> ManagerResult<()> {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let old_version = "0.0.0";
+            let old_name = "old:contract";
+            set_contract_version(deps.as_mut().storage, old_name, old_version)?;
+
+            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+
+            assert_that!(res)
+                .is_err()
+                .is_equal_to(ManagerError::Abstract(
+                    AbstractError::ContractNameMismatch {
+                        from: old_name.parse().unwrap(),
+                        to: MANAGER.parse().unwrap(),
                     },
                 ));
 

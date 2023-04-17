@@ -32,7 +32,7 @@ pub const ABSTRACT_NAMESPACE: &str = "abstract";
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VCResult {
     let to_version: Version = CONTRACT_VERSION.parse()?;
 
-    assert_cw_contract_upgrade(deps.storage, to_version, VERSION_CONTROL)?;
+    assert_cw_contract_upgrade(deps.storage, VERSION_CONTROL, to_version)?;
     set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
     migrate_module_data(
         deps.storage,

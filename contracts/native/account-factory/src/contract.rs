@@ -129,7 +129,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> AccountFactoryResu
     let _version: Version = CONTRACT_VERSION.parse().unwrap();
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
 
-    assert_contract_upgrade(deps.storage, storage_version, ACCOUNT_FACTORY)?;
+    assert_contract_upgrade(deps.storage, ACCOUNT_FACTORY, storage_version)?;
     set_contract_version(deps.storage, ACCOUNT_FACTORY, CONTRACT_VERSION)?;
     migrate_module_data(
         deps.storage,

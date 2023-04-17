@@ -71,8 +71,8 @@ pub fn set_module_data<T: Into<String>, U: Into<String>, M: Into<String>>(
 /// Assert that the new version is greater than the stored version.
 pub fn assert_contract_upgrade(
     storage: &dyn Storage,
-    to_version: Version,
     to_contract: impl ToString,
+    to_version: Version,
 ) -> Result<(), AbstractError> {
     let ContractVersion {
         version: from_version,
@@ -107,13 +107,13 @@ pub fn assert_contract_upgrade(
 /// Assert that the new version is greater than the stored version.
 pub fn assert_cw_contract_upgrade(
     storage: &dyn Storage,
-    to_version: cw_semver::Version,
     to_contract: impl ToString,
+    to_version: cw_semver::Version,
 ) -> Result<(), AbstractError> {
     assert_contract_upgrade(
         storage,
-        to_version.to_string().parse().unwrap(),
         to_contract,
+        to_version.to_string().parse().unwrap(),
     )
 }
 

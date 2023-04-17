@@ -116,7 +116,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> AnsHostResult {
     let _version: Version = CONTRACT_VERSION.parse().unwrap();
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
 
-    assert_contract_upgrade(deps.storage, storage_version, ANS_HOST)?;
+    assert_contract_upgrade(deps.storage, ANS_HOST, storage_version)?;
     set_contract_version(deps.storage, ANS_HOST, CONTRACT_VERSION)?;
     migrate_module_data(deps.storage, ANS_HOST, CONTRACT_VERSION, None::<String>)?;
 
