@@ -9,7 +9,7 @@ use abstract_sdk::core::{
 use cosmwasm_std::{
     to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
-use cw2::{set_contract_version};
+use cw2::set_contract_version;
 
 use abstract_sdk::{execute_update_ownership, query_ownership};
 use semver::Version;
@@ -465,7 +465,7 @@ mod tests {
             let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {})?;
             assert_that!(res.messages).has_length(0);
 
-            assert_that!(get_contract_version(&deps.storage)?.version)
+            assert_that!(cw2::get_contract_version(&deps.storage)?.version)
                 .is_equal_to(version.to_string());
             Ok(())
         }

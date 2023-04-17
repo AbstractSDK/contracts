@@ -13,7 +13,7 @@ mod test_common {
     use abstract_core::account_factory::InstantiateMsg;
     use abstract_testing::prelude::*;
     use cosmwasm_std::testing::{mock_env, mock_info};
-    use cosmwasm_std::{DepsMut, Response};
+    use cosmwasm_std::DepsMut;
 
     pub fn mock_init(deps: DepsMut) -> AccountFactoryResult {
         contract::instantiate(
