@@ -9,7 +9,6 @@ use abstract_sdk::core::{
 use cosmwasm_std::{
     to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
-use cw2::set_contract_version;
 
 use abstract_sdk::{execute_update_ownership, query_ownership};
 use semver::Version;
@@ -35,7 +34,7 @@ pub fn instantiate(
         next_account_id: 0u32,
     };
 
-    set_contract_version(deps.storage, ACCOUNT_FACTORY, CONTRACT_VERSION)?;
+    cw2::set_contract_version(deps.storage, ACCOUNT_FACTORY, CONTRACT_VERSION)?;
     set_module_data(
         deps.storage,
         ACCOUNT_FACTORY,
@@ -45,7 +44,7 @@ pub fn instantiate(
     )?;
 
     CONFIG.save(deps.storage, &config)?;
-    // Setup the admin as the creator of the contract
+    // Set up the admin as the creator of the contract
     cw_ownable::initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
     Ok(AccountFactoryResponse::action("instantiate"))
 }
@@ -129,7 +128,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> AccountFactoryResu
     let version: Version = CONTRACT_VERSION.parse().unwrap();
 
     assert_contract_upgrade(deps.storage, ACCOUNT_FACTORY, version)?;
-    set_contract_version(deps.storage, ACCOUNT_FACTORY, CONTRACT_VERSION)?;
+    cw2::set_contract_version(deps.storage, ACCOUNT_FACTORY, CONTRACT_VERSION)?;
     migrate_module_data(
         deps.storage,
         ACCOUNT_FACTORY,

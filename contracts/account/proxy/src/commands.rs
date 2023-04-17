@@ -18,10 +18,7 @@ pub fn execute_module_action(
     msgs: Vec<CosmosMsg<Empty>>,
 ) -> ProxyResult {
     let state = STATE.load(deps.storage)?;
-    if !state
-        .modules
-        .contains(&deps.api.addr_validate(msg_info.sender.as_str())?)
-    {
+    if !state.modules.contains(&msg_info.sender) {
         return Err(ProxyError::SenderNotWhitelisted {});
     }
 
@@ -36,10 +33,7 @@ pub fn execute_ibc_action(
     msgs: Vec<IbcClientMsg>,
 ) -> ProxyResult {
     let state = STATE.load(deps.storage)?;
-    if !state
-        .modules
-        .contains(&deps.api.addr_validate(msg_info.sender.as_str())?)
-    {
+    if !state.modules.contains(&msg_info.sender) {
         return Err(ProxyError::SenderNotWhitelisted {});
     }
     let manager_address = ADMIN.get(deps.as_ref())?.unwrap();
