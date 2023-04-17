@@ -38,8 +38,8 @@ impl<
         msg: Self::MigrateMsg,
     ) -> Result<cosmwasm_std::Response, Self::Error> {
         let (name, version_string, metadata) = self.info();
-        let storage_version: Version = get_module_data(deps.storage)?.version.parse().unwrap();
-        assert_contract_upgrade(deps.storage, name, storage_version)?;
+        let to_version = version_string.parse().unwrap();
+        assert_contract_upgrade(deps.storage, name, to_version)?;
         set_module_data(
             deps.storage,
             name,
