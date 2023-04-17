@@ -410,7 +410,7 @@ mod tests {
             mock_init(deps.as_mut())?;
 
             let big_version = "999.999.999";
-            set_contract_version(deps.as_mut().storage, ACCOUNT_FACTORY, big_version)?;
+            cw2::set_contract_version(deps.as_mut().storage, ACCOUNT_FACTORY, big_version)?;
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
@@ -435,7 +435,7 @@ mod tests {
 
             let old_version = "0.0.0";
             let old_name = "old:contract";
-            set_contract_version(deps.as_mut().storage, old_name, old_version)?;
+            cw2::set_contract_version(deps.as_mut().storage, old_name, old_version)?;
 
             let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
 
@@ -457,7 +457,7 @@ mod tests {
             mock_init(deps.as_mut())?;
 
             let small_version = "0.0.0";
-            set_contract_version(deps.as_mut().storage, ACCOUNT_FACTORY, small_version)?;
+            cw2::set_contract_version(deps.as_mut().storage, ACCOUNT_FACTORY, small_version)?;
 
             let version: Version = CONTRACT_VERSION.parse().unwrap();
 
