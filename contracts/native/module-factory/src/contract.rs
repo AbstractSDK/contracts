@@ -46,7 +46,7 @@ pub fn instantiate(
             module: None,
         },
     )?;
-    
+
     cw_ownable::initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
     Ok(ModuleFactoryResponse::action("instantiate"))
 }
