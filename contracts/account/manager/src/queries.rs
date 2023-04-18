@@ -1,4 +1,4 @@
-use abstract_core::manager::state::SUSPENSION_STATUS;
+use abstract_core::manager::state::{Config, SUSPENSION_STATUS};
 use abstract_sdk::core::manager::state::{AccountInfo, ACCOUNT_ID, ACCOUNT_MODULES, CONFIG, INFO};
 use abstract_sdk::core::manager::{
     ConfigResponse, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse, ModuleInfosResponse,
@@ -16,10 +16,7 @@ const MAX_LIMIT: u8 = 10;
 
 pub fn handle_module_address_query(deps: Deps, env: Env, ids: Vec<String>) -> StdResult<Binary> {
     let contracts = query_module_addresses(deps, &env.contract.address, &ids)?;
-    let vector = contracts
-        .into_iter()
-        .map(|(v, k)| (v, k.to_string()))
-        .collect();
+    let vector = contracts.into_iter().map(|(v, k)| (v, k)).collect();
     to_binary(&ModuleAddressesResponse { modules: vector })
 }
 
@@ -31,20 +28,24 @@ pub fn handle_contract_versions_query(deps: Deps, env: Env, ids: Vec<String>) ->
 
 pub fn handle_account_info_query(deps: Deps) -> StdResult<Binary> {
     let info: AccountInfo = INFO.load(deps.storage)?;
-    to_binary(&InfoResponse { info: info.into() })
+    to_binary(&InfoResponse { info })
 }
 
 pub fn handle_config_query(deps: Deps) -> StdResult<Binary> {
     let account_id = Uint64::from(ACCOUNT_ID.load(deps.storage)?);
     let owner = cw_ownable::get_ownership(deps.storage)?.owner;
-    let config = CONFIG.load(deps.storage)?;
+    let Config {
+        version_control_address,
+        module_factory_address,
+        ..
+    } = CONFIG.load(deps.storage)?;
     let is_suspended = SUSPENSION_STATUS.load(deps.storage)?;
     to_binary(&ConfigResponse {
         owner: owner.unwrap_or_else(|| Addr::unchecked("")),
         account_id,
         is_suspended,
-        version_control_address: config.version_control_address.to_string(),
-        module_factory_address: config.module_factory_address.into_string(),
+        version_control_address,
+        module_factory_address,
     })
 }
 
@@ -68,7 +69,7 @@ pub fn handle_module_info_query(
         resp_vec.push(ManagerModuleInfo {
             id,
             version,
-            address: address.to_string(),
+            address,
         })
     }
 
