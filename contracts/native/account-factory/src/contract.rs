@@ -3,7 +3,7 @@ use abstract_core::objects::module_version::assert_contract_upgrade;
 use abstract_macros::abstract_response;
 use abstract_sdk::core::{account_factory::*, ACCOUNT_FACTORY};
 use cosmwasm_std::{
-    to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
+    to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
 
 use abstract_sdk::{execute_update_ownership, query_ownership};
@@ -102,10 +102,10 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
     let cw_ownable::Ownership { owner, .. } = cw_ownable::get_ownership(deps.storage)?;
 
     let resp = ConfigResponse {
-        owner: owner.unwrap(),
-        version_control_contract: state.version_control_contract.into(),
-        ans_host_contract: state.ans_host_contract.into(),
-        module_factory_address: state.module_factory_address.into(),
+        owner: owner.unwrap_or_else(|| Addr::unchecked("")),
+        version_control_contract: state.version_control_contract,
+        ans_host_contract: state.ans_host_contract,
+        module_factory_address: state.module_factory_address,
         next_account_id: state.next_account_id,
     };
 
