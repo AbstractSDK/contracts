@@ -5,7 +5,6 @@ use abstract_core::objects::module_version::assert_cw_contract_upgrade;
 use abstract_core::version_control::Config;
 use abstract_macros::abstract_response;
 use abstract_sdk::core::{
-    objects::{module_version::migrate_module_data, module_version::set_module_data},
     version_control::{
         state::{CONFIG, FACTORY},
         ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
@@ -33,25 +32,12 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VCResult {
 
     assert_cw_contract_upgrade(deps.storage, VERSION_CONTROL, to_version)?;
     cw2::set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
-    migrate_module_data(
-        deps.storage,
-        VERSION_CONTROL,
-        CONTRACT_VERSION,
-        None::<String>,
-    )?;
     Ok(VcResponse::action("migrate"))
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: InstantiateMsg) -> VCResult {
     cw2::set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
-    set_module_data(
-        deps.storage,
-        VERSION_CONTROL,
-        CONTRACT_VERSION,
-        &[],
-        None::<String>,
-    )?;
 
     let InstantiateMsg {
         is_testnet,

@@ -1,11 +1,7 @@
 use crate::{commands, error::AccountFactoryError, state::*};
 use abstract_core::objects::module_version::assert_contract_upgrade;
 use abstract_macros::abstract_response;
-use abstract_sdk::core::{
-    account_factory::*,
-    objects::module_version::{migrate_module_data, set_module_data},
-    ACCOUNT_FACTORY,
-};
+use abstract_sdk::core::{account_factory::*, ACCOUNT_FACTORY};
 use cosmwasm_std::{
     to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
@@ -35,13 +31,6 @@ pub fn instantiate(
     };
 
     cw2::set_contract_version(deps.storage, ACCOUNT_FACTORY, CONTRACT_VERSION)?;
-    set_module_data(
-        deps.storage,
-        ACCOUNT_FACTORY,
-        CONTRACT_VERSION,
-        &[],
-        None::<String>,
-    )?;
 
     CONFIG.save(deps.storage, &config)?;
     // Set up the admin as the creator of the contract
@@ -129,12 +118,6 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> AccountFactoryResu
 
     assert_contract_upgrade(deps.storage, ACCOUNT_FACTORY, version)?;
     cw2::set_contract_version(deps.storage, ACCOUNT_FACTORY, CONTRACT_VERSION)?;
-    migrate_module_data(
-        deps.storage,
-        ACCOUNT_FACTORY,
-        CONTRACT_VERSION,
-        None::<String>,
-    )?;
 
     Ok(AccountFactoryResponse::action("migrate"))
 }

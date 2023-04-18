@@ -6,7 +6,7 @@ use abstract_core::{
         state::{Config, CONFIG, REGISTERED_DEXES},
         ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     },
-    objects::module_version::{assert_contract_upgrade, migrate_module_data, set_module_data},
+    objects::module_version::assert_contract_upgrade,
     ANS_HOST,
 };
 use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
@@ -31,13 +31,6 @@ pub fn instantiate(
     _msg: InstantiateMsg,
 ) -> AnsHostResult {
     set_contract_version(deps.storage, ANS_HOST, CONTRACT_VERSION)?;
-    set_module_data(
-        deps.storage,
-        ANS_HOST,
-        CONTRACT_VERSION,
-        &[],
-        None::<String>,
-    )?;
 
     // Initialize the config
     CONFIG.save(
@@ -117,7 +110,6 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> AnsHostResult {
 
     assert_contract_upgrade(deps.storage, ANS_HOST, version)?;
     set_contract_version(deps.storage, ANS_HOST, CONTRACT_VERSION)?;
-    migrate_module_data(deps.storage, ANS_HOST, CONTRACT_VERSION, None::<String>)?;
 
     Ok(AnsHostResponse::action("migrate"))
 }

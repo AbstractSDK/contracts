@@ -2,11 +2,11 @@ use crate::commands::*;
 use crate::error::ProxyError;
 use crate::queries::*;
 use abstract_core::objects::module_version::assert_contract_upgrade;
-use abstract_core::objects::{module_version::migrate_module_data, oracle::Oracle};
+use abstract_core::objects::oracle::Oracle;
 use abstract_macros::abstract_response;
 use abstract_sdk::{
     core::{
-        objects::{core::ACCOUNT_ID, module_version::set_module_data},
+        objects::core::ACCOUNT_ID,
         proxy::{
             state::{State, ADMIN, ANS_HOST, STATE},
             AssetConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
@@ -40,7 +40,6 @@ pub fn instantiate(
 ) -> ProxyResult {
     // Use CW2 to set the contract version, this is needed for migrations
     cw2::set_contract_version(deps.storage, PROXY, CONTRACT_VERSION)?;
-    set_module_data(deps.storage, PROXY, CONTRACT_VERSION, &[], None::<String>)?;
     ACCOUNT_ID.save(deps.storage, &msg.account_id)?;
     STATE.save(deps.storage, &State { modules: vec![] })?;
     ANS_HOST.save(
@@ -74,7 +73,6 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ProxyResult {
 
     assert_contract_upgrade(deps.storage, PROXY, version)?;
     cw2::set_contract_version(deps.storage, PROXY, CONTRACT_VERSION)?;
-    migrate_module_data(deps.storage, PROXY, CONTRACT_VERSION, None::<String>)?;
     Ok(Response::default())
 }
 

@@ -1,9 +1,7 @@
 use crate::{commands, error::ModuleFactoryError, state::*};
-use abstract_core::objects::module_version::{assert_contract_upgrade, migrate_module_data};
+use abstract_core::objects::module_version::assert_contract_upgrade;
 use abstract_macros::abstract_response;
-use abstract_sdk::core::{
-    module_factory::*, objects::module_version::set_module_data, MODULE_FACTORY,
-};
+use abstract_sdk::core::{module_factory::*, MODULE_FACTORY};
 use cosmwasm_std::{
     to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
@@ -30,13 +28,6 @@ pub fn instantiate(
     };
 
     set_contract_version(deps.storage, MODULE_FACTORY, CONTRACT_VERSION)?;
-    set_module_data(
-        deps.storage,
-        MODULE_FACTORY,
-        CONTRACT_VERSION,
-        &[],
-        None::<String>,
-    )?;
     CONFIG.save(deps.storage, &config)?;
     // Set context for after init
     CONTEXT.save(
@@ -132,12 +123,6 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ModuleFactoryResul
 
     assert_contract_upgrade(deps.storage, MODULE_FACTORY, version)?;
     set_contract_version(deps.storage, MODULE_FACTORY, CONTRACT_VERSION)?;
-    migrate_module_data(
-        deps.storage,
-        MODULE_FACTORY,
-        CONTRACT_VERSION,
-        None::<String>,
-    )?;
     Ok(ModuleFactoryResponse::action("migrate"))
 }
 

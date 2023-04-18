@@ -13,7 +13,6 @@ use abstract_sdk::core::{
         state::{Config, ACCOUNT_FACTORY, CONFIG, INFO, OWNER, SUSPENSION_STATUS},
         CallbackMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     },
-    objects::module_version::{migrate_module_data, set_module_data},
     proxy::state::ACCOUNT_ID,
     MANAGER,
 };
@@ -39,7 +38,6 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ManagerResult {
 
     assert_contract_upgrade(deps.storage, MANAGER, version)?;
     set_contract_version(deps.storage, MANAGER, CONTRACT_VERSION)?;
-    migrate_module_data(deps.storage, MANAGER, CONTRACT_VERSION, None::<String>)?;
     Ok(ManagerResponse::action("migrate"))
 }
 
@@ -51,7 +49,6 @@ pub fn instantiate(
     msg: InstantiateMsg,
 ) -> ManagerResult {
     set_contract_version(deps.storage, MANAGER, CONTRACT_VERSION)?;
-    set_module_data(deps.storage, MANAGER, CONTRACT_VERSION, &[], None::<String>)?;
 
     ACCOUNT_ID.save(deps.storage, &msg.account_id)?;
     CONFIG.save(
