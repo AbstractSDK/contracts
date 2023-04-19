@@ -79,7 +79,8 @@ pub mod mock {
         MockSudoMsg,
     >;
 
-    pub const BASIC_MOCK_APP: MockAppContract = MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None);
+    pub const BASIC_MOCK_APP: MockAppContract =
+        MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None);
 
     pub const MOCK_APP: MockAppContract = MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None)
         .with_instantiate(|_, _, _, _, _| Ok(Response::new().set_data("mock_init".as_bytes())))
