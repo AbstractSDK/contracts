@@ -1,16 +1,11 @@
 use crate::{commands, error::AccountFactoryError, queries, state::*};
-use abstract_core::objects::account::AccountTrace;
-use abstract_sdk::core::{
-    account_factory::*,
-    objects::module_version::{migrate_module_data, set_module_data},
-    ACCOUNT_FACTORY,
-};
-use crate::{commands, error::AccountFactoryError, state::*};
+
 use abstract_core::objects::module_version::assert_contract_upgrade;
 use abstract_macros::abstract_response;
-use abstract_sdk::core::{account_factory::*, ACCOUNT_FACTORY};
+use abstract_sdk::core::account_factory::*;
+use abstract_sdk::core::ACCOUNT_FACTORY;
 use cosmwasm_std::{
-    to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
+    to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
 
 use abstract_sdk::{execute_update_ownership, query_ownership};
@@ -74,8 +69,6 @@ pub fn execute(
             origin,
         } => {
             let gov_details = governance.verify(deps.api)?;
-            let origin = origin.unwrap_or(AccountTrace::Local);
-            origin.verify()?;
             commands::execute_create_account(
                 deps,
                 env,
@@ -112,30 +105,9 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> AccountFactoryResult {
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::Sequences {
-            filter: _,
-            start_after,
-            limit,
-        } => to_binary(&queries::query_sequences(deps, start_after, limit)?),
-        QueryMsg::Sequence { origin } => to_binary(&queries::query_sequence(deps, origin)?),
-        QueryMsg::Config {} => to_binary(&query_config(deps)?),
+        QueryMsg::Config {} => to_binary(&queries::query_config(deps)?),
         QueryMsg::Ownership {} => query_ownership!(deps),
     }
-}
-
-pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
-    let state: Config = CONFIG.load(deps.storage)?;
-    let cw_ownable::Ownership { owner, .. } = cw_ownable::get_ownership(deps.storage)?;
-
-    let resp = ConfigResponse {
-        owner: owner.unwrap_or_else(|| Addr::unchecked("")),
-        version_control_contract: state.version_control_contract,
-        ans_host_contract: state.ans_host_contract,
-        module_factory_address: state.module_factory_address,
-        ibc_host: state.ibc_host,
-    };
-
-    Ok(resp)
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]

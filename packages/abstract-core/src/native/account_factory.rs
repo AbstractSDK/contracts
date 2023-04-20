@@ -9,20 +9,11 @@
 //!
 pub mod state {
     use cosmwasm_std::Addr;
-    use cw_controllers::Admin;
-    use cw_storage_plus::{Item, Map};
-
-    use serde::{Deserialize, Serialize};
-
-    use crate::objects::{
-        account::{AccountSequence, AccountTrace},
-        common_namespace::ADMIN_NAMESPACE,
-        AccountId,
-    };
     use cw_storage_plus::Item;
+
     use serde::{Deserialize, Serialize};
 
-    use crate::objects::core::AccountId;
+    use crate::objects::{account::AccountSequence, AccountId};
 
     /// Account Factory configuration
     #[cosmwasm_schema::cw_serde]
@@ -43,17 +34,16 @@ pub mod state {
     pub const CONFIG: Item<Config> = Item::new("\u{0}{5}config");
     pub const CONTEXT: Item<Context> = Item::new("\u{0}{6}context");
     /// Next account id for a specific origin.
-    pub const ACCOUNT_SEQUENCES: Map<&AccountTrace, AccountSequence> = Map::new("acc_seq");
+    pub const LOCAL_ACCOUNT_SEQUENCE: Item<AccountSequence> = Item::new("acc_seq");
 }
 
-use crate::{objects::{
+use crate::objects::{
     account::{AccountSequence, AccountTrace},
-    gov_type::GovernanceDetails, AccountId,
-}, manager::state::AccountInfo};
+    gov_type::GovernanceDetails,
+    AccountId,
+};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
-
-use crate::objects::{core::AccountId, gov_type::GovernanceDetails};
 
 /// Msg used on instantiation
 #[cosmwasm_schema::cw_serde]
@@ -94,7 +84,7 @@ pub enum ExecuteMsg {
         // Account link
         link: Option<String>,
         /// Creator chain of the account. AccountTrace::Local if not specified.
-        origin: Option<(AccountId,AccountInfo)>,
+        origin: Option<AccountId>,
     },
 }
 
@@ -106,25 +96,16 @@ pub enum ExecuteMsg {
 pub enum QueryMsg {
     #[returns(ConfigResponse)]
     Config {},
-    /// Retrieve the sequence numbers for new accounts from different origins.
-    #[returns(SequencesResponse)]
-    Sequences {
-        filter: Option<AccountTraceFilter>,
-        start_after: Option<AccountTrace>,
-        limit: Option<u8>,
-    },
-    #[returns(SequenceResponse)]
-    Sequence { origin: AccountTrace },
 }
 
 /// Account Factory config response
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
-    pub owner: Addr,
     pub ans_host_contract: Addr,
     pub version_control_contract: Addr,
     pub module_factory_address: Addr,
     pub ibc_host: Option<Addr>,
+    pub local_account_sequence: AccountSequence,
 }
 
 /// Sequence numbers for each origin.

@@ -34,8 +34,8 @@ fn instantiate() -> AResult {
         ans_host_contract: deployment.ans_host.address()?,
         version_control_contract: deployment.version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
-        owner: sender,
         ibc_host: None,
+        local_account_sequence: 0,
     };
 
     assert_that!(&factory_config).is_equal_to(&expected);
@@ -69,7 +69,7 @@ fn create_one_os() -> AResult {
         ans_host_contract: deployment.ans_host.address()?,
         version_control_contract: deployment.version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
-        owner: sender,
+        local_account_sequence: 1,
         ibc_host: None,
     };
 
@@ -134,7 +134,7 @@ fn create_two_account_s() -> AResult {
         ans_host_contract: deployment.ans_host.address()?,
         version_control_contract: deployment.version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
-        owner: sender,
+        local_account_sequence: 2,
         ibc_host: None,
     };
 
@@ -208,7 +208,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
 
     assert_that!(account_config).is_equal_to(abstract_core::manager::ConfigResponse {
         owner: owner.into_string(),
-        account_id: Uint64::from(0u64),
+        account_id: TEST_ACCOUNT_ID,
         version_control_address: version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
         is_suspended: false,

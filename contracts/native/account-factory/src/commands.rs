@@ -5,9 +5,8 @@ use crate::{
 use abstract_core::{
     objects::{account::AccountTrace, module::Module, AccountId},
     version_control::ModulesResponse,
-    AbstractResult, ACCOUNT_FACTORY,
+    AbstractResult,
 };
-use abstract_macros::abstract_response;
 use abstract_sdk::{
     core::{
         manager::{ExecuteMsg::UpdateModuleAddresses, InstantiateMsg as ManagerInstantiateMsg},
@@ -20,37 +19,17 @@ use abstract_sdk::{
     cw_helpers::cosmwasm_std::wasm_smart_query,
 };
 use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, CosmosMsg, DepsMut, Empty, Env, MessageInfo, QuerierWrapper,
-    ReplyOn, StdError, SubMsg, SubMsgResult, WasmMsg,
+    ensure_eq, to_binary, wasm_execute, Addr, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
+    QuerierWrapper, ReplyOn, StdError, SubMsg, SubMsgResult, WasmMsg,
 };
 use protobuf::Message;
 
 use abstract_sdk::core::{MANAGER, PROXY};
-use abstract_sdk::{
-    core::{
-        manager::{ExecuteMsg::UpdateModuleAddresses, InstantiateMsg as ManagerInstantiateMsg},
-        objects::{
-            gov_type::GovernanceDetails, module::Module, module::ModuleInfo,
-            module_reference::ModuleReference,
-        },
-        proxy::{ExecuteMsg as ProxyExecMsg, InstantiateMsg as ProxyInstantiateMsg},
-        version_control::{
-            AccountBase, ExecuteMsg as VCExecuteMsg, ModulesResponse, QueryMsg as VCQuery,
-        },
-        AbstractResult,
-    },
-    cw_helpers::cosmwasm_std::wasm_smart_query,
-};
 
 use crate::contract::AccountFactoryResponse;
-use crate::{
-    contract::AccountFactoryResult, error::AccountFactoryError,
-    response::MsgInstantiateContractResponse, state::*,
-};
 
 pub const CREATE_ACCOUNT_MANAGER_MSG_ID: u64 = 1u64;
 pub const CREATE_ACCOUNT_PROXY_MSG_ID: u64 = 2u64;
-pub const MAX_TRACE_LENGTH: usize = 6;
 
 /// Function that starts the creation of the Account
 #[allow(clippy::too_many_arguments)]
@@ -62,19 +41,33 @@ pub fn execute_create_account(
     name: String,
     description: Option<String>,
     link: Option<String>,
-    origin: AccountTrace,
+    account_id: Option<AccountId>,
 ) -> AccountFactoryResult {
     let config = CONFIG.load(deps.storage)?;
 
-    // check that account creation is allowed from this sender
-    // if the trace is remote, assert that the trace limit is not exceeded
-    assert_account_creation_rules(&deps.querier, config.ibc_host, &info.sender, &origin)?;
-    // load the next account id
-    // if it doesn't exist then it's the first account so set it to 0.
-    let next_sequence = ACCOUNT_SEQUENCES
-        .may_load(deps.storage, &origin)?
-        .unwrap_or(0);
-    let account_id = AccountId::new(next_sequence, origin.clone())?;
+    // If an origin is provided, assert the caller is the ibc host and return the account_id.
+    // Else get the next account id and set the origin to local.
+    let account_id = if let Some(account_id) = account_id {
+        // if the account_id is provided, assert that the caller is the ibc host
+        let ibc_host = config.ibc_host.ok_or(AccountFactoryError::IbcHostNotSet)?;
+        ensure_eq!(
+            info.sender,
+            ibc_host,
+            AccountFactoryError::SenderNotIbcHost(info.sender.into(), ibc_host.into())
+        );
+        // then assert that the account trace is remote and properly formatted
+        account_id.trace().verify_remote()?;
+        account_id
+    } else {
+        // else the call is local so we need to look up the account sequence
+        // and set the origin to local
+        let origin = AccountTrace::Local;
+
+        // load the next account id
+        // if it doesn't exist then it's the first account so set it to 0.
+        let next_sequence = LOCAL_ACCOUNT_SEQUENCE.may_load(deps.storage)?.unwrap_or(0);
+        AccountId::new(next_sequence, origin.clone())?
+    };
 
     // Query version_control for code_id of Manager contract
     let module: Module = query_module(&deps.querier, &config.version_control_contract, MANAGER)?;
@@ -92,8 +85,8 @@ pub fn execute_create_account(
         Ok(AccountFactoryResponse::new(
             "create_account",
             vec![
-                ("account_sequence", &next_sequence.to_string()),
-                ("origin", &origin.to_string()),
+                ("account_sequence", &account_id.seq().to_string()),
+                ("trace", &account_id.trace().to_string()),
             ],
         )
         // Create manager
@@ -193,7 +186,7 @@ fn query_module(
     Ok(modules.swap_remove(0))
 }
 
-/// Registers the DAO on the version_control contract and
+/// Registers the Account on the version_control contract and
 /// adds proxy contract address to Manager
 pub fn after_proxy_add_to_manager_and_set_admin(
     deps: DepsMut,
@@ -250,12 +243,10 @@ pub fn after_proxy_add_to_manager_and_set_admin(
         admin: manager.to_string(),
     });
 
-    // Add 1 to account sequence for this origin
-    ACCOUNT_SEQUENCES.save(
-        deps.storage,
-        account_id.trace(),
-        &account_id.seq().checked_add(1).unwrap(),
-    )?;
+    // Add 1 to account sequence for local origin
+    if account_id.is_local() {
+        LOCAL_ACCOUNT_SEQUENCE.save(deps.storage, &account_id.seq().checked_add(1).unwrap())?;
+    }
 
     Ok(AccountFactoryResponse::new(
         "create_proxy",
@@ -311,34 +302,4 @@ pub fn execute_update_config(
     CONFIG.save(deps.storage, &config)?;
 
     Ok(AccountFactoryResponse::action("update_config"))
-}
-
-/// Verify that the sender is allowed to create an account
-/// If account trace = Local then the sender must be a user (not a contract)
-/// if the account trace = Remote then the sender must be the ibc-host
-fn assert_account_creation_rules(
-    querier: &QuerierWrapper<Empty>,
-    ibc_host: Option<Addr>,
-    sender: &Addr,
-    origin: &AccountTrace,
-) -> AccountFactoryResult<()> {
-    match origin {
-        AccountTrace::Local => {
-            // verify that sender is a user
-            querier
-                .query_wasm_contract_info(sender)
-                .expect_err("msg sender is not a user");
-        }
-        AccountTrace::Remote(trace) => {
-            let ibc_host = ibc_host.ok_or(AccountFactoryError::NoIbcHost)?;
-            assert_eq!(ibc_host, *sender, "msg sender is not the ibc host");
-            if trace.is_empty() || trace.len() > MAX_TRACE_LENGTH {
-                return Err(AccountFactoryError::InvalidTrace(
-                    MAX_TRACE_LENGTH,
-                    trace.len(),
-                ));
-            }
-        }
-    }
-    Ok(())
 }
