@@ -92,4 +92,7 @@ pub enum ManagerError {
 
     #[error("No updates were included")]
     NoUpdates {},
+
+    #[error("Must use SetOwner to change owner")]
+    MustUseSetOwner {},
 }

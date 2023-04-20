@@ -150,10 +150,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                 ExecuteMsg::Callback(CallbackMsg {}) => handle_callback(deps, env, info),
                 ExecuteMsg::UpdateOwnership(action) => match action {
                     // Disallow the user from using the TransferOwnership action
-                    cw_ownable::Action::TransferOwnership { .. } => Err(StdError::generic_err(
-                        "Use the SetOwner message to transfer ownership",
-                    )
-                    .into()),
+                    cw_ownable::Action::TransferOwnership { .. } => {
+                        Err(ManagerError::MustUseSetOwner {})
+                    }
                     _ => {
                         abstract_sdk::execute_update_ownership!(
                             ManagerResponse,

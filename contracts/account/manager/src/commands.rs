@@ -699,7 +699,7 @@ pub fn update_account_status(
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use abstract_testing::prelude::*;
     use cosmwasm_std::testing::{
         mock_dependencies, mock_env, mock_info, MockApi, MockQuerier, MockStorage,
@@ -1565,6 +1565,66 @@ mod test {
 
             assert_that!(upgraded_modules).has_length(1);
             assert_eq!(upgraded_modules[0].0, TEST_MODULE_ID);
+
+            Ok(())
+        }
+    }
+
+    mod update_ownership {
+        use super::*;
+
+        #[test]
+        fn allows_ownership_acceptance() -> ManagerTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let pending_owner = "not_owner";
+            // mock pending owner
+            Item::new("ownership").save(
+                deps.as_mut().storage,
+                &cw_ownable::Ownership {
+                    owner: None,
+                    pending_expiry: None,
+                    pending_owner: Some(Addr::unchecked(pending_owner)),
+                },
+            )?;
+
+            let msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership {});
+
+            execute_as(deps.as_mut(), pending_owner, msg)?;
+
+            Ok(())
+        }
+
+        #[test]
+        fn allows_renouncing() -> ManagerTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::RenounceOwnership {});
+
+            execute_as_owner(deps.as_mut(), msg)?;
+
+            Ok(())
+        }
+
+        #[test]
+        fn disallows_ownership_transfer() -> ManagerTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let transfer_to = "not_owner";
+
+            let msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::TransferOwnership {
+                new_owner: transfer_to.to_string(),
+                expiry: None,
+            });
+
+            let res = execute_as_owner(deps.as_mut(), msg);
+
+            assert_that!(res)
+                .is_err()
+                .is_equal_to(ManagerError::MustUseSetOwner {});
 
             Ok(())
         }
