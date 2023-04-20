@@ -17,6 +17,7 @@
 pub mod state {
     use std::collections::HashSet;
 
+    use crate::objects::common_namespace::OWNERSHIP_STORAGE_KEY;
     pub use crate::objects::core::ACCOUNT_ID;
     use crate::objects::{gov_type::GovernanceDetails, module::ModuleId};
     use cosmwasm_std::{Addr, Api};
@@ -79,7 +80,7 @@ pub mod state {
     /// Contract Admin
     pub const ACCOUNT_FACTORY: Admin = Admin::new("\u{0}{7}factory");
     /// Account owner - managed by cw-ownable
-    pub const OWNER: Item<Ownership<Addr>> = Item::new("ownership");
+    pub const OWNER: Item<Ownership<Addr>> = Item::new(OWNERSHIP_STORAGE_KEY);
     /// Enabled Abstract modules
     pub const ACCOUNT_MODULES: Map<ModuleId, Addr> = Map::new("modules");
     /// Stores the dependency relationship between modules
