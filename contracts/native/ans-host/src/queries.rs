@@ -1,28 +1,24 @@
-use abstract_core::ans_host::{
-    AssetInfoListResponse, AssetInfoMapEntry, AssetInfosResponse, AssetMapEntry, ContractMapEntry,
-};
-use abstract_core::{ans_host::state::REV_ASSET_ADDRESSES, objects::DexName};
 use abstract_core::{
-    ans_host::state::{Config, ASSET_PAIRINGS, CONFIG, POOL_METADATA},
     ans_host::{
-        state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES, REGISTERED_DEXES},
-        AssetListResponse, AssetsResponse, ChannelListResponse, ChannelsResponse,
-        ContractListResponse, ContractsResponse,
-    },
-    ans_host::{
-        AssetPairingFilter, AssetPairingMapEntry, ChannelMapEntry, ConfigResponse,
-        PoolAddressListResponse, PoolMetadataFilter, PoolMetadataListResponse,
-        PoolMetadataMapEntry, PoolMetadatasResponse, PoolsResponse, RegisteredDexesResponse,
+        state::{
+            Config, ASSET_ADDRESSES, ASSET_PAIRINGS, CHANNELS, CONFIG, CONTRACT_ADDRESSES,
+            POOL_METADATA, REGISTERED_DEXES, REV_ASSET_ADDRESSES,
+        },
+        AssetInfoListResponse, AssetInfoMapEntry, AssetInfosResponse, AssetListResponse,
+        AssetMapEntry, AssetPairingFilter, AssetPairingMapEntry, AssetsResponse,
+        ChannelListResponse, ChannelMapEntry, ChannelsResponse, ConfigResponse,
+        ContractListResponse, ContractMapEntry, ContractsResponse, PoolAddressListResponse,
+        PoolMetadataFilter, PoolMetadataListResponse, PoolMetadataMapEntry, PoolMetadatasResponse,
+        PoolsResponse, RegisteredDexesResponse,
     },
     objects::{
-        AssetEntry, ChannelEntry, ContractEntry, DexAssetPairing, PoolMetadata, PoolReference,
-        UniquePoolId,
+        AssetEntry, ChannelEntry, ContractEntry, DexAssetPairing, DexName, PoolMetadata,
+        PoolReference, UniquePoolId,
     },
 };
 use abstract_sdk::cw_helpers::cw_storage_plus::load_many;
 use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdError, StdResult, Storage};
 use cw_asset::AssetInfoUnchecked;
-use cw_ownable::{get_ownership, Ownership};
 use cw_storage_plus::Bound;
 
 pub(crate) const DEFAULT_LIMIT: u8 = 15;
@@ -33,7 +29,7 @@ pub fn query_config(deps: Deps) -> StdResult<Binary> {
         next_unique_pool_id,
     } = CONFIG.load(deps.storage)?;
 
-    let Ownership { owner, .. } = get_ownership(deps.storage)?;
+    let cw_ownable::Ownership { owner, .. } = cw_ownable::get_ownership(deps.storage)?;
 
     let res = ConfigResponse {
         next_unique_pool_id,
@@ -118,7 +114,7 @@ pub fn query_contract(deps: Deps, _env: Env, keys: Vec<&ContractEntry>) -> StdRe
     to_binary(&ContractsResponse {
         contracts: contracts
             .into_iter()
-            .map(|(x, a)| (x.to_owned(), a.to_string()))
+            .map(|(x, a)| (x.to_owned(), a))
             .collect(),
     })
 }
@@ -147,9 +143,7 @@ pub fn query_contract_list(
         .take(limit)
         .collect();
 
-    to_binary(&ContractListResponse {
-        contracts: res?.into_iter().map(|(x, a)| (x, a.to_string())).collect(),
-    })
+    to_binary(&ContractListResponse { contracts: res? })
 }
 
 pub fn query_channel_list(
@@ -626,7 +620,10 @@ mod test {
 
         // Stage data for equality test
         let expected = ContractsResponse {
-            contracts: create_contract_entry_and_string(vec![("foo", "foo", "foo")]),
+            contracts: create_contract_entry_and_string(vec![("foo", "foo", "foo")])
+                .into_iter()
+                .map(|(a, b)| (a, Addr::unchecked(b)))
+                .collect(),
         };
 
         // Assert
@@ -789,11 +786,17 @@ mod test {
             contracts: create_contract_entry_and_string(vec![
                 ("bar", "bar1", "bar2"),
                 ("foo", "foo1", "foo2"),
-            ]),
+            ])
+            .into_iter()
+            .map(|(a, b)| (a, Addr::unchecked(b)))
+            .collect(),
         };
 
         let expected_foo = ContractListResponse {
-            contracts: create_contract_entry_and_string(vec![("foo", "foo1", "foo2")]),
+            contracts: create_contract_entry_and_string(vec![("foo", "foo1", "foo2")])
+                .into_iter()
+                .map(|(a, b)| (a, Addr::unchecked(b)))
+                .collect(),
         };
 
         // Assert
@@ -801,7 +804,7 @@ mod test {
         assert_that!(&res).is_equal_to(&expected);
         // Assert - sanity check for duplication
         assert_that!(&res_expect_foo).is_equal_to(&expected_foo);
-        assert!(res.contracts.len() == 2_usize);
+        assert_eq!(res.contracts.len(), 2_usize);
 
         Ok(())
     }
@@ -870,7 +873,7 @@ mod test {
         assert_that!(&res_all).is_equal_to(expected_all);
         assert_that!(&res_foobar).is_equal_to(expected_foobar);
         assert_that!(&res_bar).is_equal_to(expected_bar);
-        assert!(res_all.channels.len() == 3_usize);
+        assert_eq!(res_all.channels.len(), 3_usize);
 
         Ok(())
     }

@@ -48,8 +48,8 @@ pub struct Host<
     CustomExecMsg: 'static,
     CustomQueryMsg: 'static,
     CustomMigrateMsg: 'static,
-    SudoMsg: 'static = Empty,
     Receive: 'static = Empty,
+    SudoMsg: 'static = Empty,
 > {
     // Scaffolding contract that handles type safety and provides helper methods
     pub(crate) contract: AbstractContract<Self, Error>,
@@ -67,10 +67,10 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        SudoMsg,
         ReceiveMsg,
+        SudoMsg,
     >
-    Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg, ReceiveMsg>
+    Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg, SudoMsg>
 {
     pub const fn new(
         name: &'static str,

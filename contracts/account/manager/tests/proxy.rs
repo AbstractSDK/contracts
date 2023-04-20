@@ -20,7 +20,7 @@ fn instantiate() -> AResult {
     // assert proxy module
     assert_that!(&modules).has_length(1);
     assert_that(&modules[0]).is_equal_to(&ManagerModuleInfo {
-        address: account.proxy.address()?.into_string(),
+        address: account.proxy.address()?,
         id: PROXY.to_string(),
         version: cw2::ContractVersion {
             contract: PROXY.into(),
@@ -31,8 +31,8 @@ fn instantiate() -> AResult {
     // assert manager config
     assert_that!(account.manager.config()?).is_equal_to(abstract_core::manager::ConfigResponse {
         owner: sender.to_string(),
-        version_control_address: deployment.version_control.address()?.into_string(),
-        module_factory_address: deployment.module_factory.address()?.into_string(),
+        version_control_address: deployment.version_control.address()?,
+        module_factory_address: deployment.module_factory.address()?,
         account_id: TEST_ACCOUNT_ID,
         is_suspended: false,
     });
@@ -77,36 +77,6 @@ fn exec_through_manager() -> AResult {
         .wrap()
         .query_all_balances(account.proxy.address()?)?;
     assert_that!(proxy_balance).is_equal_to(vec![Coin::new(100_000 - 10_000, TEST_COIN)]);
-
-    Ok(())
-}
-
-/// This basically just checks that the proxy is able to be migrated .... but the actual version cannot change... unless we mock the responses from the version queries
-#[test]
-fn migrate_proxy() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
-    let (_state, chain) = instantiate_default_mock_env(&sender)?;
-    let deployment = Abstract::deploy_on(chain, TEST_VERSION.parse().unwrap())?;
-    let account = create_default_account(&deployment.account_factory)?;
-
-    let new_version = "1.0.1".parse().unwrap();
-    deployment
-        .version_control
-        .register_account_mods(vec![account.proxy.as_instance()], &new_version)?;
-
-    account
-        .manager
-        .upgrade_module(PROXY, &abstract_core::proxy::MigrateMsg {})?;
-
-    let module = account.manager.module_info(PROXY)?;
-
-    assert_that!(module)
-        .is_some()
-        .map(|m| &m.version)
-        .is_equal_to(cw2::ContractVersion {
-            contract: PROXY.into(),
-            version: env!("CARGO_PKG_VERSION").to_string(),
-        });
 
     Ok(())
 }

@@ -33,6 +33,7 @@ pub mod state {
         pub module_factory_address: Addr,
     }
 
+    /// Abstract Account details.
     #[cosmwasm_schema::cw_serde]
     pub struct AccountInfo<T: AddressLike = Addr> {
         pub name: String,
@@ -43,6 +44,7 @@ pub mod state {
     }
 
     impl AccountInfo<String> {
+        /// Check an account's info, verifying the gov details.
         pub fn verify(self, api: &dyn Api) -> Result<AccountInfo<Addr>, crate::AbstractError> {
             let governance_details = self.governance_details.verify(api)?;
             Ok(AccountInfo {
@@ -92,12 +94,14 @@ use crate::objects::{
     module::{Module, ModuleInfo},
 };
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::Binary;
+use cosmwasm_std::{Addr, Binary, Uint64};
 use cw2::ContractVersion;
 
+/// Manager Migrate Msg
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
 
+/// Manager Instantiate Msg
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
     pub account_id: AccountId,
@@ -109,10 +113,11 @@ pub struct InstantiateMsg {
     pub link: Option<String>,
 }
 
+/// Callback message to set the dependencies after module upgrades.
 #[cosmwasm_schema::cw_serde]
 pub struct CallbackMsg {}
 
-/// Execute messages
+/// Manager Execute Msg
 #[cosmwasm_schema::cw_serde]
 #[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
 pub enum ExecuteMsg {
@@ -157,25 +162,31 @@ pub enum ExecuteMsg {
     Callback(CallbackMsg),
 }
 
+/// Manager Query Msg
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
 #[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
 pub enum QueryMsg {
+    /// Query the versions of modules installed on the account given their `ids`.
     /// Returns [`ModuleVersionsResponse`]
     #[returns(ModuleVersionsResponse)]
     ModuleVersions { ids: Vec<String> },
+    /// Query the addresses of modules installed on the account given their `ids`.
     /// Returns [`ModuleAddressesResponse`]
     #[returns(ModuleAddressesResponse)]
     ModuleAddresses { ids: Vec<String> },
+    /// Query information of all modules installed on the account.
     /// Returns [`ModuleInfosResponse`]
     #[returns(ModuleInfosResponse)]
     ModuleInfos {
         start_after: Option<String>,
         limit: Option<u8>,
     },
+    /// Query the manager's config.
     /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]
     Config {},
+    /// Query the Account info.
     /// Returns [`InfoResponse`]
     #[returns(InfoResponse)]
     Info {},
@@ -188,7 +199,7 @@ pub struct ModuleVersionsResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ModuleAddressesResponse {
-    pub modules: Vec<(String, String)>,
+    pub modules: Vec<(String, Addr)>,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -196,20 +207,20 @@ pub struct ConfigResponse {
     pub account_id: AccountId,
     pub owner: String,
     pub is_suspended: SuspensionStatus,
-    pub version_control_address: String,
-    pub module_factory_address: String,
+    pub version_control_address: Addr,
+    pub module_factory_address: Addr,
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct InfoResponse {
-    pub info: AccountInfo<String>,
+    pub info: AccountInfo<Addr>,
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct ManagerModuleInfo {
     pub id: String,
     pub version: ContractVersion,
-    pub address: String,
+    pub address: Addr,
 }
 
 #[cosmwasm_schema::cw_serde]

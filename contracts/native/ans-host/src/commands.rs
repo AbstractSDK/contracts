@@ -1,4 +1,4 @@
-use crate::contract::AnsHostResult;
+use crate::contract::{AnsHostResponse, AnsHostResult};
 use crate::error::AnsHostError;
 use crate::error::AnsHostError::InvalidAssetCount;
 use abstract_core::{
@@ -11,19 +11,13 @@ use abstract_core::{
         AssetEntry, DexAssetPairing, DexName, UncheckedChannelEntry, UncheckedContractEntry,
         UniquePoolId,
     },
-    ANS_HOST,
 };
-use abstract_macros::abstract_response;
 use abstract_sdk::execute_update_ownership;
 use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, StdError, StdResult, Storage};
 use cw_asset::AssetInfoUnchecked;
-use cw_ownable::assert_owner;
 
 const MIN_POOL_ASSETS: usize = 2;
 const MAX_POOL_ASSETS: usize = 5;
-
-#[abstract_response(ANS_HOST)]
-pub struct AnsHostResponse;
 
 /// Handles the common base execute messages
 pub fn handle_message(
@@ -66,7 +60,7 @@ pub fn update_contract_addresses(
     to_remove: Vec<UncheckedContractEntry>,
 ) -> AnsHostResult {
     // Only Admin can call this method
-    assert_owner(deps.storage, &msg_info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
 
     for (key, new_address) in to_add.into_iter() {
         let key = key.check();
@@ -94,7 +88,7 @@ pub fn update_asset_addresses(
     to_remove: Vec<String>,
 ) -> AnsHostResult {
     // Only Admin can call this method
-    assert_owner(deps.storage, &msg_info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
 
     for (name, new_asset) in to_add.into_iter() {
         // validate asset
@@ -126,7 +120,7 @@ pub fn update_channels(
     to_remove: Vec<UncheckedChannelEntry>,
 ) -> AnsHostResult {
     // Only Admin can call this method
-    assert_owner(deps.storage, &msg_info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
 
     for (key, new_channel) in to_add.into_iter() {
         let key = key.check();
@@ -151,7 +145,7 @@ fn update_dex_registry(
     to_remove: Vec<String>,
 ) -> AnsHostResult {
     // Only Admin can call this method
-    assert_owner(deps.storage, &msg_info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
 
     if !to_add.is_empty() {
         let register_dex = |mut dexes: Vec<String>| -> StdResult<Vec<String>> {
@@ -186,7 +180,7 @@ fn update_pools(
     to_remove: Vec<UniquePoolId>,
 ) -> AnsHostResult {
     // Only Admin can call this method
-    assert_owner(deps.storage, &msg_info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
 
     let original_unique_pool_id = CONFIG.load(deps.storage)?.next_unique_pool_id;
     let mut next_unique_pool_id = original_unique_pool_id;
@@ -371,25 +365,18 @@ mod test {
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use cosmwasm_std::{Addr, DepsMut};
 
-    use abstract_core::ans_host::InstantiateMsg;
-
     use crate::contract;
-    use crate::contract::{instantiate, AnsHostResult};
+
     use crate::error::AnsHostError;
     use abstract_testing::map_tester::CwMapTester;
 
     use super::*;
+    use abstract_testing::prelude::TEST_CREATOR;
     use speculoos::prelude::*;
 
+    use crate::test_common::*;
+
     type AnsHostTestResult = Result<(), AnsHostError>;
-
-    const TEST_CREATOR: &str = "creator";
-
-    fn mock_init(mut deps: DepsMut) -> AnsHostResult {
-        let info = mock_info(TEST_CREATOR, &[]);
-
-        instantiate(deps.branch(), mock_env(), info, InstantiateMsg {})
-    }
 
     fn execute_helper(deps: DepsMut, msg: ExecuteMsg) -> AnsHostTestResult {
         contract::execute(deps, mock_env(), mock_info(TEST_CREATOR, &[]), msg)?;
@@ -556,23 +543,23 @@ mod test {
 
         use super::*;
 
-        fn contract_entry(provider: &str, name: &str) -> UncheckedContractEntry {
+        fn contract_entry(namespace: &str, name: &str) -> UncheckedContractEntry {
             UncheckedContractEntry {
-                protocol: provider.to_string(),
+                protocol: namespace.to_string(),
                 contract: name.to_string(),
             }
         }
 
         fn contract_address_map_entry(
-            provider: &str,
+            namespace: &str,
             name: &str,
             address: &str,
         ) -> (UncheckedContractEntry, String) {
-            (contract_entry(provider, name), address.to_string())
+            (contract_entry(namespace, name), address.to_string())
         }
 
         fn mock_contract_map_entry() -> (UncheckedContractEntry, String) {
-            contract_address_map_entry("test_provider", "test_contract", "test_address")
+            contract_address_map_entry("test_namespace", "test_contract", "test_address")
         }
 
         fn update_contract_addresses_msg_builder(
@@ -668,11 +655,11 @@ mod test {
             let mut map_tester = setup_map_tester();
 
             let new_entry_1 =
-                contract_address_map_entry("test_provider", "test_contract", "test_address");
+                contract_address_map_entry("test_namespace", "test_contract", "test_address");
             let new_entry_2 =
-                contract_address_map_entry("test_provider_2", "test_contract_2", "test_address_2");
+                contract_address_map_entry("test_namespace_2", "test_contract_2", "test_address_2");
             let new_entry_3 =
-                contract_address_map_entry("test_provider_3", "test_contract_3", "test_address_3");
+                contract_address_map_entry("test_namespace_3", "test_contract_3", "test_address_3");
 
             map_tester.test_update_auto_expect(
                 &mut deps,
@@ -688,9 +675,9 @@ mod test {
 
             let _info = mock_info(TEST_CREATOR, &[]);
             let new_entry_1 =
-                contract_address_map_entry("test_provider", "test_contract", "test_address");
+                contract_address_map_entry("test_namespace", "test_contract", "test_address");
             let new_entry_2 =
-                contract_address_map_entry("test_provider_2", "test_contract_2", "test_address_2");
+                contract_address_map_entry("test_namespace_2", "test_contract_2", "test_address_2");
 
             // add 1 and 2
             map_tester.test_update_auto_expect(
@@ -699,7 +686,7 @@ mod test {
             )?;
 
             let new_entry_3 =
-                contract_address_map_entry("test_provider_3", "test_contract_3", "test_address_3");
+                contract_address_map_entry("test_namespace_3", "test_contract_3", "test_address_3");
 
             // Add 3 and remove 1, leaving 2 and 3
             map_tester.test_update_with_expected(
@@ -716,7 +703,7 @@ mod test {
             let mut map_tester = setup_map_tester();
 
             let bad_entry =
-                contract_address_map_entry("test_provider", "test_contract", "BAD_ADDRESS");
+                contract_address_map_entry("test_namespace", "test_contract", "BAD_ADDRESS");
 
             let res = map_tester.execute_update(deps.as_mut(), (vec![bad_entry], vec![]));
 
@@ -966,12 +953,21 @@ mod test {
             UncheckedChannelMapEntry,
             UncheckedChannelMapEntry,
         ) {
-            let new_entry_1 =
-                unchecked_channel_map_entry("test_provider_1", "test_contract_1", "test_address_1");
-            let new_entry_2 =
-                unchecked_channel_map_entry("test_provider_2", "test_contract_2", "test_address_2");
-            let new_entry_3 =
-                unchecked_channel_map_entry("test_provider_3", "test_contract_3", "test_address_3");
+            let new_entry_1 = unchecked_channel_map_entry(
+                "test_namespace_1",
+                "test_contract_1",
+                "test_address_1",
+            );
+            let new_entry_2 = unchecked_channel_map_entry(
+                "test_namespace_2",
+                "test_contract_2",
+                "test_address_2",
+            );
+            let new_entry_3 = unchecked_channel_map_entry(
+                "test_namespace_3",
+                "test_contract_3",
+                "test_address_3",
+            );
             (new_entry_1, new_entry_2, new_entry_3)
         }
 
@@ -1072,8 +1068,11 @@ mod test {
                 (vec![new_entry_1.clone(), new_entry_2.clone()], vec![]),
             )?;
 
-            let new_entry_3 =
-                unchecked_channel_map_entry("test_provider_3", "test_contract_3", "test_address_3");
+            let new_entry_3 = unchecked_channel_map_entry(
+                "test_namespace_3",
+                "test_contract_3",
+                "test_address_3",
+            );
 
             // Add 3 and remove 1, leaving 2 and 3
             map_tester.test_update_with_expected(

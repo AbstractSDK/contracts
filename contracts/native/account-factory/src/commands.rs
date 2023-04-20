@@ -23,17 +23,34 @@ use cosmwasm_std::{
     to_binary, wasm_execute, Addr, CosmosMsg, DepsMut, Empty, Env, MessageInfo, QuerierWrapper,
     ReplyOn, StdError, SubMsg, SubMsgResult, WasmMsg,
 };
-
 use protobuf::Message;
+
+use abstract_sdk::core::{MANAGER, PROXY};
+use abstract_sdk::{
+    core::{
+        manager::{ExecuteMsg::UpdateModuleAddresses, InstantiateMsg as ManagerInstantiateMsg},
+        objects::{
+            gov_type::GovernanceDetails, module::Module, module::ModuleInfo,
+            module_reference::ModuleReference,
+        },
+        proxy::{ExecuteMsg as ProxyExecMsg, InstantiateMsg as ProxyInstantiateMsg},
+        version_control::{
+            AccountBase, ExecuteMsg as VCExecuteMsg, ModulesResponse, QueryMsg as VCQuery,
+        },
+        AbstractResult,
+    },
+    cw_helpers::cosmwasm_std::wasm_smart_query,
+};
+
+use crate::contract::AccountFactoryResponse;
+use crate::{
+    contract::AccountFactoryResult, error::AccountFactoryError,
+    response::MsgInstantiateContractResponse, state::*,
+};
 
 pub const CREATE_ACCOUNT_MANAGER_MSG_ID: u64 = 1u64;
 pub const CREATE_ACCOUNT_PROXY_MSG_ID: u64 = 2u64;
 pub const MAX_TRACE_LENGTH: usize = 6;
-
-use abstract_sdk::core::{MANAGER, PROXY};
-
-#[abstract_response(ACCOUNT_FACTORY)]
-struct AccountFactoryResponse;
 
 /// Function that starts the creation of the Account
 #[allow(clippy::too_many_arguments)]
@@ -262,13 +279,12 @@ pub fn after_proxy_add_to_manager_and_set_admin(
 pub fn execute_update_config(
     deps: DepsMut,
     info: MessageInfo,
-    admin: Option<String>,
     ans_host_contract: Option<String>,
     version_control_contract: Option<String>,
     module_factory_address: Option<String>,
     ibc_host: Option<String>,
 ) -> AccountFactoryResult {
-    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &info.sender)?;
 
     let mut config: Config = CONFIG.load(deps.storage)?;
 
@@ -293,11 +309,6 @@ pub fn execute_update_config(
     }
 
     CONFIG.save(deps.storage, &config)?;
-
-    if let Some(admin) = admin {
-        let addr = deps.api.addr_validate(&admin)?;
-        ADMIN.set(deps, Some(addr))?;
-    }
 
     Ok(AccountFactoryResponse::action("update_config"))
 }

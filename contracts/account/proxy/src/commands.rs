@@ -1,18 +1,14 @@
-use crate::contract::ProxyResult;
+use crate::contract::{ProxyResponse, ProxyResult};
 use crate::error::ProxyError;
 use abstract_core::objects::{oracle::Oracle, price_source::UncheckedPriceSource, AssetEntry};
-use abstract_macros::abstract_response;
 use abstract_sdk::core::{
     ibc_client::ExecuteMsg as IbcClientMsg,
     proxy::state::{ADMIN, ANS_HOST, STATE},
-    IBC_CLIENT, PROXY,
+    IBC_CLIENT,
 };
 use cosmwasm_std::{wasm_execute, CosmosMsg, DepsMut, Empty, MessageInfo, StdError};
 
 const LIST_SIZE_LIMIT: usize = 15;
-
-#[abstract_response(PROXY)]
-struct ProxyResponse;
 
 /// Executes actions forwarded by whitelisted contracts
 /// This contracts acts as a proxy contract for the dApps
@@ -22,10 +18,7 @@ pub fn execute_module_action(
     msgs: Vec<CosmosMsg<Empty>>,
 ) -> ProxyResult {
     let state = STATE.load(deps.storage)?;
-    if !state
-        .modules
-        .contains(&deps.api.addr_validate(msg_info.sender.as_str())?)
-    {
+    if !state.modules.contains(&msg_info.sender) {
         return Err(ProxyError::SenderNotWhitelisted {});
     }
 
@@ -40,10 +33,7 @@ pub fn execute_ibc_action(
     msgs: Vec<IbcClientMsg>,
 ) -> ProxyResult {
     let state = STATE.load(deps.storage)?;
-    if !state
-        .modules
-        .contains(&deps.api.addr_validate(msg_info.sender.as_str())?)
-    {
+    if !state.modules.contains(&msg_info.sender) {
         return Err(ProxyError::SenderNotWhitelisted {});
     }
     let manager_address = ADMIN.get(deps.as_ref())?.unwrap();
@@ -149,9 +139,11 @@ mod test {
     use cosmwasm_std::{Addr, OwnedDeps, Storage};
     use speculoos::prelude::*;
 
-    use abstract_core::proxy::{ExecuteMsg, InstantiateMsg};
+    use crate::test_common::*;
 
-    use crate::contract::{execute, instantiate};
+    use abstract_core::proxy::ExecuteMsg;
+
+    use crate::contract::execute;
 
     use super::*;
 

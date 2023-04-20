@@ -31,10 +31,11 @@ fn instantiate() -> AResult {
     let factory = deployment.account_factory;
     let factory_config = factory.config()?;
     let expected = account_factory::ConfigResponse {
-        owner: sender.into_string(),
-        ans_host_contract: deployment.ans_host.address()?.into(),
-        version_control_contract: deployment.version_control.address()?.into_string(),
-        module_factory_address: deployment.module_factory.address()?.into_string(),
+        ans_host_contract: deployment.ans_host.address()?,
+        version_control_contract: deployment.version_control.address()?,
+        module_factory_address: deployment.module_factory.address()?,
+        owner: sender,
+        ibc_host: None,
     };
 
     assert_that!(&factory_config).is_equal_to(&expected);
@@ -65,18 +66,19 @@ fn create_one_os() -> AResult {
 
     let factory_config = factory.config()?;
     let expected = account_factory::ConfigResponse {
-        owner: sender.clone().into_string(),
-        ans_host_contract: deployment.ans_host.address()?.into(),
-        version_control_contract: deployment.version_control.address()?.into_string(),
-        module_factory_address: deployment.module_factory.address()?.into_string(),
+        ans_host_contract: deployment.ans_host.address()?,
+        version_control_contract: deployment.version_control.address()?,
+        module_factory_address: deployment.module_factory.address()?,
+        owner: sender,
+        ibc_host: None,
     };
 
     assert_that!(&factory_config).is_equal_to(&expected);
 
     let vc_config = version_control.config()?;
     let expected = abstract_core::version_control::ConfigResponse {
-        admin: sender.into_string(),
-        factory: factory.address()?.into_string(),
+        admin: sender,
+        factory: factory.address()?,
     };
 
     assert_that!(&vc_config).is_equal_to(&expected);
@@ -129,18 +131,19 @@ fn create_two_account_s() -> AResult {
 
     let factory_config = factory.config()?;
     let expected = account_factory::ConfigResponse {
-        owner: sender.clone().into_string(),
-        ans_host_contract: deployment.ans_host.address()?.into(),
-        version_control_contract: deployment.version_control.address()?.into_string(),
-        module_factory_address: deployment.module_factory.address()?.into_string(),
+        ans_host_contract: deployment.ans_host.address()?,
+        version_control_contract: deployment.version_control.address()?,
+        module_factory_address: deployment.module_factory.address()?,
+        owner: sender,
+        ibc_host: None,
     };
 
     assert_that!(&factory_config).is_equal_to(&expected);
 
     let vc_config = version_control.config()?;
     let expected = abstract_core::version_control::ConfigResponse {
-        admin: sender.into_string(),
-        factory: factory.address()?.into_string(),
+        admin: sender,
+        factory: factory.address()?,
     };
 
     assert_that!(&vc_config).is_equal_to(&expected);
@@ -205,9 +208,9 @@ fn sender_is_not_admin_monarchy() -> AResult {
 
     assert_that!(account_config).is_equal_to(abstract_core::manager::ConfigResponse {
         owner: owner.into_string(),
-        account_id: TEST_ACCOUNT_ID,
-        version_control_address: version_control.address()?.into_string(),
-        module_factory_address: deployment.module_factory.address()?.into_string(),
+        account_id: Uint64::from(0u64),
+        version_control_address: version_control.address()?,
+        module_factory_address: deployment.module_factory.address()?,
         is_suspended: false,
     });
 
@@ -241,8 +244,8 @@ fn sender_is_not_admin_external() -> AResult {
         owner: owner.into_string(),
         account_id: TEST_ACCOUNT_ID,
         is_suspended: false,
-        version_control_address: version_control.address()?.into_string(),
-        module_factory_address: deployment.module_factory.address()?.into_string(),
+        version_control_address: version_control.address()?,
+        module_factory_address: deployment.module_factory.address()?,
     });
 
     Ok(())
