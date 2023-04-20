@@ -1,4 +1,4 @@
-use crate::state::{ContractError, Host, HostState, CLOSED_CHANNELS};
+use crate::state::{ContractError, Host, HostState};
 use abstract_core::objects::module_version::set_module_data;
 use abstract_sdk::{
     base::{Handler, InstantiateEndpoint},
@@ -49,8 +49,6 @@ impl<
             cw1_code_id: msg.base.cw1_code_id,
         };
         let (name, version, metadata) = self.info();
-        // Keep track of all the closed channels, allows for fund recovery if channel closes.
-        CLOSED_CHANNELS.save(deps.storage, &vec![])?;
         set_module_data(deps.storage, name, version, self.dependencies(), metadata)?;
         set_contract_version(deps.storage, name, version)?;
 

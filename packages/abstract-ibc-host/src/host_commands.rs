@@ -1,6 +1,6 @@
 use crate::{
     endpoints::reply::INIT_CALLBACK_ID,
-    state::{ContractError, CLIENT_PROXY, CLOSED_CHANNELS, PENDING},
+    state::{ContractError, CLIENT_PROXY, PENDING},
     Host, HostError,
 };
 use abstract_core::objects::AccountId;
@@ -68,15 +68,12 @@ pub fn ibc_channel_close(
     match msg {
         IbcChannelCloseMsg::CloseInit { channel } => {
             // error on attempt to close channel
-            return Err(StdError::generic_err("IBC channel close is not supported"))
+            return Err(StdError::generic_err("IBC channel close is not supported"));
         }
-        IbcChannelCloseMsg::CloseConfirm { channel } => {},
+        IbcChannelCloseMsg::CloseConfirm { channel } => {}
     }
 
-    Ok(
-        IbcBasicResponse::new()
-            .add_attribute("action", "ibc_close")
-    )
+    Ok(IbcBasicResponse::new().add_attribute("action", "ibc_close"))
 }
 
 fn unparsed_query(
