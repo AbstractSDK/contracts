@@ -208,7 +208,6 @@ pub struct ModuleAddressesResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     pub account_id: Uint64,
-    pub owner: Addr,
     pub is_suspended: SuspensionStatus,
     pub version_control_address: Addr,
     pub module_factory_address: Addr,

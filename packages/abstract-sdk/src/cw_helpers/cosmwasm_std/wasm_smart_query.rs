@@ -13,6 +13,17 @@ pub fn wasm_smart_query<C>(
     }))
 }
 
+/// Shortcut helper as the construction of QueryRequest::Wasm(WasmQuery::Raw {...}) can be quite verbose in contract code
+pub fn wasm_raw_query<C>(
+    contract_addr: impl Into<String>,
+    key: &str,
+) -> StdResult<QueryRequest<C>> {
+    Ok(QueryRequest::Wasm(WasmQuery::Raw {
+        contract_addr: contract_addr.into(),
+        key: key.as_bytes().into(),
+    }))
+}
+
 #[cfg(test)]
 mod test {
     use super::*;

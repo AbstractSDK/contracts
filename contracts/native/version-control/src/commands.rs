@@ -1,24 +1,19 @@
-use crate::contract::{VCResult, ABSTRACT_NAMESPACE};
-use crate::error::VCError;
-
-use abstract_core::objects::module::ModuleVersion;
-use abstract_core::version_control::Config;
-use abstract_macros::abstract_response;
-use abstract_sdk::core::{
-    manager::{ConfigResponse as ManagerConfigResponse, QueryMsg as ManagerQueryMsg},
-    objects::{
-        module::ModuleInfo, module_reference::ModuleReference, namespace::Namespace, AccountId,
-    },
-    version_control::{namespaces_info, state::*, AccountBase},
-    VERSION_CONTROL,
-};
 use cosmwasm_std::{
     ensure, Addr, Attribute, Deps, DepsMut, MessageInfo, Order, QuerierWrapper, Response,
     StdResult, Storage,
 };
 
-#[abstract_response(VERSION_CONTROL)]
-pub struct VcResponse;
+use abstract_core::objects::common_namespace::OWNERSHIP_STORAGE_KEY;
+use abstract_core::{objects::module::ModuleVersion, objects::AccountId, version_control::Config};
+use abstract_sdk::core::{
+    objects::{module::ModuleInfo, module_reference::ModuleReference, namespace::Namespace},
+    version_control::AccountBase,
+    version_control::{namespaces_info, state::*},
+};
+use abstract_sdk::cw_helpers::cosmwasm_std::wasm_raw_query;
+
+use crate::contract::{VCResult, VcResponse, ABSTRACT_NAMESPACE};
+use crate::error::VCError;
 
 /// Add new Account to version control contract
 /// Only Factory can add Account
@@ -184,7 +179,7 @@ pub fn claim_namespaces(
 ) -> VCResult {
     // verify account owner
     let account_base = ACCOUNT_ADDRESSES.load(deps.storage, account_id)?;
-    let account_owner = query_account_owner(&deps.querier, &account_base.manager)?;
+    let account_owner = query_account_owner(&deps.querier, &account_base.manager, account_id)?;
     if msg_info.sender != account_owner {
         return Err(VCError::AccountOwnerMismatch {
             sender: msg_info.sender,
@@ -302,10 +297,15 @@ pub fn update_namespaces_limit(deps: DepsMut, info: MessageInfo, new_limit: u32)
     ))
 }
 
-pub fn query_account_owner(querier: &QuerierWrapper, manager_addr: &Addr) -> StdResult<Addr> {
-    let ManagerConfigResponse { owner, .. } =
-        querier.query_wasm_smart(manager_addr, &ManagerQueryMsg::Config {})?;
-    Ok(owner)
+pub fn query_account_owner(
+    querier: &QuerierWrapper,
+    manager_addr: &Addr,
+    account_id: AccountId,
+) -> VCResult<Addr> {
+    let req = wasm_raw_query(manager_addr, OWNERSHIP_STORAGE_KEY)?;
+    let cw_ownable::Ownership { owner, .. } = querier.query(&req)?;
+
+    owner.ok_or(VCError::NoAccountOwner { account_id })
 }
 
 pub fn validate_account_owner(deps: Deps, namespace: &str, sender: &Addr) -> Result<(), VCError> {
@@ -317,7 +317,7 @@ pub fn validate_account_owner(deps: Deps, namespace: &str, sender: &Addr) -> Res
             namespace: namespace.to_string(),
         })?;
     let account_base = ACCOUNT_ADDRESSES.load(deps.storage, account_id)?;
-    let account_owner = query_account_owner(&deps.querier, &account_base.manager)?;
+    let account_owner = query_account_owner(&deps.querier, &account_base.manager, account_id)?;
     if sender != account_owner {
         return Err(VCError::AccountOwnerMismatch {
             sender,
@@ -337,61 +337,60 @@ pub fn set_factory(deps: DepsMut, info: MessageInfo, new_admin: String) -> VCRes
 
 #[cfg(test)]
 mod test {
-    use abstract_testing::MockQuerierBuilder;
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use cosmwasm_std::{from_binary, to_binary, Addr, Uint64};
-
-    use abstract_core::version_control::*;
-
-    use crate::contract;
+    use cw_controllers::AdminError;
+    use cw_ownable::OwnershipError;
     use speculoos::prelude::*;
 
-    use super::*;
+    use abstract_core::manager::ConfigResponse as ManagerConfigResponse;
+    use abstract_core::version_control::*;
+    use abstract_testing::prelude::TEST_MODULE_ID;
     use abstract_testing::prelude::{
         TEST_ACCOUNT_FACTORY, TEST_ACCOUNT_ID, TEST_ADMIN, TEST_MODULE_FACTORY, TEST_NAMESPACE,
         TEST_VERSION, TEST_VERSION_CONTROL,
     };
-    use cw_controllers::AdminError;
-    use cw_ownable::OwnershipError;
+
+    use abstract_testing::MockQuerierBuilder;
+
+    use crate::contract;
+
+    use super::*;
+    use crate::test_common::*;
+
+    use abstract_core::manager::QueryMsg as ManagerQueryMsg;
+    use abstract_testing::prelude::*;
+    use abstract_testing::MockQuerierOwnership;
 
     type VersionControlTestResult = Result<(), VCError>;
 
     const TEST_OTHER: &str = "test-other";
-    const TEST_OWNER: &str = "test-owner";
-
-    const TEST_PROXY_ADDR: &str = "proxy";
-    const TEST_MANAGER_ADDR: &str = "manager";
 
     pub fn mock_manager_querier() -> MockQuerierBuilder {
-        MockQuerierBuilder::default().with_smart_handler(TEST_MANAGER_ADDR, |msg| {
-            match from_binary(msg).unwrap() {
-                ManagerQueryMsg::Config {} => {
-                    let resp = ManagerConfigResponse {
-                        owner: Addr::unchecked(TEST_OWNER),
-                        version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
-                        module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
-                        account_id: Uint64::from(TEST_ACCOUNT_ID), // mock value, not used
-                        is_suspended: false,
-                    };
-                    Ok(to_binary(&resp).unwrap())
+        MockQuerierBuilder::default()
+            .with_smart_handler(TEST_MANAGER, |msg| {
+                match from_binary(msg).unwrap() {
+                    ManagerQueryMsg::Config {} => {
+                        let resp = ManagerConfigResponse {
+                            version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
+                            module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
+                            account_id: Uint64::from(TEST_ACCOUNT_ID), // mock value, not used
+                            is_suspended: false,
+                        };
+                        Ok(to_binary(&resp).unwrap())
+                    }
+                    ManagerQueryMsg::Ownership {} => {
+                        let resp = cw_ownable::Ownership {
+                            owner: Some(Addr::unchecked(TEST_OWNER)),
+                            pending_expiry: None,
+                            pending_owner: None,
+                        };
+                        Ok(to_binary(&resp).unwrap())
+                    }
+                    _ => panic!("unexpected message"),
                 }
-                _ => panic!("unexpected message"),
-            }
-        })
-    }
-
-    /// Initialize the version_control with admin as creator and factory
-    fn mock_init(mut deps: DepsMut) -> VCResult {
-        let info = mock_info(TEST_ADMIN, &[]);
-        contract::instantiate(
-            deps.branch(),
-            mock_env(),
-            info,
-            InstantiateMsg {
-                is_testnet: true,
-                namespaces_limit: 10,
-            },
-        )
+            })
+            .with_owner(TEST_MANAGER, Some(TEST_OWNER))
     }
 
     /// Initialize the version_control with admin and updated account_factory
@@ -438,8 +437,8 @@ mod test {
             ExecuteMsg::AddAccount {
                 account_id: TEST_ACCOUNT_ID,
                 account_base: AccountBase {
-                    manager: Addr::unchecked(TEST_MANAGER_ADDR),
-                    proxy: Addr::unchecked(TEST_PROXY_ADDR),
+                    manager: Addr::unchecked(TEST_MANAGER),
+                    proxy: Addr::unchecked(TEST_PROXY),
                 },
             },
         )
@@ -607,12 +606,12 @@ mod test {
         }
     }
 
-    use abstract_testing::prelude::TEST_MODULE_ID;
-
     mod remove_namespaces {
-        use super::*;
-        use abstract_core::objects::module_reference::ModuleReference;
         use cosmwasm_std::attr;
+
+        use abstract_core::objects::module_reference::ModuleReference;
+
+        use super::*;
 
         fn test_module() -> ModuleInfo {
             ModuleInfo::from_id(TEST_MODULE_ID, ModuleVersion::Version(TEST_VERSION.into()))
@@ -665,7 +664,7 @@ mod test {
                     format!(
                         "({}, {}),({}, {})",
                         new_namespace2, TEST_ACCOUNT_ID, new_namespace3, TEST_ACCOUNT_ID
-                    )
+                    ),
                 )
             );
 
@@ -768,10 +767,11 @@ mod test {
     }
 
     mod add_modules {
-        use super::*;
         use abstract_core::objects::module_reference::ModuleReference;
         use abstract_core::AbstractError;
         use abstract_testing::prelude::TEST_MODULE_ID;
+
+        use super::*;
 
         fn test_module() -> ModuleInfo {
             ModuleInfo::from_id(TEST_MODULE_ID, ModuleVersion::Version(TEST_VERSION.into()))
@@ -1309,8 +1309,8 @@ mod test {
             mock_init_with_factory(deps.as_mut())?;
 
             let test_core: AccountBase = AccountBase {
-                manager: Addr::unchecked(TEST_MANAGER_ADDR),
-                proxy: Addr::unchecked(TEST_PROXY_ADDR),
+                manager: Addr::unchecked(TEST_MANAGER),
+                proxy: Addr::unchecked(TEST_PROXY),
             };
             let msg = ExecuteMsg::AddAccount {
                 account_id: 0,
@@ -1339,7 +1339,6 @@ mod test {
     }
 
     mod configure {
-
         use super::*;
 
         #[test]
@@ -1385,6 +1384,55 @@ mod test {
             execute_as_admin(deps.as_mut(), msg)?;
             let new_factory = FACTORY.query_admin(deps.as_ref())?.admin;
             assert_that!(new_factory).is_equal_to(&Some(TEST_ACCOUNT_FACTORY.into()));
+            Ok(())
+        }
+    }
+
+    mod query_account_owner {
+        use super::*;
+
+        #[test]
+        fn returns_account_owner() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            deps.querier = AbstractMockQuerierBuilder::default()
+                .account(TEST_MANAGER, TEST_PROXY, 0)
+                .build();
+            mock_init_with_account(deps.as_mut(), true)?;
+
+            let account_owner =
+                query_account_owner(&deps.as_ref().querier, &Addr::unchecked(TEST_MANAGER), 0)?;
+
+            assert_that!(account_owner).is_equal_to(Addr::unchecked(TEST_OWNER));
+            Ok(())
+        }
+
+        #[test]
+        fn no_owner_returns_err() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            deps.querier = MockQuerierBuilder::default()
+                .with_contract_item(
+                    TEST_MANAGER,
+                    cw_storage_plus::Item::<cw_ownable::Ownership<Addr>>::new(
+                        OWNERSHIP_STORAGE_KEY,
+                    ),
+                    &cw_ownable::Ownership {
+                        owner: None,
+                        pending_owner: None,
+                        pending_expiry: None,
+                    },
+                )
+                .build();
+            mock_init_with_account(deps.as_mut(), true)?;
+
+            let account_id = 0;
+            let res = query_account_owner(
+                &deps.as_ref().querier,
+                &Addr::unchecked(TEST_MANAGER),
+                account_id,
+            );
+            assert_that!(res)
+                .is_err()
+                .is_equal_to(&VCError::NoAccountOwner { account_id });
             Ok(())
         }
     }

@@ -42,6 +42,9 @@ pub enum VCError {
     #[error("Account owner mismatch sender: {}, owner: {}", sender, owner)]
     AccountOwnerMismatch { sender: Addr, owner: Addr },
 
+    #[error("Account with ID {} has no owner", account_id)]
+    NoAccountOwner { account_id: AccountId },
+
     #[error("Namespace {} is already occupied by {}", namespace, id)]
     NamespaceOccupied { namespace: String, id: AccountId },
 
