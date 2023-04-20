@@ -159,7 +159,7 @@ mod test {
                 .with_contract_map_entry(
                     TEST_VERSION_CONTROL,
                     ACCOUNT_ADDRESSES,
-                    (TEST_ACCOUNT_ID, test_account_base()),
+                    (&TEST_ACCOUNT_ID, test_account_base()),
                 )
                 .build();
 

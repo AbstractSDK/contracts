@@ -94,7 +94,7 @@ use crate::objects::{
     module::{Module, ModuleInfo},
 };
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Binary, Uint64};
+use cosmwasm_std::{Addr, Binary};
 use cw2::ContractVersion;
 
 /// Manager Migrate Msg

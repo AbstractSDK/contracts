@@ -199,7 +199,7 @@ pub fn claim_namespaces(
     let existing_namespace_count = namespaces_info()
         .idx
         .account_id
-        .prefix(account_id)
+        .prefix(account_id.clone())
         .range(deps.storage, None, None, Order::Ascending)
         .count();
     if existing_namespace_count + namespaces_to_claim.len() > limit {
@@ -338,7 +338,7 @@ pub fn set_factory(deps: DepsMut, info: MessageInfo, new_admin: String) -> VCRes
 #[cfg(test)]
 mod test {
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-    use cosmwasm_std::{from_binary, to_binary, Addr, Uint64};
+    use cosmwasm_std::{from_binary, to_binary, Addr};
     use cw_controllers::AdminError;
     use cw_ownable::OwnershipError;
     use speculoos::prelude::*;
@@ -372,7 +372,7 @@ mod test {
                         owner: TEST_OWNER.to_owned(),
                         version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
                         module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
-                        account_id: Uint64::from(TEST_ACCOUNT_ID), // mock value, not used
+                        account_id: TEST_ACCOUNT_ID, // mock value, not used
                         is_suspended: false,
                     };
                     Ok(to_binary(&resp).unwrap())

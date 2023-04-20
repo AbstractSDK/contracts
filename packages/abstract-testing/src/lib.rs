@@ -12,7 +12,7 @@ pub use mock_querier::{map_key, mock_querier, raw_map_key, wrap_querier, MockQue
 pub type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 pub const OWNER: &str = "owner";
 pub mod addresses {
-    use abstract_core::objects::AccountId;
+
     use abstract_core::version_control::AccountBase;
     use cosmwasm_std::Addr;
     // re-export because we want to keep the const constructor private

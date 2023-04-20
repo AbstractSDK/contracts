@@ -139,9 +139,7 @@ mod test {
     use cosmwasm_std::{Addr, OwnedDeps, Storage};
     use speculoos::prelude::*;
 
-    use crate::test_common::*;
-
-    use abstract_core::proxy::ExecuteMsg;
+    use abstract_core::proxy::{ExecuteMsg, InstantiateMsg};
 
     use crate::contract::execute;
 
@@ -157,7 +155,7 @@ mod test {
             account_id: TEST_ACCOUNT_ID,
             ans_host_address: MOCK_CONTRACT_ADDR.to_string(),
         };
-        let _res = instantiate(deps, mock_env(), info, msg).unwrap();
+        let _res = crate::contract::instantiate(deps, mock_env(), info, msg).unwrap();
     }
 
     pub fn execute_as_admin(deps: &mut MockDeps, msg: ExecuteMsg) -> ProxyResult {

@@ -31,8 +31,10 @@ pub fn migrate(network: NetworkInfo) -> anyhow::Result<()> {
     // version_control.register_account_mods(vec![account.proxy.as_instance()], &abstract_version)?;
 
     let account_factory = AccountFactory::new(ACCOUNT_FACTORY, chain.clone());
-    let account_factory::SequenceResponse { sequence, .. } =
-        AccountFactoryQueryFns::sequence(&account_factory, AccountTrace::Local)?;
+    let account_factory::ConfigResponse {
+        local_account_sequence: sequence,
+        ..
+    } = account_factory.config()?;
     let latest_acct_seq = sequence - 1;
 
     for acc_seq in 1..=latest_acct_seq {

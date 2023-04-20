@@ -4,7 +4,10 @@ use abstract_app::mock::{MockInitMsg, MockMigrateMsg};
 use abstract_boot::{Abstract, AbstractAccount, Manager, ManagerExecFns, VCExecFns};
 use abstract_core::{
     app::{self, BaseInstantiateMsg},
-    objects::module::{ModuleInfo, ModuleVersion},
+    objects::{
+        account::TEST_ACCOUNT_ID,
+        module::{ModuleInfo, ModuleVersion},
+    },
     AbstractError,
 };
 
@@ -46,7 +49,7 @@ fn install_app_successful() -> AResult {
     let AbstractAccount { manager, proxy: _ } = &account;
     abstr
         .version_control
-        .claim_namespaces(0, vec![TEST_NAMESPACE.to_string()])?;
+        .claim_namespaces(TEST_ACCOUNT_ID, vec![TEST_NAMESPACE.to_string()])?;
     deploy_modules(&chain);
 
     // dependency for mock_api1 not met
@@ -85,7 +88,7 @@ fn install_app_versions_not_met() -> AResult {
     let AbstractAccount { manager, proxy: _ } = &account;
     abstr
         .version_control
-        .claim_namespaces(0, vec![TEST_NAMESPACE.to_string()])?;
+        .claim_namespaces(TEST_ACCOUNT_ID, vec![TEST_NAMESPACE.to_string()])?;
     deploy_modules(&chain);
 
     // install api 2
@@ -112,7 +115,7 @@ fn upgrade_app() -> AResult {
     let AbstractAccount { manager, proxy: _ } = &account;
     abstr
         .version_control
-        .claim_namespaces(0, vec![TEST_NAMESPACE.to_string()])?;
+        .claim_namespaces(TEST_ACCOUNT_ID, vec![TEST_NAMESPACE.to_string()])?;
     deploy_modules(&chain);
 
     // install api 1
@@ -264,7 +267,7 @@ fn uninstall_modules() -> AResult {
     let AbstractAccount { manager, proxy: _ } = &account;
     abstr
         .version_control
-        .claim_namespaces(0, vec![TEST_NAMESPACE.to_string()])?;
+        .claim_namespaces(TEST_ACCOUNT_ID, vec![TEST_NAMESPACE.to_string()])?;
     deploy_modules(&chain);
 
     let api1 = install_module_version(manager, &abstr, api_1::MOCK_API_ID, V1)?;
@@ -299,7 +302,7 @@ fn update_api_with_authorized_addrs() -> AResult {
     let AbstractAccount { manager, proxy } = &account;
     abstr
         .version_control
-        .claim_namespaces(0, vec![TEST_NAMESPACE.to_string()])?;
+        .claim_namespaces(TEST_ACCOUNT_ID, vec![TEST_NAMESPACE.to_string()])?;
     deploy_modules(&chain);
 
     // install api 1
@@ -411,7 +414,7 @@ fn no_duplicate_migrations() -> AResult {
 
     abstr
         .version_control
-        .claim_namespaces(0, vec![TEST_NAMESPACE.to_string()])?;
+        .claim_namespaces(TEST_ACCOUNT_ID, vec![TEST_NAMESPACE.to_string()])?;
     deploy_modules(&chain);
 
     // Install api 1

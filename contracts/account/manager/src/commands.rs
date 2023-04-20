@@ -690,6 +690,7 @@ pub fn update_account_status(
 
 #[cfg(test)]
 mod test {
+    use abstract_core::manager::InstantiateMsg;
     use abstract_core::objects::account::AccountTrace;
     use abstract_core::objects::AccountId;
     use abstract_testing::prelude::*;
@@ -702,7 +703,6 @@ mod test {
     use speculoos::prelude::*;
 
     use super::*;
-    use crate::test_common::mock_init;
 
     type ManagerTestResult = Result<(), ManagerError>;
 
