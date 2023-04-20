@@ -24,6 +24,12 @@ pub fn add_account(
 ) -> VCResult {
     // Only Factory can add new Account
     FACTORY.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    // Check if account already exists
+    ensure!(
+        !ACCOUNT_ADDRESSES.has(deps.storage, &account_id),
+        VCError::AccountAlreadyExists(account_id)
+    );
+
     ACCOUNT_ADDRESSES.save(deps.storage, &account_id, &account_base)?;
 
     Ok(VcResponse::new(
@@ -177,7 +183,7 @@ pub fn claim_namespaces(
     namespaces_to_claim: Vec<String>,
 ) -> VCResult {
     // verify account owner
-    let account_base = ACCOUNT_ADDRESSES.load(deps.storage, account_id)?;
+    let account_base = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
     let account_owner = query_account_owner(&deps.querier, &account_base.manager)?;
     if msg_info.sender != account_owner {
         return Err(VCError::AccountOwnerMismatch {
@@ -310,7 +316,7 @@ pub fn validate_account_owner(deps: Deps, namespace: &str, sender: &Addr) -> Res
         .ok_or_else(|| VCError::UnknownNamespace {
             namespace: namespace.to_string(),
         })?;
-    let account_base = ACCOUNT_ADDRESSES.load(deps.storage, account_id)?;
+    let account_base = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
     let account_owner = query_account_owner(&deps.querier, &account_base.manager)?;
     if sender != account_owner {
         return Err(VCError::AccountOwnerMismatch {
