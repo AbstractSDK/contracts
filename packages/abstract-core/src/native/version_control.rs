@@ -58,16 +58,15 @@ impl<'a> IndexList<AccountId> for NamespaceIndexes<'a> {
 /// Primary index for namespaces.
 pub fn namespaces_info<'a>() -> IndexedMap<'a, &'a Namespace, AccountId, NamespaceIndexes<'a>> {
     let indexes = NamespaceIndexes {
-        account_id: MultiIndex::new(|_pk, d| *d, "namespace", "namespace_account"),
+        account_id: MultiIndex::new(|_pk, d| d.clone(), "namespace", "namespace_account"),
     };
     IndexedMap::new("namespace", indexes)
 }
 
 use crate::objects::{
     account::AccountId,
+    module::ModuleStatus,
     module::{Module, ModuleInfo},
-    core::AccountId,
-    module::{Module, ModuleInfo, ModuleStatus},
     module_reference::ModuleReference,
     namespace::Namespace,
 };
