@@ -1,6 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
-use cosmwasm_std::{StdError, StdResult};
+use cosmwasm_std::{ensure, StdError, StdResult};
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 
 use crate::{constants::CHAIN_DELIMITER, AbstractError};
@@ -8,6 +8,7 @@ use crate::{constants::CHAIN_DELIMITER, AbstractError};
 use super::ChainId;
 const MAX_CHAIN_ID_LENGTH: usize = 20;
 const MIN_CHAIN_ID_LENGTH: usize = 3;
+pub const MAX_TRACE_LENGTH: usize = 6;
 const LOCAL: &str = "local";
 
 /// The identifier of chain that triggered the account creation
@@ -80,6 +81,15 @@ impl AccountTrace {
         match self {
             AccountTrace::Local => Ok(()),
             AccountTrace::Remote(chain_trace) => {
+                // Ensure the trace length is limited
+                ensure!(
+                    chain_trace.len() <= MAX_TRACE_LENGTH,
+                    AbstractError::FormattingError {
+                        object: "chain-seq".into(),
+                        expected: format!("between 1 and {MAX_TRACE_LENGTH}"),
+                        actual: chain_trace.len().to_string(),
+                    }
+                );
                 for chain in chain_trace {
                     if chain.is_empty()
                         || chain.len() < MIN_CHAIN_ID_LENGTH
@@ -111,6 +121,27 @@ impl AccountTrace {
                 Ok(())
             }
         }
+    }
+
+    /// assert that the account trace is a remote account and verify the formatting
+    pub fn verify_remote(&self) -> Result<(), AbstractError> {
+        if &Self::Local == self {
+            return Err(AbstractError::Std(StdError::generic_err(
+                "expected remote account trace",
+            )));
+        } else {
+            self.verify()
+        }
+    }
+
+    /// assert that the trace is local
+    pub fn verify_local(&self) -> Result<(), AbstractError> {
+        if let &Self::Remote(..) = self {
+            return Err(AbstractError::Std(StdError::generic_err(
+                "expected local account trace",
+            )));
+        }
+        Ok(())
     }
 }
 
