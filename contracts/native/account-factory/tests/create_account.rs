@@ -111,7 +111,7 @@ fn create_two_account_s() -> AResult {
         },
         String::from("second_os"),
         Some(String::from("account_description")),
-        Some(String::from("account_link_of_at_least_11_char")),
+        Some(String::from("https://account_link_of_at_least_11_char")),
     )?;
 
     let manager1 = account_1.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
