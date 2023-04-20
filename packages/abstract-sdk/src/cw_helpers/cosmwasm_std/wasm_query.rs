@@ -42,4 +42,16 @@ mod test {
             _ => panic!("Unexpected query"),
         }
     }
+
+    #[test]
+    fn test_wasm_raw_query() {
+        let query = wasm_raw_query::<Empty>("contract", "key").unwrap();
+        match query {
+            QueryRequest::Wasm(WasmQuery::Raw { contract_addr, key }) => {
+                assert_eq!(contract_addr, "contract");
+                assert_eq!(key, cosmwasm_std::Binary::from("key".as_bytes()));
+            }
+            _ => panic!("Unexpected query"),
+        }
+    }
 }
