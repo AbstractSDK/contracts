@@ -350,14 +350,12 @@ mod test {
         TEST_ACCOUNT_FACTORY, TEST_ACCOUNT_ID, TEST_ADMIN, TEST_MODULE_FACTORY, TEST_NAMESPACE,
         TEST_VERSION, TEST_VERSION_CONTROL,
     };
-
     use abstract_testing::MockQuerierBuilder;
 
     use crate::contract;
 
     use super::*;
     use crate::test_common::*;
-
     use abstract_core::manager::QueryMsg as ManagerQueryMsg;
     use abstract_testing::prelude::*;
     use abstract_testing::MockQuerierOwnership;
