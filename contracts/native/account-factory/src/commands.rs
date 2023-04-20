@@ -66,7 +66,7 @@ pub fn execute_create_account(
         // load the next account id
         // if it doesn't exist then it's the first account so set it to 0.
         let next_sequence = LOCAL_ACCOUNT_SEQUENCE.may_load(deps.storage)?.unwrap_or(0);
-        AccountId::new(next_sequence, origin.clone())?
+        AccountId::new(next_sequence, origin)?
     };
 
     // Query version_control for code_id of Manager contract

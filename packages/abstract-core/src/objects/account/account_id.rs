@@ -42,10 +42,7 @@ impl AccountId {
     }
 
     pub fn is_local(&self) -> bool {
-        match self.trace {
-            AccountTrace::Local => true,
-            _ => false,
-        }
+        matches!(self.trace, AccountTrace::Local)
     }
 
     pub fn is_remote(&self) -> bool {

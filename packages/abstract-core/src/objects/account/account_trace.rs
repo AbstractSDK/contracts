@@ -126,9 +126,9 @@ impl AccountTrace {
     /// assert that the account trace is a remote account and verify the formatting
     pub fn verify_remote(&self) -> Result<(), AbstractError> {
         if &Self::Local == self {
-            return Err(AbstractError::Std(StdError::generic_err(
+            Err(AbstractError::Std(StdError::generic_err(
                 "expected remote account trace",
-            )));
+            )))
         } else {
             self.verify()
         }
