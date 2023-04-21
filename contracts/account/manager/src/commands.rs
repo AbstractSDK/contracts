@@ -31,10 +31,12 @@ use abstract_core::api::{
     AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as ApiExecMsg,
     QueryMsg as ApiQuery,
 };
+use abstract_core::manager::state::ACCOUNT_FACTORY;
+use abstract_core::manager::InternalConfigAction;
 use abstract_sdk::cw_helpers::cosmwasm_std::AbstractAttributes;
 use cosmwasm_std::{
-    ensure, to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env,
-    MessageInfo, Response, StdResult, Storage, WasmMsg,
+    ensure, from_binary, to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty,
+    Env, MessageInfo, Response, StdResult, Storage, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
 use cw_storage_plus::Item;
@@ -122,7 +124,7 @@ pub fn register_module(
 
     // check if sender is module factory
     if msg_info.sender != config.module_factory_address {
-        return Err(ManagerError::CallerNotFactory {});
+        return Err(ManagerError::CallerNotModuleFactory {});
     }
 
     let mut response = update_module_addresses(
@@ -688,6 +690,21 @@ pub fn update_account_status(
     Ok(response)
 }
 
+pub fn update_internal_config(deps: DepsMut, info: MessageInfo, config: Binary) -> ManagerResult {
+    let action: InternalConfigAction =
+        from_binary(&config).map_err(|error| ManagerError::InvalidConfigAction { error })?;
+    match action {
+        InternalConfigAction::UpdateModuleAddresses { to_add, to_remove } => {
+            // only Account Factory/Owner can add custom modules.
+            // required to add Proxy after init by Account Factory.
+            ACCOUNT_FACTORY
+                .assert_admin(deps.as_ref(), &info.sender)
+                .or_else(|_| OWNER.assert_admin(deps.as_ref(), &info.sender))?;
+            update_module_addresses(deps, to_add, to_remove)
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use abstract_testing::prelude::*;
@@ -835,6 +852,7 @@ mod test {
 
     mod update_module_addresses {
         use super::*;
+        use abstract_core::manager::InternalConfigAction;
 
         #[test]
         fn manual_adds_module_to_account_modules() -> ManagerTestResult {
@@ -924,10 +942,11 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let msg = ExecuteMsg::UpdateModuleAddresses {
+            let action = InternalConfigAction::UpdateModuleAddresses {
                 to_add: None,
                 to_remove: None,
             };
+            let msg = ExecuteMsg::UpdateInternalConfig(to_binary(&action).unwrap());
 
             let res = execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg.clone());
             assert_that(&res).is_ok();
@@ -1127,7 +1146,7 @@ mod test {
             let res = execute_as(deps.as_mut(), "not_module_factory", msg);
             assert_that(&res)
                 .is_err()
-                .is_equal_to(ManagerError::CallerNotFactory {});
+                .is_equal_to(ManagerError::CallerNotModuleFactory {});
 
             Ok(())
         }
@@ -1535,6 +1554,57 @@ mod test {
             assert_that(&res).is_ok();
             let actual_status = SUSPENSION_STATUS.load(&deps.storage).unwrap();
             assert_that(&actual_status).is_false();
+            Ok(())
+        }
+    }
+
+    mod update_internal_config {
+        use super::*;
+        use abstract_core::manager::InternalConfigAction::UpdateModuleAddresses;
+        use abstract_core::manager::QueryMsg;
+
+        #[test]
+        fn only_account_factory_or_owner() -> ManagerTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let msg = ExecuteMsg::UpdateInternalConfig(
+                to_binary(&UpdateModuleAddresses {
+                    to_add: None,
+                    to_remove: None,
+                })
+                .unwrap(),
+            );
+
+            let bad_sender = "not_account_factory";
+            let res = execute_as(deps.as_mut(), bad_sender, msg.clone());
+
+            assert_that(&res)
+                .is_err()
+                .is_equal_to(ManagerError::Admin(AdminError::NotAdmin {}));
+
+            let owner_res = execute_as_owner(deps.as_mut(), msg.clone());
+            assert_that(&owner_res).is_ok();
+
+            let factory_res = execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg);
+            assert_that(&factory_res).is_ok();
+
+            Ok(())
+        }
+
+        #[test]
+        fn should_return_err_unrecognized_action() -> ManagerTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let msg = ExecuteMsg::UpdateInternalConfig(to_binary(&QueryMsg::Config {}).unwrap());
+
+            let res = execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg);
+
+            assert_that(&res)
+                .is_err()
+                .matches(|e| matches!(e, ManagerError::InvalidConfigAction { .. }));
+
             Ok(())
         }
     }
