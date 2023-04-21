@@ -1,18 +1,23 @@
-use crate::{
-    AppContract, AppError, ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint,
-};
-use abstract_core::app::{AppExecuteMsg, AppQueryMsg};
-use abstract_sdk::core::app::AppConfigResponse;
-use cosmwasm_schema::{export_schema_with_title, schema_for, write_api, QueryResponses};
-use cw_controllers::AdminResponse;
+use cosmwasm_schema::QueryResponses;
 use schemars::JsonSchema;
 use serde::Serialize;
-use std::path::Path;
+
+use abstract_core::app::{AppExecuteMsg, AppQueryMsg};
+use {
+    crate::{ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint},
+    abstract_sdk::core::app::AppConfigResponse,
+    cosmwasm_schema::{export_schema_with_title, schema_for, write_api},
+    cw_controllers::AdminResponse,
+    std::path::Path,
+};
+
+use crate::{AppContract, AppError};
 
 impl<
         Error: From<cosmwasm_std::StdError>
             + From<AppError>
             + From<abstract_sdk::AbstractSdkError>
+            + From<abstract_core::AbstractError>
             + 'static,
         CustomExecMsg: Serialize + JsonSchema + AppExecuteMsg,
         CustomInitMsg: Serialize + JsonSchema,

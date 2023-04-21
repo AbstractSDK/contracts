@@ -7,10 +7,10 @@ test:
 
 format:
   cargo fmt --all
+  find . -type f -iname "*.toml" -print0 | xargs -0 taplo format
 
 lint:
   cargo clippy --all --all-features -- -D warnings
-#  cargo clippy --all --all-targets --all-features -- -D warnings
 
 lintfix:
   cargo clippy --fix --allow-staged --allow-dirty --all-features
@@ -25,6 +25,7 @@ refresh:
 check-codecov:
   cat codecov.yml | curl --data-binary @- https://codecov.io/validate
 
+# Publish crates
 publish:
   ./publish/publish.sh
 
@@ -40,15 +41,11 @@ wasm:
 wasm-module module:
   RUSTFLAGS='-C link-arg=-s' cargo wasm --package {{module}}
 
-#wasm chain_name:
-#  RUSTFLAGS='-C link-arg=-s' cargo ws exec --no-bail cargo wasm
-#  if [[ {{chain}} == "terra" ]]; then RUSTFLAGS='-C link-arg=-s' cargo wasm --package dex --features terra --no-default-features; fi
-
 run-script script chain:
   (cd scripts && cargo run --bin {{script}} -- --network-id {{chain}})
 
 full-deploy chain:
-  (cd scripts && cargo run --bin full_deploy -- --network-id {{chain}})
+  just run-script full_deploy {{chain}}
 
 publish-schemas version:
   SCHEMA_OUT_DIR=$(cd ../schemas && echo "$PWD") \

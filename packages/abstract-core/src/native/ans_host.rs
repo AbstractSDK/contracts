@@ -261,7 +261,6 @@ pub struct MigrateMsg {}
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     pub next_unique_pool_id: UniquePoolId,
-    pub admin: Addr,
 }
 /// Query response
 #[cosmwasm_schema::cw_serde]
@@ -292,13 +291,13 @@ pub struct AssetInfoListResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct ContractsResponse {
     /// Contracts (name, address)
-    pub contracts: Vec<(ContractEntry, String)>,
+    pub contracts: Vec<ContractMapEntry>,
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct ContractListResponse {
     /// Contracts (name, address)
-    pub contracts: Vec<(ContractEntry, String)>,
+    pub contracts: Vec<ContractMapEntry>,
 }
 
 #[cosmwasm_schema::cw_serde]

@@ -1,3 +1,4 @@
+use crate::validation::DANGEROUS_CHARS;
 use abstract_core::AbstractError;
 use abstract_sdk::core::objects::module::ModuleInfo;
 use abstract_sdk::AbstractSdkError;
@@ -34,11 +35,14 @@ pub enum ManagerError {
     #[error("Registering module fails because caller is not module factory")]
     CallerNotFactory {},
 
-    #[error("A migratemsg is required when when migrating this module")]
+    #[error("A migrate msg is required when when migrating this module")]
     MsgRequired {},
 
     #[error("{0} not upgradable")]
     NotUpgradeable(ModuleInfo),
+
+    #[error("Cannot migrate {} twice", module_id)]
+    DuplicateModuleMigration { module_id: String },
 
     #[error("Your account is currently suspended")]
     AccountSuspended {},
@@ -69,17 +73,38 @@ pub enum ManagerError {
     #[error("description too long, must be at most {0} characters")]
     DescriptionInvalidLong(usize),
 
+    #[error(
+        "description contains dangerous characters, including one of {:?}",
+        DANGEROUS_CHARS
+    )]
+    DescriptionContainsDangerousCharacters {},
+
     #[error("link too short, must be at least {0} characters")]
     LinkInvalidShort(usize),
 
     #[error("link too long, must be at most {0} characters")]
     LinkInvalidLong(usize),
 
+    #[error("link must start with http:// or https://")]
+    LinkInvalidFormat {},
+
+    #[error(
+        "link contains dangerous characters, including one of {:?}",
+        DANGEROUS_CHARS
+    )]
+    LinkContainsDangerousCharacters {},
+
     #[error("title/gov-type too short, must be at least {0} characters")]
     TitleInvalidShort(usize),
 
     #[error("title/gov-type too long, must be at most {0} characters")]
     TitleInvalidLong(usize),
+
+    #[error(
+        "title/gov-type contains dangerous characters, including one of {:?}",
+        DANGEROUS_CHARS
+    )]
+    TitleContainsDangerousCharacters {},
 
     #[error("Cannot remove proxy")]
     CannotRemoveProxy {},
