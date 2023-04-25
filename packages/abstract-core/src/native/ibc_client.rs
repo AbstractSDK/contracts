@@ -234,12 +234,12 @@ mod tests {
         let expected = AccountInfo {
             channel_id: channel_id.clone(),
             account_id: TEST_ACCOUNT_ID,
-            last_update_time: input.clone().last_update_time,
+            last_update_time: input.last_update_time,
             remote_addr: input.clone().remote_addr,
             remote_balance: input.clone().remote_balance,
         };
 
-        let actual = AccountInfo::convert(channel_id.clone(), TEST_ACCOUNT_ID, input.clone());
+        let actual = AccountInfo::convert(channel_id, TEST_ACCOUNT_ID, input);
 
         assert_that!(actual).is_equal_to(expected);
     }
@@ -249,12 +249,12 @@ mod tests {
         let input = AccountData::default();
 
         let expected = AccountResponse {
-            last_update_time: input.clone().last_update_time,
+            last_update_time: input.last_update_time,
             remote_addr: input.clone().remote_addr,
             remote_balance: input.clone().remote_balance,
         };
 
-        let actual = AccountResponse::from(input.clone());
+        let actual = AccountResponse::from(input);
 
         assert_that!(actual).is_equal_to(expected);
     }
@@ -264,23 +264,23 @@ mod tests {
         let receiver = "receiver".to_string();
         let callback_id = "15".to_string();
         let callback_info = CallbackInfo {
-            id: callback_id.clone(),
-            receiver: receiver.clone(),
+            id: callback_id,
+            receiver: receiver,
         };
         let ack_data = &to_binary(&StdAck::Result(to_binary(&true).unwrap())).unwrap();
 
         let actual = callback_info.to_callback_msg(&ack_data.clone()).unwrap();
 
-        let funds: Vec<Coin> = vec![];
+        let _funds: Vec<Coin> = vec![];
 
         assert_that!(actual).matches(|e| {
             matches!(
                 e,
                 CosmosMsg::Wasm(cosmwasm_std::WasmMsg::Execute {
-                    contract_addr: receiver,
+                    contract_addr: _receiver,
                     // we can't test the message because the fields in it are private
                     msg: _,
-                    funds
+                    funds: _
                 })
             )
         });

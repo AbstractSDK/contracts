@@ -222,12 +222,12 @@ mod test {
         assert_that!(entry.src_chain())
             .is_err()
             .is_equal_to(AbstractError::EntryFormattingError {
-                actual: input.to_ascii_lowercase().to_string(),
+                actual: input.to_ascii_lowercase(),
                 expected: "src_chain>asset_name".to_string(),
             });
         assert_that!(entry.asset_name()).is_err().is_equal_to(
             AbstractError::EntryFormattingError {
-                actual: input.to_ascii_lowercase().to_string(),
+                actual: input.to_ascii_lowercase(),
                 expected: "src_chain>asset_name".to_string(),
             },
         );
