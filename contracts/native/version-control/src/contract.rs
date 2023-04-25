@@ -63,7 +63,7 @@ pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: Instantiate
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> VCResult {
     match msg {
-        ExecuteMsg::AddModules { modules } => add_modules(deps, info, modules),
+        ExecuteMsg::ProposeModules { modules } => propose_modules(deps, info, modules),
         ExecuteMsg::ApproveOrRejectModules { approves, rejects } => {
             approve_or_reject_modules(deps, info, approves, rejects)
         }
@@ -97,13 +97,8 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::Modules { infos } => queries::handle_modules_query(deps, infos),
         QueryMsg::Namespaces { accounts } => queries::handle_namespaces_query(deps, accounts),
         QueryMsg::Config {} => {
-            let cw_ownable::Ownership { owner, .. } = cw_ownable::get_ownership(deps.storage)?;
-
             let factory = FACTORY.get(deps)?.unwrap();
-            to_binary(&ConfigResponse {
-                admin: owner.unwrap(),
-                factory,
-            })
+            to_binary(&ConfigResponse { factory })
         }
         QueryMsg::ModuleList {
             filter,

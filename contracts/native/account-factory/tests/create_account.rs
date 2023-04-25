@@ -25,7 +25,6 @@ fn instantiate() -> AResult {
     let factory = deployment.account_factory;
     let factory_config = factory.config()?;
     let expected = account_factory::ConfigResponse {
-        owner: sender,
         ans_host_contract: deployment.ans_host.address()?,
         version_control_contract: deployment.version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
@@ -51,7 +50,7 @@ fn create_one_os() -> AResult {
         },
         String::from("first_os"),
         Some(String::from("account_description")),
-        Some(String::from("account_link_of_at_least_11_char")),
+        Some(String::from("https://account_link_of_at_least_11_char")),
     )?;
 
     let manager = account_creation.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
@@ -59,7 +58,6 @@ fn create_one_os() -> AResult {
 
     let factory_config = factory.config()?;
     let expected = account_factory::ConfigResponse {
-        owner: sender.clone(),
         ans_host_contract: deployment.ans_host.address()?,
         version_control_contract: deployment.version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
@@ -70,7 +68,6 @@ fn create_one_os() -> AResult {
 
     let vc_config = version_control.config()?;
     let expected = abstract_core::version_control::ConfigResponse {
-        admin: sender,
         factory: factory.address()?,
     };
 
@@ -102,7 +99,7 @@ fn create_two_account_s() -> AResult {
         },
         String::from("first_os"),
         Some(String::from("account_description")),
-        Some(String::from("account_link_of_at_least_11_char")),
+        Some(String::from("https://account_link_of_at_least_11_char")),
     )?;
     // second account
     let account_2 = factory.create_account(
@@ -111,7 +108,7 @@ fn create_two_account_s() -> AResult {
         },
         String::from("second_os"),
         Some(String::from("account_description")),
-        Some(String::from("account_link_of_at_least_11_char")),
+        Some(String::from("https://account_link_of_at_least_11_char")),
     )?;
 
     let manager1 = account_1.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
@@ -122,7 +119,6 @@ fn create_two_account_s() -> AResult {
 
     let factory_config = factory.config()?;
     let expected = account_factory::ConfigResponse {
-        owner: sender.clone(),
         ans_host_contract: deployment.ans_host.address()?,
         version_control_contract: deployment.version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
@@ -133,7 +129,6 @@ fn create_two_account_s() -> AResult {
 
     let vc_config = version_control.config()?;
     let expected = abstract_core::version_control::ConfigResponse {
-        admin: sender,
         factory: factory.address()?,
     };
 
@@ -169,7 +164,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
         },
         String::from("first_os"),
         Some(String::from("account_description")),
-        Some(String::from("account_link_of_at_least_11_char")),
+        Some(String::from("https://account_link_of_at_least_11_char")),
     )?;
 
     let manager = account_creation.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
@@ -193,7 +188,6 @@ fn sender_is_not_admin_monarchy() -> AResult {
     let account_config = account_1.manager.config()?;
 
     assert_that!(account_config).is_equal_to(abstract_core::manager::ConfigResponse {
-        owner: owner.into_string(),
         account_id: Uint64::from(0u64),
         version_control_address: version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
@@ -219,14 +213,13 @@ fn sender_is_not_admin_external() -> AResult {
         },
         String::from("first_os"),
         Some(String::from("account_description")),
-        Some(String::from("account_link_of_at_least_11_char")),
+        Some(String::from("http://account_link_of_at_least_11_char")),
     )?;
 
     let account = AbstractAccount::new(chain, Some(0));
     let account_config = account.manager.config()?;
 
     assert_that!(account_config).is_equal_to(abstract_core::manager::ConfigResponse {
-        owner: owner.into_string(),
         account_id: Uint64::from(0u64),
         is_suspended: false,
         version_control_address: version_control.address()?,
