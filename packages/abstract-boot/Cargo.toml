@@ -7,7 +7,7 @@ description = "Abstract deployment helpers with BOOT"
 
 [features]
 default = ["integration"]
-daemon = ["boot-core/daemon"]
+daemon = ["cw-orc/daemon"]
 integration = [
   "dep:ans-host",
   "dep:module-factory",
@@ -30,7 +30,7 @@ cw2 = { workspace = true }
 cw-asset = { workspace = true }
 abstract-core = { workspace = true, features = ["boot"] }
 
-boot-core = { workspace = true }
+cw-orc = { workspace = true }
 tokio = { workspace = true }
 log = "0.4.14"
 serde_json = "1.0.79"

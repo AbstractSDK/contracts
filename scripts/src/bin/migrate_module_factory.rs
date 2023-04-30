@@ -1,10 +1,10 @@
 use abstract_boot::{ModuleFactory, VersionControl};
 use abstract_core::{MODULE_FACTORY, VERSION_CONTROL};
-use boot_core::{
+use clap::Parser;
+use cw_orc::{
     networks::{parse_network, NetworkInfo},
     *,
 };
-use clap::Parser;
 use semver::Version;
 use std::sync::Arc;
 use tokio::runtime::Runtime;

@@ -16,10 +16,10 @@ mod proxy;
 use std::collections::HashSet;
 
 use abstract_core::{manager::ManagerModuleInfo, objects::AccountId};
-use boot_core::{
+use cosmwasm_std::Addr;
+use cw_orc::{
     CwEnv, {BootUpload, ContractInstance},
 };
-use cosmwasm_std::Addr;
 use serde::Serialize;
 use speculoos::prelude::*;
 

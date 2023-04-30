@@ -6,12 +6,12 @@ use abstract_core::manager::ManagerModuleInfo;
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion};
 use abstract_core::{api::BaseQueryMsgFns, *};
 use abstract_testing::prelude::{OWNER, TEST_MODULE_ID, TEST_VERSION};
-use boot_core::{
-    BootError, Mock, TxHandler, {instantiate_default_mock_env, CallAs, ContractInstance},
-};
-use boot_core::{BootExecute, Deploy};
 use common::{create_default_account, init_mock_api, AResult, TEST_COIN};
 use cosmwasm_std::{Addr, Coin, Empty};
+use cw_orc::{
+    BootError, Mock, TxHandler, {instantiate_default_mock_env, CallAs, ContractInstance},
+};
+use cw_orc::{BootExecute, Deploy};
 // use cw_multi_test::StakingInfo;
 use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};
 

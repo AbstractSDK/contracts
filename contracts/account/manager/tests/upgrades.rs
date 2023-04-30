@@ -11,10 +11,10 @@ use abstract_core::{
 use abstract_manager::error::ManagerError;
 use abstract_testing::addresses::TEST_NAMESPACE;
 use abstract_testing::prelude::TEST_VERSION;
-use boot_core::{instantiate_default_mock_env, Addr, ContractInstance, Deploy, Empty, Mock};
 use common::mock_modules::*;
 use common::{create_default_account, AResult};
 use cosmwasm_std::to_binary;
+use cw_orc::{instantiate_default_mock_env, Addr, ContractInstance, Deploy, Empty, Mock};
 use speculoos::prelude::*;
 
 fn install_module_version(

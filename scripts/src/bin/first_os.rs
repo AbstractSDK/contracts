@@ -1,6 +1,6 @@
 use abstract_boot::Abstract;
 use abstract_core::objects::gov_type::GovernanceDetails;
-use boot_core::{
+use cw_orc::{
     networks::{ChainInfo, NetworkInfo, NetworkKind},
     *,
 };

@@ -3,9 +3,9 @@ use abstract_boot::*;
 use abstract_core::{manager::ManagerModuleInfo, PROXY};
 use abstract_manager::contract::CONTRACT_VERSION;
 use abstract_testing::prelude::TEST_VERSION;
-use boot_core::{instantiate_default_mock_env, ContractInstance, Deploy};
 use common::{create_default_account, AResult, TEST_COIN};
 use cosmwasm_std::{Addr, Coin, CosmosMsg};
+use cw_orc::{instantiate_default_mock_env, ContractInstance, Deploy};
 use speculoos::prelude::*;
 
 #[test]

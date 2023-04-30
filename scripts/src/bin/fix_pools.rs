@@ -1,14 +1,14 @@
 use abstract_boot::Abstract;
 
-use boot_core::{networks::NetworkInfo, *};
+use cw_orc::{networks::NetworkInfo, *};
 
 use abstract_core::ans_host::{
     AssetPairingFilter, ExecuteMsg, PoolAddressListResponse, PoolMetadataListResponse, QueryMsgFns,
 };
 use abstract_core::objects::pool_id::UncheckedPoolAddress;
 
-use boot_core::networks::juno::JUNO_CHAIN;
-use boot_core::networks::NetworkKind;
+use cw_orc::networks::juno::JUNO_CHAIN;
+use cw_orc::networks::NetworkKind;
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 

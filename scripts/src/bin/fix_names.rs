@@ -3,7 +3,7 @@ use abstract_core::{
     objects::module::{Module, ModuleInfo},
     version_control::{ModulesListResponse, QueryMsgFns},
 };
-use boot_core::{
+use cw_orc::{
     networks::{terra::PISCO_1, NetworkInfo},
     *,
 };

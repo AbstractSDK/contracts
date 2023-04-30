@@ -1,8 +1,8 @@
 use abstract_core::abstract_token::*;
-use boot_core::{
+use cosmwasm_std::{Addr, Binary, Uint128};
+use cw_orc::{
     contract, Contract, CwEnv, TxResponse, {BootExecute, BootInstantiate, ContractInstance},
 };
-use cosmwasm_std::{Addr, Binary, Uint128};
 
 #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Idea<Chain>;

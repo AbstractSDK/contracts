@@ -1,10 +1,10 @@
 use abstract_core::ibc_client::*;
-use boot_core::{Contract, CwEnv};
+use cw_orc::{Contract, CwEnv};
 
 pub use abstract_core::ibc_client::{
     ExecuteMsgFns as IbcClientExecFns, QueryMsgFns as IbcClientQueryFns,
 };
-use boot_core::contract;
+use cw_orc::contract;
 
 #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct IbcClient<Chain>;

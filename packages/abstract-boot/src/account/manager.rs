@@ -4,8 +4,8 @@ use abstract_core::{
     manager::*,
     objects::module::{ModuleInfo, ModuleVersion},
 };
-use boot_core::{contract, BootExecute, Contract, CwEnv};
 use cosmwasm_std::{to_binary, Empty};
+use cw_orc::{contract, BootExecute, Contract, CwEnv};
 use serde::Serialize;
 
 #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]

@@ -1,13 +1,13 @@
 use abstract_boot::Abstract;
 use abstract_core::objects::gov_type::GovernanceDetails;
 
-use boot_core::networks::juno::JUNO_CHAIN;
-use boot_core::networks::NetworkKind;
-use boot_core::{
+use clap::Parser;
+use cw_orc::networks::juno::JUNO_CHAIN;
+use cw_orc::networks::NetworkKind;
+use cw_orc::{
     networks::{parse_network, NetworkInfo},
     *,
 };
-use clap::Parser;
 use semver::Version;
 use std::sync::Arc;
 use tokio::runtime::Runtime;

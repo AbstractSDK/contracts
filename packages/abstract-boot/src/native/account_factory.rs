@@ -5,10 +5,10 @@ pub use abstract_core::account_factory::{
 use abstract_core::{
     account_factory::*, objects::gov_type::GovernanceDetails, ABSTRACT_EVENT_NAME, MANAGER, PROXY,
 };
-use boot_core::{
+use cosmwasm_std::Addr;
+use cw_orc::{
     contract, Contract, CwEnv, IndexResponse, StateInterface, {BootExecute, ContractInstance},
 };
-use cosmwasm_std::Addr;
 
 /// A helper struct that contains fields from [`abstract_core::manager::state::AccountInfo`]
 #[derive(Default)]

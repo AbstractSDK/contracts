@@ -16,7 +16,7 @@ cw-asset = { workspace = true }
 cw2 = { workspace = true }
 cw20 = { workspace = true }
 cw20-base = { workspace = true }
-boot-core = { workspace = true, features = ["daemon"] }
+cw-orc = { workspace = true, features = ["daemon"] }
 abstract-core = { workspace = true, features = ["boot"] }
 
 abstract-boot = { workspace = true, features = ["daemon"] }

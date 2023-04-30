@@ -3,7 +3,7 @@ use crate::{
     AccountFactory, AnsHost, Manager, ModuleFactory, Proxy, VersionControl,
 };
 
-use boot_core::*;
+use cw_orc::*;
 
 pub struct Abstract<Chain: CwEnv> {
     pub ans_host: AnsHost<Chain>,
@@ -15,9 +15,9 @@ pub struct Abstract<Chain: CwEnv> {
 
 use abstract_core::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY, VERSION_CONTROL};
 #[cfg(feature = "integration")]
-use boot_core::ContractWrapper;
+use cw_orc::ContractWrapper;
 
-impl<Chain: CwEnv> boot_core::Deploy<Chain> for Abstract<Chain> {
+impl<Chain: CwEnv> cw_orc::Deploy<Chain> for Abstract<Chain> {
     // We don't have a custom error type
     type Error = AbstractBootError;
     type DeployData = semver::Version;
@@ -51,7 +51,7 @@ impl<Chain: CwEnv> boot_core::Deploy<Chain> for Abstract<Chain> {
             ));
 
             module_factory.as_instance_mut().set_mock(Box::new(
-                boot_core::ContractWrapper::new_with_empty(
+                cw_orc::ContractWrapper::new_with_empty(
                     ::module_factory::contract::execute,
                     ::module_factory::contract::instantiate,
                     ::module_factory::contract::query,
@@ -61,7 +61,7 @@ impl<Chain: CwEnv> boot_core::Deploy<Chain> for Abstract<Chain> {
             ));
 
             version_control.as_instance_mut().set_mock(Box::new(
-                boot_core::ContractWrapper::new_with_empty(
+                cw_orc::ContractWrapper::new_with_empty(
                     ::version_control::contract::execute,
                     ::version_control::contract::instantiate,
                     ::version_control::contract::query,
@@ -70,7 +70,7 @@ impl<Chain: CwEnv> boot_core::Deploy<Chain> for Abstract<Chain> {
             ));
 
             manager.as_instance_mut().set_mock(Box::new(
-                boot_core::ContractWrapper::new_with_empty(
+                cw_orc::ContractWrapper::new_with_empty(
                     ::manager::contract::execute,
                     ::manager::contract::instantiate,
                     ::manager::contract::query,
@@ -79,7 +79,7 @@ impl<Chain: CwEnv> boot_core::Deploy<Chain> for Abstract<Chain> {
             ));
 
             proxy.as_instance_mut().set_mock(Box::new(
-                boot_core::ContractWrapper::new_with_empty(
+                cw_orc::ContractWrapper::new_with_empty(
                     ::proxy::contract::execute,
                     ::proxy::contract::instantiate,
                     ::proxy::contract::query,

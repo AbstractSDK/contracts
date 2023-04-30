@@ -1,8 +1,8 @@
 use abstract_boot::*;
 use abstract_core::{module_factory, objects::module::ModuleInfo};
 use abstract_testing::prelude::{TEST_ADMIN, TEST_VERSION};
-use boot_core::{instantiate_default_mock_env, ContractInstance, Deploy};
 use cosmwasm_std::Addr;
+use cw_orc::{instantiate_default_mock_env, ContractInstance, Deploy};
 use speculoos::prelude::*;
 
 type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>

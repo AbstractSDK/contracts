@@ -5,11 +5,11 @@ use abstract_core::{
     },
     ANS_HOST,
 };
-use boot_core::{
-    BootError, Contract, CwEnv, IndexResponse, TxResponse, {contract, ContractInstance},
-};
 use cosmwasm_std::Addr;
 use cw_asset::AssetInfoUnchecked;
+use cw_orc::{
+    BootError, Contract, CwEnv, IndexResponse, TxResponse, {contract, ContractInstance},
+};
 use log::info;
 use serde_json::from_reader;
 use std::{cmp::min, collections::HashSet, env, fs::File};
@@ -34,7 +34,7 @@ where
 
 /// Implementation for the daemon, which maintains actual state
 #[cfg(feature = "daemon")]
-use boot_core::Daemon;
+use cw_orc::Daemon;
 
 #[cfg(feature = "daemon")]
 impl AnsHost<Daemon> {

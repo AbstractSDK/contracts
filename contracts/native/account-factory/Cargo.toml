@@ -36,7 +36,7 @@ cw-ownable = { workspace = true }
 
 [dev-dependencies]
 abstract-boot = { workspace = true }
-boot-core = { workspace = true }
+cw-orc = { workspace = true }
 anyhow = { workspace = true }
 module-factory = { workspace = true }
 ans-host = { workspace = true }

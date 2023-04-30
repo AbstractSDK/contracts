@@ -6,11 +6,11 @@ use abstract_core::{
     account_factory, objects::gov_type::GovernanceDetails, version_control::AccountBase,
     ABSTRACT_EVENT_NAME,
 };
-use boot_core::{
-    Deploy, IndexResponse, {instantiate_default_mock_env, ContractInstance},
-};
 use common::TEST_VERSION;
 use cosmwasm_std::{Addr, Uint64};
+use cw_orc::{
+    Deploy, IndexResponse, {instantiate_default_mock_env, ContractInstance},
+};
 use speculoos::prelude::*;
 
 type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>

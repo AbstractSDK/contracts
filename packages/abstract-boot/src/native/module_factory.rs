@@ -1,12 +1,12 @@
 use abstract_core::module_factory::*;
 
 // use crate::api::get_api_init_msgs;
-use boot_core::{Contract, CwEnv, TxResponse};
+use cw_orc::{Contract, CwEnv, TxResponse};
 
 pub use abstract_core::module_factory::{
     ExecuteMsgFns as MFactoryExecFns, QueryMsgFns as MFactoryQueryFns,
 };
-use boot_core::{contract, BootExecute};
+use cw_orc::{contract, BootExecute};
 
 #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct ModuleFactory<Chain>;

@@ -2,7 +2,7 @@ use abstract_boot::{AbstractAccount, AccountFactory, AccountFactoryQueryFns, Ver
 use abstract_core::{
     account_factory, manager, proxy, ACCOUNT_FACTORY, MANAGER, PROXY, VERSION_CONTROL,
 };
-use boot_core::{
+use cw_orc::{
     networks::{parse_network, NetworkInfo},
     *,
 };
