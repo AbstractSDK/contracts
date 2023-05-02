@@ -36,7 +36,7 @@ use abstract_core::manager::InternalConfigAction;
 use abstract_sdk::cw_helpers::cosmwasm_std::AbstractAttributes;
 use cosmwasm_std::{
     ensure, from_binary, to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty,
-    Env, MessageInfo, Response, StdResult, Storage, WasmMsg,
+    Env, MessageInfo, Response, StdError, StdResult, Storage, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
 use cw_storage_plus::Item;
@@ -712,6 +712,9 @@ pub fn update_internal_config(deps: DepsMut, info: MessageInfo, config: Binary) 
                 .or_else(|_| cw_ownable::assert_owner(deps.storage, &info.sender))?;
             update_module_addresses(deps, to_add, to_remove)
         }
+        _ => Err(ManagerError::InvalidConfigAction {
+            error: StdError::generic_err("Unknown config action"),
+        }),
     }
 }
 
