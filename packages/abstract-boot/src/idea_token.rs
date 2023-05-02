@@ -1,23 +1,16 @@
 use abstract_core::abstract_token::*;
-use boot_core::{
-    contract, Contract, CwEnv, TxResponse, {BootExecute, BootInstantiate, ContractInstance},
-};
 use cosmwasm_std::{Addr, Binary, Uint128};
+use cw_orch::{
+    contract, Contract, CwEnv, TxResponse, {ContractInstance, CwOrcExecute, CwOrcInstantiate},
+};
 
 #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+#[cfg_attr(feature = "daemon", daemon_source("abstract_abstract_token"))]
 pub struct Idea<Chain>;
 
 impl<Chain: CwEnv> Idea<Chain> {
     pub fn new(name: &str, chain: Chain) -> Self {
-        Self(
-            Contract::new(name, chain).with_wasm_path("abstract_abstract_token"), // .with_mock(Box::new(
-                                                                                  //     ContractWrapper::new_with_empty(
-                                                                                  //         ::contract::execute,
-                                                                                  //         ::contract::instantiate,
-                                                                                  //         ::contract::query,
-                                                                                  //     ),
-                                                                                  // ))
-        )
+        Self(Contract::new(name, chain))
     }
     pub fn send(
         &self,

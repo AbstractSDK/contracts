@@ -1,36 +1,39 @@
 use abstract_boot::Abstract;
 use abstract_core::objects::gov_type::GovernanceDetails;
 
-use boot_core::networks::juno::JUNO_CHAIN;
-use boot_core::networks::NetworkKind;
-use boot_core::{
+use clap::Parser;
+use cw_orch::networks::juno::JUNO_NETWORK;
+use cw_orch::networks::{ChainInfo, ChainKind};
+use cw_orch::{
     networks::{parse_network, NetworkInfo},
     *,
 };
-use clap::Parser;
 use semver::Version;
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub const JUNO_1: NetworkInfo = NetworkInfo {
-    kind: NetworkKind::Mainnet,
-    id: "juno-1",
+pub const JUNO_1: ChainInfo = ChainInfo {
+    kind: ChainKind::Mainnet,
+    chain_id: "juno-1",
     gas_denom: "ujuno",
     gas_price: 0.0025,
     grpc_urls: &["http://juno-grpc.polkachu.com:12690"],
-    chain_info: JUNO_CHAIN,
+    chain_info: JUNO_NETWORK,
     lcd_url: None,
     fcd_url: None,
 };
 
-fn full_deploy(_network: NetworkInfo) -> anyhow::Result<()> {
+fn full_deploy(_network: ChainInfo) -> anyhow::Result<()> {
     let abstract_version: Version = ABSTRACT_VERSION.parse().unwrap();
 
     let rt = Arc::new(Runtime::new()?);
-    let options = DaemonOptionsBuilder::default().network(JUNO_1).build();
-    let (sender, chain) = instantiate_daemon_env(&rt, options?)?;
+    let chain = DaemonBuilder::default()
+        .handle(rt.handle())
+        .chain(JUNO_1)
+        .build()?;
+    let sender = chain.sender();
     let deployment = Abstract::deploy_on(chain, abstract_version)?;
 
     // CReate the Abstract Account because it's needed for the fees for the dex module

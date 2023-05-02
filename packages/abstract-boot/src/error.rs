@@ -1,6 +1,6 @@
 use abstract_core::AbstractError;
-use boot_core::BootError;
 use cosmwasm_std::StdError;
+use cw_orch::CwOrcError;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -9,7 +9,7 @@ pub enum AbstractBootError {
     Abstract(#[from] AbstractError),
 
     #[error(transparent)]
-    Boot(#[from] BootError),
+    Orch(#[from] CwOrcError),
 
     #[error("JSON Conversion Error")]
     SerdeJson(#[from] ::serde_json::Error),
@@ -21,7 +21,7 @@ pub enum AbstractBootError {
 impl AbstractBootError {
     pub fn root(&self) -> &dyn std::error::Error {
         match self {
-            AbstractBootError::Boot(e) => e.root(),
+            AbstractBootError::Orch(e) => e.root(),
             _ => panic!("Unexpected error type"),
         }
     }

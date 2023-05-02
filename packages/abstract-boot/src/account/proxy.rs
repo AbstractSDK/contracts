@@ -5,16 +5,30 @@ use abstract_core::{
     proxy::*,
     MANAGER, PROXY,
 };
-use boot_core::{contract, Contract, ContractInstance, CwEnv};
+
+use cw_orch::{contract, ContractInstance, CwEnv};
 
 #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+#[cfg_attr(feature = "daemon", daemon_source("abstract_proxy"))]
 pub struct Proxy<Chain>;
+
+#[cfg(feature = "integration")]
+impl ::cw_orch::Uploadable<::cw_orch::Mock> for Proxy<::cw_orch::Mock> {
+    fn source(&self) -> <::cw_orch::Mock as ::cw_orch::TxHandler>::ContractSource {
+        Box::new(
+            cw_orch::ContractWrapper::new_with_empty(
+                ::proxy::contract::execute,
+                ::proxy::contract::instantiate,
+                ::proxy::contract::query,
+            )
+            .with_migrate(::proxy::contract::migrate),
+        )
+    }
+}
 
 impl<Chain: CwEnv> Proxy<Chain> {
     pub fn new(name: &str, chain: Chain) -> Self {
-        let mut contract = Contract::new(name, chain);
-        contract = contract.with_wasm_path("abstract_proxy");
-        Self(contract)
+        Self(cw_orch::Contract::new(name, chain))
     }
 
     pub fn set_proxy_asset(
@@ -56,7 +70,7 @@ impl<Chain: CwEnv> Proxy<Chain> {
 
     //             return Ok(());
     //         }
-    //         None => return Err(BootError::StdErr("network not found".into())),
+    //         None => return Err(CwOrcError::StdErr("network not found".into())),
     //     }
     // }
 

@@ -5,10 +5,10 @@ pub use abstract_core::account_factory::{
 use abstract_core::{
     account_factory::*, objects::gov_type::GovernanceDetails, ABSTRACT_EVENT_NAME, MANAGER, PROXY,
 };
-use boot_core::{
-    contract, Contract, CwEnv, IndexResponse, StateInterface, {BootExecute, ContractInstance},
-};
 use cosmwasm_std::Addr;
+use cw_orch::{
+    contract, Contract, CwEnv, IndexResponse, StateInterface, {ContractInstance, CwOrcExecute},
+};
 
 /// A helper struct that contains fields from [`abstract_core::manager::state::AccountInfo`]
 #[derive(Default)]
@@ -19,13 +19,27 @@ pub struct AccountDetails {
 }
 
 #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+#[cfg_attr(feature = "daemon", daemon_source("abstract_account_factory"))]
 pub struct AccountFactory<Chain>;
+
+#[cfg(feature = "integration")]
+impl ::cw_orch::Uploadable<::cw_orch::Mock> for AccountFactory<::cw_orch::Mock> {
+    fn source(&self) -> <::cw_orch::Mock as ::cw_orch::TxHandler>::ContractSource {
+        Box::new(
+            cw_orch::ContractWrapper::new_with_empty(
+                ::account_factory::contract::execute,
+                ::account_factory::contract::instantiate,
+                ::account_factory::contract::query,
+            )
+            .with_reply_empty(::account_factory::contract::reply)
+            .with_migrate(::account_factory::contract::migrate),
+        )
+    }
+}
 
 impl<Chain: CwEnv> AccountFactory<Chain> {
     pub fn new(name: &str, chain: Chain) -> Self {
-        let mut contract = Contract::new(name, chain);
-        contract = contract.with_wasm_path("abstract_account_factory");
-        Self(contract)
+        Self(Contract::new(name, chain))
     }
     /// Creates a local account
     pub fn create_new_account(

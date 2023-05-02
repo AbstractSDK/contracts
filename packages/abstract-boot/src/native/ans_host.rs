@@ -5,11 +5,11 @@ use abstract_core::{
     },
     ANS_HOST,
 };
-use boot_core::{
-    BootError, Contract, CwEnv, IndexResponse, TxResponse, {contract, ContractInstance},
-};
 use cosmwasm_std::Addr;
 use cw_asset::AssetInfoUnchecked;
+use cw_orch::{
+    Contract, CwEnv, CwOrcError, IndexResponse, TxResponse, {contract, ContractInstance},
+};
 use log::info;
 use serde_json::from_reader;
 use std::{cmp::min, collections::HashSet, env, fs::File};
@@ -17,14 +17,26 @@ use std::{cmp::min, collections::HashSet, env, fs::File};
 #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct AnsHost<Chain>;
 
+#[cfg(feature = "integration")]
+impl ::cw_orch::Uploadable<::cw_orch::Mock> for AnsHost<::cw_orch::Mock> {
+    fn source(&self) -> <::cw_orch::Mock as ::cw_orch::TxHandler>::ContractSource {
+        Box::new(
+            cw_orch::ContractWrapper::new_with_empty(
+                ::ans_host::contract::execute,
+                ::ans_host::contract::instantiate,
+                ::ans_host::contract::query,
+            )
+            .with_migrate(::ans_host::contract::migrate),
+        )
+    }
+}
+
 impl<Chain: CwEnv> AnsHost<Chain>
 where
     TxResponse<Chain>: IndexResponse,
 {
     pub fn new(name: &str, chain: Chain) -> Self {
-        let mut contract = Contract::new(name, chain);
-        contract = contract.with_wasm_path("abstract_ans_host");
-        Self(contract)
+        Self(Contract::new(name, chain))
     }
 
     pub fn load(chain: Chain, address: &Addr) -> Self {
@@ -34,7 +46,7 @@ where
 
 /// Implementation for the daemon, which maintains actual state
 #[cfg(feature = "daemon")]
-use boot_core::Daemon;
+use cw_orch::Daemon;
 
 #[cfg(feature = "daemon")]
 impl AnsHost<Daemon> {
@@ -50,14 +62,14 @@ impl AnsHost<Daemon> {
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
-        let chain_id = self.get_chain().state.chain.chain_id.clone();
+        let chain_id = self.get_chain().state.chain_id.clone();
         info!("{}", chain_id);
-        let network_id = self.get_chain().state.id.clone();
+        let network_id = self.get_chain().state.chain.network_id.clone();
         let maybe_assets = json
             .get(chain_id)
             .unwrap()
             .get(network_id)
-            .ok_or_else(|| BootError::StdErr("network not found".into()))?;
+            .ok_or_else(|| CwOrcError::StdErr("network not found".into()))?;
 
         /*
 
@@ -101,13 +113,13 @@ impl AnsHost<Daemon> {
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
-        let chain_id = self.get_chain().state.chain.chain_id.clone();
-        let network_id = self.get_chain().state.id.clone();
+        let chain_id = self.get_chain().state.chain_id.clone();
+        let network_id = self.get_chain().state.chain.network_id.clone();
         let channels = json
             .get(chain_id)
             .unwrap()
             .get(network_id)
-            .ok_or_else(|| BootError::StdErr("network not found".into()))?;
+            .ok_or_else(|| CwOrcError::StdErr("network not found".into()))?;
 
         let channels = channels.as_object().unwrap();
         let channels_to_add: Vec<(UncheckedChannelEntry, String)> = channels
@@ -133,13 +145,13 @@ impl AnsHost<Daemon> {
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
-        let chain_id = self.get_chain().state.chain.chain_id.clone();
-        let network_id = self.0.get_chain().state.id.clone();
+        let chain_id = self.get_chain().state.chain_id.clone();
+        let network_id = self.0.get_chain().state.chain.network_id.clone();
         let contracts = json
             .get(chain_id)
             .unwrap()
             .get(network_id)
-            .ok_or_else(|| BootError::StdErr("network not found".into()))?;
+            .ok_or_else(|| CwOrcError::StdErr("network not found".into()))?;
 
         /*
           [
@@ -178,13 +190,13 @@ impl AnsHost<Daemon> {
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
-        let chain_id = self.get_chain().state.chain.chain_id.clone();
-        let network_id = self.0.get_chain().state.id.clone();
+        let chain_id = self.get_chain().state.chain_id.clone();
+        let network_id = self.0.get_chain().state.chain.network_id.clone();
         let pools = json
             .get(chain_id)
             .unwrap()
             .get(network_id)
-            .ok_or_else(|| BootError::StdErr("network not found".into()))?;
+            .ok_or_else(|| CwOrcError::StdErr("network not found".into()))?;
 
         let mut dexes_to_register: HashSet<String> = HashSet::new();
 

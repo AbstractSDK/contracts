@@ -1,6 +1,6 @@
 use crate::Abstract;
 use abstract_core::objects::module::ModuleVersion;
-use boot_core::{BootError::StdErr, CwEnv, Deploy, *};
+use cw_orch::{CwEnv, CwOrcError::StdErr, Load, *};
 
 use semver::Version;
 use serde::Serialize;
@@ -8,8 +8,8 @@ use serde::Serialize;
 /// Trait for deploying APIs
 pub trait ApiDeployer<Chain: CwEnv, CustomInitMsg: Serialize>:
     ContractInstance<Chain>
-    + BootInstantiate<Chain, InstantiateMsg = abstract_core::api::InstantiateMsg<CustomInitMsg>>
-    + BootUpload<Chain>
+    + CwOrcInstantiate<Chain, InstantiateMsg = abstract_core::api::InstantiateMsg<CustomInitMsg>>
+    + CwOrcUpload<Chain>
 {
     fn deploy(
         &mut self,
@@ -51,10 +51,10 @@ pub trait ApiDeployer<Chain: CwEnv, CustomInitMsg: Serialize>:
 }
 
 /// Trait for deploying APPs
-pub trait AppDeployer<Chain: CwEnv>: ContractInstance<Chain> + BootUpload<Chain> {
+pub trait AppDeployer<Chain: CwEnv>: ContractInstance<Chain> + CwOrcUpload<Chain> {
     fn deploy(&mut self, version: Version) -> Result<(), crate::AbstractBootError> {
         // retrieve the deployment
-        let abstr = Abstract::load_from(self.get_chain().clone())?;
+        let abstr = Abstract::<Chain>::load_from(self.get_chain().clone())?;
 
         // check for existing version
         let version_check = abstr

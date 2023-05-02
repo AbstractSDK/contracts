@@ -1,38 +1,31 @@
-use abstract_boot::{Abstract, VCExecFns, VCQueryFns};
+use abstract_boot::{Abstract, VCExecFns};
 use abstract_core::{
-    objects::module::{Module, ModuleInfo, ModuleVersion},
-    version_control::{ModuleFilter, ModulesListResponse},
+    objects::module::{Module, ModuleInfo},
+    version_control::{ModulesListResponse, QueryMsgFns},
 };
-use boot_core::{
-    networks::{NetworkInfo, UNI_6},
+use cw_orch::{
+    networks::{terra::PISCO_1, NetworkInfo},
     *,
 };
 
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 
-const NETWORK: NetworkInfo = UNI_6;
-const WRONG_VERSION: &str = "0.1.0-rc.3";
-const NEW_VERSION: &str = env!("CARGO_PKG_VERSION");
+const NETWORK: cw_orch::ChainInfo = PISCO_1;
 const NAMESPACE: &str = "abstract";
 
 /// Script that takes existing versions in Version control, removes them, and swaps them wit ha new version
-pub fn fix_versions() -> anyhow::Result<()> {
+pub fn fix_names() -> anyhow::Result<()> {
     let rt = Arc::new(Runtime::new()?);
-    let options = DaemonOptionsBuilder::default().network(NETWORK).build();
-    let (_sender, chain) = instantiate_daemon_env(&rt, options?)?;
+    let chain = DaemonBuilder::default()
+        .handle(rt.handle())
+        .chain(NETWORK)
+        .build()?;
 
     let deployment = Abstract::new(chain);
 
-    let ModulesListResponse { modules } = deployment.version_control.module_list(
-        Some(ModuleFilter {
-            namespace: Some(NAMESPACE.to_string()),
-            version: Some(WRONG_VERSION.to_string()),
-            ..Default::default()
-        }),
-        None,
-        None,
-    )?;
+    let ModulesListResponse { modules } =
+        deployment.version_control.module_list(None, None, None)?;
 
     for Module { info, reference } in modules {
         let ModuleInfo {
@@ -40,13 +33,13 @@ pub fn fix_versions() -> anyhow::Result<()> {
             name,
             namespace,
         } = info.clone();
-        if version.to_string() == *WRONG_VERSION && namespace == *NAMESPACE {
+        if namespace == NAMESPACE && name.to_string().contains('_') {
             deployment.version_control.remove_module(info)?;
             deployment.version_control.propose_modules(vec![(
                 ModuleInfo {
-                    name,
+                    name: name.replace('_', "-"),
                     namespace,
-                    version: ModuleVersion::from(NEW_VERSION),
+                    version,
                 },
                 reference,
             )])?;
@@ -62,7 +55,7 @@ fn main() {
 
     use dotenv::dotenv;
 
-    if let Err(ref err) = fix_versions() {
+    if let Err(ref err) = fix_names() {
         log::error!("{}", err);
         err.chain()
             .skip(1)

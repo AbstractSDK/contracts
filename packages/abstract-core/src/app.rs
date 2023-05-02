@@ -51,8 +51,8 @@ pub struct BaseInstantiateMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
-#[cfg_attr(feature = "boot", impl_into(ExecuteMsg<T>))]
+#[cfg_attr(feature = "boot", derive(cw_orch::ExecuteFns))]
+#[cfg_attr(feature = "boot", impl_into(ExecuteMsg < T >))]
 pub enum BaseExecuteMsg {
     /// Updates the base config
     UpdateConfig { ans_host_address: Option<String> },
@@ -66,7 +66,7 @@ impl<T> From<BaseExecuteMsg> for ExecuteMsg<T> {
 
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
-#[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
+#[cfg_attr(feature = "boot", derive(cw_orch::QueryFns))]
 #[cfg_attr(feature = "boot", impl_into(QueryMsg < ModuleMsg >))]
 pub enum BaseQueryMsg {
     /// Returns [`AppConfigResponse`]

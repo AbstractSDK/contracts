@@ -122,7 +122,7 @@ pub struct CallbackMsg {}
 /// Manager execute messages
 #[cw_ownable::cw_ownable_execute]
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
+#[cfg_attr(feature = "boot", derive(cw_orch::ExecuteFns))]
 pub enum ExecuteMsg {
     /// Forward execution message to module
     ExecOnModule { module_id: String, exec_msg: Binary },
@@ -169,7 +169,7 @@ pub enum ExecuteMsg {
 #[cw_ownable::cw_ownable_query]
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
-#[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
+#[cfg_attr(feature = "boot", derive(cw_orch::QueryFns))]
 pub enum QueryMsg {
     /// Query the versions of modules installed on the account given their `ids`.
     /// Returns [`ModuleVersionsResponse`]

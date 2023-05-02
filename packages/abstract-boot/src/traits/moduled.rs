@@ -1,7 +1,7 @@
 // use abstract_core::objects::module::{ModuleInfo, ModuleVersion};
 // use abstract_core::objects::module_reference::ModuleReference;
-// use boot_core::interface::{ContractInstance, CwInterface};
-// use boot_core::{BootEnvironment, Contract};
+// use cw_orch::interface::{ContractInstance, CwInterface};
+// use cw_orch::{BootEnvironment, Contract};
 
 pub trait IntoModule<Chain> {
     // fn latest<RefFn>(&self, ref_fn: RefFn) -> (ModuleInfo, ModuleReference)

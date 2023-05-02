@@ -16,10 +16,10 @@ mod proxy;
 use std::collections::HashSet;
 
 use abstract_core::{manager::ManagerModuleInfo, objects::AccountId};
-use boot_core::{
-    CwEnv, {BootUpload, ContractInstance},
-};
 use cosmwasm_std::Addr;
+use cw_orch::{
+    CwEnv, {ContractInstance, CwOrcUpload},
+};
 use serde::Serialize;
 use speculoos::prelude::*;
 
@@ -31,16 +31,22 @@ pub struct AbstractAccount<Chain: CwEnv> {
     pub proxy: Proxy<Chain>,
 }
 
-impl<Chain: CwEnv> AbstractAccount<Chain> {
-    pub fn new(chain: Chain, account_id: Option<AccountId>) -> Self {
-        let (manager, proxy) = get_account_contracts(chain, account_id);
-        Self { manager, proxy }
-    }
-
+impl<Chain: CwEnv> AbstractAccount<Chain>
+where
+    Manager<Chain>: cw_orch::Uploadable<Chain>,
+    Proxy<Chain>: cw_orch::Uploadable<Chain>,
+{
     pub fn upload(&mut self) -> Result<(), crate::AbstractBootError> {
         self.manager.upload()?;
         self.proxy.upload()?;
         Ok(())
+    }
+}
+
+impl<Chain: CwEnv> AbstractAccount<Chain> {
+    pub fn new(chain: Chain, account_id: Option<AccountId>) -> Self {
+        let (manager, proxy) = get_account_contracts(chain, account_id);
+        Self { manager, proxy }
     }
 
     /// Register the account core contracts in the version control

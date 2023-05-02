@@ -8,8 +8,8 @@ use abstract_app::mock::MockError as AppMockError;
 use abstract_app::AppContract;
 use abstract_boot::{ApiDeployer, AppDeployer};
 use abstract_core::objects::dependency::StaticDependency;
-// use boot_core::{ContractWrapper};
-use boot_core::{Empty, Mock};
+// use cw_orch::{ContractWrapper};
+use cw_orch::{Empty, Mock};
 
 pub type MockApiContract = ApiContract<ApiMockError, Empty, Empty, Empty, Empty, Empty>;
 pub type MockAppContract = AppContract<AppMockError, Empty, Empty, Empty, Empty, Empty, Empty>;

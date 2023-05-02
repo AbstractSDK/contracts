@@ -16,9 +16,9 @@ use cosmwasm_std::{Empty, Response};
 pub mod mock {
     use abstract_boot::AppDeployer;
     pub use abstract_core::app;
-    use boot_core::{ContractWrapper, CwEnv};
     pub use cosmwasm_std::testing::*;
     use cosmwasm_std::{from_binary, to_binary, Addr, Response, StdError};
+    use cw_orch::{ContractWrapper, CwEnv, Uploadable};
 
     pub type AppTestResult = Result<(), MockError>;
 
@@ -142,18 +142,20 @@ pub mod mock {
     type Query = app::QueryMsg<MockQueryMsg>;
     type Init = app::InstantiateMsg<MockInitMsg>;
     type Migrate = app::MigrateMsg<MockMigrateMsg>;
-    #[boot_core::contract(Init, Exec, Query, Migrate)]
-    pub struct BootMockApp;
 
-    impl<Chain: CwEnv> AppDeployer<Chain> for BootMockApp<Chain> {}
+    #[cw_orch::contract(Init, Exec, Query, Migrate)]
+    pub struct BootMockApp<Chain>;
 
-    impl<Chain: boot_core::CwEnv> BootMockApp<Chain> {
-        pub fn new(name: &str, chain: Chain) -> Self {
-            Self(
-                boot_core::Contract::new(name, chain).with_mock(Box::new(
-                    ContractWrapper::new_with_empty(self::execute, self::instantiate, self::query)
-                        .with_migrate(self::migrate),
-                )),
+    impl<Chain: CwEnv> AppDeployer<Chain> for BootMockApp<Chain> where
+        BootMockApp<Chain>: Uploadable<Chain>
+    {
+    }
+
+    impl ::cw_orch::Uploadable<::cw_orch::Mock> for BootMockApp<::cw_orch::Mock> {
+        fn source(&self) -> <::cw_orch::Mock as ::cw_orch::TxHandler>::ContractSource {
+            Box::new(
+                ContractWrapper::new_with_empty(self::execute, self::instantiate, self::query)
+                    .with_migrate(self::migrate),
             )
         }
     }
@@ -211,26 +213,32 @@ pub mod mock {
             MOCK_APP.migrate(deps, env, msg)
         }
 
-        #[boot_core::contract(Init, Exec, Query, Migrate)]
+        #[cw_orch::contract(Init, Exec, Query, Migrate)]
         pub struct $name;
 
-        impl<Chain: ::boot_core::CwEnv> ::abstract_boot::AppDeployer<Chain> for $name <Chain> {}
+        impl ::abstract_boot::AppDeployer<::cw_orch::Mock> for $name <::cw_orch::Mock> {}
 
-        impl<Chain: ::boot_core::CwEnv> $name <Chain> {
+        impl ::cw_orch::Uploadable<::cw_orch::Mock> for $name<::cw_orch::Mock> {
+            fn source(&self) -> <::cw_orch::Mock as ::cw_orch::TxHandler>::ContractSource {
+                Box::new(::cw_orch::ContractWrapper::<
+                    Exec,
+                    _,
+                    _,
+                    _,
+                    _,
+                    _,
+                >::new_with_empty(
+                    self::mock_execute,
+                    self::mock_instantiate,
+                    self::mock_query,
+                ).with_migrate(self::mock_migrate))
+            }
+        }
+
+        impl<Chain: ::cw_orch::CwEnv> $name <Chain> {
             pub fn new(chain: Chain) -> Self {
                 Self(
-                    boot_core::Contract::new($id,chain).with_mock(Box::new(::boot_core::ContractWrapper::<
-                        Exec,
-                        _,
-                        _,
-                        _,
-                        _,
-                        _,
-                    >::new_with_empty(
-                        self::mock_execute,
-                        self::mock_instantiate,
-                        self::mock_query,
-                    ).with_migrate(self::mock_migrate))),
+                    cw_orch::Contract::new($id,chain),
                 )
             }
         }

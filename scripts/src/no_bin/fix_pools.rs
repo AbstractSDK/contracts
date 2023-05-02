@@ -1,24 +1,24 @@
 use abstract_boot::Abstract;
 
-use boot_core::{networks::NetworkInfo, *};
+use cw_orch::{networks::NetworkInfo, *};
 
 use abstract_core::ans_host::{
     AssetPairingFilter, ExecuteMsg, PoolAddressListResponse, PoolMetadataListResponse, QueryMsgFns,
 };
 use abstract_core::objects::pool_id::UncheckedPoolAddress;
 
-use boot_core::networks::juno::JUNO_CHAIN;
-use boot_core::networks::NetworkKind;
+use cw_orch::networks::juno::JUNO_NETWORK;
+use cw_orch::networks::ChainKind;
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 
-pub const JUNO_1: NetworkInfo = NetworkInfo {
-    kind: NetworkKind::Mainnet,
-    id: "juno-1",
+pub const JUNO_1: ChainInfo = ChainInfo {
+    kind: ChainKind::Mainnet,
+    chain_id: "juno-1",
     gas_denom: "ujuno",
     gas_price: 0.0025,
     grpc_urls: &["http://juno-grpc.polkachu.com:12690"],
-    chain_info: JUNO_CHAIN,
+    chain_info: JUNO_NETWORK,
     lcd_url: None,
     fcd_url: None,
 };
@@ -26,8 +26,10 @@ pub const JUNO_1: NetworkInfo = NetworkInfo {
 /// Script that takes existing versions in Version control, removes them, and swaps them wit ha new version
 pub fn fix_names() -> anyhow::Result<()> {
     let rt = Arc::new(Runtime::new()?);
-    let options = DaemonOptionsBuilder::default().network(JUNO_1).build();
-    let (_sender, chain) = instantiate_daemon_env(&rt, options?)?;
+    let chain = DaemonBuilder::default()
+        .handle(rt.handle())
+        .chain(JUNO_1)
+        .build()?;
 
     let deployment = Abstract::new(chain);
 

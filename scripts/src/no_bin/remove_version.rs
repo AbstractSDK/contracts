@@ -1,10 +1,10 @@
 use abstract_boot::{VCExecFns, VersionControl};
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion};
-use boot_core::{instantiate_daemon_env, networks, networks::NetworkInfo, DaemonOptionsBuilder};
 use cosmwasm_std::Addr;
+use cw_orch::{networks, networks::NetworkInfo, DaemonBuilder};
 use std::{env, sync::Arc};
 
-const NETWORK: NetworkInfo = networks::UNI_6;
+const NETWORK: ChainInfo = networks::UNI_6;
 
 // To deploy the app we need to get the memory and then register it
 // We can then deploy a test Account that uses that new app
@@ -12,12 +12,7 @@ const NETWORK: NetworkInfo = networks::UNI_6;
 const _MODULE_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub fn deploy_api() -> anyhow::Result<()> {
-    let rt = Arc::new(tokio::runtime::Runtime::new().unwrap());
-
-    let daemon_options = DaemonOptionsBuilder::default().network(NETWORK).build()?;
-
-    // Setup the environment
-    let (_sender, chain) = instantiate_daemon_env(&rt, daemon_options)?;
+    let chain = DaemonBuilder::default().chain(NETWORK).build()?;
 
     // Load Abstract Version Control
     let version_control_address: String =
@@ -53,6 +48,7 @@ pub fn deploy_api() -> anyhow::Result<()> {
 }
 
 use clap::Parser;
+use cw_orch::networks::ChainInfo;
 
 #[derive(Parser, Default, Debug)]
 #[command(author, version, about, long_about = None)]

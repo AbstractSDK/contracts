@@ -1,26 +1,25 @@
 use abstract_boot::{ModuleFactory, VersionControl};
 use abstract_core::{MODULE_FACTORY, VERSION_CONTROL};
-use boot_core::{
-    networks::{parse_network, NetworkInfo},
-    *,
-};
 use clap::Parser;
+use cw_orch::{networks::parse_network, *};
 use semver::Version;
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub fn migrate(network: NetworkInfo) -> anyhow::Result<()> {
+pub fn migrate(network: cw_orch::ChainInfo) -> anyhow::Result<()> {
     let rt = Arc::new(Runtime::new()?);
-    let options = DaemonOptionsBuilder::default().network(network).build();
-    let (_sender, chain) = instantiate_daemon_env(&rt, options?)?;
+    let chain = DaemonBuilder::default()
+        .handle(rt.handle())
+        .chain(network)
+        .build()?;
 
     let abstract_version = Version::parse(VERSION)?;
 
     let vc = VersionControl::new(VERSION_CONTROL, chain.clone());
 
-    let mut module_factory = ModuleFactory::new(MODULE_FACTORY, chain);
+    let module_factory = ModuleFactory::new(MODULE_FACTORY, chain);
 
     module_factory.upload()?;
     module_factory.migrate(
