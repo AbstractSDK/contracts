@@ -379,7 +379,7 @@ mod tests {
 
             let dex = "junoswap";
             let pool_type = PoolType::ConstantProduct;
-            let test_pool_metadata = PoolMetadata::new(dex.clone(), pool_type.clone(), assets);
+            let test_pool_metadata = PoolMetadata::new(dex, pool_type.clone(), assets);
             let querier = AbstractMockQuerierBuilder::default()
                 .assets(
                     resolved_assets
@@ -429,9 +429,9 @@ mod tests {
             let assets = vec!["atom", "juno"];
             let dex = "boogerswap";
             let pairing = DexAssetPairing::new(
-                AssetEntry::new(assets[0].clone()),
-                AssetEntry::new(assets[1].clone()),
-                dex.clone(),
+                AssetEntry::new(assets[0]),
+                AssetEntry::new(assets[1]),
+                dex,
             );
 
             let unique_pool_id: UniquePoolId = 1u64.into();

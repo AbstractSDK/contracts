@@ -5,10 +5,7 @@ use abstract_core::{
     objects::module::{ModuleInfo, ModuleVersion},
 };
 use cosmwasm_std::{to_binary, Empty};
-use cw_orch::{
-    contract, Contract, CwEnv, CwOrcExecute,
-    TxHandler,
-};
+use cw_orch::{contract, Contract, CwEnv, CwOrcExecute};
 use serde::Serialize;
 
 #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]

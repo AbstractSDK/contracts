@@ -18,7 +18,7 @@ pub mod mock {
     pub use abstract_core::app;
     pub use cosmwasm_std::testing::*;
     use cosmwasm_std::{from_binary, to_binary, Addr, Response, StdError};
-    use cw_orch::{mock_source, ContractWrapper, CwEnv, Uploadable};
+    use cw_orch::{ContractWrapper, CwEnv, Uploadable};
 
     pub type AppTestResult = Result<(), MockError>;
 
@@ -216,23 +216,29 @@ pub mod mock {
         #[cw_orch::contract(Init, Exec, Query, Migrate)]
         pub struct $name;
 
-        impl<Chain: ::cw_orch::CwEnv> ::abstract_boot::AppDeployer<Chain> for $name <Chain> {}
+        impl ::abstract_boot::AppDeployer<::cw_orch::Mock> for $name <::cw_orch::Mock> {}
+
+        impl ::cw_orch::Uploadable<::cw_orch::Mock> for $name<::cw_orch::Mock> {
+            fn source(&self) -> <::cw_orch::Mock as ::cw_orch::TxHandler>::ContractSource {
+                Box::new(::cw_orch::ContractWrapper::<
+                    Exec,
+                    _,
+                    _,
+                    _,
+                    _,
+                    _,
+                >::new_with_empty(
+                    self::mock_execute,
+                    self::mock_instantiate,
+                    self::mock_query,
+                ).with_migrate(self::mock_migrate))
+            }
+        }
 
         impl<Chain: ::cw_orch::CwEnv> $name <Chain> {
             pub fn new(chain: Chain) -> Self {
                 Self(
-                    cw_orch::Contract::new($id,chain).with_mock(Box::new(::cw_orch::ContractWrapper::<
-                        Exec,
-                        _,
-                        _,
-                        _,
-                        _,
-                        _,
-                    >::new_with_empty(
-                        self::mock_execute,
-                        self::mock_instantiate,
-                        self::mock_query,
-                    ).with_migrate(self::mock_migrate))),
+                    cw_orch::Contract::new($id,chain),
                 )
             }
         }

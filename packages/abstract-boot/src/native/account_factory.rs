@@ -7,8 +7,7 @@ use abstract_core::{
 };
 use cosmwasm_std::Addr;
 use cw_orch::{
-    contract, Contract, CwEnv, IndexResponse, StateInterface,
-    {ContractInstance, CwOrcExecute},
+    contract, Contract, CwEnv, IndexResponse, StateInterface, {ContractInstance, CwOrcExecute},
 };
 
 /// A helper struct that contains fields from [`abstract_core::manager::state::AccountInfo`]

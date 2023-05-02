@@ -1,8 +1,7 @@
 use abstract_core::abstract_token::*;
 use cosmwasm_std::{Addr, Binary, Uint128};
 use cw_orch::{
-    contract, Contract, CwEnv, TxResponse,
-    {ContractInstance, CwOrcExecute, CwOrcInstantiate},
+    contract, Contract, CwEnv, TxResponse, {ContractInstance, CwOrcExecute, CwOrcInstantiate},
 };
 
 #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]

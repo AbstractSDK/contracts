@@ -9,7 +9,7 @@ use abstract_core::{
 use common::TEST_VERSION;
 use cosmwasm_std::{Addr, Uint64};
 use cw_orch::{
-    Deploy, IndexResponse, {instantiate_default_mock_env, ContractInstance},
+    Deploy, IndexResponse, { ContractInstance}, Mock,
 };
 use speculoos::prelude::*;
 
@@ -19,7 +19,7 @@ type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 fn instantiate() -> AResult {
     let _not_owner = Addr::unchecked("not_owner");
     let sender = Addr::unchecked(common::OWNER);
-    let (_state, chain) = instantiate_default_mock_env(&sender)?;
+    let chain = Mock::new(&sender)?;
     let deployment = Abstract::deploy_on(chain, TEST_VERSION.parse().unwrap())?;
 
     let factory = deployment.account_factory;
@@ -39,7 +39,7 @@ fn instantiate() -> AResult {
 fn create_one_os() -> AResult {
     let _not_owner = Addr::unchecked("not_owner");
     let sender = Addr::unchecked(common::OWNER);
-    let (_, chain) = instantiate_default_mock_env(&sender)?;
+    let chain = Mock::new(&sender)?;
     let deployment = Abstract::deploy_on(chain, TEST_VERSION.parse().unwrap())?;
 
     let factory = &deployment.account_factory;
@@ -87,7 +87,7 @@ fn create_one_os() -> AResult {
 fn create_two_account_s() -> AResult {
     let _not_owner = Addr::unchecked("not_owner");
     let sender = Addr::unchecked(common::OWNER);
-    let (_, chain) = instantiate_default_mock_env(&sender)?;
+    let chain = Mock::new(&sender)?;
     let deployment = Abstract::deploy_on(chain, TEST_VERSION.parse().unwrap())?;
 
     let factory = &deployment.account_factory;
@@ -153,7 +153,7 @@ fn create_two_account_s() -> AResult {
 fn sender_is_not_admin_monarchy() -> AResult {
     let owner = Addr::unchecked("owner");
     let sender = Addr::unchecked(common::OWNER);
-    let (_, chain) = instantiate_default_mock_env(&sender)?;
+    let chain = Mock::new(&sender)?;
     let deployment = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse().unwrap())?;
 
     let factory = &deployment.account_factory;
@@ -201,7 +201,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
 fn sender_is_not_admin_external() -> AResult {
     let owner = Addr::unchecked("owner");
     let sender = Addr::unchecked(common::OWNER);
-    let (_, chain) = instantiate_default_mock_env(&sender)?;
+    let chain = Mock::new(&sender)?;
     let deployment = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse().unwrap())?;
 
     let factory = &deployment.account_factory;

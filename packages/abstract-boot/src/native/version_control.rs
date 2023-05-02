@@ -10,11 +10,11 @@ use abstract_core::{
     VERSION_CONTROL,
 };
 use cosmwasm_std::Addr;
+#[cfg(feature = "daemon")]
+use cw_orch::Daemon;
 use cw_orch::{
     contract, Contract, CwEnv, IndexResponse, TxResponse, {ContractInstance, CwOrcQuery},
 };
-#[cfg(feature = "daemon")]
-use cw_orch::{Daemon};
 use semver::Version;
 
 #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]

@@ -1,6 +1,6 @@
 use crate::Abstract;
 use abstract_core::objects::module::ModuleVersion;
-use cw_orch::{CwEnv, CwOrcError::StdErr, Deploy, *};
+use cw_orch::{CwEnv, CwOrcError::StdErr, Load, *};
 
 use semver::Version;
 use serde::Serialize;
@@ -10,13 +10,6 @@ pub trait ApiDeployer<Chain: CwEnv, CustomInitMsg: Serialize>:
     ContractInstance<Chain>
     + CwOrcInstantiate<Chain, InstantiateMsg = abstract_core::api::InstantiateMsg<CustomInitMsg>>
     + CwOrcUpload<Chain>
-where
-    crate::AnsHost<Chain>: Uploadable<Chain>,
-    crate::VersionControl<Chain>: Uploadable<Chain>,
-    crate::AccountFactory<Chain>: Uploadable<Chain>,
-    crate::ModuleFactory<Chain>: Uploadable<Chain>,
-    crate::Manager<Chain>: Uploadable<Chain>,
-    crate::Proxy<Chain>: Uploadable<Chain>,
 {
     fn deploy(
         &mut self,
@@ -58,18 +51,10 @@ where
 }
 
 /// Trait for deploying APPs
-pub trait AppDeployer<Chain: CwEnv>: ContractInstance<Chain> + CwOrcUpload<Chain>
-where
-    crate::AnsHost<Chain>: Uploadable<Chain>,
-    crate::VersionControl<Chain>: Uploadable<Chain>,
-    crate::AccountFactory<Chain>: Uploadable<Chain>,
-    crate::ModuleFactory<Chain>: Uploadable<Chain>,
-    crate::Manager<Chain>: Uploadable<Chain>,
-    crate::Proxy<Chain>: Uploadable<Chain>,
-{
+pub trait AppDeployer<Chain: CwEnv>: ContractInstance<Chain> + CwOrcUpload<Chain> {
     fn deploy(&mut self, version: Version) -> Result<(), crate::AbstractBootError> {
         // retrieve the deployment
-        let abstr = Abstract::load_from(self.get_chain().clone())?;
+        let abstr = Abstract::<Chain>::load_from(self.get_chain().clone())?;
 
         // check for existing version
         let version_check = abstr

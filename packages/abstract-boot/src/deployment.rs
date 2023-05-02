@@ -13,18 +13,6 @@ pub struct Abstract<Chain: CwEnv> {
     pub account: AbstractAccount<Chain>,
 }
 
-// TODO: figure out why this doesn't work so that we don't have to use the where clause manually
-pub trait AbstractUploadableEnv: CwEnv
-where
-    AnsHost<Self>: Uploadable<Self>,
-    VersionControl<Self>: Uploadable<Self>,
-    AccountFactory<Self>: Uploadable<Self>,
-    ModuleFactory<Self>: Uploadable<Self>,
-    Manager<Self>: Uploadable<Self>,
-    Proxy<Self>: Uploadable<Self>,
-{
-}
-
 use abstract_core::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY, VERSION_CONTROL};
 
 impl<Chain: CwEnv> cw_orch::Deploy<Chain> for Abstract<Chain>
@@ -40,7 +28,7 @@ where
     type Error = AbstractBootError;
     type DeployData = semver::Version;
 
-    fn store_on(chain: Chain) -> Result<Self, Self::Error> {
+    fn store_on(chain: Chain) -> Result<Self, AbstractBootError> {
         let ans_host = AnsHost::new(ANS_HOST, chain.clone());
         let account_factory = AccountFactory::new(ACCOUNT_FACTORY, chain.clone());
         let version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
@@ -67,7 +55,7 @@ where
         Ok(deployment)
     }
 
-    fn deploy_on(chain: Chain, version: semver::Version) -> Result<Self, Self::Error> {
+    fn deploy_on(chain: Chain, version: semver::Version) -> Result<Self, AbstractBootError> {
         // upload
         let mut deployment = Self::store_on(chain.clone())?;
 
@@ -93,8 +81,11 @@ where
             .register_natives(deployment.contracts(), &version)?;
         Ok(deployment)
     }
+}
 
-    fn load_from(chain: Chain) -> Result<Self, Self::Error> {
+impl<Chain: CwEnv> cw_orch::Load<Chain> for Abstract<Chain> {
+    type Error = AbstractBootError;
+    fn load_from(chain: Chain) -> Result<Self, AbstractBootError> {
         Ok(Self::new(chain))
     }
 }

@@ -8,15 +8,13 @@ use abstract_core::{
 use cosmwasm_std::Addr;
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::{
-    Contract, CwEnv, CwOrcError, IndexResponse, TxResponse,
-    {contract, ContractInstance},
+    Contract, CwEnv, CwOrcError, IndexResponse, TxResponse, {contract, ContractInstance},
 };
 use log::info;
 use serde_json::from_reader;
 use std::{cmp::min, collections::HashSet, env, fs::File};
 
 #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
-#[cfg_attr(feature = "daemon", daemon_source("abstract_ans_host"))]
 pub struct AnsHost<Chain>;
 
 #[cfg(feature = "integration")]

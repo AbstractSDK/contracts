@@ -21,7 +21,8 @@ impl ::cw_orch::Uploadable<::cw_orch::Mock> for ModuleFactory<::cw_orch::Mock> {
                 ::module_factory::contract::instantiate,
                 ::module_factory::contract::query,
             )
-            .with_migrate(::module_factory::contract::migrate),
+            .with_migrate(::module_factory::contract::migrate)
+            .with_reply(::module_factory::contract::reply),
         )
     }
 }
