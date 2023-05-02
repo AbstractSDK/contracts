@@ -48,31 +48,6 @@ impl AssetEntry {
         }
     }
 
-    /// Retrieve the asset name without the src chain
-    /// Example: osmosis>juno>crab returns juno>crab
-    pub fn asset_name(&self) -> AbstractResult<String> {
-        let mut split = self.0.splitn(2, CHAIN_DELIMITER);
-
-        // Check if the first part (src_chain) exists
-        let first = split.next();
-        if first.is_none() || first == Some("") {
-            return self.entry_formatting_error();
-        }
-
-        // Check if the second part (asset_name) exists
-        let second = split.next();
-        match second {
-            Some(asset_name) => {
-                if asset_name.is_empty() {
-                    self.entry_formatting_error()
-                } else {
-                    Ok(asset_name.to_string())
-                }
-            }
-            None => self.entry_formatting_error(),
-        }
-    }
-
     fn entry_formatting_error(&self) -> AbstractResult<String> {
         Err(AbstractError::EntryFormattingError {
             actual: self.0.clone(),
@@ -171,52 +146,12 @@ mod test {
         Ok(())
     }
 
-    #[test]
-    fn test_asset_name() -> AbstractResult<()> {
-        let entry = AssetEntry::new("CRAB");
-        assert_that!(entry.asset_name()).is_err().is_equal_to(
-            AbstractError::EntryFormattingError {
-                actual: "crab".to_string(),
-                expected: "src_chain>asset_name".to_string(),
-            },
-        );
-        let entry = AssetEntry::new("osmosis>crab");
-        assert_that!(entry.asset_name())
-            .is_ok()
-            .is_equal_to("crab".to_string());
-        let entry = AssetEntry::new("osmosis>juno>crab");
-        assert_that!(entry.asset_name())
-            .is_ok()
-            .is_equal_to("juno>crab".to_string());
-
-        Ok(())
-    }
-
-    #[rstest]
-    #[case("osmosis>crab", "osmosis", "crab")]
-    #[case("osmosis>juno>crab", "osmosis", "juno>crab")]
-    #[case("terra>osmosis>juno>crab", "terra", "osmosis>juno>crab")]
-    fn test_src_chain_and_asset_name(
-        #[case] input: &str,
-        #[case] expected_src_chain: &str,
-        #[case] expected_asset_name: &str,
-    ) {
-        let entry = AssetEntry::new(input);
-
-        assert_that!(entry.src_chain())
-            .is_ok()
-            .is_equal_to(expected_src_chain.to_string());
-        assert_that!(entry.asset_name())
-            .is_ok()
-            .is_equal_to(expected_asset_name.to_string());
-    }
-
     #[rstest]
     #[case("CRAB")]
     #[case("")]
     #[case(">")]
     #[case("juno>")]
-    fn test_src_chain_and_asset_name_error(#[case] input: &str) {
+    fn test_src_chain_error(#[case] input: &str) {
         let entry = AssetEntry::new(input);
 
         assert_that!(entry.src_chain())
@@ -225,12 +160,6 @@ mod test {
                 actual: input.to_ascii_lowercase(),
                 expected: "src_chain>asset_name".to_string(),
             });
-        assert_that!(entry.asset_name()).is_err().is_equal_to(
-            AbstractError::EntryFormattingError {
-                actual: input.to_ascii_lowercase(),
-                expected: "src_chain>asset_name".to_string(),
-            },
-        );
     }
 
     #[test]
