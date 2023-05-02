@@ -1407,8 +1407,11 @@ mod test {
                 .build();
             mock_init_with_account(deps.as_mut(), true)?;
 
-            let account_owner =
-                query_account_owner(&deps.as_ref().querier, &Addr::unchecked(TEST_MANAGER), &TEST_ACCOUNT_ID)?;
+            let account_owner = query_account_owner(
+                &deps.as_ref().querier,
+                &Addr::unchecked(TEST_MANAGER),
+                &TEST_ACCOUNT_ID,
+            )?;
 
             assert_that!(account_owner).is_equal_to(Addr::unchecked(TEST_OWNER));
             Ok(())
