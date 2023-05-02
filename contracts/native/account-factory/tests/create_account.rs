@@ -58,7 +58,7 @@ fn create_one_os() -> AResult {
         String::from("first_os"),
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
-        None
+        None,
     )?;
 
     let manager = account_creation.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;

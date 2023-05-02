@@ -185,7 +185,7 @@ pub fn claim_namespaces(
 ) -> VCResult {
     // verify account owner
     let account_base = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
-    let account_owner = query_account_owner(&deps.querier, &account_base.manager, account_id)?;
+    let account_owner = query_account_owner(&deps.querier, &account_base.manager, &account_id)?;
     if msg_info.sender != account_owner {
         return Err(VCError::AccountOwnerMismatch {
             sender: msg_info.sender,
@@ -306,12 +306,14 @@ pub fn update_namespaces_limit(deps: DepsMut, info: MessageInfo, new_limit: u32)
 pub fn query_account_owner(
     querier: &QuerierWrapper,
     manager_addr: &Addr,
-    account_id: AccountId,
+    account_id: &AccountId,
 ) -> VCResult<Addr> {
     let req = wasm_raw_query(manager_addr, OWNERSHIP_STORAGE_KEY)?;
     let cw_ownable::Ownership { owner, .. } = querier.query(&req)?;
 
-    owner.ok_or(VCError::NoAccountOwner { account_id })
+    owner.ok_or_else(|| VCError::NoAccountOwner {
+        account_id: account_id.clone(),
+    })
 }
 
 pub fn validate_account_owner(deps: Deps, namespace: &str, sender: &Addr) -> Result<(), VCError> {
@@ -323,7 +325,7 @@ pub fn validate_account_owner(deps: Deps, namespace: &str, sender: &Addr) -> Res
             namespace: namespace.to_string(),
         })?;
     let account_base = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
-    let account_owner = query_account_owner(&deps.querier, &account_base.manager, account_id)?;
+    let account_owner = query_account_owner(&deps.querier, &account_base.manager, &account_id)?;
     if sender != account_owner {
         return Err(VCError::AccountOwnerMismatch {
             sender,

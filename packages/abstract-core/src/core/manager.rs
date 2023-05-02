@@ -19,7 +19,6 @@ pub mod state {
 
     pub use crate::objects::account::ACCOUNT_ID;
     use crate::objects::common_namespace::OWNERSHIP_STORAGE_KEY;
-    pub use crate::objects::core::ACCOUNT_ID;
     use crate::objects::{gov_type::GovernanceDetails, module::ModuleId};
     use cosmwasm_std::{Addr, Api};
     use cw_address_like::AddressLike;
