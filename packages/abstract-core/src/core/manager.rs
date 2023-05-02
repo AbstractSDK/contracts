@@ -121,6 +121,7 @@ pub struct CallbackMsg {}
 
 /// Internal configuration actions accessible from the [`ExecuteMsg::UpdateInternalConfig`] message.
 #[cosmwasm_schema::cw_serde]
+#[non_exhaustive]
 pub enum InternalConfigAction {
     /// Updates the [`state::ACCOUNT_MODULES`] map
     /// Only callable by account factory or owner.
