@@ -10,24 +10,37 @@ use abstract_core::{
     VERSION_CONTROL,
 };
 use cosmwasm_std::Addr;
-#[cfg(feature = "daemon")]
-use cw_orc::Daemon;
-use cw_orc::{
-    contract, Contract, CwEnv, IndexResponse, TxResponse, {BootQuery, ContractInstance},
+use cw_orch::{
+    contract, Contract, CwEnv, IndexResponse, TxResponse, {ContractInstance, CwOrcQuery},
 };
+#[cfg(feature = "daemon")]
+use cw_orch::{Daemon};
 use semver::Version;
 
 #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
-pub struct VersionControl;
+#[cfg_attr(feature = "daemon", daemon_source("abstract_version_control"))]
+pub struct VersionControl<Chain>;
+
+#[cfg(feature = "integration")]
+impl ::cw_orch::Uploadable<::cw_orch::Mock> for VersionControl<::cw_orch::Mock> {
+    fn source(&self) -> <::cw_orch::Mock as ::cw_orch::TxHandler>::ContractSource {
+        Box::new(
+            cw_orch::ContractWrapper::new_with_empty(
+                ::version_control::contract::execute,
+                ::version_control::contract::instantiate,
+                ::version_control::contract::query,
+            )
+            .with_migrate(::version_control::contract::migrate),
+        )
+    }
+}
 
 impl<Chain: CwEnv> VersionControl<Chain>
 where
     TxResponse<Chain>: IndexResponse,
 {
     pub fn new(name: &str, chain: Chain) -> Self {
-        let mut contract = Contract::new(name, chain);
-        contract = contract.with_wasm_path("abstract_version_control");
-        Self(contract)
+        Self(Contract::new(name, chain))
     }
 
     pub fn load(chain: Chain, address: &Addr) -> Self {

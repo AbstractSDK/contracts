@@ -8,7 +8,7 @@ use abstract_core::{
 };
 use common::TEST_VERSION;
 use cosmwasm_std::{Addr, Uint64};
-use cw_orc::{
+use cw_orch::{
     Deploy, IndexResponse, {instantiate_default_mock_env, ContractInstance},
 };
 use speculoos::prelude::*;

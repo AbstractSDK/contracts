@@ -3,24 +3,23 @@ use abstract_core::{
     objects::module::{Module, ModuleInfo, ModuleVersion},
     version_control::{ModuleFilter, ModulesListResponse},
 };
-use cw_orc::{
-    networks::{NetworkInfo, UNI_6},
+use cw_orch::{
+    networks::{UNI_6},
     *,
 };
 
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 
-const NETWORK: NetworkInfo = UNI_6;
+const NETWORK: cw_orch::ChainInfo = UNI_6;
 const WRONG_VERSION: &str = "0.1.0-rc.3";
 const NEW_VERSION: &str = env!("CARGO_PKG_VERSION");
 const NAMESPACE: &str = "abstract";
 
 /// Script that takes existing versions in Version control, removes them, and swaps them wit ha new version
 pub fn fix_versions() -> anyhow::Result<()> {
-    let rt = Arc::new(Runtime::new()?);
-    let options = DaemonOptionsBuilder::default().network(NETWORK).build();
-    let (_sender, chain) = instantiate_daemon_env(&rt, options?)?;
+    let _rt = Arc::new(Runtime::new()?);
+    let chain = DaemonBuilder::default().chain(NETWORK).build()?;
 
     let deployment = Abstract::new(chain);
 

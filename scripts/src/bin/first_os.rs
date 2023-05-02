@@ -1,26 +1,21 @@
 use abstract_boot::Abstract;
 use abstract_core::objects::gov_type::GovernanceDetails;
-use cw_orc::{
-    networks::{ChainInfo, NetworkInfo, NetworkKind},
+use cw_orch::{
+    networks::{ChainInfo, ChainKind, NetworkInfo},
     *,
 };
 
+use cw_orch::networks::kujira::KUJIRA_NETWORK;
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 
-pub const KUJIRA_CHAIN: ChainInfo = ChainInfo {
-    chain_id: "kujira",
-    pub_address_prefix: "kujira",
-    coin_type: 118u32,
-};
-
-pub const HARPOON_4: NetworkInfo = NetworkInfo {
-    kind: NetworkKind::Testnet,
-    id: "harpoon-4",
+pub const HARPOON_4: ChainInfo = ChainInfo {
+    kind: ChainKind::Testnet,
+    chain_id: "harpoon-4",
     gas_denom: "ukuji",
     gas_price: 0.025,
     grpc_urls: &["https://kujira-testnet-grpc.polkachu.com:11890"],
-    chain_info: KUJIRA_CHAIN,
+    chain_info: KUJIRA_NETWORK,
     lcd_url: None,
     fcd_url: None,
 };
@@ -28,20 +23,21 @@ pub const HARPOON_4: NetworkInfo = NetworkInfo {
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Script that registers the first Account in abstract (our Account)
-pub fn first_os(network: NetworkInfo) -> anyhow::Result<()> {
+pub fn first_os(network: ChainInfo) -> anyhow::Result<()> {
     // let network = LOCAL_JUNO;
     let rt = Arc::new(Runtime::new()?);
-    let options = DaemonOptionsBuilder::default().network(network).build();
-    let (sender, chain) = instantiate_daemon_env(&rt, options?)?;
-
-    let deployment = Abstract::new(chain);
+    let chain = DaemonBuilder::default()
+        .handle(rt.handle())
+        .chain(network)
+        .build()?;
+    let deployment = Abstract::new(chain.clone());
 
     // NOTE: this assumes that the deployment has been deployed
 
     deployment
         .account_factory
         .create_default_account(GovernanceDetails::Monarchy {
-            monarch: sender.to_string(),
+            monarch: chain.clone().sender().to_string(),
         })?;
 
     deployment.ans_host.update_all()?;

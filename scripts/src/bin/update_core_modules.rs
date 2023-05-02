@@ -2,7 +2,7 @@ use abstract_boot::{AbstractAccount, AccountFactory, AccountFactoryQueryFns, Ver
 use abstract_core::{
     account_factory, manager, proxy, ACCOUNT_FACTORY, MANAGER, PROXY, VERSION_CONTROL,
 };
-use cw_orc::{
+use cw_orch::{
     networks::{parse_network, NetworkInfo},
     *,
 };
@@ -11,10 +11,12 @@ use tokio::runtime::Runtime;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub fn migrate(network: NetworkInfo) -> anyhow::Result<()> {
+pub fn migrate(network: cw_orch::ChainInfo) -> anyhow::Result<()> {
     let rt = Arc::new(Runtime::new()?);
-    let options = DaemonOptionsBuilder::default().network(network).build();
-    let (_sender, chain) = instantiate_daemon_env(&rt, options?)?;
+    let chain = DaemonBuilder::default()
+        .handle(rt.handle())
+        .chain(network)
+        .build()?;
 
     let _abstract_version: Version = VERSION.parse().unwrap();
 

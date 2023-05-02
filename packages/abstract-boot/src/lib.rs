@@ -1,5 +1,5 @@
 // Re-export boot
-pub extern crate cw_orc;
+pub extern crate cw_orch;
 
 pub mod idea_token;
 

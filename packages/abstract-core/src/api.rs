@@ -96,7 +96,7 @@ impl<Request: Serialize> ApiRequestMsg<Request> {
 
 /// Configuration message for the api
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "boot", derive(cw_orc::ExecuteFns))]
+#[cfg_attr(feature = "boot", derive(cw_orch::ExecuteFns))]
 #[cfg_attr(feature = "boot", impl_into(ExecuteMsg < T >))]
 pub enum BaseExecuteMsg {
     /// Add or remove authorized addresses
@@ -112,7 +112,7 @@ pub enum BaseExecuteMsg {
 /// Query api message
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
-#[cfg_attr(feature = "boot", derive(cw_orc::QueryFns))]
+#[cfg_attr(feature = "boot", derive(cw_orch::QueryFns))]
 #[cfg_attr(feature = "boot", impl_into(QueryMsg < ModuleMsg >))]
 pub enum BaseQueryMsg {
     /// Returns [`ApiConfigResponse`].

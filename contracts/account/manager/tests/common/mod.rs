@@ -14,8 +14,8 @@ use abstract_core::version_control::AccountBase;
 use abstract_core::{objects::gov_type::GovernanceDetails, PROXY};
 use abstract_core::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, VERSION_CONTROL};
 use cosmwasm_std::Addr;
-use cw_orc::{BootExecute, CallAs, ContractInstance, Mock};
-use cw_orc::{ContractWrapper, StateInterface};
+use cw_orch::{CallAs, ContractInstance, CwOrcExecute, Mock};
+use cw_orch::{ContractWrapper, StateInterface};
 use semver::Version;
 
 pub(crate) type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>

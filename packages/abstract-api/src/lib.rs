@@ -34,7 +34,7 @@ pub mod mock {
         testing::{mock_env, mock_info},
         to_binary, DepsMut, Empty, Response, StdError,
     };
-    use cw_orc::{ContractWrapper, CwEnv};
+    use cw_orch::{ContractWrapper, CwEnv};
     use thiserror::Error;
 
     pub const TEST_METADATA: &str = "test_metadata";
@@ -128,14 +128,17 @@ pub mod mock {
     type Query = api::QueryMsg<MockQueryMsg>;
     type Init = api::InstantiateMsg<MockInitMsg>;
 
-    #[cw_orc::contract(Init, Exec, Query, Empty)]
+    #[cw_orch::contract(Init, Exec, Query, Empty)]
     pub struct BootMockApi;
 
-    impl<Chain: CwEnv> ApiDeployer<Chain, MockInitMsg> for BootMockApi<Chain> {}
+    impl<Chain: CwEnv> ApiDeployer<Chain, MockInitMsg> for BootMockApi<Chain> where
+        abstract_boot::AnsHost<Chain>: cw_orch::Uploadable<Chain>
+    {
+    }
 
-    impl<Chain: cw_orc::CwEnv> BootMockApi<Chain> {
+    impl<Chain: cw_orch::CwEnv> BootMockApi<Chain> {
         pub fn new(name: &str, chain: Chain) -> Self {
-            Self(cw_orc::Contract::new(name, chain).with_mock(Box::new(
+            Self(cw_orch::Contract::new(name, chain).with_mock(Box::new(
                 ContractWrapper::new_with_empty(self::execute, self::instantiate, self::query),
             )))
         }
@@ -190,15 +193,15 @@ pub mod mock {
         type Exec = ::abstract_core::api::ExecuteMsg<MockExecMsg, MockReceiveMsg>;
         type Query = ::abstract_core::api::QueryMsg<MockQueryMsg>;
         type Init = ::abstract_core::api::InstantiateMsg<MockInitMsg>;
-        #[cw_orc::contract(Init, Exec, Query, Empty)]
+        #[cw_orch::contract(Init, Exec, Query, Empty)]
         pub struct $name ;
 
-        impl<Chain: ::cw_orc::CwEnv> ::abstract_boot::ApiDeployer<Chain, MockInitMsg> for $name <Chain> {}
+        impl<Chain: ::cw_orch::CwEnv> ::abstract_boot::ApiDeployer<Chain, MockInitMsg> for $name <Chain> {}
 
-        impl<Chain: ::cw_orc::CwEnv> $name <Chain> {
+        impl<Chain: ::cw_orch::CwEnv> $name <Chain> {
             pub fn new(chain: Chain) -> Self {
                 Self(
-                    ::cw_orc::Contract::new($id, chain).with_mock(Box::new(::cw_orc::ContractWrapper::<
+                    ::cw_orch::Contract::new($id, chain).with_mock(Box::new(::cw_orch::ContractWrapper::<
                         Exec,
                         _,
                         _,

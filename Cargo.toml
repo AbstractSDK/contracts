@@ -55,8 +55,9 @@ protobuf = { version = "2", features = ["with-bytes"] }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
-#cw-orc = { version = "0.10.0" }
-cw-orc = { path = "../BOOT/cw-orc", features = ["daemon"] }
+#cw-orch = { version = "0.10.0" }
+cw-orch = { path = "../BOOT/cw-orch", features = ["daemon"] }
+#cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", rev = "27ce01692807cdb3a31a9cbabcc3c817441b77b5", features = ["daemon"] }
 boot-cw-plus = { git = "https://github.com/AbstractSDK/BOOT.git", tag = "v0.10.2" }
 tokio = { version = "1.4", features = ["full"] }
 

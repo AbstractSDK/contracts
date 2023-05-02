@@ -5,17 +5,33 @@ use abstract_core::{
     objects::module::{ModuleInfo, ModuleVersion},
 };
 use cosmwasm_std::{to_binary, Empty};
-use cw_orc::{contract, BootExecute, Contract, CwEnv};
+use cw_orch::{
+    contract, Contract, CwEnv, CwOrcExecute,
+    TxHandler,
+};
 use serde::Serialize;
 
 #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+#[cfg_attr(feature = "daemon", daemon_source("abstract_manager"))]
 pub struct Manager<Chain>;
+
+#[cfg(feature = "integration")]
+impl ::cw_orch::Uploadable<::cw_orch::Mock> for Manager<::cw_orch::Mock> {
+    fn source(&self) -> <::cw_orch::Mock as ::cw_orch::TxHandler>::ContractSource {
+        Box::new(
+            cw_orch::ContractWrapper::new_with_empty(
+                ::manager::contract::execute,
+                ::manager::contract::instantiate,
+                ::manager::contract::query,
+            )
+            .with_migrate(::manager::contract::migrate),
+        )
+    }
+}
 
 impl<Chain: CwEnv> Manager<Chain> {
     pub fn new(name: &str, chain: Chain) -> Self {
-        let mut contract = Contract::new(name, chain);
-        contract = contract.with_wasm_path("abstract_manager");
-        Self(contract)
+        Self(Contract::new(name, chain))
     }
 
     pub fn upgrade_module<M: Serialize>(

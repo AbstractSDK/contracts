@@ -8,10 +8,10 @@ use abstract_core::{api::BaseQueryMsgFns, *};
 use abstract_testing::prelude::{OWNER, TEST_MODULE_ID, TEST_VERSION};
 use common::{create_default_account, init_mock_api, AResult, TEST_COIN};
 use cosmwasm_std::{Addr, Coin, Empty};
-use cw_orc::{
-    BootError, Mock, TxHandler, {instantiate_default_mock_env, CallAs, ContractInstance},
+use cw_orch::{
+    CwOrcError, Mock, TxHandler, {instantiate_default_mock_env, CallAs, ContractInstance},
 };
-use cw_orc::{BootExecute, Deploy};
+use cw_orch::{CwOrcExecute, Deploy};
 // use cw_multi_test::StakingInfo;
 use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};
 
@@ -22,7 +22,7 @@ fn install_api(manager: &Manager<Mock>, api: &str) -> AResult {
 pub(crate) fn uninstall_module(manager: &Manager<Mock>, api: &str) -> AResult {
     manager
         .uninstall_module(api.to_string())
-        .map_err(Into::<BootError>::into)?;
+        .map_err(Into::<CwOrcError>::into)?;
     Ok(())
 }
 

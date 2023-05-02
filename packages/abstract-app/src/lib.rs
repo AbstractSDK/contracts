@@ -18,7 +18,7 @@ pub mod mock {
     pub use abstract_core::app;
     pub use cosmwasm_std::testing::*;
     use cosmwasm_std::{from_binary, to_binary, Addr, Response, StdError};
-    use cw_orc::{ContractWrapper, CwEnv};
+    use cw_orch::{mock_source, ContractWrapper, CwEnv, Uploadable};
 
     pub type AppTestResult = Result<(), MockError>;
 
@@ -143,18 +143,19 @@ pub mod mock {
     type Init = app::InstantiateMsg<MockInitMsg>;
     type Migrate = app::MigrateMsg<MockMigrateMsg>;
 
-    #[cw_orc::contract(Init, Exec, Query, Migrate)]
-    pub struct BootMockApp;
+    #[cw_orch::contract(Init, Exec, Query, Migrate)]
+    pub struct BootMockApp<Chain>;
 
-    impl<Chain: CwEnv> AppDeployer<Chain> for BootMockApp<Chain> {}
+    impl<Chain: CwEnv> AppDeployer<Chain> for BootMockApp<Chain> where
+        BootMockApp<Chain>: Uploadable<Chain>
+    {
+    }
 
-    impl<Chain: cw_orc::CwEnv> BootMockApp<Chain> {
-        pub fn new(name: &str, chain: Chain) -> Self {
-            Self(
-                cw_orc::Contract::new(name, chain).with_mock(Box::new(
-                    ContractWrapper::new_with_empty(self::execute, self::instantiate, self::query)
-                        .with_migrate(self::migrate),
-                )),
+    impl ::cw_orch::Uploadable<::cw_orch::Mock> for BootMockApp<::cw_orch::Mock> {
+        fn source(&self) -> <::cw_orch::Mock as ::cw_orch::TxHandler>::ContractSource {
+            Box::new(
+                ContractWrapper::new_with_empty(self::execute, self::instantiate, self::query)
+                    .with_migrate(self::migrate),
             )
         }
     }
@@ -212,15 +213,15 @@ pub mod mock {
             MOCK_APP.migrate(deps, env, msg)
         }
 
-        #[cw_orc::contract(Init, Exec, Query, Migrate)]
+        #[cw_orch::contract(Init, Exec, Query, Migrate)]
         pub struct $name;
 
-        impl<Chain: ::cw_orc::CwEnv> ::abstract_boot::AppDeployer<Chain> for $name <Chain> {}
+        impl<Chain: ::cw_orch::CwEnv> ::abstract_boot::AppDeployer<Chain> for $name <Chain> {}
 
-        impl<Chain: ::cw_orc::CwEnv> $name <Chain> {
+        impl<Chain: ::cw_orch::CwEnv> $name <Chain> {
             pub fn new(chain: Chain) -> Self {
                 Self(
-                    cw_orc::Contract::new($id,chain).with_mock(Box::new(::cw_orc::ContractWrapper::<
+                    cw_orch::Contract::new($id,chain).with_mock(Box::new(::cw_orch::ContractWrapper::<
                         Exec,
                         _,
                         _,

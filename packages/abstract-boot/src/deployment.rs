@@ -3,7 +3,7 @@ use crate::{
     AccountFactory, AnsHost, Manager, ModuleFactory, Proxy, VersionControl,
 };
 
-use cw_orc::*;
+use cw_orch::*;
 
 pub struct Abstract<Chain: CwEnv> {
     pub ans_host: AnsHost<Chain>,
@@ -13,80 +13,40 @@ pub struct Abstract<Chain: CwEnv> {
     pub account: AbstractAccount<Chain>,
 }
 
-use abstract_core::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY, VERSION_CONTROL};
-#[cfg(feature = "integration")]
-use cw_orc::ContractWrapper;
+// TODO: figure out why this doesn't work so that we don't have to use the where clause manually
+pub trait AbstractUploadableEnv: CwEnv
+where
+    AnsHost<Self>: Uploadable<Self>,
+    VersionControl<Self>: Uploadable<Self>,
+    AccountFactory<Self>: Uploadable<Self>,
+    ModuleFactory<Self>: Uploadable<Self>,
+    Manager<Self>: Uploadable<Self>,
+    Proxy<Self>: Uploadable<Self>,
+{
+}
 
-impl<Chain: CwEnv> cw_orc::Deploy<Chain> for Abstract<Chain> {
+use abstract_core::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY, VERSION_CONTROL};
+
+impl<Chain: CwEnv> cw_orch::Deploy<Chain> for Abstract<Chain>
+where
+    AnsHost<Chain>: Uploadable<Chain>,
+    VersionControl<Chain>: Uploadable<Chain>,
+    AccountFactory<Chain>: Uploadable<Chain>,
+    ModuleFactory<Chain>: Uploadable<Chain>,
+    Manager<Chain>: Uploadable<Chain>,
+    Proxy<Chain>: Uploadable<Chain>,
+{
     // We don't have a custom error type
     type Error = AbstractBootError;
     type DeployData = semver::Version;
 
     fn store_on(chain: Chain) -> Result<Self, Self::Error> {
-        let mut ans_host = AnsHost::new(ANS_HOST, chain.clone());
-        let mut account_factory = AccountFactory::new(ACCOUNT_FACTORY, chain.clone());
-        let mut version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
-        let mut module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
-        let mut manager = Manager::new(MANAGER, chain.clone());
-        let mut proxy = Proxy::new(PROXY, chain);
-        #[cfg(feature = "integration")]
-        if cfg!(feature = "integration") {
-            ans_host.as_instance_mut().set_mock(Box::new(
-                ContractWrapper::new_with_empty(
-                    ::ans_host::contract::execute,
-                    ::ans_host::contract::instantiate,
-                    ::ans_host::contract::query,
-                )
-                .with_migrate(::ans_host::contract::migrate),
-            ));
-
-            account_factory.as_instance_mut().set_mock(Box::new(
-                ContractWrapper::new_with_empty(
-                    ::account_factory::contract::execute,
-                    ::account_factory::contract::instantiate,
-                    ::account_factory::contract::query,
-                )
-                .with_reply_empty(::account_factory::contract::reply)
-                .with_migrate(::account_factory::contract::migrate),
-            ));
-
-            module_factory.as_instance_mut().set_mock(Box::new(
-                cw_orc::ContractWrapper::new_with_empty(
-                    ::module_factory::contract::execute,
-                    ::module_factory::contract::instantiate,
-                    ::module_factory::contract::query,
-                )
-                .with_reply_empty(::module_factory::contract::reply)
-                .with_migrate(::module_factory::contract::migrate),
-            ));
-
-            version_control.as_instance_mut().set_mock(Box::new(
-                cw_orc::ContractWrapper::new_with_empty(
-                    ::version_control::contract::execute,
-                    ::version_control::contract::instantiate,
-                    ::version_control::contract::query,
-                )
-                .with_migrate(::version_control::contract::migrate),
-            ));
-
-            manager.as_instance_mut().set_mock(Box::new(
-                cw_orc::ContractWrapper::new_with_empty(
-                    ::manager::contract::execute,
-                    ::manager::contract::instantiate,
-                    ::manager::contract::query,
-                )
-                .with_migrate(::manager::contract::migrate),
-            ));
-
-            proxy.as_instance_mut().set_mock(Box::new(
-                cw_orc::ContractWrapper::new_with_empty(
-                    ::proxy::contract::execute,
-                    ::proxy::contract::instantiate,
-                    ::proxy::contract::query,
-                )
-                .with_migrate(::proxy::contract::migrate),
-            ));
-        }
+        let ans_host = AnsHost::new(ANS_HOST, chain.clone());
+        let account_factory = AccountFactory::new(ACCOUNT_FACTORY, chain.clone());
+        let version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
+        let module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
+        let manager = Manager::new(MANAGER, chain.clone());
+        let proxy = Proxy::new(PROXY, chain);
 
         let mut account = AbstractAccount { manager, proxy };
 
@@ -153,7 +113,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
         }
     }
 
-    pub fn instantiate(&mut self, chain: &Chain) -> Result<(), BootError> {
+    pub fn instantiate(&mut self, chain: &Chain) -> Result<(), CwOrcError> {
         let sender = &chain.sender();
 
         self.ans_host.instantiate(
