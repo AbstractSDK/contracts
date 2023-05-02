@@ -1,10 +1,7 @@
-use abstract_boot::{ModuleFactory, VersionControl};
-use abstract_core::{MODULE_FACTORY, VERSION_CONTROL};
+use abstract_boot::{Manager, VersionControl};
+use abstract_core::{MANAGER, VERSION_CONTROL};
 use clap::Parser;
-use cw_orch::{
-    networks::{parse_network},
-    *,
-};
+use cw_orch::{networks::parse_network, *};
 use semver::Version;
 use std::sync::Arc;
 use tokio::runtime::Runtime;
@@ -22,15 +19,11 @@ pub fn migrate(network: cw_orch::ChainInfo) -> anyhow::Result<()> {
 
     let vc = VersionControl::new(VERSION_CONTROL, chain.clone());
 
-    let module_factory = ModuleFactory::new(MODULE_FACTORY, chain);
+    let manager = Manager::new(MANAGER, chain);
+    manager.upload()?;
 
-    module_factory.upload()?;
-    module_factory.migrate(
-        &abstract_core::module_factory::MigrateMsg {},
-        module_factory.code_id()?,
-    )?;
-
-    vc.register_natives(vec![module_factory.as_instance()], &abstract_version)?;
+    // Register the new manager
+    vc.register_account_mods(vec![manager.as_instance()], &abstract_version)?;
 
     Ok(())
 }

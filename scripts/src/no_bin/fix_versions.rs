@@ -3,10 +3,7 @@ use abstract_core::{
     objects::module::{Module, ModuleInfo, ModuleVersion},
     version_control::{ModuleFilter, ModulesListResponse},
 };
-use cw_orch::{
-    networks::{UNI_6},
-    *,
-};
+use cw_orch::{networks::UNI_6, *};
 
 use std::sync::Arc;
 use tokio::runtime::Runtime;
