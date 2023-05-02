@@ -1308,11 +1308,7 @@ mod test {
             let unregistered_dex = "unregistered";
 
             let pool_assets = vec!["juno".into(), "osmo".into()];
-            let metadata = pool_metadata(
-                unregistered_dex,
-                PoolType::Weighted,
-                pool_assets.clone(),
-            );
+            let metadata = pool_metadata(unregistered_dex, PoolType::Weighted, pool_assets.clone());
             // Register the assets in ANS
             register_assets_helper(deps.as_mut(), pool_assets)?;
 
@@ -1392,11 +1388,8 @@ mod test {
 
             let dex = "junoswap";
 
-            let metadata = pool_metadata(
-                dex,
-                PoolType::Weighted,
-                vec!["juno".into(), "osmo".into()],
-            );
+            let metadata =
+                pool_metadata(dex, PoolType::Weighted, vec!["juno".into(), "osmo".into()]);
 
             register_dex(deps.as_mut(), dex)?;
 

@@ -428,11 +428,8 @@ mod tests {
             let _pool_address = Addr::unchecked("result");
             let assets = vec!["atom", "juno"];
             let dex = "boogerswap";
-            let pairing = DexAssetPairing::new(
-                AssetEntry::new(assets[0]),
-                AssetEntry::new(assets[1]),
-                dex,
-            );
+            let pairing =
+                DexAssetPairing::new(AssetEntry::new(assets[0]), AssetEntry::new(assets[1]), dex);
 
             let unique_pool_id: UniquePoolId = 1u64.into();
             let pool_address: PoolAddress = Addr::unchecked("pool_address").into();
