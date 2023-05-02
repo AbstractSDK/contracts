@@ -6,7 +6,7 @@ edition = { workspace = true }
 description = "Abstract contract interfaces and storage layouts"
 license = { workspace = true }
 readme = "README.md"
-repository = "https://github.com/Abstract-OS/contracts"
+repository = "https://github.com/AbstractSDK/contracts"
 
 
 [dependencies]
@@ -24,6 +24,7 @@ cw-asset = { workspace = true }
 cw-multi-test = { workspace = true }
 rstest = { workspace = true }
 semver = { workspace = true }
+cw-ownable = { workspace = true }
 
 [dev-dependencies]
 abstract-sdk = { path = "../abstract-sdk", features = ["test-utils"] }

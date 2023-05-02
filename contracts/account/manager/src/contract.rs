@@ -11,7 +11,7 @@ use abstract_core::manager::state::AccountInfo;
 use abstract_core::objects::module_version::assert_contract_upgrade;
 use abstract_sdk::core::{
     manager::{
-        state::{Config, ACCOUNT_FACTORY, CONFIG, INFO, OWNER, SUSPENSION_STATUS},
+        state::{Config, ACCOUNT_FACTORY, CONFIG, INFO, SUSPENSION_STATUS},
         CallbackMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     },
     proxy::state::ACCOUNT_ID,
@@ -45,7 +45,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ManagerResult {
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(
-    mut deps: DepsMut,
+    deps: DepsMut,
     env: Env,
     info: MessageInfo,
     msg: InstantiateMsg,
@@ -81,7 +81,7 @@ pub fn instantiate(
     MIGRATE_CONTEXT.save(deps.storage, &vec![])?;
 
     // Set owner
-    OWNER.set(deps.branch(), Some(owner.clone()))?;
+    cw_ownable::initialize_owner(deps.storage, deps.api, Some(owner.as_str()))?;
     SUSPENSION_STATUS.save(deps.storage, &false)?;
     ACCOUNT_FACTORY.set(deps, Some(info.sender))?;
     Ok(ManagerResponse::new(
@@ -107,10 +107,11 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
             }
 
             match msg {
-                ExecuteMsg::SetOwner { owner } => set_owner(deps, info, owner),
                 ExecuteMsg::UpdateInternalConfig(config) => {
                     update_internal_config(deps, info, config)
                 }
+                ExecuteMsg::SetOwner { owner } => set_owner(deps, env, info, owner),
+
                 ExecuteMsg::InstallModule { module, init_msg } => {
                     install_module(deps, info, env, module, init_msg)
                 }
@@ -145,6 +146,21 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     Ok(response)
                 }
                 ExecuteMsg::Callback(CallbackMsg {}) => handle_callback(deps, env, info),
+                ExecuteMsg::UpdateOwnership(action) => match action {
+                    // Disallow the user from using the TransferOwnership action
+                    cw_ownable::Action::TransferOwnership { .. } => {
+                        Err(ManagerError::MustUseSetOwner {})
+                    }
+                    _ => {
+                        abstract_sdk::execute_update_ownership!(
+                            ManagerResponse,
+                            deps,
+                            env,
+                            info,
+                            action
+                        )
+                    }
+                },
                 _ => panic!(),
             }
         }
@@ -161,6 +177,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         }
         QueryMsg::Info {} => handle_account_info_query(deps),
         QueryMsg::Config {} => handle_config_query(deps),
+        QueryMsg::Ownership {} => abstract_sdk::query_ownership!(deps),
     }
 }
 

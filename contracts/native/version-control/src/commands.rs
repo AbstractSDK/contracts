@@ -3,13 +3,14 @@ use cosmwasm_std::{
     StdResult, Storage,
 };
 
+use abstract_core::objects::common_namespace::OWNERSHIP_STORAGE_KEY;
 use abstract_core::{objects::module::ModuleVersion, objects::AccountId, version_control::Config};
 use abstract_sdk::core::{
-    manager::{ConfigResponse as ManagerConfigResponse, QueryMsg as ManagerQueryMsg},
     objects::{module::ModuleInfo, module_reference::ModuleReference, namespace::Namespace},
     version_control::AccountBase,
     version_control::{namespaces_info, state::*},
 };
+use abstract_sdk::cw_helpers::cosmwasm_std::wasm_raw_query;
 
 use crate::contract::{VCResult, VcResponse, ABSTRACT_NAMESPACE};
 use crate::error::VCError;
@@ -37,7 +38,7 @@ pub fn add_account(
 }
 
 /// Here we can add logic to allow subscribers to claim a namespace and upload contracts to that namespace
-pub fn add_modules(
+pub fn propose_modules(
     deps: DepsMut,
     msg_info: MessageInfo,
     modules: Vec<(ModuleInfo, ModuleReference)>,
@@ -70,7 +71,7 @@ pub fn add_modules(
         }
     }
 
-    Ok(VcResponse::action("add_modules"))
+    Ok(VcResponse::action("propose_modules"))
 }
 
 /// Approve and reject modules
@@ -178,10 +179,10 @@ pub fn claim_namespaces(
 ) -> VCResult {
     // verify account owner
     let account_base = ACCOUNT_ADDRESSES.load(deps.storage, account_id)?;
-    let account_owner = query_account_owner(&deps.querier, &account_base.manager)?;
+    let account_owner = query_account_owner(&deps.querier, &account_base.manager, account_id)?;
     if msg_info.sender != account_owner {
         return Err(VCError::AccountOwnerMismatch {
-            sender: msg_info.sender.into_string(),
+            sender: msg_info.sender,
             owner: account_owner,
         });
     }
@@ -296,10 +297,15 @@ pub fn update_namespaces_limit(deps: DepsMut, info: MessageInfo, new_limit: u32)
     ))
 }
 
-pub fn query_account_owner(querier: &QuerierWrapper, manager_addr: &Addr) -> StdResult<String> {
-    let ManagerConfigResponse { owner, .. } =
-        querier.query_wasm_smart(manager_addr, &ManagerQueryMsg::Config {})?;
-    Ok(owner)
+pub fn query_account_owner(
+    querier: &QuerierWrapper,
+    manager_addr: &Addr,
+    account_id: AccountId,
+) -> VCResult<Addr> {
+    let req = wasm_raw_query(manager_addr, OWNERSHIP_STORAGE_KEY)?;
+    let cw_ownable::Ownership { owner, .. } = querier.query(&req)?;
+
+    owner.ok_or(VCError::NoAccountOwner { account_id })
 }
 
 pub fn validate_account_owner(deps: Deps, namespace: &str, sender: &Addr) -> Result<(), VCError> {
@@ -311,10 +317,10 @@ pub fn validate_account_owner(deps: Deps, namespace: &str, sender: &Addr) -> Res
             namespace: namespace.to_string(),
         })?;
     let account_base = ACCOUNT_ADDRESSES.load(deps.storage, account_id)?;
-    let account_owner = query_account_owner(&deps.querier, &account_base.manager)?;
+    let account_owner = query_account_owner(&deps.querier, &account_base.manager, account_id)?;
     if sender != account_owner {
         return Err(VCError::AccountOwnerMismatch {
-            sender: sender.into_string(),
+            sender,
             owner: account_owner,
         });
     }
@@ -337,6 +343,7 @@ mod test {
     use cw_ownable::OwnershipError;
     use speculoos::prelude::*;
 
+    use abstract_core::manager::ConfigResponse as ManagerConfigResponse;
     use abstract_core::version_control::*;
     use abstract_testing::prelude::TEST_MODULE_ID;
     use abstract_testing::prelude::{
@@ -349,31 +356,39 @@ mod test {
 
     use super::*;
     use crate::test_common::*;
+    use abstract_core::manager::QueryMsg as ManagerQueryMsg;
+    use abstract_testing::prelude::*;
+    use abstract_testing::MockQuerierOwnership;
 
     type VersionControlTestResult = Result<(), VCError>;
 
     const TEST_OTHER: &str = "test-other";
-    const TEST_OWNER: &str = "test-owner";
-
-    const TEST_PROXY_ADDR: &str = "proxy";
-    const TEST_MANAGER_ADDR: &str = "manager";
 
     pub fn mock_manager_querier() -> MockQuerierBuilder {
-        MockQuerierBuilder::default().with_smart_handler(TEST_MANAGER_ADDR, |msg| {
-            match from_binary(msg).unwrap() {
-                ManagerQueryMsg::Config {} => {
-                    let resp = ManagerConfigResponse {
-                        owner: TEST_OWNER.to_owned(),
-                        version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
-                        module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
-                        account_id: Uint64::from(TEST_ACCOUNT_ID), // mock value, not used
-                        is_suspended: false,
-                    };
-                    Ok(to_binary(&resp).unwrap())
+        MockQuerierBuilder::default()
+            .with_smart_handler(TEST_MANAGER, |msg| {
+                match from_binary(msg).unwrap() {
+                    ManagerQueryMsg::Config {} => {
+                        let resp = ManagerConfigResponse {
+                            version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
+                            module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
+                            account_id: Uint64::from(TEST_ACCOUNT_ID), // mock value, not used
+                            is_suspended: false,
+                        };
+                        Ok(to_binary(&resp).unwrap())
+                    }
+                    ManagerQueryMsg::Ownership {} => {
+                        let resp = cw_ownable::Ownership {
+                            owner: Some(Addr::unchecked(TEST_OWNER)),
+                            pending_expiry: None,
+                            pending_owner: None,
+                        };
+                        Ok(to_binary(&resp).unwrap())
+                    }
+                    _ => panic!("unexpected message"),
                 }
-                _ => panic!("unexpected message"),
-            }
-        })
+            })
+            .with_owner(TEST_MANAGER, Some(TEST_OWNER))
     }
 
     /// Initialize the version_control with admin and updated account_factory
@@ -420,8 +435,8 @@ mod test {
             ExecuteMsg::AddAccount {
                 account_id: TEST_ACCOUNT_ID,
                 account_base: AccountBase {
-                    manager: Addr::unchecked(TEST_MANAGER_ADDR),
-                    proxy: Addr::unchecked(TEST_PROXY_ADDR),
+                    manager: Addr::unchecked(TEST_MANAGER),
+                    proxy: Addr::unchecked(TEST_PROXY),
                 },
             },
         )
@@ -555,8 +570,8 @@ mod test {
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(&VCError::AccountOwnerMismatch {
-                    sender: TEST_OTHER.to_string(),
-                    owner: TEST_OWNER.to_string(),
+                    sender: Addr::unchecked(TEST_OTHER),
+                    owner: Addr::unchecked(TEST_OWNER),
                 });
             Ok(())
         }
@@ -677,8 +692,8 @@ mod test {
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(&VCError::AccountOwnerMismatch {
-                    sender: TEST_OTHER.to_string(),
-                    owner: TEST_OWNER.to_string(),
+                    sender: Addr::unchecked(TEST_OTHER),
+                    owner: Addr::unchecked(TEST_OWNER),
                 });
             Ok(())
         }
@@ -730,7 +745,7 @@ mod test {
             // first add module
             let mut new_module = test_module();
             new_module.namespace = new_namespace1.to_string();
-            let msg = ExecuteMsg::AddModules {
+            let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
@@ -749,7 +764,7 @@ mod test {
         }
     }
 
-    mod add_modules {
+    mod propose_modules {
         use abstract_core::objects::module_reference::ModuleReference;
         use abstract_core::AbstractError;
         use abstract_testing::prelude::TEST_MODULE_ID;
@@ -770,7 +785,7 @@ mod test {
             mock_init_with_account(deps.as_mut(), true)?;
             let mut new_module = test_module();
             new_module.namespace = ABSTRACT_NAMESPACE.to_owned();
-            let msg = ExecuteMsg::AddModules {
+            let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
             let res = execute_as(deps.as_mut(), TEST_ADMIN, msg);
@@ -786,7 +801,7 @@ mod test {
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), true)?;
             let new_module = test_module();
-            let msg = ExecuteMsg::AddModules {
+            let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
 
@@ -822,7 +837,7 @@ mod test {
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), false)?;
             let new_module = test_module();
-            let msg = ExecuteMsg::AddModules {
+            let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
 
@@ -872,7 +887,7 @@ mod test {
             execute_as(
                 deps.as_mut(),
                 TEST_OWNER,
-                ExecuteMsg::AddModules {
+                ExecuteMsg::ProposeModules {
                     modules: vec![(new_module.clone(), ModuleReference::App(0))],
                 },
             )?;
@@ -919,7 +934,7 @@ mod test {
             execute_as(
                 deps.as_mut(),
                 TEST_OWNER,
-                ExecuteMsg::AddModules {
+                ExecuteMsg::ProposeModules {
                     modules: vec![(new_module.clone(), ModuleReference::App(0))],
                 },
             )?;
@@ -961,7 +976,7 @@ mod test {
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
 
             // first add module
-            let msg = ExecuteMsg::AddModules {
+            let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(rm_module.clone(), ModuleReference::App(0))],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
@@ -1001,7 +1016,7 @@ mod test {
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
 
             // first add module as the account owner
-            let add_modules_msg = ExecuteMsg::AddModules {
+            let add_modules_msg = ExecuteMsg::ProposeModules {
                 modules: vec![(rm_module.clone(), ModuleReference::App(0))],
             };
             execute_as(deps.as_mut(), TEST_OWNER, add_modules_msg)?;
@@ -1015,8 +1030,8 @@ mod test {
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(&VCError::AccountOwnerMismatch {
-                    sender: TEST_OTHER.to_string(),
-                    owner: TEST_OWNER.to_string(),
+                    sender: Addr::unchecked(TEST_OTHER),
+                    owner: Addr::unchecked(TEST_OWNER),
                 });
 
             Ok(())
@@ -1037,7 +1052,7 @@ mod test {
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
 
             // first add module as the owner
-            let add_modules_msg = ExecuteMsg::AddModules {
+            let add_modules_msg = ExecuteMsg::ProposeModules {
                 modules: vec![(rm_module.clone(), ModuleReference::App(0))],
             };
             execute_as(deps.as_mut(), TEST_OWNER, add_modules_msg)?;
@@ -1075,7 +1090,7 @@ mod test {
                 TEST_MODULE_ID,
                 ModuleVersion::Version("non_compliant_version".into()),
             )?;
-            let msg = ExecuteMsg::AddModules {
+            let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(bad_version_module, ModuleReference::App(0))],
             };
             let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
@@ -1084,7 +1099,7 @@ mod test {
                 .matches(|e| e.to_string().contains("Invalid version"));
 
             let latest_version_module = ModuleInfo::from_id(TEST_MODULE_ID, ModuleVersion::Latest)?;
-            let msg = ExecuteMsg::AddModules {
+            let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(latest_version_module, ModuleReference::App(0))],
             };
             let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
@@ -1103,7 +1118,7 @@ mod test {
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), true)?;
             let new_module = ModuleInfo::from_id(&abstract_contract_id, TEST_VERSION.into())?;
-            let msg = ExecuteMsg::AddModules {
+            let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
 
@@ -1148,7 +1163,7 @@ mod test {
             ];
 
             for bad_module in bad_modules {
-                let msg = ExecuteMsg::AddModules {
+                let msg = ExecuteMsg::ProposeModules {
                     modules: vec![(bad_module.clone(), ModuleReference::App(0))],
                 };
                 let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
@@ -1188,7 +1203,7 @@ mod test {
             // add a module as the owner
             let mut new_module = ModuleInfo::from_id(TEST_MODULE_ID, TEST_VERSION.into())?;
             new_module.namespace = TEST_NAMESPACE.to_string();
-            let msg = ExecuteMsg::AddModules {
+            let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
@@ -1215,7 +1230,7 @@ mod test {
 
             // add a module as the owner
             let new_module = ModuleInfo::from_id(TEST_MODULE_ID, TEST_VERSION.into())?;
-            let msg = ExecuteMsg::AddModules {
+            let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
@@ -1292,8 +1307,8 @@ mod test {
             mock_init_with_factory(deps.as_mut())?;
 
             let test_core: AccountBase = AccountBase {
-                manager: Addr::unchecked(TEST_MANAGER_ADDR),
-                proxy: Addr::unchecked(TEST_PROXY_ADDR),
+                manager: Addr::unchecked(TEST_MANAGER),
+                proxy: Addr::unchecked(TEST_PROXY),
             };
             let msg = ExecuteMsg::AddAccount {
                 account_id: 0,
@@ -1367,6 +1382,55 @@ mod test {
             execute_as_admin(deps.as_mut(), msg)?;
             let new_factory = FACTORY.query_admin(deps.as_ref())?.admin;
             assert_that!(new_factory).is_equal_to(&Some(TEST_ACCOUNT_FACTORY.into()));
+            Ok(())
+        }
+    }
+
+    mod query_account_owner {
+        use super::*;
+
+        #[test]
+        fn returns_account_owner() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            deps.querier = AbstractMockQuerierBuilder::default()
+                .account(TEST_MANAGER, TEST_PROXY, 0)
+                .build();
+            mock_init_with_account(deps.as_mut(), true)?;
+
+            let account_owner =
+                query_account_owner(&deps.as_ref().querier, &Addr::unchecked(TEST_MANAGER), 0)?;
+
+            assert_that!(account_owner).is_equal_to(Addr::unchecked(TEST_OWNER));
+            Ok(())
+        }
+
+        #[test]
+        fn no_owner_returns_err() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            deps.querier = MockQuerierBuilder::default()
+                .with_contract_item(
+                    TEST_MANAGER,
+                    cw_storage_plus::Item::<cw_ownable::Ownership<Addr>>::new(
+                        OWNERSHIP_STORAGE_KEY,
+                    ),
+                    &cw_ownable::Ownership {
+                        owner: None,
+                        pending_owner: None,
+                        pending_expiry: None,
+                    },
+                )
+                .build();
+            mock_init_with_account(deps.as_mut(), true)?;
+
+            let account_id = 0;
+            let res = query_account_owner(
+                &deps.as_ref().querier,
+                &Addr::unchecked(TEST_MANAGER),
+                account_id,
+            );
+            assert_that!(res)
+                .is_err()
+                .is_equal_to(&VCError::NoAccountOwner { account_id });
             Ok(())
         }
     }

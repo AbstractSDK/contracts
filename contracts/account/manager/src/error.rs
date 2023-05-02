@@ -20,6 +20,9 @@ pub enum ManagerError {
     #[error("{0}")]
     Admin(#[from] AdminError),
 
+    #[error("{0}")]
+    Ownership(#[from] cw_ownable::OwnershipError),
+
     #[error("Module with id: {0} is already installed")]
     ModuleAlreadyInstalled(String),
 
@@ -114,4 +117,7 @@ pub enum ManagerError {
 
     #[error("invalid configuration action, {}", error)]
     InvalidConfigAction { error: StdError },
+
+    #[error("Must use SetOwner to change owner")]
+    MustUseSetOwner {},
 }
