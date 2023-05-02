@@ -24,7 +24,7 @@ const DEFAULT_LIMIT: u8 = 10;
 const MAX_LIMIT: u8 = 20;
 
 pub fn handle_account_address_query(deps: Deps, account_id: AccountId) -> StdResult<Binary> {
-    let account_address = ACCOUNT_ADDRESSES.load(deps.storage, account_id);
+    let account_address = ACCOUNT_ADDRESSES.load(deps.storage, &account_id);
     match account_address {
         Err(_) => Err(StdError::generic_err(
             VCError::UnknownAccountId { id: account_id }.to_string(),
@@ -241,13 +241,14 @@ fn filter_modules_by_namespace(
 
 #[cfg(test)]
 mod test {
+    use abstract_core::objects::account::{AccountTrace, TEST_ACCOUNT_ID};
     use abstract_testing::prelude::{
-        test_account_base, TEST_ACCOUNT_FACTORY, TEST_ACCOUNT_ID, TEST_MANAGER,
-        TEST_MODULE_FACTORY, TEST_VERSION_CONTROL,
+        test_account_base, TEST_ACCOUNT_FACTORY, TEST_MANAGER, TEST_MODULE_FACTORY,
+        TEST_VERSION_CONTROL,
     };
     use abstract_testing::{MockQuerierBuilder, MockQuerierOwnership};
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-    use cosmwasm_std::{Addr, DepsMut, StdError, Uint64};
+    use cosmwasm_std::{Addr, DepsMut, StdError};
 
     use abstract_core::{manager, version_control::*};
 
@@ -262,7 +263,7 @@ mod test {
     const TEST_ADMIN: &str = "testadmin";
 
     const TEST_OTHER: &str = "testother";
-    const TEST_OTHER_ACCOUNT_ID: u32 = 1;
+    const TEST_OTHER_ACCOUNT_ID: AccountId = AccountId::const_new(1, AccountTrace::Local);
     const TEST_OTHER_PROXY_ADDR: &str = "proxy1";
     const TEST_OTHER_MANAGER_ADDR: &str = "manager1";
 
@@ -274,7 +275,7 @@ mod test {
                         let resp = manager::ConfigResponse {
                             version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
                             module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
-                            account_id: Uint64::from(TEST_ACCOUNT_ID), // mock value, not used
+                            account_id: TEST_ACCOUNT_ID, // mock value, not used
                             is_suspended: false,
                         };
                         Ok(to_binary(&resp).unwrap())
@@ -288,7 +289,7 @@ mod test {
                         let resp = manager::ConfigResponse {
                             version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
                             module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
-                            account_id: Uint64::from(TEST_OTHER_ACCOUNT_ID), // mock value, not used
+                            account_id: TEST_OTHER_ACCOUNT_ID, // mock value, not used
                             is_suspended: false,
                         };
                         Ok(to_binary(&resp).unwrap())
@@ -480,7 +481,7 @@ mod test {
     use cosmwasm_std::from_binary;
 
     /// Add namespaces
-    fn add_namespaces(deps: DepsMut, namespaces: Vec<String>, account_id: u32, sender: &str) {
+    fn add_namespaces(deps: DepsMut, namespaces: Vec<String>, account_id: AccountId, sender: &str) {
         let msg = ExecuteMsg::ClaimNamespaces {
             account_id,
             namespaces,
@@ -1045,6 +1046,7 @@ mod test {
 
     mod handle_account_address_query {
         use super::*;
+        use abstract_core::objects::account::AccountTrace;
         use abstract_testing::prelude::test_account_base;
 
         #[test]
@@ -1052,11 +1054,11 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let not_registered = 15;
+            let not_registered = AccountId::new(15, AccountTrace::Local)?;
             let res = query_helper(
                 deps.as_ref(),
                 QueryMsg::AccountBase {
-                    account_id: not_registered,
+                    account_id: not_registered.clone(),
                 },
             );
 

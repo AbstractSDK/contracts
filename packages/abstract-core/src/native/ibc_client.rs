@@ -1,5 +1,5 @@
 use self::state::AccountData;
-use crate::{abstract_ica::StdAck, ibc_host::HostAction, objects::core::AccountId};
+use crate::{abstract_ica::StdAck, ibc_host::HostAction, objects::account::AccountId};
 use abstract_ica::IbcResponseMsg;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{from_slice, Binary, Coin, CosmosMsg, StdResult, Timestamp};
@@ -8,7 +8,7 @@ pub mod state {
 
     use super::LatestQueryResponse;
     use crate::{
-        objects::{ans_host::AnsHost, common_namespace::ADMIN_NAMESPACE, core::AccountId},
+        objects::{account::AccountId, ans_host::AnsHost, common_namespace::ADMIN_NAMESPACE},
         ANS_HOST as ANS_HOST_KEY,
     };
     use cosmwasm_std::{Addr, Coin, Timestamp};
@@ -40,9 +40,9 @@ pub mod state {
     pub const CHANNELS: Map<&str, String> = Map::new("channels");
     pub const CONFIG: Item<Config> = Item::new("config");
     /// (channel-id,account_id) -> remote_addr
-    pub const ACCOUNTS: Map<(&str, AccountId), AccountData> = Map::new("accounts");
+    pub const ACCOUNTS: Map<(&str, &AccountId), AccountData> = Map::new("accounts");
     /// Todo: see if we can remove this
-    pub const LATEST_QUERIES: Map<(&str, AccountId), LatestQueryResponse> = Map::new("queries");
+    pub const LATEST_QUERIES: Map<(&str, &AccountId), LatestQueryResponse> = Map::new("queries");
     pub const ANS_HOST: Item<AnsHost> = Item::new(ANS_HOST_KEY);
 }
 

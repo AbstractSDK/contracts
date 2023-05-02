@@ -1,6 +1,8 @@
 use abstract_boot::{AbstractAccount, AccountFactory, AccountFactoryQueryFns, VersionControl};
 use abstract_core::{
-    account_factory, manager, proxy, ACCOUNT_FACTORY, MANAGER, PROXY, VERSION_CONTROL,
+    account_factory, manager,
+    objects::{account::AccountTrace, AccountId},
+    proxy, ACCOUNT_FACTORY, MANAGER, PROXY, VERSION_CONTROL,
 };
 use boot_core::{
     networks::{parse_network, NetworkInfo},
@@ -30,12 +32,16 @@ pub fn migrate(network: NetworkInfo) -> anyhow::Result<()> {
 
     let account_factory = AccountFactory::new(ACCOUNT_FACTORY, chain.clone());
     let account_factory::ConfigResponse {
-        next_account_id, ..
-    } = AccountFactoryQueryFns::config(&account_factory)?;
-    let latest_acct_id = next_account_id - 1;
+        local_account_sequence: sequence,
+        ..
+    } = account_factory.config()?;
+    let latest_acct_seq = sequence - 1;
 
-    for account_id in 1..=latest_acct_id {
-        let account = AbstractAccount::new(chain.clone(), Some(account_id));
+    for acc_seq in 1..=latest_acct_seq {
+        let account = AbstractAccount::new(
+            chain.clone(),
+            Some(AccountId::new(acc_seq, AccountTrace::Local).unwrap()),
+        );
         // todo: check admin
 
         // Upgrade manager first

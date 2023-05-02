@@ -6,8 +6,8 @@ license = { workspace = true }
 description = "base ibc-host contract implementation"
 
 
-# [lib]
-# crate-type = ["cdylib", "rlib"]
+[lib]
+crate-type = ["cdylib", "rlib"]
 
 
 [features]

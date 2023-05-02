@@ -1,6 +1,6 @@
 use crate::{
     endpoints::reply::INIT_CALLBACK_ID,
-    state::{ContractError, CLIENT_PROXY, CLOSED_CHANNELS, PENDING},
+    state::{ContractError, CLIENT_PROXY, PENDING},
     Host, HostError,
 };
 use abstract_core::objects::AccountId;
@@ -20,7 +20,7 @@ pub const PACKET_LIFETIME: u64 = 60 * 60;
 
 #[entry_point]
 #[allow(unused)]
-/// enforces ordering and versioing constraints
+/// enforces ordering and versioning constraints
 pub fn ibc_channel_open(
     _deps: DepsMut,
     _env: Env,
@@ -51,14 +51,6 @@ pub fn ibc_channel_connect(
 ) -> StdResult<IbcBasicResponse> {
     let channel = msg.channel();
     let chan_id = &channel.endpoint.channel_id;
-    // re-open channel if it was closed previously.
-    let re_open_channel = |mut closed_channels: Vec<String>| -> StdResult<Vec<String>> {
-        Ok(closed_channels
-            .into_iter()
-            .filter(|c| c != chan_id)
-            .collect())
-    };
-    CLOSED_CHANNELS.update(deps.storage, re_open_channel)?;
 
     Ok(IbcBasicResponse::new()
         .add_attribute("action", "ibc_connect")
@@ -73,20 +65,15 @@ pub fn ibc_channel_close(
     env: Env,
     msg: IbcChannelCloseMsg,
 ) -> StdResult<IbcBasicResponse> {
-    let channel = msg.channel();
-    // get contract address and remove lookup
-    let channel_id = channel.endpoint.channel_id.clone();
-    CLOSED_CHANNELS.update(deps.storage, |mut channels| {
-        channels.push(channel_id);
-        Ok::<_, StdError>(channels)
-    })?;
+    match msg {
+        IbcChannelCloseMsg::CloseInit { channel } => {
+            // error on attempt to close channel
+            return Err(StdError::generic_err("IBC channel close is not supported"));
+        }
+        IbcChannelCloseMsg::CloseConfirm { channel } => {}
+    }
 
-    Ok(
-        IbcBasicResponse::new()
-            // .add_submessages(messages)
-            .add_attribute("action", "ibc_close")
-            .add_attribute("channel_id", channel.endpoint.channel_id.clone()), // .add_attribute("rescue_funds", rescue_funds.to_string())
-    )
+    Ok(IbcBasicResponse::new().add_attribute("action", "ibc_close"))
 }
 
 fn unparsed_query(
@@ -165,9 +152,13 @@ pub fn receive_register<
     let msg = SubMsg::reply_on_success(msg, INIT_CALLBACK_ID);
 
     // store the proxy address of the Account on the client chain.
-    CLIENT_PROXY.save(deps.storage, (&channel, account_id), &account_proxy_address)?;
+    CLIENT_PROXY.save(
+        deps.storage,
+        (&channel, &account_id),
+        &account_proxy_address,
+    )?;
     // store the account info for the reply handler
-    PENDING.save(deps.storage, &(channel, account_id))?;
+    PENDING.save(deps.storage, &(channel, account_id.clone()))?;
 
     // We rely on Reply handler to change this to Success!
     let acknowledgement = StdAck::fail(format!("Failed to create proxy for Account {account_id} "));

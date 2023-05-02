@@ -1,3 +1,4 @@
+use abstract_core::objects::AccountId;
 use core::{objects::AssetEntry, AbstractError};
 use cosmwasm_std::Addr;
 use cw_asset::AssetError;
@@ -52,16 +53,16 @@ pub enum AbstractSdkError {
 
     // caller not Manager error
     #[error("Address {0} is not the Manager of Account {1}.")]
-    NotManager(Addr, u32),
+    NotManager(Addr, AccountId),
 
     // caller not Proxy error
     #[error("Address {0} is not the Proxy of Account {1}.")]
-    NotProxy(Addr, u32),
+    NotProxy(Addr, AccountId),
 
     // unknown Account id error
-    #[error("Unknown Account id {account_id} on version control {version_control_addr}. Please ensure that you are using the correct Account id and version control address.")]
+    #[error("Unknown Account id {} on version control {version_control_addr}. Please ensure that you are using the correct Account id and version control address.", account_id.to_string())]
     UnknownAccountId {
-        account_id: u32,
+        account_id: AccountId,
         version_control_addr: Addr,
     },
 

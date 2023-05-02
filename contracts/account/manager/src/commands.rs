@@ -700,6 +700,9 @@ pub fn update_account_status(
 
 #[cfg(test)]
 mod tests {
+    use abstract_core::manager::InstantiateMsg;
+    use abstract_core::objects::account::AccountTrace;
+    use abstract_core::objects::AccountId;
     use abstract_testing::prelude::*;
     use cosmwasm_std::testing::{
         mock_dependencies, mock_env, mock_info, MockApi, MockQuerier, MockStorage,
@@ -710,11 +713,32 @@ mod tests {
     use speculoos::prelude::*;
 
     use super::*;
-    use crate::test_common::mock_init;
 
     type ManagerTestResult = Result<(), ManagerError>;
 
     const TEST_PROXY_ADDR: &str = "proxy";
+
+    /// Initialize the manager with the test owner as the owner
+    fn mock_init(mut deps: DepsMut) -> ManagerResult {
+        let info = mock_info(TEST_ACCOUNT_FACTORY, &[]);
+
+        contract::instantiate(
+            deps.branch(),
+            mock_env(),
+            info,
+            InstantiateMsg {
+                account_id: AccountId::new(1, AccountTrace::Local).unwrap(),
+                owner: GovernanceDetails::Monarchy {
+                    monarch: TEST_OWNER.to_string(),
+                },
+                version_control_address: TEST_VERSION_CONTROL.to_string(),
+                module_factory_address: TEST_MODULE_FACTORY.to_string(),
+                name: "test".to_string(),
+                description: None,
+                link: None,
+            },
+        )
+    }
 
     fn mock_installed_proxy(deps: DepsMut) -> StdResult<()> {
         let _info = mock_info(TEST_OWNER, &[]);

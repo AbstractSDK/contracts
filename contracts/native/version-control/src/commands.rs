@@ -25,7 +25,13 @@ pub fn add_account(
 ) -> VCResult {
     // Only Factory can add new Account
     FACTORY.assert_admin(deps.as_ref(), &msg_info.sender)?;
-    ACCOUNT_ADDRESSES.save(deps.storage, account_id, &account_base)?;
+    // Check if account already exists
+    ensure!(
+        !ACCOUNT_ADDRESSES.has(deps.storage, &account_id),
+        VCError::AccountAlreadyExists(account_id)
+    );
+
+    ACCOUNT_ADDRESSES.save(deps.storage, &account_id, &account_base)?;
 
     Ok(VcResponse::new(
         "add_account",
@@ -178,8 +184,8 @@ pub fn claim_namespaces(
     namespaces_to_claim: Vec<String>,
 ) -> VCResult {
     // verify account owner
-    let account_base = ACCOUNT_ADDRESSES.load(deps.storage, account_id)?;
-    let account_owner = query_account_owner(&deps.querier, &account_base.manager, account_id)?;
+    let account_base = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
+    let account_owner = query_account_owner(&deps.querier, &account_base.manager, &account_id)?;
     if msg_info.sender != account_owner {
         return Err(VCError::AccountOwnerMismatch {
             sender: msg_info.sender,
@@ -194,7 +200,7 @@ pub fn claim_namespaces(
     let existing_namespace_count = namespaces_info()
         .idx
         .account_id
-        .prefix(account_id)
+        .prefix(account_id.clone())
         .range(deps.storage, None, None, Order::Ascending)
         .count();
     if existing_namespace_count + namespaces_to_claim.len() > limit {
@@ -300,12 +306,14 @@ pub fn update_namespaces_limit(deps: DepsMut, info: MessageInfo, new_limit: u32)
 pub fn query_account_owner(
     querier: &QuerierWrapper,
     manager_addr: &Addr,
-    account_id: AccountId,
+    account_id: &AccountId,
 ) -> VCResult<Addr> {
     let req = wasm_raw_query(manager_addr, OWNERSHIP_STORAGE_KEY)?;
     let cw_ownable::Ownership { owner, .. } = querier.query(&req)?;
 
-    owner.ok_or(VCError::NoAccountOwner { account_id })
+    owner.ok_or_else(|| VCError::NoAccountOwner {
+        account_id: account_id.clone(),
+    })
 }
 
 pub fn validate_account_owner(deps: Deps, namespace: &str, sender: &Addr) -> Result<(), VCError> {
@@ -316,8 +324,8 @@ pub fn validate_account_owner(deps: Deps, namespace: &str, sender: &Addr) -> Res
         .ok_or_else(|| VCError::UnknownNamespace {
             namespace: namespace.to_string(),
         })?;
-    let account_base = ACCOUNT_ADDRESSES.load(deps.storage, account_id)?;
-    let account_owner = query_account_owner(&deps.querier, &account_base.manager, account_id)?;
+    let account_base = ACCOUNT_ADDRESSES.load(deps.storage, &account_id)?;
+    let account_owner = query_account_owner(&deps.querier, &account_base.manager, &account_id)?;
     if sender != account_owner {
         return Err(VCError::AccountOwnerMismatch {
             sender,
@@ -338,7 +346,7 @@ pub fn set_factory(deps: DepsMut, info: MessageInfo, new_admin: String) -> VCRes
 #[cfg(test)]
 mod test {
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-    use cosmwasm_std::{from_binary, to_binary, Addr, Uint64};
+    use cosmwasm_std::{from_binary, to_binary, Addr};
     use cw_controllers::AdminError;
     use cw_ownable::OwnershipError;
     use speculoos::prelude::*;
@@ -372,7 +380,7 @@ mod test {
                         let resp = ManagerConfigResponse {
                             version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
                             module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
-                            account_id: Uint64::from(TEST_ACCOUNT_ID), // mock value, not used
+                            account_id: TEST_ACCOUNT_ID, // mock value, not used
                             is_suspended: false,
                         };
                         Ok(to_binary(&resp).unwrap())
@@ -1299,6 +1307,8 @@ mod test {
     }
 
     mod register_os {
+        use abstract_core::objects::account::TEST_ACCOUNT_ID;
+
         use super::*;
 
         #[test]
@@ -1311,7 +1321,7 @@ mod test {
                 proxy: Addr::unchecked(TEST_PROXY),
             };
             let msg = ExecuteMsg::AddAccount {
-                account_id: 0,
+                account_id: TEST_ACCOUNT_ID,
                 account_base: test_core.clone(),
             };
 
@@ -1330,7 +1340,7 @@ mod test {
             // as factory
             execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg)?;
 
-            let account = ACCOUNT_ADDRESSES.load(&deps.storage, 0)?;
+            let account = ACCOUNT_ADDRESSES.load(&deps.storage, &TEST_ACCOUNT_ID)?;
             assert_that!(&account).is_equal_to(&test_core);
             Ok(())
         }
@@ -1393,12 +1403,15 @@ mod test {
         fn returns_account_owner() -> VersionControlTestResult {
             let mut deps = mock_dependencies();
             deps.querier = AbstractMockQuerierBuilder::default()
-                .account(TEST_MANAGER, TEST_PROXY, 0)
+                .account(TEST_MANAGER, TEST_PROXY, TEST_ACCOUNT_ID)
                 .build();
             mock_init_with_account(deps.as_mut(), true)?;
 
-            let account_owner =
-                query_account_owner(&deps.as_ref().querier, &Addr::unchecked(TEST_MANAGER), 0)?;
+            let account_owner = query_account_owner(
+                &deps.as_ref().querier,
+                &Addr::unchecked(TEST_MANAGER),
+                &TEST_ACCOUNT_ID,
+            )?;
 
             assert_that!(account_owner).is_equal_to(Addr::unchecked(TEST_OWNER));
             Ok(())
@@ -1422,11 +1435,11 @@ mod test {
                 .build();
             mock_init_with_account(deps.as_mut(), true)?;
 
-            let account_id = 0;
+            let account_id = TEST_ACCOUNT_ID;
             let res = query_account_owner(
                 &deps.as_ref().querier,
                 &Addr::unchecked(TEST_MANAGER),
-                account_id,
+                &account_id,
             );
             assert_that!(res)
                 .is_err()

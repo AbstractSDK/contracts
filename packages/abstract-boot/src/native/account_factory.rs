@@ -27,7 +27,7 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
         contract = contract.with_wasm_path("abstract_account_factory");
         Self(contract)
     }
-
+    /// Creates a local account
     pub fn create_new_account(
         &self,
         account_details: AccountDetails,
@@ -45,6 +45,7 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
                 name,
                 link,
                 description,
+                origin: None,
             },
             None,
         )?;

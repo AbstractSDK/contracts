@@ -1,7 +1,7 @@
 use crate::{
     error::HostError,
     host_commands::{receive_query, receive_register, receive_who_am_i},
-    state::{ContractError, Host, ACCOUNTS, CLIENT_PROXY, CLOSED_CHANNELS, PROCESSING_PACKET},
+    state::{ContractError, Host, ACCOUNTS, CLIENT_PROXY, PROCESSING_PACKET},
 };
 use abstract_sdk::{
     base::{ExecuteEndpoint, Handler},
@@ -92,7 +92,7 @@ impl<
             ..
         } = from_slice(&packet.data)?;
         // fill the local proxy address
-        self.proxy_address = ACCOUNTS.may_load(deps.storage, (&channel, account_id))?;
+        self.proxy_address = ACCOUNTS.may_load(deps.storage, (&channel, &account_id))?;
         match action {
             HostAction::Internal(InternalAction::Register {
                 account_proxy_address,
@@ -107,7 +107,7 @@ impl<
             HostAction::SendAllBack {} => {
                 // address of the proxy on the client chain
                 let client_proxy_address =
-                    CLIENT_PROXY.load(deps.storage, (&channel, account_id))?;
+                    CLIENT_PROXY.load(deps.storage, (&channel, &account_id))?;
                 self.receive_send_all_back(deps, env, client_proxy_address, client_chain)
             }
             HostAction::App { msg } => {
@@ -141,14 +141,10 @@ impl<
                 account_id,
                 msgs,
             } => {
-                let closed_channels = CLOSED_CHANNELS.load(deps.storage)?;
-                if !closed_channels.contains(&closed_channel) {
-                    return Err(HostError::ChannelNotClosed {});
-                }
                 self.admin.assert_admin(deps.as_ref(), &info.sender)?;
                 self.proxy_address =
-                    ACCOUNTS.may_load(deps.storage, (&closed_channel, account_id))?;
-                ACCOUNTS.remove(deps.storage, (&closed_channel, account_id));
+                    ACCOUNTS.may_load(deps.storage, (&closed_channel, &account_id))?;
+                ACCOUNTS.remove(deps.storage, (&closed_channel, &account_id));
                 // Execute provided msgs on proxy.
                 self.executor(deps.as_ref())
                     .execute_with_response(msgs, "recover_account")

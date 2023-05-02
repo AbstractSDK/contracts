@@ -1,5 +1,5 @@
 use crate::error::IbcClientError;
-use abstract_core::objects::AccountId;
+use abstract_core::objects::{account::AccountTrace, AccountId};
 use abstract_sdk::core::{
     abstract_ica::{
         check_order, check_version, BalancesResponse, RegisterResponse, StdAck, WhoAmIResponse,
@@ -54,7 +54,7 @@ pub fn ibc_channel_connect(
     let packet = PacketMsg {
         action: HostAction::Internal(InternalAction::WhoAmI),
         client_chain: cfg.chain,
-        account_id: 0,
+        account_id: AccountId::new(0, AccountTrace::Local).unwrap(),
         callback_info: None,
         retries: 0,
     };
@@ -193,7 +193,7 @@ fn acknowledge_query(
     // store IBC response for later querying from the smart contract??
     LATEST_QUERIES.save(
         deps.storage,
-        (&channel_id, account_id),
+        (&channel_id, &account_id),
         &LatestQueryResponse {
             last_update_time: env.block.time,
             response: msg,
@@ -246,7 +246,7 @@ fn acknowledge_register(
         }
     };
 
-    ACCOUNTS.update(deps.storage, (&channel_id, account_id), |acct| {
+    ACCOUNTS.update(deps.storage, (&channel_id, &account_id), |acct| {
         match acct {
             Some(mut acct) => {
                 // set the account the first time
@@ -280,21 +280,25 @@ fn acknowledge_balances(
         }
     };
 
-    ACCOUNTS.update(deps.storage, (&channel_id, account_id), |acct| match acct {
-        Some(acct) => {
-            if let Some(old) = acct.remote_addr {
-                if old != account {
-                    return Err(IbcClientError::RemoteAccountChanged { old, addr: account });
+    ACCOUNTS.update(
+        deps.storage,
+        (&channel_id, &account_id),
+        |acct| match acct {
+            Some(acct) => {
+                if let Some(old) = acct.remote_addr {
+                    if old != account {
+                        return Err(IbcClientError::RemoteAccountChanged { old, addr: account });
+                    }
                 }
+                Ok(AccountData {
+                    last_update_time: env.block.time,
+                    remote_addr: Some(account),
+                    remote_balance: balances,
+                })
             }
-            Ok(AccountData {
-                last_update_time: env.block.time,
-                remote_addr: Some(account),
-                remote_balance: balances,
-            })
-        }
-        None => Err(IbcClientError::UnregisteredChannel(channel_id.clone())),
-    })?;
+            None => Err(IbcClientError::UnregisteredChannel(channel_id.clone())),
+        },
+    )?;
 
     Ok(IbcBasicResponse::new().add_attribute("action", "acknowledge_balances"))
 }

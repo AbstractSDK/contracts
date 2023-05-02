@@ -17,8 +17,8 @@
 pub mod state {
     use std::collections::HashSet;
 
+    pub use crate::objects::account::ACCOUNT_ID;
     use crate::objects::common_namespace::OWNERSHIP_STORAGE_KEY;
-    pub use crate::objects::core::ACCOUNT_ID;
     use crate::objects::{gov_type::GovernanceDetails, module::ModuleId};
     use cosmwasm_std::{Addr, Api};
     use cw_address_like::AddressLike;
@@ -91,12 +91,12 @@ pub mod state {
 use self::state::AccountInfo;
 use crate::manager::state::SuspensionStatus;
 use crate::objects::{
-    core::AccountId,
+    account::AccountId,
     gov_type::GovernanceDetails,
     module::{Module, ModuleInfo},
 };
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Binary, Uint64};
+use cosmwasm_std::{Addr, Binary};
 use cw2::ContractVersion;
 
 /// Manager Migrate Msg
@@ -208,7 +208,7 @@ pub struct ModuleAddressesResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
-    pub account_id: Uint64,
+    pub account_id: AccountId,
     pub is_suspended: SuspensionStatus,
     pub version_control_address: Addr,
     pub module_factory_address: Addr,

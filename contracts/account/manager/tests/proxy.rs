@@ -1,6 +1,6 @@
 mod common;
 use abstract_boot::*;
-use abstract_core::{manager::ManagerModuleInfo, PROXY};
+use abstract_core::{manager::ManagerModuleInfo, objects::account::TEST_ACCOUNT_ID, PROXY};
 use abstract_manager::contract::CONTRACT_VERSION;
 use abstract_testing::prelude::TEST_VERSION;
 use boot_core::{instantiate_default_mock_env, ContractInstance, Deploy};
@@ -32,7 +32,7 @@ fn instantiate() -> AResult {
     assert_that!(account.manager.config()?).is_equal_to(abstract_core::manager::ConfigResponse {
         version_control_address: deployment.version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
-        account_id: 0u32.into(),
+        account_id: TEST_ACCOUNT_ID,
         is_suspended: false,
     });
     Ok(())

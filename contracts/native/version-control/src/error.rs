@@ -63,6 +63,9 @@ pub enum VCError {
 
     #[error("No action specified")]
     NoAction,
+
+    #[error("Account {0} already exists")]
+    AccountAlreadyExists(AccountId),
 }
 
 impl From<cw_semver::Error> for VCError {

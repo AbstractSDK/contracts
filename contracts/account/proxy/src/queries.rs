@@ -103,6 +103,7 @@ pub fn query_holding_amount(
 
 #[cfg(test)]
 mod test {
+    use abstract_core::objects::account::TEST_ACCOUNT_ID;
     use abstract_core::objects::price_source::{PriceSource, UncheckedPriceSource};
 
     use abstract_testing::{prelude::*, MockAnsHost};
@@ -138,7 +139,7 @@ mod test {
     fn mock_init(deps: DepsMut) {
         let info = mock_info(TEST_CREATOR, &[]);
         let msg = InstantiateMsg {
-            account_id: 0,
+            account_id: TEST_ACCOUNT_ID,
             ans_host_address: TEST_ANS_HOST.to_string(),
         };
         let _res = instantiate(deps, mock_env(), info, msg).unwrap();
