@@ -1,4 +1,5 @@
 use abstract_core::manager::ExecuteMsg;
+use abstract_core::objects::ABSTRACT_ACCOUNT_ID;
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, CosmosMsg, DepsMut, Empty, Env, MessageInfo, QuerierWrapper,
     ReplyOn, StdError, SubMsg, SubMsgResult, WasmMsg,
@@ -34,12 +35,18 @@ pub const CREATE_ACCOUNT_PROXY_MSG_ID: u64 = 2u64;
 pub fn execute_create_account(
     deps: DepsMut,
     env: Env,
+    info: MessageInfo,
     governance: GovernanceDetails<Addr>,
     name: String,
     description: Option<String>,
     link: Option<String>,
 ) -> AccountFactoryResult {
     let config = CONFIG.load(deps.storage)?;
+
+    // Check if the caller is the owner when instantiating the abstract account
+    if config.next_account_id == ABSTRACT_ACCOUNT_ID {
+        cw_ownable::assert_owner(deps.storage, &info.sender)?;
+    }
 
     // Query version_control for code_id of Manager contract
     let module: Module = query_module(&deps.querier, &config.version_control_contract, MANAGER)?;
