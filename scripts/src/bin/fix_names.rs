@@ -3,15 +3,12 @@ use abstract_core::{
     objects::module::{Module, ModuleInfo},
     version_control::{ModulesListResponse, QueryMsgFns},
 };
-use cw_orch::{
-    networks::{terra::PISCO_1, NetworkInfo},
-    *,
-};
+use cw_orch::{networks::terra::PISCO_1, *};
 
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 
-const NETWORK: cw_orch::ChainInfo = PISCO_1;
+const NETWORK: cw_orch::networks::ChainInfo = PISCO_1;
 const NAMESPACE: &str = "abstract";
 
 /// Script that takes existing versions in Version control, removes them, and swaps them wit ha new version

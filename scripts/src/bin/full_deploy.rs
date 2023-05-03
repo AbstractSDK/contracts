@@ -4,10 +4,7 @@ use abstract_core::objects::gov_type::GovernanceDetails;
 use clap::Parser;
 use cw_orch::networks::juno::JUNO_NETWORK;
 use cw_orch::networks::{ChainInfo, ChainKind};
-use cw_orch::{
-    networks::{parse_network, NetworkInfo},
-    *,
-};
+use cw_orch::{networks::parse_network, *};
 use semver::Version;
 use std::sync::Arc;
 use tokio::runtime::Runtime;

@@ -1,6 +1,6 @@
 use abstract_boot::Abstract;
 
-use cw_orch::{networks::NetworkInfo, *};
+use cw_orch::*;
 
 use abstract_core::ans_host::{
     AssetPairingFilter, ExecuteMsg, PoolAddressListResponse, PoolMetadataListResponse, QueryMsgFns,
@@ -8,7 +8,7 @@ use abstract_core::ans_host::{
 use abstract_core::objects::pool_id::UncheckedPoolAddress;
 
 use cw_orch::networks::juno::JUNO_NETWORK;
-use cw_orch::networks::ChainKind;
+use cw_orch::networks::{ChainInfo, ChainKind};
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 

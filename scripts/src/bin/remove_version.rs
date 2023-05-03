@@ -1,8 +1,8 @@
 use abstract_boot::{VCExecFns, VersionControl};
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion};
 use cosmwasm_std::Addr;
-use cw_orch::{networks, networks::NetworkInfo, DaemonBuilder};
-use std::{env, sync::Arc};
+use cw_orch::{networks, DaemonBuilder};
+use std::env;
 
 const NETWORK: ChainInfo = networks::UNI_6;
 

@@ -58,7 +58,7 @@ semver = "1.0"
 cw-semver = { version = "1.0" }
 #cw-orch = { version = "0.10.0" }
 # cw-orch = { path = "../BOOT/cw-orch", features = ["daemon"] }
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "fix/uploadable", features = [
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "feature/interchain_tests", features = [
   "daemon",
 ] }
 boot-cw-plus = { git = "https://github.com/AbstractSDK/BOOT.git", tag = "v0.10.2" }

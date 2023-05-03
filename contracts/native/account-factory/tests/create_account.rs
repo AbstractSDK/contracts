@@ -13,7 +13,7 @@ use abstract_core::{
     ABSTRACT_EVENT_NAME,
 };
 use common::TEST_VERSION;
-use cosmwasm_std::{Addr, Uint64};
+use cosmwasm_std::Addr;
 use cw_orch::{ContractInstance, Deploy, IndexResponse, Mock};
 use speculoos::prelude::*;
 

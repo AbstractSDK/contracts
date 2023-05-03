@@ -8,7 +8,7 @@ use cw_orch::{networks::UNI_6, *};
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 
-const NETWORK: cw_orch::ChainInfo = UNI_6;
+const NETWORK: cw_orch::networks::ChainInfo = UNI_6;
 const WRONG_VERSION: &str = "0.1.0-rc.3";
 const NEW_VERSION: &str = env!("CARGO_PKG_VERSION");
 const NAMESPACE: &str = "abstract";

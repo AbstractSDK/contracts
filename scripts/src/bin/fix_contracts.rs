@@ -1,9 +1,8 @@
 use abstract_boot::Abstract;
 
-use cw_orch::{networks::NetworkInfo, *};
+use cw_orch::*;
 
-use abstract_core::ans_host::{AssetListResponse, ExecuteMsg, QueryMsgFns};
-
+use abstract_core::ans_host::{ContractListResponse, ExecuteMsg, QueryMsgFns};
 use cw_orch::networks::juno::JUNO_NETWORK;
 use cw_orch::networks::{ChainInfo, ChainKind};
 use std::sync::Arc;
@@ -30,53 +29,58 @@ pub fn fix_names() -> anyhow::Result<()> {
 
     let deployment = Abstract::new(chain);
 
-    let mut all_asset_entries = vec![];
+    let mut all_contract_entries = vec![];
 
-    let mut last_asset = None;
+    let mut last_contract = None;
 
     loop {
-        let AssetListResponse { mut assets } =
-            deployment.ans_host.asset_list(None, None, last_asset)?;
-        if assets.is_empty() {
+        let ContractListResponse { mut contracts } =
+            deployment
+                .ans_host
+                .contract_list(None, None, last_contract)?;
+        if contracts.is_empty() {
             break;
         }
-        all_asset_entries.append(&mut assets);
-        last_asset = all_asset_entries.last().map(|(entry, _)| entry.to_string());
+        all_contract_entries.append(&mut contracts);
+        last_contract = all_contract_entries
+            .last()
+            .map(|(entry, _)| entry.to_owned());
     }
 
-    let mut assets_to_remove = vec![];
-    let mut assets_to_add = vec![];
+    let mut contracts_to_remove = vec![];
+    let mut contracts_to_add = vec![];
 
-    for (entry, info) in all_asset_entries {
-        if entry.clone().as_str().starts_with("wynd/") {
-            assets_to_remove.push(entry.to_string());
-            assets_to_add.push((
-                entry.as_str().replace("wynd/", "wyndex/").to_string(),
-                info.into(),
-            ));
+    for (mut entry, addr) in all_contract_entries {
+        if entry.protocol == "wynd" {
+            contracts_to_remove.push(entry.clone().into());
+            entry.protocol = "wyndex".to_string();
+            entry.contract = entry.contract.replace("staking/wynd/", "staking/wyndex/");
+            contracts_to_add.push((entry.into(), addr.to_string()));
         }
     }
+    //
+    println!("Removing {} contracts", contracts_to_remove.len());
+    println!("Removing contracts: {:?}", contracts_to_remove);
+    println!("Adding {} contracts", contracts_to_add.len());
+    println!("Adding contracts: {:?}", contracts_to_add);
 
-    // println!("Removing {} assets", assets_to_remove.len());
-    // println!("Removing assets: {:?}", assets_to_remove);
-    // println!("Adding {} assets", assets_to_add.len());
-    // println!("Adding assets: {:?}", assets_to_add);
+    // chain.wait_blocks(500).unwrap();
 
-    // add the assets
+    // add the contracts
     deployment
         .ans_host
-        .execute_chunked(&assets_to_add, 25, |chunk| {
-            ExecuteMsg::UpdateAssetAddresses {
+        .execute_chunked(&contracts_to_add, 20, |chunk| {
+            ExecuteMsg::UpdateContractAddresses {
                 to_add: chunk.to_vec(),
                 to_remove: vec![],
             }
         })?;
 
-    // remove the assets
+    // remove the contracts
     deployment
         .ans_host
-        .execute_chunked(&assets_to_remove, 25, |chunk| {
-            ExecuteMsg::UpdateAssetAddresses {
+        .execute_chunked(&contracts_to_remove, 20, |chunk| {
+            ExecuteMsg::UpdateContractAddresses {
                 to_add: vec![],
                 to_remove: chunk.to_vec(),
             }

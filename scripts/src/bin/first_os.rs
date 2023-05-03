@@ -1,7 +1,7 @@
 use abstract_boot::Abstract;
 use abstract_core::objects::gov_type::GovernanceDetails;
 use cw_orch::{
-    networks::{ChainInfo, ChainKind, NetworkInfo},
+    networks::{ChainInfo, ChainKind},
     *,
 };
 

@@ -18,7 +18,7 @@ pub mod mock {
     pub use abstract_core::app;
     pub use cosmwasm_std::testing::*;
     use cosmwasm_std::{from_binary, to_binary, Addr, Response, StdError};
-    use cw_orch::{ContractWrapper, CwEnv, Mock, Uploadable};
+    use cw_orch::{ContractWrapper, Mock};
 
     pub type AppTestResult = Result<(), MockError>;
 

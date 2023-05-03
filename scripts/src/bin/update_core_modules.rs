@@ -4,16 +4,13 @@ use abstract_core::{
     objects::{account::AccountTrace, AccountId},
     proxy, ACCOUNT_FACTORY, MANAGER, PROXY, VERSION_CONTROL,
 };
-use cw_orch::{
-    networks::{parse_network, NetworkInfo},
-    *,
-};
+use cw_orch::{networks::parse_network, *};
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub fn migrate(network: cw_orch::ChainInfo) -> anyhow::Result<()> {
+pub fn migrate(network: cw_orch::networks::ChainInfo) -> anyhow::Result<()> {
     let rt = Arc::new(Runtime::new()?);
     let chain = DaemonBuilder::default()
         .handle(rt.handle())
