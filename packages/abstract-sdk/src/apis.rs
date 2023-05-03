@@ -2,6 +2,7 @@ pub mod adapter;
 pub mod app;
 pub mod bank;
 pub mod execution;
+pub mod grant;
 pub mod ibc;
 pub mod modules;
 pub mod respond;
