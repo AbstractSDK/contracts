@@ -6,15 +6,14 @@ use abstract_core::{
     MANAGER, PROXY,
 };
 
-use cw_orch::{contract, ContractInstance, CwEnv};
+use cw_orch::{contract, ArtifactsDir, ContractInstance, CwEnv};
 
 #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
-#[cfg_attr(feature = "daemon", daemon_source("abstract_proxy"))]
 pub struct Proxy<Chain>;
 
-#[cfg(feature = "integration")]
-impl ::cw_orch::Uploadable<::cw_orch::Mock> for Proxy<::cw_orch::Mock> {
-    fn source(&self) -> <::cw_orch::Mock as ::cw_orch::TxHandler>::ContractSource {
+impl<Chain: CwEnv> ::cw_orch::Uploadable for Proxy<Chain> {
+    #[cfg(feature = "integration")]
+    fn wrapper(&self) -> <::cw_orch::Mock as ::cw_orch::TxHandler>::ContractSource {
         Box::new(
             cw_orch::ContractWrapper::new_with_empty(
                 ::proxy::contract::execute,
@@ -23,6 +22,9 @@ impl ::cw_orch::Uploadable<::cw_orch::Mock> for Proxy<::cw_orch::Mock> {
             )
             .with_migrate(::proxy::contract::migrate),
         )
+    }
+    fn wasm(&self) -> cw_orch::WasmPath {
+        ArtifactsDir::env().find_wasm_path("proxy").unwrap()
     }
 }
 

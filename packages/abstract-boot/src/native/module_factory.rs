@@ -1,7 +1,7 @@
 use abstract_core::module_factory::*;
 
 // use crate::api::get_api_init_msgs;
-use cw_orch::{Contract, CwEnv, TxResponse};
+use cw_orch::{ArtifactsDir, Contract, CwEnv, TxResponse};
 
 pub use abstract_core::module_factory::{
     ExecuteMsgFns as MFactoryExecFns, QueryMsgFns as MFactoryQueryFns,
@@ -9,12 +9,11 @@ pub use abstract_core::module_factory::{
 use cw_orch::{contract, CwOrcExecute};
 
 #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
-#[cfg_attr(feature = "daemon", daemon_source("abstract_module_factory"))]
 pub struct ModuleFactory<Chain>;
 
-#[cfg(feature = "integration")]
-impl ::cw_orch::Uploadable<::cw_orch::Mock> for ModuleFactory<::cw_orch::Mock> {
-    fn source(&self) -> <::cw_orch::Mock as ::cw_orch::TxHandler>::ContractSource {
+impl<Chain: CwEnv> ::cw_orch::Uploadable for ModuleFactory<Chain> {
+    #[cfg(feature = "integration")]
+    fn wrapper(&self) -> <::cw_orch::Mock as ::cw_orch::TxHandler>::ContractSource {
         Box::new(
             cw_orch::ContractWrapper::new_with_empty(
                 ::module_factory::contract::execute,
@@ -24,6 +23,11 @@ impl ::cw_orch::Uploadable<::cw_orch::Mock> for ModuleFactory<::cw_orch::Mock> {
             .with_migrate(::module_factory::contract::migrate)
             .with_reply(::module_factory::contract::reply),
         )
+    }
+    fn wasm(&self) -> cw_orch::WasmPath {
+        ArtifactsDir::env()
+            .find_wasm_path("module_factory")
+            .unwrap()
     }
 }
 

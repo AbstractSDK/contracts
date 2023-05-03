@@ -13,17 +13,17 @@ use cosmwasm_std::Addr;
 #[cfg(feature = "daemon")]
 use cw_orch::Daemon;
 use cw_orch::{
-    contract, Contract, CwEnv, IndexResponse, TxResponse, {ContractInstance, CwOrcQuery},
+    contract, ArtifactsDir, Contract, CwEnv, IndexResponse, TxResponse,
+    {ContractInstance, CwOrcQuery},
 };
 use semver::Version;
 
 #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
-#[cfg_attr(feature = "daemon", daemon_source("abstract_version_control"))]
 pub struct VersionControl<Chain>;
 
-#[cfg(feature = "integration")]
-impl ::cw_orch::Uploadable<::cw_orch::Mock> for VersionControl<::cw_orch::Mock> {
-    fn source(&self) -> <::cw_orch::Mock as ::cw_orch::TxHandler>::ContractSource {
+impl<Chain: CwEnv> ::cw_orch::Uploadable for VersionControl<Chain> {
+    #[cfg(feature = "integration")]
+    fn wrapper(&self) -> <::cw_orch::Mock as ::cw_orch::TxHandler>::ContractSource {
         Box::new(
             cw_orch::ContractWrapper::new_with_empty(
                 ::version_control::contract::execute,
@@ -32,6 +32,11 @@ impl ::cw_orch::Uploadable<::cw_orch::Mock> for VersionControl<::cw_orch::Mock> 
             )
             .with_migrate(::version_control::contract::migrate),
         )
+    }
+    fn wasm(&self) -> cw_orch::WasmPath {
+        ArtifactsDir::env()
+            .find_wasm_path("version_control")
+            .unwrap()
     }
 }
 

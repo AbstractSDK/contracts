@@ -5,16 +5,15 @@ use abstract_core::{
     objects::module::{ModuleInfo, ModuleVersion},
 };
 use cosmwasm_std::{to_binary, Empty};
-use cw_orch::{contract, Contract, CwEnv, CwOrcExecute};
+use cw_orch::{contract, ArtifactsDir, Contract, CwEnv, CwOrcExecute};
 use serde::Serialize;
 
 #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
-#[cfg_attr(feature = "daemon", daemon_source("abstract_manager"))]
 pub struct Manager<Chain>;
 
-#[cfg(feature = "integration")]
-impl ::cw_orch::Uploadable<::cw_orch::Mock> for Manager<::cw_orch::Mock> {
-    fn source(&self) -> <::cw_orch::Mock as ::cw_orch::TxHandler>::ContractSource {
+impl<Chain: CwEnv> ::cw_orch::Uploadable for Manager<Chain> {
+    #[cfg(feature = "integration")]
+    fn wrapper(&self) -> <::cw_orch::Mock as ::cw_orch::TxHandler>::ContractSource {
         Box::new(
             cw_orch::ContractWrapper::new_with_empty(
                 ::manager::contract::execute,
@@ -23,6 +22,9 @@ impl ::cw_orch::Uploadable<::cw_orch::Mock> for Manager<::cw_orch::Mock> {
             )
             .with_migrate(::manager::contract::migrate),
         )
+    }
+    fn wasm(&self) -> cw_orch::WasmPath {
+        ArtifactsDir::env().find_wasm_path("manager").unwrap()
     }
 }
 
