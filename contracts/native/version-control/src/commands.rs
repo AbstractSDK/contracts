@@ -280,22 +280,22 @@ pub fn remove_namespaces(
     ))
 }
 
-pub fn update_namespaces_limit(deps: DepsMut, info: MessageInfo, new_limit: u32) -> VCResult {
+pub fn update_namespace_limit(deps: DepsMut, info: MessageInfo, new_limit: u32) -> VCResult {
     cw_ownable::assert_owner(deps.storage, &info.sender)?;
     let mut config = CONFIG.load(deps.storage)?;
     let previous_limit = config.namespace_limit;
-    if previous_limit > new_limit {
-        return Err(VCError::DecreaseNamespaceLimit {
+    ensure!(
+        new_limit > previous_limit,
+        VCError::DecreaseNamespaceLimit {
             limit: new_limit,
             current: previous_limit,
-        });
-    }
-
+        }
+    );
     config.namespace_limit = new_limit;
     CONFIG.save(deps.storage, &config)?;
 
     Ok(VcResponse::new(
-        "update_namespaces_limit",
+        "update_namespace_limit",
         vec![
             ("previous_limit", previous_limit.to_string()),
             ("limit", new_limit.to_string()),
@@ -666,6 +666,58 @@ mod test {
                     namespace: Namespace::from("abstract").to_string(),
                     id: ABSTRACT_ACCOUNT_ID,
                 });
+            Ok(())
+        }
+    }
+
+    mod update_namespace_limit {
+        use super::*;
+
+        #[test]
+        fn only_admin() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let msg = ExecuteMsg::UpdateNamespaceLimit { new_limit: 100 };
+
+            let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(&VCError::Ownership(OwnershipError::NotOwner));
+
+            Ok(())
+        }
+
+        #[test]
+        fn updates_limit() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let msg = ExecuteMsg::UpdateNamespaceLimit { new_limit: 100 };
+
+            let res = execute_as_admin(deps.as_mut(), msg);
+            assert_that!(&res).is_ok();
+
+            assert_that!(CONFIG.load(&deps.storage).unwrap().namespace_limit).is_equal_to(100);
+
+            Ok(())
+        }
+
+        #[test]
+        fn no_decrease() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let msg = ExecuteMsg::UpdateNamespaceLimit { new_limit: 0 };
+
+            let res = execute_as_admin(deps.as_mut(), msg);
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(VCError::DecreaseNamespaceLimit {
+                    current: 10,
+                    limit: 0,
+                });
+
             Ok(())
         }
     }

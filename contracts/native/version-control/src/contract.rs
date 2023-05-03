@@ -88,7 +88,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
             account_base: base,
         } => add_account(deps, info, account_id, base),
         ExecuteMsg::UpdateNamespaceLimit { new_limit } => {
-            update_namespaces_limit(deps, info, new_limit)
+            update_namespace_limit(deps, info, new_limit)
         }
         ExecuteMsg::SetFactory { new_factory } => set_factory(deps, info, new_factory),
         ExecuteMsg::UpdateOwnership(action) => {
