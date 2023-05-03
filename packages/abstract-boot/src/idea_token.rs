@@ -5,7 +5,6 @@ use cw_orch::{
 };
 
 #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
-#[cfg_attr(feature = "daemon", daemon_source("abstract_abstract_token"))]
 pub struct Idea<Chain>;
 
 impl<Chain: CwEnv> Idea<Chain> {

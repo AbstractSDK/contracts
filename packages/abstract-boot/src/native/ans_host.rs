@@ -8,7 +8,8 @@ use abstract_core::{
 use cosmwasm_std::Addr;
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::{
-    Contract, CwEnv, CwOrcError, IndexResponse, TxResponse, {contract, ContractInstance},
+    ArtifactsDir, Contract, CwEnv, CwOrcError, IndexResponse, TxResponse,
+    {contract, ContractInstance},
 };
 use log::info;
 use serde_json::from_reader;
@@ -17,9 +18,9 @@ use std::{cmp::min, collections::HashSet, env, fs::File};
 #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct AnsHost<Chain>;
 
-#[cfg(feature = "integration")]
-impl ::cw_orch::Uploadable<::cw_orch::Mock> for AnsHost<::cw_orch::Mock> {
-    fn source(&self) -> <::cw_orch::Mock as ::cw_orch::TxHandler>::ContractSource {
+impl<Chain: CwEnv> ::cw_orch::Uploadable for AnsHost<Chain> {
+    #[cfg(feature = "integration")]
+    fn wrapper(&self) -> <::cw_orch::Mock as ::cw_orch::TxHandler>::ContractSource {
         Box::new(
             cw_orch::ContractWrapper::new_with_empty(
                 ::ans_host::contract::execute,
@@ -28,6 +29,9 @@ impl ::cw_orch::Uploadable<::cw_orch::Mock> for AnsHost<::cw_orch::Mock> {
             )
             .with_migrate(::ans_host::contract::migrate),
         )
+    }
+    fn wasm(&self) -> cw_orch::WasmPath {
+        ArtifactsDir::env().find_wasm_path("ans_host").unwrap()
     }
 }
 

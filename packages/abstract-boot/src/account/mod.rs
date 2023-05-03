@@ -18,7 +18,7 @@ use std::collections::HashSet;
 use abstract_core::{manager::ManagerModuleInfo, objects::AccountId};
 use cosmwasm_std::Addr;
 use cw_orch::{
-    CwEnv, {ContractInstance, CwOrcUpload},
+    CwEnv, {ChainUpload, ContractInstance, CwOrcUpload},
 };
 use serde::Serialize;
 use speculoos::prelude::*;
@@ -31,11 +31,7 @@ pub struct AbstractAccount<Chain: CwEnv> {
     pub proxy: Proxy<Chain>,
 }
 
-impl<Chain: CwEnv> AbstractAccount<Chain>
-where
-    Manager<Chain>: cw_orch::Uploadable<Chain>,
-    Proxy<Chain>: cw_orch::Uploadable<Chain>,
-{
+impl<Chain: CwEnv + ChainUpload> AbstractAccount<Chain> {
     pub fn upload(&mut self) -> Result<(), crate::AbstractBootError> {
         self.manager.upload()?;
         self.proxy.upload()?;

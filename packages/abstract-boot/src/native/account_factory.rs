@@ -7,7 +7,8 @@ use abstract_core::{
 };
 use cosmwasm_std::Addr;
 use cw_orch::{
-    contract, Contract, CwEnv, IndexResponse, StateInterface, {ContractInstance, CwOrcExecute},
+    contract, ArtifactsDir, Contract, CwEnv, IndexResponse, StateInterface,
+    {ContractInstance, CwOrcExecute},
 };
 
 /// A helper struct that contains fields from [`abstract_core::manager::state::AccountInfo`]
@@ -19,12 +20,11 @@ pub struct AccountDetails {
 }
 
 #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
-#[cfg_attr(feature = "daemon", daemon_source("abstract_account_factory"))]
-pub struct AccountFactory<Chain>;
+pub struct AccountFactory;
 
-#[cfg(feature = "integration")]
-impl ::cw_orch::Uploadable<::cw_orch::Mock> for AccountFactory<::cw_orch::Mock> {
-    fn source(&self) -> <::cw_orch::Mock as ::cw_orch::TxHandler>::ContractSource {
+impl<Chain: CwEnv> ::cw_orch::Uploadable for AccountFactory<Chain> {
+    #[cfg(feature = "integration")]
+    fn wrapper(&self) -> <::cw_orch::Mock as ::cw_orch::TxHandler>::ContractSource {
         Box::new(
             cw_orch::ContractWrapper::new_with_empty(
                 ::account_factory::contract::execute,
@@ -34,6 +34,12 @@ impl ::cw_orch::Uploadable<::cw_orch::Mock> for AccountFactory<::cw_orch::Mock> 
             .with_reply_empty(::account_factory::contract::reply)
             .with_migrate(::account_factory::contract::migrate),
         )
+    }
+
+    fn wasm(&self) -> cw_orch::WasmPath {
+        ArtifactsDir::env()
+            .find_wasm_path("account_factor")
+            .unwrap()
     }
 }
 

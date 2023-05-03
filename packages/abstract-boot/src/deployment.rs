@@ -15,15 +15,7 @@ pub struct Abstract<Chain: CwEnv> {
 
 use abstract_core::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY, VERSION_CONTROL};
 
-impl<Chain: CwEnv> cw_orch::Deploy<Chain> for Abstract<Chain>
-where
-    AnsHost<Chain>: Uploadable<Chain>,
-    VersionControl<Chain>: Uploadable<Chain>,
-    AccountFactory<Chain>: Uploadable<Chain>,
-    ModuleFactory<Chain>: Uploadable<Chain>,
-    Manager<Chain>: Uploadable<Chain>,
-    Proxy<Chain>: Uploadable<Chain>,
-{
+impl<Chain: CwEnv> cw_orch::Deploy<Chain> for Abstract<Chain> {
     // We don't have a custom error type
     type Error = AbstractBootError;
     type DeployData = semver::Version;
@@ -81,10 +73,7 @@ where
             .register_natives(deployment.contracts(), &version)?;
         Ok(deployment)
     }
-}
 
-impl<Chain: CwEnv> cw_orch::Load<Chain> for Abstract<Chain> {
-    type Error = AbstractBootError;
     fn load_from(chain: Chain) -> Result<Self, AbstractBootError> {
         Ok(Self::new(chain))
     }

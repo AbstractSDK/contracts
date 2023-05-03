@@ -1,12 +1,12 @@
 use crate::Abstract;
 use abstract_core::objects::module::ModuleVersion;
-use cw_orch::{CwEnv, CwOrcError::StdErr, Load, *};
+use cw_orch::{CwEnv, CwOrcError::StdErr, *};
 
 use semver::Version;
 use serde::Serialize;
 
 /// Trait for deploying APIs
-pub trait ApiDeployer<Chain: CwEnv, CustomInitMsg: Serialize>:
+pub trait ApiDeployer<Chain: CwEnv + ChainUpload, CustomInitMsg: Serialize>:
     ContractInstance<Chain>
     + CwOrcInstantiate<Chain, InstantiateMsg = abstract_core::api::InstantiateMsg<CustomInitMsg>>
     + CwOrcUpload<Chain>
@@ -51,7 +51,9 @@ pub trait ApiDeployer<Chain: CwEnv, CustomInitMsg: Serialize>:
 }
 
 /// Trait for deploying APPs
-pub trait AppDeployer<Chain: CwEnv>: ContractInstance<Chain> + CwOrcUpload<Chain> {
+pub trait AppDeployer<Chain: CwEnv + ChainUpload>:
+    ContractInstance<Chain> + CwOrcUpload<Chain>
+{
     fn deploy(&mut self, version: Version) -> Result<(), crate::AbstractBootError> {
         // retrieve the deployment
         let abstr = Abstract::<Chain>::load_from(self.get_chain().clone())?;

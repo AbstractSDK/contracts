@@ -131,8 +131,8 @@ pub mod mock {
     #[cw_orch::contract(Init, Exec, Query, Empty)]
     pub struct BootMockApi;
 
-    impl Uploadable<Mock> for BootMockApi<Mock> {
-        fn source(&self) -> <Mock as cw_orch::TxHandler>::ContractSource {
+    impl Uploadable for BootMockApi<Mock> {
+        fn wrapper(&self) -> <Mock as cw_orch::TxHandler>::ContractSource {
             Box::new(ContractWrapper::new_with_empty(
                 self::execute,
                 self::instantiate,
@@ -141,10 +141,7 @@ pub mod mock {
         }
     }
 
-    impl ApiDeployer<Mock, MockInitMsg> for BootMockApi<Mock> where
-        abstract_boot::AnsHost<Mock>: cw_orch::Uploadable<Mock>
-    {
-    }
+    impl ApiDeployer<Mock, MockInitMsg> for BootMockApi<Mock> {}
 
     impl<Chain: cw_orch::CwEnv> BootMockApi<Chain> {
         pub fn new(name: &str, chain: Chain) -> Self {
@@ -206,8 +203,8 @@ pub mod mock {
 
         impl ::abstract_boot::ApiDeployer<::cw_orch::Mock, MockInitMsg> for $name <::cw_orch::Mock> {}
 
-        impl ::cw_orch::Uploadable<::cw_orch::Mock> for $name<::cw_orch::Mock> {
-            fn source(&self) -> <::cw_orch::Mock as ::cw_orch::TxHandler>::ContractSource {
+        impl ::cw_orch::Uploadable for $name<::cw_orch::Mock> {
+            fn wrapper(&self) -> <::cw_orch::Mock as ::cw_orch::TxHandler>::ContractSource {
                 Box::new(::cw_orch::ContractWrapper::<
                     Exec,
                     _,
