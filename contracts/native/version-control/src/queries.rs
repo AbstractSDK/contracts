@@ -308,7 +308,7 @@ mod test {
             info,
             InstantiateMsg {
                 is_testnet: true,
-                namespaces_limit: 10,
+                namespace_limit: 10,
             },
         )?;
         execute_as_admin(

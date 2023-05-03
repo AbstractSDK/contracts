@@ -5,7 +5,6 @@ use cosmwasm_std::{
 };
 use protobuf::Message;
 
-use abstract_sdk::core::{MANAGER, PROXY};
 use abstract_sdk::{
     core::{
         manager::{InstantiateMsg as ManagerInstantiateMsg, InternalConfigAction},
@@ -17,7 +16,7 @@ use abstract_sdk::{
         version_control::{
             AccountBase, ExecuteMsg as VCExecuteMsg, ModulesResponse, QueryMsg as VCQuery,
         },
-        AbstractResult,
+        AbstractResult, MANAGER, PROXY,
     },
     cw_helpers::cosmwasm_std::wasm_smart_query,
 };
@@ -76,7 +75,7 @@ pub fn execute_create_account(
     } else {
         Err(AccountFactoryError::WrongModuleKind(
             module.info.to_string(),
-            "core".to_string(),
+            "account_base".to_string(),
         ))
     }
 }

@@ -165,7 +165,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
         self.version_control.instantiate(
             &abstract_core::version_control::InstantiateMsg {
                 is_testnet: true,
-                namespaces_limit: 1,
+                namespace_limit: 1,
             },
             Some(sender),
             None,

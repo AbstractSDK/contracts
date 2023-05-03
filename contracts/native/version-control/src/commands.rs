@@ -3,14 +3,19 @@ use cosmwasm_std::{
     StdResult, Storage,
 };
 
-use abstract_core::objects::common_namespace::OWNERSHIP_STORAGE_KEY;
-use abstract_core::{objects::module::ModuleVersion, objects::AccountId, version_control::Config};
-use abstract_sdk::core::{
-    objects::{module::ModuleInfo, module_reference::ModuleReference, namespace::Namespace},
-    version_control::AccountBase,
-    version_control::{namespaces_info, state::*},
+use abstract_sdk::{
+    core::{
+        objects::{
+            common_namespace::OWNERSHIP_STORAGE_KEY,
+            module::{ModuleInfo, ModuleVersion},
+            module_reference::ModuleReference,
+            namespace::Namespace,
+            AccountId,
+        },
+        version_control::{namespaces_info, state::*, AccountBase, Config},
+    },
+    cw_helpers::cosmwasm_std::wasm_raw_query,
 };
-use abstract_sdk::cw_helpers::cosmwasm_std::wasm_raw_query;
 
 use crate::contract::{VCResult, VcResponse, ABSTRACT_NAMESPACE};
 use crate::error::VCError;
@@ -188,7 +193,8 @@ pub fn claim_namespaces(
     }
 
     let Config {
-        namespaces_limit, ..
+        namespace_limit: namespaces_limit,
+        ..
     } = CONFIG.load(deps.storage)?;
     let limit = namespaces_limit as usize;
     let existing_namespace_count = namespaces_info()
@@ -205,15 +211,15 @@ pub fn claim_namespaces(
     }
 
     for namespace in namespaces_to_claim.iter() {
-        let item = Namespace::from(namespace);
-        item.validate()?;
-        if let Some(id) = namespaces_info().may_load(deps.storage, &item)? {
+        let namespace = Namespace::from(namespace);
+        namespace.validate()?;
+        if let Some(id) = namespaces_info().may_load(deps.storage, &namespace)? {
             return Err(VCError::NamespaceOccupied {
                 namespace: namespace.to_string(),
                 id,
             });
         }
-        namespaces_info().save(deps.storage, &item, &account_id)?;
+        namespaces_info().save(deps.storage, &namespace, &account_id)?;
     }
 
     Ok(VcResponse::new(
@@ -277,7 +283,7 @@ pub fn remove_namespaces(
 pub fn update_namespaces_limit(deps: DepsMut, info: MessageInfo, new_limit: u32) -> VCResult {
     cw_ownable::assert_owner(deps.storage, &info.sender)?;
     let mut config = CONFIG.load(deps.storage)?;
-    let previous_limit = config.namespaces_limit;
+    let previous_limit = config.namespace_limit;
     if previous_limit > new_limit {
         return Err(VCError::DecreaseNamespaceLimit {
             limit: new_limit,
@@ -285,7 +291,7 @@ pub fn update_namespaces_limit(deps: DepsMut, info: MessageInfo, new_limit: u32)
         });
     }
 
-    config.namespaces_limit = new_limit;
+    config.namespace_limit = new_limit;
     CONFIG.save(deps.storage, &config)?;
 
     Ok(VcResponse::new(
@@ -355,7 +361,7 @@ mod test {
     use crate::contract;
 
     use super::*;
-    use crate::test_common::*;
+    use crate::testing::*;
     use abstract_core::manager::QueryMsg as ManagerQueryMsg;
     use abstract_testing::prelude::*;
     use abstract_testing::MockQuerierOwnership;
@@ -400,7 +406,7 @@ mod test {
             info,
             InstantiateMsg {
                 is_testnet: true,
-                namespaces_limit: 10,
+                namespace_limit: 10,
             },
         )?;
         execute_as_admin(
@@ -420,7 +426,7 @@ mod test {
             admin_info,
             InstantiateMsg {
                 is_testnet,
-                namespaces_limit: 10,
+                namespace_limit: 10,
             },
         )?;
         execute_as_admin(
@@ -534,6 +540,8 @@ mod test {
 
     mod claim_namespaces {
         use super::*;
+        use abstract_core::objects;
+        use objects::ABSTRACT_ACCOUNT_ID;
 
         #[test]
         fn claim_namespaces_by_owner() -> VersionControlTestResult {
@@ -599,6 +607,64 @@ mod test {
                 .is_equal_to(&VCError::NamespaceOccupied {
                     namespace: new_namespace1.to_string(),
                     id: TEST_ACCOUNT_ID,
+                });
+            Ok(())
+        }
+
+        #[test]
+        fn cannot_claim_abstract() -> VCResult<()> {
+            let mut deps = mock_dependencies();
+            let account_1_manager = "manager2";
+            deps.querier = mock_manager_querier()
+                // add manager 2
+                .with_smart_handler(account_1_manager, |msg| match from_binary(msg).unwrap() {
+                    ManagerQueryMsg::Config {} => {
+                        let resp = ManagerConfigResponse {
+                            version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
+                            module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
+                            account_id: Uint64::one(),
+                            is_suspended: false,
+                        };
+                        Ok(to_binary(&resp).unwrap())
+                    }
+                    ManagerQueryMsg::Ownership {} => {
+                        let resp = cw_ownable::Ownership {
+                            owner: Some(Addr::unchecked(TEST_OWNER)),
+                            pending_expiry: None,
+                            pending_owner: None,
+                        };
+                        Ok(to_binary(&resp).unwrap())
+                    }
+                    _ => panic!("unexpected message"),
+                })
+                .with_owner(account_1_manager, Some(TEST_OWNER))
+                .build();
+            mock_init_with_account(deps.as_mut(), true)?;
+
+            // Add account 1
+            execute_as(
+                deps.as_mut(),
+                TEST_ACCOUNT_FACTORY,
+                ExecuteMsg::AddAccount {
+                    account_id: 1,
+                    account_base: AccountBase {
+                        manager: Addr::unchecked(account_1_manager),
+                        proxy: Addr::unchecked("proxy2"),
+                    },
+                },
+            )?;
+
+            // Attempt to claim the abstract namespace with account 1
+            let claim_abstract_msg = ExecuteMsg::ClaimNamespaces {
+                account_id: 1,
+                namespaces: vec![Namespace::from(ABSTRACT_NAMESPACE).to_string()],
+            };
+            let res = execute_as(deps.as_mut(), TEST_OWNER, claim_abstract_msg);
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(VCError::NamespaceOccupied {
+                    namespace: Namespace::from("abstract").to_string(),
+                    id: ABSTRACT_ACCOUNT_ID,
                 });
             Ok(())
         }
