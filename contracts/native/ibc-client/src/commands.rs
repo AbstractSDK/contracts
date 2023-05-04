@@ -3,6 +3,7 @@ use crate::{
     error::IbcClientError,
     ibc::PACKET_LIFETIME,
 };
+use abstract_core::{manager, objects::chain_name::ChainName};
 use abstract_sdk::{
     core::{
         ibc_client::{
@@ -93,7 +94,7 @@ pub fn execute_send_packet(
     let channel = CHANNELS.load(deps.storage, &host_chain)?;
     let packet = PacketMsg {
         retries,
-        client_chain: cfg.chain,
+        client_chain: ChainName::new(&env),
         account_id,
         callback_info,
         action,
@@ -125,16 +126,26 @@ pub fn execute_register_os(
 
     // ensure the channel exists (not found if not registered)
     let channel_id = CHANNELS.load(deps.storage, &host_chain)?;
-    let account_id = account_base.account_id(deps.as_ref())?;
+    let mut account_id = account_base.account_id(deps.as_ref())?;
+    // push the local chain to the account trace
+    account_id.trace_mut().push_local_chain(&env);
 
+    // get auxiliary information
+    let account_info: manager::InfoResponse = deps
+        .querier
+        .query_wasm_smart(account_base.manager, &manager::QueryMsg::Info {})?;
+    let account_info = account_info.info;
     // construct a packet to send
     let packet = PacketMsg {
         retries: 0u8,
-        client_chain: cfg.chain,
+        client_chain: ChainName::new(&env),
         account_id: account_id.clone(),
         callback_info: None,
         action: HostAction::Internal(InternalAction::Register {
             account_proxy_address: account_base.proxy.into_string(),
+            description: account_info.description,
+            link: account_info.link,
+            name: account_info.name,
         }),
     };
 
@@ -281,7 +292,6 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
             let cfg = Config {
-                chain: "chain".to_string(),
                 version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
             };
             CONFIG.save(deps.as_mut().storage, &cfg)?;

@@ -40,6 +40,9 @@ impl AccountId {
     pub fn trace(&self) -> &AccountTrace {
         &self.trace
     }
+    pub fn trace_mut(&mut self) -> &mut AccountTrace {
+        &mut self.trace
+    }
 
     pub fn is_local(&self) -> bool {
         matches!(self.trace, AccountTrace::Local)
@@ -147,12 +150,14 @@ mod test {
     use cw_storage_plus::Map;
 
     mod key {
+        use crate::objects::chain_name::ChainName;
+
         use super::*;
 
         fn mock_key() -> AccountId {
             AccountId {
                 seq: 1,
-                trace: AccountTrace::Remote(vec!["bitcoin".to_string()]),
+                trace: AccountTrace::Remote(vec![ChainName::from("bitcoin")]),
             }
         }
 
@@ -165,15 +170,15 @@ mod test {
                 AccountId {
                     seq: 1,
                     trace: AccountTrace::Remote(vec![
-                        "ethereum".to_string(),
-                        "bitcoin".to_string(),
+                        ChainName::from("ethereum"),
+                        ChainName::from("bitcoin"),
                     ]),
                 },
                 AccountId {
                     seq: 2,
                     trace: AccountTrace::Remote(vec![
-                        "ethereum".to_string(),
-                        "bitcoin".to_string(),
+                        ChainName::from("ethereum"),
+                        ChainName::from("bitcoin"),
                     ]),
                 },
             )
@@ -243,8 +248,8 @@ mod test {
 
             let items = map
                 .prefix(&AccountTrace::Remote(vec![
-                    "ethereum".to_string(),
-                    "bitcoin".to_string(),
+                    ChainName::from("ethereum"),
+                    ChainName::from("bitcoin"),
                 ]))
                 .range(deps.as_ref().storage, None, None, Order::Ascending)
                 .map(|item| item.unwrap())
