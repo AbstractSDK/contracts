@@ -2,6 +2,7 @@ pub mod adapter;
 pub mod app;
 pub mod bank;
 pub mod execution;
+#[cfg(feature = "stargaze")]
 pub mod grant;
 pub mod ibc;
 pub mod modules;

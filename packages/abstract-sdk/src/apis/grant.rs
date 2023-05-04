@@ -30,7 +30,7 @@ use crate::{
     features::{AbstractNameService, AccountIdentification},
     AbstractSdkResult,
 };
-use cosmos_sdk_proto::{prost, traits::Message, Any};
+use cosmos_sdk_proto::{traits::Message, Any, cosmos::feegrant, cosmos::base};
 use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Deps, Timestamp};
 
 pub trait GrantInterface: AbstractNameService + AccountIdentification {
@@ -47,21 +47,16 @@ pub struct Grant<'a, T: GrantInterface> {
 }
 
 impl<'a, T: GrantInterface> Grant<'a, T> {
-    pub fn basic_allowance(
+    pub fn basic(
         &self,
         granter: Addr,
         grantee: Addr,
         basic: BasicAllowance,
     ) -> AbstractSdkResult<CosmosMsg> {
-        let allowance = Any {
-            type_url: "/cosmos.feegrant.v1beta1.BasicAllowance".to_string(),
-            value: build_basic_allowance(basic).encode_to_vec(),
-        };
-
-        let msg = cosmos_sdk_proto::cosmos::feegrant::v1beta1::MsgGrantAllowance {
+        let msg = feegrant::v1beta1::MsgGrantAllowance {
             granter: granter.into(),
             grantee: grantee.into(),
-            allowance: Some(allowance),
+            allowance: Some(build_any_basic(basic)),
         }
         .encode_to_vec();
 
@@ -71,32 +66,17 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
         })
     }
 
-    pub fn periodic_allowance(
+    pub fn periodic(
         &self,
         granter: Addr,
         grantee: Addr,
         basic: Option<BasicAllowance>,
         periodic: PeriodicAllowance,
     ) -> AbstractSdkResult<CosmosMsg> {
-        let allowance = Any {
-            type_url: "/cosmos.feegrant.v1beta1.PeriodicAllowance".to_string(),
-            value: cosmos_sdk_proto::cosmos::feegrant::v1beta1::PeriodicAllowance {
-                basic: Some(basic).map(|basic| build_basic_allowance(basic.unwrap())),
-                period: periodic.period.map(|p| prost_types::Duration {
-                    seconds: p.as_secs() as i64,
-                    nanos: 0,
-                }),
-                period_spend_limit: convert_coins(periodic.period_spend_limit),
-                period_can_spend: convert_coins(periodic.period_can_spend),
-                period_reset: periodic.period_reset.map(convert_stamp),
-            }
-            .encode_to_vec(),
-        };
-
-        let msg = cosmos_sdk_proto::cosmos::feegrant::v1beta1::MsgGrantAllowance {
+        let msg = feegrant::v1beta1::MsgGrantAllowance {
             granter: granter.into(),
             grantee: grantee.into(),
-            allowance: Some(allowance),
+            allowance: Some(build_any_periodic(periodic, basic)),
         }
         .encode_to_vec();
 
@@ -105,12 +85,61 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
             value: to_binary(&msg)?,
         })
     }
-}
 
+    pub fn allow_basic(
+        &self,
+        basic: BasicAllowance
+    ) -> AbstractSdkResult<CosmosMsg> {
+        let msg = feegrant::v1beta1::AllowedMsgAllowance {
+            allowance: Some(build_any_basic(basic)),
+            allowed_messages: vec!["BasicAllowance".to_owned()],
+        }.encode_to_vec();
+
+        Ok(CosmosMsg::Stargate {
+            type_url: "/cosmos.feegrant.v1beta1.AllowedMsgAllowance".to_string(),
+            value: to_binary(&msg)?,
+        })
+    }
+
+    pub fn allow_periodic(
+        &self,
+        periodic: PeriodicAllowance,
+    ) -> AbstractSdkResult<CosmosMsg> {
+        let msg = feegrant::v1beta1::AllowedMsgAllowance {
+            allowance: Some(build_any_periodic(periodic, None)),
+            allowed_messages: vec!["PeriodicAllowance".to_owned()],
+        }.encode_to_vec();
+
+        Ok(CosmosMsg::Stargate {
+            type_url: "/cosmos.feegrant.v1beta1.AllowedMsgAllowance".to_string(),
+            value: to_binary(&msg)?,
+        })
+    }
+
+    pub fn allow_both(
+        &self,
+        basic: BasicAllowance,
+        periodic: PeriodicAllowance,
+    ) -> AbstractSdkResult<CosmosMsg> {
+        let msg = feegrant::v1beta1::AllowedMsgAllowance {
+            allowance: Some(build_any_periodic(periodic, Some(basic))),
+            allowed_messages: vec![
+                "BasicAllowance".to_owned(),
+                "PeriodicAllowance".to_owned()
+            ],
+        }.encode_to_vec();
+
+        Ok(CosmosMsg::Stargate {
+            type_url: "/cosmos.feegrant.v1beta1.AllowedMsgAllowance".to_string(),
+            value: to_binary(&msg)?,
+        })
+    }
+}
 pub struct BasicAllowance {
     pub spend_limit: Vec<Coin>,
     pub expiration: Option<Timestamp>,
 }
+
 pub struct PeriodicAllowance {
     pub period: Option<Duration>,
     pub period_spend_limit: Vec<Coin>,
@@ -118,19 +147,48 @@ pub struct PeriodicAllowance {
     pub period_reset: Option<Timestamp>,
 }
 
+fn build_any_basic(
+    basic: BasicAllowance
+) -> Any {
+    Any {
+        type_url: "/cosmos.feegrant.v1beta1.BasicAllowance".to_string(),
+        value: build_basic_allowance(basic).encode_to_vec(),
+    }
+}
+
+fn build_any_periodic(
+    periodic: PeriodicAllowance,
+    basic: Option<BasicAllowance>
+) -> Any {
+    Any {
+        type_url: "/cosmos.feegrant.v1beta1.PeriodicAllowance".to_string(),
+        value: feegrant::v1beta1::PeriodicAllowance {
+            basic: basic.map(|basic| build_basic_allowance(basic)),
+            period: periodic.period.map(|p| prost_types::Duration {
+                seconds: p.as_secs() as i64,
+                nanos: 0,
+            }),
+            period_spend_limit: convert_coins(periodic.period_spend_limit),
+            period_can_spend: convert_coins(periodic.period_can_spend),
+            period_reset: periodic.period_reset.map(convert_stamp),
+        }
+        .encode_to_vec(),
+    }
+}
+
 fn build_basic_allowance(
     basic: BasicAllowance,
-) -> cosmos_sdk_proto::cosmos::feegrant::v1beta1::BasicAllowance {
-    cosmos_sdk_proto::cosmos::feegrant::v1beta1::BasicAllowance {
+) -> feegrant::v1beta1::BasicAllowance {
+    feegrant::v1beta1::BasicAllowance {
         spend_limit: convert_coins(basic.spend_limit),
         expiration: basic.expiration.map(convert_stamp),
     }
 }
 
-fn convert_coins(coins: Vec<Coin>) -> Vec<cosmos_sdk_proto::cosmos::base::v1beta1::Coin> {
+fn convert_coins(coins: Vec<Coin>) -> Vec<base::v1beta1::Coin> {
     coins
         .into_iter()
-        .map(|item| cosmos_sdk_proto::cosmos::base::v1beta1::Coin {
+        .map(|item| base::v1beta1::Coin {
             denom: item.denom,
             amount: item.amount.to_string(),
         })
@@ -163,7 +221,7 @@ mod test {
             let grantee = Addr::unchecked("grantee");
             let spend_limit = coins(100, "asset");
             let expiration = Some(Timestamp::from_seconds(10));
-            let basic = grant.basic_allowance(
+            let basic = grant.basic(
                 granter,
                 grantee,
                 BasicAllowance {
@@ -199,8 +257,78 @@ mod test {
                 period_can_spend,
                 period_reset: None,
             };
-            let periodic = grant.periodic_allowance(granter, grantee, basic, periodic);
+            let periodic = grant.periodic(granter, grantee, basic, periodic);
             assert_that!(&periodic).is_ok();
+        }
+    }
+
+    mod allow_basic {
+        use super::*;
+
+        #[test]
+        fn allow_basic() {
+            let app = MockModule::new();
+            let deps = mock_dependencies();
+            let grant = app.grant(deps.as_ref());
+            let spend_limit = coins(100, "asset");
+            let expiration = Some(Timestamp::from_seconds(10));
+            let basic = grant.allow_basic(
+                BasicAllowance {
+                    spend_limit,
+                    expiration,
+                },
+            );
+            assert_that!(&basic).is_ok();
+        }
+    }
+
+    mod allow_periodic {
+        use super::*;
+
+        #[test]
+        fn allow_periodic() {
+            let app = MockModule::new();
+            let deps = mock_dependencies();
+            let grant = app.grant(deps.as_ref());
+            let period_spend_limit = vec![];
+            let period_can_spend = vec![];
+            let periodic = grant.allow_periodic(
+                PeriodicAllowance {
+                    period: None,
+                    period_spend_limit,
+                    period_can_spend,
+                    period_reset: None,
+                },
+            );
+            assert_that!(&periodic).is_ok();
+        }
+    }
+
+    mod allow_both {
+        use super::*;
+
+        #[test]
+        fn allow_both() {
+            let app = MockModule::new();
+            let deps = mock_dependencies();
+            let grant = app.grant(deps.as_ref());
+            let spend_limit = coins(100, "asset");
+            let expiration = Some(Timestamp::from_seconds(10));
+            let period_spend_limit = vec![];
+            let period_can_spend = vec![];
+            let both = grant.allow_both(
+                BasicAllowance {
+                    spend_limit,
+                    expiration,
+                },
+                PeriodicAllowance {
+                    period: None,
+                    period_spend_limit,
+                    period_can_spend,
+                    period_reset: None,
+                },
+            );
+            assert_that!(&both).is_ok();
         }
     }
 }

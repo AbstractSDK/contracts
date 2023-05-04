@@ -9,9 +9,10 @@ readme = "README.md"
 repository = "https://github.com/AbstractSDK/contracts/tree/main/packages/abstract-sdk"
 resolver = "2"
 
-
-[features]
 # for quicker tests, cargo test --lib
+[features]
+default = []
+stargaze = []
 
 # Expose MockModule for testing with other Adapters
 test-utils = ["dep:abstract-testing", "dep:cosmwasm-schema"]
