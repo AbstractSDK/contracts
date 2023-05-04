@@ -152,7 +152,7 @@ fn build_any_periodic(periodic: PeriodicAllowance, basic: Option<BasicAllowance>
     Any {
         type_url: "/cosmos.feegrant.v1beta1.PeriodicAllowance".to_string(),
         value: feegrant::v1beta1::PeriodicAllowance {
-            basic: basic.map(|basic| build_basic_allowance(basic)),
+            basic: basic.map(build_basic_allowance),
             period: periodic.period.map(|p| prost_types::Duration {
                 seconds: p.as_secs() as i64,
                 nanos: 0,

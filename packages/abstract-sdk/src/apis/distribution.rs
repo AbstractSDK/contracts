@@ -2,24 +2,6 @@
 //! Interacts with the distribution module of cosmos
 //!
 
-/*
-impl TypeUrl for cosmos::distribution::v1beta1::MsgSetWithdrawAddress {
-    const TYPE_URL: &'static str = "/cosmos.distribution.v1beta1.MsgSetWithdrawAddress";
-}
-
-impl TypeUrl for cosmos::distribution::v1beta1::MsgWithdrawDelegatorReward {
-    const TYPE_URL: &'static str = "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward";
-}
-
-impl TypeUrl for cosmos::distribution::v1beta1::MsgWithdrawValidatorCommission {
-    const TYPE_URL: &'static str = "/cosmos.distribution.v1beta1.MsgWithdrawValidatorCommission";
-}
-
-impl TypeUrl for cosmos::distribution::v1beta1::MsgFundCommunityPool {
-    const TYPE_URL: &'static str = "/cosmos.distribution.v1beta1.MsgFundCommunityPool";
-}
-*/
-
 use cosmos_sdk_proto::{
     cosmos::{base, distribution},
     traits::Message,
