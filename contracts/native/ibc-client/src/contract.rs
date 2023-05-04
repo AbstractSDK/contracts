@@ -38,7 +38,6 @@ pub fn instantiate(
         None::<String>,
     )?;
     let cfg = Config {
-        chain: msg.chain,
         version_control_address: deps.api.addr_validate(&msg.version_control_address)?,
     };
     CONFIG.save(deps.storage, &cfg)?;
@@ -147,7 +146,6 @@ mod tests {
 
         // config
         let expected_config = Config {
-            chain: "test_chain".into(),
             version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
         };
 

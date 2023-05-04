@@ -18,7 +18,6 @@ pub mod state {
     #[cosmwasm_schema::cw_serde]
     pub struct Config {
         pub version_control_address: Addr,
-        pub chain: String,
     }
 
     #[cosmwasm_schema::cw_serde]
