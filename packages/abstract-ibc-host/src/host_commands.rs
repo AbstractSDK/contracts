@@ -3,16 +3,19 @@ use crate::{
     state::{ContractError, CLIENT_PROXY, PENDING},
     Host, HostError,
 };
-use abstract_core::objects::AccountId;
+use abstract_core::{
+    account_factory,
+    objects::{account::AccountTrace, chain_name::ChainName, AccountId},
+};
 use abstract_sdk::core::abstract_ica::{
     check_order, check_version, IbcQueryResponse, StdAck, WhoAmIResponse, IBC_APP_VERSION,
 };
 use cosmwasm_std::{
-    entry_point, to_binary, to_vec, Binary, ContractResult, Deps, DepsMut, Empty, Env, Event,
-    Ibc3ChannelOpenResponse, IbcBasicResponse, IbcChannelCloseMsg, IbcChannelConnectMsg,
-    IbcChannelOpenMsg, IbcChannelOpenResponse, IbcPacketAckMsg, IbcPacketTimeoutMsg,
-    IbcReceiveResponse, QuerierWrapper, QueryRequest, StdError, StdResult, SubMsg, SystemResult,
-    WasmMsg,
+    entry_point, to_binary, to_vec, wasm_execute, Binary, ContractResult, Deps, DepsMut, Empty,
+    Env, Event, Ibc3ChannelOpenResponse, IbcBasicResponse, IbcChannelCloseMsg,
+    IbcChannelConnectMsg, IbcChannelOpenMsg, IbcChannelOpenResponse, IbcPacketAckMsg,
+    IbcPacketTimeoutMsg, IbcReceiveResponse, QuerierWrapper, QueryRequest, StdError, StdResult,
+    SubMsg, SystemResult, WasmMsg,
 };
 
 // one hour
@@ -136,19 +139,42 @@ pub fn receive_register<
     channel: String,
     account_id: AccountId,
     account_proxy_address: String,
+    name: String,
+    description: Option<String>,
+    link: Option<String>,
 ) -> Result<IbcReceiveResponse, HostError> {
     let cfg = host.base_state.load(deps.storage)?;
-    let init_msg = cw1_whitelist::msg::InstantiateMsg {
-        admins: vec![env.contract.address.into_string()],
-        mutable: false,
-    };
-    let msg = WasmMsg::Instantiate {
-        admin: None,
-        code_id: cfg.cw1_code_id,
-        msg: to_binary(&init_msg)?,
-        funds: vec![],
-        label: format!("ibc-reflect-{}", channel.as_str()),
-    };
+
+    // verify that the origin last chain is the chain related to this channel, and that it is not `Local`
+    account_id.trace().verify_remote()?;
+
+    // create the message to instantiate the remote account
+    wasm_execute(
+        cfg.account_factory,
+        &account_factory::ExecuteMsg::CreateAccount {
+            governance: abstract_core::objects::gov_type::GovernanceDetails::External {
+                governance_address: env.contract.address.into_string(),
+                governance_type: "ibc".into(),
+            },
+            name,
+            description,
+            link,
+            // provide the origin chain id
+            origin: Some(account_id),
+        },
+        vec![],
+    );
+    // let init_msg = cw1_whitelist::msg::InstantiateMsg {
+    //     admins: vec![env.contract.address.into_string()],
+    //     mutable: false,
+    // };
+    // let msg = WasmMsg::Instantiate {
+    //     admin: None,
+    //     code_id: cfg.cw1_code_id,
+    //     msg: to_binary(&init_msg)?,
+    //     funds: vec![],
+    //     label: format!("ibc-reflect-{}", channel.as_str()),
+    // };
     let msg = SubMsg::reply_on_success(msg, INIT_CALLBACK_ID);
 
     // store the proxy address of the Account on the client chain.
@@ -170,7 +196,7 @@ pub fn receive_register<
 }
 
 // processes InternalAction::WhoAmI variant
-pub fn receive_who_am_i(this_chain: String) -> Result<IbcReceiveResponse, HostError> {
+pub fn receive_who_am_i(this_chain: ChainName) -> Result<IbcReceiveResponse, HostError> {
     // let them know we're fine
     let response = WhoAmIResponse { chain: this_chain };
     let acknowledgement = StdAck::success(response);

@@ -4,6 +4,7 @@ use crate::{
     state::{ContractError, RESULTS},
     Host, HostError,
 };
+use abstract_core::objects::chain_name::ChainName;
 use abstract_sdk::{
     core::{
         abstract_ica::{BalancesResponse, DispatchResponse, SendAllBackResponse, StdAck},
@@ -75,7 +76,7 @@ impl<
         deps: DepsMut,
         env: Env,
         client_proxy_address: String,
-        client_chain: String,
+        client_chain: ChainName,
     ) -> Result<IbcReceiveResponse, HostError> {
         // let them know we're fine
         let response = SendAllBackResponse {};
@@ -98,7 +99,7 @@ impl<
         deps: Deps,
         env: Env,
         client_proxy_address: String,
-        client_chain: String,
+        client_chain: ChainName,
     ) -> Result<CosmosMsg, HostError> {
         let ans = self.name_service(deps);
         let ics20_channel_entry = ChannelEntry {

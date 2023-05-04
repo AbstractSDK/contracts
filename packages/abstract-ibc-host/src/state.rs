@@ -157,8 +157,6 @@ impl<
 pub struct HostState {
     /// AnsHost contract struct (address)
     pub ans_host: AnsHost,
-    /// code id for Stargate proxy contract
-    pub cw1_code_id: u64,
-    /// Chain identifier
-    pub chain: String,
+    /// Address of the account factory, used to create remote accounts
+    pub account_factory: Addr,
 }

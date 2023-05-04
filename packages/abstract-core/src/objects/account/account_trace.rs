@@ -28,7 +28,7 @@ impl<'a> PrimaryKey<'a> for &'a AccountTrace {
         match &self {
             AccountTrace::Local => LOCAL.key(),
             AccountTrace::Remote(chain_name) => {
-                chain_name.iter().flat_map(|c| c.as_str().key()).collect()
+                chain_name.iter().flat_map(|c| c.str_ref().key()).collect()
             }
         }
     }
@@ -55,10 +55,10 @@ impl<'a> PrimaryKey<'a> for AccountTrace {
     type SuperSuffix = Self;
 
     fn key(&self) -> Vec<cw_storage_plus::Key> {
-        match &self {
+        match self {
             AccountTrace::Local => LOCAL.key(),
             AccountTrace::Remote(chain_name) => {
-                chain_name.iter().flat_map(|c| c.as_str().key()).collect()
+                chain_name.iter().flat_map(|c| c.str_ref().key()).collect()
             }
         }
     }
@@ -170,7 +170,7 @@ impl Display for AccountTrace {
             AccountTrace::Remote(chain_name) => write!(
                 f,
                 "{}",
-                // "juno>terra>osmosis" 
+                // "juno>terra>osmosis"
                 chain_name
                     .iter()
                     .map(|name| name.as_str())
@@ -231,7 +231,10 @@ mod test {
         #[test]
         fn remote_works() {
             let trace = AccountTrace::from_str("bitcoin").unwrap();
-            assert_eq!(trace, AccountTrace::Remote(vec!["bitcoin".to_string()]));
+            assert_eq!(
+                trace,
+                AccountTrace::Remote(vec![ChainName::from("bitcoin")])
+            );
         }
 
         #[test]
@@ -239,7 +242,10 @@ mod test {
             let trace = AccountTrace::from("bitcoin>ethereum".to_string());
             assert_eq!(
                 trace,
-                AccountTrace::Remote(vec!["bitcoin".to_string(), "ethereum".to_string()])
+                AccountTrace::Remote(vec![
+                    ChainName::from("bitcoin"),
+                    ChainName::from("ethereum")
+                ])
             );
         }
 
@@ -249,9 +255,9 @@ mod test {
             assert_eq!(
                 trace,
                 AccountTrace::Remote(vec![
-                    "bitcoin".to_string(),
-                    "ethereum".to_string(),
-                    "cosmos".to_string()
+                    ChainName::from("bitcoin"),
+                    ChainName::from("ethereum"),
+                    ChainName::from("cosmos")
                 ])
             );
         }
@@ -287,7 +293,7 @@ mod test {
         use super::*;
 
         fn mock_key() -> AccountTrace {
-            AccountTrace::Remote(vec!["bitcoin".to_string()])
+            AccountTrace::Remote(vec![ChainName::from("bitcoin")])
         }
 
         #[test]

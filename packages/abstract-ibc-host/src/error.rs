@@ -43,6 +43,6 @@ pub enum HostError {
     #[error("Missing target proxy to send messages to.")]
     NoTarget,
 
-    #[error("Ibc hopping not supported")]
-    IbcHopping,
+    #[error("Remote account can not be created from a Local trace")]
+    LocalTrace,
 }

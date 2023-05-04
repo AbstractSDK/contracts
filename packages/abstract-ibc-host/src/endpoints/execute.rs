@@ -3,6 +3,7 @@ use crate::{
     host_commands::{receive_query, receive_register, receive_who_am_i},
     state::{ContractError, Host, ACCOUNTS, CLIENT_PROXY, PROCESSING_PACKET},
 };
+use abstract_core::objects::chain_name::ChainName;
 use abstract_sdk::{
     base::{ExecuteEndpoint, Handler},
     core::ibc_host::{BaseExecuteMsg, ExecuteMsg, HostAction, InternalAction, PacketMsg},
@@ -95,10 +96,23 @@ impl<
         self.proxy_address = ACCOUNTS.may_load(deps.storage, (&channel, &account_id))?;
         match action {
             HostAction::Internal(InternalAction::Register {
+                description,
+                link,
+                name,
                 account_proxy_address,
-            }) => receive_register(deps, env, self, channel, account_id, account_proxy_address),
+            }) => receive_register(
+                deps,
+                env,
+                self,
+                channel,
+                account_id,
+                account_proxy_address,
+                name,
+                description,
+                link,
+            ),
             HostAction::Internal(InternalAction::WhoAmI) => {
-                let this_chain = self.base_state.load(deps.storage)?.chain;
+                let this_chain = ChainName::new(&env);
                 receive_who_am_i(this_chain)
             }
             HostAction::Dispatch { msgs, .. } => self.receive_dispatch(deps, msgs),

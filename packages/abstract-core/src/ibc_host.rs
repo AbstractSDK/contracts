@@ -13,7 +13,7 @@ use crate::{
         MigrateMsg as MiddlewareMigrateMsg, QueryMsg as MiddlewareQueryMsg,
     },
     ibc_client::CallbackInfo,
-    objects::account::AccountId,
+    objects::{account::AccountId, chain_name::ChainName},
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Binary, CosmosMsg, Empty, QueryRequest};
@@ -29,8 +29,8 @@ pub type MigrateMsg<T = Empty> = MiddlewareMigrateMsg<BaseMigrateMsg, T>;
 pub struct BaseInstantiateMsg {
     /// Used to easily perform address translation on the app chain
     pub ans_host_address: String,
-    /// Code-id for cw1 proxy contract
-    pub cw1_code_id: u64,
+    /// Used to create remote abstract accounts
+    pub account_factory_address: String,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -38,7 +38,13 @@ pub struct BaseMigrateMsg {}
 
 #[cosmwasm_schema::cw_serde]
 pub enum InternalAction {
-    Register { account_proxy_address: String },
+    /// Registers a new account on the remote chain
+    Register {
+        account_proxy_address: String,
+        name: String,
+        description: Option<String>,
+        link: Option<String>,
+    },
     WhoAmI,
 }
 
@@ -65,7 +71,7 @@ impl HostAction {
         self,
         account_id: AccountId,
         retries: u8,
-        client_chain: String,
+        client_chain: ChainName,
         callback_info: Option<CallbackInfo>,
     ) -> PacketMsg {
         PacketMsg {
@@ -80,8 +86,8 @@ impl HostAction {
 /// This is the message we send over the IBC channel
 #[cosmwasm_schema::cw_serde]
 pub struct PacketMsg {
-    /// Chain of the client
-    pub client_chain: String,
+    /// `ChainName` of the client
+    pub client_chain: ChainName,
     /// Amount of retries to attempt if packet returns with StdAck::Error
     pub retries: u8,
     pub account_id: AccountId,

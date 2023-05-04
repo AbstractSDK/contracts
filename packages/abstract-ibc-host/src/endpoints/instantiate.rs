@@ -44,9 +44,8 @@ impl<
 
         // Base state
         let state = HostState {
-            chain: self.chain.to_string(),
             ans_host,
-            cw1_code_id: msg.base.cw1_code_id,
+            account_factory: deps.api.addr_validate(&msg.base.account_factory_address)?,
         };
         let (name, version, metadata) = self.info();
         set_module_data(deps.storage, name, version, self.dependencies(), metadata)?;

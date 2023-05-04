@@ -123,14 +123,14 @@ pub fn update_channels(
     cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
 
     for (key, new_channel) in to_add.into_iter() {
-        let key = key.check();
+        let key = key.check()?;
         // Update function for new or existing keys
         let insert = |_| -> StdResult<String> { Ok(new_channel) };
         CHANNELS.update(deps.storage, &key, insert)?;
     }
 
     for key in to_remove {
-        let key = key.check();
+        let key = key.check()?;
         CHANNELS.remove(deps.storage, &key);
     }
 

@@ -1,5 +1,5 @@
 use crate::error::IbcClientError;
-use abstract_core::objects::{account::AccountTrace, AccountId};
+use abstract_core::objects::{account::AccountTrace, chain_name::ChainName, AccountId};
 use abstract_sdk::core::{
     abstract_ica::{
         check_order, check_version, BalancesResponse, RegisterResponse, StdAck, WhoAmIResponse,
@@ -45,15 +45,12 @@ pub fn ibc_channel_connect(
 ) -> StdResult<IbcBasicResponse> {
     let channel = msg.channel();
     let channel_id = &channel.endpoint.channel_id;
-    // // // create an account holder the channel exists (not found if not registered)
-    // let data = AccountData::default();
-    // ACCOUNTS.save(deps.storage, channel_id, &data)?;
     let cfg = CONFIG.load(deps.storage)?;
 
-    // construct a packet to send
+    // construct a who am i packet to identify the connected chain.
     let packet = PacketMsg {
         action: HostAction::Internal(InternalAction::WhoAmI),
-        client_chain: cfg.chain,
+        client_chain: ChainName::new(&env),
         account_id: AccountId::new(0, AccountTrace::Local).unwrap(),
         callback_info: None,
         retries: 0,
@@ -79,8 +76,6 @@ pub fn ibc_channel_close(
     msg: IbcChannelCloseMsg,
 ) -> StdResult<IbcBasicResponse> {
     let channel = msg.channel();
-
-    // remove the channel
     let channel_id = &channel.endpoint.channel_id;
 
     Ok(IbcBasicResponse::new()
@@ -190,7 +185,7 @@ fn acknowledge_query(
 ) -> Result<IbcBasicResponse, IbcClientError> {
     let msg: StdAck = from_slice(&ack.acknowledgement.data)?;
     let res = IbcBasicResponse::new().add_attribute("action", "acknowledge_ibc_query");
-    // store IBC response for later querying from the smart contract??
+    // store the response in the latest queries
     LATEST_QUERIES.save(
         deps.storage,
         (&channel_id, &account_id),
