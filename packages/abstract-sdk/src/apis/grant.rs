@@ -2,36 +2,15 @@
 //! Interacts with the feegrant module of cosmos
 //!
 
-/*
-impl TypeUrl for cosmos::feegrant::v1beta1::MsgGrantAllowance {
-    const TYPE_URL: &'static str = "/cosmos.feegrant.v1beta1.MsgGrantAllowance";
-}
-
-impl TypeUrl for cosmos::feegrant::v1beta1::MsgRevokeAllowance {
-    const TYPE_URL: &'static str = "/cosmos.feegrant.v1beta1.MsgRevokeAllowance";
-}
-
-impl TypeUrl for cosmos::feegrant::v1beta1::BasicAllowance {
-    const TYPE_URL: &'static str = "/cosmos.feegrant.v1beta1.BasicAllowance";
-}
-
-impl TypeUrl for cosmos::feegrant::v1beta1::PeriodicAllowance {
-    const TYPE_URL: &'static str = "/cosmos.feegrant.v1beta1.PeriodicAllowance";
-}
-
-impl TypeUrl for cosmos::feegrant::v1beta1::AllowedMsgAllowance {
-    const TYPE_URL: &'static str = "/cosmos.feegrant.v1beta1.AllowedMsgAllowance";
-}
-*/
-
 use std::time::Duration;
+
+use cosmos_sdk_proto::{traits::Message, Any, cosmos::feegrant, cosmos::base};
+use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Deps, Timestamp};
 
 use crate::{
     features::{AbstractNameService, AccountIdentification},
     AbstractSdkResult,
 };
-use cosmos_sdk_proto::{traits::Message, Any, cosmos::feegrant, cosmos::base};
-use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Deps, Timestamp};
 
 pub trait GrantInterface: AbstractNameService + AccountIdentification {
     fn grant<'a>(&'a self, deps: Deps<'a>) -> Grant<Self> {
@@ -131,6 +110,22 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
 
         Ok(CosmosMsg::Stargate {
             type_url: "/cosmos.feegrant.v1beta1.AllowedMsgAllowance".to_string(),
+            value: to_binary(&msg)?,
+        })
+    }
+
+    pub fn revoke_all(
+        &self,
+        granter: Addr,
+        grantee: Addr,
+    ) -> AbstractSdkResult<CosmosMsg> {
+        let msg = feegrant::v1beta1::MsgRevokeAllowance {
+            granter: granter.into(),
+            grantee: grantee.into(),
+        }.encode_to_vec();
+
+        Ok(CosmosMsg::Stargate {
+            type_url: "/cosmos.feegrant.v1beta1.MsgRevokeAllowance".to_string(),
             value: to_binary(&msg)?,
         })
     }
@@ -329,6 +324,24 @@ mod test {
                 },
             );
             assert_that!(&both).is_ok();
+        }
+    }
+
+    mod revoke_all {
+        use super::*;
+
+        #[test]
+        fn revoke_all() {
+            let app = MockModule::new();
+            let deps = mock_dependencies();
+            let grant = app.grant(deps.as_ref());
+            let granter = Addr::unchecked("granter");
+            let grantee = Addr::unchecked("grantee");
+            let revoke = grant.revoke_all(
+                granter,
+                grantee,
+            );
+            assert_that!(&revoke).is_ok();
         }
     }
 }
