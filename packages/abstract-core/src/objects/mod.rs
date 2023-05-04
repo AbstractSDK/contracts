@@ -4,6 +4,7 @@
 pub(crate) mod ans_asset;
 pub mod ans_host;
 pub(crate) mod asset_entry;
+pub mod chain_name;
 pub(crate) mod channel_entry;
 pub mod common_namespace;
 pub(crate) mod contract_entry;

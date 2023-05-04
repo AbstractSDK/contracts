@@ -1,13 +1,12 @@
 use std::{fmt::Display, str::FromStr};
 
-use cosmwasm_std::{ensure, StdError, StdResult};
+use cosmwasm_std::{ensure, Env, StdError, StdResult};
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 
-use crate::{constants::CHAIN_DELIMITER, AbstractError};
+use crate::{constants::CHAIN_DELIMITER, objects::chain_name::ChainName, AbstractError};
 
-use super::ChainId;
-const MAX_CHAIN_ID_LENGTH: usize = 20;
-const MIN_CHAIN_ID_LENGTH: usize = 3;
+const MAX_CHAIN_NAME_LENGTH: usize = 20;
+const MIN_CHAIN_NAME_LENGTH: usize = 3;
 pub const MAX_TRACE_LENGTH: usize = 6;
 const LOCAL: &str = "local";
 
@@ -16,7 +15,7 @@ const LOCAL: &str = "local";
 pub enum AccountTrace {
     Local,
     // path of the chains that triggered the account creation
-    Remote(Vec<ChainId>),
+    Remote(Vec<ChainName>),
 }
 
 impl<'a> PrimaryKey<'a> for &'a AccountTrace {
@@ -28,7 +27,9 @@ impl<'a> PrimaryKey<'a> for &'a AccountTrace {
     fn key(&self) -> Vec<cw_storage_plus::Key> {
         match &self {
             AccountTrace::Local => LOCAL.key(),
-            AccountTrace::Remote(chain_id) => chain_id.iter().flat_map(|c| c.key()).collect(),
+            AccountTrace::Remote(chain_name) => {
+                chain_name.iter().flat_map(|c| c.as_str().key()).collect()
+            }
         }
     }
 }
@@ -56,7 +57,9 @@ impl<'a> PrimaryKey<'a> for AccountTrace {
     fn key(&self) -> Vec<cw_storage_plus::Key> {
         match &self {
             AccountTrace::Local => LOCAL.key(),
-            AccountTrace::Remote(chain_id) => chain_id.iter().flat_map(|c| c.key()).collect(),
+            AccountTrace::Remote(chain_name) => {
+                chain_name.iter().flat_map(|c| c.as_str().key()).collect()
+            }
         }
     }
 }
@@ -91,14 +94,15 @@ impl AccountTrace {
                     }
                 );
                 for chain in chain_trace {
+                    let chain = chain.as_str();
                     if chain.is_empty()
-                        || chain.len() < MIN_CHAIN_ID_LENGTH
-                        || chain.len() > MAX_CHAIN_ID_LENGTH
+                        || chain.len() < MIN_CHAIN_NAME_LENGTH
+                        || chain.len() > MAX_CHAIN_NAME_LENGTH
                     {
                         return Err(AbstractError::FormattingError {
                             object: "chain-seq".into(),
                             expected: format!(
-                                "between {MIN_CHAIN_ID_LENGTH} and {MAX_CHAIN_ID_LENGTH}"
+                                "between {MIN_CHAIN_NAME_LENGTH} and {MAX_CHAIN_NAME_LENGTH}"
                             ),
                             actual: chain.len().to_string(),
                         });
@@ -108,13 +112,13 @@ impl AccountTrace {
                         return Err(AbstractError::FormattingError {
                             object: "chain-seq".into(),
                             expected: "alphanumeric characters".into(),
-                            actual: chain.clone(),
+                            actual: chain.to_string(),
                         });
                     } else if chain.eq(LOCAL) {
                         return Err(AbstractError::FormattingError {
                             object: "chain-seq".into(),
                             expected: "not 'local'".into(),
-                            actual: chain.clone(),
+                            actual: chain.to_string(),
                         });
                     }
                 }
@@ -143,13 +147,36 @@ impl AccountTrace {
         }
         Ok(())
     }
+
+    /// push the `env.block.chain_name` to the chain trace
+    pub fn push_local_chain(&mut self, env: &Env) {
+        match &self {
+            AccountTrace::Local => {
+                *self = AccountTrace::Remote(vec![ChainName::new(env)]);
+            }
+            AccountTrace::Remote(path) => {
+                let mut path = path.clone();
+                path.push(ChainName::new(env));
+                *self = AccountTrace::Remote(path);
+            }
+        }
+    }
 }
 
 impl Display for AccountTrace {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             AccountTrace::Local => write!(f, "{}", LOCAL),
-            AccountTrace::Remote(chain_id) => write!(f, "{}", chain_id.join(CHAIN_DELIMITER)),
+            AccountTrace::Remote(chain_name) => write!(
+                f,
+                "{}",
+                // "juno>terra>osmosis" 
+                chain_name
+                    .iter()
+                    .map(|name| name.as_str())
+                    .collect::<Vec<&str>>()
+                    .join(CHAIN_DELIMITER)
+            ),
         }
     }
 }
@@ -242,7 +269,7 @@ mod test {
 
         #[test]
         fn local_too_long_fails() {
-            AccountTrace::from_str(&"a".repeat(MAX_CHAIN_ID_LENGTH + 1)).unwrap_err();
+            AccountTrace::from_str(&"a".repeat(MAX_CHAIN_NAME_LENGTH + 1)).unwrap_err();
         }
 
         #[test]
