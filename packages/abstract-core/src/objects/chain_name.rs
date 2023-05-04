@@ -14,8 +14,10 @@ impl ChainName {
     // Construct the chain name from the environment (chain-id)
     pub fn new(env: &Env) -> Self {
         let chain_id = &env.block.chain_id;
-        // split on the first -
-        let parts: Vec<&str> = chain_id.splitn(2, '-').collect();
+        // split on the last -
+        // `cosmos-testnet-53159` 
+        // -> `cosmos-testnet` and `53159`
+        let parts: Vec<&str> = chain_id.rsplitn(2, '-').collect();
         Self(parts[0].to_string())
     }
 
@@ -66,3 +68,73 @@ impl ToString for ChainName {
 }
 
 
+impl<'a> PrimaryKey<'a> for &ChainName {
+    type Prefix = ();
+
+    type SubPrefix = ();
+
+    type Suffix = Self;
+
+    type SuperSuffix = Self;
+
+    fn key(&self) -> Vec<cw_storage_plus::Key> {
+        self.0.key()
+    }
+}
+
+impl<'a> Prefixer<'a> for &ChainName {
+    fn prefix(&self) -> Vec<Key> {
+        self.0.prefix()
+    }
+}
+
+impl KeyDeserialize for &ChainName {
+    type Output = ChainName;
+
+    #[inline(always)]
+    fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
+        Ok(ChainName(String::from_vec(value)?))
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use cosmwasm_std::testing::mock_env;
+    use speculoos::prelude::*;
+
+    #[test]
+    fn test_namespace() {
+        let namespace = ChainName::new(&mock_env());
+        assert_that!(namespace.as_str()).is_equal_to("cosmos-testnet");
+    }
+
+    #[test]
+    fn test_from_string() {
+        let namespace = ChainName::from("test".to_string());
+        assert_that!(namespace.as_str()).is_equal_to("test");
+    }
+
+    #[test]
+    fn test_from_str() {
+        let namespace = ChainName::from("test");
+        assert_that!(namespace.as_str()).is_equal_to("test");
+    }
+
+    #[test]
+    fn test_to_string() {
+        let namespace = ChainName::from("test");
+        assert_that!(namespace.to_string()).is_equal_to("test".to_string());
+    }
+
+    #[test]
+    fn string_key_works() {
+        let k = &ChainName::from("test");
+        let path = k.key();
+        assert_eq!(1, path.len());
+        assert_eq!(b"test", path[0].as_ref());
+
+        let joined = k.joined_key();
+        assert_eq!(joined, b"test")
+    }
+}

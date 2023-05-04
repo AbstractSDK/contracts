@@ -213,6 +213,8 @@ fn acknowledge_who_am_i(
                 .add_attribute("error", e))
         }
     };
+    let chain = ChainName::from(chain);
+    chain.check()?;
     // ensure no third-party can overwrite
     if CHANNELS.has(deps.storage, &chain) {
         return Err(IbcClientError::HostAlreadyExists {});

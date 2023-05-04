@@ -55,7 +55,7 @@ pub fn execute_update_config(
 pub fn execute_remove_host(
     deps: DepsMut,
     info: MessageInfo,
-    host_chain: String,
+    host_chain: ChainName,
 ) -> IbcClientResult {
     // auth check
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
@@ -68,7 +68,7 @@ pub fn execute_send_packet(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    host_chain: String,
+    host_chain: ChainName,
     action: HostAction,
     callback_info: Option<CallbackInfo>,
     mut retries: u8,
@@ -112,7 +112,7 @@ pub fn execute_register_os(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    host_chain: String,
+    host_chain: ChainName,
 ) -> IbcClientResult {
     // auth check
     let cfg = CONFIG.load(deps.storage)?;
@@ -166,7 +166,7 @@ pub fn execute_send_funds(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    host_chain: String,
+    host_chain: ChainName,
     funds: Vec<Coin>,
 ) -> IbcClientResult {
     let cfg = CONFIG.load(deps.storage)?;
@@ -254,7 +254,7 @@ mod test {
         let msg = InstantiateMsg {
             ans_host_address: TEST_ANS_HOST.to_string(),
             version_control_address: TEST_VERSION_CONTROL.to_string(),
-            chain: TEST_CHAIN.to_string(),
+            chain: TEST_CHAIN.into(),
         };
         contract::instantiate(deps, mock_env(), mock_info(TEST_ADMIN, &[]), msg)
     }
@@ -381,7 +381,7 @@ mod test {
         #[test]
         fn only_admin() -> IbcClientTestResult {
             test_only_admin(ExecuteMsg::RemoveHost {
-                host_chain: "host_chain".to_string(),
+                host_chain: ChainName::from("host_chain"),
             })
         }
 
@@ -393,7 +393,7 @@ mod test {
             CHANNELS.save(deps.as_mut().storage, TEST_CHAIN, &"test_channel".into())?;
 
             let msg = ExecuteMsg::RemoveHost {
-                host_chain: TEST_CHAIN.to_string(),
+                host_chain: TEST_CHAIN.into(),
             };
 
             let res = execute_as_admin(deps.as_mut(), msg)?;
@@ -410,7 +410,7 @@ mod test {
             mock_init(deps.as_mut())?;
 
             let msg = ExecuteMsg::RemoveHost {
-                host_chain: TEST_CHAIN.to_string(),
+                host_chain: TEST_CHAIN.into(),
             };
 
             let res = execute_as_admin(deps.as_mut(), msg)?;

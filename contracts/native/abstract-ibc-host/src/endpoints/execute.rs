@@ -182,10 +182,6 @@ impl<
             // validate address format
             state.ans_host.address = deps.api.addr_validate(&ans_host_address)?;
         }
-        if let Some(cw1_code_id) = cw1_code_id {
-            // validate address format
-            state.cw1_code_id = cw1_code_id;
-        }
         self.base_state.save(deps.storage, &state)?;
         Ok(Response::new())
     }

@@ -4,15 +4,17 @@ use abstract_core::{
         AccountInfo, AccountResponse, ConfigResponse, LatestQueryResponse, ListAccountsResponse,
         ListChannelsResponse,
     },
-    objects::AccountId,
+    objects::{AccountId, chain_name::ChainName},
 };
-use cosmwasm_std::{Deps, Order, StdResult};
+use cosmwasm_std::{Deps, Order, StdResult, Env};
 
 pub fn query_latest_ibc_query_result(
     deps: Deps,
     host_chain: String,
     account_id: AccountId,
 ) -> StdResult<LatestQueryResponse> {
+    let host_chain = ChainName::from(host_chain);
+    host_chain.check().unwrap();
     let channel = CHANNELS.load(deps.storage, &host_chain)?;
     LATEST_QUERIES.load(deps.storage, (&channel, &account_id))
 }
@@ -36,16 +38,16 @@ pub fn query_list_channels(deps: Deps) -> StdResult<ListChannelsResponse> {
     Ok(ListChannelsResponse { channels })
 }
 
-pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
+pub fn query_config(deps: Deps, env: Env) -> StdResult<ConfigResponse> {
     let Config {
-        chain,
         version_control_address,
     } = CONFIG.load(deps.storage)?;
     let admin = ADMIN.get(deps)?.unwrap();
+    let chain = ChainName::new(&env);
     Ok(ConfigResponse {
         admin: admin.into(),
-        chain,
         version_control_address: version_control_address.into_string(),
+        chain: chain.into_string(),
     })
 }
 
@@ -54,6 +56,8 @@ pub fn query_account(
     host_chain: String,
     account_id: AccountId,
 ) -> StdResult<AccountResponse> {
+    let host_chain = ChainName::from(host_chain);
+    host_chain.check().unwrap();
     let channel = CHANNELS.load(deps.storage, &host_chain)?;
     let account = ACCOUNTS.load(deps.storage, (&channel, &account_id))?;
     Ok(account.into())

@@ -1,5 +1,5 @@
 use self::state::AccountData;
-use crate::{abstract_ica::StdAck, ibc_host::HostAction, objects::account::AccountId};
+use crate::{abstract_ica::StdAck, ibc_host::HostAction, objects::{account::AccountId, chain_name::ChainName}};
 use abstract_ica::IbcResponseMsg;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{from_slice, Binary, Coin, CosmosMsg, StdResult, Timestamp};
@@ -8,7 +8,7 @@ pub mod state {
 
     use super::LatestQueryResponse;
     use crate::{
-        objects::{account::AccountId, ans_host::AnsHost, common_namespace::ADMIN_NAMESPACE},
+        objects::{account::AccountId, ans_host::AnsHost, common_namespace::ADMIN_NAMESPACE, chain_name::ChainName},
         ANS_HOST as ANS_HOST_KEY,
     };
     use cosmwasm_std::{Addr, Coin, Timestamp};
@@ -35,8 +35,8 @@ pub mod state {
     }
 
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
-    /// host_chain -> channel-id
-    pub const CHANNELS: Map<&str, String> = Map::new("channels");
+    /// chain -> channel-id
+    pub const CHANNELS: Map<&ChainName, String> = Map::new("channels");
     pub const CONFIG: Item<Config> = Item::new("config");
     /// (channel-id,account_id) -> remote_addr
     pub const ACCOUNTS: Map<(&str, &AccountId), AccountData> = Map::new("accounts");
@@ -85,18 +85,18 @@ pub enum ExecuteMsg {
     /// Will attempt to forward the specified funds to the corresponding
     /// address on the remote chain.
     SendFunds {
-        host_chain: String,
+        host_chain: ChainName,
         funds: Vec<Coin>,
     },
     /// Register an Account on a remote chain over IBC
     /// This action creates a proxy for them on the remote chain.
     Register {
-        host_chain: String,
+        host_chain: ChainName,
     },
     SendPacket {
         // host chain to be executed on
         // Example: "osmosis"
-        host_chain: String,
+        host_chain: ChainName,
         // execute the custom host function
         action: HostAction,
         // optional callback info
@@ -105,7 +105,7 @@ pub enum ExecuteMsg {
         retries: u8,
     },
     RemoveHost {
-        host_chain: String,
+        host_chain: ChainName,
     },
 }
 
@@ -149,7 +149,7 @@ pub struct ListAccountsResponse {
 }
 #[cosmwasm_schema::cw_serde]
 pub struct ListChannelsResponse {
-    pub channels: Vec<(String, String)>,
+    pub channels: Vec<(ChainName, String)>,
 }
 
 #[cosmwasm_schema::cw_serde]

@@ -57,7 +57,6 @@ pub struct Host<
     // Custom state for every Host
     pub proxy_address: Option<Addr>,
     pub(crate) base_state: Item<'static, HostState>,
-    pub(crate) chain: &'static str,
 }
 
 // Constructor
@@ -75,7 +74,6 @@ impl<
     pub const fn new(
         name: &'static str,
         version: &'static str,
-        chain: &'static str,
         metadata: Option<&'static str>,
     ) -> Self {
         let contract = AbstractContract::new(name, version, metadata).with_replies([
@@ -88,7 +86,6 @@ impl<
         ]);
         Self {
             contract,
-            chain,
             base_state: Item::new(BASE_STATE),
             admin: Admin::new(ADMIN_NAMESPACE),
             proxy_address: None,
