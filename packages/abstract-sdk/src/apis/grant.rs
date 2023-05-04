@@ -4,7 +4,7 @@
 
 use std::time::Duration;
 
-use cosmos_sdk_proto::{traits::Message, Any, cosmos::feegrant, cosmos::base};
+use cosmos_sdk_proto::{cosmos::base, cosmos::feegrant, traits::Message, Any};
 use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Deps, Timestamp};
 
 use crate::{
@@ -26,6 +26,8 @@ pub struct Grant<'a, T: GrantInterface> {
 }
 
 impl<'a, T: GrantInterface> Grant<'a, T> {
+    /// Implements Allowance with a one-time grant of coins
+    /// that optionally expires. The grantee can use up to SpendLimit to cover fees.
     pub fn basic(
         &self,
         granter: Addr,
@@ -45,6 +47,8 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
         })
     }
 
+    /// Extends Allowance to allow for both a maximum cap,
+    /// as well as a limit per time period.
     pub fn periodic(
         &self,
         granter: Addr,
@@ -65,14 +69,13 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
         })
     }
 
-    pub fn allow_basic(
-        &self,
-        basic: BasicAllowance
-    ) -> AbstractSdkResult<CosmosMsg> {
+    /// creates allowance only for BasicAllowance.
+    pub fn allow_basic(&self, basic: BasicAllowance) -> AbstractSdkResult<CosmosMsg> {
         let msg = feegrant::v1beta1::AllowedMsgAllowance {
             allowance: Some(build_any_basic(basic)),
             allowed_messages: vec!["BasicAllowance".to_owned()],
-        }.encode_to_vec();
+        }
+        .encode_to_vec();
 
         Ok(CosmosMsg::Stargate {
             type_url: "/cosmos.feegrant.v1beta1.AllowedMsgAllowance".to_string(),
@@ -80,14 +83,13 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
         })
     }
 
-    pub fn allow_periodic(
-        &self,
-        periodic: PeriodicAllowance,
-    ) -> AbstractSdkResult<CosmosMsg> {
+    /// Creates allowance only for PeriodicAllowance.
+    pub fn allow_periodic(&self, periodic: PeriodicAllowance) -> AbstractSdkResult<CosmosMsg> {
         let msg = feegrant::v1beta1::AllowedMsgAllowance {
             allowance: Some(build_any_periodic(periodic, None)),
             allowed_messages: vec!["PeriodicAllowance".to_owned()],
-        }.encode_to_vec();
+        }
+        .encode_to_vec();
 
         Ok(CosmosMsg::Stargate {
             type_url: "/cosmos.feegrant.v1beta1.AllowedMsgAllowance".to_string(),
@@ -95,6 +97,7 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
         })
     }
 
+    /// Creates allowance only for BasicAllowance and PeriodicAllowance.
     pub fn allow_both(
         &self,
         basic: BasicAllowance,
@@ -102,11 +105,9 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
     ) -> AbstractSdkResult<CosmosMsg> {
         let msg = feegrant::v1beta1::AllowedMsgAllowance {
             allowance: Some(build_any_periodic(periodic, Some(basic))),
-            allowed_messages: vec![
-                "BasicAllowance".to_owned(),
-                "PeriodicAllowance".to_owned()
-            ],
-        }.encode_to_vec();
+            allowed_messages: vec!["BasicAllowance".to_owned(), "PeriodicAllowance".to_owned()],
+        }
+        .encode_to_vec();
 
         Ok(CosmosMsg::Stargate {
             type_url: "/cosmos.feegrant.v1beta1.AllowedMsgAllowance".to_string(),
@@ -114,15 +115,13 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
         })
     }
 
-    pub fn revoke_all(
-        &self,
-        granter: Addr,
-        grantee: Addr,
-    ) -> AbstractSdkResult<CosmosMsg> {
+    /// Removes any existing Allowance from Granter to Grantee.
+    pub fn revoke_all(&self, granter: Addr, grantee: Addr) -> AbstractSdkResult<CosmosMsg> {
         let msg = feegrant::v1beta1::MsgRevokeAllowance {
             granter: granter.into(),
             grantee: grantee.into(),
-        }.encode_to_vec();
+        }
+        .encode_to_vec();
 
         Ok(CosmosMsg::Stargate {
             type_url: "/cosmos.feegrant.v1beta1.MsgRevokeAllowance".to_string(),
@@ -142,19 +141,14 @@ pub struct PeriodicAllowance {
     pub period_reset: Option<Timestamp>,
 }
 
-fn build_any_basic(
-    basic: BasicAllowance
-) -> Any {
+fn build_any_basic(basic: BasicAllowance) -> Any {
     Any {
         type_url: "/cosmos.feegrant.v1beta1.BasicAllowance".to_string(),
         value: build_basic_allowance(basic).encode_to_vec(),
     }
 }
 
-fn build_any_periodic(
-    periodic: PeriodicAllowance,
-    basic: Option<BasicAllowance>
-) -> Any {
+fn build_any_periodic(periodic: PeriodicAllowance, basic: Option<BasicAllowance>) -> Any {
     Any {
         type_url: "/cosmos.feegrant.v1beta1.PeriodicAllowance".to_string(),
         value: feegrant::v1beta1::PeriodicAllowance {
@@ -171,9 +165,7 @@ fn build_any_periodic(
     }
 }
 
-fn build_basic_allowance(
-    basic: BasicAllowance,
-) -> feegrant::v1beta1::BasicAllowance {
+fn build_basic_allowance(basic: BasicAllowance) -> feegrant::v1beta1::BasicAllowance {
     feegrant::v1beta1::BasicAllowance {
         spend_limit: convert_coins(basic.spend_limit),
         expiration: basic.expiration.map(convert_stamp),
@@ -267,12 +259,10 @@ mod test {
             let grant = app.grant(deps.as_ref());
             let spend_limit = coins(100, "asset");
             let expiration = Some(Timestamp::from_seconds(10));
-            let basic = grant.allow_basic(
-                BasicAllowance {
-                    spend_limit,
-                    expiration,
-                },
-            );
+            let basic = grant.allow_basic(BasicAllowance {
+                spend_limit,
+                expiration,
+            });
             assert_that!(&basic).is_ok();
         }
     }
@@ -287,14 +277,12 @@ mod test {
             let grant = app.grant(deps.as_ref());
             let period_spend_limit = vec![];
             let period_can_spend = vec![];
-            let periodic = grant.allow_periodic(
-                PeriodicAllowance {
-                    period: None,
-                    period_spend_limit,
-                    period_can_spend,
-                    period_reset: None,
-                },
-            );
+            let periodic = grant.allow_periodic(PeriodicAllowance {
+                period: None,
+                period_spend_limit,
+                period_can_spend,
+                period_reset: None,
+            });
             assert_that!(&periodic).is_ok();
         }
     }
@@ -337,10 +325,7 @@ mod test {
             let grant = app.grant(deps.as_ref());
             let granter = Addr::unchecked("granter");
             let grantee = Addr::unchecked("grantee");
-            let revoke = grant.revoke_all(
-                granter,
-                grantee,
-            );
+            let revoke = grant.revoke_all(granter, grantee);
             assert_that!(&revoke).is_ok();
         }
     }

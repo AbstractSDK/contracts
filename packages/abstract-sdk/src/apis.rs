@@ -4,6 +4,8 @@ pub mod bank;
 pub mod execution;
 #[cfg(feature = "stargaze")]
 pub mod grant;
+#[cfg(feature = "stargaze")]
+pub mod distribution;
 pub mod ibc;
 pub mod modules;
 pub mod respond;
