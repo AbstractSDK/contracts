@@ -28,7 +28,7 @@ pub use crate::apis::{
 };
 
 #[cfg(feature = "stargaze")]
-pub use crate::apis::{grant::*, distribution::*};
+pub use crate::apis::{distribution::*, grant::*};
 
 pub mod features {
     //! # Feature traits

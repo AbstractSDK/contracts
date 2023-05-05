@@ -28,7 +28,7 @@ impl<'a, T: OsVerification> OsRegistry<'a, T> {
     pub fn assert_manager(&self, maybe_manager: &Addr) -> AbstractSdkResult<AccountBase> {
         let account_id = self.account_id(maybe_manager)?;
         let account_base = self.account_base(account_id)?;
-        if account_base.manager.ne(maybe_manager)  {
+        if account_base.manager.ne(maybe_manager) {
             Err(AbstractSdkError::NotManager(
                 maybe_manager.clone(),
                 account_id,

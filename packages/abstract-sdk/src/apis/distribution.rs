@@ -6,7 +6,7 @@ use cosmos_sdk_proto::{
     cosmos::{base, distribution},
     traits::Message,
 };
-use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Deps};
+use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg};
 
 use crate::{
     features::{AbstractNameService, AccountIdentification},
@@ -14,27 +14,19 @@ use crate::{
 };
 
 pub trait DistributionInterface: AbstractNameService + AccountIdentification {
-    fn distribution<'a>(&'a self, deps: Deps<'a>) -> Distribution<Self> {
-        Distribution { base: self, deps }
+    fn distribution() -> Distribution {
+        Distribution {}
     }
 }
 
 impl<T> DistributionInterface for T where T: AbstractNameService + AccountIdentification {}
 
 #[derive(Clone)]
-#[allow(dead_code)] // NOTE: im not sure about this
-pub struct Distribution<'a, T: DistributionInterface> {
-    base: &'a T,
-    deps: Deps<'a>,
-}
+pub struct Distribution {}
 
-impl<'a, T: DistributionInterface> Distribution<'a, T> {
+impl Distribution {
     /// sets the withdraw address for a delegator (or validator self-delegation).
-    pub fn set_withdraw_address(
-        &self,
-        delegator: Addr,
-        withdraw: Addr,
-    ) -> AbstractSdkResult<CosmosMsg> {
+    pub fn set_withdraw_address(delegator: Addr, withdraw: Addr) -> AbstractSdkResult<CosmosMsg> {
         let msg = distribution::v1beta1::MsgSetWithdrawAddress {
             delegator_address: delegator.into(),
             withdraw_address: withdraw.into(),
@@ -49,7 +41,6 @@ impl<'a, T: DistributionInterface> Distribution<'a, T> {
 
     /// represents delegation withdrawal to a delegator from a single validator.
     pub fn withdraw_delegator_reward(
-        &self,
         validator: Addr,
         delegator: Addr,
     ) -> AbstractSdkResult<CosmosMsg> {
@@ -66,7 +57,7 @@ impl<'a, T: DistributionInterface> Distribution<'a, T> {
     }
 
     /// withdraws the full commission to the validator address.
-    pub fn withdraw_delegator_comission(&self, validator: Addr) -> AbstractSdkResult<CosmosMsg> {
+    pub fn withdraw_delegator_comission(validator: Addr) -> AbstractSdkResult<CosmosMsg> {
         let msg = distribution::v1beta1::MsgWithdrawValidatorCommission {
             validator_address: validator.into(),
         }
@@ -79,11 +70,7 @@ impl<'a, T: DistributionInterface> Distribution<'a, T> {
     }
 
     /// allows an account to directly fund the community pool.
-    pub fn fund_community_pool(
-        &self,
-        amount: Vec<Coin>,
-        depositor: Addr,
-    ) -> AbstractSdkResult<CosmosMsg> {
+    pub fn fund_community_pool(amount: Vec<Coin>, depositor: Addr) -> AbstractSdkResult<CosmosMsg> {
         let msg = distribution::v1beta1::MsgFundCommunityPool {
             amount: amount
                 .into_iter()
@@ -106,8 +93,8 @@ impl<'a, T: DistributionInterface> Distribution<'a, T> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::mock_module::*;
-    use cosmwasm_std::{testing::*, *};
+    // use crate::mock_module::*;
+    // use cosmwasm_std::{testing::*, *};
     use speculoos::prelude::*;
 
     mod set_withdraw_address {
@@ -115,12 +102,9 @@ mod test {
 
         #[test]
         fn set_withdraw_address() {
-            let app = MockModule::new();
-            let deps = mock_dependencies();
-            let distribution = app.distribution(deps.as_ref());
             let delegator = Addr::unchecked("delegator");
             let withdraw = Addr::unchecked("withdraw");
-            let msg = distribution.set_withdraw_address(delegator, withdraw);
+            let msg = Distribution::set_withdraw_address(delegator, withdraw);
             assert_that!(&msg).is_ok();
         }
     }
@@ -130,12 +114,9 @@ mod test {
 
         #[test]
         fn withdraw_delegator_reward() {
-            let app = MockModule::new();
-            let deps = mock_dependencies();
-            let distribution = app.distribution(deps.as_ref());
             let validator = Addr::unchecked("validator");
             let delegator = Addr::unchecked("delegator");
-            let msg = distribution.withdraw_delegator_reward(validator, delegator);
+            let msg = Distribution::withdraw_delegator_reward(validator, delegator);
             assert_that!(&msg).is_ok();
         }
     }
@@ -145,26 +126,21 @@ mod test {
 
         #[test]
         fn withdraw_delegator_comission() {
-            let app = MockModule::new();
-            let deps = mock_dependencies();
-            let distribution = app.distribution(deps.as_ref());
             let validator = Addr::unchecked("validator");
-            let msg = distribution.withdraw_delegator_comission(validator);
+            let msg = Distribution::withdraw_delegator_comission(validator);
             assert_that!(&msg).is_ok();
         }
     }
 
     mod fund_community_pool {
         use super::*;
+        use cosmwasm_std::coins;
 
         #[test]
         fn fund_community_pool() {
-            let app = MockModule::new();
-            let deps = mock_dependencies();
-            let distribution = app.distribution(deps.as_ref());
             let depositor = Addr::unchecked("depositor");
             let amount = coins(1000, "coin");
-            let msg = distribution.fund_community_pool(amount, depositor);
+            let msg = Distribution::fund_community_pool(amount, depositor);
             assert_that!(&msg).is_ok();
         }
     }
