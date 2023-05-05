@@ -66,11 +66,11 @@ pub fn propose_modules(
         }
 
         // verify contract admin is None
-        if !deps
+        if deps
             .querier
             .query_wasm_contract_info(mod_ref.unwrap_native().unwrap())?
             .admin
-            .is_none()
+            .is_some()
         {
             return Err(VCError::AdminMustBeNone);
         }
