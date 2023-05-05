@@ -9,17 +9,14 @@ use cosmos_sdk_proto::{
 use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg};
 
 use crate::{
-    features::{AbstractNameService, AccountIdentification},
     AbstractSdkResult,
 };
 
-pub trait DistributionInterface: AbstractNameService + AccountIdentification {
+pub trait DistributionInterface {
     fn distribution() -> Distribution {
         Distribution {}
     }
 }
-
-impl<T> DistributionInterface for T where T: AbstractNameService + AccountIdentification {}
 
 #[derive(Clone)]
 pub struct Distribution {}

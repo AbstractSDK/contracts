@@ -8,17 +8,14 @@ use cosmos_sdk_proto::{cosmos::base, cosmos::feegrant, traits::Message, Any};
 use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Timestamp};
 
 use crate::{
-    features::{AbstractNameService, AccountIdentification},
     AbstractSdkResult,
 };
 
-pub trait GrantInterface: AbstractNameService + AccountIdentification {
+pub trait GrantInterface {
     fn grant() -> Grant {
         Grant {}
     }
 }
-
-impl<T> GrantInterface for T where T: AbstractNameService + AccountIdentification {}
 
 #[derive(Clone)]
 pub struct Grant {}
