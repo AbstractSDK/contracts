@@ -64,6 +64,17 @@ pub fn propose_modules(
             // Only owner can add modules
             validate_account_owner(deps.as_ref(), &module.namespace, &msg_info.sender)?;
         }
+
+        // verify contract admin is None
+        if !deps
+            .querier
+            .query_wasm_contract_info(mod_ref.unwrap_native().unwrap())?
+            .admin
+            .is_none()
+        {
+            return Err(VCError::AdminMustBeNone);
+        }
+
         if config.is_testnet {
             REGISTERED_MODULES.save(deps.storage, &module, &mod_ref)?;
         } else {
