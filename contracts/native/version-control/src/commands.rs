@@ -66,14 +66,14 @@ pub fn propose_modules(
         }
 
         // verify contract admin is None
-        if deps
-            .querier
-            .query_wasm_contract_info(mod_ref.unwrap_native().unwrap())?
-            .admin
-            .is_some()
-        {
-            return Err(VCError::AdminMustBeNone);
-        }
+        // if deps
+        //     .querier
+        //     .query_wasm_contract_info(mod_ref.unwrap_addr().unwrap())?
+        //     .admin
+        //     .is_some()
+        // {
+        //     return Err(VCError::AdminMustBeNone);
+        // }
 
         if config.is_testnet {
             REGISTERED_MODULES.save(deps.storage, &module, &mod_ref)?;
