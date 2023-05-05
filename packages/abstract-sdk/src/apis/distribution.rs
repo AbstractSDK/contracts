@@ -21,6 +21,8 @@ pub trait DistributionInterface: AbstractNameService + AccountIdentification {
 
 impl<T> DistributionInterface for T where T: AbstractNameService + AccountIdentification {}
 
+#[derive(Clone)]
+#[allow(dead_code)] // NOTE: im not sure about this
 pub struct Distribution<'a, T: DistributionInterface> {
     base: &'a T,
     deps: Deps<'a>,

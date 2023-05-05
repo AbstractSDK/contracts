@@ -20,6 +20,8 @@ pub trait GrantInterface: AbstractNameService + AccountIdentification {
 
 impl<T> GrantInterface for T where T: AbstractNameService + AccountIdentification {}
 
+#[derive(Clone)]
+#[allow(dead_code)] // NOTE: im not sure about this
 pub struct Grant<'a, T: GrantInterface> {
     base: &'a T,
     deps: Deps<'a>,
