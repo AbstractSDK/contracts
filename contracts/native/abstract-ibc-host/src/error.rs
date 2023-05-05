@@ -45,4 +45,7 @@ pub enum HostError {
 
     #[error("Remote account can not be created from a Local trace")]
     LocalTrace,
+
+    #[error("Expected port {0} got {1} instead.")]
+    ClientMismatch(String, String),
 }

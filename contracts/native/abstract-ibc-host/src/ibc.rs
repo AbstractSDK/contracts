@@ -1,7 +1,8 @@
 use crate::{
-    endpoints::reply::INIT_CALLBACK_ID,
-    state::{ContractError, CLIENT_PROXY, PENDING},
-    Host, HostError,
+    contract::HostResult,
+    endpoints::{packet, reply::INIT_CALLBACK_ID},
+    state::{CHAIN_CLIENTS, CHANNEL_CHAIN, CLIENT_PROXY, CONFIG, REGISTRATION_CACHE},
+    HostError,
 };
 use abstract_core::{
     account_factory,
@@ -11,11 +12,11 @@ use abstract_sdk::core::abstract_ica::{
     check_order, check_version, IbcQueryResponse, StdAck, WhoAmIResponse, IBC_APP_VERSION,
 };
 use cosmwasm_std::{
-    entry_point, to_binary, to_vec, wasm_execute, Binary, ContractResult, Deps, DepsMut, Empty,
-    Env, Event, Ibc3ChannelOpenResponse, IbcBasicResponse, IbcChannelCloseMsg,
-    IbcChannelConnectMsg, IbcChannelOpenMsg, IbcChannelOpenResponse, IbcPacketAckMsg,
-    IbcPacketTimeoutMsg, IbcReceiveResponse, QuerierWrapper, QueryRequest, StdError, StdResult,
-    SubMsg, SystemResult, WasmMsg,
+    ensure_eq, entry_point, to_binary, to_vec, wasm_execute, Binary, ContractResult, Deps, DepsMut,
+    Empty, Env, Event, Ibc3ChannelOpenResponse, IbcBasicResponse, IbcChannelCloseMsg,
+    IbcChannelConnectMsg, IbcChannelOpenMsg, IbcChannelOpenResponse, IbcEndpoint, IbcPacketAckMsg,
+    IbcPacketReceiveMsg, IbcPacketTimeoutMsg, IbcReceiveResponse, QuerierWrapper, QueryRequest,
+    StdError, StdResult, SubMsg, SystemResult, WasmMsg,
 };
 
 // one hour
@@ -37,6 +38,8 @@ pub fn ibc_channel_open(
     if let Some(counter_version) = msg.counterparty_version() {
         check_version(counter_version)?;
     }
+
+    // we naively assume the counter party is the correct client, this gets checked later.
 
     // We return the version we need (which could be different than the counterparty version)
     Ok(Some(Ibc3ChannelOpenResponse {
@@ -79,6 +82,15 @@ pub fn ibc_channel_close(
     Ok(IbcBasicResponse::new().add_attribute("action", "ibc_close"))
 }
 
+#[entry_point]
+pub fn ibc_packet_receive(
+    deps: DepsMut,
+    env: Env,
+    msg: IbcPacketReceiveMsg,
+) -> Result<IbcReceiveResponse, HostError> {
+    packet::handle_packet(deps, env, msg)
+}
+
 fn unparsed_query(
     querier: QuerierWrapper<'_, Empty>,
     request: &QueryRequest<Empty>,
@@ -116,26 +128,9 @@ pub fn receive_query(
 
 // processes PacketMsg::Register variant
 /// Creates and registers proxy for remote Account
-pub fn receive_register<
-    Error: ContractError,
-    CustomExecMsg,
-    CustomInitMsg,
-    CustomQueryMsg,
-    CustomMigrateMsg,
-    ReceiveMsg,
-    SudoMsg,
->(
+pub fn receive_register(
     deps: DepsMut,
     env: Env,
-    host: Host<
-        Error,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        ReceiveMsg,
-        SudoMsg,
-    >,
     channel: String,
     account_id: AccountId,
     account_proxy_address: String,
@@ -143,7 +138,7 @@ pub fn receive_register<
     description: Option<String>,
     link: Option<String>,
 ) -> Result<IbcReceiveResponse, HostError> {
-    let cfg = host.base_state.load(deps.storage)?;
+    let cfg = CONFIG.load(deps.storage)?;
 
     // verify that the origin last chain is the chain related to this channel, and that it is not `Local`
     account_id.trace().verify_remote()?;
@@ -168,13 +163,9 @@ pub fn receive_register<
     let factory_msg = SubMsg::reply_on_success(factory_msg, INIT_CALLBACK_ID);
 
     // store the proxy address of the Account on the client chain.
-    CLIENT_PROXY.save(
-        deps.storage,
-        (&channel, &account_id),
-        &account_proxy_address,
-    )?;
+    CLIENT_PROXY.save(deps.storage, &account_id, &account_proxy_address)?;
     // store the account info for the reply handler
-    PENDING.save(deps.storage, &(channel, account_id.clone()))?;
+    REGISTRATION_CACHE.save(deps.storage, &(channel, account_id.clone()))?;
 
     // We rely on Reply handler to change this to Success!
     let acknowledgement = StdAck::fail(format!("Failed to create proxy for Account {account_id} "));
@@ -186,9 +177,35 @@ pub fn receive_register<
 }
 
 // processes InternalAction::WhoAmI variant
-pub fn receive_who_am_i(this_chain: ChainName) -> Result<IbcReceiveResponse, HostError> {
+pub fn receive_who_am_i(
+    deps: DepsMut,
+    channel: String,
+    packet_source: IbcEndpoint,
+    client_chain: ChainName,
+    this_chain: ChainName,
+) -> Result<IbcReceiveResponse, HostError> {
+    // this means we successfully made a connection, map this channel to the client chain after verifying the correct client is used.
+    let registered_client_for_chain = CHAIN_CLIENTS.load(deps.storage, &client_chain)?;
+    let counterparty_client = packet_source.port_id;
+    // remove the 'wasm.' prefix from the client id
+    let counterparty_client = counterparty_client
+        .strip_prefix("wasm.")
+        .ok_or(HostError::Std(StdError::generic_err(
+            "mis-formatted wasm port",
+        )))?;
+    // ensure the client is the same as the one we registered
+    ensure_eq!(
+        &registered_client_for_chain,
+        counterparty_client,
+        HostError::ClientMismatch(registered_client_for_chain, counterparty_client.to_string())
+    );
+    // add this channel to the map and relate it to the client chain
+    CHANNEL_CHAIN.save(deps.storage, &channel, &client_chain)?;
+
     // let them know we're fine
-    let response = WhoAmIResponse { chain: this_chain.into_string() };
+    let response = WhoAmIResponse {
+        chain: this_chain.into_string(),
+    };
     let acknowledgement = StdAck::success(response);
     Ok(IbcReceiveResponse::new()
         .set_ack(acknowledgement)
