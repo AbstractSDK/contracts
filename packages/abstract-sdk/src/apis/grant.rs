@@ -7,9 +7,7 @@ use std::time::Duration;
 use cosmos_sdk_proto::{cosmos::base, cosmos::feegrant, traits::Message, Any};
 use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Timestamp};
 
-use crate::{
-    AbstractSdkResult,
-};
+use crate::AbstractSdkResult;
 
 pub trait GrantInterface {
     fn grant() -> Grant {

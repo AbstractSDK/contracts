@@ -8,9 +8,7 @@ use cosmos_sdk_proto::{
 };
 use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg};
 
-use crate::{
-    AbstractSdkResult,
-};
+use crate::AbstractSdkResult;
 
 pub trait DistributionInterface {
     fn distribution() -> Distribution {
