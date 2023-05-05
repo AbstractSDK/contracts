@@ -52,8 +52,11 @@ pub fn propose_modules(
         {
             return Err(VCError::NotUpdateableModule(module));
         }
+
         module.validate()?;
+
         mod_ref.validate(deps.as_ref())?;
+
         // version must be set in order to add the new version
         module.assert_version_variant()?;
 
@@ -66,14 +69,14 @@ pub fn propose_modules(
         }
 
         // verify contract admin is None
-        // if deps
-        //     .querier
-        //     .query_wasm_contract_info(mod_ref.unwrap_addr().unwrap())?
-        //     .admin
-        //     .is_some()
-        // {
-        //     return Err(VCError::AdminMustBeNone);
-        // }
+        if deps
+            .querier
+            .query_wasm_contract_info(mod_ref.unwrap_addr().unwrap())?
+            .admin
+            .is_some()
+        {
+            return Err(VCError::AdminMustBeNone);
+        }
 
         if config.is_testnet {
             REGISTERED_MODULES.save(deps.storage, &module, &mod_ref)?;
@@ -848,8 +851,11 @@ mod test {
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), false)?;
             let new_module = test_module();
+            let address = Addr::unchecked("address");
+            let mod_ref = ModuleReference::Native(address.clone());
+
             let msg = ExecuteMsg::ProposeModules {
-                modules: vec![(new_module.clone(), ModuleReference::App(0))],
+                modules: vec![(new_module.clone(), mod_ref)],
             };
 
             // try while no namespace
@@ -874,7 +880,7 @@ mod test {
             let res = execute_as(deps.as_mut(), TEST_OWNER, msg);
             assert_that!(&res).is_ok();
             let module = PENDING_MODULES.load(&deps.storage, &new_module)?;
-            assert_that!(&module).is_equal_to(&ModuleReference::App(0));
+            assert_that!(&module).is_equal_to(&ModuleReference::Native(address));
             Ok(())
         }
 

@@ -7,6 +7,7 @@ use abstract_core::{
     manager::state::{ACCOUNT_ID, ACCOUNT_MODULES},
     version_control::state::ACCOUNT_ADDRESSES,
 };
+use cosmwasm_std::ContractInfoResponse;
 use cosmwasm_std::{
     from_binary, testing::MockQuerier, to_binary, Addr, Binary, ContractResult, Empty,
     QuerierWrapper, SystemResult, WasmQuery,
@@ -22,7 +23,7 @@ type FallbackHandler = dyn for<'a> Fn(&'a str, &'a Binary) -> BinaryQueryResult;
 type SmartHandler = dyn for<'a> Fn(&'a Binary) -> BinaryQueryResult;
 type RawHandler = dyn for<'a> Fn(&'a str) -> BinaryQueryResult;
 
-/// [`MockQuerierBuilder`] is a helper to build a [`MockQuerier`].  
+/// [`MockQuerierBuilder`] is a helper to build a [`MockQuerier`].
 /// Usage:
 /// ```rust
 /// use cosmwasm_std::{from_binary, to_binary};
@@ -302,7 +303,11 @@ impl MockQuerierBuilder {
                     };
                     res
                 }
-                // TODO: contract info
+                WasmQuery::ContractInfo { contract_addr: _contract_addr } => {
+                    let mut info = ContractInfoResponse::default();
+                    info.admin = None;
+                    Ok(to_binary(&info).unwrap())
+                }
                 unexpected => panic!("Unexpected query: {unexpected:?}"),
             };
 
