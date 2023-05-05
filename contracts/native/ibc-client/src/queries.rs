@@ -4,9 +4,9 @@ use abstract_core::{
         AccountInfo, AccountResponse, ConfigResponse, LatestQueryResponse, ListAccountsResponse,
         ListChannelsResponse,
     },
-    objects::{AccountId, chain_name::ChainName},
+    objects::{chain_name::ChainName, AccountId},
 };
-use cosmwasm_std::{Deps, Order, StdResult, Env};
+use cosmwasm_std::{Deps, Env, Order, StdResult};
 
 pub fn query_latest_ibc_query_result(
     deps: Deps,

@@ -15,7 +15,7 @@ impl ChainName {
     pub fn new(env: &Env) -> Self {
         let chain_id = &env.block.chain_id;
         // split on the last -
-        // `cosmos-testnet-53159` 
+        // `cosmos-testnet-53159`
         // -> `cosmos-testnet` and `53159`
         let parts: Vec<&str> = chain_id.rsplitn(2, '-').collect();
         Self(parts[0].to_string())
@@ -66,7 +66,6 @@ impl ToString for ChainName {
         self.0.clone()
     }
 }
-
 
 impl<'a> PrimaryKey<'a> for &ChainName {
     type Prefix = ();

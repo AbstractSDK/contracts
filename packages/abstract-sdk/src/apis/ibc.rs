@@ -6,7 +6,8 @@ use crate::{features::AccountIdentification, AbstractSdkResult};
 use abstract_core::{
     ibc_client::{CallbackInfo, ExecuteMsg as IbcClientMsg},
     ibc_host::HostAction,
-    proxy::ExecuteMsg, objects::chain_name::ChainName,
+    objects::chain_name::ChainName,
+    proxy::ExecuteMsg,
 };
 use cosmwasm_std::{wasm_execute, Coin, CosmosMsg, Deps};
 
