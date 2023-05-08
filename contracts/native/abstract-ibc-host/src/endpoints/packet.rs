@@ -3,7 +3,7 @@ use crate::{
     contract::HostResult,
     error::HostError,
     ibc::{receive_query, receive_register, receive_who_am_i},
-    state::{CLIENT_PROXY, CONFIG, PROCESSING_PACKET},
+    state::{CLIENT_PROXY, CONFIG, PROCESSING_PACKET, CHAIN_OF_CHANNEL},
 };
 use abstract_core::{
     objects::chain_name::ChainName, proxy::state::ADMIN, version_control::AccountBase,
@@ -30,12 +30,16 @@ pub fn handle_packet(
     let packet: cosmwasm_std::IbcPacket = packet.packet;
     // which local channel did this packet come on
     let channel = packet.dest.channel_id;
+    let client_chain = CHAIN_OF_CHANNEL.load(deps.storage, &channel)?;
     let PacketMsg {
-        client_chain,
-        account_id,
+        // client_chain,
+        mut account_id,
         action,
         ..
     } = from_slice(&packet.data)?;
+
+    // push the client chain to the account trace
+    account_id.trace_mut().push_chain(client_chain.clone());
 
     // get the local account information
     let account = account_commands::get_account(deps.as_ref(), &account_id)?;
