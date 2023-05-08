@@ -161,6 +161,19 @@ impl AccountTrace {
             }
         }
     }
+    /// push a chain name to the account's path
+    pub fn push_chain(&mut self, chain_name: ChainName) {
+        match &self {
+            AccountTrace::Local => {
+                *self = AccountTrace::Remote(vec![chain_name]);
+            }
+            AccountTrace::Remote(path) => {
+                let mut path = path.clone();
+                path.push(chain_name);
+                *self = AccountTrace::Remote(path);
+            }
+        }
+    }
 }
 
 impl Display for AccountTrace {

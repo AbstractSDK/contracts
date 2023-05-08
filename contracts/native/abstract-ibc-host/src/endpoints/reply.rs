@@ -1,7 +1,7 @@
 use crate::{
     account_commands::{self, get_account, send_all_back},
     contract::HostResponse,
-    state::{CLIENT_PROXY, CONFIG, PROCESSING_PACKET, REGISTRATION_CACHE, RESULTS},
+    state::{CLIENT_PROXY, CONFIG, PROCESSING_PACKET, REGISTRATION_CACHE, RESULTS, CHAIN_OF_CHANNEL},
     HostError,
 };
 use abstract_core::objects::AccountId;
@@ -25,8 +25,8 @@ fn reply(deps: DepsMut, env: Env, msg: Reply) -> Result<Response, HostError> {
 
     let (packet, channel) = PROCESSING_PACKET.load(deps.storage)?;
     PROCESSING_PACKET.remove(deps.storage);
+    let client_chain = CHAIN_OF_CHANNEL.load(deps.storage, &channel)?;
     let PacketMsg {
-        client_chain,
         account_id,
         ..
     } = packet;

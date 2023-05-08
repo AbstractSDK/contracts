@@ -1,7 +1,7 @@
 use crate::{
     contract::HostResult,
     endpoints::{packet, reply::INIT_CALLBACK_ID},
-    state::{CHAIN_CLIENTS, CHANNEL_CHAIN, CLIENT_PROXY, CONFIG, REGISTRATION_CACHE},
+    state::{CHAIN_CLIENTS, CHAIN_OF_CHANNEL, CLIENT_PROXY, CONFIG, REGISTRATION_CACHE},
     HostError,
 };
 use abstract_core::{
@@ -200,7 +200,7 @@ pub fn receive_who_am_i(
         HostError::ClientMismatch(registered_client_for_chain, counterparty_client.to_string())
     );
     // add this channel to the map and relate it to the client chain
-    CHANNEL_CHAIN.save(deps.storage, &channel, &client_chain)?;
+    CHAIN_OF_CHANNEL.save(deps.storage, &channel, &client_chain)?;
 
     // let them know we're fine
     let response = WhoAmIResponse {

@@ -7,7 +7,7 @@ use abstract_core::{manager, objects::chain_name::ChainName};
 use abstract_sdk::{
     core::{
         ibc_client::{
-            state::{AccountData, ACCOUNTS, ADMIN, ANS_HOST, CHANNELS, CONFIG, LATEST_QUERIES},
+            state::{ACCOUNTS, ADMIN, ANS_HOST, CHANNELS, CONFIG},
             CallbackInfo,
         },
         ibc_host::{HostAction, InternalAction, PacketMsg},
@@ -16,7 +16,7 @@ use abstract_sdk::{
     },
     feature_objects::VersionControlContract,
     features::AccountIdentification,
-    Execution, OsVerification, Resolve,
+    Execution, AccountVerification, Resolve,
 };
 use cosmwasm_std::{
     to_binary, Coin, CosmosMsg, DepsMut, Env, IbcMsg, MessageInfo, StdError, Storage,
@@ -89,12 +89,13 @@ pub fn execute_send_packet(
     retries = retries.min(MAX_RETRIES);
 
     // get account_id
-    let account_id = account_base.account_id(deps.as_ref())?;
-    // ensure the channel exists and loads it.
+    let mut account_id = account_base.account_id(deps.as_ref())?;
+
+    // Get the channel for this from ANS.
     let channel = CHANNELS.load(deps.storage, &host_chain)?;
     let packet = PacketMsg {
+        host_chain,
         retries,
-        client_chain: ChainName::new(&env),
         account_id,
         callback_info,
         action,
@@ -127,8 +128,6 @@ pub fn execute_register_os(
     // ensure the channel exists (not found if not registered)
     let channel_id = CHANNELS.load(deps.storage, &host_chain)?;
     let mut account_id = account_base.account_id(deps.as_ref())?;
-    // push the local chain to the account trace
-    account_id.trace_mut().push_local_chain(&env);
 
     // get auxiliary information
     let account_info: manager::InfoResponse = deps
@@ -137,8 +136,8 @@ pub fn execute_register_os(
     let account_info = account_info.info;
     // construct a packet to send
     let packet = PacketMsg {
+        host_chain,
         retries: 0u8,
-        client_chain: ChainName::new(&env),
         account_id: account_id.clone(),
         callback_info: None,
         action: HostAction::Internal(InternalAction::Register {
@@ -148,10 +147,6 @@ pub fn execute_register_os(
             name: account_info.name,
         }),
     };
-
-    // save a default value to account
-    let account = AccountData::default();
-    ACCOUNTS.save(deps.storage, (&channel_id, &account_id), &account)?;
 
     let msg = IbcMsg::SendPacket {
         channel_id,
@@ -183,17 +178,7 @@ pub fn execute_send_funds(
     // get channel used to communicate to host chain
     let channel = CHANNELS.load(deps.storage, &host_chain)?;
     // load remote account
-    let data = ACCOUNTS.load(deps.storage, (&channel, &account_id))?;
-
-    let remote_addr = match data.remote_addr {
-        Some(addr) => addr,
-        None => {
-            return Err(StdError::generic_err(
-                "We don't have the remote address for this channel or Account",
-            )
-            .into())
-        }
-    };
+    let remote_addr = ACCOUNTS.load(deps.storage, (&account_id, &host_chain))?;
 
     let ics20_channel_entry = ChannelEntry {
         connected_chain: host_chain,
@@ -223,7 +208,6 @@ pub fn execute_send_funds(
 
 fn clear_accounts(store: &mut dyn Storage) {
     ACCOUNTS.clear(store);
-    LATEST_QUERIES.clear(store);
 }
 
 #[cfg(test)]
@@ -390,7 +374,7 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            CHANNELS.save(deps.as_mut().storage, TEST_CHAIN, &"test_channel".into())?;
+            CHANNELS.save(deps.as_mut().storage, &ChainName::from(TEST_CHAIN), &"test_channel".into())?;
 
             let msg = ExecuteMsg::RemoveHost {
                 host_chain: TEST_CHAIN.into(),

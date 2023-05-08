@@ -5,7 +5,7 @@ use abstract_sdk::core::{
         check_order, check_version, BalancesResponse, RegisterResponse, StdAck, WhoAmIResponse,
     },
     ibc_client::{
-        state::{AccountData, ACCOUNTS, CHANNELS, CONFIG, LATEST_QUERIES},
+        state::{ ACCOUNTS, CHANNELS, CONFIG},
         CallbackInfo, LatestQueryResponse,
     },
     ibc_host::{HostAction, InternalAction, PacketMsg},
@@ -39,18 +39,18 @@ pub fn ibc_channel_open(
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn ibc_channel_connect(
-    deps: DepsMut,
     env: Env,
     msg: IbcChannelConnectMsg,
 ) -> StdResult<IbcBasicResponse> {
     let channel = msg.channel();
     let channel_id = &channel.endpoint.channel_id;
-    let cfg = CONFIG.load(deps.storage)?;
 
     // construct a who am i packet to identify the connected chain.
     let packet = PacketMsg {
-        action: HostAction::Internal(InternalAction::WhoAmI),
-        client_chain: ChainName::new(&env),
+        // empty host chain, we don't know yet
+        host_chain: ChainName::from(""),
+        // Identify myself
+        action: HostAction::Internal(InternalAction::WhoAmI { client_chain: ChainName::new(&env) } ),
         account_id: AccountId::new(0, AccountTrace::Local).unwrap(),
         callback_info: None,
         retries: 0,
@@ -101,7 +101,7 @@ pub fn ibc_packet_ack(
     env: Env,
     msg: IbcPacketAckMsg,
 ) -> Result<IbcBasicResponse, IbcClientError> {
-    // which local channel was this packet send from
+    // which local channel was this packet sent from
     let channel_id = msg.original_packet.src.channel_id.clone();
     // we need to parse the ack based on our request
     let mut original_packet: PacketMsg = from_slice(&msg.original_packet.data)?;
@@ -120,6 +120,7 @@ pub fn ibc_packet_ack(
     }
 
     let PacketMsg {
+        host_chain,
         account_id,
         callback_info,
         action,
@@ -131,18 +132,14 @@ pub fn ibc_packet_ack(
             acknowledge_query(deps, env, channel_id, account_id, callback_info, msg)
         }
         HostAction::Balances { .. } => acknowledge_balances(deps, env, channel_id, account_id, res),
-        HostAction::App { msg: _ } => {
-            let response = IbcBasicResponse::new().add_attribute("action", "acknowledge_app");
-            maybe_add_callback(response, callback_info, msg).map_err(Into::into)
-        }
         HostAction::SendAllBack { .. } => {
             let response =
                 IbcBasicResponse::new().add_attribute("action", "acknowledge_send_all_back");
             maybe_add_callback(response, callback_info, msg).map_err(Into::into)
         }
-        HostAction::Internal(InternalAction::WhoAmI) => acknowledge_who_am_i(deps, channel_id, res),
+        HostAction::Internal(InternalAction::WhoAmI { .. }) => acknowledge_who_am_i(deps, channel_id, res),
         HostAction::Internal(InternalAction::Register { .. }) => {
-            acknowledge_register(deps, channel_id, account_id, res)
+            acknowledge_register(deps, host_chain, account_id, res)
         }
     }
 }
@@ -185,15 +182,7 @@ fn acknowledge_query(
 ) -> Result<IbcBasicResponse, IbcClientError> {
     let msg: StdAck = from_slice(&ack.acknowledgement.data)?;
     let res = IbcBasicResponse::new().add_attribute("action", "acknowledge_ibc_query");
-    // store the response in the latest queries
-    LATEST_QUERIES.save(
-        deps.storage,
-        (&channel_id, &account_id),
-        &LatestQueryResponse {
-            last_update_time: env.block.time,
-            response: msg,
-        },
-    )?;
+    
     maybe_add_callback(res, callback_info, ack).map_err(Into::into)
 }
 
@@ -229,7 +218,7 @@ fn acknowledge_who_am_i(
 // store address info in accounts info
 fn acknowledge_register(
     deps: DepsMut,
-    channel_id: String,
+    host_chain: ChainName,
     account_id: AccountId,
     ack: StdAck,
 ) -> Result<IbcBasicResponse, IbcClientError> {
@@ -243,18 +232,7 @@ fn acknowledge_register(
         }
     };
 
-    ACCOUNTS.update(deps.storage, (&channel_id, &account_id), |acct| {
-        match acct {
-            Some(mut acct) => {
-                // set the account the first time
-                if acct.remote_addr.is_none() {
-                    acct.remote_addr = Some(account);
-                }
-                Ok(acct)
-            }
-            None => Err(IbcClientError::UnregisteredChannel(channel_id.clone())),
-        }
-    })?;
+    ACCOUNTS.save(deps.storage, (&account_id, &host_chain), &account)?;
 
     Ok(IbcBasicResponse::new().add_attribute("action", "acknowledge_register"))
 }
@@ -276,26 +254,6 @@ fn acknowledge_balances(
                 .add_attribute("error", e))
         }
     };
-
-    ACCOUNTS.update(
-        deps.storage,
-        (&channel_id, &account_id),
-        |acct| match acct {
-            Some(acct) => {
-                if let Some(old) = acct.remote_addr {
-                    if old != account {
-                        return Err(IbcClientError::RemoteAccountChanged { old, addr: account });
-                    }
-                }
-                Ok(AccountData {
-                    last_update_time: env.block.time,
-                    remote_addr: Some(account),
-                    remote_balance: balances,
-                })
-            }
-            None => Err(IbcClientError::UnregisteredChannel(channel_id.clone())),
-        },
-    )?;
 
     Ok(IbcBasicResponse::new().add_attribute("action", "acknowledge_balances"))
 }
