@@ -48,6 +48,7 @@ pub struct MockQuerierBuilder {
     smart_handlers: HashMap<ContractAddr, Box<SmartHandler>>,
     raw_handlers: HashMap<ContractAddr, Box<RawHandler>>,
     raw_mappings: HashMap<ContractAddr, HashMap<Binary, Binary>>,
+    contract_admin: Option<String>,
 }
 
 impl Default for MockQuerierBuilder {
@@ -73,6 +74,7 @@ impl Default for MockQuerierBuilder {
             smart_handlers: HashMap::default(),
             raw_handlers: HashMap::default(),
             raw_mappings: HashMap::default(),
+            contract_admin: None,
         }
     }
 }
@@ -272,6 +274,11 @@ impl MockQuerierBuilder {
         )
     }
 
+    pub fn with_contract_admin(mut self, admin: impl Into<String>) -> Self {
+        self.contract_admin = Some(admin.into());
+        self
+    }
+
     /// Build the [`MockQuerier`].
     pub fn build(mut self) -> MockQuerier {
         self.base.update_wasm(move |wasm| {
@@ -307,7 +314,7 @@ impl MockQuerierBuilder {
                     contract_addr: _contract_addr,
                 } => {
                     let mut info = ContractInfoResponse::default();
-                    info.admin = None;
+                    info.admin = self.contract_admin.clone();
                     Ok(to_binary(&info).unwrap())
                 }
                 unexpected => panic!("Unexpected query: {unexpected:?}"),
