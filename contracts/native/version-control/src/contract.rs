@@ -1,15 +1,14 @@
 use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response};
 use cw_semver::Version;
 
-use abstract_core::objects::module_version::assert_cw_contract_upgrade;
 use abstract_core::objects::namespace::Namespace;
 use abstract_core::version_control::Config;
 use abstract_macros::abstract_response;
 use abstract_sdk::core::{
     objects::{
-        module_version::assert_cw_contract_upgrade, namespace::Namespace, ABSTRACT_ACCOUNT_ID,
+        module_version::assert_cw_contract_upgrade, ABSTRACT_ACCOUNT_ID,
     },
-    version_control::{namespaces_info, Config},
+    version_control::{namespaces_info},
     version_control::{
         state::{CONFIG, FACTORY},
         ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
@@ -63,7 +62,7 @@ pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: Instantiate
     // Save the abstract namespace to the Abstract admin account
     namespaces_info().save(
         deps.storage,
-        &Namespace::new(ABSTRACT_NAMESPACE),
+        &Namespace::new(ABSTRACT_NAMESPACE)?,
         &ABSTRACT_ACCOUNT_ID,
     )?;
 
@@ -160,7 +159,7 @@ mod tests {
             mock_init(deps.as_mut())?;
 
             let account_id = namespaces_info()
-                .load(deps.as_ref().storage, &Namespace::from(ABSTRACT_NAMESPACE))?;
+                .load(deps.as_ref().storage, &Namespace::try_from(ABSTRACT_NAMESPACE)?)?;
             assert_that!(account_id).is_equal_to(ABSTRACT_ACCOUNT_ID);
 
             Ok(())

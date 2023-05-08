@@ -658,13 +658,13 @@ mod test {
             // Attempt to claim the abstract namespace with account 1
             let claim_abstract_msg = ExecuteMsg::ClaimNamespaces {
                 account_id: 1,
-                namespaces: vec![Namespace::from(ABSTRACT_NAMESPACE).to_string()],
+                namespaces: vec![Namespace::try_from(ABSTRACT_NAMESPACE)?.to_string()],
             };
             let res = execute_as(deps.as_mut(), TEST_OWNER, claim_abstract_msg);
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(VCError::NamespaceOccupied {
-                    namespace: Namespace::from("abstract").to_string(),
+                    namespace: Namespace::try_from("abstract")?.to_string(),
                     id: ABSTRACT_ACCOUNT_ID,
                 });
             Ok(())
