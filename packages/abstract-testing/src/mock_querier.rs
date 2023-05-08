@@ -303,7 +303,9 @@ impl MockQuerierBuilder {
                     };
                     res
                 }
-                WasmQuery::ContractInfo { contract_addr: _contract_addr } => {
+                WasmQuery::ContractInfo {
+                    contract_addr: _contract_addr,
+                } => {
                     let mut info = ContractInfoResponse::default();
                     info.admin = None;
                     Ok(to_binary(&info).unwrap())

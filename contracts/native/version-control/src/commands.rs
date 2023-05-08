@@ -68,12 +68,13 @@ pub fn propose_modules(
             validate_account_owner(deps.as_ref(), &module.namespace, &msg_info.sender)?;
         }
 
-        // verify contract admin is None
-        if deps
-            .querier
-            .query_wasm_contract_info(mod_ref.unwrap_addr().unwrap())?
-            .admin
-            .is_some()
+        // verify contract admin is None if module is Adapter
+        if mod_ref.unwrap_adapter().is_ok()
+            && deps
+                .querier
+                .query_wasm_contract_info(mod_ref.unwrap_adapter().unwrap())?
+                .admin
+                .is_some()
         {
             return Err(VCError::AdminMustBeNone);
         }
@@ -799,13 +800,17 @@ mod test {
             mock_init_with_account(deps.as_mut(), true)?;
             let mut new_module = test_module();
             new_module.namespace = ABSTRACT_NAMESPACE.to_owned();
+
+            let address = Addr::unchecked("address");
+            let mod_ref = ModuleReference::Adapter(address.clone());
+
             let msg = ExecuteMsg::ProposeModules {
-                modules: vec![(new_module.clone(), ModuleReference::App(0))],
+                modules: vec![(new_module.clone(), mod_ref)],
             };
             let res = execute_as(deps.as_mut(), TEST_ADMIN, msg);
             assert_that!(&res).is_ok();
             let module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
-            assert_that!(&module).is_equal_to(&ModuleReference::App(0));
+            assert_that!(&module).is_equal_to(&ModuleReference::Adapter(address));
             Ok(())
         }
 
@@ -815,8 +820,12 @@ mod test {
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), true)?;
             let new_module = test_module();
+
+            let address = Addr::unchecked("address");
+            let mod_ref = ModuleReference::Adapter(address.clone());
+
             let msg = ExecuteMsg::ProposeModules {
-                modules: vec![(new_module.clone(), ModuleReference::App(0))],
+                modules: vec![(new_module.clone(), mod_ref)],
             };
 
             // try while no namespace
@@ -841,7 +850,7 @@ mod test {
             let res = execute_as(deps.as_mut(), TEST_OWNER, msg);
             assert_that!(&res).is_ok();
             let module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
-            assert_that!(&module).is_equal_to(&ModuleReference::App(0));
+            assert_that!(&module).is_equal_to(&ModuleReference::Adapter(address));
             Ok(())
         }
 
@@ -851,8 +860,9 @@ mod test {
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), false)?;
             let new_module = test_module();
+
             let address = Addr::unchecked("address");
-            let mod_ref = ModuleReference::Native(address.clone());
+            let mod_ref = ModuleReference::Adapter(address.clone());
 
             let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module.clone(), mod_ref)],
@@ -880,7 +890,7 @@ mod test {
             let res = execute_as(deps.as_mut(), TEST_OWNER, msg);
             assert_that!(&res).is_ok();
             let module = PENDING_MODULES.load(&deps.storage, &new_module)?;
-            assert_that!(&module).is_equal_to(&ModuleReference::Native(address));
+            assert_that!(&module).is_equal_to(&ModuleReference::Adapter(address));
             Ok(())
         }
 
@@ -890,6 +900,9 @@ mod test {
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), false)?;
             let new_module = test_module();
+
+            let address = Addr::unchecked("address");
+            let mod_ref = ModuleReference::Adapter(address.clone());
 
             // add namespaces
             execute_as(
@@ -905,7 +918,7 @@ mod test {
                 deps.as_mut(),
                 TEST_OWNER,
                 ExecuteMsg::ProposeModules {
-                    modules: vec![(new_module.clone(), ModuleReference::App(0))],
+                    modules: vec![(new_module.clone(), mod_ref)],
                 },
             )?;
 
@@ -924,7 +937,7 @@ mod test {
             let res = execute_as(deps.as_mut(), TEST_ADMIN, msg);
             assert_that!(&res).is_ok();
             let module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
-            assert_that!(&module).is_equal_to(&ModuleReference::App(0));
+            assert_that!(&module).is_equal_to(&ModuleReference::Adapter(address));
             let pending = PENDING_MODULES.has(&deps.storage, &new_module);
             assert_that!(pending).is_equal_to(false);
 
@@ -937,6 +950,9 @@ mod test {
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), false)?;
             let new_module = test_module();
+
+            let address = Addr::unchecked("address");
+            let mod_ref = ModuleReference::Adapter(address.clone());
 
             // add namespaces
             execute_as(
@@ -952,7 +968,7 @@ mod test {
                 deps.as_mut(),
                 TEST_OWNER,
                 ExecuteMsg::ProposeModules {
-                    modules: vec![(new_module.clone(), ModuleReference::App(0))],
+                    modules: vec![(new_module.clone(), mod_ref)],
                 },
             )?;
 
@@ -985,6 +1001,9 @@ mod test {
             mock_init_with_account(deps.as_mut(), true)?;
             let rm_module = test_module();
 
+            let address = Addr::unchecked("address");
+            let mod_ref = ModuleReference::Adapter(address.clone());
+
             // add namespaces
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
@@ -994,11 +1013,11 @@ mod test {
 
             // first add module
             let msg = ExecuteMsg::ProposeModules {
-                modules: vec![(rm_module.clone(), ModuleReference::App(0))],
+                modules: vec![(rm_module.clone(), mod_ref)],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
             let module = REGISTERED_MODULES.load(&deps.storage, &rm_module)?;
-            assert_that!(&module).is_equal_to(&ModuleReference::App(0));
+            assert_that!(&module).is_equal_to(&ModuleReference::Adapter(address));
 
             // then remove
             let msg = ExecuteMsg::RemoveModule {
@@ -1025,6 +1044,9 @@ mod test {
             mock_init_with_account(deps.as_mut(), true)?;
             let rm_module = test_module();
 
+            let address = Addr::unchecked("address");
+            let mod_ref = ModuleReference::Adapter(address.clone());
+
             // add namespaces as the account owner
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
@@ -1034,11 +1056,11 @@ mod test {
 
             // first add module as the account owner
             let add_modules_msg = ExecuteMsg::ProposeModules {
-                modules: vec![(rm_module.clone(), ModuleReference::App(0))],
+                modules: vec![(rm_module.clone(), mod_ref)],
             };
             execute_as(deps.as_mut(), TEST_OWNER, add_modules_msg)?;
             let added_module = REGISTERED_MODULES.load(&deps.storage, &rm_module)?;
-            assert_that!(&added_module).is_equal_to(&ModuleReference::App(0));
+            assert_that!(&added_module).is_equal_to(&ModuleReference::Adapter(address));
 
             // then yank the module as the other
             let msg = ExecuteMsg::YankModule { module: rm_module };
@@ -1061,6 +1083,9 @@ mod test {
             mock_init_with_account(deps.as_mut(), true)?;
             let rm_module = test_module();
 
+            let address = Addr::unchecked("address");
+            let mod_ref = ModuleReference::Adapter(address.clone());
+
             // add namespaces as the owner
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
@@ -1070,11 +1095,12 @@ mod test {
 
             // first add module as the owner
             let add_modules_msg = ExecuteMsg::ProposeModules {
-                modules: vec![(rm_module.clone(), ModuleReference::App(0))],
+                modules: vec![(rm_module.clone(), mod_ref)],
             };
             execute_as(deps.as_mut(), TEST_OWNER, add_modules_msg)?;
             let added_module = REGISTERED_MODULES.load(&deps.storage, &rm_module)?;
-            assert_that!(&added_module).is_equal_to(&ModuleReference::App(0));
+            assert_that!(&added_module)
+                .is_equal_to(&ModuleReference::Adapter(Addr::unchecked("address")));
 
             // then yank as owner
             let msg = ExecuteMsg::YankModule {
@@ -1086,7 +1112,8 @@ mod test {
             let module = REGISTERED_MODULES.load(&deps.storage, &rm_module);
             assert_that!(&module).is_err();
             let yanked_module = YANKED_MODULES.load(&deps.storage, &rm_module)?;
-            assert_that!(&yanked_module).is_equal_to(&ModuleReference::App(0));
+            assert_that!(&yanked_module)
+                .is_equal_to(&ModuleReference::Adapter(Addr::unchecked("address")));
             Ok(())
         }
 
@@ -1135,8 +1162,13 @@ mod test {
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), true)?;
             let new_module = ModuleInfo::from_id(&abstract_contract_id, TEST_VERSION.into())?;
+
+            let address = Addr::unchecked("address");
+            let mod_ref = ModuleReference::Adapter(address.clone());
+
+            // let mod_ref = ModuleReference::
             let msg = ExecuteMsg::ProposeModules {
-                modules: vec![(new_module.clone(), ModuleReference::App(0))],
+                modules: vec![(new_module.clone(), mod_ref)],
             };
 
             // execute as other
@@ -1147,7 +1179,7 @@ mod test {
 
             execute_as_admin(deps.as_mut(), msg)?;
             let module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
-            assert_that!(&module).is_equal_to(&ModuleReference::App(0));
+            assert_that!(&module).is_equal_to(&ModuleReference::Adapter(address));
             Ok(())
         }
 
