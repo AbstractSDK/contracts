@@ -62,7 +62,7 @@ pub fn propose_modules(
         // version must be set in order to add the new version
         module.assert_version_variant()?;
 
-        if module.namespace == ABSTRACT_NAMESPACE {
+        if module.namespace == Namespace::unchecked(ABSTRACT_NAMESPACE) {
             // Only Admin can update abstract contracts
             cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
         } else {
@@ -211,8 +211,7 @@ pub fn claim_namespaces(
     }
 
     for namespace in namespaces_to_claim.iter() {
-        let namespace = Namespace::from(namespace);
-        namespace.validate()?;
+        let namespace = Namespace::try_from(namespace)?;
         if let Some(id) = namespaces_info().may_load(deps.storage, &namespace)? {
             return Err(VCError::NamespaceOccupied {
                 namespace: namespace.to_string(),
@@ -242,23 +241,22 @@ pub fn remove_namespaces(
 
     let mut logs = vec![];
     for namespace in namespaces.iter() {
-        if !namespaces_info().has(deps.storage, &namespace.into()) {
-            return Err(VCError::UnknownNamespace {
-                namespace: namespace.to_string(),
-            });
+        let namespace = Namespace::try_from(namespace)?;
+        if !namespaces_info().has(deps.storage, &namespace) {
+            return Err(VCError::UnknownNamespace { namespace });
         }
         if !is_admin {
-            validate_account_owner(deps.as_ref(), namespace, &msg_info.sender)?;
+            validate_account_owner(deps.as_ref(), &namespace, &msg_info.sender)?;
         }
 
         for ((name, version), mod_ref) in REGISTERED_MODULES
-            .sub_prefix(namespace.to_owned())
+            .sub_prefix(namespace.clone())
             .range(deps.storage, None, None, Order::Ascending)
             .collect::<StdResult<Vec<_>>>()?
             .into_iter()
         {
             let module = ModuleInfo {
-                namespace: namespace.to_owned(),
+                namespace: namespace.clone(),
                 name,
                 version: ModuleVersion::Version(version),
             };
@@ -269,9 +267,9 @@ pub fn remove_namespaces(
         logs.push(format!(
             "({}, {})",
             namespace,
-            namespaces_info().load(deps.storage, &Namespace::from(namespace))?
+            namespaces_info().load(deps.storage, &namespace)?
         ));
-        namespaces_info().remove(deps.storage, &Namespace::from(namespace))?;
+        namespaces_info().remove(deps.storage, &namespace)?;
     }
 
     Ok(VcResponse::new(
@@ -314,13 +312,16 @@ pub fn query_account_owner(
     owner.ok_or(VCError::NoAccountOwner { account_id })
 }
 
-pub fn validate_account_owner(deps: Deps, namespace: &str, sender: &Addr) -> Result<(), VCError> {
+pub fn validate_account_owner(
+    deps: Deps,
+    namespace: &Namespace,
+    sender: &Addr,
+) -> Result<(), VCError> {
     let sender = sender.clone();
-    let namespace = Namespace::from(namespace);
     let account_id = namespaces_info()
-        .may_load(deps.storage, &namespace)?
+        .may_load(deps.storage, &namespace.clone())?
         .ok_or_else(|| VCError::UnknownNamespace {
-            namespace: namespace.to_string(),
+            namespace: namespace.to_owned(),
         })?;
     let account_base = ACCOUNT_ADDRESSES.load(deps.storage, account_id)?;
     let account_owner = query_account_owner(&deps.querier, &account_base.manager, account_id)?;
@@ -548,8 +549,8 @@ mod test {
             let mut deps = mock_dependencies();
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), true)?;
-            let new_namespace1 = Namespace::from("namespace1");
-            let new_namespace2 = Namespace::from("namespace2");
+            let new_namespace1 = Namespace::new("namespace1").unwrap();
+            let new_namespace2 = Namespace::new("namespace2").unwrap();
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
                 namespaces: vec![new_namespace1.to_string(), new_namespace2.to_string()],
@@ -568,8 +569,8 @@ mod test {
             let mut deps = mock_dependencies();
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), true)?;
-            let new_namespace1 = Namespace::from("namespace1");
-            let new_namespace2 = Namespace::from("namespace2");
+            let new_namespace1 = Namespace::new("namespace1").unwrap();
+            let new_namespace2 = Namespace::new("namespace2").unwrap();
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
                 namespaces: vec![new_namespace1.to_string(), new_namespace2.to_string()],
@@ -589,8 +590,8 @@ mod test {
             let mut deps = mock_dependencies();
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), true)?;
-            let new_namespace1 = Namespace::from("namespace1");
-            let new_namespace2 = Namespace::from("namespace2");
+            let new_namespace1 = Namespace::new("namespace1")?;
+            let new_namespace2 = Namespace::new("namespace2")?;
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
                 namespaces: vec![new_namespace1.to_string(), new_namespace2.to_string()],
@@ -739,9 +740,9 @@ mod test {
             let mut deps = mock_dependencies();
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), true)?;
-            let new_namespace1 = Namespace::from("namespace1");
-            let new_namespace2 = Namespace::from("namespace2");
-            let new_namespace3 = Namespace::from("namespace3");
+            let new_namespace1 = Namespace::new("namespace1").unwrap();
+            let new_namespace2 = Namespace::new("namespace2").unwrap();
+            let new_namespace3 = Namespace::new("namespace3").unwrap();
 
             // add namespaces
             let msg = ExecuteMsg::ClaimNamespaces {
@@ -792,8 +793,8 @@ mod test {
             let mut deps = mock_dependencies();
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), true)?;
-            let new_namespace1 = Namespace::from("namespace1");
-            let new_namespace2 = Namespace::from("namespace2");
+            let new_namespace1 = Namespace::new("namespace1")?;
+            let new_namespace2 = Namespace::new("namespace2")?;
 
             // add namespaces
             let msg = ExecuteMsg::ClaimNamespaces {
@@ -821,7 +822,7 @@ mod test {
             let mut deps = mock_dependencies();
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), true)?;
-            let new_namespace1 = Namespace::from("namespace1");
+            let new_namespace1 = Namespace::new("namespace1")?;
 
             // remove as owner
             let msg = ExecuteMsg::RemoveNamespaces {
@@ -831,7 +832,7 @@ mod test {
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(&VCError::UnknownNamespace {
-                    namespace: new_namespace1.to_string(),
+                    namespace: new_namespace1.clone(),
                 });
 
             // remove as admin
@@ -839,7 +840,7 @@ mod test {
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(&VCError::UnknownNamespace {
-                    namespace: new_namespace1.to_string(),
+                    namespace: new_namespace1,
                 });
 
             Ok(())
@@ -852,8 +853,8 @@ mod test {
             mock_init_with_account(deps.as_mut(), true)?;
 
             // add namespaces
-            let new_namespace1 = Namespace::from("namespace1");
-            let new_namespace2 = Namespace::from("namespace2");
+            let new_namespace1 = Namespace::new("namespace1")?;
+            let new_namespace2 = Namespace::new("namespace2")?;
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
                 namespaces: vec![new_namespace1.to_string(), new_namespace2.to_string()],
@@ -862,7 +863,7 @@ mod test {
 
             // first add module
             let mut new_module = test_module();
-            new_module.namespace = new_namespace1.to_string();
+            new_module.namespace = new_namespace1.clone();
             let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
@@ -902,7 +903,7 @@ mod test {
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), true)?;
             let mut new_module = test_module();
-            new_module.namespace = ABSTRACT_NAMESPACE.to_owned();
+            new_module.namespace = Namespace::new(ABSTRACT_NAMESPACE)?;
             let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
@@ -937,7 +938,7 @@ mod test {
                 TEST_OWNER,
                 ExecuteMsg::ClaimNamespaces {
                     account_id: TEST_ACCOUNT_ID,
-                    namespaces: vec![new_module.namespace.clone()],
+                    namespaces: vec![new_module.namespace.to_string()],
                 },
             )?;
 
@@ -973,7 +974,7 @@ mod test {
                 TEST_OWNER,
                 ExecuteMsg::ClaimNamespaces {
                     account_id: TEST_ACCOUNT_ID,
-                    namespaces: vec![new_module.namespace.clone()],
+                    namespaces: vec![new_module.namespace.to_string()],
                 },
             )?;
 
@@ -998,7 +999,7 @@ mod test {
                 TEST_OWNER,
                 ExecuteMsg::ClaimNamespaces {
                     account_id: TEST_ACCOUNT_ID,
-                    namespaces: vec![new_module.namespace.clone()],
+                    namespaces: vec![new_module.namespace.to_string()],
                 },
             )?;
             // add modules
@@ -1045,7 +1046,7 @@ mod test {
                 TEST_OWNER,
                 ExecuteMsg::ClaimNamespaces {
                     account_id: TEST_ACCOUNT_ID,
-                    namespaces: vec![new_module.namespace.clone()],
+                    namespaces: vec![new_module.namespace.to_string()],
                 },
             )?;
             // add modules
@@ -1089,7 +1090,7 @@ mod test {
             // add namespaces
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
-                namespaces: vec![rm_module.namespace.clone()],
+                namespaces: vec![rm_module.namespace.to_string()],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
 
@@ -1129,7 +1130,7 @@ mod test {
             // add namespaces as the account owner
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
-                namespaces: vec![rm_module.namespace.clone()],
+                namespaces: vec![rm_module.namespace.to_string()],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
 
@@ -1165,7 +1166,7 @@ mod test {
             // add namespaces as the owner
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
-                namespaces: vec![rm_module.namespace.clone()],
+                namespaces: vec![rm_module.namespace.to_string()],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
 
@@ -1261,22 +1262,22 @@ mod test {
                 ModuleInfo {
                     name: "test-module".to_string(),
                     version: ModuleVersion::Version("0.0.1".to_string()),
-                    namespace: "".to_string(),
+                    namespace: Namespace::unchecked(""),
                 },
                 ModuleInfo {
                     name: "test-module".to_string(),
                     version: ModuleVersion::Version("0.0.1".to_string()),
-                    namespace: "".to_string(),
+                    namespace: Namespace::unchecked(""),
                 },
                 ModuleInfo {
                     name: "".to_string(),
                     version: ModuleVersion::Version("0.0.1".to_string()),
-                    namespace: "test".to_string(),
+                    namespace: Namespace::unchecked("test"),
                 },
                 ModuleInfo {
                     name: "test-module".to_string(),
                     version: ModuleVersion::Version("aoeu".to_string()),
-                    namespace: "".to_string(),
+                    namespace: Namespace::unchecked(""),
                 },
             ];
 
@@ -1320,7 +1321,7 @@ mod test {
 
             // add a module as the owner
             let mut new_module = ModuleInfo::from_id(TEST_MODULE_ID, TEST_VERSION.into())?;
-            new_module.namespace = TEST_NAMESPACE.to_string();
+            new_module.namespace = Namespace::new(TEST_NAMESPACE)?;
             let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
