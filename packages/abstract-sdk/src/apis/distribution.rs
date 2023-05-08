@@ -26,7 +26,11 @@ pub struct Distribution<'a, T: DistributionInterface> {
 
 impl<'a, T: DistributionInterface> Distribution<'a, T> {
     /// sets the withdraw address for a delegator (or validator self-delegation).
-    pub fn set_withdraw_address(&self, delegator: Addr, withdraw: Addr) -> AbstractSdkResult<CosmosMsg> {
+    pub fn set_withdraw_address(
+        &self,
+        delegator: Addr,
+        withdraw: Addr,
+    ) -> AbstractSdkResult<CosmosMsg> {
         let msg = distribution::v1beta1::MsgSetWithdrawAddress {
             delegator_address: delegator.into(),
             withdraw_address: withdraw.into(),
@@ -77,7 +81,11 @@ impl<'a, T: DistributionInterface> Distribution<'a, T> {
     }
 
     /// allows an account to directly fund the community pool.
-    pub fn fund_community_pool(&self, amount: Vec<Coin>, depositor: Addr) -> AbstractSdkResult<CosmosMsg> {
+    pub fn fund_community_pool(
+        &self,
+        amount: Vec<Coin>,
+        depositor: Addr,
+    ) -> AbstractSdkResult<CosmosMsg> {
         let msg = distribution::v1beta1::MsgFundCommunityPool {
             amount: amount
                 .into_iter()

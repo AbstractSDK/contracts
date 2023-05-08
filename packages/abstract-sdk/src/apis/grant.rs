@@ -7,7 +7,7 @@ use std::time::Duration;
 use crate::Execution;
 
 use cosmos_sdk_proto::{cosmos::base, cosmos::feegrant, traits::Message, Any};
-use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Timestamp, Deps};
+use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Deps, Timestamp};
 
 use crate::AbstractSdkResult;
 
@@ -74,10 +74,7 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
     }
 
     /// creates allowance only for BasicAllowance.
-    pub fn allow_basic(
-        &self,
-        basic: BasicAllowance
-    ) -> AbstractSdkResult<CosmosMsg> {
+    pub fn allow_basic(&self, basic: BasicAllowance) -> AbstractSdkResult<CosmosMsg> {
         let msg = feegrant::v1beta1::AllowedMsgAllowance {
             allowance: Some(build_any_basic(basic)),
             allowed_messages: vec!["BasicAllowance".to_owned()],
@@ -93,10 +90,7 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
     }
 
     /// Creates allowance only for PeriodicAllowance.
-    pub fn allow_periodic(
-        &self,
-        periodic: PeriodicAllowance
-    ) -> AbstractSdkResult<CosmosMsg> {
+    pub fn allow_periodic(&self, periodic: PeriodicAllowance) -> AbstractSdkResult<CosmosMsg> {
         let msg = feegrant::v1beta1::AllowedMsgAllowance {
             allowance: Some(build_any_periodic(periodic, None)),
             allowed_messages: vec!["PeriodicAllowance".to_owned()],
@@ -132,11 +126,7 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
     }
 
     /// Removes any existing Allowance from Granter to Grantee.
-    pub fn revoke_all(
-        &self,
-        granter: Addr,
-        grantee: Addr
-    ) -> AbstractSdkResult<CosmosMsg> {
+    pub fn revoke_all(&self, granter: Addr, grantee: Addr) -> AbstractSdkResult<CosmosMsg> {
         let msg = feegrant::v1beta1::MsgRevokeAllowance {
             granter: granter.into(),
             grantee: grantee.into(),
@@ -216,7 +206,7 @@ mod test {
     use super::*;
     use crate::mock_module::*;
 
-    use cosmwasm_std::{testing::*, coins};
+    use cosmwasm_std::{coins, testing::*};
 
     use speculoos::prelude::*;
 
