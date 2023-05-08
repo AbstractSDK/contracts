@@ -57,11 +57,11 @@ impl HostAction {
         self,
         account_id: AccountId,
         retries: u8,
-        client_chain: ChainName,
+        host_chain: ChainName,
         callback_info: Option<CallbackInfo>,
     ) -> PacketMsg {
         PacketMsg {
-            client_chain,
+            host_chain,
             retries,
             callback_info,
             account_id,
@@ -72,8 +72,8 @@ impl HostAction {
 /// This is the message we send over the IBC channel
 #[cosmwasm_schema::cw_serde]
 pub struct PacketMsg {
-    /// `ChainName` of the client
-    pub client_chain: ChainName,
+    /// `ChainName` of the host
+    pub host_chain: ChainName,
     /// Amount of retries to attempt if packet returns with StdAck::Error
     pub retries: u8,
     pub account_id: AccountId,
