@@ -5,7 +5,7 @@ use crate::{
 };
 use abstract_ica::IbcResponseMsg;
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{from_slice, Binary, Coin, CosmosMsg, StdResult, Timestamp, Addr};
+use cosmwasm_std::{from_slice, Addr, Binary, Coin, CosmosMsg, StdResult, Timestamp};
 
 pub mod state {
 
@@ -17,7 +17,7 @@ pub mod state {
         },
         ANS_HOST as ANS_HOST_KEY,
     };
-    use cosmwasm_std::{Addr};
+    use cosmwasm_std::Addr;
     use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
 
@@ -28,7 +28,7 @@ pub mod state {
 
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
     /// chain -> channel-id
-    /// these channels have been verified by the host. 
+    /// these channels have been verified by the host.
     pub const CHANNELS: Map<&ChainName, String> = Map::new("channels");
     pub const CONFIG: Item<Config> = Item::new("config");
     /// (account_id, chain_name) -> remote proxy account address
@@ -131,7 +131,7 @@ pub struct ConfigResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ListAccountsResponse {
-    pub accounts: Vec<(AccountId, ChainName,String)>,
+    pub accounts: Vec<(AccountId, ChainName, String)>,
 }
 #[cosmwasm_schema::cw_serde]
 pub struct ListChannelsResponse {

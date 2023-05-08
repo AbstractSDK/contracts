@@ -5,7 +5,7 @@ use abstract_sdk::core::{
         check_order, check_version, BalancesResponse, RegisterResponse, StdAck, WhoAmIResponse,
     },
     ibc_client::{
-        state::{ ACCOUNTS, CHANNELS, CONFIG},
+        state::{ACCOUNTS, CHANNELS, CONFIG},
         CallbackInfo, LatestQueryResponse,
     },
     ibc_host::{HostAction, InternalAction, PacketMsg},
@@ -38,10 +38,7 @@ pub fn ibc_channel_open(
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn ibc_channel_connect(
-    env: Env,
-    msg: IbcChannelConnectMsg,
-) -> StdResult<IbcBasicResponse> {
+pub fn ibc_channel_connect(env: Env, msg: IbcChannelConnectMsg) -> StdResult<IbcBasicResponse> {
     let channel = msg.channel();
     let channel_id = &channel.endpoint.channel_id;
 
@@ -50,7 +47,9 @@ pub fn ibc_channel_connect(
         // empty host chain, we don't know yet
         host_chain: ChainName::from(""),
         // Identify myself
-        action: HostAction::Internal(InternalAction::WhoAmI { client_chain: ChainName::new(&env) } ),
+        action: HostAction::Internal(InternalAction::WhoAmI {
+            client_chain: ChainName::new(&env),
+        }),
         account_id: AccountId::new(0, AccountTrace::Local).unwrap(),
         callback_info: None,
         retries: 0,
@@ -137,7 +136,9 @@ pub fn ibc_packet_ack(
                 IbcBasicResponse::new().add_attribute("action", "acknowledge_send_all_back");
             maybe_add_callback(response, callback_info, msg).map_err(Into::into)
         }
-        HostAction::Internal(InternalAction::WhoAmI { .. }) => acknowledge_who_am_i(deps, channel_id, res),
+        HostAction::Internal(InternalAction::WhoAmI { .. }) => {
+            acknowledge_who_am_i(deps, channel_id, res)
+        }
         HostAction::Internal(InternalAction::Register { .. }) => {
             acknowledge_register(deps, host_chain, account_id, res)
         }
@@ -182,7 +183,7 @@ fn acknowledge_query(
 ) -> Result<IbcBasicResponse, IbcClientError> {
     let msg: StdAck = from_slice(&ack.acknowledgement.data)?;
     let res = IbcBasicResponse::new().add_attribute("action", "acknowledge_ibc_query");
-    
+
     maybe_add_callback(res, callback_info, ack).map_err(Into::into)
 }
 

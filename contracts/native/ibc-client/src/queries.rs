@@ -1,7 +1,7 @@
 use abstract_core::{
     ibc_client::{
         state::{Config, ACCOUNTS, ADMIN, CHANNELS, CONFIG},
-         AccountResponse, ConfigResponse, LatestQueryResponse, ListAccountsResponse,
+        AccountResponse, ConfigResponse, LatestQueryResponse, ListAccountsResponse,
         ListChannelsResponse,
     },
     objects::{chain_name::ChainName, AccountId},
@@ -10,10 +10,18 @@ use cosmwasm_std::{Deps, Env, Order, StdResult};
 
 // TODO: paging
 pub fn list_accounts(deps: Deps) -> StdResult<ListAccountsResponse> {
-    let accounts_res: StdResult<Vec<((AccountId, abstract_core::objects::chain_name::ChainName), String)>> = ACCOUNTS
+    let accounts_res: StdResult<
+        Vec<(
+            (AccountId, abstract_core::objects::chain_name::ChainName),
+            String,
+        )>,
+    > = ACCOUNTS
         .range(deps.storage, None, None, Order::Ascending)
         .collect()?;
-    let accounts = accounts_res?.into_iter().map(|((a,b),c)| (a,b,c)).collect();
+    let accounts = accounts_res?
+        .into_iter()
+        .map(|((a, b), c)| (a, b, c))
+        .collect();
     Ok(ListAccountsResponse { accounts })
 }
 
@@ -45,7 +53,5 @@ pub fn account(
     let host_chain = ChainName::from(host_chain);
     host_chain.check().unwrap();
     let remote_proxy_addr = ACCOUNTS.load(deps.storage, (&account_id, &host_chain))?;
-    Ok(AccountResponse {
-        remote_proxy_addr,
-    })
+    Ok(AccountResponse { remote_proxy_addr })
 }

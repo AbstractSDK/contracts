@@ -3,7 +3,7 @@ use crate::{
     contract::HostResult,
     error::HostError,
     ibc::{receive_query, receive_register, receive_who_am_i},
-    state::{CLIENT_PROXY, CONFIG, PROCESSING_PACKET, CHAIN_OF_CHANNEL},
+    state::{CHAIN_OF_CHANNEL, CLIENT_PROXY, CONFIG, PROCESSING_PACKET},
 };
 use abstract_core::{
     objects::chain_name::ChainName, proxy::state::ADMIN, version_control::AccountBase,

@@ -1,7 +1,9 @@
 use crate::{
     account_commands::{self, get_account, send_all_back},
     contract::HostResponse,
-    state::{CLIENT_PROXY, CONFIG, PROCESSING_PACKET, REGISTRATION_CACHE, RESULTS, CHAIN_OF_CHANNEL},
+    state::{
+        CHAIN_OF_CHANNEL, CLIENT_PROXY, CONFIG, PROCESSING_PACKET, REGISTRATION_CACHE, RESULTS,
+    },
     HostError,
 };
 use abstract_core::objects::AccountId;
@@ -26,10 +28,7 @@ fn reply(deps: DepsMut, env: Env, msg: Reply) -> Result<Response, HostError> {
     let (packet, channel) = PROCESSING_PACKET.load(deps.storage)?;
     PROCESSING_PACKET.remove(deps.storage);
     let client_chain = CHAIN_OF_CHANNEL.load(deps.storage, &channel)?;
-    let PacketMsg {
-        account_id,
-        ..
-    } = packet;
+    let PacketMsg { account_id, .. } = packet;
     let client_proxy_addr = CLIENT_PROXY.load(deps.storage, &account_id)?;
     let account_base = get_account(deps.as_ref(), &account_id)?;
     // send everything back to client

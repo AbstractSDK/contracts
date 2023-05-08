@@ -1,6 +1,6 @@
 use crate::{
     account_commands::{receive_balances, receive_dispatch, receive_send_all_back},
-    contract::{HostResult, HostResponse},
+    contract::{HostResponse, HostResult},
     error::HostError,
     ibc::{receive_query, receive_register, receive_who_am_i},
     state::{CLIENT_PROXY, CONFIG, PROCESSING_PACKET},
@@ -11,9 +11,10 @@ use abstract_core::{
 use abstract_sdk::{
     base::{ExecuteEndpoint, Handler},
     core::ibc_host::{ExecuteMsg, HostAction, InternalAction, PacketMsg},
+    cw_helpers::cosmwasm_std::AbstractAttributes,
     feature_objects::VersionControlContract,
     features::AbstractRegistryAccess,
-    AccountVerification, Execution, cw_helpers::cosmwasm_std::AbstractAttributes,
+    AccountVerification, Execution,
 };
 use cosmwasm_std::{
     from_binary, from_slice, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo,
@@ -32,7 +33,13 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> H
             ans_host_address,
             account_factory_address,
             version_control_address,
-        } => update_config(deps, info, ans_host_address, version_control_address, account_factory_address),
+        } => update_config(
+            deps,
+            info,
+            ans_host_address,
+            version_control_address,
+            account_factory_address,
+        ),
         ExecuteMsg::RecoverAccount {
             closed_channel,
             account_id,

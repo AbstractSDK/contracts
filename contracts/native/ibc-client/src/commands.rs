@@ -16,7 +16,7 @@ use abstract_sdk::{
     },
     feature_objects::VersionControlContract,
     features::AccountIdentification,
-    Execution, AccountVerification, Resolve,
+    AccountVerification, Execution, Resolve,
 };
 use cosmwasm_std::{
     to_binary, Coin, CosmosMsg, DepsMut, Env, IbcMsg, MessageInfo, StdError, Storage,
@@ -374,7 +374,11 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            CHANNELS.save(deps.as_mut().storage, &ChainName::from(TEST_CHAIN), &"test_channel".into())?;
+            CHANNELS.save(
+                deps.as_mut().storage,
+                &ChainName::from(TEST_CHAIN),
+                &"test_channel".into(),
+            )?;
 
             let msg = ExecuteMsg::RemoveHost {
                 host_chain: TEST_CHAIN.into(),
