@@ -1,4 +1,3 @@
-use self::state::AccountData;
 use crate::{
     abstract_ica::StdAck,
     ibc_host::HostAction,
@@ -6,7 +5,7 @@ use crate::{
 };
 use abstract_ica::IbcResponseMsg;
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{from_slice, Binary, Coin, CosmosMsg, StdResult, Timestamp};
+use cosmwasm_std::{from_slice, Binary, Coin, CosmosMsg, StdResult, Timestamp, Addr};
 
 pub mod state {
 
@@ -18,7 +17,7 @@ pub mod state {
         },
         ANS_HOST as ANS_HOST_KEY,
     };
-    use cosmwasm_std::{Addr, Coin, Timestamp};
+    use cosmwasm_std::{Addr};
     use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
 
@@ -27,28 +26,14 @@ pub mod state {
         pub version_control_address: Addr,
     }
 
-    #[cosmwasm_schema::cw_serde]
-    #[derive(Default)]
-    pub struct AccountData {
-        /// last block balance was updated (0 is never)
-        pub last_update_time: Timestamp,
-        /// In normal cases, it should be set, but there is a delay between binding
-        /// the channel and making a query and in that time it is empty.
-        ///
-        /// Since we do not have a way to validate the remote address format, this
-        /// must not be of type `Addr`.
-        pub remote_addr: Option<String>,
-        pub remote_balance: Vec<Coin>,
-    }
-
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
     /// chain -> channel-id
+    /// these channels have been verified by the host. 
     pub const CHANNELS: Map<&ChainName, String> = Map::new("channels");
     pub const CONFIG: Item<Config> = Item::new("config");
-    /// (channel-id,account_id) -> remote_addr
-    pub const ACCOUNTS: Map<(&str, &AccountId), AccountData> = Map::new("accounts");
-    /// Todo: see if we can remove this
-    pub const LATEST_QUERIES: Map<(&str, &AccountId), LatestQueryResponse> = Map::new("queries");
+    /// (account_id, chain_name) -> remote proxy account address
+    pub const ACCOUNTS: Map<(&AccountId, &ChainName), String> = Map::new("accounts");
+
     pub const ANS_HOST: Item<AnsHost> = Item::new(ANS_HOST_KEY);
 }
 
@@ -132,12 +117,6 @@ pub enum QueryMsg {
         chain: String,
         account_id: AccountId,
     },
-    // Get remote account info for a chain + Account
-    #[returns(LatestQueryResponse)]
-    LatestQueryResult {
-        chain: String,
-        account_id: AccountId,
-    },
     // get the channels
     #[returns(ListChannelsResponse)]
     ListChannels {},
@@ -152,11 +131,15 @@ pub struct ConfigResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ListAccountsResponse {
-    pub accounts: Vec<AccountInfo>,
+    pub accounts: Vec<(AccountId, ChainName,String)>,
 }
 #[cosmwasm_schema::cw_serde]
 pub struct ListChannelsResponse {
     pub channels: Vec<(ChainName, String)>,
+}
+#[cosmwasm_schema::cw_serde]
+pub struct AccountResponse {
+    pub remote_proxy_addr: String,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -172,48 +155,4 @@ pub struct RemoteProxyResponse {
     pub channel_id: String,
     /// address of the remote proxy
     pub proxy_address: String,
-}
-
-#[cosmwasm_schema::cw_serde]
-pub struct AccountInfo {
-    pub channel_id: String,
-    pub account_id: AccountId,
-    /// last block balance was updated (0 is never)
-    pub last_update_time: Timestamp,
-    /// in normal cases, it should be set, but there is a delay between binding
-    /// the channel and making a query and in that time it is empty
-    pub remote_addr: Option<String>,
-    pub remote_balance: Vec<Coin>,
-}
-
-impl AccountInfo {
-    pub fn convert(channel_id: String, account_id: AccountId, input: AccountData) -> Self {
-        AccountInfo {
-            channel_id,
-            account_id,
-            last_update_time: input.last_update_time,
-            remote_addr: input.remote_addr,
-            remote_balance: input.remote_balance,
-        }
-    }
-}
-
-#[cosmwasm_schema::cw_serde]
-pub struct AccountResponse {
-    /// last block balance was updated (0 is never)
-    pub last_update_time: Timestamp,
-    /// in normal cases, it should be set, but there is a delay between binding
-    /// the channel and making a query and in that time it is empty
-    pub remote_addr: Option<String>,
-    pub remote_balance: Vec<Coin>,
-}
-
-impl From<AccountData> for AccountResponse {
-    fn from(input: AccountData) -> Self {
-        AccountResponse {
-            last_update_time: input.last_update_time,
-            remote_addr: input.remote_addr,
-            remote_balance: input.remote_balance,
-        }
-    }
 }
