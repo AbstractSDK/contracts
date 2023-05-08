@@ -5,10 +5,8 @@ use abstract_core::objects::namespace::Namespace;
 use abstract_core::version_control::Config;
 use abstract_macros::abstract_response;
 use abstract_sdk::core::{
-    objects::{
-        module_version::assert_cw_contract_upgrade, ABSTRACT_ACCOUNT_ID,
-    },
-    version_control::{namespaces_info},
+    objects::{module_version::assert_cw_contract_upgrade, ABSTRACT_ACCOUNT_ID},
+    version_control::namespaces_info,
     version_control::{
         state::{CONFIG, FACTORY},
         ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
@@ -158,8 +156,10 @@ mod tests {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let account_id = namespaces_info()
-                .load(deps.as_ref().storage, &Namespace::try_from(ABSTRACT_NAMESPACE)?)?;
+            let account_id = namespaces_info().load(
+                deps.as_ref().storage,
+                &Namespace::try_from(ABSTRACT_NAMESPACE)?,
+            )?;
             assert_that!(account_id).is_equal_to(ABSTRACT_ACCOUNT_ID);
 
             Ok(())
