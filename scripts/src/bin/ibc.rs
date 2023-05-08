@@ -35,7 +35,7 @@ pub fn script() -> anyhow::Result<()> {
     let controller = Controller::new("controller", osmosis.clone());
 
     // ### SETUP ###
-    deploy_contracts(&cw1, &host, &controller)?;
+    deploy_contracts(&juno, &osmosis)?;
     interchain
         .hermes
         .create_channel(&rt, "connection-0", "simple-ica-v2", &controller, &host);
@@ -68,9 +68,6 @@ pub fn script() -> anyhow::Result<()> {
     rt.spawn(async move {
         osmosis_channel.cron_log(tracker).await.unwrap();
     });
-
-    // test the ica implementation
-    test_ica(rt.handle().clone(), &controller, &juno)?;
 
     Ok(())
 }
@@ -108,119 +105,6 @@ fn deploy_contracts(juno: &Daemon, osmosis: &Daemon) -> anyhow::Result<()> {
     )?;
 
     let osmo_abstr = Abstract::deploy_on(osmosis.clone(), "1.0.0".parse().unwrap())?;
-    host.instantiate(
-        &ibc_host::InstantiateMsg {
-            base: ibc_host::BaseInstantiateMsg {
-                ans_host_address: osmo_abstr.ans_host,
-                account_factory_address: osmo_abstr.account_factory,
-            },
-        },
-        admin,
-        coins,
-    );
 
     Ok(())
-}
-
-/// Test the cw-ica contract
-fn test_ica(
-    rt: Handle,
-    // controller on osmosis
-    controller: &Controller<Daemon>,
-    juno: &Daemon,
-) -> anyhow::Result<()> {
-    // get the information about the remote account
-    let remote_accounts: controller_msgs::ListAccountsResponse =
-        controller.query(&controller_msgs::QueryMsg::ListAccounts {})?;
-    assert_that!(remote_accounts.accounts.len()).is_equal_to(1);
-
-    // get the account information
-    let remote_account = remote_accounts.accounts[0].clone();
-    let remote_addr = remote_account.remote_addr.unwrap();
-
-    // send some funds to the remote account
-    rt.block_on(
-        juno.sender
-            .bank_send(&remote_addr, vec![cosmwasm_std::coin(100u128, "ujuno")]),
-    )?;
-
-    // assert that the remote account got funds
-    let balance = rt.block_on(juno.query::<Bank>().coin_balance(&remote_addr, "ujuno"))?;
-    assert_that!(&balance.amount).is_equal_to(100u128.to_string());
-
-    // burn the juno remotely
-    controller.execute(
-        &controller_msgs::ExecuteMsg::SendMsgs {
-            channel_id: "channel-1".to_string(),
-            msgs: vec![CosmosMsg::Bank(cosmwasm_std::BankMsg::Burn {
-                amount: vec![cosmwasm_std::coin(100u128, "ujuno")],
-            })],
-            callback_id: None,
-        },
-        None,
-    )?;
-
-    // wait a bit
-    std::thread::sleep(std::time::Duration::from_secs(30));
-    // check that the balance became 0
-    let balance = rt.block_on(juno.query::<Bank>().coin_balance(&remote_addr, "ujuno"))?;
-    assert_that!(&balance.amount).is_equal_to(0u128.to_string());
-    Ok(())
-}
-
-// Contract interface definitions
-
-#[contract(
-    controller_msgs::InstantiateMsg,
-    controller_msgs::ExecuteMsg,
-    controller_msgs::QueryMsg,
-    Empty
-)]
-struct Controller;
-
-impl<Chain: CwEnv> Controller<Chain> {
-    pub fn new(name: &str, chain: Chain) -> Self {
-        let contract = Contract::new(name, chain);
-        Self(contract)
-    }
-}
-
-impl Uploadable for Controller<Daemon> {
-    fn wasm(&self) -> <Daemon as TxHandler>::ContractSource {
-        WasmPath::new(format!(
-            "{CRATE_PATH}/examples/wasms/simple_ica_controller.wasm"
-        ))
-        .unwrap()
-    }
-}
-
-#[contract(host_msgs::InstantiateMsg, Empty, host_msgs::QueryMsg, Empty)]
-struct Host;
-impl<Chain: CwEnv> Host<Chain> {
-    pub fn new(name: &str, chain: Chain) -> Self {
-        let contract = Contract::new(name, chain);
-        Self(contract)
-    }
-}
-
-impl Uploadable for Host<Daemon> {
-    fn wasm(&self) -> <Daemon as TxHandler>::ContractSource {
-        WasmPath::new(format!("{CRATE_PATH}/examples/wasms/simple_ica_host.wasm")).unwrap()
-    }
-}
-
-// just for uploading
-#[contract(Empty, Empty, Empty, Empty)]
-struct Cw1;
-impl<Chain: CwEnv> Cw1<Chain> {
-    pub fn new(name: &str, chain: Chain) -> Self {
-        let contract = Contract::new(name, chain);
-        Self(contract)
-    }
-}
-
-impl Uploadable for Cw1<Daemon> {
-    fn wasm(&self) -> <Daemon as TxHandler>::ContractSource {
-        WasmPath::new(format!("{CRATE_PATH}/examples/wasms/cw1_whitelist.wasm")).unwrap()
-    }
 }
