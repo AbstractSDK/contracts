@@ -5,7 +5,7 @@ use abstract_sdk::core::{
         check_order, check_version, BalancesResponse, RegisterResponse, StdAck, WhoAmIResponse,
     },
     ibc_client::{
-        state::{ACCOUNTS, CHANNELS, CHANNELS_TO_PORTS, ALLOWED_PORTS},
+        state::{ACCOUNTS, CHANNELS, ALLOWED_PORTS},
         CallbackInfo,
     },
     ibc_host::{HostAction, InternalAction, PacketMsg},
@@ -55,9 +55,6 @@ pub fn ibc_channel_connect(deps: DepsMut, env: Env, msg: IbcChannelConnectMsg) -
         retries: 0,
     };
 
-    // We save the channel with the port_id in our local storage
-    CHANNELS_TO_PORTS.save(deps.storage, channel_id.to_string(), &channel.counterparty_endpoint.port_id)?;
-
     let msg = IbcMsg::SendPacket {
         channel_id: channel_id.clone(),
         data: to_binary(&packet)?,
@@ -105,6 +102,7 @@ pub fn ibc_packet_ack(
 ) -> Result<IbcBasicResponse, IbcClientError> {
     // which local channel was this packet sent from
     let channel_id = msg.original_packet.src.channel_id.clone();
+    let port_id = msg.original_packet.dest.port_id.clone();
     // we need to parse the ack based on our request
     let mut original_packet: PacketMsg = from_slice(&msg.original_packet.data)?;
     let res: StdAck = from_slice(&msg.acknowledgement.data)?;
@@ -140,7 +138,7 @@ pub fn ibc_packet_ack(
             maybe_add_callback(response, callback_info, msg).map_err(Into::into)
         }
         HostAction::Internal(InternalAction::WhoAmI { .. }) => {
-            acknowledge_who_am_i(deps, channel_id, res)
+            acknowledge_who_am_i(deps, channel_id, port_id, res)
         }
         HostAction::Internal(InternalAction::Register { .. }) => {
             acknowledge_register(deps, host_chain, account_id, res)
@@ -195,6 +193,7 @@ fn acknowledge_query(
 fn acknowledge_who_am_i(
     deps: DepsMut,
     channel_id: String,
+    port_id: String,
     ack: StdAck,
 ) -> Result<IbcBasicResponse, IbcClientError> {
     // ignore errors (but mention in log)
@@ -212,11 +211,10 @@ fn acknowledge_who_am_i(
     if CHANNELS.has(deps.storage, &chain) {
         return Err(IbcClientError::HostAlreadyExists {});
     }
+
     // ensure the contract that connects is allowed to connect
     let allowed_port = ALLOWED_PORTS.load(deps.storage, &chain).map_err(|_| IbcClientError::UnregisteredChain(chain.to_string()))?;
-    // We get the channel port
-    let current_port = CHANNELS_TO_PORTS.load(deps.storage, channel_id.clone())?; // This can't fail, because this is enforced by IBC rules
-    if allowed_port != current_port{
+    if allowed_port != port_id{
         return Err(IbcClientError::UnauthorizedConnection{})
     }
 

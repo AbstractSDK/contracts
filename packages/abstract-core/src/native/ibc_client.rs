@@ -28,9 +28,6 @@ pub mod state {
 
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
 
-    // channel-id --> port-id
-    // These channels are the one that have an open connection to the contract
-    pub const CHANNELS_TO_PORTS: Map<String, String> = Map::new("channels_to_ports");
     // chain_name --> allowed port
     // These ports are the only one allowed for the chain. This allows to control who can connect to the client on the distant chain
     pub const ALLOWED_PORTS: Map<&ChainName, String> = Map::new("allowed_ports");
