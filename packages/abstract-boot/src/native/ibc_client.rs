@@ -11,7 +11,7 @@ pub struct IbcClient<Chain>;
 
 impl Uploadable for IbcClient<Daemon> {
     fn wasm(&self) -> cw_orch::WasmPath {
-        ArtifactsDir::env().find_wasm_path("host").unwrap()
+        ArtifactsDir::env().find_wasm_path("ibc_client").unwrap()
     }
 }
 

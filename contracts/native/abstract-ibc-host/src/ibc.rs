@@ -207,6 +207,7 @@ pub fn receive_who_am_i(
         chain: this_chain.into_string(),
     };
     let acknowledgement = StdAck::success(response);
+
     Ok(IbcReceiveResponse::new()
         .set_ack(acknowledgement)
         .add_attribute("action", "who_am_i"))

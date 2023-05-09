@@ -38,7 +38,7 @@ pub fn ibc_channel_open(
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn ibc_channel_connect(env: Env, msg: IbcChannelConnectMsg) -> StdResult<IbcBasicResponse> {
+pub fn ibc_channel_connect(_deps: DepsMut, env: Env, msg: IbcChannelConnectMsg) -> StdResult<IbcBasicResponse> {
     let channel = msg.channel();
     let channel_id = &channel.endpoint.channel_id;
 

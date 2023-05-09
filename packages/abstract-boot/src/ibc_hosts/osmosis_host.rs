@@ -7,7 +7,7 @@ pub struct OsmosisHost<Chain>;
 
 impl Uploadable for OsmosisHost<Daemon> {
     fn wasm(&self) -> cw_orch::WasmPath {
-        ArtifactsDir::env().find_wasm_path("host").unwrap()
+        ArtifactsDir::env().find_wasm_path("ibc_host").unwrap()
     }
 }
 

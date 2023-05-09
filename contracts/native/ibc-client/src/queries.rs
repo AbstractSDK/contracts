@@ -10,19 +10,16 @@ use cosmwasm_std::{Deps, Env, Order, StdResult};
 
 // TODO: paging
 pub fn list_accounts(deps: Deps) -> StdResult<ListAccountsResponse> {
-    let accounts_res: StdResult<
+    let accounts: StdResult<
         Vec<(
-            (AccountId, abstract_core::objects::chain_name::ChainName),
+            AccountId, abstract_core::objects::chain_name::ChainName,
             String,
-        )>,
-    > = ACCOUNTS
+        )>> = ACCOUNTS
         .range(deps.storage, None, None, Order::Ascending)
-        .collect()?;
-    let accounts = accounts_res?
-        .into_iter()
-        .map(|((a, b), c)| (a, b, c))
+        .map(|r| r.map(|((a,c), s)| (a,c,s)))
         .collect();
-    Ok(ListAccountsResponse { accounts })
+
+    Ok(ListAccountsResponse { accounts: accounts? })
 }
 
 pub fn list_channels(deps: Deps) -> StdResult<ListChannelsResponse> {
