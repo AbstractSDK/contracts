@@ -32,4 +32,7 @@ pub enum IbcClientError {
 
     #[error("The host you are trying to connect is already connected")]
     HostAlreadyExists {},
+
+    #[error("Only authorized ports can connect to the contract on the remote chain")]
+    UnauthorizedConnection {}
 }

@@ -7,7 +7,7 @@ use abstract_core::{manager, objects::chain_name::ChainName};
 use abstract_sdk::{
     core::{
         ibc_client::{
-            state::{ACCOUNTS, ADMIN, ANS_HOST, CHANNELS, CONFIG},
+            state::{ACCOUNTS, ADMIN, ANS_HOST, CHANNELS, ALLOWED_PORTS, CONFIG},
             CallbackInfo,
         },
         ibc_host::{HostAction, InternalAction, PacketMsg},
@@ -19,7 +19,7 @@ use abstract_sdk::{
     AccountVerification, Execution, Resolve,
 };
 use cosmwasm_std::{
-    to_binary, Coin, CosmosMsg, DepsMut, Env, IbcMsg, MessageInfo, StdError, Storage,
+    to_binary, Coin, CosmosMsg, DepsMut, Env, IbcMsg, MessageInfo, Storage,
 };
 
 pub fn execute_update_config(
@@ -49,6 +49,20 @@ pub fn execute_update_config(
     CONFIG.save(deps.storage, &cfg)?;
 
     Ok(IbcClientResponse::action("update_config"))
+}
+
+pub fn execute_allow_chain_port(
+    deps: DepsMut,
+    info: MessageInfo,
+    chain: String,
+    port: String
+) -> IbcClientResult{
+
+    // auth check
+    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
+    ALLOWED_PORTS.save(deps.storage, &ChainName::from(chain), &port)?;
+
+    Ok(IbcClientResponse::action("allow_chain_port"))
 }
 
 // allows admins to clear host if needed

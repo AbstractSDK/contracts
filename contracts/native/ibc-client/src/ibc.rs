@@ -5,8 +5,8 @@ use abstract_sdk::core::{
         check_order, check_version, BalancesResponse, RegisterResponse, StdAck, WhoAmIResponse,
     },
     ibc_client::{
-        state::{ACCOUNTS, CHANNELS, CONFIG},
-        CallbackInfo, LatestQueryResponse,
+        state::{ACCOUNTS, CHANNELS, CHANNELS_TO_PORTS, ALLOWED_PORTS},
+        CallbackInfo,
     },
     ibc_host::{HostAction, InternalAction, PacketMsg},
 };
@@ -38,7 +38,7 @@ pub fn ibc_channel_open(
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn ibc_channel_connect(_deps: DepsMut, env: Env, msg: IbcChannelConnectMsg) -> StdResult<IbcBasicResponse> {
+pub fn ibc_channel_connect(deps: DepsMut, env: Env, msg: IbcChannelConnectMsg) -> StdResult<IbcBasicResponse> {
     let channel = msg.channel();
     let channel_id = &channel.endpoint.channel_id;
 
@@ -54,6 +54,9 @@ pub fn ibc_channel_connect(_deps: DepsMut, env: Env, msg: IbcChannelConnectMsg) 
         callback_info: None,
         retries: 0,
     };
+
+    // We save the channel with the port_id in our local storage
+    CHANNELS_TO_PORTS.save(deps.storage, channel_id.to_string(), &channel.counterparty_endpoint.port_id)?;
 
     let msg = IbcMsg::SendPacket {
         channel_id: channel_id.clone(),
@@ -209,6 +212,14 @@ fn acknowledge_who_am_i(
     if CHANNELS.has(deps.storage, &chain) {
         return Err(IbcClientError::HostAlreadyExists {});
     }
+    // ensure the contract that connects is allowed to connect
+    let allowed_port = ALLOWED_PORTS.load(deps.storage, &chain).map_err(|_| IbcClientError::UnregisteredChain(chain.to_string()))?;
+    // We get the channel port
+    let current_port = CHANNELS_TO_PORTS.load(deps.storage, channel_id.clone())?; // This can't fail, because this is enforced by IBC rules
+    if allowed_port != current_port{
+        return Err(IbcClientError::UnauthorizedConnection{})
+    }
+
     // Now we know over what channel to communicate!
     CHANNELS.save(deps.storage, &chain, &channel_id)?;
 

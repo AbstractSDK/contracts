@@ -4,7 +4,7 @@ use crate::{
     objects::{account::AccountId, chain_name::ChainName},
 };
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Binary, CosmosMsg, Empty, QueryRequest};
+use cosmwasm_std::{Addr, CosmosMsg, Empty, QueryRequest};
 
 /// Used by Abstract to instantiate the contract
 /// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::ProposeModules`].

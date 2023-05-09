@@ -1,7 +1,7 @@
 use abstract_core::{
     ibc_client::{
         state::{Config, ACCOUNTS, ADMIN, CHANNELS, CONFIG},
-        AccountResponse, ConfigResponse, LatestQueryResponse, ListAccountsResponse,
+        AccountResponse, ConfigResponse, ListAccountsResponse,
         ListChannelsResponse,
     },
     objects::{chain_name::ChainName, AccountId},

@@ -23,7 +23,7 @@ impl ChainName {
 
     /// check the formatting of the chain name
     pub fn check(&self) -> AbstractResult<()> {
-        if self.0.contains("-") || !self.0.as_str().is_ascii() {
+        if self.0.contains('-') || !self.0.as_str().is_ascii() {
             return Err(crate::AbstractError::FormattingError {
                 object: "chain_name".into(),
                 expected: "chain_name-351".into(),
