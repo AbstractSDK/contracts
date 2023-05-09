@@ -7,7 +7,7 @@ use abstract_core::{manager, objects::chain_name::ChainName};
 use abstract_sdk::{
     core::{
         ibc_client::{
-            state::{ACCOUNTS, ADMIN, ANS_HOST, CHANNELS, ALLOWED_PORTS, CONFIG},
+            state::{ACCOUNTS, ADMIN, ANS_HOST, CHANNELS, CHAIN_HOSTS, CONFIG},
             CallbackInfo,
         },
         ibc_host::{HostAction, InternalAction, PacketMsg},
@@ -60,7 +60,7 @@ pub fn execute_allow_chain_port(
 
     // auth check
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
-    ALLOWED_PORTS.save(deps.storage, &ChainName::from(chain), &port)?;
+    CHAIN_HOSTS.save(deps.storage, &ChainName::from(chain), &port)?;
 
     Ok(IbcClientResponse::action("allow_chain_port"))
 }

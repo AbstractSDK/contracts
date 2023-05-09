@@ -93,6 +93,10 @@ pub enum ExecuteMsg {
         account_factory_address: Option<String>,
         version_control_address: Option<String>,
     },
+    RegisterChainClient{
+        chain_id: String,
+        client: String,
+    },
     /// Allow for fund recovery through the Admin
     RecoverAccount {
         closed_channel: String,

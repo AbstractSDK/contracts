@@ -30,7 +30,7 @@ pub mod state {
 
     // chain_name --> allowed port
     // These ports are the only one allowed for the chain. This allows to control who can connect to the client on the distant chain
-    pub const ALLOWED_PORTS: Map<&ChainName, String> = Map::new("allowed_ports");
+    pub const CHAIN_HOSTS: Map<&ChainName, String> = Map::new("chain_hosts");
    
     /// chain -> channel-id
     /// these channels have been verified by the host.
