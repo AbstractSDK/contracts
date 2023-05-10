@@ -46,7 +46,7 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
             value: to_binary(&msg)?,
         };
 
-        Ok(self.base.executor(self.deps).execute(vec![msg])?)
+        self.base.executor(self.deps).execute(vec![msg])
     }
 
     /// Extends Allowance to allow for both a maximum cap,
@@ -70,7 +70,7 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
             value: to_binary(&msg)?,
         };
 
-        Ok(self.base.executor(self.deps).execute(vec![msg])?)
+        self.base.executor(self.deps).execute(vec![msg])
     }
 
     /// creates allowance only for BasicAllowance.
@@ -86,7 +86,7 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
             value: to_binary(&msg)?,
         };
 
-        Ok(self.base.executor(self.deps).execute(vec![msg])?)
+        self.base.executor(self.deps).execute(vec![msg])
     }
 
     /// Creates allowance only for PeriodicAllowance.
@@ -102,7 +102,7 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
             value: to_binary(&msg)?,
         };
 
-        Ok(self.base.executor(self.deps).execute(vec![msg])?)
+        self.base.executor(self.deps).execute(vec![msg])
     }
 
     /// Creates allowance only for BasicAllowance and PeriodicAllowance.
@@ -122,7 +122,7 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
             value: to_binary(&msg)?,
         };
 
-        Ok(self.base.executor(self.deps).execute(vec![msg])?)
+        self.base.executor(self.deps).execute(vec![msg])
     }
 
     /// Removes any existing Allowance from Granter to Grantee.
@@ -138,7 +138,7 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
             value: to_binary(&msg)?,
         };
 
-        Ok(self.base.executor(self.deps).execute(vec![msg])?)
+        self.base.executor(self.deps).execute(vec![msg])
     }
 }
 pub struct BasicAllowance {

@@ -42,7 +42,7 @@ impl<'a, T: DistributionInterface> Distribution<'a, T> {
             value: to_binary(&msg)?,
         };
 
-        Ok(self.base.executor(self.deps).execute(vec![msg])?)
+        self.base.executor(self.deps).execute(vec![msg])
     }
 
     /// represents delegation withdrawal to a delegator from a single validator.
@@ -62,7 +62,7 @@ impl<'a, T: DistributionInterface> Distribution<'a, T> {
             value: to_binary(&msg)?,
         };
 
-        Ok(self.base.executor(self.deps).execute(vec![msg])?)
+        self.base.executor(self.deps).execute(vec![msg])
     }
 
     /// withdraws the full commission to the validator address.
@@ -77,7 +77,7 @@ impl<'a, T: DistributionInterface> Distribution<'a, T> {
             value: to_binary(&msg)?,
         };
 
-        Ok(self.base.executor(self.deps).execute(vec![msg])?)
+        self.base.executor(self.deps).execute(vec![msg])
     }
 
     /// allows an account to directly fund the community pool.
@@ -88,7 +88,7 @@ impl<'a, T: DistributionInterface> Distribution<'a, T> {
     ) -> AbstractSdkResult<CosmosMsg> {
         let msg = distribution::v1beta1::MsgFundCommunityPool {
             amount: amount
-                .into_iter()
+                .iter()
                 .map(|item| base::v1beta1::Coin {
                     denom: item.denom.to_owned(),
                     amount: item.amount.to_string(),
@@ -103,7 +103,7 @@ impl<'a, T: DistributionInterface> Distribution<'a, T> {
             value: to_binary(&msg)?,
         };
 
-        Ok(self.base.executor(self.deps).execute(vec![msg])?)
+        self.base.executor(self.deps).execute(vec![msg])
     }
 }
 
