@@ -28,8 +28,8 @@ impl<'a, T: DistributionInterface> Distribution<'a, T> {
     /// sets the withdraw address for a delegator (or validator self-delegation).
     pub fn set_withdraw_address(
         &self,
-        delegator: Addr,
-        withdraw: Addr,
+        delegator: &Addr,
+        withdraw: &Addr,
     ) -> AbstractSdkResult<CosmosMsg> {
         let msg = distribution::v1beta1::MsgSetWithdrawAddress {
             delegator_address: delegator.into(),
@@ -48,8 +48,8 @@ impl<'a, T: DistributionInterface> Distribution<'a, T> {
     /// represents delegation withdrawal to a delegator from a single validator.
     pub fn withdraw_delegator_reward(
         &self,
-        validator: Addr,
-        delegator: Addr,
+        validator: &Addr,
+        delegator: &Addr,
     ) -> AbstractSdkResult<CosmosMsg> {
         let msg = distribution::v1beta1::MsgWithdrawDelegatorReward {
             validator_address: validator.into(),
@@ -66,7 +66,7 @@ impl<'a, T: DistributionInterface> Distribution<'a, T> {
     }
 
     /// withdraws the full commission to the validator address.
-    pub fn withdraw_delegator_comission(&self, validator: Addr) -> AbstractSdkResult<CosmosMsg> {
+    pub fn withdraw_delegator_commission(&self, validator: &Addr) -> AbstractSdkResult<CosmosMsg> {
         let msg = distribution::v1beta1::MsgWithdrawValidatorCommission {
             validator_address: validator.into(),
         }
@@ -83,14 +83,14 @@ impl<'a, T: DistributionInterface> Distribution<'a, T> {
     /// allows an account to directly fund the community pool.
     pub fn fund_community_pool(
         &self,
-        amount: Vec<Coin>,
-        depositor: Addr,
+        amount: &[Coin],
+        depositor: &Addr,
     ) -> AbstractSdkResult<CosmosMsg> {
         let msg = distribution::v1beta1::MsgFundCommunityPool {
             amount: amount
                 .into_iter()
                 .map(|item| base::v1beta1::Coin {
-                    denom: item.denom,
+                    denom: item.denom.to_owned(),
                     amount: item.amount.to_string(),
                 })
                 .collect(),
@@ -126,7 +126,7 @@ mod test {
             let delegator = Addr::unchecked("delegator");
             let withdraw = Addr::unchecked("withdraw");
 
-            let res = distribution.set_withdraw_address(delegator, withdraw);
+            let res = distribution.set_withdraw_address(&delegator, &withdraw);
 
             assert_that!(&res).is_ok();
         }
@@ -144,7 +144,7 @@ mod test {
             let validator = Addr::unchecked("validator");
             let delegator = Addr::unchecked("delegator");
 
-            let res = distribution.withdraw_delegator_reward(validator, delegator);
+            let res = distribution.withdraw_delegator_reward(&validator, &delegator);
 
             assert_that!(&res).is_ok();
         }
@@ -161,7 +161,7 @@ mod test {
 
             let validator = Addr::unchecked("validator");
 
-            let res = distribution.withdraw_delegator_comission(validator);
+            let res = distribution.withdraw_delegator_commission(&validator);
 
             assert_that!(&res).is_ok();
         }
@@ -180,7 +180,7 @@ mod test {
             let depositor = Addr::unchecked("depositor");
             let amount = coins(1000, "coin");
 
-            let res = distribution.fund_community_pool(amount, depositor);
+            let res = distribution.fund_community_pool(&amount, &depositor);
 
             assert_that!(&res).is_ok();
         }
