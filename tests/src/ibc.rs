@@ -4,6 +4,7 @@ mod tests{
 	use crate::follow_ibc_trail::follow_trail;
 	use abstract_core::abstract_ica::IBC_APP_VERSION;
 use abstract_core::ibc_host::RegisteredChainsResponse;
+use abstract_core::objects::chain_name::ChainName;
 use cw_orch::queriers::DaemonQuerier;
 	use cw_orch::CwOrcExecute;
 	use abstract_core::ibc_host::InstantiateMsg;
@@ -152,8 +153,9 @@ use cw_orch::queriers::DaemonQuerier;
 	    // Some tests to make sure the connection has been established between the 2 contracts
 	    // We query the channels for each host to see if the client has been connected
 	    let juno_client = IbcClient::new(IBC_CLIENT, juno);
+
 	    let juno_channels: ibc_client::ListChannelsResponse = juno_client.query(&ibc_client::QueryMsg::ListChannels {  })?;
-	    assert_ne!(juno_channels.channels, vec![]);
+	    assert_eq!(juno_channels.channels, vec![(ChainName::from("osmosis"), "channel-1".to_string())]);
 
 	    Ok(())
 	}

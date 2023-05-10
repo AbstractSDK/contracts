@@ -16,3 +16,5 @@ Cargo.lock
 # temporary
 docker*
 .env.docker
+logs
+daemon_state.json

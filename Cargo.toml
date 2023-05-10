@@ -7,6 +7,7 @@ members = [
   "contracts/token",
   # "contracts/ibc-hosts/osmosis",
   "scripts",
+  "tests"
 ]
 
 # Enable the version 2 feature resolver, which avoids unifying features for targets that are not being built
