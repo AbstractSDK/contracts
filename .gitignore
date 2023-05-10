@@ -31,3 +31,4 @@ contracts/**/schema
 release
 
 build.sh
+tests/logs
