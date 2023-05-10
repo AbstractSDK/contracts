@@ -1,0 +1,46 @@
+{
+  "juno": {
+    "juno-1": {
+      "code_ids": {
+        "abstract:account-factory": 3,
+        "abstract:ans-host": 1,
+        "abstract:ibc-client": 9,
+        "abstract:manager": 5,
+        "abstract:module-factory": 4,
+        "abstract:proxy": 6,
+        "abstract:version-control": 2,
+        "host": 10
+      },
+      "interchain": {
+        "abstract:account-factory": "juno1unyuj8qnmygvzuex3dwmg9yzt9alhvyeat0uu0jedg2wj33efl5qewxkxd",
+        "abstract:ans-host": "juno14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9skjuwg8",
+        "abstract:ibc-client": "juno1vhndln95yd7rngslzvf6sax6axcshkxqpmpr886ntelh28p9ghuqksdem6",
+        "abstract:module-factory": "juno1zwv6feuzhy6a9wekh96cd57lsarmqlwxdypdsplw6zhfncqw6ftqzzdhr6",
+        "abstract:version-control": "juno1nc5tatafv6eyq7llkr2gv50ff9e22mnf70qgjlv737ktmt4eswrq68ev2p",
+        "host": "juno13we0myxwzlpx8l5ark8elw5gj5d59dl6cjkzmt80c5q5cv5rt54qwgqmr6"
+      }
+    }
+  },
+  "osmosis": {
+    "osmosis-2": {
+      "code_ids": {
+        "abstract:account-factory": 14,
+        "abstract:ans-host": 12,
+        "abstract:ibc-client": 9,
+        "abstract:manager": 16,
+        "abstract:module-factory": 15,
+        "abstract:proxy": 17,
+        "abstract:version-control": 13,
+        "host": 10
+      },
+      "interchain": {
+        "abstract:account-factory": "osmo15zqqgwe6cpfmmyzmp3t8lkqctq3vym7srnn6fzgz0x9vfvtv7zhq0hpd96",
+        "abstract:ans-host": "osmo1gjrrme22cyha4ht2xapn3f08zzw6z3d4uxx6fyy9zd5dyr3yxgzqhuqkdd",
+        "abstract:ibc-client": "osmo1vhndln95yd7rngslzvf6sax6axcshkxqpmpr886ntelh28p9ghuqqgjjmc",
+        "abstract:module-factory": "osmo1dlsvvgey26ernlj0sq2afjluh3qd4ap0k9eerekfkw5algqrwqkscnc9ja",
+        "abstract:version-control": "osmo1smzlm9t79kur392nu9egl8p8je9j92q4gzguewj56a05kyxxra0qnqt8y0",
+        "host": "osmo13we0myxwzlpx8l5ark8elw5gj5d59dl6cjkzmt80c5q5cv5rt54qcslsrc"
+      }
+    }
+  }
+}
