@@ -11,7 +11,7 @@ use abstract_sdk::{
 };
 use cosmwasm_std::{
     entry_point, Binary, Deps, DepsMut, Empty, Env, IbcPacketReceiveMsg, IbcReceiveResponse,
-    MessageInfo, Reply, ReplyOn, Response,
+    MessageInfo, Reply, ReplyOn, Response, StdResult,
 };
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -31,4 +31,9 @@ pub fn instantiate(deps: DepsMut, env: Env, info: MessageInfo, msg: InstantiateM
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> HostResult {
     // will only process base requests as there is no exec handler set.
     endpoints::execute(deps, env, info, msg)
+}
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
+    // will only process base requests as there is no exec handler set.
+    endpoints::query(deps, env, msg)
 }

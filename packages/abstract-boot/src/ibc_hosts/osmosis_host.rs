@@ -2,7 +2,7 @@ use abstract_core::ibc_host::*;
 use cosmwasm_std::Empty;
 use cw_orch::{contract, ArtifactsDir, Contract, CwEnv, Daemon, Uploadable};
 
-#[contract(InstantiateMsg, Empty, QueryMsg, MigrateMsg)]
+#[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct OsmosisHost<Chain>;
 
 impl Uploadable for OsmosisHost<Daemon> {

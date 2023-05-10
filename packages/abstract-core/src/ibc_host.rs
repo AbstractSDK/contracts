@@ -112,6 +112,12 @@ pub enum QueryMsg {
     /// Returns [`ConfigResponse`].
     #[returns(ConfigResponse)]
     Config {},
+    #[returns(RegisteredChainsResponse)]
+    RegisteredChains {},
+    #[returns(RegisteredChainResponse)]
+    AssociatedClient{
+        chain: String
+    }
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -119,4 +125,14 @@ pub struct ConfigResponse {
     pub ans_host_address: Addr,
     pub account_factory_address: Addr,
     pub version_control_address: Addr,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct RegisteredChainsResponse {
+    pub chains: Vec<(ChainName, String)>
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct RegisteredChainResponse{
+    pub client: String
 }

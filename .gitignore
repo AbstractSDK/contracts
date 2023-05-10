@@ -29,3 +29,5 @@ packages/**/schema
 contracts/**/schema
 
 release
+
+build.sh

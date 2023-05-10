@@ -78,9 +78,9 @@ pub enum ExecuteMsg {
         ans_host: Option<String>,
         version_control: Option<String>,
     },
-    AllowChainPort{
+    RegisterChainHost{
         chain: String,
-        port: String,
+        host: String,
     },
     /// Only callable by Account proxy
     /// Will attempt to forward the specified funds to the corresponding

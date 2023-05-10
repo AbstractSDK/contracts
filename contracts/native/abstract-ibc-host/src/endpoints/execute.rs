@@ -89,8 +89,7 @@ fn update_config(
 
 
 fn register_chain_client(deps: DepsMut, info: MessageInfo, chain_id: String, client: String) -> HostResult {
-
-    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
+    cw_ownable::is_owner(deps.storage, &info.sender)?;
     CHAIN_CLIENTS.save(deps.storage, &ChainName::from(chain_id), &client)?;
     Ok(HostResponse::action("register_chain_client"))
 }

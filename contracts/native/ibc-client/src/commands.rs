@@ -51,16 +51,16 @@ pub fn execute_update_config(
     Ok(IbcClientResponse::action("update_config"))
 }
 
-pub fn execute_allow_chain_port(
+pub fn execute_allow_chain_host(
     deps: DepsMut,
     info: MessageInfo,
     chain: String,
-    port: String
+    host: String
 ) -> IbcClientResult{
 
     // auth check
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
-    CHAIN_HOSTS.save(deps.storage, &ChainName::from(chain), &port)?;
+    CHAIN_HOSTS.save(deps.storage, &ChainName::from(chain), &host)?;
 
     Ok(IbcClientResponse::action("allow_chain_port"))
 }
