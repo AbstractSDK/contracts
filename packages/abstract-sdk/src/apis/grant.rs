@@ -30,8 +30,8 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
     /// that optionally expires. The grantee can use up to SpendLimit to cover fees.
     pub fn basic(
         &self,
-        granter: Addr,
-        grantee: Addr,
+        granter: &Addr,
+        grantee: &Addr,
         basic: BasicAllowance,
     ) -> AbstractSdkResult<CosmosMsg> {
         let msg = feegrant::v1beta1::MsgGrantAllowance {
@@ -53,8 +53,8 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
     /// as well as a limit per time period.
     pub fn periodic(
         &self,
-        granter: Addr,
-        grantee: Addr,
+        granter: &Addr,
+        grantee: &Addr,
         basic: Option<BasicAllowance>,
         periodic: PeriodicAllowance,
     ) -> AbstractSdkResult<CosmosMsg> {
@@ -126,7 +126,7 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
     }
 
     /// Removes any existing Allowance from Granter to Grantee.
-    pub fn revoke_all(&self, granter: Addr, grantee: Addr) -> AbstractSdkResult<CosmosMsg> {
+    pub fn revoke_all(&self, granter: &Addr, grantee: &Addr) -> AbstractSdkResult<CosmosMsg> {
         let msg = feegrant::v1beta1::MsgRevokeAllowance {
             granter: granter.into(),
             grantee: grantee.into(),
@@ -225,8 +225,8 @@ mod test {
             let expiration = Some(Timestamp::from_seconds(10));
 
             let res = grant.basic(
-                granter,
-                grantee,
+                &granter,
+                &grantee,
                 BasicAllowance {
                     spend_limit,
                     expiration,
@@ -265,7 +265,7 @@ mod test {
                 period_reset: None,
             };
 
-            let res = grant.periodic(granter, grantee, basic, periodic);
+            let res = grant.periodic(&granter, &grantee, basic, periodic);
 
             assert_that!(&res).is_ok();
         }
@@ -358,7 +358,7 @@ mod test {
             let granter = Addr::unchecked("granter");
             let grantee = Addr::unchecked("grantee");
 
-            let res = grant.revoke_all(granter, grantee);
+            let res = grant.revoke_all(&granter, &grantee);
 
             assert_that!(&res).is_ok();
         }
