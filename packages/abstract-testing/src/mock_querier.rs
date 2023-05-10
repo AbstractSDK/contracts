@@ -19,6 +19,7 @@ use std::{collections::HashMap, ops::Deref};
 
 type BinaryQueryResult = Result<Binary, String>;
 type ContractAddr = String;
+type AdminAddr = String;
 type FallbackHandler = dyn for<'a> Fn(&'a str, &'a Binary) -> BinaryQueryResult;
 type SmartHandler = dyn for<'a> Fn(&'a Binary) -> BinaryQueryResult;
 type RawHandler = dyn for<'a> Fn(&'a str) -> BinaryQueryResult;
@@ -48,7 +49,7 @@ pub struct MockQuerierBuilder {
     smart_handlers: HashMap<ContractAddr, Box<SmartHandler>>,
     raw_handlers: HashMap<ContractAddr, Box<RawHandler>>,
     raw_mappings: HashMap<ContractAddr, HashMap<Binary, Binary>>,
-    contract_admin: Option<String>,
+    contract_admin:HashMap<ContractAddr,AdminAddr>,
 }
 
 impl Default for MockQuerierBuilder {
@@ -74,7 +75,7 @@ impl Default for MockQuerierBuilder {
             smart_handlers: HashMap::default(),
             raw_handlers: HashMap::default(),
             raw_mappings: HashMap::default(),
-            contract_admin: None,
+            contract_admin: HashMap::default(),
         }
     }
 }
@@ -274,8 +275,8 @@ impl MockQuerierBuilder {
         )
     }
 
-    pub fn with_contract_admin(mut self, admin: impl Into<String>) -> Self {
-        self.contract_admin = Some(admin.into());
+    pub fn with_contract_admin(mut self, contract: impl ToString, admin: impl ToString) -> Self {
+        self.contract_admin.insert(contract.to_string(), admin.to_string());
         self
     }
 
@@ -311,10 +312,10 @@ impl MockQuerierBuilder {
                     res
                 }
                 WasmQuery::ContractInfo {
-                    contract_addr: _contract_addr,
+                    contract_addr,
                 } => {
                     let mut info = ContractInfoResponse::default();
-                    info.admin = self.contract_admin.clone();
+                    info.admin = self.contract_admin.get(contract_addr).cloned();
                     Ok(to_binary(&info).unwrap())
                 }
                 unexpected => panic!("Unexpected query: {unexpected:?}"),
