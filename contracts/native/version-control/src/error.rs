@@ -63,7 +63,7 @@ pub enum VCError {
     #[error("As namespace owner you can only yank a module, not remove it.")]
     OnlyYankAllowed,
 
-    #[error("Admin must be None")]
+    #[error("The admin of an adapter must be None")]
     AdminMustBeNone,
 
     #[error("No action specified")]
