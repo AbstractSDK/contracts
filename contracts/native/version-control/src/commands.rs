@@ -74,14 +74,10 @@ pub fn propose_modules(
         }
 
         // verify contract admin is None if module is Adapter
-        if mod_ref.unwrap_adapter().is_ok()
-            && deps
-                .querier
-                .query_wasm_contract_info(mod_ref.unwrap_adapter().unwrap())?
-                .admin
-                .is_some()
-        {
-            return Err(VCError::AdminMustBeNone);
+        if let ModuleReference::Adapter(ref addr) = mod_ref {
+            if deps.querier.query_wasm_contract_info(addr)?.admin.is_some() {
+                return Err(VCError::AdminMustBeNone);
+            }
         }
 
         if config.is_testnet {
