@@ -998,7 +998,7 @@ mod test {
                 TEST_OWNER,
                 ExecuteMsg::ClaimNamespaces {
                     account_id: TEST_ACCOUNT_ID,
-                    namespaces: vec![new_module.namespace.clone()],
+                    namespaces: vec![new_module.namespace.to_string()],
                 },
             )?;
 
