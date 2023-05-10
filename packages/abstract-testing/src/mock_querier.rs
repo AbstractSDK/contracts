@@ -274,7 +274,7 @@ impl MockQuerierBuilder {
             },
         )
     }
-
+    /// set the SDK-level contract admin for a contract.
     pub fn with_contract_admin(mut self, contract: impl ToString, admin: impl ToString) -> Self {
         self.contract_admin.insert(contract.to_string(), admin.to_string());
         self
