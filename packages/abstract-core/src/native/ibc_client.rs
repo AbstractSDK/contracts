@@ -1,5 +1,5 @@
 use self::state::AccountData;
-use crate::{abstract_ica::StdAck, ibc_host::HostAction, objects::core::AccountId};
+use crate::{abstract_ica::StdAck, ibc_host::HostAction, objects::account_id::AccountId};
 use abstract_ica::IbcResponseMsg;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{from_slice, Binary, Coin, CosmosMsg, StdResult, Timestamp};
@@ -8,7 +8,7 @@ pub mod state {
 
     use super::LatestQueryResponse;
     use crate::{
-        objects::{ans_host::AnsHost, common_namespace::ADMIN_NAMESPACE, core::AccountId},
+        objects::{account_id::AccountId, ans_host::AnsHost, common_namespace::ADMIN_NAMESPACE},
         ANS_HOST as ANS_HOST_KEY,
     };
     use cosmwasm_std::{Addr, Coin, Timestamp};
@@ -265,7 +265,7 @@ mod tests {
         let callback_id = "15".to_string();
         let callback_info = CallbackInfo {
             id: callback_id,
-            receiver: receiver,
+            receiver,
         };
         let ack_data = &to_binary(&StdAck::Result(to_binary(&true).unwrap())).unwrap();
 
