@@ -49,7 +49,7 @@ pub struct MockQuerierBuilder {
     smart_handlers: HashMap<ContractAddr, Box<SmartHandler>>,
     raw_handlers: HashMap<ContractAddr, Box<RawHandler>>,
     raw_mappings: HashMap<ContractAddr, HashMap<Binary, Binary>>,
-    contract_admin:HashMap<ContractAddr,AdminAddr>,
+    contract_admin: HashMap<ContractAddr, AdminAddr>,
 }
 
 impl Default for MockQuerierBuilder {
@@ -276,7 +276,8 @@ impl MockQuerierBuilder {
     }
     /// set the SDK-level contract admin for a contract.
     pub fn with_contract_admin(mut self, contract: impl ToString, admin: impl ToString) -> Self {
-        self.contract_admin.insert(contract.to_string(), admin.to_string());
+        self.contract_admin
+            .insert(contract.to_string(), admin.to_string());
         self
     }
 
@@ -311,9 +312,7 @@ impl MockQuerierBuilder {
                     };
                     res
                 }
-                WasmQuery::ContractInfo {
-                    contract_addr,
-                } => {
+                WasmQuery::ContractInfo { contract_addr } => {
                     let mut info = ContractInfoResponse::default();
                     info.admin = self.contract_admin.get(contract_addr).cloned();
                     Ok(to_binary(&info).unwrap())

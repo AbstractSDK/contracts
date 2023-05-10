@@ -968,7 +968,7 @@ mod test {
             let contract_addr = Addr::unchecked("contract");
             // create mock with ContractInfo response for contract with admin set
             deps.querier = mock_manager_querier()
-                .with_contract_admin(&contract_addr ,Addr::unchecked("admin"))
+                .with_contract_admin(&contract_addr, Addr::unchecked("admin"))
                 .build();
 
             mock_init_with_account(deps.as_mut(), false)?;
