@@ -24,7 +24,7 @@ mod deployment;
 mod error;
 mod traits;
 
-pub use error::AbstractBootError;
+pub use error::AbstractInterfaceError;
 
 pub use crate::deployers::*;
 

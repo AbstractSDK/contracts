@@ -1,20 +1,19 @@
 use abstract_core::module_factory::*;
 
-use cw_orch::{ArtifactsDir, Contract, CwEnv, TxResponse};
+use cw_orch::{contract::Contract, environment::TxHandler, interface, prelude::*};
 
 pub use abstract_core::module_factory::{
     ExecuteMsgFns as MFactoryExecFns, QueryMsgFns as MFactoryQueryFns,
 };
-use cw_orch::{interface, CwOrcExecute};
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct ModuleFactory<Chain>;
 
-impl<Chain: CwEnv> ::cw_orch::Uploadable for ModuleFactory<Chain> {
+impl<Chain: CwEnv> Uploadable for ModuleFactory<Chain> {
     #[cfg(feature = "integration")]
-    fn wrapper(&self) -> <::cw_orch::Mock as ::cw_orch::TxHandler>::ContractSource {
+    fn wrapper(&self) -> <Mock as TxHandler>::ContractSource {
         Box::new(
-            cw_orch::ContractWrapper::new_with_empty(
+            ContractWrapper::new_with_empty(
                 ::module_factory::contract::execute,
                 ::module_factory::contract::instantiate,
                 ::module_factory::contract::query,
@@ -23,7 +22,7 @@ impl<Chain: CwEnv> ::cw_orch::Uploadable for ModuleFactory<Chain> {
             .with_reply(::module_factory::contract::reply),
         )
     }
-    fn wasm(&self) -> cw_orch::WasmPath {
+    fn wasm(&self) -> WasmPath {
         ArtifactsDir::env()
             .find_wasm_path("module_factory")
             .unwrap()
@@ -32,13 +31,13 @@ impl<Chain: CwEnv> ::cw_orch::Uploadable for ModuleFactory<Chain> {
 
 impl<Chain: CwEnv> ModuleFactory<Chain> {
     pub fn new(name: &str, chain: Chain) -> Self {
-        Self(Contract::new(name, chain))
+        Self(cw_orch::contract::Contract::new(name, chain))
     }
 
     pub fn change_ans_host_addr(
         &self,
         mem_addr: String,
-    ) -> Result<TxResponse<Chain>, crate::AbstractBootError> {
+    ) -> Result<TxResponse<Chain>, crate::AbstractInterfaceError> {
         self.execute(
             &ExecuteMsg::UpdateConfig {
                 ans_host_address: Some(mem_addr),

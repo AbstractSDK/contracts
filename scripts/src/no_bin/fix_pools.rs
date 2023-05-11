@@ -1,4 +1,4 @@
-use abstract_boot::Abstract;
+use abstract_interface::Abstract;
 
 use cw_orch::{networks::NetworkInfo, *};
 

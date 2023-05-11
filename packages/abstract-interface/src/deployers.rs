@@ -1,22 +1,24 @@
 use crate::Abstract;
 use abstract_core::objects::module::ModuleVersion;
-use cw_orch::{CwEnv, CwOrchError::StdErr, *};
+use cw_orch::deploy::Deploy;
+use cw_orch::environment::ChainUpload;
+use cw_orch::prelude::CwOrchError::StdErr;
+use cw_orch::prelude::*;
 
 use semver::Version;
 use serde::Serialize;
 
-/// Trait for deploying APIs
-pub trait AdapterDeployer<Chain: CwEnv + ChainUpload, CustomInitMsg: Serialize>:
-ContractInstance<Chain>
-+ CwOrcInstantiate<Chain, InstantiateMsg=abstract_core::adapter::InstantiateMsg<CustomInitMsg>>
-+ CwOrcUpload<Chain>
 /// Trait for deploying Adapters
+pub trait AdapterDeployer<Chain: CwEnv + ChainUpload, CustomInitMsg: Serialize>:
+    ContractInstance<Chain>
+    + CwOrcInstantiate<Chain, InstantiateMsg = abstract_core::adapter::InstantiateMsg<CustomInitMsg>>
+    + CwOrcUpload<Chain>
 {
     fn deploy(
         &mut self,
         version: Version,
         custom_init_msg: CustomInitMsg,
-    ) -> Result<(), crate::AbstractBootError> {
+    ) -> Result<(), crate::AbstractInterfaceError> {
         // retrieve the deployment
         let abstr = Abstract::load_from(self.get_chain().clone())?;
 
@@ -55,7 +57,7 @@ ContractInstance<Chain>
 pub trait AppDeployer<Chain: CwEnv + ChainUpload>:
     ContractInstance<Chain> + CwOrcUpload<Chain>
 {
-    fn deploy(&mut self, version: Version) -> Result<(), crate::AbstractBootError> {
+    fn deploy(&mut self, version: Version) -> Result<(), crate::AbstractInterfaceError> {
         // retrieve the deployment
         let abstr = Abstract::<Chain>::load_from(self.get_chain().clone())?;
 

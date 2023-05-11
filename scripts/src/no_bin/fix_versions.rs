@@ -1,8 +1,8 @@
-use abstract_boot::{Abstract, VCExecFns, VCQueryFns};
 use abstract_core::{
     objects::module::{Module, ModuleInfo, ModuleVersion},
     version_control::{ModuleFilter, ModulesListResponse},
 };
+use abstract_interface::{Abstract, VCExecFns, VCQueryFns};
 use cw_orch::{networks::UNI_6, *};
 
 use abstract_core::objects::namespace::Namespace;

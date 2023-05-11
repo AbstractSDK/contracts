@@ -1,10 +1,10 @@
 mod common;
 
 use abstract_adapter::mock::MockExecMsg;
-use abstract_boot::*;
 use abstract_core::manager::ManagerModuleInfo;
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion};
 use abstract_core::{adapter::BaseQueryMsgFns, *};
+use abstract_interface::*;
 use abstract_testing::prelude::{OWNER, TEST_MODULE_ID, TEST_VERSION};
 use common::{create_default_account, init_mock_adapter, AResult, TEST_COIN};
 use cosmwasm_std::{Addr, Coin, Empty};

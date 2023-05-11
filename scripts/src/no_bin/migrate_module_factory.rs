@@ -1,5 +1,5 @@
-use abstract_boot::{ModuleFactory, VersionControl};
 use abstract_core::{MODULE_FACTORY, VERSION_CONTROL};
+use abstract_interface::{ModuleFactory, VersionControl};
 use clap::Parser;
 use cw_orch::{networks::parse_network, *};
 use semver::Version;

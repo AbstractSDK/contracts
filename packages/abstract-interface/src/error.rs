@@ -1,10 +1,10 @@
 use abstract_core::AbstractError;
 use cosmwasm_std::StdError;
-use cw_orch::CwOrchError;
+use cw_orch::prelude::CwOrchError;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub enum AbstractBootError {
+pub enum AbstractInterfaceError {
     #[error(transparent)]
     Abstract(#[from] AbstractError),
 
@@ -18,10 +18,10 @@ pub enum AbstractBootError {
     Std(#[from] StdError),
 }
 
-impl AbstractBootError {
+impl AbstractInterfaceError {
     pub fn root(&self) -> &dyn std::error::Error {
         match self {
-            AbstractBootError::Orch(e) => e.root(),
+            AbstractInterfaceError::Orch(e) => e.root(),
             _ => panic!("Unexpected error type"),
         }
     }

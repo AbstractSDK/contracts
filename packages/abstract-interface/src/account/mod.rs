@@ -13,26 +13,27 @@
 
 mod manager;
 mod proxy;
+
 use std::collections::HashSet;
 
 use abstract_core::{manager::ManagerModuleInfo, objects::AccountId};
 use cosmwasm_std::Addr;
-use cw_orch::{
-    CwEnv, {ChainUpload, ContractInstance, CwOrcUpload},
-};
+use cw_orch::environment::ChainUpload;
+use cw_orch::prelude::*;
 use serde::Serialize;
 use speculoos::prelude::*;
 
 use crate::{get_account_contracts, VersionControl};
 
 pub use self::{manager::*, proxy::*};
+
 pub struct AbstractAccount<Chain: CwEnv> {
     pub manager: Manager<Chain>,
     pub proxy: Proxy<Chain>,
 }
 
 impl<Chain: CwEnv + ChainUpload> AbstractAccount<Chain> {
-    pub fn upload(&mut self) -> Result<(), crate::AbstractBootError> {
+    pub fn upload(&mut self) -> Result<(), crate::AbstractInterfaceError> {
         self.manager.upload()?;
         self.proxy.upload()?;
         Ok(())
@@ -50,7 +51,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         &self,
         version_control: &VersionControl<Chain>,
         version: &str,
-    ) -> Result<(), crate::AbstractBootError> {
+    ) -> Result<(), crate::AbstractInterfaceError> {
         version_control.register_base(self, version)
     }
 
@@ -58,7 +59,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         &mut self,
         module_id: &str,
         init_msg: &TInitMsg,
-    ) -> Result<(), crate::AbstractBootError> {
+    ) -> Result<(), crate::AbstractInterfaceError> {
         self.manager.install_module(module_id, init_msg)
     }
 
@@ -68,7 +69,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     pub fn expect_modules(
         &self,
         module_addrs: Vec<String>,
-    ) -> Result<Vec<ManagerModuleInfo>, crate::AbstractBootError> {
+    ) -> Result<Vec<ManagerModuleInfo>, crate::AbstractInterfaceError> {
         let abstract_core::manager::ModuleInfosResponse {
             module_infos: manager_modules,
         } = self.manager.module_infos(None, None)?;
@@ -95,7 +96,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     pub fn expect_whitelist(
         &self,
         whitelisted_addrs: Vec<String>,
-    ) -> Result<Vec<String>, crate::AbstractBootError> {
+    ) -> Result<Vec<String>, crate::AbstractInterfaceError> {
         // insert manager in expected whitelisted addresses
         let expected_whitelisted_addrs = whitelisted_addrs
             .into_iter()

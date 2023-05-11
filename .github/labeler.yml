@@ -28,4 +28,4 @@
   - contracts/**/*.md
   - contracts/**/*/*.md
 "boot":
-  - packages/abstract-boot/**/*
+  - packages/abstract-interface/**/*

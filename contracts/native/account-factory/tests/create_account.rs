@@ -1,16 +1,18 @@
 mod common;
 
-use abstract_boot::{
-    AbstractAccount, AccountFactoryExecFns, AccountFactoryQueryFns, VCQueryFns, *,
-};
 use abstract_core::{
     account_factory, objects::gov_type::GovernanceDetails, version_control::AccountBase,
     ABSTRACT_EVENT_NAME,
+};
+use abstract_interface::{
+    AbstractAccount, AccountFactoryExecFns, AccountFactoryQueryFns, VCQueryFns, *,
 };
 use abstract_testing::addresses::TEST_ACCOUNT_ID;
 use abstract_testing::prelude::TEST_OWNER;
 use common::TEST_VERSION;
 use cosmwasm_std::{Addr, Uint64};
+use cw_orch::deploy::Deploy;
+use cw_orch::prelude::Mock;
 use cw_orch::{ContractInstance, Deploy, IndexResponse, Mock};
 use speculoos::prelude::*;
 

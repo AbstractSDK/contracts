@@ -1,12 +1,12 @@
 mod common;
 
 use abstract_app::mock::{MockInitMsg, MockMigrateMsg};
-use abstract_boot::{Abstract, AbstractAccount, Manager, ManagerExecFns, VCExecFns};
 use abstract_core::{
     app::{self, BaseInstantiateMsg},
     objects::module::{ModuleInfo, ModuleVersion},
     AbstractError,
 };
+use abstract_interface::{Abstract, AbstractAccount, Manager, ManagerExecFns, VCExecFns};
 
 use abstract_manager::error::ManagerError;
 use abstract_testing::addresses::{TEST_ACCOUNT_ID, TEST_NAMESPACE};

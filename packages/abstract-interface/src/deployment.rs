@@ -1,8 +1,12 @@
 use crate::{
-    get_account_contracts, get_native_contracts, AbstractAccount, AbstractBootError,
+    get_account_contracts, get_native_contracts, AbstractAccount, AbstractInterfaceError,
     AccountFactory, AnsHost, Manager, ModuleFactory, Proxy, VersionControl,
 };
-
+use abstract_core::{
+    objects::gov_type::GovernanceDetails, ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY,
+    PROXY, VERSION_CONTROL,
+};
+use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 
 pub struct Abstract<Chain: CwEnv> {
@@ -13,15 +17,12 @@ pub struct Abstract<Chain: CwEnv> {
     pub account: AbstractAccount<Chain>,
 }
 
-use abstract_core::objects::gov_type::GovernanceDetails;
-use abstract_core::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY, VERSION_CONTROL};
-
-impl<Chain: CwEnv> cw_orch::Deploy<Chain> for Abstract<Chain> {
+impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
     // We don't have a custom error type
-    type Error = AbstractBootError;
+    type Error = AbstractInterfaceError;
     type DeployData = semver::Version;
 
-    fn store_on(chain: Chain) -> Result<Self, AbstractBootError> {
+    fn store_on(chain: Chain) -> Result<Self, AbstractInterfaceError> {
         let ans_host = AnsHost::new(ANS_HOST, chain.clone());
         let account_factory = AccountFactory::new(ACCOUNT_FACTORY, chain.clone());
         let version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
@@ -48,7 +49,7 @@ impl<Chain: CwEnv> cw_orch::Deploy<Chain> for Abstract<Chain> {
         Ok(deployment)
     }
 
-    fn deploy_on(chain: Chain, version: semver::Version) -> Result<Self, AbstractBootError> {
+    fn deploy_on(chain: Chain, version: semver::Version) -> Result<Self, AbstractInterfaceError> {
         // upload
         let mut deployment = Self::store_on(chain.clone())?;
 
@@ -83,7 +84,7 @@ impl<Chain: CwEnv> cw_orch::Deploy<Chain> for Abstract<Chain> {
         Ok(deployment)
     }
 
-    fn load_from(chain: Chain) -> Result<Self, AbstractBootError> {
+    fn load_from(chain: Chain) -> Result<Self, AbstractInterfaceError> {
         Ok(Self::new(chain))
     }
 }
@@ -142,7 +143,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
         Ok(())
     }
 
-    pub fn contracts(&self) -> Vec<&Contract<Chain>> {
+    pub fn contracts(&self) -> Vec<&cw_orch::contract::Contract<Chain>> {
         vec![
             self.ans_host.as_instance(),
             self.version_control.as_instance(),

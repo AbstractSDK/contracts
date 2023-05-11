@@ -7,10 +7,8 @@ use abstract_core::{
 };
 use cosmwasm_std::Addr;
 use cw_asset::AssetInfoUnchecked;
-use cw_orch::{
-    ArtifactsDir, Contract, CwEnv, CwOrchError, IndexResponse, TxResponse,
-    {interface, ContractInstance},
-};
+use cw_orch::contract::Contract;
+use cw_orch::{interface, prelude::*};
 use log::info;
 use serde_json::from_reader;
 use std::{cmp::min, collections::HashSet, env, fs::File};
@@ -18,11 +16,11 @@ use std::{cmp::min, collections::HashSet, env, fs::File};
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct AnsHost<Chain>;
 
-impl<Chain: CwEnv> ::cw_orch::Uploadable for AnsHost<Chain> {
+impl<Chain: CwEnv> Uploadable for AnsHost<Chain> {
     #[cfg(feature = "integration")]
-    fn wrapper(&self) -> <::cw_orch::Mock as ::cw_orch::TxHandler>::ContractSource {
+    fn wrapper(&self) -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
         Box::new(
-            cw_orch::ContractWrapper::new_with_empty(
+            ContractWrapper::new_with_empty(
                 ::ans_host::contract::execute,
                 ::ans_host::contract::instantiate,
                 ::ans_host::contract::query,
@@ -30,7 +28,7 @@ impl<Chain: CwEnv> ::cw_orch::Uploadable for AnsHost<Chain> {
             .with_migrate(::ans_host::contract::migrate),
         )
     }
-    fn wasm(&self) -> cw_orch::WasmPath {
+    fn wasm(&self) -> WasmPath {
         ArtifactsDir::env().find_wasm_path("ans_host").unwrap()
     }
 }
@@ -40,28 +38,28 @@ where
     TxResponse<Chain>: IndexResponse,
 {
     pub fn new(name: &str, chain: Chain) -> Self {
-        Self(Contract::new(name, chain))
+        Self(cw_orch::contract::Contract::new(name, chain))
     }
 
     pub fn load(chain: Chain, address: &Addr) -> Self {
-        Self(Contract::new(ANS_HOST, chain).with_address(Some(address)))
+        Self(cw_orch::contract::Contract::new(ANS_HOST, chain).with_address(Some(address)))
     }
 }
 
 /// Implementation for the daemon, which maintains actual state
 #[cfg(feature = "daemon")]
-use cw_orch::Daemon;
+use cw_orch::daemon::Daemon;
 
 #[cfg(feature = "daemon")]
 impl AnsHost<Daemon> {
-    pub fn update_all(&self) -> Result<(), crate::AbstractBootError> {
+    pub fn update_all(&self) -> Result<(), crate::AbstractInterfaceError> {
         self.update_assets()?;
         self.update_contracts()?;
         self.update_pools()?;
         Ok(())
     }
 
-    pub fn update_assets(&self) -> Result<(), crate::AbstractBootError> {
+    pub fn update_assets(&self) -> Result<(), crate::AbstractInterfaceError> {
         let path = env::var("ANS_HOST_ASSETS").unwrap();
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
@@ -112,7 +110,7 @@ impl AnsHost<Daemon> {
         Ok(())
     }
 
-    pub fn update_channels(&self) -> Result<(), crate::AbstractBootError> {
+    pub fn update_channels(&self) -> Result<(), crate::AbstractInterfaceError> {
         let path = env::var("ANS_HOST_CHANNELS").unwrap();
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
@@ -143,7 +141,7 @@ impl AnsHost<Daemon> {
         Ok(())
     }
 
-    pub fn update_contracts(&self) -> Result<(), crate::AbstractBootError> {
+    pub fn update_contracts(&self) -> Result<(), crate::AbstractInterfaceError> {
         let path = env::var("ANS_HOST_CONTRACTS").unwrap();
 
         let file =
@@ -189,7 +187,7 @@ impl AnsHost<Daemon> {
         Ok(())
     }
 
-    pub fn update_pools(&self) -> Result<(), crate::AbstractBootError> {
+    pub fn update_pools(&self) -> Result<(), crate::AbstractInterfaceError> {
         let path = env::var("ANS_HOST_POOLS").unwrap();
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
@@ -239,7 +237,7 @@ impl AnsHost<Daemon> {
         items: &[T],
         chunk_size: usize,
         mut msg_builder: MsgBuilder,
-    ) -> Result<(), crate::AbstractBootError>
+    ) -> Result<(), crate::AbstractInterfaceError>
     where
         MsgBuilder: FnMut(&[T]) -> ExecuteMsg,
     {

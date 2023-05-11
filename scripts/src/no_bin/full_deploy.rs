@@ -1,5 +1,5 @@
-use abstract_boot::Abstract;
 use abstract_core::objects::gov_type::GovernanceDetails;
+use abstract_interface::Abstract;
 
 use clap::Parser;
 use cw_orch::networks::juno::JUNO_NETWORK;

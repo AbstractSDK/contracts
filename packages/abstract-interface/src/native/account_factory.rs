@@ -6,8 +6,7 @@ use abstract_core::{
     account_factory::*, objects::gov_type::GovernanceDetails, ABSTRACT_EVENT_NAME, MANAGER, PROXY,
 };
 use cosmwasm_std::Addr;
-use cw_orch::interface;
-use cw_orch::prelude::*;
+use cw_orch::{interface, prelude::*};
 
 /// A helper struct that contains fields from [`abstract_core::manager::state::AccountInfo`]
 #[derive(Default)]
@@ -20,11 +19,11 @@ pub struct AccountDetails {
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct AccountFactory<Chain>;
 
-impl<Chain: CwEnv> ::cw_orch::Uploadable for AccountFactory<Chain> {
+impl<Chain: CwEnv> Uploadable for AccountFactory<Chain> {
     #[cfg(feature = "integration")]
-    fn wrapper(&self) -> <::cw_orch::Mock as ::cw_orch::TxHandler>::ContractSource {
+    fn wrapper(&self) -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
         Box::new(
-            cw_orch::ContractWrapper::new_with_empty(
+            ContractWrapper::new_with_empty(
                 ::account_factory::contract::execute,
                 ::account_factory::contract::instantiate,
                 ::account_factory::contract::query,
@@ -34,7 +33,7 @@ impl<Chain: CwEnv> ::cw_orch::Uploadable for AccountFactory<Chain> {
         )
     }
 
-    fn wasm(&self) -> cw_orch::WasmPath {
+    fn wasm(&self) -> WasmPath {
         ArtifactsDir::env()
             .find_wasm_path("account_factor")
             .unwrap()
@@ -50,7 +49,7 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
         &self,
         account_details: AccountDetails,
         governance_details: GovernanceDetails<String>,
-    ) -> Result<AbstractAccount<Chain>, crate::AbstractBootError> {
+    ) -> Result<AbstractAccount<Chain>, crate::AbstractInterfaceError> {
         let AccountDetails {
             name,
             link,
@@ -84,7 +83,7 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
     pub fn create_default_account(
         &self,
         governance_details: GovernanceDetails<String>,
-    ) -> Result<AbstractAccount<Chain>, crate::AbstractBootError> {
+    ) -> Result<AbstractAccount<Chain>, crate::AbstractInterfaceError> {
         self.create_new_account(
             AccountDetails {
                 name: "Default Abstract Account".into(),

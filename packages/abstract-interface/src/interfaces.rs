@@ -3,7 +3,7 @@ use abstract_core::{
     objects::AccountId, ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, MANAGER, MODULE_FACTORY, PROXY,
     VERSION_CONTROL,
 };
-use cw_orch::{CwEnv, IndexResponse, StateInterface, TxHandler};
+use cw_orch::prelude::*;
 
 #[allow(clippy::type_complexity)]
 pub fn get_native_contracts<Chain: CwEnv>(
@@ -16,7 +16,7 @@ pub fn get_native_contracts<Chain: CwEnv>(
     IbcClient<Chain>,
 )
 where
-    <Chain as TxHandler>::Response: IndexResponse,
+    <Chain as cw_orch::environment::TxHandler>::Response: IndexResponse,
 {
     let ans_host = AnsHost::new(ANS_HOST, chain.clone());
     let account_factory = AccountFactory::new(ACCOUNT_FACTORY, chain.clone());
@@ -37,7 +37,7 @@ pub fn get_account_contracts<Chain: CwEnv>(
     account_id: Option<AccountId>,
 ) -> (Manager<Chain>, Proxy<Chain>)
 where
-    <Chain as TxHandler>::Response: IndexResponse,
+    <Chain as cw_orch::environment::TxHandler>::Response: IndexResponse,
 {
     if let Some(account_id) = account_id {
         let version_control = VersionControl::new(VERSION_CONTROL, chain.clone());

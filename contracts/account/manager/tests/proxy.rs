@@ -1,6 +1,6 @@
 mod common;
-use abstract_boot::*;
 use abstract_core::{manager::ManagerModuleInfo, PROXY};
+use abstract_interface::*;
 use abstract_manager::contract::CONTRACT_VERSION;
 use abstract_testing::prelude::{TEST_ACCOUNT_ID, TEST_VERSION};
 use common::{create_default_account, AResult, TEST_COIN};

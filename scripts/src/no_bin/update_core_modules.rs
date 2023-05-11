@@ -1,7 +1,7 @@
-use abstract_boot::{AbstractAccount, AccountFactory, AccountFactoryQueryFns, VersionControl};
 use abstract_core::{
     account_factory, manager, proxy, ACCOUNT_FACTORY, MANAGER, PROXY, VERSION_CONTROL,
 };
+use abstract_interface::{AbstractAccount, AccountFactory, AccountFactoryQueryFns, VersionControl};
 use cw_orch::{
     networks::{parse_network, NetworkInfo},
     *,

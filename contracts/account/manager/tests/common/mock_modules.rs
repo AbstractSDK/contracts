@@ -6,8 +6,8 @@ use abstract_adapter::{mock::MockError as AdapterMockError, AdapterContract};
 use abstract_app::gen_app_mock;
 use abstract_app::mock::MockError as AppMockError;
 use abstract_app::AppContract;
-use abstract_boot::{AdapterDeployer, AppDeployer};
 use abstract_core::objects::dependency::StaticDependency;
+use abstract_interface::{AdapterDeployer, AppDeployer};
 // use cw_orch::{ContractWrapper};
 use cw_orch::{Empty, Mock};
 

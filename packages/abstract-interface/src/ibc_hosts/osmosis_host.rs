@@ -1,12 +1,13 @@
 use abstract_core::ibc_host::*;
 use cosmwasm_std::Empty;
-use cw_orch::{interface, Contract, CwEnv};
+use cw_orch::contract::Contract;
+use cw_orch::{interface, prelude::*};
 
-#[contract(InstantiateMsg, Empty, QueryMsg, MigrateMsg)]
+#[interface(InstantiateMsg, Empty, QueryMsg, MigrateMsg)]
 pub struct OsmosisHost<Chain>;
 
 impl<Chain: CwEnv> OsmosisHost<Chain> {
     pub fn new(name: &str, chain: Chain) -> Self {
-        Self(Contract::new(name, chain))
+        Self(cw_orch::contract::Contract::new(name, chain))
     }
 }

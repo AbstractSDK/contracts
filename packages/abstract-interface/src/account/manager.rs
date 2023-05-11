@@ -32,14 +32,14 @@ impl<Chain: CwEnv> Uploadable for Manager<Chain> {
 
 impl<Chain: CwEnv> Manager<Chain> {
     pub fn new(name: &str, chain: Chain) -> Self {
-        Self(Contract::new(name, chain))
+        Self(cw_orch::contract::Contract::new(name, chain))
     }
 
     pub fn upgrade_module<M: Serialize>(
         &self,
         module_id: &str,
         migrate_msg: &M,
-    ) -> Result<(), crate::AbstractBootError> {
+    ) -> Result<(), crate::AbstractInterfaceError> {
         self.execute(
             &ExecuteMsg::Upgrade {
                 modules: vec![(
@@ -52,7 +52,7 @@ impl<Chain: CwEnv> Manager<Chain> {
         Ok(())
     }
 
-    pub fn replace_api(&self, module_id: &str) -> Result<(), crate::AbstractBootError> {
+    pub fn replace_api(&self, module_id: &str) -> Result<(), crate::AbstractInterfaceError> {
         // this should check if installed?
         self.uninstall_module(module_id.to_string())?;
 
@@ -63,7 +63,7 @@ impl<Chain: CwEnv> Manager<Chain> {
         &self,
         module_id: &str,
         init_msg: &TInitMsg,
-    ) -> Result<(), crate::AbstractBootError> {
+    ) -> Result<(), crate::AbstractInterfaceError> {
         self.install_module_version(module_id, ModuleVersion::Latest, init_msg)
     }
 
@@ -72,7 +72,7 @@ impl<Chain: CwEnv> Manager<Chain> {
         module_id: &str,
         version: ModuleVersion,
         init_msg: &M,
-    ) -> Result<(), crate::AbstractBootError> {
+    ) -> Result<(), crate::AbstractInterfaceError> {
         self.execute(
             &ExecuteMsg::InstallModule {
                 module: ModuleInfo::from_id(module_id, version)?,
@@ -87,7 +87,7 @@ impl<Chain: CwEnv> Manager<Chain> {
         &self,
         module: &str,
         msg: impl Serialize,
-    ) -> Result<(), crate::AbstractBootError> {
+    ) -> Result<(), crate::AbstractInterfaceError> {
         self.execute(
             &ExecuteMsg::ExecOnModule {
                 module_id: module.into(),
@@ -103,7 +103,7 @@ impl<Chain: CwEnv> Manager<Chain> {
         module_id: &str,
         to_add: Vec<String>,
         to_remove: Vec<String>,
-    ) -> Result<(), crate::AbstractBootError> {
+    ) -> Result<(), crate::AbstractInterfaceError> {
         self.execute_on_module(
             module_id,
             adapter::ExecuteMsg::<Empty, Empty>::Base(
@@ -118,7 +118,7 @@ impl<Chain: CwEnv> Manager<Chain> {
     pub fn module_info(
         &self,
         module_id: &str,
-    ) -> Result<Option<ManagerModuleInfo>, crate::AbstractBootError> {
+    ) -> Result<Option<ManagerModuleInfo>, crate::AbstractInterfaceError> {
         let module_infos = self.module_infos(None, None)?.module_infos;
         let found = module_infos
             .into_iter()
@@ -126,7 +126,10 @@ impl<Chain: CwEnv> Manager<Chain> {
         Ok(found)
     }
 
-    pub fn is_module_installed(&self, module_id: &str) -> Result<bool, crate::AbstractBootError> {
+    pub fn is_module_installed(
+        &self,
+        module_id: &str,
+    ) -> Result<bool, crate::AbstractInterfaceError> {
         let module = self.module_info(module_id)?;
         Ok(module.is_some())
     }

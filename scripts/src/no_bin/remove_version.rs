@@ -1,5 +1,5 @@
-use abstract_boot::{VCExecFns, VersionControl};
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion};
+use abstract_interface::{VCExecFns, VersionControl};
 use cosmwasm_std::Addr;
 use cw_orch::{networks, networks::NetworkInfo, DaemonBuilder};
 use std::{env, sync::Arc};

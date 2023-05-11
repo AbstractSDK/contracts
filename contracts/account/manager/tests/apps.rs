@@ -1,6 +1,6 @@
 mod common;
-use abstract_boot::*;
 use abstract_core::PROXY;
+use abstract_interface::*;
 use abstract_testing::prelude::TEST_VERSION;
 use common::{create_default_account, AResult, TEST_COIN};
 use cosmwasm_std::{Addr, Coin, CosmosMsg};

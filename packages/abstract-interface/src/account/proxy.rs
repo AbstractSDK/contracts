@@ -6,16 +6,16 @@ use abstract_core::{
     MANAGER, PROXY,
 };
 
-use cw_orch::{interface, ArtifactsDir, ContractInstance, CwEnv};
+use cw_orch::{interface, prelude::*};
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Proxy<Chain>;
 
-impl<Chain: CwEnv> ::cw_orch::Uploadable for Proxy<Chain> {
+impl<Chain: CwEnv> Uploadable for Proxy<Chain> {
     #[cfg(feature = "integration")]
-    fn wrapper(&self) -> <::cw_orch::Mock as ::cw_orch::TxHandler>::ContractSource {
+    fn wrapper(&self) -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
         Box::new(
-            cw_orch::ContractWrapper::new_with_empty(
+            ContractWrapper::new_with_empty(
                 ::proxy::contract::execute,
                 ::proxy::contract::instantiate,
                 ::proxy::contract::query,
@@ -23,20 +23,20 @@ impl<Chain: CwEnv> ::cw_orch::Uploadable for Proxy<Chain> {
             .with_migrate(::proxy::contract::migrate),
         )
     }
-    fn wasm(&self) -> cw_orch::WasmPath {
+    fn wasm(&self) -> WasmPath {
         ArtifactsDir::env().find_wasm_path("proxy").unwrap()
     }
 }
 
 impl<Chain: CwEnv> Proxy<Chain> {
     pub fn new(name: &str, chain: Chain) -> Self {
-        Self(cw_orch::Contract::new(name, chain))
+        Self(cw_orch::contract::Contract::new(name, chain))
     }
 
     pub fn set_proxy_asset(
         &self,
         to_add: Vec<(AssetEntry, UncheckedPriceSource)>,
-    ) -> Result<(), crate::AbstractBootError> {
+    ) -> Result<(), crate::AbstractInterfaceError> {
         let manager = Manager::new(MANAGER, self.get_chain().clone());
         manager.execute_on_module(
             PROXY,

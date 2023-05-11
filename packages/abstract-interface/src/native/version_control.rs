@@ -11,18 +11,18 @@ use abstract_core::{
 };
 use cosmwasm_std::Addr;
 use cw_orch::contract::Contract;
+#[cfg(feature = "daemon")]
+use cw_orch::daemon::Daemon;
 use cw_orch::interface;
 use cw_orch::prelude::*;
-#[cfg(feature = "daemon")]
-use cw_orch::Daemon;
 use semver::Version;
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct VersionControl<Chain>;
 
-impl<Chain: CwEnv> ::cw_orch::Uploadable for VersionControl<Chain> {
+impl<Chain: CwEnv> Uploadable for VersionControl<Chain> {
     #[cfg(feature = "integration")]
-    fn wrapper(&self) -> <::cw_orch::Mock as ::cw_orch::TxHandler>::ContractSource {
+    fn wrapper(&self) -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
         Box::new(
             ContractWrapper::new_with_empty(
                 ::version_control::contract::execute,
@@ -32,7 +32,7 @@ impl<Chain: CwEnv> ::cw_orch::Uploadable for VersionControl<Chain> {
             .with_migrate(::version_control::contract::migrate),
         )
     }
-    fn wasm(&self) -> cw_orch::WasmPath {
+    fn wasm(&self) -> WasmPath {
         ArtifactsDir::env()
             .find_wasm_path("version_control")
             .unwrap()
@@ -44,15 +44,15 @@ where
     TxResponse<Chain>: IndexResponse,
 {
     pub fn new(name: &str, chain: Chain) -> Self {
-        Self(Contract::new(name, chain))
+        Self(cw_orch::contract::Contract::new(name, chain))
     }
 
     pub fn load(chain: Chain, address: &Addr) -> Self {
-        Self(Contract::new(VERSION_CONTROL, chain).with_address(Some(address)))
+        Self(cw_orch::contract::Contract::new(VERSION_CONTROL, chain).with_address(Some(address)))
     }
 
     /// Query a single module
-    pub fn module(&self, info: ModuleInfo) -> Result<Module, crate::AbstractBootError> {
+    pub fn module(&self, info: ModuleInfo) -> Result<Module, crate::AbstractInterfaceError> {
         let ModulesResponse { mut modules } = self.modules(vec![info])?;
 
         Ok(modules.swap_remove(0))
@@ -62,7 +62,7 @@ where
         &self,
         account: &AbstractAccount<Chain>,
         version: &str,
-    ) -> Result<(), crate::AbstractBootError> {
+    ) -> Result<(), crate::AbstractInterfaceError> {
         let manager = account.manager.as_instance();
         let manager_module = (
             ModuleInfo::from_id(&manager.id, ModuleVersion::Version(version.to_string()))?,
@@ -88,7 +88,7 @@ where
         &self,
         apps: Vec<&Contract<Chain>>,
         version: &Version,
-    ) -> Result<(), crate::AbstractBootError> {
+    ) -> Result<(), crate::AbstractInterfaceError> {
         let to_register = self.contracts_into_module_entries(apps, version, |c| {
             ModuleReference::AccountBase(c.code_id().unwrap())
         })?;
@@ -101,7 +101,7 @@ where
         &self,
         natives: Vec<&Contract<Chain>>,
         version: &Version,
-    ) -> Result<(), crate::AbstractBootError> {
+    ) -> Result<(), crate::AbstractInterfaceError> {
         let to_register = self.contracts_into_module_entries(natives, version, |c| {
             ModuleReference::Native(c.address().unwrap())
         })?;
@@ -113,7 +113,7 @@ where
         &self,
         apps: Vec<&Contract<Chain>>,
         version: &Version,
-    ) -> Result<(), crate::AbstractBootError> {
+    ) -> Result<(), crate::AbstractInterfaceError> {
         let to_register = self.contracts_into_module_entries(apps, version, |c| {
             ModuleReference::App(c.code_id().unwrap())
         })?;
@@ -125,7 +125,7 @@ where
         &self,
         adapters: Vec<&Contract<Chain>>,
         version: &Version,
-    ) -> Result<(), crate::AbstractBootError> {
+    ) -> Result<(), crate::AbstractInterfaceError> {
         let to_register = self.contracts_into_module_entries(adapters, version, |c| {
             ModuleReference::Adapter(c.address().unwrap())
         })?;
@@ -137,7 +137,7 @@ where
         &self,
         standalones: Vec<&Contract<Chain>>,
         version: &Version,
-    ) -> Result<(), crate::AbstractBootError> {
+    ) -> Result<(), crate::AbstractInterfaceError> {
         let to_register = self.contracts_into_module_entries(standalones, version, |c| {
             ModuleReference::Standalone(c.code_id().unwrap())
         })?;
@@ -150,13 +150,13 @@ where
         modules: Vec<&Contract<Chain>>,
         version: &Version,
         ref_fn: RefFn,
-    ) -> Result<Vec<(ModuleInfo, ModuleReference)>, crate::AbstractBootError>
+    ) -> Result<Vec<(ModuleInfo, ModuleReference)>, crate::AbstractInterfaceError>
     where
         RefFn: Fn(&&Contract<Chain>) -> ModuleReference,
     {
         let modules_to_register: Result<
             Vec<(ModuleInfo, ModuleReference)>,
-            crate::AbstractBootError,
+            crate::AbstractInterfaceError,
         > = modules
             .iter()
             .map(|contract| {
@@ -172,7 +172,7 @@ where
     pub fn get_account(
         &self,
         account_id: AccountId,
-    ) -> Result<AccountBase, crate::AbstractBootError> {
+    ) -> Result<AccountBase, crate::AbstractInterfaceError> {
         let resp: AccountBaseResponse = self.query(&QueryMsg::AccountBase { account_id })?;
         Ok(resp.account_base)
     }
@@ -182,7 +182,7 @@ where
         &self,
         id: &str,
         version: ModuleVersion,
-    ) -> Result<Addr, crate::AbstractBootError> {
+    ) -> Result<Addr, crate::AbstractInterfaceError> {
         let module: Module = self.module(ModuleInfo::from_id(id, version)?)?;
 
         Ok(module.reference.unwrap_adapter()?)
@@ -193,7 +193,7 @@ where
         &self,
         id: &str,
         version: ModuleVersion,
-    ) -> Result<u64, crate::AbstractBootError> {
+    ) -> Result<u64, crate::AbstractInterfaceError> {
         let module: Module = self.module(ModuleInfo::from_id(id, version)?)?;
 
         Ok(module.reference.unwrap_app()?)

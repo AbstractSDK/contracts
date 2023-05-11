@@ -1,8 +1,8 @@
-use abstract_boot::{Abstract, VCExecFns};
 use abstract_core::{
     objects::module::{Module, ModuleInfo},
     version_control::{ModulesListResponse, QueryMsgFns},
 };
+use abstract_interface::{Abstract, VCExecFns};
 use cw_orch::{
     networks::{terra::PISCO_1, NetworkInfo},
     *,
