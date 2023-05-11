@@ -10,7 +10,7 @@ repository = "https://github.com/AbstractSDK/contracts"
 
 
 [features]
-boot = ["dep:cw-orch"]
+interface = ["dep:cw-orch"]
 # for quicker tests, cargo test --lib
 
 [dependencies]

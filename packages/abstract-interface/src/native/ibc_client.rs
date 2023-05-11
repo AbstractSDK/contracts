@@ -1,4 +1,4 @@
-use cw_orch::{contract::Contract, interface, prelude::*};
+use cw_orch::{interface, prelude::*};
 
 pub use abstract_core::ibc_client::{
     ExecuteMsg, ExecuteMsgFns as IbcClientExecFns, InstantiateMsg, MigrateMsg, QueryMsg,

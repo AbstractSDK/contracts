@@ -27,5 +27,5 @@
   - README.md
   - contracts/**/*.md
   - contracts/**/*/*.md
-"boot":
+"interface":
   - packages/abstract-interface/**/*

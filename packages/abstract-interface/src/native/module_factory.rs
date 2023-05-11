@@ -1,6 +1,6 @@
 use abstract_core::module_factory::*;
 
-use cw_orch::{contract::Contract, environment::TxHandler, interface, prelude::*};
+use cw_orch::{environment::TxHandler, interface, prelude::*};
 
 pub use abstract_core::module_factory::{
     ExecuteMsgFns as MFactoryExecFns, QueryMsgFns as MFactoryQueryFns,

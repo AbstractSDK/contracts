@@ -7,7 +7,7 @@ use abstract_core::{
 };
 use cosmwasm_std::Addr;
 use cw_asset::AssetInfoUnchecked;
-use cw_orch::contract::Contract;
+
 use cw_orch::{interface, prelude::*};
 use log::info;
 use serde_json::from_reader;
