@@ -48,7 +48,6 @@ pub fn follow_trail(channel1: Channel, chain1: String, tx_hash: String) -> Resul
     }
     log::info!("Investigating sent packet events on tx {}", tx_hash);
 
-    // We account for a single send_packet event at a time for now (TODO)
     let connections: Vec<String> = send_packet_events
         .iter()
         .map(|e| e.get_first_attribute_value("packet_connection").unwrap())
@@ -100,6 +99,7 @@ pub fn follow_trail(channel1: Channel, chain1: String, tx_hash: String) -> Resul
         .collect::<Vec<_>>()
     )).into_iter().collect::<Result<Vec<_>>>()?;
 
+    // here we don't really need the interchain infrastructure per se, but only the daemons associated for the chains corresponding to chain_id (TODO)
     let interchain = InterchainInfrastructure::new(
             rt.handle(),
             chain_ids.iter().map(|c| (parse_network(c), "")).collect(),
