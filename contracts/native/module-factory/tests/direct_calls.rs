@@ -2,7 +2,8 @@ use abstract_core::{module_factory, objects::module::ModuleInfo};
 use abstract_interface::*;
 use abstract_testing::prelude::{TEST_ADMIN, TEST_VERSION};
 use cosmwasm_std::Addr;
-use cw_orch::{ContractInstance, Deploy, Mock};
+use cw_orch::deploy::Deploy;
+use cw_orch::prelude::*;
 use speculoos::prelude::*;
 
 type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>

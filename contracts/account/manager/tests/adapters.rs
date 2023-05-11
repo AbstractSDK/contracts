@@ -8,10 +8,8 @@ use abstract_interface::*;
 use abstract_testing::prelude::{OWNER, TEST_MODULE_ID, TEST_VERSION};
 use common::{create_default_account, init_mock_adapter, AResult, TEST_COIN};
 use cosmwasm_std::{Addr, Coin, Empty};
-use cw_orch::{CwOrcExecute, Deploy};
-use cw_orch::{
-    CwOrchError, Mock, TxHandler, {CallAs, ContractInstance},
-};
+use cw_orch::deploy::Deploy;
+use cw_orch::prelude::*;
 // use cw_multi_test::StakingInfo;
 use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};
 

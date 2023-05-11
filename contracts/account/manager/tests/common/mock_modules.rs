@@ -9,7 +9,7 @@ use abstract_app::AppContract;
 use abstract_core::objects::dependency::StaticDependency;
 use abstract_interface::{AdapterDeployer, AppDeployer};
 // use cw_orch::{ContractWrapper};
-use cw_orch::{Empty, Mock};
+use cw_orch::prelude::*;
 
 pub type MockAdapterContract = AdapterContract<AdapterMockError, Empty, Empty, Empty, Empty, Empty>;
 pub type MockAppContract = AppContract<AppMockError, Empty, Empty, Empty, Empty, Empty, Empty>;

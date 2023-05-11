@@ -177,6 +177,7 @@ pub mod mock {
         use ::abstract_core::adapter::*;
         use ::cosmwasm_std::Empty;
         use ::abstract_adapter::mock::{MockExecMsg, MockQueryMsg, MockReceiveMsg, MockInitMsg, MockAdapterContract, MockError};
+        use ::cw_orch::environment::CwEnv;
 
         const MOCK_ADAPTER: ::abstract_adapter::mock::MockAdapterContract = ::abstract_adapter::mock::MockAdapterContract::new($id, $version, None)
         .with_dependencies($deps);
@@ -218,9 +219,9 @@ pub mod mock {
         #[cw_orch::interface(Init, Exec, Query, Empty)]
         pub struct $name ;
 
-        impl<Chain: ::cw_orch::CwEnv> ::abstract_interface::AdapterDeployer<Chain, MockInitMsg> for $name <Chain> {}
+        impl ::abstract_interface::AdapterDeployer<::cw_orch::prelude::Mock, MockInitMsg> for $name <::cw_orch::prelude::Mock> {}
 
-        impl Uploadable for $name<Mock> {
+        impl Uploadable for $name<::cw_orch::prelude::Mock> {
             fn wrapper(&self) -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
                 Box::new(ContractWrapper::<
                     Exec,
@@ -237,7 +238,7 @@ pub mod mock {
             }
         }
 
-        impl<Chain: ::cw_orch::CwEnv> $name <Chain> {
+        impl<Chain: ::cw_orch::environment::CwEnv> $name <Chain> {
             pub fn new(chain: Chain) -> Self {
                 Self(
                     ::cw_orch::contract::Contract::new($id, chain),

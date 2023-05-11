@@ -233,7 +233,7 @@ pub mod mock {
             }
         }
 
-        impl<Chain: ::cw_orch::CwEnv> $name <Chain> {
+        impl<Chain: ::cw_orch::environment::CwEnv> $name <Chain> {
             pub fn new(chain: Chain) -> Self {
                 Self(
                     cw_orch::contract::Contract::new($id,chain),

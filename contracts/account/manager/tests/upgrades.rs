@@ -14,7 +14,8 @@ use abstract_testing::prelude::TEST_VERSION;
 use common::mock_modules::*;
 use common::{create_default_account, AResult};
 use cosmwasm_std::to_binary;
-use cw_orch::{Addr, ContractInstance, Deploy, Empty, Mock};
+use cw_orch::deploy::Deploy;
+use cw_orch::prelude::*;
 use speculoos::prelude::*;
 
 fn install_module_version(

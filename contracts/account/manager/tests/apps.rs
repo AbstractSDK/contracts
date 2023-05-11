@@ -4,7 +4,8 @@ use abstract_interface::*;
 use abstract_testing::prelude::TEST_VERSION;
 use common::{create_default_account, AResult, TEST_COIN};
 use cosmwasm_std::{Addr, Coin, CosmosMsg};
-use cw_orch::{ContractInstance, Deploy, Mock};
+use cw_orch::deploy::Deploy;
+use cw_orch::prelude::*;
 use speculoos::prelude::*;
 
 #[test]

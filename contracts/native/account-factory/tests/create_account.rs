@@ -13,7 +13,7 @@ use common::TEST_VERSION;
 use cosmwasm_std::{Addr, Uint64};
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::Mock;
-use cw_orch::{ContractInstance, Deploy, IndexResponse, Mock};
+use cw_orch::prelude::*;
 use speculoos::prelude::*;
 
 type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>

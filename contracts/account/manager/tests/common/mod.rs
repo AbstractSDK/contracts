@@ -16,8 +16,7 @@ use abstract_interface::{
 };
 use abstract_interface::{AbstractAccount, AdapterDeployer};
 use cosmwasm_std::Addr;
-use cw_orch::{CallAs, ContractInstance, CwOrcExecute, Mock};
-use cw_orch::{ContractWrapper, StateInterface};
+use cw_orch::prelude::*;
 use semver::Version;
 
 pub(crate) type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
