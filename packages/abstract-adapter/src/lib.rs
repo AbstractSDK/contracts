@@ -133,14 +133,6 @@ pub mod mock {
         adapter.instantiate(deps, mock_env(), info, init_msg)
     }
 
-    // <<<<<<< HEAD:packages/abstract-api/src/lib.rs
-    //     type Exec = api::ExecuteMsg<MockExecMsg>;
-    //     type Query = api::QueryMsg<MockQueryMsg>;
-    //     type Init = api::InstantiateMsg<MockInitMsg>;
-    //
-    //     #[cw_orch::interface(Init, Exec, Query, Empty)]
-    //     pub struct BootMockApi;
-    //
     impl Uploadable for BootMockAdapter<Mock> {
         fn wrapper(&self) -> <Mock as cw_orch::environment::TxHandler>::ContractSource {
             Box::new(ContractWrapper::new_with_empty(
