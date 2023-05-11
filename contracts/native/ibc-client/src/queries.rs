@@ -1,8 +1,7 @@
 use abstract_core::{
     ibc_client::{
         state::{Config, ACCOUNTS, ADMIN, CHANNELS, CONFIG},
-        AccountResponse, ConfigResponse, ListAccountsResponse,
-        ListChannelsResponse,
+        AccountResponse, ConfigResponse, ListAccountsResponse, ListChannelsResponse,
     },
     objects::{chain_name::ChainName, AccountId},
 };
@@ -12,14 +11,18 @@ use cosmwasm_std::{Deps, Env, Order, StdResult};
 pub fn list_accounts(deps: Deps) -> StdResult<ListAccountsResponse> {
     let accounts: StdResult<
         Vec<(
-            AccountId, abstract_core::objects::chain_name::ChainName,
+            AccountId,
+            abstract_core::objects::chain_name::ChainName,
             String,
-        )>> = ACCOUNTS
+        )>,
+    > = ACCOUNTS
         .range(deps.storage, None, None, Order::Ascending)
-        .map(|r| r.map(|((a,c), s)| (a,c,s)))
+        .map(|r| r.map(|((a, c), s)| (a, c, s)))
         .collect();
 
-    Ok(ListAccountsResponse { accounts: accounts? })
+    Ok(ListAccountsResponse {
+        accounts: accounts?,
+    })
 }
 
 pub fn list_channels(deps: Deps) -> StdResult<ListChannelsResponse> {

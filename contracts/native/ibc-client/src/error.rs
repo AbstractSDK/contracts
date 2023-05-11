@@ -34,5 +34,5 @@ pub enum IbcClientError {
     HostAlreadyExists {},
 
     #[error("Only authorized ports can connect to the contract on the remote chain")]
-    UnauthorizedConnection {}
+    UnauthorizedConnection {},
 }

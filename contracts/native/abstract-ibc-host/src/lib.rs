@@ -9,6 +9,5 @@ mod contract;
 pub(crate) mod ibc;
 pub mod state;
 
-
 #[cfg(test)]
 pub mod test;

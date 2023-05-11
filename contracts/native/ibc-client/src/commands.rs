@@ -7,7 +7,7 @@ use abstract_core::{manager, objects::chain_name::ChainName};
 use abstract_sdk::{
     core::{
         ibc_client::{
-            state::{ACCOUNTS, ADMIN, ANS_HOST, CHANNELS, CHAIN_HOSTS, CONFIG},
+            state::{ACCOUNTS, ADMIN, ANS_HOST, CHAIN_HOSTS, CHANNELS, CONFIG},
             CallbackInfo,
         },
         ibc_host::{HostAction, InternalAction, PacketMsg},
@@ -18,9 +18,7 @@ use abstract_sdk::{
     features::AccountIdentification,
     AccountVerification, Execution, Resolve,
 };
-use cosmwasm_std::{
-    to_binary, Coin, CosmosMsg, DepsMut, Env, IbcMsg, MessageInfo, Storage,
-};
+use cosmwasm_std::{to_binary, Coin, CosmosMsg, DepsMut, Env, IbcMsg, MessageInfo, Storage};
 
 pub fn execute_update_config(
     deps: DepsMut,
@@ -55,9 +53,8 @@ pub fn execute_allow_chain_host(
     deps: DepsMut,
     info: MessageInfo,
     chain: String,
-    host: String
-) -> IbcClientResult{
-
+    host: String,
+) -> IbcClientResult {
     // auth check
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
     CHAIN_HOSTS.save(deps.storage, &ChainName::from(chain), &host)?;

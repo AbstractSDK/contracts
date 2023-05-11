@@ -80,10 +80,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
             callback_info,
             retries,
         ),
-        ExecuteMsg::RegisterChainHost{
-            chain,
-            host
-        } => commands::execute_allow_chain_host(deps, info, chain, host),
+        ExecuteMsg::RegisterChainHost { chain, host } => {
+            commands::execute_allow_chain_host(deps, info, chain, host)
+        }
         ExecuteMsg::SendFunds { host_chain, funds } => {
             commands::execute_send_funds(deps, env, info, host_chain, funds).map_err(Into::into)
         }

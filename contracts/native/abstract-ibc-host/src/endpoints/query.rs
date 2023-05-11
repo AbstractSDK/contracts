@@ -1,4 +1,4 @@
-use abstract_core::ibc_host::{RegisteredChainsResponse, RegisteredChainResponse};
+use abstract_core::ibc_host::{RegisteredChainResponse, RegisteredChainsResponse};
 use abstract_core::objects::chain_name::ChainName;
 use abstract_core::{ibc_host::ConfigResponse, objects::AccountId};
 use abstract_sdk::{
@@ -7,13 +7,13 @@ use abstract_sdk::{
 };
 use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult};
 
-use crate::state::{CONFIG, CHAIN_CLIENTS};
+use crate::state::{CHAIN_CLIENTS, CONFIG};
 
 pub fn query(deps: Deps, _env: Env, query: QueryMsg) -> StdResult<Binary> {
     match query {
         QueryMsg::Config {} => to_binary(&dapp_config(deps)?),
         QueryMsg::RegisteredChains {} => to_binary(&registered_chains(deps)?),
-        QueryMsg::AssociatedClient {chain} => to_binary(&associated_client(deps, chain)?),
+        QueryMsg::AssociatedClient { chain } => to_binary(&associated_client(deps, chain)?),
     }
 }
 fn dapp_config(deps: Deps) -> StdResult<ConfigResponse> {
@@ -25,20 +25,16 @@ fn dapp_config(deps: Deps) -> StdResult<ConfigResponse> {
     })
 }
 
-fn registered_chains(deps: Deps) -> StdResult<RegisteredChainsResponse>{
+fn registered_chains(deps: Deps) -> StdResult<RegisteredChainsResponse> {
     let chains: StdResult<Vec<(ChainName, String)>> = CHAIN_CLIENTS
         .range(deps.storage, None, None, Order::Ascending)
         .collect();
 
-    Ok(RegisteredChainsResponse{
-        chains: chains?,
-    })
+    Ok(RegisteredChainsResponse { chains: chains? })
 }
 
-fn associated_client(deps: Deps, chain: String) -> StdResult<RegisteredChainResponse>{
+fn associated_client(deps: Deps, chain: String) -> StdResult<RegisteredChainResponse> {
     let client = CHAIN_CLIENTS.load(deps.storage, &ChainName::from(chain))?;
 
-    Ok(RegisteredChainResponse{
-        client,
-    })
+    Ok(RegisteredChainResponse { client })
 }
