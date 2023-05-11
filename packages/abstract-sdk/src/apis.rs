@@ -1,4 +1,4 @@
-pub mod api;
+pub mod adapter;
 pub mod app;
 pub mod bank;
 pub mod execution;
@@ -9,3 +9,8 @@ mod splitter;
 pub mod vault;
 pub mod verify;
 pub mod version_registry;
+
+#[cfg(feature = "stargaze")]
+pub mod distribution;
+#[cfg(feature = "stargaze")]
+pub mod grant;

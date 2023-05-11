@@ -1,14 +1,14 @@
 pub use abstract_core::manager::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns};
 use abstract_core::{
-    api,
+    adapter,
     manager::*,
     objects::module::{ModuleInfo, ModuleVersion},
 };
 use cosmwasm_std::{to_binary, Empty};
-use cw_orch::{contract, ArtifactsDir, Contract, CwEnv, CwOrcExecute};
+use cw_orch::{interface, ArtifactsDir, Contract, CwEnv, CwOrcExecute};
 use serde::Serialize;
 
-#[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+#[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Manager<Chain>;
 
 impl<Chain: CwEnv> ::cw_orch::Uploadable for Manager<Chain> {
@@ -96,7 +96,7 @@ impl<Chain: CwEnv> Manager<Chain> {
         Ok(())
     }
 
-    pub fn update_api_authorized_addresses(
+    pub fn update_adapter_authorized_addresses(
         &self,
         module_id: &str,
         to_add: Vec<String>,
@@ -104,10 +104,9 @@ impl<Chain: CwEnv> Manager<Chain> {
     ) -> Result<(), crate::AbstractBootError> {
         self.execute_on_module(
             module_id,
-            api::ExecuteMsg::<Empty, Empty>::Base(api::BaseExecuteMsg::UpdateAuthorizedAddresses {
-                to_add,
-                to_remove,
-            }),
+            adapter::ExecuteMsg::<Empty, Empty>::Base(
+                adapter::BaseExecuteMsg::UpdateAuthorizedAddresses { to_add, to_remove },
+            ),
         )?;
 
         Ok(())

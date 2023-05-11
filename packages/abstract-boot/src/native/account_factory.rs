@@ -6,10 +6,8 @@ use abstract_core::{
     account_factory::*, objects::gov_type::GovernanceDetails, ABSTRACT_EVENT_NAME, MANAGER, PROXY,
 };
 use cosmwasm_std::Addr;
-use cw_orch::{
-    contract, ArtifactsDir, Contract, CwEnv, IndexResponse, StateInterface,
-    {ContractInstance, CwOrcExecute},
-};
+use cw_orch::interface;
+use cw_orch::prelude::*;
 
 /// A helper struct that contains fields from [`abstract_core::manager::state::AccountInfo`]
 #[derive(Default)]
@@ -19,8 +17,8 @@ pub struct AccountDetails {
     link: Option<String>,
 }
 
-#[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
-pub struct AccountFactory;
+#[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+pub struct AccountFactory<Chain>;
 
 impl<Chain: CwEnv> ::cw_orch::Uploadable for AccountFactory<Chain> {
     #[cfg(feature = "integration")]
@@ -45,7 +43,7 @@ impl<Chain: CwEnv> ::cw_orch::Uploadable for AccountFactory<Chain> {
 
 impl<Chain: CwEnv> AccountFactory<Chain> {
     pub fn new(name: &str, chain: Chain) -> Self {
-        Self(Contract::new(name, chain))
+        Self(cw_orch::contract::Contract::new(name, chain))
     }
 
     pub fn create_new_account(

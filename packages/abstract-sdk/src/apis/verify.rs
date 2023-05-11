@@ -28,7 +28,7 @@ impl<'a, T: OsVerification> OsRegistry<'a, T> {
     pub fn assert_manager(&self, maybe_manager: &Addr) -> AbstractSdkResult<AccountBase> {
         let account_id = self.account_id(maybe_manager)?;
         let account_base = self.account_base(account_id)?;
-        if account_base.manager != maybe_manager {
+        if account_base.manager.ne(maybe_manager) {
             Err(AbstractSdkError::NotManager(
                 maybe_manager.clone(),
                 account_id,
@@ -42,7 +42,7 @@ impl<'a, T: OsVerification> OsRegistry<'a, T> {
     pub fn assert_proxy(&self, maybe_proxy: &Addr) -> AbstractSdkResult<AccountBase> {
         let account_id = self.account_id(maybe_proxy)?;
         let account_base = self.account_base(account_id)?;
-        if account_base.proxy != maybe_proxy {
+        if account_base.proxy.ne(maybe_proxy) {
             Err(AbstractSdkError::NotProxy(maybe_proxy.clone(), account_id))
         } else {
             Ok(account_base)
@@ -111,9 +111,9 @@ mod test {
                 // Setup the addresses as if the Account was registered
                 .account("not_manager", "not_proxy", TEST_ACCOUNT_ID)
                 // update the proxy to be proxy of a different Account
-                .account(TEST_MANAGER, TEST_PROXY, 1)
+                .account(TEST_MANAGER, TEST_PROXY, 2)
                 .builder()
-                .with_contract_item("not_proxy", ACCOUNT_ID, &1)
+                .with_contract_item("not_proxy", ACCOUNT_ID, &2)
                 .build();
 
             let binding = MockBinding;
@@ -146,7 +146,10 @@ mod test {
             assert_that!(res)
                 .is_err()
                 .matches(|e| matches!(e, AbstractSdkError::UnknownAccountId { .. }))
-                .matches(|e| e.to_string().contains("Unknown Account id 0"));
+                .matches(|e| {
+                    e.to_string()
+                        .contains(format!("Unknown Account id {}", TEST_ACCOUNT_ID).as_str())
+                });
         }
 
         #[test]

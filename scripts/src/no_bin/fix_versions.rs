@@ -5,6 +5,7 @@ use abstract_core::{
 };
 use cw_orch::{networks::UNI_6, *};
 
+use abstract_core::objects::namespace::Namespace;
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 
@@ -36,7 +37,7 @@ pub fn fix_versions() -> anyhow::Result<()> {
             name,
             namespace,
         } = info.clone();
-        if version.to_string() == *WRONG_VERSION && namespace == *NAMESPACE {
+        if version.to_string() == *WRONG_VERSION && namespace == Namespace::unchecked(NAMESPACE) {
             deployment.version_control.remove_module(info)?;
             deployment.version_control.propose_modules(vec![(
                 ModuleInfo {

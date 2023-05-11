@@ -23,15 +23,18 @@ pub mod feature_objects;
 pub use error::{AbstractSdkError, EndpointError};
 
 pub use crate::apis::{
-    api::*, app::*, bank::*, execution::*, ibc::*, modules::*, respond::*, vault::*, verify::*,
+    adapter::*, app::*, bank::*, execution::*, ibc::*, modules::*, respond::*, vault::*, verify::*,
     version_registry::*,
 };
 
+#[cfg(feature = "stargaze")]
+pub use crate::apis::{distribution::*, grant::*};
+
 pub mod features {
     //! # Feature traits
-    //! Features are traits that are implemented on the base layer of a module. Implementing a feature unlocks the API objects that are dependent on it.  
+    //! Features are traits that are implemented on the base layer of a module. Implementing a feature unlocks the API objects that are dependent on it.
     //!
-    //! You can easily create and provide your own API for other smart-contract developers by using these features as trait bounds.
+    //! You can easily create and provide your own Adapter for other smart-contract developers by using these features as trait bounds.
     pub use crate::base::features::*;
 }
 

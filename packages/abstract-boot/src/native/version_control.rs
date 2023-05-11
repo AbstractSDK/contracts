@@ -10,22 +10,21 @@ use abstract_core::{
     VERSION_CONTROL,
 };
 use cosmwasm_std::Addr;
+use cw_orch::contract::Contract;
+use cw_orch::interface;
+use cw_orch::prelude::*;
 #[cfg(feature = "daemon")]
 use cw_orch::Daemon;
-use cw_orch::{
-    contract, ArtifactsDir, Contract, CwEnv, IndexResponse, TxResponse,
-    {ContractInstance, CwOrcQuery},
-};
 use semver::Version;
 
-#[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+#[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct VersionControl<Chain>;
 
 impl<Chain: CwEnv> ::cw_orch::Uploadable for VersionControl<Chain> {
     #[cfg(feature = "integration")]
     fn wrapper(&self) -> <::cw_orch::Mock as ::cw_orch::TxHandler>::ContractSource {
         Box::new(
-            cw_orch::ContractWrapper::new_with_empty(
+            ContractWrapper::new_with_empty(
                 ::version_control::contract::execute,
                 ::version_control::contract::instantiate,
                 ::version_control::contract::query,
@@ -122,13 +121,13 @@ where
         Ok(())
     }
 
-    pub fn register_apis(
+    pub fn register_adapters(
         &self,
-        apis: Vec<&Contract<Chain>>,
+        adapters: Vec<&Contract<Chain>>,
         version: &Version,
     ) -> Result<(), crate::AbstractBootError> {
-        let to_register = self.contracts_into_module_entries(apis, version, |c| {
-            ModuleReference::Api(c.address().unwrap())
+        let to_register = self.contracts_into_module_entries(adapters, version, |c| {
+            ModuleReference::Adapter(c.address().unwrap())
         })?;
         self.propose_modules(to_register)?;
         Ok(())
@@ -178,15 +177,15 @@ where
         Ok(resp.account_base)
     }
 
-    /// Retrieves an API's address from version control given the module **id** and **version**.
-    pub fn get_api_addr(
+    /// Retrieves an Adapter's address from version control given the module **id** and **version**.
+    pub fn get_adapter_addr(
         &self,
         id: &str,
         version: ModuleVersion,
     ) -> Result<Addr, crate::AbstractBootError> {
         let module: Module = self.module(ModuleInfo::from_id(id, version)?)?;
 
-        Ok(module.reference.unwrap_api()?)
+        Ok(module.reference.unwrap_adapter()?)
     }
 
     /// Retrieves an APP's code id from version control given the module **id** and **version**.
@@ -248,7 +247,7 @@ impl VersionControl<Daemon> {
     //     Ok(())
     // }
 
-    // pub fn update_apis(&self) -> anyhow::Result<()> {
+    // pub fn update_adapters(&self) -> anyhow::Result<()> {
     //     for contract_name in chain_state.keys() {
     //         if !API_CONTRACTS.contains(&contract_name.as_str()) {
     //             continue;

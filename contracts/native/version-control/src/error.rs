@@ -1,8 +1,10 @@
-use abstract_core::{objects::AccountId, AbstractError};
-use abstract_sdk::{core::objects::module::ModuleInfo, AbstractSdkError};
 use cosmwasm_std::{Addr, StdError};
 use cw_controllers::AdminError;
 use thiserror::Error;
+
+use abstract_core::objects::namespace::Namespace;
+use abstract_core::{objects::AccountId, AbstractError};
+use abstract_sdk::{core::objects::module::ModuleInfo, AbstractSdkError};
 
 #[derive(Error, Debug, PartialEq)]
 pub enum VCError {
@@ -37,7 +39,7 @@ pub enum VCError {
     UnknownAccountId { id: AccountId },
 
     #[error("Namespace {} is not in version control register", namespace)]
-    UnknownNamespace { namespace: String },
+    UnknownNamespace { namespace: Namespace },
 
     #[error("Account owner mismatch sender: {}, owner: {}", sender, owner)]
     AccountOwnerMismatch { sender: Addr, owner: Addr },
@@ -45,14 +47,14 @@ pub enum VCError {
     #[error("Account with ID {} has no owner", account_id)]
     NoAccountOwner { account_id: AccountId },
 
-    #[error("Namespace {} is already occupied by {}", namespace, id)]
+    #[error("Namespace {} is already occupied by account {}", namespace, id)]
     NamespaceOccupied { namespace: String, id: AccountId },
 
     #[error("Exceeds namespace limit: {}, current: {}", limit, current)]
     ExceedsNamespaceLimit { limit: usize, current: usize },
 
     #[error(
-        "Decrease namespace limit not allowed: {}, current: {}",
+        "Decreasing namespace limit is not allowed: {}, current: {}",
         limit,
         current
     )]
@@ -60,6 +62,9 @@ pub enum VCError {
 
     #[error("As namespace owner you can only yank a module, not remove it.")]
     OnlyYankAllowed,
+
+    #[error("The admin of an adapter must be None")]
+    AdminMustBeNone,
 
     #[error("No action specified")]
     NoAction,

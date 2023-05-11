@@ -11,7 +11,8 @@ const NETWORK: ChainInfo = networks::UNI_6;
 
 const _MODULE_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub fn deploy_api() -> anyhow::Result<()> {
+pub fn deploy_adapter() -> anyhow::Result<()> {
+    let rt = Arc::new(tokio::runtime::Runtime::new().unwrap());
     let chain = DaemonBuilder::default().chain(NETWORK).build()?;
 
     // Load Abstract Version Control
@@ -25,7 +26,7 @@ pub fn deploy_api() -> anyhow::Result<()> {
     for version in old_versions {
         let res = version_control.remove_module(ModuleInfo {
             name: "autocompounder".to_string(),
-            namespace: "4t2".into(),
+            namespace: "4t2".try_into()?,
             version: ModuleVersion::from(version),
         });
 
@@ -35,7 +36,7 @@ pub fn deploy_api() -> anyhow::Result<()> {
 
         let res = version_control.remove_module(ModuleInfo {
             name: "cw_staking".to_string(),
-            namespace: "4t2".into(),
+            namespace: "4t2".try_into()?,
             version: ModuleVersion::from(version),
         });
 
@@ -69,7 +70,7 @@ fn main() {
 
     let _args = Arguments::parse();
 
-    if let Err(ref err) = deploy_api() {
+    if let Err(ref err) = deploy_adapter() {
         log::error!("{}", err);
         err.chain()
             .skip(1)

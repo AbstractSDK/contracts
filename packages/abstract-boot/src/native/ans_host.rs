@@ -8,14 +8,14 @@ use abstract_core::{
 use cosmwasm_std::Addr;
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::{
-    ArtifactsDir, Contract, CwEnv, CwOrcError, IndexResponse, TxResponse,
-    {contract, ContractInstance},
+    ArtifactsDir, Contract, CwEnv, CwOrchError, IndexResponse, TxResponse,
+    {interface, ContractInstance},
 };
 use log::info;
 use serde_json::from_reader;
 use std::{cmp::min, collections::HashSet, env, fs::File};
 
-#[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+#[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct AnsHost<Chain>;
 
 impl<Chain: CwEnv> ::cw_orch::Uploadable for AnsHost<Chain> {
@@ -73,7 +73,7 @@ impl AnsHost<Daemon> {
             .get(chain_id)
             .unwrap()
             .get(network_id)
-            .ok_or_else(|| CwOrcError::StdErr("network not found".into()))?;
+            .ok_or_else(|| CwOrchError::StdErr("network not found".into()))?;
 
         /*
 
@@ -123,7 +123,7 @@ impl AnsHost<Daemon> {
             .get(chain_id)
             .unwrap()
             .get(network_id)
-            .ok_or_else(|| CwOrcError::StdErr("network not found".into()))?;
+            .ok_or_else(|| CwOrchError::StdErr("network not found".into()))?;
 
         let channels = channels.as_object().unwrap();
         let channels_to_add: Vec<(UncheckedChannelEntry, String)> = channels
@@ -155,7 +155,7 @@ impl AnsHost<Daemon> {
             .get(chain_id)
             .unwrap()
             .get(network_id)
-            .ok_or_else(|| CwOrcError::StdErr("network not found".into()))?;
+            .ok_or_else(|| CwOrchError::StdErr("network not found".into()))?;
 
         /*
           [
@@ -200,7 +200,7 @@ impl AnsHost<Daemon> {
             .get(chain_id)
             .unwrap()
             .get(network_id)
-            .ok_or_else(|| CwOrcError::StdErr("network not found".into()))?;
+            .ok_or_else(|| CwOrchError::StdErr("network not found".into()))?;
 
         let mut dexes_to_register: HashSet<String> = HashSet::new();
 

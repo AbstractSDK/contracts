@@ -1,13 +1,14 @@
+use abstract_core::manager::ExecuteMsg;
+use abstract_core::objects::ABSTRACT_ACCOUNT_ID;
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, CosmosMsg, DepsMut, Empty, Env, MessageInfo, QuerierWrapper,
     ReplyOn, StdError, SubMsg, SubMsgResult, WasmMsg,
 };
 use protobuf::Message;
 
-use abstract_sdk::core::{MANAGER, PROXY};
 use abstract_sdk::{
     core::{
-        manager::{ExecuteMsg::UpdateModuleAddresses, InstantiateMsg as ManagerInstantiateMsg},
+        manager::{InstantiateMsg as ManagerInstantiateMsg, InternalConfigAction},
         objects::{
             gov_type::GovernanceDetails, module::Module, module::ModuleInfo,
             module_reference::ModuleReference,
@@ -16,7 +17,7 @@ use abstract_sdk::{
         version_control::{
             AccountBase, ExecuteMsg as VCExecuteMsg, ModulesResponse, QueryMsg as VCQuery,
         },
-        AbstractResult,
+        AbstractResult, MANAGER, PROXY,
     },
     cw_helpers::cosmwasm_std::wasm_smart_query,
 };
@@ -34,12 +35,18 @@ pub const CREATE_ACCOUNT_PROXY_MSG_ID: u64 = 2u64;
 pub fn execute_create_account(
     deps: DepsMut,
     env: Env,
+    info: MessageInfo,
     governance: GovernanceDetails<Addr>,
     name: String,
     description: Option<String>,
     link: Option<String>,
 ) -> AccountFactoryResult {
     let config = CONFIG.load(deps.storage)?;
+
+    // Check if the caller is the owner when instantiating the abstract account
+    if config.next_account_id == ABSTRACT_ACCOUNT_ID {
+        cw_ownable::assert_owner(deps.storage, &info.sender)?;
+    }
 
     // Query version_control for code_id of Manager contract
     let module: Module = query_module(&deps.querier, &config.version_control_contract, MANAGER)?;
@@ -75,7 +82,7 @@ pub fn execute_create_account(
     } else {
         Err(AccountFactoryError::WrongModuleKind(
             module.info.to_string(),
-            "core".to_string(),
+            "account_base".to_string(),
         ))
     }
 }
@@ -204,19 +211,24 @@ pub fn after_proxy_add_to_manager_and_set_admin(
     config.next_account_id += 1;
     CONFIG.save(deps.storage, &config)?;
 
+    let add_proxy_address_msg = wasm_execute(
+        context.account_manager_address.to_string(),
+        &ExecuteMsg::UpdateInternalConfig(
+            to_binary(&InternalConfigAction::UpdateModuleAddresses {
+                to_add: Some(vec![(PROXY.to_string(), proxy_address.to_string())]),
+                to_remove: None,
+            })
+            .unwrap(),
+        ),
+        vec![],
+    )?;
+
     Ok(AccountFactoryResponse::new(
         "create_proxy",
         vec![("proxy_address", res.get_contract_address())],
     )
     .add_message(add_account_to_version_control_msg)
-    .add_message(wasm_execute(
-        context.account_manager_address.to_string(),
-        &UpdateModuleAddresses {
-            to_add: Some(vec![(PROXY.to_string(), proxy_address.to_string())]),
-            to_remove: None,
-        },
-        vec![],
-    )?)
+    .add_message(add_proxy_address_msg)
     .add_message(whitelist_manager)
     .add_message(set_proxy_admin_msg)
     .add_message(set_manager_admin_msg))

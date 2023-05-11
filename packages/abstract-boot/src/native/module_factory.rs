@@ -1,14 +1,13 @@
 use abstract_core::module_factory::*;
 
-// use crate::api::get_api_init_msgs;
 use cw_orch::{ArtifactsDir, Contract, CwEnv, TxResponse};
 
 pub use abstract_core::module_factory::{
     ExecuteMsgFns as MFactoryExecFns, QueryMsgFns as MFactoryQueryFns,
 };
-use cw_orch::{contract, CwOrcExecute};
+use cw_orch::{interface, CwOrcExecute};
 
-#[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+#[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct ModuleFactory<Chain>;
 
 impl<Chain: CwEnv> ::cw_orch::Uploadable for ModuleFactory<Chain> {
@@ -51,7 +50,7 @@ impl<Chain: CwEnv> ModuleFactory<Chain> {
     }
 
     // pub  fn save_init_binaries(&self, mem_addr: String, version_control_addr: String) -> Result<(), crate::AbstractBootError> {
-    //     let msgs = get_api_init_msgs(mem_addr,version_control_addr);
+    //     let msgs = get_adapter_init_msgs(mem_addr,version_control_addr);
     //     // TODO: Add version management support
     //     let binaries = msgs
     //         .iter()

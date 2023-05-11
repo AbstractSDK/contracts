@@ -17,8 +17,8 @@
 pub mod state {
     use std::collections::HashSet;
 
+    pub use crate::objects::account_id::ACCOUNT_ID;
     use crate::objects::common_namespace::OWNERSHIP_STORAGE_KEY;
-    pub use crate::objects::core::ACCOUNT_ID;
     use crate::objects::{gov_type::GovernanceDetails, module::ModuleId};
     use cosmwasm_std::{Addr, Api};
     use cw_address_like::AddressLike;
@@ -91,7 +91,7 @@ pub mod state {
 use self::state::AccountInfo;
 use crate::manager::state::SuspensionStatus;
 use crate::objects::{
-    core::AccountId,
+    account_id::AccountId,
     gov_type::GovernanceDetails,
     module::{Module, ModuleInfo},
 };
@@ -119,6 +119,18 @@ pub struct InstantiateMsg {
 #[cosmwasm_schema::cw_serde]
 pub struct CallbackMsg {}
 
+/// Internal configuration actions accessible from the [`ExecuteMsg::UpdateInternalConfig`] message.
+#[cosmwasm_schema::cw_serde]
+#[non_exhaustive]
+pub enum InternalConfigAction {
+    /// Updates the [`state::ACCOUNT_MODULES`] map
+    /// Only callable by account factory or owner.
+    UpdateModuleAddresses {
+        to_add: Option<Vec<(String, String)>>,
+        to_remove: Option<Vec<String>>,
+    },
+}
+
 /// Manager execute messages
 #[cw_ownable::cw_ownable_execute]
 #[cosmwasm_schema::cw_serde]
@@ -126,12 +138,9 @@ pub struct CallbackMsg {}
 pub enum ExecuteMsg {
     /// Forward execution message to module
     ExecOnModule { module_id: String, exec_msg: Binary },
-    /// Updates the `ACCOUNT_MODULES` map
-    /// Only callable by account factory or owner.
-    UpdateModuleAddresses {
-        to_add: Option<Vec<(String, String)>>,
-        to_remove: Option<Vec<String>>,
-    },
+    /// Update Abstract-specific configuration of the module.
+    /// Only callable by the account factory or owner.
+    UpdateInternalConfig(Binary),
     /// Install module using module factory, callable by Owner
     InstallModule {
         // Module information.

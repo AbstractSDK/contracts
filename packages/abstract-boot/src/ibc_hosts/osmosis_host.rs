@@ -1,6 +1,6 @@
 use abstract_core::ibc_host::*;
 use cosmwasm_std::Empty;
-use cw_orch::{contract, Contract, CwEnv};
+use cw_orch::{interface, Contract, CwEnv};
 
 #[contract(InstantiateMsg, Empty, QueryMsg, MigrateMsg)]
 pub struct OsmosisHost<Chain>;
