@@ -1,10 +1,19 @@
+use cw_orch::CosmTxResponse;
+use std::thread;
+
+use futures::future::join_all;
+use tonic::transport::Channel;
+use cw_orch::networks::parse_network;
+use cw_orch::InterchainInfrastructure;
+
 use base64::{engine::general_purpose, Engine as _};
 
 use anyhow::{bail, Result};
 use cosmwasm_std::StdError;
 use cw_orch::queriers::DaemonQuerier;
+use cw_orch::queriers::Ibc;
 use cw_orch::queriers::Node;
-use cw_orch::{Daemon, DaemonError};
+use cw_orch::{DaemonError};
 
 // This was coded thanks to this wonderful guide : https://github.com/CosmWasm/cosmwasm/blob/main/IBC.md
 
@@ -15,8 +24,10 @@ pub enum AckResponse {
     Error(String),
 }
 
-#[async_recursion::async_recursion(?Send)]
-pub async fn follow_trail(chain1: &Daemon, chain2: &Daemon, tx_hash: String) -> Result<()> {
+// This happens in a single thread
+pub fn follow_trail(channel1: Channel, chain1: String, tx_hash: String) -> Result<()>{
+
+    let rt: tokio::runtime::Runtime = tokio::runtime::Runtime::new().unwrap();
 
     // In this function, we need to :
     // 1. Get all ibc outgoing messages from the transaction
@@ -27,15 +38,15 @@ pub async fn follow_trail(chain1: &Daemon, chain2: &Daemon, tx_hash: String) -> 
     // dest_channel
     // packet_sequence
     // timeout_timestamp (for stopping the search) - Not needed here
-    let tx = Node::new(chain1.channel())
-        .find_tx_by_hash(tx_hash.clone())
-        .await
-        .unwrap();
+    let tx = rt.block_on(Node::new(channel1.clone())
+        .find_tx_by_hash(tx_hash.clone()))?;
+
+
     let send_packet_events = tx.get_events("send_packet");
     if send_packet_events.is_empty() {
         return Ok(());
     }
-    log::info!("Investigating sent packet events on tx {}", tx_hash.clone());
+    log::info!("Investigating sent packet events on tx {}", tx_hash);
 
     // We account for a single send_packet event at a time for now (TODO)
     let connections: Vec<String> = send_packet_events
@@ -65,7 +76,7 @@ pub async fn follow_trail(chain1: &Daemon, chain2: &Daemon, tx_hash: String) -> 
         log::info!(
             "IBC packet n° {}, sent on {} on tx {}, with data: {}",
             sequences[i],
-            chain1.state.chain_id,
+            chain1,
             tx_hash,
             packet_datas[i]
         );
@@ -77,143 +88,189 @@ pub async fn follow_trail(chain1: &Daemon, chain2: &Daemon, tx_hash: String) -> 
         format!("recv_packet.packet_sequence='{}'", sequences[i]),
     ]});
 
-    let received_txs: Vec<_> = events_strings.map(|event_query| async move {
-        let txs = Node::new(chain2.channel())
-            .find_tx_by_events(event_query, None, None)
-            .await
-            .unwrap();
 
-        // We need to make sure there is only 1 transaction with such events (always should be the case)
-        if txs.len() != 1 {
-            bail!(StdError::generic_err(
-                "Found multiple transactions matching the events, not possible"
-            ));
-        }
-        let received_tx = &txs[0];
-        // We check if the tx errors (this shouldn't happen in IBC connections)
-        if received_tx.code != 0 {
-            bail!(DaemonError::TxFailed {
-                code: received_tx.code,
-                reason: format!(
-                    "Raw log on {} : {}",
-                    chain2.state.chain_id,
-                    received_tx.raw_log.clone()
-                ),
-            });
-        }
-        Ok(received_tx.clone())
-    }).collect();
-
-    // We await all transactions
-    let mut received_txs_awaited = vec![];
-    for tx in received_txs{
-        received_txs_awaited.push(tx.await?);
-    }
-
-
-    let ack_txs: Vec<_> = received_txs_awaited.iter().enumerate().map(|(i, received_tx)|{
-        let this_connection = connections[i].clone();
-        let this_dest_channel = dest_channels[i].clone();
-        let this_dest_port = dest_ports[i].clone();
-        let this_sequence = sequences[i].clone();
-
-
-        async move{
-        // 3. Then we look for the acknowledgment packet that should always be traced back during this transaction for all packets
-        let recv_packet_sequence = received_tx.get_events("write_acknowledgement")[0] // There is only one acknowledgement per transaction possible
-            .get_first_attribute_value("packet_sequence")
-            .unwrap();
-        let recv_packet_data = received_tx.get_events("write_acknowledgement")[0]
-            .get_first_attribute_value("packet_data")
-            .unwrap();
-        let acknowledgment = received_tx.get_events("write_acknowledgement")[0]
-            .get_first_attribute_value("packet_ack")
-            .unwrap();
-
-        // We try to unpack the acknowledgement if possible, when it's following the standard format (is not enforced so it's not always possible)
-        let parsed_ack: Result<AckResponse, serde_json::Error> = serde_json::from_str(&acknowledgment);
-
-        let decoded_ack: String = if let Ok(ack_result) = parsed_ack {
-            match ack_result {
-                AckResponse::Result(b) => {
-                    std::str::from_utf8(&general_purpose::STANDARD.decode(b)?)?.to_string()
-                }
-                AckResponse::Error(e) => e,
-            }
-        } else {
-            acknowledgment.clone()
-        };
-
-        
-        log::info!(
-            "IBC packet n°{} : {}, received on {} on tx {}, with acknowledgment sent back: {}",
-            recv_packet_sequence,
-            recv_packet_data,
-            chain2.state.chain_id,
-            received_tx.txhash,
-            decoded_ack
-        );
+    // We setup the interchain infra needed to see where those packet went
 
 
 
-        // 4. Finally, we check to see if the acknowledgment packet has been transferd alright on the origin chain
-        let ack_events_string = vec![
-            format!("acknowledge_packet.packet_connection='{}'", this_connection),
-            format!("acknowledge_packet.packet_dst_port='{}'", this_dest_port),
-            format!("acknowledge_packet.packet_dst_channel='{}'", this_dest_channel),
-            format!("acknowledge_packet.packet_sequence='{}'", this_sequence),
-        ];
-        let txs = Node::new(chain1.channel())
-            .find_tx_by_events(ack_events_string, None, None)
-            .await
-            .unwrap();
+    let chain_ids: Vec<String> = rt.block_on(
+        join_all(connections.iter().map(|c| async{
+            Ok::<_, anyhow::Error>(Ibc::new(channel1.clone()).connection_client(c.clone()).await?.chain_id)
+        })
+        .collect::<Vec<_>>()
+    )).into_iter().collect::<Result<Vec<_>>>()?;
 
-        if txs.len() != 1 {
-            bail!(StdError::generic_err(
-                "Found multiple transactions matching the events, not possible"
-            ));
-        }
-        let ack_tx = &txs[0];
-        // First we check if the tx errors (this shouldn't happen in IBC connections)
-        if ack_tx.code != 0 {
-            bail!(DaemonError::TxFailed {
-                code: ack_tx.code,
-                reason: format!(
-                    "Raw log on {} : {}",
-                    chain1.state.chain_id,
-                    ack_tx.raw_log.clone()
-                ),
+    let interchain = InterchainInfrastructure::new(
+            rt.handle(),
+            chain_ids.iter().map(|c| (parse_network(c), "")).collect(),
+            false
+        )?;
+
+
+    let counter_party_grpc_channels: Vec<Channel> = rt.block_on(
+        join_all(
+            chain_ids.iter().map(|chain| async {
+
+                Ok::<_, anyhow::Error>(interchain.daemon(chain.clone())?.channel())
             })
-        }
-        log::info!(
-            "IBC packet n°{} acknowledgment  received on {} on tx {}",
-            this_sequence,
-            chain1.state.chain_id,
-            ack_tx.txhash
-        );
+            .collect::<Vec<_>>()
+    )).into_iter().collect::<Result<Vec<_>>>()?;
 
-        Ok(ack_tx.clone())
-    }})
-    .collect();
+    let received_txs: Vec<CosmTxResponse> = rt.block_on(
+        join_all(
+            events_strings.enumerate().map(|(i,event_query)| {
+            let this_counter_part_channel = counter_party_grpc_channels[i].clone();
+            let this_chain_id = chain_ids[i].clone();
+            async move {
 
-    // We await all transactions
-    let mut ack_txs_awaited = vec![];
-    for tx in ack_txs{
-        ack_txs_awaited.push(tx.await?);
-    }
 
+            let txs = Node::new(this_counter_part_channel)
+                .find_tx_by_events(event_query, None, None)
+                .await
+                .unwrap();
+
+            // We need to make sure there is only 1 transaction with such events (always should be the case)
+            if txs.len() != 1 {
+                bail!(StdError::generic_err(
+                    "Found multiple transactions matching the events, not possible"
+                ));
+            }
+            let received_tx = &txs[0];
+            // We check if the tx errors (this shouldn't happen in IBC connections)
+            if received_tx.code != 0 {
+                bail!(DaemonError::TxFailed {
+                    code: received_tx.code,
+                    reason: format!(
+                        "Raw log on {} : {}",
+                        this_chain_id,
+                        received_tx.raw_log.clone()
+                    ),
+                });
+            }
+            Ok(received_tx.clone())
+        }}).collect::<Vec<_>>()
+    )).into_iter().collect::<Result<Vec<_>>>()?;
+
+
+    let ack_txs: Vec<CosmTxResponse> = rt.block_on(
+        join_all(
+            received_txs.iter().enumerate().map(|(i, received_tx)|{
+                let this_connection = connections[i].clone();
+                let this_dest_channel = dest_channels[i].clone();
+                let this_dest_port = dest_ports[i].clone();
+                let this_sequence = sequences[i].clone();
+                let this_counter_party_chain_id = chain_ids[i].clone();
+
+                let channel1 = channel1.clone();
+                let chain1 = chain1.clone();
+
+
+                async move{
+                // 3. Then we look for the acknowledgment packet that should always be traced back during this transaction for all packets
+                let recv_packet_sequence = received_tx.get_events("write_acknowledgement")[0] // There is only one acknowledgement per transaction possible
+                    .get_first_attribute_value("packet_sequence")
+                    .unwrap();
+                let recv_packet_data = received_tx.get_events("write_acknowledgement")[0]
+                    .get_first_attribute_value("packet_data")
+                    .unwrap();
+                let acknowledgment = received_tx.get_events("write_acknowledgement")[0]
+                    .get_first_attribute_value("packet_ack")
+                    .unwrap();
+
+                // We try to unpack the acknowledgement if possible, when it's following the standard format (is not enforced so it's not always possible)
+                let parsed_ack: Result<AckResponse, serde_json::Error> = serde_json::from_str(&acknowledgment);
+
+                let decoded_ack: String = if let Ok(ack_result) = parsed_ack {
+                    match ack_result {
+                        AckResponse::Result(b) => {
+                            std::str::from_utf8(&general_purpose::STANDARD.decode(b)?)?.to_string()
+                        }
+                        AckResponse::Error(e) => e,
+                    }
+                } else {
+                    acknowledgment.clone()
+                };
+
+                
+                log::info!(
+                    "IBC packet n°{} : {}, received on {} on tx {}, with acknowledgment sent back: {}",
+                    recv_packet_sequence,
+                    recv_packet_data,
+                    this_counter_party_chain_id,
+                    received_tx.txhash,
+                    decoded_ack
+                );
+
+
+
+                // 4. Finally, we check to see if the acknowledgment packet has been transferd alright on the origin chain
+                let ack_events_string = vec![
+                    format!("acknowledge_packet.packet_connection='{}'", this_connection),
+                    format!("acknowledge_packet.packet_dst_port='{}'", this_dest_port),
+                    format!("acknowledge_packet.packet_dst_channel='{}'", this_dest_channel),
+                    format!("acknowledge_packet.packet_sequence='{}'", this_sequence),
+                ];
+                let txs = Node::new(channel1)
+                    .find_tx_by_events(ack_events_string, None, None)
+                    .await
+                    .unwrap();
+
+                if txs.len() != 1 {
+                    bail!(StdError::generic_err(
+                        "Found multiple transactions matching the events, not possible"
+                    ));
+                }
+                let ack_tx = &txs[0];
+                // First we check if the tx errors (this shouldn't happen in IBC connections)
+                if ack_tx.code != 0 {
+                    bail!(DaemonError::TxFailed {
+                        code: ack_tx.code,
+                        reason: format!(
+                            "Raw log on {} : {}",
+                            chain1.clone(),
+                            ack_tx.raw_log.clone()
+                        ),
+                    })
+                }
+                log::info!(
+                    "IBC packet n°{} acknowledgment received on {} on tx {}",
+                    this_sequence,
+                    chain1,
+                    ack_tx.txhash
+                );
+
+                Ok(ack_tx.clone())
+            }})
+            .collect::<Vec<_>>()
+        )
+    ).into_iter().collect::<Result<Vec<_>>>()?;
     
     // All the tx hashes should now should also be analyzed for outgoing IBC transactions
+    let received_handles: Vec<_> = received_txs.iter().enumerate().map(|(i,tx)| {
+        let counter_party_grpc = counter_party_grpc_channels[i].clone();
+        let chain_id = chain_ids[i].clone();
+        let hash = tx.txhash.clone();
+        thread::spawn(||{
+            follow_trail(counter_party_grpc, chain_id, hash).unwrap()
+        })
+    })
+    .collect(); 
+    let ack_handles: Vec<_> = ack_txs.iter().map(|tx| {
+        let channel1 = channel1.clone();
+        let chain1 = chain1.clone();
+        let hash = tx.txhash.clone();
+        thread::spawn(move ||{
+            follow_trail(channel1, chain1, hash).unwrap()
+        })
+    })
+    .collect();
 
-    let received_hashes: Vec<_> = received_txs_awaited.iter().map(|tx| tx.txhash.clone()).collect();
-    let ack_hashes: Vec<_> = ack_txs_awaited.iter().map(|tx| tx.txhash.clone()).collect();
 
-    let mut follow_trail_futures: Vec<_> = received_hashes.iter().map(|hash| follow_trail(chain2, chain1, hash.to_string())).collect();
-    follow_trail_futures.append(&mut ack_hashes.iter().map(|hash| follow_trail(chain1, chain2, hash.to_string())).collect());
-
-
-    for fut in follow_trail_futures{
-        fut.await?;
+    for h in received_handles{
+        h.join().unwrap();
+    }
+    for h in ack_handles{
+        h.join().unwrap();
     }
 
     Ok(())

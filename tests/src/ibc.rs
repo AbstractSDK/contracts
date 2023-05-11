@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-
+    use std::thread;
     use crate::follow_ibc_trail::follow_trail;
     use abstract_core::abstract_ica::IBC_APP_VERSION;
 
@@ -84,6 +84,7 @@ mod tests {
         // wait for channel creation to complete
         std::thread::sleep(std::time::Duration::from_secs(30));
 
+
         // Then we query the LAST transactions that register the channel creation between those two ports and see if something matches
         // On chain 1
         let channel_creation_tx1 = &rt
@@ -139,21 +140,30 @@ mod tests {
 	    );
 
         // We follow the trail of channel creation to make sure we are doing the right thing and everything is setup alright
-        rt.block_on(async {
-            tokio::try_join!(
-                follow_trail(
-                    contract1.get_chain(),
-                    contract2.get_chain(),
-                    channel_creation_tx1.txhash.clone()
-                ),
-                follow_trail(
-                    contract2.get_chain(),
-                    contract1.get_chain(),
-                    channel_creation_tx2.txhash.clone()
-                )
-            )?;
-            Ok::<_, anyhow::Error>(())
-        })?;
+
+        let grpc_channel1 = contract1.get_chain().channel();
+        let chain_id1 = contract1.get_chain().state.chain_id.clone();
+        let tx_hash1 =  channel_creation_tx1.txhash.clone();
+
+        let grpc_channel2 = contract2.get_chain().channel();
+        let chain_id2 = contract2.get_chain().state.chain_id.clone();
+        let tx_hash2 =  channel_creation_tx2.txhash.clone();
+
+        let chain1_follow_thread = thread::spawn(|| follow_trail(
+            grpc_channel1,
+            chain_id1,
+            tx_hash1
+        ).unwrap());
+
+        let chain2_follow_thread = thread::spawn(|| follow_trail(
+            grpc_channel2,
+            chain_id2,
+            tx_hash2
+        ).unwrap());
+
+        chain1_follow_thread.join().unwrap();
+        chain2_follow_thread.join().unwrap();
+
         Ok(())
     }
 
@@ -192,6 +202,7 @@ mod tests {
         std::env::set_var("STATE_FILE", "daemon_state.json"); // Set in code for tests
         std::env::set_var("ARTIFACTS_DIR", "../artifacts"); // Set in code for tests
         std::env::set_var("RUST_LOG", "DEBUG"); // Set in code for tests
+        std::env::set_var("MAIN_MNEMONIC", "toss visual amateur gospel receive panel employ flower wave barely marine have food blanket welcome chuckle anxiety find blast illegal rebuild inside silent squeeze");
 
         // Chains setup
         let rt: tokio::runtime::Runtime = tokio::runtime::Runtime::new().unwrap();
@@ -199,6 +210,7 @@ mod tests {
         let interchain = InterchainInfrastructure::new(
             rt.handle(),
             vec![(JUNO_1, JUNO_MNEMONIC), (OSMO_2, OSMOSIS_MNEMONIC)],
+            true,
         )?;
 
         let juno = interchain.daemon(JUNO)?;
