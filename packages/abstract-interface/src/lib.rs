@@ -22,7 +22,6 @@ pub use crate::interfaces::*;
 mod deployers;
 mod deployment;
 mod error;
-mod traits;
 
 pub use error::AbstractInterfaceError;
 
