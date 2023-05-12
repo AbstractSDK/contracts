@@ -3,7 +3,11 @@ name = "abstract-boot-integration-tests"
 version = { workspace = true }
 edition = { workspace = true }
 
+
 [lib]
+
+[[bin]]
+name = "setup"
 
 
 [dependencies]
@@ -35,8 +39,10 @@ cosmos-sdk-proto = { version = "0.18.0", features = [
 ] }
 serde-cw-value = "0.7.0"
 sha256 = "1.1.1"
-clap = { workspace = true }
+clap.workspace = true
 async-recursion = "1.0.4"
 base64 = "0.21.0"
 tonic = "0.9.2"
 futures = "0.3.28"
+
+ibc-chain-registry = "0.23.1"

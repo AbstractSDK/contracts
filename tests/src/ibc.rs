@@ -1,243 +1,122 @@
-#[cfg(test)]
-mod tests {
+    use abstract_core::manager::InfoResponse;
+    use abstract_boot::{OsmosisHost, Manager};
+
+    use cw_orch::{ContractInstance};
+    use abstract_core::{PROXY, objects::{AccountId, account::AccountTrace}, manager::ConfigResponse};
+    use abstract_boot::{ManagerExecFns, ManagerQueryFns, AccountFactoryExecFns};
+    use cosmwasm_std::to_binary;
+    use cw_orch::Daemon;
     use std::thread;
     use crate::follow_ibc_trail::follow_trail;
-    use abstract_core::abstract_ica::IBC_APP_VERSION;
-
-    use abstract_boot::IbcClient;
-    use abstract_boot::OsmosisHost;
-    use abstract_core::ibc_host::InstantiateMsg;
     use abstract_core::objects::chain_name::ChainName;
-    use abstract_core::{ibc_client, IBC_CLIENT};
-    use cw_orch::queriers::DaemonQuerier;
-    use cw_orch::ContractInstance;
-    use cw_orch::CwOrcExecute;
-
-    use cw_orch::CwOrcQuery;
-    use cw_orch::Daemon;
-    use cw_orch::Deploy;
-
+    
+    use abstract_boot::{AccountDetails, IbcClient};
+    use abstract_core::IBC_CLIENT;
+    use cw_orch::{Deploy, InterchainInfrastructure, networks::JUNO_1, networks::OSMO_2};
     use abstract_boot::Abstract;
     use anyhow::Result;
-    use cw_orch::networks::JUNO_1;
-    use cw_orch::CwOrcInstantiate;
-    use cw_orch::CwOrcUpload;
-    use cw_orch::InterchainInfrastructure;
-
-    use cw_orch::networks::osmosis::OSMO_2;
-    use cw_orch::queriers::Node;
 
     const JUNO_MNEMONIC: &str = "dilemma imitate split detect useful creek cart sort grow essence fish husband seven hollow envelope wedding host dry permit game april present panic move";
     const OSMOSIS_MNEMONIC: &str = "settle gas lobster judge silk stem act shoulder pluck waste pistol word comfort require early mouse provide marine butter crowd clock tube move wool";
     const JUNO: &str = "juno-1";
     const OSMOSIS: &str = "osmosis-2";
-    const CONNECTION: &str = "connection-0";
 
-    fn deploy_on_one_chain(chain: &Daemon) -> anyhow::Result<()> {
-        let chain_abstr = Abstract::deploy_on(chain.clone(), "1.0.0".parse().unwrap())?;
-
-        // now deploy IBC stuff
-        let client = IbcClient::new(IBC_CLIENT, chain.clone());
-        let host = OsmosisHost::new("host", chain.clone());
-        client.upload()?;
-        host.upload()?;
-
-        client.instantiate(
-            &ibc_client::InstantiateMsg {
-                ans_host_address: chain_abstr.ans_host.addr_str()?,
-                chain: chain.state.chain_id.to_string(),
-                version_control_address: chain_abstr.version_control.addr_str()?,
-            },
-            None,
-            None,
-        )?;
-
-        host.instantiate(
-            &InstantiateMsg {
-                ans_host_address: chain_abstr.ans_host.addr_str()?,
-                account_factory_address: chain_abstr.account_factory.addr_str()?,
-                version_control_address: chain_abstr.version_control.addr_str()?,
-            },
-            None,
-            None,
-        )?;
-
-        Ok(())
-    }
-
-    fn deploy_contracts(juno: &Daemon, osmosis: &Daemon) -> anyhow::Result<()> {
-        deploy_on_one_chain(juno)?;
-        deploy_on_one_chain(osmosis)?;
-        Ok(())
-    }
-
-    fn create_channel(
-        contract1: &dyn ContractInstance<Daemon>,
-        contract2: &dyn ContractInstance<Daemon>,
-        rt: &tokio::runtime::Runtime,
-        interchain: &InterchainInfrastructure,
-    ) -> Result<()> {
-        interchain
-            .hermes
-            .create_channel(rt, CONNECTION, IBC_APP_VERSION, contract1, contract2);
-
-        // wait for channel creation to complete
-        std::thread::sleep(std::time::Duration::from_secs(30));
-
-
-        // Then we query the LAST transactions that register the channel creation between those two ports and see if something matches
-        // On chain 1
-        let channel_creation_tx1 = &rt
-            .block_on(
-                Node::new(contract1.get_chain().channel()).find_tx_by_events(
-                    vec![
-                        format!(
-                            "channel_open_ack.port_id='wasm.{}'",
-                            contract1.address().unwrap()
-                        ), // client is on chain1
-                        format!(
-                            "channel_open_ack.counterparty_port_id='wasm.{}'",
-                            contract2.address().unwrap()
-                        ), // host is on chain2
-                        format!("channel_open_ack.connection_id='{}'", CONNECTION),
-                    ],
-                    None,
-                    Some(cosmos_sdk_proto::cosmos::tx::v1beta1::OrderBy::Desc),
-                ),
-            )
-            .unwrap()[0];
-
-        let channel_creation_tx2 = &rt
-            .block_on(
-                Node::new(contract2.get_chain().channel()).find_tx_by_events(
-                    vec![
-                        format!(
-                            "channel_open_confirm.port_id='wasm.{}'",
-                            contract2.address().unwrap()
-                        ),
-                        format!(
-                            "channel_open_confirm.counterparty_port_id='wasm.{}'",
-                            contract1.address().unwrap()
-                        ),
-                        format!("channel_open_confirm.connection_id='{}'", CONNECTION),
-                    ],
-                    None,
-                    Some(cosmos_sdk_proto::cosmos::tx::v1beta1::OrderBy::Desc),
-                ),
-            )
-            .unwrap()[0];
-
-        log::info!("Successfully created a channel between {} and {} on connection '{}' and channels {}:'{}'(txhash : {}) and {}:'{}(txhash : {})'", 
-	    	contract1.address().unwrap(),
-	    	contract2.address().unwrap(),
-	    	CONNECTION,
-	    	contract1.get_chain().state.chain_id,
-	    	channel_creation_tx1.get_events("channel_open_ack")[0].get_first_attribute_value("channel_id").unwrap(),
-	    	channel_creation_tx1.txhash,
-	    	contract2.get_chain().state.chain_id,
-	    	channel_creation_tx2.get_events("channel_open_confirm")[0].get_first_attribute_value("channel_id").unwrap(),
-	    	channel_creation_tx2.txhash,
-	    );
-
-        // We follow the trail of channel creation to make sure we are doing the right thing and everything is setup alright
-
-        let grpc_channel1 = contract1.get_chain().channel();
-        let chain_id1 = contract1.get_chain().state.chain_id.clone();
-        let tx_hash1 =  channel_creation_tx1.txhash.clone();
-
-        let grpc_channel2 = contract2.get_chain().channel();
-        let chain_id2 = contract2.get_chain().state.chain_id.clone();
-        let tx_hash2 =  channel_creation_tx2.txhash.clone();
-
-        let chain1_follow_thread = thread::spawn(|| follow_trail(
-            grpc_channel1,
-            chain_id1,
-            tx_hash1
-        ).unwrap());
-
-        let chain2_follow_thread = thread::spawn(|| follow_trail(
-            grpc_channel2,
-            chain_id2,
-            tx_hash2
-        ).unwrap());
-
-        chain1_follow_thread.join().unwrap();
-        chain2_follow_thread.join().unwrap();
-
-        Ok(())
-    }
-
-    fn join_host_and_clients(
-        chain1: &Daemon,
-        chain2: &Daemon,
-        rt: &tokio::runtime::Runtime,
-        interchain: &InterchainInfrastructure,
-    ) -> anyhow::Result<()> {
-        let client = IbcClient::new(IBC_CLIENT, chain1.clone());
-        let host = OsmosisHost::new("host", chain2.clone());
-
-        // First we register client and host respectively
-        let chain1_name = chain1.state.chain_id.rsplitn(2, '-').collect::<Vec<&str>>()[1];
-        let chain2_name = chain2.state.chain_id.rsplitn(2, '-').collect::<Vec<&str>>()[1];
-
-        client.execute(
-            &abstract_core::ibc_client::ExecuteMsg::RegisterChainHost {
-                chain: chain2_name.to_string(),
-                host: host.address()?.to_string(),
-            },
-            None,
-        )?;
-        host.execute(
-            &abstract_core::ibc_host::ExecuteMsg::RegisterChainClient {
-                chain_id: chain1_name.to_string(),
-                client: client.address()?.to_string(),
-            },
-            None,
-        )?;
-
-        create_channel(&client, &host, rt, interchain)
-    }
-
-    fn ibc_abstract_setup() -> Result<()> {
+    fn set_env(){
         std::env::set_var("STATE_FILE", "daemon_state.json"); // Set in code for tests
         std::env::set_var("ARTIFACTS_DIR", "../artifacts"); // Set in code for tests
         std::env::set_var("RUST_LOG", "DEBUG"); // Set in code for tests
-        std::env::set_var("MAIN_MNEMONIC", "toss visual amateur gospel receive panel employ flower wave barely marine have food blanket welcome chuckle anxiety find blast illegal rebuild inside silent squeeze");
+        std::env::set_var("MAIN_MNEMONIC", JUNO_MNEMONIC); // Set in code for tests (used only for our weird follow trail function (not optimal))
+    }
 
-        // Chains setup
-        let rt: tokio::runtime::Runtime = tokio::runtime::Runtime::new().unwrap();
+    fn set_interchain_env(rt: &tokio::runtime::Runtime) -> Result<(Daemon, Daemon)>{
+
 
         let interchain = InterchainInfrastructure::new(
             rt.handle(),
             vec![(JUNO_1, JUNO_MNEMONIC), (OSMO_2, OSMOSIS_MNEMONIC)],
-            true,
         )?;
 
         let juno = interchain.daemon(JUNO)?;
         let osmosis = interchain.daemon(OSMOSIS)?;
 
-        // Deploying abstract and the IBC abstract logic
-        deploy_contracts(&juno, &osmosis)?;
-
-        // Create the connection between client and host
-        join_host_and_clients(&juno, &osmosis, &rt, &interchain)?;
-
-        // Some tests to make sure the connection has been established between the 2 contracts
-        // We query the channels for each host to see if the client has been connected
-        let juno_client = IbcClient::new(IBC_CLIENT, juno);
-
-        let juno_channels: ibc_client::ListChannelsResponse =
-            juno_client.query(&ibc_client::QueryMsg::ListChannels {})?;
-        assert_eq!(
-            juno_channels.channels,
-            vec![(ChainName::from("osmosis"), "channel-1".to_string())]
-        );
-
-        Ok(())
+        Ok((juno, osmosis))
     }
 
     #[test]
-    fn test_ibc_setup() {
-        ibc_abstract_setup().unwrap();
+    fn test_create_ibc_account() {
+        set_env();
+            
+        // We start by creating an abstract account
+        let rt: tokio::runtime::Runtime = tokio::runtime::Runtime::new().unwrap();
+        let (juno, osmosis) = set_interchain_env(&rt).unwrap();
+
+        let juno_abstr = Abstract::load_from(juno.clone()).unwrap();
+        let osmo_abstr = Abstract::load_from(osmosis.clone()).unwrap();
+
+        // Create a local account
+        let account_name = "osmo-test".to_string();
+        let description = Some("Description of the account".to_string());
+        let link = Some("https://google.com".to_string());
+        osmo_abstr.account_factory.create_new_account(AccountDetails{
+            name:account_name.clone(),
+            description: description.clone(),
+            link: link.clone()
+        }, abstract_core::objects::gov_type::GovernanceDetails::Monarchy { monarch: osmosis.sender.address().unwrap().to_string() }).unwrap();
+    
+        // We need to register the ibc client as a module of the manager
+        let osmo_client = IbcClient::new(IBC_CLIENT, osmosis.clone());
+        osmo_abstr.account.manager.update_module_addresses(Some(vec![(IBC_CLIENT.to_string(), osmo_client.address().unwrap().to_string())]), None).unwrap();
+
+        // We need to register the ibc host in the distant chain account factory
+        let juno_host = OsmosisHost::new("host", juno.clone());
+        juno_abstr.account_factory.update_config(None, Some(juno_host.address().unwrap().to_string()), None, None).unwrap();
+
+
+        // Now we send a message to the client saying that we want to create an account on osmosis
+        let register_tx = osmo_abstr.account.manager.exec_on_module(to_binary(&abstract_core::proxy::ExecuteMsg::IbcAction{
+            msgs: vec![abstract_core::ibc_client::ExecuteMsg::Register{
+                host_chain: ChainName::from("juno")
+            }]
+        }).unwrap(), PROXY.to_string()).unwrap();
+
+        let grpc_channel = osmosis.channel();
+        let chain_id = osmosis.state.chain_id.clone();
+        // Follow the IBC trail of this transaction
+        thread::spawn(|| follow_trail(
+            grpc_channel,
+            chain_id,
+            register_tx.txhash
+        ).unwrap()).join().unwrap();
+
+        // After this is all ended, we query the accounts to make sure everything is executed and setup alright on the distant chain
+        // First we query the account id from the manager
+        let account_config = osmo_abstr.account.manager.config().unwrap();
+
+        let distant_account = AccountId::new(account_config.account_id.seq(),AccountTrace::Remote(vec![ChainName::from("osmosis")])).unwrap();
+        let distant_account_config = juno_abstr.version_control.get_account(distant_account.clone()).unwrap();
+        // This shouldn't fail as we have just created an account using those characteristics
+        log::info!("Distant account config {:?} ",distant_account_config);
+
+        let distant_manager = Manager::new("distant_account_manager", juno);
+        distant_manager.set_address(&distant_account_config.manager);
+        
+        // Now we need to test some things about this account on the juno chain
+        let manager_config = distant_manager.config().unwrap();
+        assert_eq!(manager_config, ConfigResponse{
+            account_id: distant_account,
+            is_suspended: false,
+            module_factory_address: juno_abstr.module_factory.address().unwrap(),
+            version_control_address: juno_abstr.version_control.address().unwrap(),
+        });
+
+        let manager_info = distant_manager.info().unwrap();
+        assert_eq!(manager_info, InfoResponse{
+            info: abstract_core::manager::state::AccountInfo { 
+                name: account_name,
+                governance_details: abstract_core::objects::gov_type::GovernanceDetails::External { governance_address: juno_host.address().unwrap(), governance_type: "abstract-ibc".to_string() }, 
+                chain_id: "juno-1".to_string(),
+                description,
+                link
+            }
+        });
     }
-}

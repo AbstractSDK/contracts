@@ -1,4 +1,6 @@
 use cw_orch::CosmTxResponse;
+use cw_orch::Daemon;
+use tokio::runtime::Runtime;
 use std::thread;
 
 use futures::future::join_all;
@@ -14,8 +16,25 @@ use cw_orch::queriers::DaemonQuerier;
 use cw_orch::queriers::Ibc;
 use cw_orch::queriers::Node;
 use cw_orch::{DaemonError};
+use ibc_chain_registry::chain::{ChainData};
+
+pub fn get_daemon(runtime: &Runtime, chain_id: String) -> Result<Daemon>{
+
+    let mut chains: Vec<ChainData> = vec![parse_network(&chain_id).into()];
+    runtime.block_on(InterchainInfrastructure::configure_networks(&mut chains))?;
+
+    Ok(Daemon::builder()
+            .chain(chains[0].clone())
+            .deployment_id("interchain")
+            .handle(runtime.handle())
+            .build()?
+        )
+}
+
 
 // This was coded thanks to this wonderful guide : https://github.com/CosmWasm/cosmwasm/blob/main/IBC.md
+
+
 
 // type is from cosmos_sdk_proto::ibc::core::channel::v1::acknowledgement::Response
 #[cosmwasm_schema::cw_serde]
@@ -100,21 +119,9 @@ pub fn follow_trail(channel1: Channel, chain1: String, tx_hash: String) -> Resul
     )).into_iter().collect::<Result<Vec<_>>>()?;
 
     // here we don't really need the interchain infrastructure per se, but only the daemons associated for the chains corresponding to chain_id (TODO)
-    let interchain = InterchainInfrastructure::new(
-            rt.handle(),
-            chain_ids.iter().map(|c| (parse_network(c), "")).collect(),
-            false
-        )?;
 
 
-    let counter_party_grpc_channels: Vec<Channel> = rt.block_on(
-        join_all(
-            chain_ids.iter().map(|chain| async {
-
-                Ok::<_, anyhow::Error>(interchain.daemon(chain.clone())?.channel())
-            })
-            .collect::<Vec<_>>()
-    )).into_iter().collect::<Result<Vec<_>>>()?;
+    let counter_party_grpc_channels: Vec<Channel> = chain_ids.iter().map(|chain| get_daemon(&rt, chain.clone()).unwrap().channel()).collect();
 
     let received_txs: Vec<CosmTxResponse> = rt.block_on(
         join_all(
