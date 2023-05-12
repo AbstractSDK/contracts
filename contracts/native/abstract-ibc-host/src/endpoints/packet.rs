@@ -31,7 +31,7 @@ pub fn handle_packet(
             receive_who_am_i(deps, channel, packet.src, client_chain, this_chain)
         }
         action => {
-            let client_chain = CHAIN_OF_CHANNEL.load(deps.storage, &channel)?;
+            let client_chain = CHAIN_OF_CHANNEL.load(deps.storage, &channel)?; // This load ensures that the contract we are discussing with is a counterparty registered client contract
             let PacketMsg {
                 // client_chain,
                 mut account_id,
@@ -40,7 +40,6 @@ pub fn handle_packet(
 
             // push the client chain to the account trace
             account_id.trace_mut().push_chain(client_chain.clone());
-            let account = account_commands::get_account(deps.as_ref(), &account_id)?;
 
             match action {
                 HostAction::Internal(InternalAction::Register {
@@ -59,19 +58,29 @@ pub fn handle_packet(
                     link,
                 ),
 
-                HostAction::Dispatch { manager_msg } => {
-                    receive_dispatch(deps, account, manager_msg)
+                action =>{
+                    let account = account_commands::get_account(deps.as_ref(), &account_id)?;
+                    match action{
+                        HostAction::Dispatch { manager_msg } => {
+                            receive_dispatch(deps, account, manager_msg)
+                        }
+                        HostAction::Query { msgs, .. } => receive_query(deps.as_ref(), msgs),
+                        HostAction::Balances {} => receive_balances(deps, account),
+                        HostAction::SendAllBack {} => {
+                            // address of the proxy on the client chain
+                            let client_proxy_address = CLIENT_PROXY.load(deps.storage, &account_id)?;
+                            receive_send_all_back(deps, env, account, client_proxy_address, client_chain)
+                        }
+                        HostAction::Internal(InternalAction::WhoAmI { .. }) => {
+                            Err(HostError::Std(StdError::generic_err("Unreachable")))
+                        },
+                        HostAction::Internal(InternalAction::Register { .. }) => {
+                             Err(HostError::Std(StdError::generic_err("Unreachable")))
+                        }
+                    }
                 }
-                HostAction::Query { msgs, .. } => receive_query(deps.as_ref(), msgs),
-                HostAction::Balances {} => receive_balances(deps, account),
-                HostAction::SendAllBack {} => {
-                    // address of the proxy on the client chain
-                    let client_proxy_address = CLIENT_PROXY.load(deps.storage, &account_id)?;
-                    receive_send_all_back(deps, env, account, client_proxy_address, client_chain)
-                }
-                HostAction::Internal(InternalAction::WhoAmI { .. }) => {
-                    Err(HostError::Std(StdError::generic_err("Unreachable")))
-                }
+
+              
             }
         }
     }

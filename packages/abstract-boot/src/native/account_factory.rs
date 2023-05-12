@@ -14,9 +14,9 @@ use cw_orch::{
 /// A helper struct that contains fields from [`abstract_core::manager::state::AccountInfo`]
 #[derive(Default)]
 pub struct AccountDetails {
-    name: String,
-    description: Option<String>,
-    link: Option<String>,
+    pub name: String,
+    pub description: Option<String>,
+    pub link: Option<String>,
 }
 
 #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]

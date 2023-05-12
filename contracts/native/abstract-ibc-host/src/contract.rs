@@ -1,4 +1,5 @@
-use crate::{endpoints, error::HostError};
+use cosmwasm_std::StdError;
+use crate::{endpoints::{self, reply::{reply_init_callback, INIT_CALLBACK_ID}}, error::HostError};
 use abstract_core::{ibc_host::ExecuteMsg, IBC_HOST};
 use abstract_macros::abstract_response;
 use abstract_sdk::{
@@ -36,4 +37,16 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> H
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     // will only process base requests as there is no exec handler set.
     endpoints::query(deps, env, msg)
+}
+
+
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
+pub fn reply(deps: DepsMut, env: Env, reply_msg: Reply) -> HostResult {
+
+    if reply_msg.id == INIT_CALLBACK_ID{
+        reply_init_callback(deps, env, reply_msg)
+    }else{
+        Err(HostError::Std(StdError::generic_err("Not implemented")))
+    }
+
 }

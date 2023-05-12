@@ -1,5 +1,4 @@
 use abstract_core::ibc_host::*;
-use cosmwasm_std::Empty;
 use cw_orch::{contract, ArtifactsDir, Contract, CwEnv, Daemon, Uploadable};
 
 #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
