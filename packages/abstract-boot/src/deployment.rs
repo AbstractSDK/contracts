@@ -93,7 +93,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
         }
     }
 
-    pub fn instantiate(&mut self, chain: &Chain) -> Result<(), CwOrcError> {
+    pub fn instantiate(&mut self, chain: &Chain) -> Result<(), CwOrchError> {
         let sender = &chain.sender();
 
         self.ans_host.instantiate(

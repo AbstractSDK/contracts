@@ -1,6 +1,6 @@
 use crate::Abstract;
 use abstract_core::objects::module::ModuleVersion;
-use cw_orch::{CwEnv, CwOrcError::StdErr, *};
+use cw_orch::{CwEnv, CwOrchError::StdErr, *};
 
 use semver::Version;
 use serde::Serialize;

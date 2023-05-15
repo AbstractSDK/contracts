@@ -1,3 +1,4 @@
+use cw_orch::prelude::{WasmPath,ArtifactsDir};
 use crate::{AbstractAccount, Manager, Proxy};
 pub use abstract_core::account_factory::{
     ExecuteMsgFns as AccountFactoryExecFns, QueryMsgFns as AccountFactoryQueryFns,
@@ -7,7 +8,7 @@ use abstract_core::{
 };
 use cosmwasm_std::Addr;
 use cw_orch::{
-    contract, ArtifactsDir, Contract, CwEnv, IndexResponse, StateInterface,
+    interface, Contract, CwEnv, IndexResponse, StateInterface,
     {ContractInstance, CwOrcExecute},
 };
 
@@ -19,7 +20,7 @@ pub struct AccountDetails {
     pub link: Option<String>,
 }
 
-#[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+#[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct AccountFactory;
 
 impl<Chain: CwEnv> ::cw_orch::Uploadable for AccountFactory<Chain> {
@@ -36,7 +37,7 @@ impl<Chain: CwEnv> ::cw_orch::Uploadable for AccountFactory<Chain> {
         )
     }
 
-    fn wasm(&self) -> cw_orch::WasmPath {
+    fn wasm(&self) -> WasmPath {
         ArtifactsDir::env()
             .find_wasm_path("account_factor")
             .unwrap()

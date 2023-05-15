@@ -3,10 +3,10 @@ use abstract_core::{
     objects::AccountId, ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, MANAGER, MODULE_FACTORY, PROXY,
     VERSION_CONTROL,
 };
-use cw_orch::{CwEnv, IndexResponse, StateInterface, TxHandler};
+use cw_orch::{CwEnv, IndexResponse, StateInterface, TxHandler, ChainUpload};
 
 #[allow(clippy::type_complexity)]
-pub fn get_native_contracts<Chain: CwEnv>(
+pub fn get_native_contracts<Chain: CwEnv + ChainUpload>(
     chain: Chain,
 ) -> (
     AnsHost<Chain>,

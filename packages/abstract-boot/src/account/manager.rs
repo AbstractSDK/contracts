@@ -1,3 +1,4 @@
+use cw_orch::prelude::{ArtifactsDir, WasmPath};
 pub use abstract_core::manager::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns};
 use abstract_core::{
     api,
@@ -5,10 +6,10 @@ use abstract_core::{
     objects::module::{ModuleInfo, ModuleVersion},
 };
 use cosmwasm_std::{to_binary, Empty};
-use cw_orch::{contract, ArtifactsDir, Contract, CwEnv, CwOrcExecute};
+use cw_orch::{interface, Contract, CwEnv, CwOrcExecute};
 use serde::Serialize;
 
-#[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+#[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Manager<Chain>;
 
 impl<Chain: CwEnv> ::cw_orch::Uploadable for Manager<Chain> {
@@ -23,7 +24,7 @@ impl<Chain: CwEnv> ::cw_orch::Uploadable for Manager<Chain> {
             .with_migrate(::manager::contract::migrate),
         )
     }
-    fn wasm(&self) -> cw_orch::WasmPath {
+    fn wasm(&self) -> WasmPath {
         ArtifactsDir::env().find_wasm_path("manager").unwrap()
     }
 }

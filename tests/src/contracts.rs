@@ -1,16 +1,16 @@
-use cw_orch::WasmPath;
+use cw_orch::prelude::{WasmPath};
 use cw_orch::Contract;
 use cw_orch::CwEnv;
 
 use cosmwasm_std::Empty;
-use cw_orch::contract;
+use cw_orch::interface;
 
 
-#[contract(abstract_etf::msg::InstantiateMsg, abstract_etf::msg::ExecuteMsg, abstract_etf::msg::QueryMsg, Empty)]
+#[interface(abstract_etf::msg::InstantiateMsg, abstract_etf::msg::ExecuteMsg, abstract_etf::msg::QueryMsg, Empty)]
 pub struct AbstractETF;
 
 impl<Chain: CwEnv> ::cw_orch::Uploadable for AbstractETF<Chain> {
-    fn wasm(&self) -> cw_orch::WasmPath {
+    fn wasm(&self) -> WasmPath {
     	WasmPath::new("artifacts/abstract_etf.wasm").unwrap()
     }
 }
@@ -22,11 +22,11 @@ impl<Chain: CwEnv> AbstractETF<Chain> {
 }
 
 
-#[contract(cw20_base::msg::InstantiateMsg,cw20_base::msg::ExecuteMsg, cw20_base::msg::QueryMsg, Empty)]
+#[interface(cw20_base::msg::InstantiateMsg,cw20_base::msg::ExecuteMsg, cw20_base::msg::QueryMsg, Empty)]
 pub struct Cw20Base;
 
 impl<Chain: CwEnv> ::cw_orch::Uploadable for Cw20Base<Chain> {
-    fn wasm(&self) -> cw_orch::WasmPath {
+    fn wasm(&self) -> WasmPath {
     	WasmPath::new("artifacts/cw20_base.wasm").unwrap()
     }
 }

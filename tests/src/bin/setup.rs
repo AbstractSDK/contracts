@@ -1,4 +1,5 @@
-    use std::thread;
+    use cw_orch::ChainState;
+
     
     use abstract_boot_integration_tests::follow_trail;
     use abstract_core::abstract_ica::IBC_APP_VERSION;
@@ -56,7 +57,7 @@
         client.instantiate(
             &ibc_client::InstantiateMsg {
                 ans_host_address: chain_abstr.ans_host.addr_str()?,
-                chain: chain.state.chain_id.to_string(),
+                chain: chain.state().chain_id.to_string(),
                 version_control_address: chain_abstr.version_control.addr_str()?,
             },
             None,
@@ -82,10 +83,9 @@
         Ok(())
     }
 
-    fn create_channel(
+    async fn create_channel(
         contract1: &dyn ContractInstance<Daemon>,
         contract2: &dyn ContractInstance<Daemon>,
-        rt: &tokio::runtime::Runtime,
         interchain: &InterchainInfrastructure,
     ) -> Result<()> {
 
@@ -93,7 +93,7 @@
         log::info!("Start creating IBC connection between {} and {}", contract1.address()?, contract2.address()?);
         interchain
             .hermes
-            .create_channel(rt, CONNECTION, IBC_APP_VERSION, contract1, contract2);
+            .create_channel(CONNECTION, IBC_APP_VERSION, contract1, contract2).await;
 
         log::info!("Channel creation complete between {} and {}, Sleeping 30 seconds", contract1.address()?, contract2.address()?);
         // wait for channel creation to complete
@@ -102,54 +102,46 @@
 
         // Then we query the LAST transactions that register the channel creation between those two ports and see if something matches
         // On chain 1
-        let channel_creation_tx1 = &rt
-            .block_on(
-                Node::new(contract1.get_chain().channel()).find_tx_by_events(
-                    vec![
-                        format!(
-                            "channel_open_ack.port_id='wasm.{}'",
-                            contract1.address().unwrap()
-                        ), // client is on chain1
-                        format!(
-                            "channel_open_ack.counterparty_port_id='wasm.{}'",
-                            contract2.address().unwrap()
-                        ), // host is on chain2
-                        format!("channel_open_ack.connection_id='{}'", CONNECTION),
-                    ],
-                    None,
-                    Some(cosmos_sdk_proto::cosmos::tx::v1beta1::OrderBy::Desc),
-                ),
-            )
-            .unwrap()[0];
+        let channel_creation_tx1 = &Node::new(contract1.get_chain().channel()).find_tx_by_events(
+            vec![
+                format!(
+                    "channel_open_ack.port_id='wasm.{}'",
+                    contract1.address().unwrap()
+                ), // client is on chain1
+                format!(
+                    "channel_open_ack.counterparty_port_id='wasm.{}'",
+                    contract2.address().unwrap()
+                ), // host is on chain2
+                format!("channel_open_ack.connection_id='{}'", CONNECTION),
+            ],
+            None,
+            Some(cosmos_sdk_proto::cosmos::tx::v1beta1::OrderBy::Desc),
+        ).await?[0];
 
-        let channel_creation_tx2 = &rt
-            .block_on(
-                Node::new(contract2.get_chain().channel()).find_tx_by_events(
-                    vec![
-                        format!(
-                            "channel_open_confirm.port_id='wasm.{}'",
-                            contract2.address().unwrap()
-                        ),
-                        format!(
-                            "channel_open_confirm.counterparty_port_id='wasm.{}'",
-                            contract1.address().unwrap()
-                        ),
-                        format!("channel_open_confirm.connection_id='{}'", CONNECTION),
-                    ],
-                    None,
-                    Some(cosmos_sdk_proto::cosmos::tx::v1beta1::OrderBy::Desc),
+        let channel_creation_tx2 = &Node::new(contract2.get_chain().channel()).find_tx_by_events(
+            vec![
+                format!(
+                    "channel_open_confirm.port_id='wasm.{}'",
+                    contract2.address().unwrap()
                 ),
-            )
-            .unwrap()[0];
+                format!(
+                    "channel_open_confirm.counterparty_port_id='wasm.{}'",
+                    contract1.address().unwrap()
+                ),
+                format!("channel_open_confirm.connection_id='{}'", CONNECTION),
+            ],
+            None,
+            Some(cosmos_sdk_proto::cosmos::tx::v1beta1::OrderBy::Desc),
+        ).await?[0];
 
         log::info!("Successfully created a channel between {} and {} on connection '{}' and channels {}:'{}'(txhash : {}) and {}:'{}(txhash : {})'", 
 	    	contract1.address().unwrap(),
 	    	contract2.address().unwrap(),
 	    	CONNECTION,
-	    	contract1.get_chain().state.chain_id,
+	    	contract1.get_chain().state().chain_id,
 	    	channel_creation_tx1.get_events("channel_open_ack")[0].get_first_attribute_value("channel_id").unwrap(),
 	    	channel_creation_tx1.txhash,
-	    	contract2.get_chain().state.chain_id,
+	    	contract2.get_chain().state().chain_id,
 	    	channel_creation_tx2.get_events("channel_open_confirm")[0].get_first_attribute_value("channel_id").unwrap(),
 	    	channel_creation_tx2.txhash,
 	    );
@@ -157,27 +149,24 @@
         // We follow the trail of channel creation to make sure we are doing the right thing and everything is setup alright
 
         let grpc_channel1 = contract1.get_chain().channel();
-        let chain_id1 = contract1.get_chain().state.chain_id.clone();
+        let chain_id1 = contract1.get_chain().state().chain_id.clone();
         let tx_hash1 =  channel_creation_tx1.txhash.clone();
 
         let grpc_channel2 = contract2.get_chain().channel();
-        let chain_id2 = contract2.get_chain().state.chain_id.clone();
+        let chain_id2 = contract2.get_chain().state().chain_id.clone();
         let tx_hash2 =  channel_creation_tx2.txhash.clone();
 
-        let chain1_follow_thread = thread::spawn(|| follow_trail(
+        follow_trail(
             grpc_channel1,
             chain_id1,
             tx_hash1
-        ).unwrap());
+        ).await.unwrap();
 
-        let chain2_follow_thread = thread::spawn(|| follow_trail(
+        follow_trail(
             grpc_channel2,
             chain_id2,
             tx_hash2
-        ).unwrap());
-
-        chain1_follow_thread.join().unwrap();
-        chain2_follow_thread.join().unwrap();
+        ).await.unwrap();
 
         Ok(())
     }
@@ -192,25 +181,26 @@
         let host = OsmosisHost::new("host", chain2.clone());
 
         // First we register client and host respectively
-        let chain1_name = chain1.state.chain_id.rsplitn(2, '-').collect::<Vec<&str>>()[1];
-        let chain2_name = chain2.state.chain_id.rsplitn(2, '-').collect::<Vec<&str>>()[1];
+        let chain1_name = chain1.state().chain_id.rsplitn(2, '-').collect::<Vec<&str>>()[1].to_string();
+        let chain2_name = chain2.state().chain_id.rsplitn(2, '-').collect::<Vec<&str>>()[1].to_string();
 
         client.execute(
             &abstract_core::ibc_client::ExecuteMsg::RegisterChainHost {
-                chain: chain2_name.to_string(),
+                chain: chain2_name,
                 host: host.address()?.to_string(),
             },
             None,
         )?;
         host.execute(
             &abstract_core::ibc_host::ExecuteMsg::RegisterChainClient {
-                chain_id: chain1_name.to_string(),
+                chain_id: chain1_name,
                 client: client.address()?.to_string(),
             },
             None,
         )?;
 
-        create_channel(&client, &host, rt, interchain)
+        rt.block_on(create_channel(&client, &host, interchain))?;
+        Ok(())
     }
 
     fn ibc_abstract_setup() -> Result<()> {

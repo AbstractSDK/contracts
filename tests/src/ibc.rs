@@ -1,4 +1,6 @@
-    use crate::contracts::Cw20Base;
+    use cw_orch::TxHandler;
+use cw_orch::ChainState;
+use crate::contracts::Cw20Base;
     use std::str::FromStr;
     use cosmwasm_std::Decimal;
     use cw_orch::CwOrcUpload;
@@ -10,7 +12,6 @@
     use abstract_boot::{ManagerExecFns, ManagerQueryFns, AccountFactoryExecFns};
     use cosmwasm_std::to_binary;
     use cw_orch::Daemon;
-    use std::thread;
     use crate::{follow_ibc_trail::follow_trail, contracts::AbstractETF};
     use abstract_core::objects::chain_name::ChainName;
     
@@ -33,8 +34,6 @@
     }
 
     fn set_interchain_env(rt: &tokio::runtime::Runtime) -> Result<(Daemon, Daemon)>{
-
-
         let interchain = InterchainInfrastructure::new(
             rt.handle(),
             vec![(JUNO_1, JUNO_MNEMONIC), (OSMO_2, OSMOSIS_MNEMONIC)],
@@ -67,7 +66,7 @@
             name:account_name.clone(),
             description: description.clone(),
             link: link.clone()
-        }, abstract_core::objects::gov_type::GovernanceDetails::Monarchy { monarch: osmosis.sender.address().unwrap().to_string() }).unwrap();
+        }, abstract_core::objects::gov_type::GovernanceDetails::Monarchy { monarch: osmosis.sender().to_string() }).unwrap();
     
         // We need to register the ibc client as a module of the manager
         let osmo_client = IbcClient::new(IBC_CLIENT, osmosis.clone());
@@ -86,13 +85,13 @@
         }).unwrap(), PROXY.to_string()).unwrap();
 
         let grpc_channel = osmosis.channel();
-        let chain_id = osmosis.state.chain_id.clone();
+        let chain_id = osmosis.state().chain_id.clone();
         // Follow the IBC trail of this transaction
-        thread::spawn(|| follow_trail(
+        rt.block_on(follow_trail(
             grpc_channel,
             chain_id,
             register_tx.txhash
-        ).unwrap()).join().unwrap();
+        )).unwrap();
 
         // After this is all ended, we query the accounts to make sure everything is executed and setup alright on the distant chain
         // First we query the account id from the manager
@@ -151,7 +150,7 @@
                         }, module: abstract_etf::msg::EtfInstantiateMsg{
                             token_code_id: token.code_id().unwrap(),
                             fee: Decimal::from_str("0.1").unwrap(), 
-                            manager_addr: juno.sender.address().unwrap().to_string(),
+                            manager_addr: juno.sender().to_string(),
                             token_name: None,
                             token_symbol: None,
                         } }).unwrap())
@@ -163,13 +162,13 @@
 
         // The install_tx is passed ?
         let grpc_channel = osmosis.channel();
-        let chain_id = osmosis.state.chain_id.clone();
+        let chain_id = osmosis.state().chain_id.clone();
         // Follow the IBC trail of this transaction
-        thread::spawn(|| follow_trail(
+        rt.block_on(follow_trail(
             grpc_channel,
             chain_id,
             install_tx.txhash
-        ).unwrap()).join().unwrap();
+        )).unwrap();
 
         // We execute a message on the etf contract
         let execute_tx = osmo_abstr.account.manager.exec_on_module(to_binary(&abstract_core::proxy::ExecuteMsg::IbcAction{
@@ -189,12 +188,12 @@
 
         // The execute_tx is passed ?
         let grpc_channel = osmosis.channel();
-        let chain_id = osmosis.state.chain_id.clone();
+        let chain_id = osmosis.state().chain_id.clone();
         // Follow the IBC trail of this transaction
-        thread::spawn(|| follow_trail(
+        rt.block_on(follow_trail(
             grpc_channel,
             chain_id,
             execute_tx.txhash
-        ).unwrap()).join().unwrap();
+        )).unwrap();
 
     }
