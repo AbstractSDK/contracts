@@ -1,4 +1,4 @@
-use crate::objects::{lp_token::LpToken, AssetEntry};
+use crate::{objects::{lp_token::LpToken, AssetEntry}, constants::{ATTRIBUTE_DELIMITER, ASSET_DELIMITER}};
 use cosmwasm_std::{StdError, StdResult};
 use cw_storage_plus::{KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
@@ -51,7 +51,7 @@ impl TryFrom<AssetEntry> for DexAssetPairing {
 
 impl Display for DexAssetPairing {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}:{}-{}", self.dex(), self.asset_x(), self.asset_y())
+        write!(f, "{}{ATTRIBUTE_DELIMITER}{}{ASSET_DELIMITER}{}",self.dex(),self.asset_x(),self.asset_y())
     }
 }
 
@@ -221,5 +221,11 @@ mod test {
             key,
             DexAssetPairing::new("juno".into(), "osmo".into(), "junoswap")
         );
+    }
+
+    #[test]
+    fn display( ) {
+        let key = DexAssetPairing::new("juno".into(), "osmo".into(), "junoswap");
+        assert_eq!(key.to_string(), "junoswap/juno,osmo");
     }
 }
