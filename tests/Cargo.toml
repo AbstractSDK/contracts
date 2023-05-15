@@ -21,6 +21,7 @@ cw-asset = { workspace = true }
 cw2 = { workspace = true }
 cw20 = { workspace = true }
 cw20-base = { workspace = true }
+
 cw-orch = { workspace = true, features = ["daemon", "interchain"] }
 abstract-core = { workspace = true, features = ["boot"] }
 
@@ -46,3 +47,5 @@ tonic = "0.9.2"
 futures = "0.3.28"
 
 ibc-chain-registry = "0.23.1"
+
+abstract-etf = { git="https://github.com/AbstractSDK/apps/"}

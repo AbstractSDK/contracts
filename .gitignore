@@ -14,6 +14,8 @@ Cargo.lock
 **/*.rs.bk
 
 **/artifacts/**
+!tests/artifacts/abstract_etf.wasm
+!tests/artifacts/cw20_base.wasm
 **/__pycache__/**
 
 **/*bot_col_4.py

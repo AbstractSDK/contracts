@@ -1,5 +1,5 @@
 use cosmwasm_std::StdError;
-use crate::{endpoints::{self, reply::{reply_init_callback, INIT_CALLBACK_ID}}, error::HostError};
+use crate::{endpoints::{self, reply::{reply_init_callback, INIT_CALLBACK_ID, RECEIVE_DISPATCH_ID, reply_dispatch_callback}}, error::HostError};
 use abstract_core::{ibc_host::ExecuteMsg, IBC_HOST};
 use abstract_macros::abstract_response;
 use abstract_sdk::{
@@ -45,6 +45,8 @@ pub fn reply(deps: DepsMut, env: Env, reply_msg: Reply) -> HostResult {
 
     if reply_msg.id == INIT_CALLBACK_ID{
         reply_init_callback(deps, env, reply_msg)
+    }else if reply_msg.id == RECEIVE_DISPATCH_ID{
+        reply_dispatch_callback(deps, env, reply_msg)
     }else{
         Err(HostError::Std(StdError::generic_err("Not implemented")))
     }

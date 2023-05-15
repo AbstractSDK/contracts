@@ -1,4 +1,8 @@
-    use abstract_core::manager::InfoResponse;
+    use crate::contracts::Cw20Base;
+    use std::str::FromStr;
+    use cosmwasm_std::Decimal;
+    use cw_orch::CwOrcUpload;
+    use abstract_core::{manager::InfoResponse, ibc_host::HostAction, objects::module::ModuleInfo};
     use abstract_boot::{OsmosisHost, Manager};
 
     use cw_orch::{ContractInstance};
@@ -7,7 +11,7 @@
     use cosmwasm_std::to_binary;
     use cw_orch::Daemon;
     use std::thread;
-    use crate::follow_ibc_trail::follow_trail;
+    use crate::{follow_ibc_trail::follow_trail, contracts::AbstractETF};
     use abstract_core::objects::chain_name::ChainName;
     
     use abstract_boot::{AccountDetails, IbcClient};
@@ -45,6 +49,8 @@
     #[test]
     fn test_create_ibc_account() {
         set_env();
+
+        let module_version: &str = "1.1.0";
             
         // We start by creating an abstract account
         let rt: tokio::runtime::Runtime = tokio::runtime::Runtime::new().unwrap();
@@ -97,7 +103,7 @@
         // This shouldn't fail as we have just created an account using those characteristics
         log::info!("Distant account config {:?} ",distant_account_config);
 
-        let distant_manager = Manager::new("distant_account_manager", juno);
+        let distant_manager = Manager::new("distant_account_manager", juno.clone());
         distant_manager.set_address(&distant_account_config.manager);
         
         // Now we need to test some things about this account on the juno chain
@@ -119,4 +125,76 @@
                 link
             }
         });
+
+        // We try to install a module on the local account
+
+        // a. We first register the module
+        let abstract_etf_app = AbstractETF::new("abstract:etf", juno.clone());
+        abstract_etf_app.upload().unwrap();
+        juno_abstr.version_control.register_apps(vec![abstract_etf_app.as_instance()], &module_version.parse().unwrap()).unwrap();
+
+        // b. Then install it
+        // i. Upload cw20 token code
+
+        let token = Cw20Base::new("cw20", juno.clone());
+        token.upload().unwrap();
+
+        // ii. Now we test that we can indeed install a module remotely (juno has to have everything registered as well)
+        let install_tx = osmo_abstr.account.manager.exec_on_module(to_binary(&abstract_core::proxy::ExecuteMsg::IbcAction{
+            msgs: vec![abstract_core::ibc_client::ExecuteMsg::SendPacket { 
+                host_chain: ChainName::from("juno"), 
+                action: HostAction::Dispatch { 
+                    manager_msg: abstract_core::manager::ExecuteMsg::InstallModule{
+                        module: ModuleInfo::from_id("abstract:etf", abstract_core::objects::module::ModuleVersion::Latest).unwrap(),
+                        init_msg: Some(to_binary(&abstract_etf::msg::InstantiateMsg { base: abstract_core::app::BaseInstantiateMsg{
+                            ans_host_address: juno_abstr.ans_host.address().unwrap().to_string()
+                        }, module: abstract_etf::msg::EtfInstantiateMsg{
+                            token_code_id: token.code_id().unwrap(),
+                            fee: Decimal::from_str("0.1").unwrap(), 
+                            manager_addr: juno.sender.address().unwrap().to_string(),
+                            token_name: None,
+                            token_symbol: None,
+                        } }).unwrap())
+                    }
+                },
+                callback_info: None, 
+                retries: 2 }]
+        }).unwrap(), PROXY.to_string()).unwrap();
+
+        // The install_tx is passed ?
+        let grpc_channel = osmosis.channel();
+        let chain_id = osmosis.state.chain_id.clone();
+        // Follow the IBC trail of this transaction
+        thread::spawn(|| follow_trail(
+            grpc_channel,
+            chain_id,
+            install_tx.txhash
+        ).unwrap()).join().unwrap();
+
+        // We execute a message on the etf contract
+        let execute_tx = osmo_abstr.account.manager.exec_on_module(to_binary(&abstract_core::proxy::ExecuteMsg::IbcAction{
+            msgs: vec![abstract_core::ibc_client::ExecuteMsg::SendPacket { 
+                host_chain: ChainName::from("juno"), 
+                action: HostAction::Dispatch { 
+                    manager_msg: abstract_core::manager::ExecuteMsg::ExecOnModule{
+                        module_id: "abstract:etf".to_string(),
+                        exec_msg: to_binary::<abstract_etf::msg::ExecuteMsg>(&abstract_etf::msg::EtfExecuteMsg::SetFee { 
+                            fee: Decimal::from_str("0.987").unwrap()
+                        }.into()).unwrap()
+                    }
+                },
+                callback_info: None, 
+                retries: 2 }]
+        }).unwrap(), PROXY.to_string()).unwrap();
+
+        // The execute_tx is passed ?
+        let grpc_channel = osmosis.channel();
+        let chain_id = osmosis.state.chain_id.clone();
+        // Follow the IBC trail of this transaction
+        thread::spawn(|| follow_trail(
+            grpc_channel,
+            chain_id,
+            execute_tx.txhash
+        ).unwrap()).join().unwrap();
+
     }
