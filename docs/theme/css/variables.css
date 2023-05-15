@@ -172,6 +172,47 @@
     --search-mark-bg: #a2cff5;
 }
 
+.abstract {
+    --bg: hsl(210, 20%, 15%);
+    --fg: hsl(39, 29%, 65%);
+
+    --sidebar-bg: hsl(210, 20%, 10%);
+    --sidebar-fg: hsl(39, 29%, 75%);
+    --sidebar-non-existant: hsl(210, 20%, 20%);
+    --sidebar-active: hsl(39, 29%, 85%);
+    --sidebar-spacer: hsl(210, 20%, 25%);
+
+    --scrollbar: var(--sidebar-fg);
+
+    --icons: hsl(210, 20%, 45%);
+    --icons-hover: hsl(39, 29%, 85%);
+
+    --links: hsl(39, 29%, 85%);
+
+    --inline-code-color: hsl(39, 29%, 55%);
+
+    --theme-popup-bg: hsl(210, 20%, 30%);
+    --theme-popup-border: hsl(39, 29%, 85%);
+    --theme-hover: hsl(210, 20%, 40%);
+
+    --quote-bg: hsl(210, 20%, 20%);
+    --quote-border: hsl(210, 20%, 25%);
+
+    --table-border-color: hsl(210, 20%, 25%);
+    --table-header-bg: hsl(39, 29%, 75%);
+    --table-alternate-bg: hsl(210, 20%, 20%);
+
+    --searchbar-border-color: hsl(210, 20%, 45%);
+    --searchbar-bg: hsl(210, 20%, 10%);
+    --searchbar-fg: hsl(39, 29%, 85%);
+    --searchbar-shadow-color: hsl(210, 20%, 40%);
+    --searchresults-header-fg: hsl(210, 20%, 45%);
+    --searchresults-border-color: hsl(210, 20%, 50%);
+    --searchresults-li-bg: hsl(39, 29%, 85%);
+    --search-mark-bg: hsl(39, 29%, 85%);
+}
+
+
 .rust {
     --bg: hsl(60, 9%, 87%);
     --fg: #262625;
