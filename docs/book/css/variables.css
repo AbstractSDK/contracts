@@ -1,4 +1,3 @@
-
 /* Globals */
 
 :root {
@@ -7,7 +6,8 @@
     --content-max-width: 750px;
     --menu-bar-height: 50px;
     --mono-font: "Source Code Pro", Consolas, "Ubuntu Mono", Menlo, "DejaVu Sans Mono", monospace, monospace;
-    --code-font-size: 0.875em /* please adjust the ace font size accordingly in editor.js */
+    --code-font-size: 0.875em
+        /* please adjust the ace font size accordingly in editor.js */
 }
 
 /* Themes */
@@ -213,43 +213,45 @@
 }
 
 .abstract_light {
-    --bg: hsl(226, 23%, 11%);
-    --fg: #bcbdd0;
+    --bg: hsl(210, 20%, 95%);
+    --fg: hsl(45, 10%, 30%);
 
-    --sidebar-bg: #282d3f;
-    --sidebar-fg: #c8c9db;
-    --sidebar-non-existant: #505274;
-    --sidebar-active: #2b79a2;
-    --sidebar-spacer: #2d334f;
+    --sidebar-bg: hsl(210, 20%, 90%);
+    --sidebar-fg: hsl(45, 10%, 40%);
+    --sidebar-non-existant: hsl(210, 20%, 80%);
+    --sidebar-active: hsl(45, 10%, 50%);
+    --sidebar-spacer: hsl(210, 20%, 75%);
 
     --scrollbar: var(--sidebar-fg);
 
-    --icons: #737480;
-    --icons-hover: #b7b9cc;
+    --icons: hsl(210, 20%, 55%);
+    --icons-hover: hsl(45, 10%, 20%);
 
-    --links: #2b79a2;
+    --links: hsl(45, 10%, 20%);
 
-    --inline-code-color: #c5c8c6;
+    --inline-code-color: hsl(45, 10%, 40%);
 
-    --theme-popup-bg: #161923;
-    --theme-popup-border: #737480;
-    --theme-hover: #282e40;
+    --theme-popup-bg: hsl(210, 20%, 70%);
+    --theme-popup-border: hsl(45, 10%, 20%);
+    --theme-hover: hsl(210, 20%, 60%);
 
-    --quote-bg: hsl(226, 15%, 17%);
-    --quote-border: hsl(226, 15%, 22%);
+    --quote-bg: hsl(210, 20%, 80%);
+    --quote-border: hsl(210, 20%, 75%);
 
-    --table-border-color: hsl(226, 23%, 16%);
-    --table-header-bg: hsl(226, 23%, 31%);
-    --table-alternate-bg: hsl(226, 23%, 14%);
+    --table-border-color: hsl(210, 20%, 75%);
+    --table-header-bg: hsl(45, 10%, 50%);
+    --table-alternate-bg: hsl(210, 20%, 80%);
 
-    --searchbar-border-color: #aaa;
-    --searchbar-bg: #aeaec6;
-    --searchbar-fg: #000;
-    --searchbar-shadow-color: #aaa;
-    --searchresults-header-fg: #5f5f71;
-    --searchresults-border-color: #5c5c68;
-    --searchresults-li-bg: #242430;
-    --search-mark-bg: #a2cff5;
+    --searchbar-border-color: hsl(210, 20%, 55%);
+    --searchbar-bg: hsl(210, 20%, 90%);
+    --searchbar-fg: hsl(45, 10%, 20%);
+    --searchbar-shadow-color: hsl(210, 20%, 60%);
+    --searchresults-header-fg: hsl(210, 20%, 55%);
+    --searchresults-border-color: hsl(210, 20%, 50%);
+    --searchresults-li-bg: hsl(45, 10%, 50%);
+    --search-mark-bg: hsl(45, 10%, 50%);
+
+
 }
 
 .rust {
