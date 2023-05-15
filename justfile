@@ -16,6 +16,9 @@ lintfix:
   cargo clippy --fix --allow-staged --allow-dirty --all-features
   just format
 
+docs:
+  (cd docs && mdbook serve --open) 
+
 check:
   cargo check --all-features
 
