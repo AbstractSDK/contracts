@@ -1,5 +1,5 @@
 use crate::{
-    constants::{ASSET_DELIMITER, ATTRIBUTE_DELIMITER},
+    constants::{ASSET_DELIMITER, TYPE_DELIMITER},
     objects::{lp_token::LpToken, AssetEntry},
 };
 use cosmwasm_std::{StdError, StdResult};
@@ -56,7 +56,7 @@ impl Display for DexAssetPairing {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{}{ATTRIBUTE_DELIMITER}{}{ASSET_DELIMITER}{}",
+            "{}{TYPE_DELIMITER}{}{ASSET_DELIMITER}{}",
             self.dex(),
             self.asset_x(),
             self.asset_y()
