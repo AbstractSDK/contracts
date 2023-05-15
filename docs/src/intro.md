@@ -31,19 +31,35 @@ Abstract is a cutting-edge smart contract framework designed for the CosmWasm ec
 
 Developers on the Abstract platform can earn ongoing revenue for their contributions by leveraging the platform's tokenomics and community-driven incentives. They design and offer modules on the Module Marketplace and receive a portion of Abstract tokens from each sale. By participating in or forming Developer DAOs, developers gain access to funding for building modules and dApps, sharing profits among members. Furthermore, they can create modules based on user bounties, earning tokens for their efforts. This collaborative environment encourages the creation of top-quality modules, offering developers a continuous income stream and promoting value for all parties involved.
 
-
 ## Use Cases and Examples
 
-Decentralized Finance (DeFi): Developers can leverage Abstract's modular architecture to quickly build DeFi applications, such as decentralized exchanges, lending platforms, and yield farming protocols.
+### Personalized Decentralized Finance (PDeFi)
 
-NFT Marketplaces: Abstract's SDK can be used to create customizable NFT marketplaces, allowing users to mint, trade, and manage digital assets on various Cosmos-based blockchains.
+Developers can leverage Abstract's modular architecture to quickly build Personalized DeFi applications. In contrast with traditionally DeFi, these applications aren't required to custody the user's assets. They can also be customized to meet the user's specific requirements, such as integrating with their preferred oracle, wallet, or exchange. Abstract's P-DeFi applications can be used to create custom financial products, such as:
 
-Governance Platforms: Developers can utilize Abstract to create advanced governance platforms that support custom voting mechanisms and proposal systems for community-driven decision-making.
+- Dollar cost averaging (DCA)
+- Grid bot trading
+- Custom trading strategies
+- Permissioned asset markets
 
-Cross-Chain Interoperability: Abstract's chain-agnostic nature enables developers to create dApps that can interact with multiple blockchains within the Cosmos ecosystem, facilitating cross-chain asset transfers and communication.
+All of which can have tweakable settings that are in the user's control.
 
-Decentralized Autonomous Organizations (DAOs): Abstract can be used to build and manage DAOs with custom governance structures, allowing communities to collaborate, make decisions, and allocate resources effectively.
+### NFT Marketplaces
 
-Project Infrastructure: Develop tooling for your dApps that help speed up work flows, work with your contracts from inside Rust, no need for JavaScript, use your own Rust projects codebases.
+Abstract's SDK can be used to create customizable NFT marketplaces, allowing users to mint, trade, and manage digital assets on various Cosmos-based blockchains.
 
+### Governance Platforms
 
+Developers can utilize Abstract to create advanced governance platforms that support custom voting mechanisms and proposal systems for community-driven decision-making.
+
+### Cross-Chain Interoperability
+
+Abstract's chain-agnostic nature enables developers to create dApps that can interact with multiple blockchains within the Cosmos ecosystem, facilitating cross-chain asset transfers and communication.
+
+### Decentralized Autonomous Organizations (DAOs)
+
+Abstract can be used to build and manage DAOs with custom governance structures, allowing communities to collaborate, make decisions, and allocate resources effectively.
+
+### Project Infrastructure
+
+Develop tooling for your dApps that help speed up work flows, work with your contracts from inside Rust, no need for JavaScript, use your own Rust projects codebases.

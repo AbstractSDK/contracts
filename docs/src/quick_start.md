@@ -1,4 +1,4 @@
-# Cw-orchestrator quick-start
+# Abstract quick-start (TODO)
 
 Getting started with cw-orchestrator is very easy. The first step to using orchestrator is adding `cw-orch` to your contract's toml.
 

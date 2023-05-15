@@ -80,7 +80,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="intro.html" class="active"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="quick_start.html"><strong aria-hidden="true">2.</strong> Quick-start</a></li><li class="chapter-item expanded "><a href="tutorial/index.html"><strong aria-hidden="true">3.</strong> Tutorial</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="tutorial/interfaces.html"><strong aria-hidden="true">3.1.</strong> Interfaces</a></li><li class="chapter-item expanded "><a href="tutorial/env-variable.html"><strong aria-hidden="true">3.2.</strong> Environment Vars</a></li><li class="chapter-item expanded "><a href="tutorial/scripting.html"><strong aria-hidden="true">3.3.</strong> Scripting</a></li><li class="chapter-item expanded "><a href="tutorial/integration-tests.html"><strong aria-hidden="true">3.4.</strong> Integration Tests</a></li><li class="chapter-item expanded "><a href="tutorial/integration.html"><strong aria-hidden="true">3.5.</strong> Product Integrations</a></li></ol></li><li class="chapter-item expanded "><a href="advanced/index.html"><strong aria-hidden="true">4.</strong> Advanced</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="advanced/ci-cd.html"><strong aria-hidden="true">4.1.</strong> CI/CD</a></li></ol></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">5.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="references.html"><strong aria-hidden="true">6.</strong> References</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="intro.html" class="active"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="quick_start.html"><strong aria-hidden="true">2.</strong> Quick-start</a></li><li class="chapter-item expanded "><a href="tutorial/index.html"><strong aria-hidden="true">3.</strong> Tutorial</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="tutorial/interfaces.html"><strong aria-hidden="true">3.1.</strong> Interfaces</a></li><li class="chapter-item expanded "><a href="tutorial/env-variable.html"><strong aria-hidden="true">3.2.</strong> Environment Vars</a></li><li class="chapter-item expanded "><a href="tutorial/scripting.html"><strong aria-hidden="true">3.3.</strong> Scripting</a></li><li class="chapter-item expanded "><a href="tutorial/integration-tests.html"><strong aria-hidden="true">3.4.</strong> Integration Tests</a></li><li class="chapter-item expanded "><a href="tutorial/integration.html"><strong aria-hidden="true">3.5.</strong> Product Integrations</a></li></ol></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">4.</strong> Contributing</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -177,12 +177,25 @@
 <h3 id="reliable-development-funding"><a class="header" href="#reliable-development-funding">Reliable Development Funding</a></h3>
 <p>Developers on the Abstract platform can earn ongoing revenue for their contributions by leveraging the platform's tokenomics and community-driven incentives. They design and offer modules on the Module Marketplace and receive a portion of Abstract tokens from each sale. By participating in or forming Developer DAOs, developers gain access to funding for building modules and dApps, sharing profits among members. Furthermore, they can create modules based on user bounties, earning tokens for their efforts. This collaborative environment encourages the creation of top-quality modules, offering developers a continuous income stream and promoting value for all parties involved.</p>
 <h2 id="use-cases-and-examples"><a class="header" href="#use-cases-and-examples">Use Cases and Examples</a></h2>
-<p>Decentralized Finance (DeFi): Developers can leverage Abstract's modular architecture to quickly build DeFi applications, such as decentralized exchanges, lending platforms, and yield farming protocols.</p>
-<p>NFT Marketplaces: Abstract's SDK can be used to create customizable NFT marketplaces, allowing users to mint, trade, and manage digital assets on various Cosmos-based blockchains.</p>
-<p>Governance Platforms: Developers can utilize Abstract to create advanced governance platforms that support custom voting mechanisms and proposal systems for community-driven decision-making.</p>
-<p>Cross-Chain Interoperability: Abstract's chain-agnostic nature enables developers to create dApps that can interact with multiple blockchains within the Cosmos ecosystem, facilitating cross-chain asset transfers and communication.</p>
-<p>Decentralized Autonomous Organizations (DAOs): Abstract can be used to build and manage DAOs with custom governance structures, allowing communities to collaborate, make decisions, and allocate resources effectively.</p>
-<p>Project Infrastructure: Develop tooling for your dApps that help speed up work flows, work with your contracts from inside Rust, no need for JavaScript, use your own Rust projects codebases.</p>
+<h3 id="personalized-decentralized-finance-pdefi"><a class="header" href="#personalized-decentralized-finance-pdefi">Personalized Decentralized Finance (PDeFi)</a></h3>
+<p>Developers can leverage Abstract's modular architecture to quickly build Personalized DeFi applications. In contrast with traditionally DeFi, these applications aren't required to custody the user's assets. They can also be customized to meet the user's specific requirements, such as integrating with their preferred oracle, wallet, or exchange. Abstract's P-DeFi applications can be used to create custom financial products, such as:</p>
+<ul>
+<li>Dollar cost averaging (DCA)</li>
+<li>Grid bot trading</li>
+<li>Custom trading strategies</li>
+<li>Permissioned asset markets</li>
+</ul>
+<p>All of which can have tweakable settings that are in the user's control.</p>
+<h3 id="nft-marketplaces"><a class="header" href="#nft-marketplaces">NFT Marketplaces</a></h3>
+<p>Abstract's SDK can be used to create customizable NFT marketplaces, allowing users to mint, trade, and manage digital assets on various Cosmos-based blockchains.</p>
+<h3 id="governance-platforms"><a class="header" href="#governance-platforms">Governance Platforms</a></h3>
+<p>Developers can utilize Abstract to create advanced governance platforms that support custom voting mechanisms and proposal systems for community-driven decision-making.</p>
+<h3 id="cross-chain-interoperability"><a class="header" href="#cross-chain-interoperability">Cross-Chain Interoperability</a></h3>
+<p>Abstract's chain-agnostic nature enables developers to create dApps that can interact with multiple blockchains within the Cosmos ecosystem, facilitating cross-chain asset transfers and communication.</p>
+<h3 id="decentralized-autonomous-organizations-daos"><a class="header" href="#decentralized-autonomous-organizations-daos">Decentralized Autonomous Organizations (DAOs)</a></h3>
+<p>Abstract can be used to build and manage DAOs with custom governance structures, allowing communities to collaborate, make decisions, and allocate resources effectively.</p>
+<h3 id="project-infrastructure"><a class="header" href="#project-infrastructure">Project Infrastructure</a></h3>
+<p>Develop tooling for your dApps that help speed up work flows, work with your contracts from inside Rust, no need for JavaScript, use your own Rust projects codebases.</p>
 
                     </main>
 
