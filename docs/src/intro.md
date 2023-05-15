@@ -14,7 +14,7 @@ Abstract is a cutting-edge smart contract framework designed for the CosmWasm ec
 
 - Chain-Agnostic: Abstract is built to support various blockchain networks within the Cosmos ecosystem, giving developers the flexibility to choose the best-suited platform for their dApp.
 
-- Custom Governance: Abstract allows developers to create custom governance structures tailored to their application's specific requirements, including integration with multisignature wallets and DAOs.
+- Custom Governance: Abstract allows developers to create custom governance structures tailored to their application's specific requirements, including integration with multi-signature wallets and DAOs.
 
 - Testing Infrastructure (cw-orchestrator): Abstract offers a vast integration testing library, enabling developers to quickly increase test coverage and ensure the reliability of their dApps.
 
@@ -63,3 +63,5 @@ Abstract can be used to build and manage DAOs with custom governance structures,
 ### Project Infrastructure
 
 Develop tooling for your dApps that help speed up work flows, work with your contracts from inside Rust, no need for JavaScript, use your own Rust projects codebases.
+
+

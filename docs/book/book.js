@@ -327,7 +327,7 @@ function playground_text(playground, hidden = true) {
     function set_theme(theme, store = true) {
         let ace_theme;
 
-        if (theme == 'coal' || theme == 'navy') {
+        if (theme == 'coal' || theme == 'navy' || theme == 'abstract') {
             stylesheets.ayuHighlight.disabled = true;
             stylesheets.tomorrowNight.disabled = false;
             stylesheets.highlight.disabled = true;

@@ -174,44 +174,83 @@
 
 .abstract {
     --bg: hsl(210, 20%, 15%);
-    --fg: hsl(39, 29%, 65%);
+    --fg: hsl(45, 10%, 70%);
 
     --sidebar-bg: hsl(210, 20%, 10%);
-    --sidebar-fg: hsl(39, 29%, 75%);
+    --sidebar-fg: hsl(45, 10%, 80%);
     --sidebar-non-existant: hsl(210, 20%, 20%);
-    --sidebar-active: hsl(39, 29%, 85%);
+    --sidebar-active: hsl(45, 10%, 85%);
     --sidebar-spacer: hsl(210, 20%, 25%);
 
     --scrollbar: var(--sidebar-fg);
 
     --icons: hsl(210, 20%, 45%);
-    --icons-hover: hsl(39, 29%, 85%);
+    --icons-hover: hsl(45, 10%, 90%);
 
-    --links: hsl(39, 29%, 85%);
+    --links: hsl(45, 10%, 90%);
 
-    --inline-code-color: hsl(39, 29%, 55%);
+    --inline-code-color: hsl(45, 10%, 60%);
 
     --theme-popup-bg: hsl(210, 20%, 30%);
-    --theme-popup-border: hsl(39, 29%, 85%);
+    --theme-popup-border: hsl(45, 10%, 90%);
     --theme-hover: hsl(210, 20%, 40%);
 
     --quote-bg: hsl(210, 20%, 20%);
     --quote-border: hsl(210, 20%, 25%);
 
     --table-border-color: hsl(210, 20%, 25%);
-    --table-header-bg: hsl(39, 29%, 75%);
+    --table-header-bg: hsl(45, 10%, 85%);
     --table-alternate-bg: hsl(210, 20%, 20%);
 
     --searchbar-border-color: hsl(210, 20%, 45%);
     --searchbar-bg: hsl(210, 20%, 10%);
-    --searchbar-fg: hsl(39, 29%, 85%);
+    --searchbar-fg: hsl(45, 10%, 90%);
     --searchbar-shadow-color: hsl(210, 20%, 40%);
     --searchresults-header-fg: hsl(210, 20%, 45%);
     --searchresults-border-color: hsl(210, 20%, 50%);
-    --searchresults-li-bg: hsl(39, 29%, 85%);
-    --search-mark-bg: hsl(39, 29%, 85%);
+    --searchresults-li-bg: hsl(45, 10%, 90%);
+    --search-mark-bg: hsl(45, 10%, 90%);
 }
 
+.abstract_light {
+    --bg: hsl(226, 23%, 11%);
+    --fg: #bcbdd0;
+
+    --sidebar-bg: #282d3f;
+    --sidebar-fg: #c8c9db;
+    --sidebar-non-existant: #505274;
+    --sidebar-active: #2b79a2;
+    --sidebar-spacer: #2d334f;
+
+    --scrollbar: var(--sidebar-fg);
+
+    --icons: #737480;
+    --icons-hover: #b7b9cc;
+
+    --links: #2b79a2;
+
+    --inline-code-color: #c5c8c6;
+
+    --theme-popup-bg: #161923;
+    --theme-popup-border: #737480;
+    --theme-hover: #282e40;
+
+    --quote-bg: hsl(226, 15%, 17%);
+    --quote-border: hsl(226, 15%, 22%);
+
+    --table-border-color: hsl(226, 23%, 16%);
+    --table-header-bg: hsl(226, 23%, 31%);
+    --table-alternate-bg: hsl(226, 23%, 14%);
+
+    --searchbar-border-color: #aaa;
+    --searchbar-bg: #aeaec6;
+    --searchbar-fg: #000;
+    --searchbar-shadow-color: #aaa;
+    --searchresults-header-fg: #5f5f71;
+    --searchresults-border-color: #5c5c68;
+    --searchresults-li-bg: #242430;
+    --search-mark-bg: #a2cff5;
+}
 
 .rust {
     --bg: hsl(60, 9%, 87%);
