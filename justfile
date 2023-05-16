@@ -19,6 +19,10 @@ lintfix:
 docs:
   (cd docs && mdbook serve --open) 
 
+install-docs:
+  cargo install mdbook
+  cargo install mdbook-mermaid
+
 check:
   cargo check --all-features
 
