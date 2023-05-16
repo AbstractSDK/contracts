@@ -47,7 +47,7 @@ You can install mdbook and the mermaid pre-processor by running `just install-do
 Then you can edit the files in the `docs/src` folder and run
 
 ```shell
-just docs
+just serve-docs
 ```
 
 This will serve you the documentation and automatically re-compiles it when you make changes.

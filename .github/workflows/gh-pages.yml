@@ -38,7 +38,7 @@ jobs:
         run: just install-docs
 
       - name: Build 🏗️
-        run: make build
+        run: just build-docs
 
       - name: Upload artifact
         if: ${{ github.event_name != 'pull_request' }}
