@@ -34,6 +34,10 @@ jobs:
         with:
           rust-version: stable
 
+      - name: Setup | Just
+        id: just
+        uses: extractions/setup-just@v1
+
       - name: Install dependencies 🔧
         run: just install-docs
 
