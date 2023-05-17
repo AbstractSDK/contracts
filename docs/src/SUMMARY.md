@@ -5,6 +5,7 @@
   - [Architecture](./introduction/architecture.md)
   - [Modules](./introduction/modules.md)
   - [Governance](./introduction/governance.md)
+  - [test](./introduction/test.md)
 - [Get Started](./get_started/index.md)
   - [Installation](./get_started/intallation.md)
   - [Account Creation](./get_started/account_creation.md)
