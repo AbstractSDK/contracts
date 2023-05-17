@@ -1,9 +1,9 @@
 //! # SDK Prelude
-//! 
+//!
 //! Re-exports all the API traits to make it easier to access them.
-//! 
+//!
 //! ## Usage
-//! 
+//!
 //! ```rust
 //! use abstract_sdk::prelude::*;
 //! ```
