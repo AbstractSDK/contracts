@@ -3,14 +3,12 @@
 #![doc(test(attr(
     warn(unused),
     deny(warnings),
-    // W/o this, we seem to get some bogus warning about `extern crate zbus`.
     allow(unused_extern_crates, unused),
 )))]
 
 pub type AbstractSdkResult<T> = Result<T, crate::error::AbstractSdkError>;
 
 pub extern crate abstract_core as core;
-extern crate abstract_macros as macros;
 
 mod ans_resolve;
 mod apis;
@@ -19,6 +17,7 @@ pub mod base;
 pub mod cw_helpers;
 mod error;
 pub mod feature_objects;
+pub mod prelude;
 
 pub use error::{AbstractSdkError, EndpointError};
 
