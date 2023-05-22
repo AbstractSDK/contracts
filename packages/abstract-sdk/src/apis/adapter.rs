@@ -2,7 +2,7 @@
 
 use crate::{AbstractSdkResult, ModuleInterface};
 use abstract_core::{adapter::AdapterRequestMsg, objects::module::ModuleId};
-use cosmwasm_std::{wasm_execute, Deps, Empty, CosmosMsg};
+use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, Empty};
 use serde::{de::DeserializeOwned, Serialize};
 
 /// Interact with other modules on the Account.
@@ -111,13 +111,13 @@ mod tests {
                     request: MockModuleExecuteMsg {},
                 });
 
-            assert_that!(res).is_ok().is_equal_to(
-                CosmosMsg::Wasm(WasmMsg::Execute {
+            assert_that!(res)
+                .is_ok()
+                .is_equal_to(CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: TEST_MODULE_ADDRESS.into(),
                     msg: to_binary(&expected_msg).unwrap(),
                     funds: vec![],
-                }),
-            );
+                }));
         }
     }
 

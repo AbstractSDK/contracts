@@ -9,7 +9,7 @@ use crate::{
 };
 use abstract_core::proxy::ExecuteMsg;
 use abstract_macros::with_abstract_event;
-use cosmwasm_std::{CosmosMsg, Deps, ReplyOn, Response, SubMsg, wasm_execute};
+use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, ReplyOn, Response, SubMsg};
 
 /// Execute an arbitrary `CosmosMsg` action on the Account.
 pub trait Execution: AccountIdentification + ModuleIdentification {
@@ -32,7 +32,9 @@ impl<'a, T: Execution> Executor<'a, T> {
     pub fn execute(&self, msgs: Vec<AbstractMessage>) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
             self.base.proxy_address(self.deps)?.to_string(),
-            &ExecuteMsg::ModuleAction { msgs: msgs.iter().map(|m| m.message()).collect() },
+            &ExecuteMsg::ModuleAction {
+                msgs: msgs.iter().map(|m| m.message()).collect(),
+            },
             vec![],
         )?
         .into())
@@ -106,7 +108,10 @@ mod test {
 
             let expected = CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: TEST_PROXY.to_string(),
-                msg: to_binary(&ExecuteMsg::ModuleAction { msgs: messages.iter().map(|m| m.message()).collect() }).unwrap(),
+                msg: to_binary(&ExecuteMsg::ModuleAction {
+                    msgs: messages.iter().map(|m| m.message()).collect(),
+                })
+                .unwrap(),
                 funds: vec![],
             });
             assert_that!(actual_res.unwrap()).is_equal_to(expected);
@@ -126,7 +131,10 @@ mod test {
 
             let expected = CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: TEST_PROXY.to_string(),
-                msg: to_binary(&ExecuteMsg::ModuleAction { msgs: messages.iter().map(|m| m.message()).collect() }).unwrap(),
+                msg: to_binary(&ExecuteMsg::ModuleAction {
+                    msgs: messages.iter().map(|m| m.message()).collect(),
+                })
+                .unwrap(),
                 // funds should be empty
                 funds: vec![],
             });
@@ -159,7 +167,10 @@ mod test {
                 id: expected_reply_id,
                 msg: CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: TEST_PROXY.to_string(),
-                    msg: to_binary(&ExecuteMsg::ModuleAction { msgs: empty_msgs.iter().map(|m| m.message()).collect() }).unwrap(),
+                    msg: to_binary(&ExecuteMsg::ModuleAction {
+                        msgs: empty_msgs.iter().map(|m| m.message()).collect(),
+                    })
+                    .unwrap(),
                     funds: vec![],
                 }),
                 gas_limit: None,
@@ -191,7 +202,10 @@ mod test {
                 id: expected_reply_id,
                 msg: CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: TEST_PROXY.to_string(),
-                    msg: to_binary(&ExecuteMsg::ModuleAction { msgs: messages.iter().map(|m| m.message()).collect() }).unwrap(),
+                    msg: to_binary(&ExecuteMsg::ModuleAction {
+                        msgs: messages.iter().map(|m| m.message()).collect(),
+                    })
+                    .unwrap(),
                     // funds should be empty
                     funds: vec![],
                 }),
@@ -220,7 +234,10 @@ mod test {
 
             let expected_msg = CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: TEST_PROXY.to_string(),
-                msg: to_binary(&ExecuteMsg::ModuleAction { msgs: empty_msgs.iter().map(|m| m.message()).collect() }).unwrap(),
+                msg: to_binary(&ExecuteMsg::ModuleAction {
+                    msgs: empty_msgs.iter().map(|m| m.message()).collect(),
+                })
+                .unwrap(),
                 funds: vec![],
             });
 
@@ -249,7 +266,10 @@ mod test {
 
             let expected_msg = CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: TEST_PROXY.to_string(),
-                msg: to_binary(&ExecuteMsg::ModuleAction { msgs: messages.iter().map(|m| m.message()).collect() }).unwrap(),
+                msg: to_binary(&ExecuteMsg::ModuleAction {
+                    msgs: messages.iter().map(|m| m.message()).collect(),
+                })
+                .unwrap(),
                 // funds should be empty
                 funds: vec![],
             });

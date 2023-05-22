@@ -1,5 +1,5 @@
 #![allow(unused)]
-use crate::cw_helpers::cw_messages::{AbstractMessage};
+use crate::cw_helpers::cw_messages::AbstractMessage;
 use crate::{AbstractSdkResult, TransferInterface};
 use abstract_core::objects::AnsAsset;
 use cosmwasm_std::{Addr, CosmosMsg, Deps, StdResult, Uint128};
@@ -44,14 +44,12 @@ impl<'a, T: SplitterInterface> Splitter<'a, T> {
                 // Construct the transfer message
                 bank.transfer(vec![&receives_each], receiver)
             })
-            .try_fold(Vec::new(), |mut acc, v| {
-                match v{
-                    Ok(vec)=>{
-                        acc.extend(vec);
-                        Ok(acc)
-                    },
-                    Err(e)=> Err(e)
+            .try_fold(Vec::new(), |mut acc, v| match v {
+                Ok(vec) => {
+                    acc.extend(vec);
+                    Ok(acc)
                 }
+                Err(e) => Err(e),
             })
     }
 }

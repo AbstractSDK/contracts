@@ -1,7 +1,7 @@
 #![allow(unused)]
 use crate::{cw_helpers::cw_messages::AbstractMessage, AbstractSdkResult, ModuleInterface};
 use abstract_core::objects::module::ModuleId;
-use cosmwasm_std::{wasm_execute, Deps, Empty, CosmosMsg};
+use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, Empty};
 use serde::{de::DeserializeOwned, Serialize};
 
 use abstract_core::app as msg;
@@ -119,13 +119,13 @@ mod tests {
             let expected_msg: app::ExecuteMsg<_, Empty> =
                 app::ExecuteMsg::Module(MockModuleExecuteMsg {});
 
-            assert_that!(res).is_ok().is_equal_to::<CosmosMsg>(
-                CosmosMsg::Wasm(WasmMsg::Execute {
+            assert_that!(res)
+                .is_ok()
+                .is_equal_to::<CosmosMsg>(CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: TEST_MODULE_ADDRESS.into(),
                     msg: to_binary(&expected_msg).unwrap(),
                     funds: vec![],
-                }),
-            );
+                }));
         }
     }
 
@@ -170,13 +170,13 @@ mod tests {
                     ans_host_address: Some("new_ans_addr".to_string()),
                 });
 
-            assert_that!(res).is_ok().is_equal_to::<CosmosMsg>(
-                CosmosMsg::Wasm(WasmMsg::Execute {
+            assert_that!(res)
+                .is_ok()
+                .is_equal_to::<CosmosMsg>(CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: TEST_MODULE_ADDRESS.into(),
                     msg: to_binary(&expected_msg).unwrap(),
                     funds: vec![],
-                }),
-            );
+                }));
         }
     }
 

@@ -90,7 +90,6 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
             .map(|asset| asset.transfer_msg(recipient.clone()).map(Into::into))
             .collect::<Result<Vec<_>, _>>()
             .map_err(Into::into)
-
     }
 
     /// Move funds from the contract into the Account.
@@ -179,7 +178,6 @@ mod test {
 
     mod transfer_coins {
         use super::*;
-        
 
         #[test]
         fn transfer_asset_to_sender() {
