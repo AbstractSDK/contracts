@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::{AbstractSdkResult, ModuleInterface, cw_helpers::cw_messages::AbstractMessage};
+use crate::{cw_helpers::cw_messages::AbstractMessage, AbstractSdkResult, ModuleInterface};
 use abstract_core::{adapter::AdapterRequestMsg, objects::module::ModuleId};
 use cosmwasm_std::{wasm_execute, Deps, Empty};
 use serde::{de::DeserializeOwned, Serialize};
@@ -111,13 +111,14 @@ mod tests {
                     request: MockModuleExecuteMsg {},
                 });
 
-            assert_that!(res)
-                .is_ok()
-                .is_equal_to::<AbstractMessage>(CosmosMsg::Wasm(WasmMsg::Execute {
+            assert_that!(res).is_ok().is_equal_to::<AbstractMessage>(
+                CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: TEST_MODULE_ADDRESS.into(),
                     msg: to_binary(&expected_msg).unwrap(),
                     funds: vec![],
-                }).into());
+                })
+                .into(),
+            );
         }
     }
 

@@ -1,8 +1,8 @@
 //! # Bank
 //! The Bank object handles asset transfers to and from the Account.
 
+use crate::cw_helpers::cw_messages::AbstractMessage;
 use crate::{ans_resolve::Resolve, features::AbstractNameService, AbstractSdkResult, Execution};
-use crate::cw_helpers::cw_messages::{AbstractMessage};
 use core::objects::{AnsAsset, AssetEntry};
 use cosmwasm_std::{Addr, BankMsg, Coin, CosmosMsg, Deps};
 use cw_asset::Asset;
@@ -92,7 +92,10 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     }
 
     /// Move funds from the contract into the Account.
-    pub fn deposit<R: Transferable>(&self, funds: Vec<R>) -> AbstractSdkResult<Vec<AbstractMessage>> {
+    pub fn deposit<R: Transferable>(
+        &self,
+        funds: Vec<R>,
+    ) -> AbstractSdkResult<Vec<AbstractMessage>> {
         let recipient = self.base.proxy_address(self.deps)?;
         let transferable_funds = funds
             .into_iter()
@@ -102,7 +105,6 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
             .iter()
             .map(|asset| asset.transfer_msg(recipient.clone()).map(Into::into))
             .collect::<Result<Vec<AbstractMessage>, _>>()
-
             .map_err(Into::into)
     }
 
@@ -112,7 +114,8 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
         Ok(CosmosMsg::Bank(BankMsg::Send {
             to_address: recipient,
             amount: coins,
-        }).into())
+        })
+        .into())
     }
 }
 
@@ -228,7 +231,9 @@ mod test {
                 amount: coins,
             });
 
-            assert_that!(actual_res).is_ok().is_equal_to::<AbstractMessage>(expected_msg.into());
+            assert_that!(actual_res)
+                .is_ok()
+                .is_equal_to::<AbstractMessage>(expected_msg.into());
         }
     }
 

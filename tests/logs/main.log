@@ -1,0 +1,931 @@
+2023-05-15 07:36:11 - INFO: Starting daemon juno-1
+2023-05-15 07:36:11 - INFO: Starting daemon osmosis-2
+2023-05-15 07:36:11 - INFO: Executing ExecOnModule {
+    module_id: "abstract:proxy",
+    exec_msg: Binary(7b226962635f616374696f6e223a7b226d736773223a5b7b2273656e645f7061636b6574223a7b22686f73745f636861696e223a226a756e6f222c22616374696f6e223a7b226469737061746368223a7b226d616e616765725f6d7367223a7b22696e7374616c6c5f6d6f64756c65223a7b226d6f64756c65223a7b226e616d657370616365223a226162737472616374222c226e616d65223a22616e732d686f7374222c2276657273696f6e223a226c6174657374227d2c22696e69745f6d7367223a2265794a6959584e6c496a7037496d46756331396f62334e305832466b5a484a6c63334d694f694a71645735764d54526f616a4a3059585a784f475a775a584e6b64336834593355304e484a3065544e6f61446b77646d6831616e4a325932317a64477730656e497a644868745a6e5a334f584e72616e56335a7a6769665377696257396b6457786c496a7037496e52766132567558324e765a475666615751694f6a45774c434a6d5a5755694f6949774c6a45694c434a74595735685a3256795832466b5a4849694f694a71645735764d575530633364796147566b4e6e426c616d51774e584a344d6e703064334e775a6a4e79616e686862445635656d463163336c3349697769644739725a573566626d46745a534936626e567362437769644739725a57356663336c74596d3973496a7075645778736658303d227d7d7d7d2c2263616c6c6261636b5f696e666f223a6e756c6c2c2272657472696573223a327d7d5d7d7d),
+} on abstract:manager
+2023-05-15 07:36:21 - INFO: Investigating sent packet events on tx 416BF65E385A6057917F0CD0A431317A9205363535DE48B050B495E4F4CDFB21
+2023-05-15 07:36:21 - INFO: Connected to chain juno on port 34683
+2023-05-15 07:36:21 - INFO: Connected to chain juno on port 41973
+2023-05-15 07:36:21 - INFO: Found 1 gRPC endpoints
+2023-05-15 07:36:21 - INFO: Trying to connect to endpoint: http://0.0.0.0:41973
+2023-05-15 07:36:21 - INFO: Writing daemon state JSON file: "daemon_state.json"
+2023-05-15 07:36:21 - INFO: Interacting with juno-1 using address: juno1e4swrhed6pejd05rx2ztwspf3rjxal5yzausyw
+2023-05-15 07:36:21 - INFO: IBC packet n° 9, sent on osmosis-2 on tx 416BF65E385A6057917F0CD0A431317A9205363535DE48B050B495E4F4CDFB21, with data: {"host_chain":"juno","retries":2,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"install_module":{"module":{"namespace":"abstract","name":"ans-host","version":"latest"},"init_msg":"eyJiYXNlIjp7ImFuc19ob3N0X2FkZHJlc3MiOiJqdW5vMTRoajJ0YXZxOGZwZXNkd3h4Y3U0NHJ0eTNoaDkwdmh1anJ2Y21zdGw0enIzdHhtZnZ3OXNranV3ZzgifSwibW9kdWxlIjp7InRva2VuX2NvZGVfaWQiOjEwLCJmZWUiOiIwLjEiLCJtYW5hZ2VyX2FkZHIiOiJqdW5vMWU0c3dyaGVkNnBlamQwNXJ4Mnp0d3NwZjNyanhhbDV5emF1c3l3IiwidG9rZW5fbmFtZSI6bnVsbCwidG9rZW5fc3ltYm9sIjpudWxsfX0="}}}}}
+2023-05-15 07:36:41 - INFO: IBC packet n°9 : {"host_chain":"juno","retries":2,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"install_module":{"module":{"namespace":"abstract","name":"ans-host","version":"latest"},"init_msg":"eyJiYXNlIjp7ImFuc19ob3N0X2FkZHJlc3MiOiJqdW5vMTRoajJ0YXZxOGZwZXNkd3h4Y3U0NHJ0eTNoaDkwdmh1anJ2Y21zdGw0enIzdHhtZnZ3OXNranV3ZzgifSwibW9kdWxlIjp7InRva2VuX2NvZGVfaWQiOjEwLCJmZWUiOiIwLjEiLCJtYW5hZ2VyX2FkZHIiOiJqdW5vMWU0c3dyaGVkNnBlamQwNXJ4Mnp0d3NwZjNyanhhbDV5emF1c3l3IiwidG9rZW5fbmFtZSI6bnVsbCwidG9rZW5fc3ltYm9sIjpudWxsfX0="}}}}}, received on juno-1 on tx F7F52770D7F97DAA5FBB12198E4105C7763F4F14A0AE81829309B60A59F8F15B, with acknowledgment sent back: submessages: reply: Error calling the VM: Error executing Wasm: Wasmer runtime error: RuntimeError: Aborted: panicked at 'called `Result::unwrap()` on an `Err` value: "codespace: wasm, code: 5"', /usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/cosmwasm-std-1.2.5/src/results/submessages.rs:160:28: execute wasm contract failed
+2023-05-15 07:36:51 - INFO: IBC packet n°9 acknowledgment received on osmosis-2 on tx 0DE9EC6728C32D6DCF5D8F9911E09F37A6B4C2C8FA29B4F3B8EAED1318B25543
+2023-05-15 07:36:51 - INFO: Investigating sent packet events on tx 0DE9EC6728C32D6DCF5D8F9911E09F37A6B4C2C8FA29B4F3B8EAED1318B25543
+2023-05-15 07:36:51 - INFO: Connected to chain juno on port 34683
+2023-05-15 07:36:51 - INFO: Connected to chain juno on port 41973
+2023-05-15 07:36:51 - INFO: Found 1 gRPC endpoints
+2023-05-15 07:36:51 - INFO: Trying to connect to endpoint: http://0.0.0.0:41973
+2023-05-15 07:36:51 - INFO: Writing daemon state JSON file: "daemon_state.json"
+2023-05-15 07:36:51 - INFO: Interacting with juno-1 using address: juno1e4swrhed6pejd05rx2ztwspf3rjxal5yzausyw
+2023-05-15 07:36:51 - INFO: IBC packet n° 10, sent on osmosis-2 on tx 0DE9EC6728C32D6DCF5D8F9911E09F37A6B4C2C8FA29B4F3B8EAED1318B25543, with data: {"host_chain":"juno","retries":1,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"install_module":{"module":{"namespace":"abstract","name":"ans-host","version":"latest"},"init_msg":"eyJiYXNlIjp7ImFuc19ob3N0X2FkZHJlc3MiOiJqdW5vMTRoajJ0YXZxOGZwZXNkd3h4Y3U0NHJ0eTNoaDkwdmh1anJ2Y21zdGw0enIzdHhtZnZ3OXNranV3ZzgifSwibW9kdWxlIjp7InRva2VuX2NvZGVfaWQiOjEwLCJmZWUiOiIwLjEiLCJtYW5hZ2VyX2FkZHIiOiJqdW5vMWU0c3dyaGVkNnBlamQwNXJ4Mnp0d3NwZjNyanhhbDV5emF1c3l3IiwidG9rZW5fbmFtZSI6bnVsbCwidG9rZW5fc3ltYm9sIjpudWxsfX0="}}}}}
+2023-05-15 07:36:51 - INFO: IBC packet n°10 : {"host_chain":"juno","retries":1,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"install_module":{"module":{"namespace":"abstract","name":"ans-host","version":"latest"},"init_msg":"eyJiYXNlIjp7ImFuc19ob3N0X2FkZHJlc3MiOiJqdW5vMTRoajJ0YXZxOGZwZXNkd3h4Y3U0NHJ0eTNoaDkwdmh1anJ2Y21zdGw0enIzdHhtZnZ3OXNranV3ZzgifSwibW9kdWxlIjp7InRva2VuX2NvZGVfaWQiOjEwLCJmZWUiOiIwLjEiLCJtYW5hZ2VyX2FkZHIiOiJqdW5vMWU0c3dyaGVkNnBlamQwNXJ4Mnp0d3NwZjNyanhhbDV5emF1c3l3IiwidG9rZW5fbmFtZSI6bnVsbCwidG9rZW5fc3ltYm9sIjpudWxsfX0="}}}}}, received on juno-1 on tx AD788FE482E9685A91653E2E1F5D07C05ADA8A557ED0AF66EA2825870F7C103E, with acknowledgment sent back: submessages: reply: Error calling the VM: Error executing Wasm: Wasmer runtime error: RuntimeError: Aborted: panicked at 'called `Result::unwrap()` on an `Err` value: "codespace: wasm, code: 5"', /usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/cosmwasm-std-1.2.5/src/results/submessages.rs:160:28: execute wasm contract failed
+2023-05-15 07:36:51 - INFO: IBC packet n°10 acknowledgment received on osmosis-2 on tx 9CF6A81DF98FAF503DE80FAF583930F9312DB68C529D4AAA8A798E00C38D734A
+2023-05-15 07:36:51 - INFO: Investigating sent packet events on tx 9CF6A81DF98FAF503DE80FAF583930F9312DB68C529D4AAA8A798E00C38D734A
+2023-05-15 07:36:51 - INFO: Connected to chain juno on port 34683
+2023-05-15 07:36:51 - INFO: Connected to chain juno on port 41973
+2023-05-15 07:36:51 - INFO: Found 1 gRPC endpoints
+2023-05-15 07:36:51 - INFO: Trying to connect to endpoint: http://0.0.0.0:41973
+2023-05-15 07:36:51 - INFO: Writing daemon state JSON file: "daemon_state.json"
+2023-05-15 07:36:52 - INFO: Interacting with juno-1 using address: juno1e4swrhed6pejd05rx2ztwspf3rjxal5yzausyw
+2023-05-15 07:36:52 - INFO: IBC packet n° 11, sent on osmosis-2 on tx 9CF6A81DF98FAF503DE80FAF583930F9312DB68C529D4AAA8A798E00C38D734A, with data: {"host_chain":"juno","retries":0,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"install_module":{"module":{"namespace":"abstract","name":"ans-host","version":"latest"},"init_msg":"eyJiYXNlIjp7ImFuc19ob3N0X2FkZHJlc3MiOiJqdW5vMTRoajJ0YXZxOGZwZXNkd3h4Y3U0NHJ0eTNoaDkwdmh1anJ2Y21zdGw0enIzdHhtZnZ3OXNranV3ZzgifSwibW9kdWxlIjp7InRva2VuX2NvZGVfaWQiOjEwLCJmZWUiOiIwLjEiLCJtYW5hZ2VyX2FkZHIiOiJqdW5vMWU0c3dyaGVkNnBlamQwNXJ4Mnp0d3NwZjNyanhhbDV5emF1c3l3IiwidG9rZW5fbmFtZSI6bnVsbCwidG9rZW5fc3ltYm9sIjpudWxsfX0="}}}}}
+2023-05-15 07:37:02 - INFO: IBC packet n°11 : {"host_chain":"juno","retries":0,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"install_module":{"module":{"namespace":"abstract","name":"ans-host","version":"latest"},"init_msg":"eyJiYXNlIjp7ImFuc19ob3N0X2FkZHJlc3MiOiJqdW5vMTRoajJ0YXZxOGZwZXNkd3h4Y3U0NHJ0eTNoaDkwdmh1anJ2Y21zdGw0enIzdHhtZnZ3OXNranV3ZzgifSwibW9kdWxlIjp7InRva2VuX2NvZGVfaWQiOjEwLCJmZWUiOiIwLjEiLCJtYW5hZ2VyX2FkZHIiOiJqdW5vMWU0c3dyaGVkNnBlamQwNXJ4Mnp0d3NwZjNyanhhbDV5emF1c3l3IiwidG9rZW5fbmFtZSI6bnVsbCwidG9rZW5fc3ltYm9sIjpudWxsfX0="}}}}}, received on juno-1 on tx 65007B15D641D01C7604C1459EDFDFBF25E47F1EAA2DF82A7BFF2C247DF8A00E, with acknowledgment sent back: submessages: reply: Error calling the VM: Error executing Wasm: Wasmer runtime error: RuntimeError: Aborted: panicked at 'called `Result::unwrap()` on an `Err` value: "codespace: wasm, code: 5"', /usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/cosmwasm-std-1.2.5/src/results/submessages.rs:160:28: execute wasm contract failed
+2023-05-15 07:37:02 - INFO: IBC packet n°11 acknowledgment received on osmosis-2 on tx D7C49DC8816EA74F7D340BA6E08AD9BDCA196BD4A178D44D09F83392689CA38C
+2023-05-15 07:40:35 - INFO: Starting daemon juno-1
+2023-05-15 07:40:35 - INFO: Starting daemon osmosis-2
+2023-05-15 07:40:35 - INFO: Executing CreateAccount {
+    governance: Monarchy {
+        monarch: "juno1e4swrhed6pejd05rx2ztwspf3rjxal5yzausyw",
+    },
+    name: "osmo-test",
+    description: Some(
+        "Description of the account",
+    ),
+    link: Some(
+        "https://google.com",
+    ),
+    origin: None,
+} on abstract:account-factory
+2023-05-15 07:40:45 - INFO: Executing InstallModule {
+    module: ModuleInfo {
+        namespace: "abstract",
+        name: "etf",
+        version: Latest,
+    },
+    init_msg: Some(
+        Binary(7b2262617365223a7b22616e735f686f73745f61646472657373223a226a756e6f3134686a32746176713866706573647778786375343472747933686839307668756a7276636d73746c347a723374786d66767739736b6a75776738227d2c226d6f64756c65223a7b22746f6b656e5f636f64655f6964223a31302c22666565223a22302e31222c226d616e616765725f61646472223a226a756e6f3165347377726865643670656a6430357278327a747773706633726a78616c35797a6175737977222c22746f6b656e5f6e616d65223a6e756c6c2c22746f6b656e5f73796d626f6c223a6e756c6c7d7d),
+    ),
+} on abstract:manager
+2023-05-15 07:40:55 - INFO: Executing ExecOnModule {
+    module_id: "abstract:proxy",
+    exec_msg: Binary(7b226962635f616374696f6e223a7b226d736773223a5b7b2273656e645f7061636b6574223a7b22686f73745f636861696e223a226a756e6f222c22616374696f6e223a7b226469737061746368223a7b226d616e616765725f6d7367223a7b22696e7374616c6c5f6d6f64756c65223a7b226d6f64756c65223a7b226e616d657370616365223a226162737472616374222c226e616d65223a22616e732d686f7374222c2276657273696f6e223a226c6174657374227d2c22696e69745f6d7367223a2265794a6959584e6c496a7037496d46756331396f62334e305832466b5a484a6c63334d694f694a71645735764d54526f616a4a3059585a784f475a775a584e6b64336834593355304e484a3065544e6f61446b77646d6831616e4a325932317a64477730656e497a644868745a6e5a334f584e72616e56335a7a6769665377696257396b6457786c496a7037496e52766132567558324e765a475666615751694f6a45774c434a6d5a5755694f6949774c6a45694c434a74595735685a3256795832466b5a4849694f694a71645735764d575530633364796147566b4e6e426c616d51774e584a344d6e703064334e775a6a4e79616e686862445635656d463163336c3349697769644739725a573566626d46745a534936626e567362437769644739725a57356663336c74596d3973496a7075645778736658303d227d7d7d7d2c2263616c6c6261636b5f696e666f223a6e756c6c2c2272657472696573223a327d7d5d7d7d),
+} on abstract:manager
+2023-05-15 07:41:05 - INFO: Investigating sent packet events on tx 5DBB68A45E83294183C85EE1246D5C8EA1F71EBD8961F4160D43216B239E5E2A
+2023-05-15 07:41:05 - INFO: Connected to chain juno on port 34683
+2023-05-15 07:41:05 - INFO: Connected to chain juno on port 41973
+2023-05-15 07:41:05 - INFO: Found 1 gRPC endpoints
+2023-05-15 07:41:05 - INFO: Trying to connect to endpoint: http://0.0.0.0:41973
+2023-05-15 07:41:05 - INFO: Writing daemon state JSON file: "daemon_state.json"
+2023-05-15 07:41:05 - INFO: Interacting with juno-1 using address: juno1e4swrhed6pejd05rx2ztwspf3rjxal5yzausyw
+2023-05-15 07:41:05 - INFO: IBC packet n° 12, sent on osmosis-2 on tx 5DBB68A45E83294183C85EE1246D5C8EA1F71EBD8961F4160D43216B239E5E2A, with data: {"host_chain":"juno","retries":2,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"install_module":{"module":{"namespace":"abstract","name":"ans-host","version":"latest"},"init_msg":"eyJiYXNlIjp7ImFuc19ob3N0X2FkZHJlc3MiOiJqdW5vMTRoajJ0YXZxOGZwZXNkd3h4Y3U0NHJ0eTNoaDkwdmh1anJ2Y21zdGw0enIzdHhtZnZ3OXNranV3ZzgifSwibW9kdWxlIjp7InRva2VuX2NvZGVfaWQiOjEwLCJmZWUiOiIwLjEiLCJtYW5hZ2VyX2FkZHIiOiJqdW5vMWU0c3dyaGVkNnBlamQwNXJ4Mnp0d3NwZjNyanhhbDV5emF1c3l3IiwidG9rZW5fbmFtZSI6bnVsbCwidG9rZW5fc3ltYm9sIjpudWxsfX0="}}}}}
+2023-05-15 07:41:25 - INFO: IBC packet n°12 : {"host_chain":"juno","retries":2,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"install_module":{"module":{"namespace":"abstract","name":"ans-host","version":"latest"},"init_msg":"eyJiYXNlIjp7ImFuc19ob3N0X2FkZHJlc3MiOiJqdW5vMTRoajJ0YXZxOGZwZXNkd3h4Y3U0NHJ0eTNoaDkwdmh1anJ2Y21zdGw0enIzdHhtZnZ3OXNranV3ZzgifSwibW9kdWxlIjp7InRva2VuX2NvZGVfaWQiOjEwLCJmZWUiOiIwLjEiLCJtYW5hZ2VyX2FkZHIiOiJqdW5vMWU0c3dyaGVkNnBlamQwNXJ4Mnp0d3NwZjNyanhhbDV5emF1c3l3IiwidG9rZW5fbmFtZSI6bnVsbCwidG9rZW5fc3ltYm9sIjpudWxsfX0="}}}}}, received on juno-1 on tx CE4893C1726EADB4D8CAF94ADB03C7FEE06A3A24ACA1396AD0FC4D2456AB0A62, with acknowledgment sent back: submessages: reply: Error calling the VM: Error executing Wasm: Wasmer runtime error: RuntimeError: Aborted: panicked at 'called `Result::unwrap()` on an `Err` value: "codespace: wasm, code: 5"', /usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/cosmwasm-std-1.2.5/src/results/submessages.rs:160:28: execute wasm contract failed
+2023-05-15 07:41:25 - INFO: IBC packet n°12 acknowledgment received on osmosis-2 on tx 3B95B0B156FE5670105CECF8B850EC606320F4A6D22C71EC016C3018D2DAC4DA
+2023-05-15 07:41:25 - INFO: Investigating sent packet events on tx 3B95B0B156FE5670105CECF8B850EC606320F4A6D22C71EC016C3018D2DAC4DA
+2023-05-15 07:41:25 - INFO: Connected to chain juno on port 34683
+2023-05-15 07:41:25 - INFO: Connected to chain juno on port 41973
+2023-05-15 07:41:25 - INFO: Found 1 gRPC endpoints
+2023-05-15 07:41:25 - INFO: Trying to connect to endpoint: http://0.0.0.0:41973
+2023-05-15 07:41:25 - INFO: Writing daemon state JSON file: "daemon_state.json"
+2023-05-15 07:41:25 - INFO: Interacting with juno-1 using address: juno1e4swrhed6pejd05rx2ztwspf3rjxal5yzausyw
+2023-05-15 07:41:25 - INFO: IBC packet n° 13, sent on osmosis-2 on tx 3B95B0B156FE5670105CECF8B850EC606320F4A6D22C71EC016C3018D2DAC4DA, with data: {"host_chain":"juno","retries":1,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"install_module":{"module":{"namespace":"abstract","name":"ans-host","version":"latest"},"init_msg":"eyJiYXNlIjp7ImFuc19ob3N0X2FkZHJlc3MiOiJqdW5vMTRoajJ0YXZxOGZwZXNkd3h4Y3U0NHJ0eTNoaDkwdmh1anJ2Y21zdGw0enIzdHhtZnZ3OXNranV3ZzgifSwibW9kdWxlIjp7InRva2VuX2NvZGVfaWQiOjEwLCJmZWUiOiIwLjEiLCJtYW5hZ2VyX2FkZHIiOiJqdW5vMWU0c3dyaGVkNnBlamQwNXJ4Mnp0d3NwZjNyanhhbDV5emF1c3l3IiwidG9rZW5fbmFtZSI6bnVsbCwidG9rZW5fc3ltYm9sIjpudWxsfX0="}}}}}
+2023-05-15 07:41:35 - INFO: IBC packet n°13 : {"host_chain":"juno","retries":1,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"install_module":{"module":{"namespace":"abstract","name":"ans-host","version":"latest"},"init_msg":"eyJiYXNlIjp7ImFuc19ob3N0X2FkZHJlc3MiOiJqdW5vMTRoajJ0YXZxOGZwZXNkd3h4Y3U0NHJ0eTNoaDkwdmh1anJ2Y21zdGw0enIzdHhtZnZ3OXNranV3ZzgifSwibW9kdWxlIjp7InRva2VuX2NvZGVfaWQiOjEwLCJmZWUiOiIwLjEiLCJtYW5hZ2VyX2FkZHIiOiJqdW5vMWU0c3dyaGVkNnBlamQwNXJ4Mnp0d3NwZjNyanhhbDV5emF1c3l3IiwidG9rZW5fbmFtZSI6bnVsbCwidG9rZW5fc3ltYm9sIjpudWxsfX0="}}}}}, received on juno-1 on tx 23933D7736A07D51A9AF2F4D60751094A6AD6F49CB8D9B0C19B5FF8D31425659, with acknowledgment sent back: submessages: reply: Error calling the VM: Error executing Wasm: Wasmer runtime error: RuntimeError: Aborted: panicked at 'called `Result::unwrap()` on an `Err` value: "codespace: wasm, code: 5"', /usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/cosmwasm-std-1.2.5/src/results/submessages.rs:160:28: execute wasm contract failed
+2023-05-15 07:41:35 - INFO: IBC packet n°13 acknowledgment received on osmosis-2 on tx 98E5A0F602DE8BCEC6547BAE66EF8D31F4F646D488C89C4352DBE29FAD83C131
+2023-05-15 07:41:35 - INFO: Investigating sent packet events on tx 98E5A0F602DE8BCEC6547BAE66EF8D31F4F646D488C89C4352DBE29FAD83C131
+2023-05-15 07:41:35 - INFO: Connected to chain juno on port 34683
+2023-05-15 07:41:35 - INFO: Connected to chain juno on port 41973
+2023-05-15 07:41:35 - INFO: Found 1 gRPC endpoints
+2023-05-15 07:41:35 - INFO: Trying to connect to endpoint: http://0.0.0.0:41973
+2023-05-15 07:41:35 - INFO: Writing daemon state JSON file: "daemon_state.json"
+2023-05-15 07:41:35 - INFO: Interacting with juno-1 using address: juno1e4swrhed6pejd05rx2ztwspf3rjxal5yzausyw
+2023-05-15 07:41:35 - INFO: IBC packet n° 14, sent on osmosis-2 on tx 98E5A0F602DE8BCEC6547BAE66EF8D31F4F646D488C89C4352DBE29FAD83C131, with data: {"host_chain":"juno","retries":0,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"install_module":{"module":{"namespace":"abstract","name":"ans-host","version":"latest"},"init_msg":"eyJiYXNlIjp7ImFuc19ob3N0X2FkZHJlc3MiOiJqdW5vMTRoajJ0YXZxOGZwZXNkd3h4Y3U0NHJ0eTNoaDkwdmh1anJ2Y21zdGw0enIzdHhtZnZ3OXNranV3ZzgifSwibW9kdWxlIjp7InRva2VuX2NvZGVfaWQiOjEwLCJmZWUiOiIwLjEiLCJtYW5hZ2VyX2FkZHIiOiJqdW5vMWU0c3dyaGVkNnBlamQwNXJ4Mnp0d3NwZjNyanhhbDV5emF1c3l3IiwidG9rZW5fbmFtZSI6bnVsbCwidG9rZW5fc3ltYm9sIjpudWxsfX0="}}}}}
+2023-05-15 07:41:45 - INFO: IBC packet n°14 : {"host_chain":"juno","retries":0,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"install_module":{"module":{"namespace":"abstract","name":"ans-host","version":"latest"},"init_msg":"eyJiYXNlIjp7ImFuc19ob3N0X2FkZHJlc3MiOiJqdW5vMTRoajJ0YXZxOGZwZXNkd3h4Y3U0NHJ0eTNoaDkwdmh1anJ2Y21zdGw0enIzdHhtZnZ3OXNranV3ZzgifSwibW9kdWxlIjp7InRva2VuX2NvZGVfaWQiOjEwLCJmZWUiOiIwLjEiLCJtYW5hZ2VyX2FkZHIiOiJqdW5vMWU0c3dyaGVkNnBlamQwNXJ4Mnp0d3NwZjNyanhhbDV5emF1c3l3IiwidG9rZW5fbmFtZSI6bnVsbCwidG9rZW5fc3ltYm9sIjpudWxsfX0="}}}}}, received on juno-1 on tx E4CDC645A1C1BE91401F144E0773B91BD4676EB7EC48D1767EA01B747A8461DF, with acknowledgment sent back: submessages: reply: Error calling the VM: Error executing Wasm: Wasmer runtime error: RuntimeError: Aborted: panicked at 'called `Result::unwrap()` on an `Err` value: "codespace: wasm, code: 5"', /usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/cosmwasm-std-1.2.5/src/results/submessages.rs:160:28: execute wasm contract failed
+2023-05-15 07:41:45 - INFO: IBC packet n°14 acknowledgment received on osmosis-2 on tx 98F2CEB8027CBCD00D4DDD03878F94ABABCE0AD0327F44653DEF14EB7F88A952
+2023-05-15 07:43:13 - INFO: Starting daemon osmosis-2
+2023-05-15 07:43:13 - INFO: Starting daemon juno-1
+2023-05-15 07:43:13 - INFO: Executing InstallModule {
+    module: ModuleInfo {
+        namespace: "abstract",
+        name: "etf",
+        version: Latest,
+    },
+    init_msg: Some(
+        Binary(7b2262617365223a7b22616e735f686f73745f61646472657373223a226a756e6f3134686a32746176713866706573647778786375343472747933686839307668756a7276636d73746c347a723374786d66767739736b6a75776738227d2c226d6f64756c65223a7b22746f6b656e5f636f64655f6964223a31302c22666565223a22302e31222c226d616e616765725f61646472223a226a756e6f3165347377726865643670656a6430357278327a747773706633726a78616c35797a6175737977222c22746f6b656e5f6e616d65223a6e756c6c2c22746f6b656e5f73796d626f6c223a6e756c6c7d7d),
+    ),
+} on abstract:manager
+2023-05-15 07:43:33 - INFO: Starting daemon osmosis-2
+2023-05-15 07:43:33 - INFO: Starting daemon juno-1
+2023-05-15 07:43:33 - INFO: Executing ExecOnModule {
+    module_id: "abstract:proxy",
+    exec_msg: Binary(7b226962635f616374696f6e223a7b226d736773223a5b7b2273656e645f7061636b6574223a7b22686f73745f636861696e223a226a756e6f222c22616374696f6e223a7b226469737061746368223a7b226d616e616765725f6d7367223a7b22696e7374616c6c5f6d6f64756c65223a7b226d6f64756c65223a7b226e616d657370616365223a226162737472616374222c226e616d65223a22657466222c2276657273696f6e223a226c6174657374227d2c22696e69745f6d7367223a2265794a6959584e6c496a7037496d46756331396f62334e305832466b5a484a6c63334d694f694a71645735764d54526f616a4a3059585a784f475a775a584e6b64336834593355304e484a3065544e6f61446b77646d6831616e4a325932317a64477730656e497a644868745a6e5a334f584e72616e56335a7a6769665377696257396b6457786c496a7037496e52766132567558324e765a475666615751694f6a45774c434a6d5a5755694f6949774c6a45694c434a74595735685a3256795832466b5a4849694f694a71645735764d575530633364796147566b4e6e426c616d51774e584a344d6e703064334e775a6a4e79616e686862445635656d463163336c3349697769644739725a573566626d46745a534936626e567362437769644739725a57356663336c74596d3973496a7075645778736658303d227d7d7d7d2c2263616c6c6261636b5f696e666f223a6e756c6c2c2272657472696573223a327d7d5d7d7d),
+} on abstract:manager
+2023-05-15 07:43:43 - INFO: Investigating sent packet events on tx AE5EB6DFF7CB1C9F0FE243A67D3322E76DF563F286F1CDCDEDFC7B9A213D79EC
+2023-05-15 07:43:43 - INFO: Connected to chain juno on port 34683
+2023-05-15 07:43:43 - INFO: Connected to chain juno on port 41973
+2023-05-15 07:43:43 - INFO: Found 1 gRPC endpoints
+2023-05-15 07:43:43 - INFO: Trying to connect to endpoint: http://0.0.0.0:41973
+2023-05-15 07:43:43 - INFO: Writing daemon state JSON file: "daemon_state.json"
+2023-05-15 07:43:43 - INFO: Interacting with juno-1 using address: juno1e4swrhed6pejd05rx2ztwspf3rjxal5yzausyw
+2023-05-15 07:43:43 - INFO: IBC packet n° 15, sent on osmosis-2 on tx AE5EB6DFF7CB1C9F0FE243A67D3322E76DF563F286F1CDCDEDFC7B9A213D79EC, with data: {"host_chain":"juno","retries":2,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"install_module":{"module":{"namespace":"abstract","name":"etf","version":"latest"},"init_msg":"eyJiYXNlIjp7ImFuc19ob3N0X2FkZHJlc3MiOiJqdW5vMTRoajJ0YXZxOGZwZXNkd3h4Y3U0NHJ0eTNoaDkwdmh1anJ2Y21zdGw0enIzdHhtZnZ3OXNranV3ZzgifSwibW9kdWxlIjp7InRva2VuX2NvZGVfaWQiOjEwLCJmZWUiOiIwLjEiLCJtYW5hZ2VyX2FkZHIiOiJqdW5vMWU0c3dyaGVkNnBlamQwNXJ4Mnp0d3NwZjNyanhhbDV5emF1c3l3IiwidG9rZW5fbmFtZSI6bnVsbCwidG9rZW5fc3ltYm9sIjpudWxsfX0="}}}}}
+2023-05-15 07:44:03 - INFO: IBC packet n°15 : {"host_chain":"juno","retries":2,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"install_module":{"module":{"namespace":"abstract","name":"etf","version":"latest"},"init_msg":"eyJiYXNlIjp7ImFuc19ob3N0X2FkZHJlc3MiOiJqdW5vMTRoajJ0YXZxOGZwZXNkd3h4Y3U0NHJ0eTNoaDkwdmh1anJ2Y21zdGw0enIzdHhtZnZ3OXNranV3ZzgifSwibW9kdWxlIjp7InRva2VuX2NvZGVfaWQiOjEwLCJmZWUiOiIwLjEiLCJtYW5hZ2VyX2FkZHIiOiJqdW5vMWU0c3dyaGVkNnBlamQwNXJ4Mnp0d3NwZjNyanhhbDV5emF1c3l3IiwidG9rZW5fbmFtZSI6bnVsbCwidG9rZW5fc3ltYm9sIjpudWxsfX0="}}}}}, received on juno-1 on tx 8652CEF67BF8A4FCAE0CA2D773C0ECA0F481119D1139D472E93ACDE1D1611FAF, with acknowledgment sent back: {"results":[""]}
+2023-05-15 07:44:13 - INFO: IBC packet n°15 acknowledgment received on osmosis-2 on tx CA50EBAA560CD2F9810670B183F924AB27AB4EEB352ECF60468D4FE45C57683F
+2023-05-15 07:44:23 - INFO: Starting daemon osmosis-2
+2023-05-15 07:44:23 - INFO: Starting daemon juno-1
+2023-05-15 07:44:23 - INFO: Executing ExecOnModule {
+    module_id: "abstract:proxy",
+    exec_msg: Binary(7b226962635f616374696f6e223a7b226d736773223a5b7b2273656e645f7061636b6574223a7b22686f73745f636861696e223a226a756e6f222c22616374696f6e223a7b226469737061746368223a7b226d616e616765725f6d7367223a7b22696e7374616c6c5f6d6f64756c65223a7b226d6f64756c65223a7b226e616d657370616365223a226162737472616374222c226e616d65223a22657466222c2276657273696f6e223a226c6174657374227d2c22696e69745f6d7367223a2265794a6959584e6c496a7037496d46756331396f62334e305832466b5a484a6c63334d694f694a71645735764d54526f616a4a3059585a784f475a775a584e6b64336834593355304e484a3065544e6f61446b77646d6831616e4a325932317a64477730656e497a644868745a6e5a334f584e72616e56335a7a6769665377696257396b6457786c496a7037496e52766132567558324e765a475666615751694f6a45774c434a6d5a5755694f6949774c6a45694c434a74595735685a3256795832466b5a4849694f694a71645735764d575530633364796147566b4e6e426c616d51774e584a344d6e703064334e775a6a4e79616e686862445635656d463163336c3349697769644739725a573566626d46745a534936626e567362437769644739725a57356663336c74596d3973496a7075645778736658303d227d7d7d7d2c2263616c6c6261636b5f696e666f223a6e756c6c2c2272657472696573223a327d7d5d7d7d),
+} on abstract:manager
+2023-05-15 07:44:33 - INFO: Investigating sent packet events on tx C40F5682A5B8DE5D3D66899C74A7874113F358B40309DA1E5640A15EEABDBD66
+2023-05-15 07:44:33 - INFO: Connected to chain juno on port 34683
+2023-05-15 07:44:33 - INFO: Connected to chain juno on port 41973
+2023-05-15 07:44:33 - INFO: Found 1 gRPC endpoints
+2023-05-15 07:44:33 - INFO: Trying to connect to endpoint: http://0.0.0.0:41973
+2023-05-15 07:44:33 - INFO: Writing daemon state JSON file: "daemon_state.json"
+2023-05-15 07:44:33 - INFO: Interacting with juno-1 using address: juno1e4swrhed6pejd05rx2ztwspf3rjxal5yzausyw
+2023-05-15 07:44:33 - INFO: IBC packet n° 16, sent on osmosis-2 on tx C40F5682A5B8DE5D3D66899C74A7874113F358B40309DA1E5640A15EEABDBD66, with data: {"host_chain":"juno","retries":2,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"install_module":{"module":{"namespace":"abstract","name":"etf","version":"latest"},"init_msg":"eyJiYXNlIjp7ImFuc19ob3N0X2FkZHJlc3MiOiJqdW5vMTRoajJ0YXZxOGZwZXNkd3h4Y3U0NHJ0eTNoaDkwdmh1anJ2Y21zdGw0enIzdHhtZnZ3OXNranV3ZzgifSwibW9kdWxlIjp7InRva2VuX2NvZGVfaWQiOjEwLCJmZWUiOiIwLjEiLCJtYW5hZ2VyX2FkZHIiOiJqdW5vMWU0c3dyaGVkNnBlamQwNXJ4Mnp0d3NwZjNyanhhbDV5emF1c3l3IiwidG9rZW5fbmFtZSI6bnVsbCwidG9rZW5fc3ltYm9sIjpudWxsfX0="}}}}}
+2023-05-15 07:44:53 - INFO: IBC packet n°16 : {"host_chain":"juno","retries":2,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"install_module":{"module":{"namespace":"abstract","name":"etf","version":"latest"},"init_msg":"eyJiYXNlIjp7ImFuc19ob3N0X2FkZHJlc3MiOiJqdW5vMTRoajJ0YXZxOGZwZXNkd3h4Y3U0NHJ0eTNoaDkwdmh1anJ2Y21zdGw0enIzdHhtZnZ3OXNranV3ZzgifSwibW9kdWxlIjp7InRva2VuX2NvZGVfaWQiOjEwLCJmZWUiOiIwLjEiLCJtYW5hZ2VyX2FkZHIiOiJqdW5vMWU0c3dyaGVkNnBlamQwNXJ4Mnp0d3NwZjNyanhhbDV5emF1c3l3IiwidG9rZW5fbmFtZSI6bnVsbCwidG9rZW5fc3ltYm9sIjpudWxsfX0="}}}}}, received on juno-1 on tx A876834FB2CACCED9DD8E7FE061C1BD2FAAC468AE3E37981E2300A2602CF4935, with acknowledgment sent back: submessages: reply: Error calling the VM: Error executing Wasm: Wasmer runtime error: RuntimeError: Aborted: panicked at 'called `Result::unwrap()` on an `Err` value: "codespace: wasm, code: 5"', /usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/cosmwasm-std-1.2.5/src/results/submessages.rs:160:28: execute wasm contract failed
+2023-05-15 07:44:53 - INFO: IBC packet n°16 acknowledgment received on osmosis-2 on tx CACB100A9E4F7B6073E35DC64AB52448BBF89951C01AC4E9292CDFA8F6B411A5
+2023-05-15 07:44:53 - INFO: Investigating sent packet events on tx CACB100A9E4F7B6073E35DC64AB52448BBF89951C01AC4E9292CDFA8F6B411A5
+2023-05-15 07:44:53 - INFO: Connected to chain juno on port 34683
+2023-05-15 07:44:53 - INFO: Connected to chain juno on port 41973
+2023-05-15 07:44:53 - INFO: Found 1 gRPC endpoints
+2023-05-15 07:44:53 - INFO: Trying to connect to endpoint: http://0.0.0.0:41973
+2023-05-15 07:44:53 - INFO: Writing daemon state JSON file: "daemon_state.json"
+2023-05-15 07:44:53 - INFO: Interacting with juno-1 using address: juno1e4swrhed6pejd05rx2ztwspf3rjxal5yzausyw
+2023-05-15 07:44:53 - INFO: IBC packet n° 17, sent on osmosis-2 on tx CACB100A9E4F7B6073E35DC64AB52448BBF89951C01AC4E9292CDFA8F6B411A5, with data: {"host_chain":"juno","retries":1,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"install_module":{"module":{"namespace":"abstract","name":"etf","version":"latest"},"init_msg":"eyJiYXNlIjp7ImFuc19ob3N0X2FkZHJlc3MiOiJqdW5vMTRoajJ0YXZxOGZwZXNkd3h4Y3U0NHJ0eTNoaDkwdmh1anJ2Y21zdGw0enIzdHhtZnZ3OXNranV3ZzgifSwibW9kdWxlIjp7InRva2VuX2NvZGVfaWQiOjEwLCJmZWUiOiIwLjEiLCJtYW5hZ2VyX2FkZHIiOiJqdW5vMWU0c3dyaGVkNnBlamQwNXJ4Mnp0d3NwZjNyanhhbDV5emF1c3l3IiwidG9rZW5fbmFtZSI6bnVsbCwidG9rZW5fc3ltYm9sIjpudWxsfX0="}}}}}
+2023-05-15 07:45:03 - INFO: IBC packet n°17 : {"host_chain":"juno","retries":1,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"install_module":{"module":{"namespace":"abstract","name":"etf","version":"latest"},"init_msg":"eyJiYXNlIjp7ImFuc19ob3N0X2FkZHJlc3MiOiJqdW5vMTRoajJ0YXZxOGZwZXNkd3h4Y3U0NHJ0eTNoaDkwdmh1anJ2Y21zdGw0enIzdHhtZnZ3OXNranV3ZzgifSwibW9kdWxlIjp7InRva2VuX2NvZGVfaWQiOjEwLCJmZWUiOiIwLjEiLCJtYW5hZ2VyX2FkZHIiOiJqdW5vMWU0c3dyaGVkNnBlamQwNXJ4Mnp0d3NwZjNyanhhbDV5emF1c3l3IiwidG9rZW5fbmFtZSI6bnVsbCwidG9rZW5fc3ltYm9sIjpudWxsfX0="}}}}}, received on juno-1 on tx 96DA3C1C876B5A7220703D516B33A2AD8FCE37F2FADB319B2A2D2DD64667C084, with acknowledgment sent back: submessages: reply: Error calling the VM: Error executing Wasm: Wasmer runtime error: RuntimeError: Aborted: panicked at 'called `Result::unwrap()` on an `Err` value: "codespace: wasm, code: 5"', /usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/cosmwasm-std-1.2.5/src/results/submessages.rs:160:28: execute wasm contract failed
+2023-05-15 07:45:03 - INFO: IBC packet n°17 acknowledgment received on osmosis-2 on tx 6A58A8A38FB1140A7BE70AE00F5E6C9CCBE8889BF5E79940E9F8EA04CDEC1C07
+2023-05-15 07:45:03 - INFO: Investigating sent packet events on tx 6A58A8A38FB1140A7BE70AE00F5E6C9CCBE8889BF5E79940E9F8EA04CDEC1C07
+2023-05-15 07:45:03 - INFO: Connected to chain juno on port 34683
+2023-05-15 07:45:03 - INFO: Connected to chain juno on port 41973
+2023-05-15 07:45:03 - INFO: Found 1 gRPC endpoints
+2023-05-15 07:45:03 - INFO: Trying to connect to endpoint: http://0.0.0.0:41973
+2023-05-15 07:45:03 - INFO: Writing daemon state JSON file: "daemon_state.json"
+2023-05-15 07:45:03 - INFO: Interacting with juno-1 using address: juno1e4swrhed6pejd05rx2ztwspf3rjxal5yzausyw
+2023-05-15 07:45:03 - INFO: IBC packet n° 18, sent on osmosis-2 on tx 6A58A8A38FB1140A7BE70AE00F5E6C9CCBE8889BF5E79940E9F8EA04CDEC1C07, with data: {"host_chain":"juno","retries":0,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"install_module":{"module":{"namespace":"abstract","name":"etf","version":"latest"},"init_msg":"eyJiYXNlIjp7ImFuc19ob3N0X2FkZHJlc3MiOiJqdW5vMTRoajJ0YXZxOGZwZXNkd3h4Y3U0NHJ0eTNoaDkwdmh1anJ2Y21zdGw0enIzdHhtZnZ3OXNranV3ZzgifSwibW9kdWxlIjp7InRva2VuX2NvZGVfaWQiOjEwLCJmZWUiOiIwLjEiLCJtYW5hZ2VyX2FkZHIiOiJqdW5vMWU0c3dyaGVkNnBlamQwNXJ4Mnp0d3NwZjNyanhhbDV5emF1c3l3IiwidG9rZW5fbmFtZSI6bnVsbCwidG9rZW5fc3ltYm9sIjpudWxsfX0="}}}}}
+2023-05-15 07:45:03 - INFO: IBC packet n°18 : {"host_chain":"juno","retries":0,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"install_module":{"module":{"namespace":"abstract","name":"etf","version":"latest"},"init_msg":"eyJiYXNlIjp7ImFuc19ob3N0X2FkZHJlc3MiOiJqdW5vMTRoajJ0YXZxOGZwZXNkd3h4Y3U0NHJ0eTNoaDkwdmh1anJ2Y21zdGw0enIzdHhtZnZ3OXNranV3ZzgifSwibW9kdWxlIjp7InRva2VuX2NvZGVfaWQiOjEwLCJmZWUiOiIwLjEiLCJtYW5hZ2VyX2FkZHIiOiJqdW5vMWU0c3dyaGVkNnBlamQwNXJ4Mnp0d3NwZjNyanhhbDV5emF1c3l3IiwidG9rZW5fbmFtZSI6bnVsbCwidG9rZW5fc3ltYm9sIjpudWxsfX0="}}}}}, received on juno-1 on tx 41E051BE83675E3D00EB8730A1257801A2F287BD08C17229F6E7AF017F22EF84, with acknowledgment sent back: submessages: reply: Error calling the VM: Error executing Wasm: Wasmer runtime error: RuntimeError: Aborted: panicked at 'called `Result::unwrap()` on an `Err` value: "codespace: wasm, code: 5"', /usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/cosmwasm-std-1.2.5/src/results/submessages.rs:160:28: execute wasm contract failed
+2023-05-15 07:45:13 - INFO: IBC packet n°18 acknowledgment received on osmosis-2 on tx 36469B1C3CDA7A85E9C931EB0F91F93C789065D2CF99B0191115C51DCB86B296
+2023-05-15 08:00:16 - INFO: Starting daemon osmosis-2
+2023-05-15 08:00:16 - INFO: Starting daemon juno-1
+2023-05-15 08:00:16 - INFO: Executing ExecOnModule {
+    module_id: "abstract:proxy",
+    exec_msg: Binary(7b226962635f616374696f6e223a7b226d736773223a5b7b2273656e645f7061636b6574223a7b22686f73745f636861696e223a226a756e6f222c22616374696f6e223a7b226469737061746368223a7b226d616e616765725f6d7367223a7b22657865635f6f6e5f6d6f64756c65223a7b226d6f64756c655f6964223a2261627374726163743a657466222c22657865635f6d7367223a2265794a7a5a5852665a6d566c496a7037496d5a6c5a534936496a41754f546733496e3139227d7d7d7d2c2263616c6c6261636b5f696e666f223a6e756c6c2c2272657472696573223a327d7d5d7d7d),
+} on abstract:manager
+2023-05-15 08:00:26 - INFO: Investigating sent packet events on tx A8C755BC0609CBFE28E40FC5DEA22F7F4CE063A15EA021CE54292A4CB4A1D20C
+2023-05-15 08:00:26 - INFO: Connected to chain juno on port 34683
+2023-05-15 08:00:26 - INFO: Connected to chain juno on port 41973
+2023-05-15 08:00:26 - INFO: Found 1 gRPC endpoints
+2023-05-15 08:00:26 - INFO: Trying to connect to endpoint: http://0.0.0.0:41973
+2023-05-15 08:00:26 - INFO: Writing daemon state JSON file: "daemon_state.json"
+2023-05-15 08:00:26 - INFO: Interacting with juno-1 using address: juno1e4swrhed6pejd05rx2ztwspf3rjxal5yzausyw
+2023-05-15 08:00:26 - INFO: IBC packet n° 19, sent on osmosis-2 on tx A8C755BC0609CBFE28E40FC5DEA22F7F4CE063A15EA021CE54292A4CB4A1D20C, with data: {"host_chain":"juno","retries":2,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"exec_on_module":{"module_id":"abstract:etf","exec_msg":"eyJzZXRfZmVlIjp7ImZlZSI6IjAuOTg3In19"}}}}}
+2023-05-15 08:00:46 - INFO: IBC packet n°19 : {"host_chain":"juno","retries":2,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"exec_on_module":{"module_id":"abstract:etf","exec_msg":"eyJzZXRfZmVlIjp7ImZlZSI6IjAuOTg3In19"}}}}}, received on juno-1 on tx 3816E7F1526533C7232BB6E841FEE0D6785A0DECBC8EE0CB90B06CC353281EB7, with acknowledgment sent back: submessages: reply: Error calling the VM: Error executing Wasm: Wasmer runtime error: RuntimeError: Aborted: panicked at 'called `Result::unwrap()` on an `Err` value: "codespace: wasm, code: 5"', /usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/cosmwasm-std-1.2.5/src/results/submessages.rs:160:28: execute wasm contract failed
+2023-05-15 08:00:56 - INFO: IBC packet n°19 acknowledgment received on osmosis-2 on tx 254038A4FB346A0E763A493FA428CF0765CA60351C44B89389E3C266B3D795CB
+2023-05-15 08:00:56 - INFO: Investigating sent packet events on tx 254038A4FB346A0E763A493FA428CF0765CA60351C44B89389E3C266B3D795CB
+2023-05-15 08:00:56 - INFO: Connected to chain juno on port 34683
+2023-05-15 08:00:56 - INFO: Connected to chain juno on port 41973
+2023-05-15 08:00:56 - INFO: Found 1 gRPC endpoints
+2023-05-15 08:00:56 - INFO: Trying to connect to endpoint: http://0.0.0.0:41973
+2023-05-15 08:00:56 - INFO: Writing daemon state JSON file: "daemon_state.json"
+2023-05-15 08:00:56 - INFO: Interacting with juno-1 using address: juno1e4swrhed6pejd05rx2ztwspf3rjxal5yzausyw
+2023-05-15 08:00:56 - INFO: IBC packet n° 20, sent on osmosis-2 on tx 254038A4FB346A0E763A493FA428CF0765CA60351C44B89389E3C266B3D795CB, with data: {"host_chain":"juno","retries":1,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"exec_on_module":{"module_id":"abstract:etf","exec_msg":"eyJzZXRfZmVlIjp7ImZlZSI6IjAuOTg3In19"}}}}}
+2023-05-15 08:00:56 - INFO: IBC packet n°20 : {"host_chain":"juno","retries":1,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"exec_on_module":{"module_id":"abstract:etf","exec_msg":"eyJzZXRfZmVlIjp7ImZlZSI6IjAuOTg3In19"}}}}}, received on juno-1 on tx 1F5C95A76607867666EBAA08585D2DA0E8CE2ECFC98BBB980128A229B3101A42, with acknowledgment sent back: submessages: reply: Error calling the VM: Error executing Wasm: Wasmer runtime error: RuntimeError: Aborted: panicked at 'called `Result::unwrap()` on an `Err` value: "codespace: wasm, code: 5"', /usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/cosmwasm-std-1.2.5/src/results/submessages.rs:160:28: execute wasm contract failed
+2023-05-15 08:01:06 - INFO: IBC packet n°20 acknowledgment received on osmosis-2 on tx 9E594FDEDF7E687D5446BA5C8BC64FEEFA98DB8A1043126D39E5E788A2ABAD07
+2023-05-15 08:01:06 - INFO: Investigating sent packet events on tx 9E594FDEDF7E687D5446BA5C8BC64FEEFA98DB8A1043126D39E5E788A2ABAD07
+2023-05-15 08:01:06 - INFO: Connected to chain juno on port 34683
+2023-05-15 08:01:06 - INFO: Connected to chain juno on port 41973
+2023-05-15 08:01:06 - INFO: Found 1 gRPC endpoints
+2023-05-15 08:01:06 - INFO: Trying to connect to endpoint: http://0.0.0.0:41973
+2023-05-15 08:01:06 - INFO: Writing daemon state JSON file: "daemon_state.json"
+2023-05-15 08:01:06 - INFO: Interacting with juno-1 using address: juno1e4swrhed6pejd05rx2ztwspf3rjxal5yzausyw
+2023-05-15 08:01:06 - INFO: IBC packet n° 21, sent on osmosis-2 on tx 9E594FDEDF7E687D5446BA5C8BC64FEEFA98DB8A1043126D39E5E788A2ABAD07, with data: {"host_chain":"juno","retries":0,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"exec_on_module":{"module_id":"abstract:etf","exec_msg":"eyJzZXRfZmVlIjp7ImZlZSI6IjAuOTg3In19"}}}}}
+2023-05-15 08:01:06 - INFO: IBC packet n°21 : {"host_chain":"juno","retries":0,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"exec_on_module":{"module_id":"abstract:etf","exec_msg":"eyJzZXRfZmVlIjp7ImZlZSI6IjAuOTg3In19"}}}}}, received on juno-1 on tx 5C9DCF2034ED97786E7326B7675F2B21BDE537314E59C6926D5EA6C7C9B4DFC5, with acknowledgment sent back: submessages: reply: Error calling the VM: Error executing Wasm: Wasmer runtime error: RuntimeError: Aborted: panicked at 'called `Result::unwrap()` on an `Err` value: "codespace: wasm, code: 5"', /usr/local/cargo/registry/src/index.crates.io-6f17d22bba15001f/cosmwasm-std-1.2.5/src/results/submessages.rs:160:28: execute wasm contract failed
+2023-05-15 08:01:16 - INFO: IBC packet n°21 acknowledgment received on osmosis-2 on tx 8B034ABE6C488B66108131C3CD3EEC253BD8C95FB04D6BA9D56D600002AA5922
+2023-05-15 08:01:38 - INFO: Starting daemon osmosis-2
+2023-05-15 08:01:38 - INFO: Starting daemon juno-1
+2023-05-15 08:01:38 - INFO: Executing ExecOnModule {
+    module_id: "abstract:proxy",
+    exec_msg: Binary(7b226962635f616374696f6e223a7b226d736773223a5b7b2273656e645f7061636b6574223a7b22686f73745f636861696e223a226a756e6f222c22616374696f6e223a7b226469737061746368223a7b226d616e616765725f6d7367223a7b22657865635f6f6e5f6d6f64756c65223a7b226d6f64756c655f6964223a2261627374726163743a657466222c22657865635f6d7367223a2265794a7462325231624755694f6e73696332563058325a6c5a53493665794a6d5a5755694f6949774c6a6b344e794a396658303d227d7d7d7d2c2263616c6c6261636b5f696e666f223a6e756c6c2c2272657472696573223a327d7d5d7d7d),
+} on abstract:manager
+2023-05-15 08:01:48 - INFO: Investigating sent packet events on tx 1C9A933D88C140F7CCD621DCB31B734073F7404CD1801C3FC0CEA3668FF864DD
+2023-05-15 08:01:48 - INFO: Connected to chain juno on port 34683
+2023-05-15 08:01:48 - INFO: Connected to chain juno on port 41973
+2023-05-15 08:01:48 - INFO: Found 1 gRPC endpoints
+2023-05-15 08:01:48 - INFO: Trying to connect to endpoint: http://0.0.0.0:41973
+2023-05-15 08:01:48 - INFO: Writing daemon state JSON file: "daemon_state.json"
+2023-05-15 08:01:48 - INFO: Interacting with juno-1 using address: juno1e4swrhed6pejd05rx2ztwspf3rjxal5yzausyw
+2023-05-15 08:01:48 - INFO: IBC packet n° 22, sent on osmosis-2 on tx 1C9A933D88C140F7CCD621DCB31B734073F7404CD1801C3FC0CEA3668FF864DD, with data: {"host_chain":"juno","retries":2,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"exec_on_module":{"module_id":"abstract:etf","exec_msg":"eyJtb2R1bGUiOnsic2V0X2ZlZSI6eyJmZWUiOiIwLjk4NyJ9fX0="}}}}}
+2023-05-15 08:01:58 - INFO: IBC packet n°22 : {"host_chain":"juno","retries":2,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"exec_on_module":{"module_id":"abstract:etf","exec_msg":"eyJtb2R1bGUiOnsic2V0X2ZlZSI6eyJmZWUiOiIwLjk4NyJ9fX0="}}}}}, received on juno-1 on tx C123AA03F36C2DF9A897968BD284A7FE535C870EDFFD7FC4C843C812FA7D250C, with acknowledgment sent back: {"results":[""]}
+2023-05-15 08:02:08 - INFO: IBC packet n°22 acknowledgment received on osmosis-2 on tx 52253C38DEE801B61FF096DD85B8D82DF41CD4DDEC1D7DB747C0780F5C0F03A7
+2023-05-15 08:03:51 - INFO: Starting daemon osmosis-2
+2023-05-15 08:03:51 - INFO: Starting daemon juno-1
+2023-05-15 08:03:51 - INFO: Executing CreateAccount {
+    governance: Monarchy {
+        monarch: "osmo1zcd4fkukpyk8khjzs2m3cfyqpzrmvh0jyxhw8h",
+    },
+    name: "osmo-test",
+    description: Some(
+        "Description of the account",
+    ),
+    link: Some(
+        "https://google.com",
+    ),
+    origin: None,
+} on abstract:account-factory
+2023-05-15 08:04:01 - INFO: Executing UpdateModuleAddresses {
+    to_add: Some(
+        [
+            (
+                "abstract:ibc-client",
+                "osmo13ehuhysn5mqjeaheeuew2gjs785f6k7jm8vfsqg3jhtpkwppcmzqg496z0",
+            ),
+        ],
+    ),
+    to_remove: None,
+} on abstract:manager
+2023-05-15 08:04:11 - INFO: Executing UpdateConfig {
+    ans_host_contract: None,
+    version_control_contract: None,
+    module_factory_address: None,
+    ibc_host: Some(
+        "juno1qum2tr7hh4y7ruzew68c64myjec0dq2s2njf6waja5t0w879lutqemdazk",
+    ),
+} on abstract:account-factory
+2023-05-15 08:04:21 - INFO: Executing ExecOnModule {
+    module_id: "abstract:proxy",
+    exec_msg: Binary(7b226962635f616374696f6e223a7b226d736773223a5b7b227265676973746572223a7b22686f73745f636861696e223a226a756e6f227d7d5d7d7d),
+} on abstract:manager
+2023-05-15 08:04:31 - INFO: Investigating sent packet events on tx 52055E375DCE39FD8D63DC8F87D3D4DAD080C60A5C725868A0D506A0A308D495
+2023-05-15 08:04:31 - INFO: Connected to chain juno on port 34683
+2023-05-15 08:04:31 - INFO: Connected to chain juno on port 41973
+2023-05-15 08:04:31 - INFO: Found 1 gRPC endpoints
+2023-05-15 08:04:31 - INFO: Trying to connect to endpoint: http://0.0.0.0:41973
+2023-05-15 08:04:31 - INFO: Writing daemon state JSON file: "daemon_state.json"
+2023-05-15 08:04:31 - INFO: Interacting with juno-1 using address: juno1e4swrhed6pejd05rx2ztwspf3rjxal5yzausyw
+2023-05-15 08:04:31 - INFO: IBC packet n° 23, sent on osmosis-2 on tx 52055E375DCE39FD8D63DC8F87D3D4DAD080C60A5C725868A0D506A0A308D495, with data: {"host_chain":"juno","retries":0,"account_id":{"trace":"local","seq":1},"callback_info":null,"action":{"internal":{"register":{"account_proxy_address":"osmo1599ghp06lw7a6f00pjhyd4glvkp8n57k3thgfjtvm4u6ayyxxxpsh46pqt","name":"osmo-test","description":"Description of the account","link":"https://google.com"}}}}
+2023-05-15 08:04:41 - INFO: IBC packet n°23 : {"host_chain":"juno","retries":0,"account_id":{"trace":"local","seq":1},"callback_info":null,"action":{"internal":{"register":{"account_proxy_address":"osmo1599ghp06lw7a6f00pjhyd4glvkp8n57k3thgfjtvm4u6ayyxxxpsh46pqt","name":"osmo-test","description":"Description of the account","link":"https://google.com"}}}}, received on juno-1 on tx 854DC18FB6BF3928CF77344497C408F9A1C03D6567B92415E662C62BF19B4F68, with acknowledgment sent back: {"account":"juno1av0kyf6rjg9u8mhkzcdmhdyx73qpt4v220jxe5gtmr86dp4ck8gsggn94c"}
+2023-05-15 08:04:51 - INFO: IBC packet n°23 acknowledgment received on osmosis-2 on tx FA7E6C4BBE81BAA6C3514BFECA7F11A94C88733C3B95C4FC5CCA34423A149004
+2023-05-15 08:04:51 - INFO: Querying Config on abstract:manager
+2023-05-15 08:04:51 - INFO: Querying AccountBase {
+    account_id: AccountId {
+        trace: Remote(
+            [
+                ChainName(
+                    "osmosis",
+                ),
+            ],
+        ),
+        seq: 1,
+    },
+} on abstract:version-control
+2023-05-15 08:04:51 - INFO: Distant account config AccountBase { manager: Addr("juno16a32stm6kknhq5cc8rx77elr66pygf2hfszw7wvpq746x3uffylqjyd9vs"), proxy: Addr("juno1av0kyf6rjg9u8mhkzcdmhdyx73qpt4v220jxe5gtmr86dp4ck8gsggn94c") } 
+2023-05-15 08:04:51 - INFO: Querying Config on distant_account_manager
+2023-05-15 08:04:51 - INFO: Querying Info on distant_account_manager
+2023-05-15 08:04:51 - INFO: Uploading abstract:etf
+2023-05-15 08:05:02 - INFO: Uploaded: "B6D8F01326F5FCC866A9D5B33D441F70F244DC75561017CD64B48C2179D5B927"
+2023-05-15 08:05:05 - INFO: uploaded abstract:etf with code id 12
+2023-05-15 08:05:05 - INFO: Executing ProposeModules {
+    modules: [
+        (
+            ModuleInfo {
+                namespace: "abstract",
+                name: "etf",
+                version: Version(
+                    "1.0.0",
+                ),
+            },
+            App(
+                12,
+            ),
+        ),
+    ],
+} on abstract:version-control
+2023-05-15 08:06:32 - INFO: Starting daemon osmosis-2
+2023-05-15 08:06:32 - INFO: Starting daemon juno-1
+2023-05-15 08:06:32 - INFO: Executing CreateAccount {
+    governance: Monarchy {
+        monarch: "osmo1zcd4fkukpyk8khjzs2m3cfyqpzrmvh0jyxhw8h",
+    },
+    name: "osmo-test",
+    description: Some(
+        "Description of the account",
+    ),
+    link: Some(
+        "https://google.com",
+    ),
+    origin: None,
+} on abstract:account-factory
+2023-05-15 08:06:42 - INFO: Executing UpdateModuleAddresses {
+    to_add: Some(
+        [
+            (
+                "abstract:ibc-client",
+                "osmo13ehuhysn5mqjeaheeuew2gjs785f6k7jm8vfsqg3jhtpkwppcmzqg496z0",
+            ),
+        ],
+    ),
+    to_remove: None,
+} on abstract:manager
+2023-05-15 08:06:52 - INFO: Executing UpdateConfig {
+    ans_host_contract: None,
+    version_control_contract: None,
+    module_factory_address: None,
+    ibc_host: Some(
+        "juno1qum2tr7hh4y7ruzew68c64myjec0dq2s2njf6waja5t0w879lutqemdazk",
+    ),
+} on abstract:account-factory
+2023-05-15 08:07:02 - INFO: Executing ExecOnModule {
+    module_id: "abstract:proxy",
+    exec_msg: Binary(7b226962635f616374696f6e223a7b226d736773223a5b7b227265676973746572223a7b22686f73745f636861696e223a226a756e6f227d7d5d7d7d),
+} on abstract:manager
+2023-05-15 08:07:12 - INFO: Investigating sent packet events on tx 2629666DE6A2E97839E8DDC70186052FBD15190CC50822BB93900AB73083728D
+2023-05-15 08:07:12 - INFO: Connected to chain juno on port 34683
+2023-05-15 08:07:12 - INFO: Connected to chain juno on port 41973
+2023-05-15 08:07:12 - INFO: Found 1 gRPC endpoints
+2023-05-15 08:07:12 - INFO: Trying to connect to endpoint: http://0.0.0.0:41973
+2023-05-15 08:07:12 - INFO: Writing daemon state JSON file: "daemon_state.json"
+2023-05-15 08:07:12 - INFO: Interacting with juno-1 using address: juno1e4swrhed6pejd05rx2ztwspf3rjxal5yzausyw
+2023-05-15 08:07:12 - INFO: IBC packet n° 24, sent on osmosis-2 on tx 2629666DE6A2E97839E8DDC70186052FBD15190CC50822BB93900AB73083728D, with data: {"host_chain":"juno","retries":0,"account_id":{"trace":"local","seq":2},"callback_info":null,"action":{"internal":{"register":{"account_proxy_address":"osmo1uukt3kqela4vsllvrqnrgllkna5wn3cmqfxvqpxz9g00956lcxsqetwnqu","name":"osmo-test","description":"Description of the account","link":"https://google.com"}}}}
+2023-05-15 08:07:32 - INFO: IBC packet n°24 : {"host_chain":"juno","retries":0,"account_id":{"trace":"local","seq":2},"callback_info":null,"action":{"internal":{"register":{"account_proxy_address":"osmo1uukt3kqela4vsllvrqnrgllkna5wn3cmqfxvqpxz9g00956lcxsqetwnqu","name":"osmo-test","description":"Description of the account","link":"https://google.com"}}}}, received on juno-1 on tx 2836926E6CAB842DBE3F45AA4FE135C5CCD9DA2E7356A7DE59E8B5561C75A062, with acknowledgment sent back: {"account":"juno1dy8uct62s5wxy5haw9sgykkqcdn0spdhzrcjmsy8enz3hwfrv0dsfvanf9"}
+2023-05-15 08:07:32 - INFO: IBC packet n°24 acknowledgment received on osmosis-2 on tx E84DA14D5696478617027D6D98011311B4F796B891D6692AC7A13BC8689E685C
+2023-05-15 08:07:32 - INFO: Querying Config on abstract:manager
+2023-05-15 08:07:32 - INFO: Querying AccountBase {
+    account_id: AccountId {
+        trace: Remote(
+            [
+                ChainName(
+                    "osmosis",
+                ),
+            ],
+        ),
+        seq: 2,
+    },
+} on abstract:version-control
+2023-05-15 08:07:32 - INFO: Distant account config AccountBase { manager: Addr("juno1cj4hg8a6605lck40ree76cvnuc4tdn3hxckm4pkaad7kjfex7tfsehz2mk"), proxy: Addr("juno1dy8uct62s5wxy5haw9sgykkqcdn0spdhzrcjmsy8enz3hwfrv0dsfvanf9") } 
+2023-05-15 08:07:32 - INFO: Querying Config on distant_account_manager
+2023-05-15 08:07:32 - INFO: Querying Info on distant_account_manager
+2023-05-15 08:07:32 - INFO: Uploading abstract:etf
+2023-05-15 08:07:43 - INFO: Uploaded: "73F6F7C2613784BBE8ED1965C9E24B84A95C72A65380CDFF16A7C61D70843D13"
+2023-05-15 08:07:46 - INFO: uploaded abstract:etf with code id 13
+2023-05-15 08:07:46 - INFO: Executing ProposeModules {
+    modules: [
+        (
+            ModuleInfo {
+                namespace: "abstract",
+                name: "etf",
+                version: Version(
+                    "1.1.0",
+                ),
+            },
+            App(
+                13,
+            ),
+        ),
+    ],
+} on abstract:version-control
+2023-05-15 08:07:56 - INFO: Uploading cw20
+2023-05-15 08:08:06 - INFO: Uploaded: "4C19AACA0D5C1F416333B7825A611E154CA85C1EF7CD5C80989CBAB0984232D0"
+2023-05-15 08:08:09 - INFO: uploaded cw20 with code id 14
+2023-05-15 08:08:09 - INFO: Executing ExecOnModule {
+    module_id: "abstract:proxy",
+    exec_msg: Binary(7b226962635f616374696f6e223a7b226d736773223a5b7b2273656e645f7061636b6574223a7b22686f73745f636861696e223a226a756e6f222c22616374696f6e223a7b226469737061746368223a7b226d616e616765725f6d7367223a7b22696e7374616c6c5f6d6f64756c65223a7b226d6f64756c65223a7b226e616d657370616365223a226162737472616374222c226e616d65223a22657466222c2276657273696f6e223a226c6174657374227d2c22696e69745f6d7367223a2265794a6959584e6c496a7037496d46756331396f62334e305832466b5a484a6c63334d694f694a71645735764d54526f616a4a3059585a784f475a775a584e6b64336834593355304e484a3065544e6f61446b77646d6831616e4a325932317a64477730656e497a644868745a6e5a334f584e72616e56335a7a6769665377696257396b6457786c496a7037496e52766132567558324e765a475666615751694f6a45304c434a6d5a5755694f6949774c6a45694c434a74595735685a3256795832466b5a4849694f694a71645735764d575530633364796147566b4e6e426c616d51774e584a344d6e703064334e775a6a4e79616e686862445635656d463163336c3349697769644739725a573566626d46745a534936626e567362437769644739725a57356663336c74596d3973496a7075645778736658303d227d7d7d7d2c2263616c6c6261636b5f696e666f223a6e756c6c2c2272657472696573223a327d7d5d7d7d),
+} on abstract:manager
+2023-05-15 08:08:19 - INFO: Investigating sent packet events on tx F7546EB37794BCDE7E2B002392E9C5735A4A2CCB7A025A7C889722E101B0F697
+2023-05-15 08:08:19 - INFO: Connected to chain juno on port 34683
+2023-05-15 08:08:19 - INFO: Connected to chain juno on port 41973
+2023-05-15 08:08:19 - INFO: Found 1 gRPC endpoints
+2023-05-15 08:08:19 - INFO: Trying to connect to endpoint: http://0.0.0.0:41973
+2023-05-15 08:08:19 - INFO: Writing daemon state JSON file: "daemon_state.json"
+2023-05-15 08:08:19 - INFO: Interacting with juno-1 using address: juno1e4swrhed6pejd05rx2ztwspf3rjxal5yzausyw
+2023-05-15 08:08:19 - INFO: IBC packet n° 25, sent on osmosis-2 on tx F7546EB37794BCDE7E2B002392E9C5735A4A2CCB7A025A7C889722E101B0F697, with data: {"host_chain":"juno","retries":2,"account_id":{"trace":"local","seq":2},"callback_info":null,"action":{"dispatch":{"manager_msg":{"install_module":{"module":{"namespace":"abstract","name":"etf","version":"latest"},"init_msg":"eyJiYXNlIjp7ImFuc19ob3N0X2FkZHJlc3MiOiJqdW5vMTRoajJ0YXZxOGZwZXNkd3h4Y3U0NHJ0eTNoaDkwdmh1anJ2Y21zdGw0enIzdHhtZnZ3OXNranV3ZzgifSwibW9kdWxlIjp7InRva2VuX2NvZGVfaWQiOjE0LCJmZWUiOiIwLjEiLCJtYW5hZ2VyX2FkZHIiOiJqdW5vMWU0c3dyaGVkNnBlamQwNXJ4Mnp0d3NwZjNyanhhbDV5emF1c3l3IiwidG9rZW5fbmFtZSI6bnVsbCwidG9rZW5fc3ltYm9sIjpudWxsfX0="}}}}}
+2023-05-15 08:08:39 - INFO: IBC packet n°25 : {"host_chain":"juno","retries":2,"account_id":{"trace":"local","seq":2},"callback_info":null,"action":{"dispatch":{"manager_msg":{"install_module":{"module":{"namespace":"abstract","name":"etf","version":"latest"},"init_msg":"eyJiYXNlIjp7ImFuc19ob3N0X2FkZHJlc3MiOiJqdW5vMTRoajJ0YXZxOGZwZXNkd3h4Y3U0NHJ0eTNoaDkwdmh1anJ2Y21zdGw0enIzdHhtZnZ3OXNranV3ZzgifSwibW9kdWxlIjp7InRva2VuX2NvZGVfaWQiOjE0LCJmZWUiOiIwLjEiLCJtYW5hZ2VyX2FkZHIiOiJqdW5vMWU0c3dyaGVkNnBlamQwNXJ4Mnp0d3NwZjNyanhhbDV5emF1c3l3IiwidG9rZW5fbmFtZSI6bnVsbCwidG9rZW5fc3ltYm9sIjpudWxsfX0="}}}}}, received on juno-1 on tx 9393322768F62871DE3FA5148ED7CCC3BE106745BA89EC6F616F4B6D4C164A68, with acknowledgment sent back: {"results":[""]}
+2023-05-15 08:08:39 - INFO: IBC packet n°25 acknowledgment received on osmosis-2 on tx 58F34019CA5F961ADD2A4C6EDB74B252394BF5A329BDF25C3FC04A620FCA5F5B
+2023-05-15 08:08:39 - INFO: Executing ExecOnModule {
+    module_id: "abstract:proxy",
+    exec_msg: Binary(7b226962635f616374696f6e223a7b226d736773223a5b7b2273656e645f7061636b6574223a7b22686f73745f636861696e223a226a756e6f222c22616374696f6e223a7b226469737061746368223a7b226d616e616765725f6d7367223a7b22657865635f6f6e5f6d6f64756c65223a7b226d6f64756c655f6964223a2261627374726163743a657466222c22657865635f6d7367223a2265794a7462325231624755694f6e73696332563058325a6c5a53493665794a6d5a5755694f6949774c6a6b344e794a396658303d227d7d7d7d2c2263616c6c6261636b5f696e666f223a6e756c6c2c2272657472696573223a327d7d5d7d7d),
+} on abstract:manager
+2023-05-15 08:08:49 - INFO: Investigating sent packet events on tx A122BE270F96B4301882F3B6A08840E2245CDDF68053AE5721D8EAD365F67366
+2023-05-15 08:08:49 - INFO: Connected to chain juno on port 34683
+2023-05-15 08:08:49 - INFO: Connected to chain juno on port 41973
+2023-05-15 08:08:49 - INFO: Found 1 gRPC endpoints
+2023-05-15 08:08:49 - INFO: Trying to connect to endpoint: http://0.0.0.0:41973
+2023-05-15 08:08:49 - INFO: Writing daemon state JSON file: "daemon_state.json"
+2023-05-15 08:08:49 - INFO: Interacting with juno-1 using address: juno1e4swrhed6pejd05rx2ztwspf3rjxal5yzausyw
+2023-05-15 08:08:49 - INFO: IBC packet n° 26, sent on osmosis-2 on tx A122BE270F96B4301882F3B6A08840E2245CDDF68053AE5721D8EAD365F67366, with data: {"host_chain":"juno","retries":2,"account_id":{"trace":"local","seq":2},"callback_info":null,"action":{"dispatch":{"manager_msg":{"exec_on_module":{"module_id":"abstract:etf","exec_msg":"eyJtb2R1bGUiOnsic2V0X2ZlZSI6eyJmZWUiOiIwLjk4NyJ9fX0="}}}}}
+2023-05-15 08:08:59 - INFO: IBC packet n°26 : {"host_chain":"juno","retries":2,"account_id":{"trace":"local","seq":2},"callback_info":null,"action":{"dispatch":{"manager_msg":{"exec_on_module":{"module_id":"abstract:etf","exec_msg":"eyJtb2R1bGUiOnsic2V0X2ZlZSI6eyJmZWUiOiIwLjk4NyJ9fX0="}}}}}, received on juno-1 on tx E5085A07CA5F29FC287658823E5F680BC4775D402D5AEAA84DE1048FB0EE9B58, with acknowledgment sent back: {"results":[""]}
+2023-05-15 08:08:59 - INFO: IBC packet n°26 acknowledgment received on osmosis-2 on tx 2D0EB562B8475D1C371D88549BA738F35618E9A255E1CF8AC26312C1AE50AE85
+2023-05-15 18:48:14 - INFO: Starting daemon juno-1
+2023-05-15 18:48:14 - INFO: Starting daemon osmosis-2
+2023-05-15 18:48:14 - INFO: Uploading abstract:ans-host
+2023-05-15 18:48:24 - INFO: Uploaded: "F93ED1906C54BD0CF1374E6CF31E33285DA30B2F1288296C3ED188503A6A0F40"
+2023-05-15 18:48:24 - INFO: uploaded abstract:ans-host with code id 1
+2023-05-15 18:48:24 - INFO: Uploading abstract:version-control
+2023-05-15 18:48:35 - INFO: Uploaded: "5913499EF768D0984F314EFE11306C349BB4EEA20BF8D609C0F57980B56174BF"
+2023-05-15 18:48:35 - INFO: uploaded abstract:version-control with code id 2
+2023-05-15 18:48:35 - INFO: Uploading abstract:account-factory
+2023-05-15 18:48:45 - INFO: Uploaded: "589217A664A6CF8F2EAD9B455D7A4F4DC832A3B6284994ABAE69EC8C43C4FAB4"
+2023-05-15 18:48:45 - INFO: uploaded abstract:account-factory with code id 3
+2023-05-15 18:48:45 - INFO: Uploading abstract:module-factory
+2023-05-15 18:48:55 - INFO: Uploaded: "AB9582952F53FE5F299785E2DF71643B52FDF536D8BE3C5CE07E88209614CEA8"
+2023-05-15 18:48:55 - INFO: uploaded abstract:module-factory with code id 4
+2023-05-15 18:48:55 - INFO: Uploading abstract:manager
+2023-05-15 18:49:06 - INFO: Uploaded: "AD27789E32028B4E1790753E8B2856E85E51DC39FBDF9F2547D0264C16A7CFB6"
+2023-05-15 18:49:06 - INFO: uploaded abstract:manager with code id 5
+2023-05-15 18:49:06 - INFO: Uploading abstract:proxy
+2023-05-15 18:49:16 - INFO: Uploaded: "924B1D64BBC24D430D35A81302262784F442DEEB8E012041B286300B2312CD2A"
+2023-05-15 18:49:16 - INFO: uploaded abstract:proxy with code id 6
+2023-05-15 18:49:16 - INFO: Instantiating abstract:ans-host with msg InstantiateMsg
+2023-05-15 18:49:26 - INFO: Instantiated abstract:ans-host with address juno14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9skjuwg8
+2023-05-15 18:49:26 - INFO: Instantiating abstract:version-control with msg InstantiateMsg {
+    is_testnet: true,
+    namespaces_limit: 1,
+}
+2023-05-15 18:49:36 - INFO: Instantiated abstract:version-control with address juno1nc5tatafv6eyq7llkr2gv50ff9e22mnf70qgjlv737ktmt4eswrq68ev2p
+2023-05-15 18:49:36 - INFO: Instantiating abstract:module-factory with msg InstantiateMsg {
+    version_control_address: "juno1nc5tatafv6eyq7llkr2gv50ff9e22mnf70qgjlv737ktmt4eswrq68ev2p",
+    ans_host_address: "juno14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9skjuwg8",
+}
+2023-05-15 18:49:46 - INFO: Instantiated abstract:module-factory with address juno1zwv6feuzhy6a9wekh96cd57lsarmqlwxdypdsplw6zhfncqw6ftqzzdhr6
+2023-05-15 18:49:46 - INFO: Instantiating abstract:account-factory with msg InstantiateMsg {
+    version_control_address: "juno1nc5tatafv6eyq7llkr2gv50ff9e22mnf70qgjlv737ktmt4eswrq68ev2p",
+    ans_host_address: "juno14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9skjuwg8",
+    module_factory_address: "juno1zwv6feuzhy6a9wekh96cd57lsarmqlwxdypdsplw6zhfncqw6ftqzzdhr6",
+}
+2023-05-15 18:49:56 - INFO: Instantiated abstract:account-factory with address juno1unyuj8qnmygvzuex3dwmg9yzt9alhvyeat0uu0jedg2wj33efl5qewxkxd
+2023-05-15 18:49:56 - INFO: Executing SetFactory {
+    new_factory: "juno1unyuj8qnmygvzuex3dwmg9yzt9alhvyeat0uu0jedg2wj33efl5qewxkxd",
+} on abstract:version-control
+2023-05-15 18:50:06 - INFO: Executing ProposeModules {
+    modules: [
+        (
+            ModuleInfo {
+                namespace: "abstract",
+                name: "manager",
+                version: Version(
+                    "1.0.0",
+                ),
+            },
+            AccountBase(
+                5,
+            ),
+        ),
+    ],
+} on abstract:version-control
+2023-05-15 18:50:16 - INFO: Module abstract:manager registered
+2023-05-15 18:50:16 - INFO: Executing ProposeModules {
+    modules: [
+        (
+            ModuleInfo {
+                namespace: "abstract",
+                name: "proxy",
+                version: Version(
+                    "1.0.0",
+                ),
+            },
+            AccountBase(
+                6,
+            ),
+        ),
+    ],
+} on abstract:version-control
+2023-05-15 18:50:26 - INFO: Module abstract:proxy registered
+2023-05-15 18:50:27 - INFO: Executing ProposeModules {
+    modules: [
+        (
+            ModuleInfo {
+                namespace: "abstract",
+                name: "ans-host",
+                version: Version(
+                    "1.0.0",
+                ),
+            },
+            Native(
+                Addr(
+                    "juno14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9skjuwg8",
+                ),
+            ),
+        ),
+        (
+            ModuleInfo {
+                namespace: "abstract",
+                name: "version-control",
+                version: Version(
+                    "1.0.0",
+                ),
+            },
+            Native(
+                Addr(
+                    "juno1nc5tatafv6eyq7llkr2gv50ff9e22mnf70qgjlv737ktmt4eswrq68ev2p",
+                ),
+            ),
+        ),
+        (
+            ModuleInfo {
+                namespace: "abstract",
+                name: "account-factory",
+                version: Version(
+                    "1.0.0",
+                ),
+            },
+            Native(
+                Addr(
+                    "juno1unyuj8qnmygvzuex3dwmg9yzt9alhvyeat0uu0jedg2wj33efl5qewxkxd",
+                ),
+            ),
+        ),
+        (
+            ModuleInfo {
+                namespace: "abstract",
+                name: "module-factory",
+                version: Version(
+                    "1.0.0",
+                ),
+            },
+            Native(
+                Addr(
+                    "juno1zwv6feuzhy6a9wekh96cd57lsarmqlwxdypdsplw6zhfncqw6ftqzzdhr6",
+                ),
+            ),
+        ),
+    ],
+} on abstract:version-control
+2023-05-15 18:50:37 - INFO: Uploading abstract:ibc-client
+2023-05-15 18:50:47 - INFO: Uploaded: "515571D3BEF82F64070263C14B1D801AF68BB935894D1148CD0AE418B7E0FFE9"
+2023-05-15 18:50:47 - INFO: uploaded abstract:ibc-client with code id 7
+2023-05-15 18:50:47 - INFO: Uploading host
+2023-05-15 18:50:57 - INFO: Uploaded: "B1726D0D1D24A25EE50233792743CACAA664C3C2686C198C4C095A490E2B1E75"
+2023-05-15 18:50:57 - INFO: uploaded host with code id 8
+2023-05-15 18:50:57 - INFO: Instantiating abstract:ibc-client with msg InstantiateMsg {
+    ans_host_address: "juno14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9skjuwg8",
+    version_control_address: "juno1nc5tatafv6eyq7llkr2gv50ff9e22mnf70qgjlv737ktmt4eswrq68ev2p",
+    chain: "juno-1",
+}
+2023-05-15 18:51:07 - INFO: Instantiated abstract:ibc-client with address juno13ehuhysn5mqjeaheeuew2gjs785f6k7jm8vfsqg3jhtpkwppcmzq7d63zd
+2023-05-15 18:51:07 - INFO: Instantiating host with msg InstantiateMsg {
+    ans_host_address: "juno14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9skjuwg8",
+    account_factory_address: "juno1unyuj8qnmygvzuex3dwmg9yzt9alhvyeat0uu0jedg2wj33efl5qewxkxd",
+    version_control_address: "juno1nc5tatafv6eyq7llkr2gv50ff9e22mnf70qgjlv737ktmt4eswrq68ev2p",
+}
+2023-05-15 18:51:17 - INFO: Instantiated host with address juno1qum2tr7hh4y7ruzew68c64myjec0dq2s2njf6waja5t0w879lutqemdazk
+2023-05-15 18:51:17 - INFO: Uploading abstract:ans-host
+2023-05-15 18:51:27 - INFO: Uploaded: "F82569F8284BD53BB1D47CE4A64FF6C04EAD104FE5685B7ACAC60C9F887147D8"
+2023-05-15 18:51:27 - INFO: uploaded abstract:ans-host with code id 1
+2023-05-15 18:51:27 - INFO: Uploading abstract:version-control
+2023-05-15 18:51:38 - INFO: Uploaded: "5705FB05C62747F7A6B595ED51B4D9F5E18F6CDF0D3F51799588FE9AD745DAA2"
+2023-05-15 18:51:38 - INFO: uploaded abstract:version-control with code id 2
+2023-05-15 18:51:38 - INFO: Uploading abstract:account-factory
+2023-05-15 18:51:48 - INFO: Uploaded: "4E0629F204473B8ED9D26944F82E6EA8DC68E85E80469171AB5021B1C1238AA8"
+2023-05-15 18:51:48 - INFO: uploaded abstract:account-factory with code id 3
+2023-05-15 18:51:48 - INFO: Uploading abstract:module-factory
+2023-05-15 18:51:58 - INFO: Uploaded: "2CAED8D7012FF80CDE42F00397E1B6800C589F507D89ED7D611BF9066884F438"
+2023-05-15 18:51:58 - INFO: uploaded abstract:module-factory with code id 4
+2023-05-15 18:51:58 - INFO: Uploading abstract:manager
+2023-05-15 18:52:08 - INFO: Uploaded: "474C66ACD14F1A5A5068BF150C37B59438EE7D1D63DF12D3397A76B6E3B9DB8C"
+2023-05-15 18:52:08 - INFO: uploaded abstract:manager with code id 5
+2023-05-15 18:52:08 - INFO: Uploading abstract:proxy
+2023-05-15 18:52:19 - INFO: Uploaded: "3B65571493EE7FE4A470F0FFE6D421FCD89B7A1AA78FB58916557306B0CA25C6"
+2023-05-15 18:52:19 - INFO: uploaded abstract:proxy with code id 6
+2023-05-15 18:52:19 - INFO: Instantiating abstract:ans-host with msg InstantiateMsg
+2023-05-15 18:52:29 - INFO: Instantiated abstract:ans-host with address osmo14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9sq2r9g9
+2023-05-15 18:52:29 - INFO: Instantiating abstract:version-control with msg InstantiateMsg {
+    is_testnet: true,
+    namespaces_limit: 1,
+}
+2023-05-15 18:52:39 - INFO: Instantiated abstract:version-control with address osmo1nc5tatafv6eyq7llkr2gv50ff9e22mnf70qgjlv737ktmt4eswrqvlx82r
+2023-05-15 18:52:39 - INFO: Instantiating abstract:module-factory with msg InstantiateMsg {
+    version_control_address: "osmo1nc5tatafv6eyq7llkr2gv50ff9e22mnf70qgjlv737ktmt4eswrqvlx82r",
+    ans_host_address: "osmo14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9sq2r9g9",
+}
+2023-05-15 18:52:49 - INFO: Instantiated abstract:module-factory with address osmo1zwv6feuzhy6a9wekh96cd57lsarmqlwxdypdsplw6zhfncqw6ftq56jurc
+2023-05-15 18:52:49 - INFO: Instantiating abstract:account-factory with msg InstantiateMsg {
+    version_control_address: "osmo1nc5tatafv6eyq7llkr2gv50ff9e22mnf70qgjlv737ktmt4eswrqvlx82r",
+    ans_host_address: "osmo14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9sq2r9g9",
+    module_factory_address: "osmo1zwv6feuzhy6a9wekh96cd57lsarmqlwxdypdsplw6zhfncqw6ftq56jurc",
+}
+2023-05-15 18:52:59 - INFO: Instantiated abstract:account-factory with address osmo1unyuj8qnmygvzuex3dwmg9yzt9alhvyeat0uu0jedg2wj33efl5q0keax0
+2023-05-15 18:52:59 - INFO: Executing SetFactory {
+    new_factory: "osmo1unyuj8qnmygvzuex3dwmg9yzt9alhvyeat0uu0jedg2wj33efl5q0keax0",
+} on abstract:version-control
+2023-05-15 18:53:09 - INFO: Executing ProposeModules {
+    modules: [
+        (
+            ModuleInfo {
+                namespace: "abstract",
+                name: "manager",
+                version: Version(
+                    "1.0.0",
+                ),
+            },
+            AccountBase(
+                5,
+            ),
+        ),
+    ],
+} on abstract:version-control
+2023-05-15 18:53:19 - INFO: Module abstract:manager registered
+2023-05-15 18:53:19 - INFO: Executing ProposeModules {
+    modules: [
+        (
+            ModuleInfo {
+                namespace: "abstract",
+                name: "proxy",
+                version: Version(
+                    "1.0.0",
+                ),
+            },
+            AccountBase(
+                6,
+            ),
+        ),
+    ],
+} on abstract:version-control
+2023-05-15 18:53:29 - INFO: Module abstract:proxy registered
+2023-05-15 18:53:29 - INFO: Executing ProposeModules {
+    modules: [
+        (
+            ModuleInfo {
+                namespace: "abstract",
+                name: "ans-host",
+                version: Version(
+                    "1.0.0",
+                ),
+            },
+            Native(
+                Addr(
+                    "osmo14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9sq2r9g9",
+                ),
+            ),
+        ),
+        (
+            ModuleInfo {
+                namespace: "abstract",
+                name: "version-control",
+                version: Version(
+                    "1.0.0",
+                ),
+            },
+            Native(
+                Addr(
+                    "osmo1nc5tatafv6eyq7llkr2gv50ff9e22mnf70qgjlv737ktmt4eswrqvlx82r",
+                ),
+            ),
+        ),
+        (
+            ModuleInfo {
+                namespace: "abstract",
+                name: "account-factory",
+                version: Version(
+                    "1.0.0",
+                ),
+            },
+            Native(
+                Addr(
+                    "osmo1unyuj8qnmygvzuex3dwmg9yzt9alhvyeat0uu0jedg2wj33efl5q0keax0",
+                ),
+            ),
+        ),
+        (
+            ModuleInfo {
+                namespace: "abstract",
+                name: "module-factory",
+                version: Version(
+                    "1.0.0",
+                ),
+            },
+            Native(
+                Addr(
+                    "osmo1zwv6feuzhy6a9wekh96cd57lsarmqlwxdypdsplw6zhfncqw6ftq56jurc",
+                ),
+            ),
+        ),
+    ],
+} on abstract:version-control
+2023-05-15 18:53:39 - INFO: Uploading abstract:ibc-client
+2023-05-15 18:53:49 - INFO: Uploaded: "02D755303524D4D1568EEE5251E7B4D2ADE9F48142A8CB9B146581ADC36BB97A"
+2023-05-15 18:53:49 - INFO: uploaded abstract:ibc-client with code id 7
+2023-05-15 18:53:49 - INFO: Uploading host
+2023-05-15 18:53:59 - INFO: Uploaded: "995D15F7C2427BF2B8718DA9F9CE4667323831D2ECF3E58C6655B8D86E9FF1BB"
+2023-05-15 18:53:59 - INFO: uploaded host with code id 8
+2023-05-15 18:53:59 - INFO: Instantiating abstract:ibc-client with msg InstantiateMsg {
+    ans_host_address: "osmo14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9sq2r9g9",
+    version_control_address: "osmo1nc5tatafv6eyq7llkr2gv50ff9e22mnf70qgjlv737ktmt4eswrqvlx82r",
+    chain: "osmosis-2",
+}
+2023-05-15 18:54:09 - INFO: Instantiated abstract:ibc-client with address osmo13ehuhysn5mqjeaheeuew2gjs785f6k7jm8vfsqg3jhtpkwppcmzqg496z0
+2023-05-15 18:54:09 - INFO: Instantiating host with msg InstantiateMsg {
+    ans_host_address: "osmo14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9sq2r9g9",
+    account_factory_address: "osmo1unyuj8qnmygvzuex3dwmg9yzt9alhvyeat0uu0jedg2wj33efl5q0keax0",
+    version_control_address: "osmo1nc5tatafv6eyq7llkr2gv50ff9e22mnf70qgjlv737ktmt4eswrqvlx82r",
+}
+2023-05-15 18:54:19 - INFO: Instantiated host with address osmo1qum2tr7hh4y7ruzew68c64myjec0dq2s2njf6waja5t0w879lutq0rjkz5
+2023-05-15 18:54:19 - INFO: Executing RegisterChainHost {
+    chain: "juno",
+    host: "juno1qum2tr7hh4y7ruzew68c64myjec0dq2s2njf6waja5t0w879lutqemdazk",
+} on abstract:ibc-client
+2023-05-15 18:54:29 - INFO: Executing RegisterChainClient {
+    chain_id: "osmosis",
+    client: "osmo13ehuhysn5mqjeaheeuew2gjs785f6k7jm8vfsqg3jhtpkwppcmzqg496z0",
+} on host
+2023-05-15 18:54:39 - INFO: Start creating IBC connection between osmo13ehuhysn5mqjeaheeuew2gjs785f6k7jm8vfsqg3jhtpkwppcmzqg496z0 and juno1qum2tr7hh4y7ruzew68c64myjec0dq2s2njf6waja5t0w879lutqemdazk
+2023-05-15 18:55:03 - INFO: Channel creation complete between osmo13ehuhysn5mqjeaheeuew2gjs785f6k7jm8vfsqg3jhtpkwppcmzqg496z0 and juno1qum2tr7hh4y7ruzew68c64myjec0dq2s2njf6waja5t0w879lutqemdazk, Sleeping 30 seconds
+2023-05-15 18:55:33 - INFO: Successfully created a channel between osmo13ehuhysn5mqjeaheeuew2gjs785f6k7jm8vfsqg3jhtpkwppcmzqg496z0 and juno1qum2tr7hh4y7ruzew68c64myjec0dq2s2njf6waja5t0w879lutqemdazk on connection 'connection-0' and channels osmosis-2:'channel-1'(txhash : 28E3A337136A3D0E5AE4BD4832DDADA09DB292C0BF517A486D1D05BBC3CF044E) and juno-1:'channel-1(txhash : 25AA2FA01664B5C49BB220F71E49D93050B57A495D4DFD0AFEEC5079FBF1B342)'
+2023-05-15 18:55:33 - INFO: Investigating sent packet events on tx 28E3A337136A3D0E5AE4BD4832DDADA09DB292C0BF517A486D1D05BBC3CF044E
+2023-05-15 18:55:33 - INFO: Connected to chain juno on port 42591
+2023-05-15 18:55:33 - INFO: Connected to chain juno on port 33663
+2023-05-15 18:55:33 - INFO: Found 1 gRPC endpoints
+2023-05-15 18:55:33 - INFO: Trying to connect to endpoint: http://0.0.0.0:33663
+2023-05-15 18:55:33 - INFO: Writing daemon state JSON file: "daemon_state.json"
+2023-05-15 18:55:33 - INFO: Interacting with juno-1 using address: juno13cmlgk6e6gw9nsk0ldq3hvwf9l8h6je2g0r2pd
+2023-05-15 18:55:33 - INFO: IBC packet n° 1, sent on osmosis-2 on tx 28E3A337136A3D0E5AE4BD4832DDADA09DB292C0BF517A486D1D05BBC3CF044E, with data: {"host_chain":"","retries":0,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"internal":{"who_am_i":{"client_chain":"osmosis"}}}}
+2023-05-15 18:55:33 - INFO: IBC packet n°1 : {"host_chain":"","retries":0,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"internal":{"who_am_i":{"client_chain":"osmosis"}}}}, received on juno-1 on tx 319061F348C1B659F6B0F3EACF5C741B34EA6BEC65E1CD02E52A18CD33E70E6D, with acknowledgment sent back: {"chain":"juno"}
+2023-05-15 18:55:33 - INFO: IBC packet n°1 acknowledgment received on osmosis-2 on tx B11FF0176F56FD370CF3B538353E87B0412CE572DB704FE0F3D631C0DB97D1CE
+2023-05-15 18:55:33 - INFO: Querying ListChannels on abstract:ibc-client
+2023-05-15 19:06:16 - INFO: Starting daemon juno-1
+2023-05-15 19:06:16 - INFO: Starting daemon osmosis-2
+2023-05-15 19:06:16 - INFO: Executing CreateAccount {
+    governance: Monarchy {
+        monarch: "osmo1zcd4fkukpyk8khjzs2m3cfyqpzrmvh0jyxhw8h",
+    },
+    name: "osmo-test",
+    description: Some(
+        "Description of the account",
+    ),
+    link: Some(
+        "https://google.com",
+    ),
+    origin: None,
+} on abstract:account-factory
+2023-05-15 19:06:26 - INFO: Executing UpdateModuleAddresses {
+    to_add: Some(
+        [
+            (
+                "abstract:ibc-client",
+                "osmo13ehuhysn5mqjeaheeuew2gjs785f6k7jm8vfsqg3jhtpkwppcmzqg496z0",
+            ),
+        ],
+    ),
+    to_remove: None,
+} on abstract:manager
+2023-05-15 19:06:36 - INFO: Executing UpdateConfig {
+    ans_host_contract: None,
+    version_control_contract: None,
+    module_factory_address: None,
+    ibc_host: Some(
+        "juno1qum2tr7hh4y7ruzew68c64myjec0dq2s2njf6waja5t0w879lutqemdazk",
+    ),
+} on abstract:account-factory
+2023-05-15 19:06:46 - INFO: Executing ExecOnModule {
+    module_id: "abstract:proxy",
+    exec_msg: Binary(7b226962635f616374696f6e223a7b226d736773223a5b7b227265676973746572223a7b22686f73745f636861696e223a226a756e6f227d7d5d7d7d),
+} on abstract:manager
+2023-05-15 19:06:56 - INFO: Investigating sent packet events on tx C9ED287A13970236676251D921D376DC67BFDA9CDDDDAC0B700045ADB9C7ABE4
+2023-05-15 19:06:56 - INFO: Connected to chain juno on port 42591
+2023-05-15 19:06:56 - INFO: Connected to chain juno on port 33663
+2023-05-15 19:06:56 - INFO: Found 1 gRPC endpoints
+2023-05-15 19:06:56 - INFO: Trying to connect to endpoint: http://0.0.0.0:33663
+2023-05-15 19:06:56 - INFO: Writing daemon state JSON file: "daemon_state.json"
+2023-05-15 19:06:56 - INFO: Interacting with juno-1 using address: juno1e4swrhed6pejd05rx2ztwspf3rjxal5yzausyw
+2023-05-15 19:06:56 - INFO: IBC packet n° 2, sent on osmosis-2 on tx C9ED287A13970236676251D921D376DC67BFDA9CDDDDAC0B700045ADB9C7ABE4, with data: {"host_chain":"juno","retries":0,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"internal":{"register":{"account_proxy_address":"osmo1sr06m8yqg0wzqqyqvzvp5t07dj4nevx9u8qc7j4qa72qu8e3ct8qdhzxwf","name":"osmo-test","description":"Description of the account","link":"https://google.com"}}}}
+2023-05-15 19:07:06 - INFO: IBC packet n°2 : {"host_chain":"juno","retries":0,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"internal":{"register":{"account_proxy_address":"osmo1sr06m8yqg0wzqqyqvzvp5t07dj4nevx9u8qc7j4qa72qu8e3ct8qdhzxwf","name":"osmo-test","description":"Description of the account","link":"https://google.com"}}}}, received on juno-1 on tx A4B4E24AC3B97C271DFB0AF12A3CF3B9333100C15C4F79890C213D1B7D8276A3, with acknowledgment sent back: {"account":"juno1sr06m8yqg0wzqqyqvzvp5t07dj4nevx9u8qc7j4qa72qu8e3ct8qm0adwt"}
+2023-05-15 19:07:16 - INFO: IBC packet n°2 acknowledgment received on osmosis-2 on tx 9CB2BE5237ED6B0292FBEAE23F96D6B9C379CF6E54B13C05D07F49BDFA6F0E99
+2023-05-15 19:07:16 - INFO: Querying Config on abstract:manager
+2023-05-15 19:07:16 - INFO: Querying AccountBase {
+    account_id: AccountId {
+        trace: Remote(
+            [
+                ChainName(
+                    "osmosis",
+                ),
+            ],
+        ),
+        seq: 0,
+    },
+} on abstract:version-control
+2023-05-15 19:07:16 - INFO: Distant account config AccountBase { manager: Addr("juno1sthrn5ep8ls5vzz8f9gp89khhmedahhdqd244dh9uqzk3hx2pzrsglwy3e"), proxy: Addr("juno1sr06m8yqg0wzqqyqvzvp5t07dj4nevx9u8qc7j4qa72qu8e3ct8qm0adwt") } 
+2023-05-15 19:07:16 - INFO: Querying Config on distant_account_manager
+2023-05-15 19:07:16 - INFO: Querying Info on distant_account_manager
+2023-05-15 19:07:16 - INFO: Uploading abstract:etf
+2023-05-15 19:07:27 - INFO: Uploaded: "7EF472361E41085ED26C0A3BB4E4E97331D215563704B29464D1FD327BA3A07C"
+2023-05-15 19:07:27 - INFO: uploaded abstract:etf with code id 9
+2023-05-15 19:07:27 - INFO: Executing ProposeModules {
+    modules: [
+        (
+            ModuleInfo {
+                namespace: "abstract",
+                name: "etf",
+                version: Version(
+                    "1.1.0",
+                ),
+            },
+            App(
+                9,
+            ),
+        ),
+    ],
+} on abstract:version-control
+2023-05-15 19:07:37 - INFO: Uploading cw20
+2023-05-15 19:07:47 - INFO: Uploaded: "EE76A1EE05E25866EA493DB68D241EFC3D978E43D43FE858197547154D29A5FE"
+2023-05-15 19:07:47 - INFO: uploaded cw20 with code id 10
+2023-05-15 19:07:47 - INFO: Executing ExecOnModule {
+    module_id: "abstract:proxy",
+    exec_msg: Binary(7b226962635f616374696f6e223a7b226d736773223a5b7b2273656e645f7061636b6574223a7b22686f73745f636861696e223a226a756e6f222c22616374696f6e223a7b226469737061746368223a7b226d616e616765725f6d7367223a7b22696e7374616c6c5f6d6f64756c65223a7b226d6f64756c65223a7b226e616d657370616365223a226162737472616374222c226e616d65223a22657466222c2276657273696f6e223a226c6174657374227d2c22696e69745f6d7367223a2265794a6959584e6c496a7037496d46756331396f62334e305832466b5a484a6c63334d694f694a71645735764d54526f616a4a3059585a784f475a775a584e6b64336834593355304e484a3065544e6f61446b77646d6831616e4a325932317a64477730656e497a644868745a6e5a334f584e72616e56335a7a6769665377696257396b6457786c496a7037496e52766132567558324e765a475666615751694f6a45774c434a6d5a5755694f6949774c6a45694c434a74595735685a3256795832466b5a4849694f694a71645735764d575530633364796147566b4e6e426c616d51774e584a344d6e703064334e775a6a4e79616e686862445635656d463163336c3349697769644739725a573566626d46745a534936626e567362437769644739725a57356663336c74596d3973496a7075645778736658303d227d7d7d7d2c2263616c6c6261636b5f696e666f223a6e756c6c2c2272657472696573223a327d7d5d7d7d),
+} on abstract:manager
+2023-05-15 19:07:57 - INFO: Investigating sent packet events on tx 37B5872D3BA3B791F9E218EDEA22FE4B9A9664B3413150EC6B3E453A28EC7D16
+2023-05-15 19:07:57 - INFO: Connected to chain juno on port 42591
+2023-05-15 19:07:57 - INFO: Connected to chain juno on port 33663
+2023-05-15 19:07:57 - INFO: Found 1 gRPC endpoints
+2023-05-15 19:07:57 - INFO: Trying to connect to endpoint: http://0.0.0.0:33663
+2023-05-15 19:07:57 - INFO: Writing daemon state JSON file: "daemon_state.json"
+2023-05-15 19:07:57 - INFO: Interacting with juno-1 using address: juno1e4swrhed6pejd05rx2ztwspf3rjxal5yzausyw
+2023-05-15 19:07:57 - INFO: IBC packet n° 3, sent on osmosis-2 on tx 37B5872D3BA3B791F9E218EDEA22FE4B9A9664B3413150EC6B3E453A28EC7D16, with data: {"host_chain":"juno","retries":2,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"install_module":{"module":{"namespace":"abstract","name":"etf","version":"latest"},"init_msg":"eyJiYXNlIjp7ImFuc19ob3N0X2FkZHJlc3MiOiJqdW5vMTRoajJ0YXZxOGZwZXNkd3h4Y3U0NHJ0eTNoaDkwdmh1anJ2Y21zdGw0enIzdHhtZnZ3OXNranV3ZzgifSwibW9kdWxlIjp7InRva2VuX2NvZGVfaWQiOjEwLCJmZWUiOiIwLjEiLCJtYW5hZ2VyX2FkZHIiOiJqdW5vMWU0c3dyaGVkNnBlamQwNXJ4Mnp0d3NwZjNyanhhbDV5emF1c3l3IiwidG9rZW5fbmFtZSI6bnVsbCwidG9rZW5fc3ltYm9sIjpudWxsfX0="}}}}}
+2023-05-15 19:08:17 - INFO: IBC packet n°3 : {"host_chain":"juno","retries":2,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"install_module":{"module":{"namespace":"abstract","name":"etf","version":"latest"},"init_msg":"eyJiYXNlIjp7ImFuc19ob3N0X2FkZHJlc3MiOiJqdW5vMTRoajJ0YXZxOGZwZXNkd3h4Y3U0NHJ0eTNoaDkwdmh1anJ2Y21zdGw0enIzdHhtZnZ3OXNranV3ZzgifSwibW9kdWxlIjp7InRva2VuX2NvZGVfaWQiOjEwLCJmZWUiOiIwLjEiLCJtYW5hZ2VyX2FkZHIiOiJqdW5vMWU0c3dyaGVkNnBlamQwNXJ4Mnp0d3NwZjNyanhhbDV5emF1c3l3IiwidG9rZW5fbmFtZSI6bnVsbCwidG9rZW5fc3ltYm9sIjpudWxsfX0="}}}}}, received on juno-1 on tx 8E4B85A1F696B44FEF61748BF057A79820CF3288C8498825B38AB714B800F404, with acknowledgment sent back: {"results":[""]}
+2023-05-15 19:08:27 - INFO: IBC packet n°3 acknowledgment received on osmosis-2 on tx D8524D9B66F6810CEBF50B9F2ED5081D9B2A10BA2E26BD7F4D79A6A594E77B32
+2023-05-15 19:08:27 - INFO: Executing ExecOnModule {
+    module_id: "abstract:proxy",
+    exec_msg: Binary(7b226962635f616374696f6e223a7b226d736773223a5b7b2273656e645f7061636b6574223a7b22686f73745f636861696e223a226a756e6f222c22616374696f6e223a7b226469737061746368223a7b226d616e616765725f6d7367223a7b22657865635f6f6e5f6d6f64756c65223a7b226d6f64756c655f6964223a2261627374726163743a657466222c22657865635f6d7367223a2265794a7462325231624755694f6e73696332563058325a6c5a53493665794a6d5a5755694f6949774c6a6b344e794a396658303d227d7d7d7d2c2263616c6c6261636b5f696e666f223a6e756c6c2c2272657472696573223a327d7d5d7d7d),
+} on abstract:manager
+2023-05-15 19:08:37 - INFO: Investigating sent packet events on tx E8BD35770D4C643E8F6DF3BC66531B39C6464167E78E09ADDB77B4FA509CDF0D
+2023-05-15 19:08:37 - INFO: Connected to chain juno on port 42591
+2023-05-15 19:08:37 - INFO: Connected to chain juno on port 33663
+2023-05-15 19:08:37 - INFO: Found 1 gRPC endpoints
+2023-05-15 19:08:37 - INFO: Trying to connect to endpoint: http://0.0.0.0:33663
+2023-05-15 19:08:37 - INFO: Writing daemon state JSON file: "daemon_state.json"
+2023-05-15 19:08:37 - INFO: Interacting with juno-1 using address: juno1e4swrhed6pejd05rx2ztwspf3rjxal5yzausyw
+2023-05-15 19:08:37 - INFO: IBC packet n° 4, sent on osmosis-2 on tx E8BD35770D4C643E8F6DF3BC66531B39C6464167E78E09ADDB77B4FA509CDF0D, with data: {"host_chain":"juno","retries":2,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"exec_on_module":{"module_id":"abstract:etf","exec_msg":"eyJtb2R1bGUiOnsic2V0X2ZlZSI6eyJmZWUiOiIwLjk4NyJ9fX0="}}}}}
+2023-05-15 19:08:47 - INFO: IBC packet n°4 : {"host_chain":"juno","retries":2,"account_id":{"trace":"local","seq":0},"callback_info":null,"action":{"dispatch":{"manager_msg":{"exec_on_module":{"module_id":"abstract:etf","exec_msg":"eyJtb2R1bGUiOnsic2V0X2ZlZSI6eyJmZWUiOiIwLjk4NyJ9fX0="}}}}}, received on juno-1 on tx 33730BFEAC55574CC7EF9A4B17F23094CAB998037DC1EC78FC4CD00088B36296, with acknowledgment sent back: {"results":[""]}
+2023-05-15 19:08:47 - INFO: IBC packet n°4 acknowledgment received on osmosis-2 on tx B71AD73109E6D1A24978DA6DE614272F4A429AF453F974D2F54A5B974B9F988A
+2023-05-16 12:11:17 - INFO: Starting daemon juno-1
+2023-05-16 12:11:17 - INFO: Starting daemon osmosis-2
+2023-05-16 12:11:17 - INFO: Executing CreateAccount {
+    governance: Monarchy {
+        monarch: "osmo1zcd4fkukpyk8khjzs2m3cfyqpzrmvh0jyxhw8h",
+    },
+    name: "osmo-test",
+    description: Some(
+        "Description of the account",
+    ),
+    link: Some(
+        "https://google.com",
+    ),
+    origin: None,
+} on abstract:account-factory
+2023-05-16 12:11:27 - INFO: Executing UpdateModuleAddresses {
+    to_add: Some(
+        [
+            (
+                "abstract:ibc-client",
+                "osmo13ehuhysn5mqjeaheeuew2gjs785f6k7jm8vfsqg3jhtpkwppcmzqg496z0",
+            ),
+        ],
+    ),
+    to_remove: None,
+} on abstract:manager
+2023-05-16 12:11:37 - INFO: Executing UpdateConfig {
+    ans_host_contract: None,
+    version_control_contract: None,
+    module_factory_address: None,
+    ibc_host: Some(
+        "juno1qum2tr7hh4y7ruzew68c64myjec0dq2s2njf6waja5t0w879lutqemdazk",
+    ),
+} on abstract:account-factory
+2023-05-16 12:11:47 - INFO: Executing ExecOnModule {
+    module_id: "abstract:proxy",
+    exec_msg: Binary(7b226962635f616374696f6e223a7b226d736773223a5b7b227265676973746572223a7b22686f73745f636861696e223a226a756e6f227d7d5d7d7d),
+} on abstract:manager
+2023-05-16 12:11:57 - INFO: Investigating sent packet events on tx B7D3E1AB28C92BBA0809609B84D81FF000DF6A1A53BF4919000654B2EC9C3FEB
+2023-05-16 12:11:57 - INFO: Connected to chain juno on port 42591
+2023-05-16 12:11:57 - INFO: Connected to chain juno on port 33663
+2023-05-16 12:11:57 - INFO: Found 1 gRPC endpoints
+2023-05-16 12:11:57 - INFO: Trying to connect to endpoint: http://0.0.0.0:33663
+2023-05-16 12:11:57 - INFO: Writing daemon state JSON file: "daemon_state.json"
+2023-05-16 12:11:57 - INFO: Interacting with juno-1 using address: juno1e4swrhed6pejd05rx2ztwspf3rjxal5yzausyw
+2023-05-16 12:11:57 - INFO: IBC packet n° 5, sent on osmosis-2 on tx B7D3E1AB28C92BBA0809609B84D81FF000DF6A1A53BF4919000654B2EC9C3FEB, with data: {"host_chain":"juno","retries":0,"account_id":{"trace":"local","seq":1},"callback_info":null,"action":{"internal":{"register":{"account_proxy_address":"osmo1qu43pvag5hu95hmml7y658t3k8sd9plnmpj8xmw9qgy0t458nyrq6h2atu","name":"osmo-test","description":"Description of the account","link":"https://google.com"}}}}
+2023-05-16 12:12:17 - INFO: IBC packet n°5 : {"host_chain":"juno","retries":0,"account_id":{"trace":"local","seq":1},"callback_info":null,"action":{"internal":{"register":{"account_proxy_address":"osmo1qu43pvag5hu95hmml7y658t3k8sd9plnmpj8xmw9qgy0t458nyrq6h2atu","name":"osmo-test","description":"Description of the account","link":"https://google.com"}}}}, received on juno-1 on tx 0ED36217E0C1F1C6FBCBE6C44EDECFB49485E6B79F75FDF31A7AC56CE83C3A33, with acknowledgment sent back: {"account":"juno1uukt3kqela4vsllvrqnrgllkna5wn3cmqfxvqpxz9g00956lcxsq0n3cq7"}
+2023-05-16 12:12:27 - INFO: IBC packet n°5 acknowledgment received on osmosis-2 on tx 81B41BCFF42F6AA6E926113B720EB8DEC86322552E388C358F7B9AEAB03619D7
+2023-05-16 12:12:27 - INFO: Querying Config on abstract:manager
+2023-05-16 12:12:27 - INFO: Querying AccountBase {
+    account_id: AccountId {
+        trace: Remote(
+            [
+                ChainName(
+                    "osmosis",
+                ),
+            ],
+        ),
+        seq: 1,
+    },
+} on abstract:version-control
+2023-05-16 12:12:27 - INFO: Distant account config AccountBase { manager: Addr("juno1e8h0sk0a2f56hgnj3qzj845hzar9xljzumv2z9c8ze3sy8n5x2tq70q2jc"), proxy: Addr("juno1uukt3kqela4vsllvrqnrgllkna5wn3cmqfxvqpxz9g00956lcxsq0n3cq7") } 
+2023-05-16 12:12:27 - INFO: Querying Config on distant_account_manager
+2023-05-16 12:12:27 - INFO: Querying Info on distant_account_manager
+2023-05-16 12:12:27 - INFO: Uploading abstract:etf
+2023-05-16 12:12:38 - INFO: Uploaded: "B5A1181FD570AB0958B4ADACB64ACC39513C1F11245798171CCE71BC93FBE2A7"
+2023-05-16 12:12:38 - INFO: uploaded abstract:etf with code id 13
+2023-05-16 12:12:38 - INFO: Executing ProposeModules {
+    modules: [
+        (
+            ModuleInfo {
+                namespace: "abstract",
+                name: "etf",
+                version: Version(
+                    "1.1.0",
+                ),
+            },
+            App(
+                13,
+            ),
+        ),
+    ],
+} on abstract:version-control

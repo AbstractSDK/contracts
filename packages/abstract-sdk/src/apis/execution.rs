@@ -3,8 +3,9 @@
 //!
 
 use crate::{
+    cw_helpers::cw_messages::AbstractMessage,
     features::{AccountIdentification, ModuleIdentification},
-    AbstractSdkResult, cw_helpers::cw_messages::AbstractMessage,
+    AbstractSdkResult,
 };
 use abstract_macros::with_abstract_event;
 use cosmwasm_std::{CosmosMsg, Deps, ReplyOn, Response, SubMsg};
@@ -28,7 +29,10 @@ impl<'a, T: Execution> Executor<'a, T> {
     /// Execute the msgs on the Account.
     /// These messages will be executed on the proxy contract and the sending module must be whitelisted.
     pub fn execute(&self, msgs: Vec<CosmosMsg>) -> AbstractSdkResult<AbstractMessage> {
-        Ok(AbstractMessage::from_proxy_msgs(msgs, self.base.proxy_address(self.deps)?.to_string()))
+        Ok(AbstractMessage::from_proxy_msgs(
+            msgs,
+            self.base.proxy_address(self.deps)?.to_string(),
+        ))
     }
 
     /// Execute the msgs on the Account.
@@ -69,10 +73,10 @@ impl<'a, T: Execution> Executor<'a, T> {
 mod test {
     use super::*;
     use crate::mock_module::*;
+    use abstract_core::proxy::ExecuteMsg;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::*, *};
     use speculoos::prelude::*;
-    use abstract_core::proxy::ExecuteMsg;
 
     fn mock_bank_send(amount: Vec<Coin>) -> CosmosMsg {
         CosmosMsg::Bank(BankMsg::Send {

@@ -8,8 +8,8 @@ use cosmos_sdk_proto::{
 };
 use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Deps};
 
-use crate::{AbstractSdkResult, Execution};
 use crate::cw_helpers::cw_messages::AbstractMessage;
+use crate::{AbstractSdkResult, Execution};
 pub trait DistributionInterface: Execution {
     fn distribution<'a>(&'a self, deps: Deps<'a>) -> Distribution<Self> {
         Distribution { base: self, deps }
@@ -66,7 +66,10 @@ impl<'a, T: DistributionInterface> Distribution<'a, T> {
     }
 
     /// withdraws the full commission to the validator address.
-    pub fn withdraw_delegator_commission(&self, validator: &Addr) -> AbstractSdkResult<AbstractMessage> {
+    pub fn withdraw_delegator_commission(
+        &self,
+        validator: &Addr,
+    ) -> AbstractSdkResult<AbstractMessage> {
         let msg = distribution::v1beta1::MsgWithdrawValidatorCommission {
             validator_address: validator.into(),
         }

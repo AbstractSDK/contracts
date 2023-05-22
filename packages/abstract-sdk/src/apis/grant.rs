@@ -9,8 +9,8 @@ use crate::Execution;
 use cosmos_sdk_proto::{cosmos::base, cosmos::feegrant, traits::Message, Any};
 use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Deps, Timestamp};
 
-use crate::AbstractSdkResult;
 use crate::cw_helpers::cw_messages::AbstractMessage;
+use crate::AbstractSdkResult;
 
 pub trait GrantInterface: Execution {
     fn grant<'a>(&'a self, deps: Deps<'a>) -> Grant<Self> {
@@ -91,7 +91,10 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
     }
 
     /// Creates allowance only for PeriodicAllowance.
-    pub fn allow_periodic(&self, periodic: PeriodicAllowance) -> AbstractSdkResult<AbstractMessage> {
+    pub fn allow_periodic(
+        &self,
+        periodic: PeriodicAllowance,
+    ) -> AbstractSdkResult<AbstractMessage> {
         let msg = feegrant::v1beta1::AllowedMsgAllowance {
             allowance: Some(build_any_periodic(periodic, None)),
             allowed_messages: vec!["PeriodicAllowance".to_owned()],

@@ -23,7 +23,11 @@ pub struct Splitter<'a, T: SplitterInterface> {
 
 impl<'a, T: SplitterInterface> Splitter<'a, T> {
     /// Split an asset to multiple users
-    pub fn split(&self, asset: AnsAsset, receivers: &[Addr]) -> AbstractSdkResult<Vec<AbstractMessage>> {
+    pub fn split(
+        &self,
+        asset: AnsAsset,
+        receivers: &[Addr],
+    ) -> AbstractSdkResult<Vec<AbstractMessage>> {
         // split the asset between all receivers
         let receives_each = AnsAsset {
             amount: asset
