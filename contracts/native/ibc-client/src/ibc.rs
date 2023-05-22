@@ -5,15 +5,15 @@ use abstract_sdk::core::{
         check_order, check_version, BalancesResponse, RegisterResponse, StdAck, WhoAmIResponse,
     },
     ibc_client::{
-        state::{ACCOUNTS, CHANNELS, ALLOWED_PORTS},
+        state::{ACCOUNTS, CHAIN_HOSTS, CHANNELS},
         CallbackInfo,
     },
     ibc_host::{HostAction, InternalAction, PacketMsg},
 };
 use cosmwasm_std::{
-    from_slice, to_binary, DepsMut, Env, Ibc3ChannelOpenResponse, IbcBasicResponse,
+    ensure_eq, from_slice, to_binary, DepsMut, Env, Ibc3ChannelOpenResponse, IbcBasicResponse,
     IbcChannelCloseMsg, IbcChannelConnectMsg, IbcChannelOpenMsg, IbcMsg, IbcPacketAckMsg,
-    IbcPacketReceiveMsg, IbcPacketTimeoutMsg, IbcReceiveResponse, IbcTimeout, StdResult,
+    IbcPacketReceiveMsg, IbcPacketTimeoutMsg, IbcReceiveResponse, IbcTimeout, StdError, StdResult,
 };
 
 // TODO: make configurable?
@@ -38,7 +38,11 @@ pub fn ibc_channel_open(
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn ibc_channel_connect(deps: DepsMut, env: Env, msg: IbcChannelConnectMsg) -> StdResult<IbcBasicResponse> {
+pub fn ibc_channel_connect(
+    deps: DepsMut,
+    env: Env,
+    msg: IbcChannelConnectMsg,
+) -> StdResult<IbcBasicResponse> {
     let channel = msg.channel();
     let channel_id = &channel.endpoint.channel_id;
 
@@ -213,10 +217,20 @@ fn acknowledge_who_am_i(
     }
 
     // ensure the contract that connects is allowed to connect
-    let allowed_port = ALLOWED_PORTS.load(deps.storage, &chain).map_err(|_| IbcClientError::UnregisteredChain(chain.to_string()))?;
-    if allowed_port != port_id{
-        return Err(IbcClientError::UnauthorizedConnection{})
-    }
+    let registered_host = CHAIN_HOSTS
+        .load(deps.storage, &chain)
+        .map_err(|_| IbcClientError::UnregisteredChain(chain.to_string()))?;
+    let counterparty_host =
+        port_id
+            .strip_prefix("wasm.")
+            .ok_or(IbcClientError::Std(StdError::generic_err(
+                "mis-formatted wasm port",
+            )))?;
+    ensure_eq!(
+        &registered_host,
+        counterparty_host,
+        IbcClientError::UnauthorizedConnection {}
+    );
 
     // Now we know over what channel to communicate!
     CHANNELS.save(deps.storage, &chain, &channel_id)?;

@@ -5,10 +5,10 @@ use abstract_core::{
     proxy::*,
     MANAGER, PROXY,
 };
+use cw_orch::prelude::{ArtifactsDir, WasmPath};
+use cw_orch::{interface, ContractInstance, CwEnv};
 
-use cw_orch::{contract, ArtifactsDir, ContractInstance, CwEnv};
-
-#[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+#[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Proxy<Chain>;
 
 impl<Chain: CwEnv> ::cw_orch::Uploadable for Proxy<Chain> {
@@ -23,7 +23,7 @@ impl<Chain: CwEnv> ::cw_orch::Uploadable for Proxy<Chain> {
             .with_migrate(::proxy::contract::migrate),
         )
     }
-    fn wasm(&self) -> cw_orch::WasmPath {
+    fn wasm(&self) -> WasmPath {
         ArtifactsDir::env().find_wasm_path("proxy").unwrap()
     }
 }
@@ -72,7 +72,7 @@ impl<Chain: CwEnv> Proxy<Chain> {
 
     //             return Ok(());
     //         }
-    //         None => return Err(CwOrcError::StdErr("network not found".into())),
+    //         None => return Err(CwOrchError::StdErr("network not found".into())),
     //     }
     // }
 

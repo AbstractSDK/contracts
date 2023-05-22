@@ -9,7 +9,7 @@ use abstract_testing::prelude::{OWNER, TEST_MODULE_ID, TEST_VERSION};
 use common::{create_default_account, init_mock_api, AResult, TEST_COIN};
 use cosmwasm_std::{Addr, Coin, Empty};
 use cw_orch::{
-    CwOrcError, Mock, TxHandler, {CallAs, ContractInstance},
+    CwOrchError, Mock, TxHandler, {CallAs, ContractInstance},
 };
 use cw_orch::{CwOrcExecute, Deploy};
 // use cw_multi_test::StakingInfo;
@@ -22,7 +22,7 @@ fn install_api(manager: &Manager<Mock>, api: &str) -> AResult {
 pub(crate) fn uninstall_module(manager: &Manager<Mock>, api: &str) -> AResult {
     manager
         .uninstall_module(api.to_string())
-        .map_err(Into::<CwOrcError>::into)?;
+        .map_err(Into::<CwOrchError>::into)?;
     Ok(())
 }
 

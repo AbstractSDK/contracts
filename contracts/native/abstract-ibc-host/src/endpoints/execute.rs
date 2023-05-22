@@ -3,7 +3,7 @@ use crate::{
     contract::{HostResponse, HostResult},
     error::HostError,
     ibc::{receive_query, receive_register, receive_who_am_i},
-    state::{CLIENT_PROXY, CONFIG, PROCESSING_PACKET},
+    state::{CHAIN_CLIENTS, CLIENT_PROXY, CONFIG, PROCESSING_PACKET},
 };
 use abstract_core::{
     objects::chain_name::ChainName, proxy::state::ADMIN, version_control::AccountBase,
@@ -40,6 +40,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> H
             version_control_address,
             account_factory_address,
         ),
+        ExecuteMsg::RegisterChainClient { chain_id, client } => {
+            register_chain_client(deps, info, chain_id, client)
+        }
         ExecuteMsg::RecoverAccount {
             closed_channel,
             account_id,
@@ -81,4 +84,15 @@ fn update_config(
 
     CONFIG.save(deps.storage, &config)?;
     Ok(HostResponse::action("update_config"))
+}
+
+fn register_chain_client(
+    deps: DepsMut,
+    info: MessageInfo,
+    chain_id: String,
+    client: String,
+) -> HostResult {
+    cw_ownable::is_owner(deps.storage, &info.sender)?;
+    CHAIN_CLIENTS.save(deps.storage, &ChainName::from(chain_id), &client)?;
+    Ok(HostResponse::action("register_chain_client"))
 }

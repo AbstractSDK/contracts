@@ -1,9 +1,10 @@
+
 use abstract_core::objects::dependency::StaticDependency;
-use abstract_testing::prelude::{TEST_MODULE_ID, TEST_PROXY};
+use abstract_testing::prelude::{TEST_MODULE_ID, TEST_PROXY, TEST_VERSION_CONTROL};
 use cosmwasm_std::{Addr, Deps};
 
 use crate::features::{
-    AbstractNameService, AccountIdentification, Dependencies, ModuleIdentification,
+    AbstractNameService, AccountIdentification, Dependencies, ModuleIdentification, AbstractRegistryAccess
 };
 use crate::AbstractSdkResult;
 use abstract_core::objects::ans_host::AnsHost;
@@ -15,6 +16,13 @@ impl AccountIdentification for MockModule {
         Ok(Addr::unchecked(TEST_PROXY))
     }
 }
+
+impl AbstractRegistryAccess for MockModule {
+    fn abstract_registry(&self, _deps: Deps) -> AbstractSdkResult<Addr>{ 
+        Ok(Addr::unchecked(TEST_VERSION_CONTROL))
+    }
+}
+
 
 impl ModuleIdentification for MockModule {
     fn module_id(&self) -> &'static str {

@@ -9,7 +9,6 @@ use cosmwasm_std::{from_slice, Binary, Coin, CosmosMsg, StdResult, Timestamp};
 
 pub mod state {
 
-    
     use crate::{
         objects::{
             account::AccountId, ans_host::AnsHost, chain_name::ChainName,
@@ -30,8 +29,8 @@ pub mod state {
 
     // chain_name --> allowed port
     // These ports are the only one allowed for the chain. This allows to control who can connect to the client on the distant chain
-    pub const ALLOWED_PORTS: Map<&ChainName, String> = Map::new("allowed_ports");
-   
+    pub const CHAIN_HOSTS: Map<&ChainName, String> = Map::new("chain_hosts");
+
     /// chain -> channel-id
     /// these channels have been verified by the host.
     pub const CHANNELS: Map<&ChainName, String> = Map::new("channels");
@@ -78,9 +77,9 @@ pub enum ExecuteMsg {
         ans_host: Option<String>,
         version_control: Option<String>,
     },
-    AllowChainPort{
+    RegisterChainHost {
         chain: String,
-        port: String,
+        host: String,
     },
     /// Only callable by Account proxy
     /// Will attempt to forward the specified funds to the corresponding

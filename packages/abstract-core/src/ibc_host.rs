@@ -87,11 +87,17 @@ pub struct PacketMsg {
 #[cosmwasm_schema::cw_serde]
 pub enum ExecuteMsg {
     /// Update the Admin
-    UpdateAdmin { admin: String },
+    UpdateAdmin {
+        admin: String,
+    },
     UpdateConfig {
         ans_host_address: Option<String>,
         account_factory_address: Option<String>,
         version_control_address: Option<String>,
+    },
+    RegisterChainClient {
+        chain_id: String,
+        client: String,
     },
     /// Allow for fund recovery through the Admin
     RecoverAccount {
@@ -108,6 +114,10 @@ pub enum QueryMsg {
     /// Returns [`ConfigResponse`].
     #[returns(ConfigResponse)]
     Config {},
+    #[returns(RegisteredChainsResponse)]
+    RegisteredChains {},
+    #[returns(RegisteredChainResponse)]
+    AssociatedClient { chain: String },
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -115,4 +125,14 @@ pub struct ConfigResponse {
     pub ans_host_address: Addr,
     pub account_factory_address: Addr,
     pub version_control_address: Addr,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct RegisteredChainsResponse {
+    pub chains: Vec<(ChainName, String)>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct RegisteredChainResponse {
+    pub client: String,
 }

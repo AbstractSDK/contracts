@@ -1,12 +1,12 @@
+use cw_orch::prelude::{WasmPath, ArtifactsDir};
 use abstract_core::ibc_host::*;
-use cosmwasm_std::Empty;
-use cw_orch::{contract, ArtifactsDir, Contract, CwEnv, Daemon, Uploadable};
+use cw_orch::{interface, Contract, CwEnv, Daemon, Uploadable};
 
-#[contract(InstantiateMsg, Empty, QueryMsg, MigrateMsg)]
-pub struct OsmosisHost<Chain>;
+#[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+pub struct OsmosisHost;
 
 impl Uploadable for OsmosisHost<Daemon> {
-    fn wasm(&self) -> cw_orch::WasmPath {
+    fn wasm(&self) -> WasmPath {
         ArtifactsDir::env().find_wasm_path("ibc_host").unwrap()
     }
 }

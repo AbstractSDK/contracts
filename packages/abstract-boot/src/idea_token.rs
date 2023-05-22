@@ -1,11 +1,11 @@
 use abstract_core::abstract_token::*;
 use cosmwasm_std::{Addr, Binary, Uint128};
 use cw_orch::{
-    contract, Contract, CwEnv, TxResponse, {ContractInstance, CwOrcExecute, CwOrcInstantiate},
+    interface, Contract, CwEnv, TxResponse, {ContractInstance, CwOrcExecute, CwOrcInstantiate},
 };
 
-#[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
-pub struct Idea<Chain>;
+#[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+pub struct Idea;
 
 impl<Chain: CwEnv> Idea<Chain> {
     pub fn new(name: &str, chain: Chain) -> Self {

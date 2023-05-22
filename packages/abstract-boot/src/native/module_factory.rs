@@ -1,14 +1,14 @@
 use abstract_core::module_factory::*;
-
+use cw_orch::prelude::{ArtifactsDir, WasmPath};
 // use crate::api::get_api_init_msgs;
-use cw_orch::{ArtifactsDir, Contract, CwEnv, TxResponse};
+use cw_orch::{Contract, CwEnv, TxResponse};
 
 pub use abstract_core::module_factory::{
     ExecuteMsgFns as MFactoryExecFns, QueryMsgFns as MFactoryQueryFns,
 };
-use cw_orch::{contract, CwOrcExecute};
+use cw_orch::{interface, CwOrcExecute};
 
-#[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+#[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct ModuleFactory<Chain>;
 
 impl<Chain: CwEnv> ::cw_orch::Uploadable for ModuleFactory<Chain> {
@@ -24,7 +24,7 @@ impl<Chain: CwEnv> ::cw_orch::Uploadable for ModuleFactory<Chain> {
             .with_reply(::module_factory::contract::reply),
         )
     }
-    fn wasm(&self) -> cw_orch::WasmPath {
+    fn wasm(&self) -> WasmPath {
         ArtifactsDir::env()
             .find_wasm_path("module_factory")
             .unwrap()
