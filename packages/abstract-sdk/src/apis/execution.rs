@@ -4,11 +4,10 @@
 
 use crate::{
     features::{AccountIdentification, ModuleIdentification},
-    AbstractSdkResult,
+    AbstractSdkResult, cw_helpers::cw_messages::AbstractMessage,
 };
-use abstract_core::proxy::ExecuteMsg;
 use abstract_macros::with_abstract_event;
-use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, ReplyOn, Response, SubMsg};
+use cosmwasm_std::{CosmosMsg, Deps, ReplyOn, Response, SubMsg};
 
 /// Execute an arbitrary `CosmosMsg` action on the Account.
 pub trait Execution: AccountIdentification + ModuleIdentification {
@@ -28,13 +27,8 @@ pub struct Executor<'a, T: Execution> {
 impl<'a, T: Execution> Executor<'a, T> {
     /// Execute the msgs on the Account.
     /// These messages will be executed on the proxy contract and the sending module must be whitelisted.
-    pub fn execute(&self, msgs: Vec<CosmosMsg>) -> AbstractSdkResult<CosmosMsg> {
-        Ok(wasm_execute(
-            self.base.proxy_address(self.deps)?.to_string(),
-            &ExecuteMsg::ModuleAction { msgs },
-            vec![],
-        )?
-        .into())
+    pub fn execute(&self, msgs: Vec<CosmosMsg>) -> AbstractSdkResult<AbstractMessage> {
+        Ok(AbstractMessage::from_proxy_msgs(msgs, self.base.proxy_address(self.deps)?.to_string()))
     }
 
     /// Execute the msgs on the Account.
@@ -49,7 +43,7 @@ impl<'a, T: Execution> Executor<'a, T> {
         let msg = self.execute(msgs)?;
         let sub_msg = SubMsg {
             id,
-            msg,
+            msg: msg.into(),
             gas_limit: None,
             reply_on,
         };
@@ -78,6 +72,7 @@ mod test {
     use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::*, *};
     use speculoos::prelude::*;
+    use abstract_core::proxy::ExecuteMsg;
 
     fn mock_bank_send(amount: Vec<Coin>) -> CosmosMsg {
         CosmosMsg::Bank(BankMsg::Send {
@@ -107,7 +102,7 @@ mod test {
                 msg: to_binary(&ExecuteMsg::ModuleAction { msgs: messages }).unwrap(),
                 funds: vec![],
             });
-            assert_that!(actual_res.unwrap()).is_equal_to(expected);
+            assert_that!(actual_res.unwrap().into()).is_equal_to(expected);
         }
 
         #[test]
@@ -128,7 +123,7 @@ mod test {
                 // funds should be empty
                 funds: vec![],
             });
-            assert_that!(actual_res.unwrap()).is_equal_to(expected);
+            assert_that!(actual_res.unwrap().into()).is_equal_to(expected);
         }
     }
 

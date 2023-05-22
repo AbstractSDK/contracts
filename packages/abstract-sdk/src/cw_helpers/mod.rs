@@ -4,3 +4,4 @@ pub mod cosmwasm_std;
 pub mod cw_ownable;
 pub mod cw_storage_plus;
 pub mod fees;
+pub mod cw_messages;

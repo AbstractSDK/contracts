@@ -34,6 +34,7 @@ The [`Bank`](https://docs.rs/abstract-sdk/latest/abstract_sdk/apis/bank) Adapter
 use abstract_sdk::{TransferInterface,AbstractSdkResult};
 use abstract_core::objects::AnsAsset;
 use cosmwasm_std::{Addr, CosmosMsg, Deps, StdResult, Uint128};
+use abstract_sdk::cw_helpers::cw_messages::{AbstractMessage, AbstractMessageMerge};
 
 // Trait to retrieve the Splitter object
 // Depends on the ability to transfer funds
@@ -71,7 +72,8 @@ impl<'a, T: SplitterInterface> Splitter<'a, T> {
                 // Construct the transfer message
                 bank.transfer(vec![&receives_each], receiver)
             })
-            .collect();
+            .collect::<AbstractSdkResult<Vec<_>>>()?
+            .merge();
 
         transfer_msgs
     }
@@ -105,7 +107,7 @@ The API can then be used by any contract that implements its required traits, in
 
   fn forward_deposit(deps: Deps, my_contract: MyContract, message_info: MessageInfo) -> AbstractSdkResult<CosmosMsg> {
       let send_deposit_to_vault_msg = my_contract.bank(deps).deposit_coins(message_info.funds)?;
-      Ok(send_deposit_to_vault_msg)
+      Ok(send_deposit_to_vault_msg.into())
   }
 ```
 

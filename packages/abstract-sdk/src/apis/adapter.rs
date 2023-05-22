@@ -1,8 +1,8 @@
 #![allow(dead_code)]
 
-use crate::{AbstractSdkResult, ModuleInterface};
+use crate::{AbstractSdkResult, ModuleInterface, cw_helpers::cw_messages::AbstractMessage};
 use abstract_core::{adapter::AdapterRequestMsg, objects::module::ModuleId};
-use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, Empty};
+use cosmwasm_std::{wasm_execute, Deps, Empty};
 use serde::{de::DeserializeOwned, Serialize};
 
 /// Interact with other modules on the Account.
@@ -27,7 +27,7 @@ impl<'a, T: AdapterInterface> Adapter<'a, T> {
         &self,
         adapter_id: ModuleId,
         message: M,
-    ) -> AbstractSdkResult<CosmosMsg> {
+    ) -> AbstractSdkResult<AbstractMessage> {
         let modules = self.base.modules(self.deps);
         modules.assert_module_dependency(adapter_id)?;
         let adapter_msg = abstract_core::adapter::ExecuteMsg::<_>::Module(AdapterRequestMsg::new(
@@ -113,11 +113,11 @@ mod tests {
 
             assert_that!(res)
                 .is_ok()
-                .is_equal_to(CosmosMsg::Wasm(WasmMsg::Execute {
+                .is_equal_to::<AbstractMessage>(CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: TEST_MODULE_ADDRESS.into(),
                     msg: to_binary(&expected_msg).unwrap(),
                     funds: vec![],
-                }));
+                }).into());
         }
     }
 

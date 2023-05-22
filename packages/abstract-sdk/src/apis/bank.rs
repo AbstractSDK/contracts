@@ -2,6 +2,7 @@
 //! The Bank object handles asset transfers to and from the Account.
 
 use crate::{ans_resolve::Resolve, features::AbstractNameService, AbstractSdkResult, Execution};
+use crate::cw_helpers::cw_messages::{AbstractMessage, ConvertToAbstractMessage};
 use core::objects::{AnsAsset, AssetEntry};
 use cosmwasm_std::{Addr, BankMsg, Coin, CosmosMsg, Deps};
 use cw_asset::Asset;
@@ -80,7 +81,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
         &self,
         funds: Vec<R>,
         recipient: &Addr,
-    ) -> AbstractSdkResult<CosmosMsg> {
+    ) -> AbstractSdkResult<AbstractMessage> {
         let transferable_funds = funds
             .into_iter()
             .map(|asset| asset.transferable_asset(self.base, self.deps))
@@ -93,7 +94,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     }
 
     /// Transfer the **funds** (deposit) into the Account from the current contract.
-    pub fn deposit<R: Transferable>(&self, funds: Vec<R>) -> AbstractSdkResult<Vec<CosmosMsg>> {
+    pub fn deposit<R: Transferable>(&self, funds: Vec<R>) -> AbstractSdkResult<Vec<AbstractMessage>> {
         let recipient = self.base.proxy_address(self.deps)?;
         let transferable_funds = funds
             .into_iter()
@@ -103,16 +104,18 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
             .iter()
             .map(|asset| asset.transfer_msg(recipient.clone()))
             .collect::<Result<Vec<CosmosMsg>, _>>()
+            .into_abstract_messages()
+
             .map_err(Into::into)
     }
 
     /// Deposit coins into the Account
-    pub fn deposit_coins(&self, coins: Vec<Coin>) -> AbstractSdkResult<CosmosMsg> {
+    pub fn deposit_coins(&self, coins: Vec<Coin>) -> AbstractSdkResult<AbstractMessage> {
         let recipient = self.base.proxy_address(self.deps)?.into_string();
         Ok(CosmosMsg::Bank(BankMsg::Send {
             to_address: recipient,
             amount: coins,
-        }))
+        }).into())
     }
 }
 
@@ -204,7 +207,7 @@ mod test {
             .unwrap()
             .into();
 
-            assert_that!(actual_res.unwrap()).is_equal_to(expected_msg);
+            assert_that!(actual_res.unwrap().into()).is_equal_to(expected_msg);
         }
     }
 
@@ -228,7 +231,7 @@ mod test {
                 amount: coins,
             });
 
-            assert_that!(actual_res).is_ok().is_equal_to(expected_msg);
+            assert_that!(actual_res).is_ok().is_equal_to::<AbstractMessage>(expected_msg.into());
         }
     }
 

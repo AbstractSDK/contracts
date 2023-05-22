@@ -1,7 +1,7 @@
 #![allow(unused)]
-use crate::{AbstractSdkResult, ModuleInterface};
+use crate::{AbstractSdkResult, ModuleInterface, cw_helpers::cw_messages::AbstractMessage};
 use abstract_core::objects::module::ModuleId;
-use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, Empty};
+use cosmwasm_std::{wasm_execute, Deps, Empty};
 use serde::{de::DeserializeOwned, Serialize};
 
 use abstract_core::app as msg;
@@ -27,7 +27,7 @@ impl<'a, T: AppInterface> App<'a, T> {
         &self,
         app_id: ModuleId,
         message: impl Into<msg::ExecuteMsg<M, Empty>>,
-    ) -> AbstractSdkResult<CosmosMsg> {
+    ) -> AbstractSdkResult<AbstractMessage> {
         let modules = self.base.modules(self.deps);
         modules.assert_module_dependency(app_id)?;
         let app_msg: msg::ExecuteMsg<M, Empty> = message.into();
@@ -40,7 +40,7 @@ impl<'a, T: AppInterface> App<'a, T> {
         &self,
         app_id: ModuleId,
         message: msg::BaseExecuteMsg,
-    ) -> AbstractSdkResult<CosmosMsg> {
+    ) -> AbstractSdkResult<AbstractMessage> {
         let app_msg: msg::ExecuteMsg<Empty, Empty> = message.into();
         let modules = self.base.modules(self.deps);
         let app_address = modules.module_address(app_id)?;
@@ -121,11 +121,11 @@ mod tests {
 
             assert_that!(res)
                 .is_ok()
-                .is_equal_to(CosmosMsg::Wasm(WasmMsg::Execute {
+                .is_equal_to::<AbstractMessage>(CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: TEST_MODULE_ADDRESS.into(),
                     msg: to_binary(&expected_msg).unwrap(),
                     funds: vec![],
-                }));
+                }).into());
         }
     }
 
@@ -172,11 +172,11 @@ mod tests {
 
             assert_that!(res)
                 .is_ok()
-                .is_equal_to(CosmosMsg::Wasm(WasmMsg::Execute {
+                .is_equal_to::<AbstractMessage>(CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: TEST_MODULE_ADDRESS.into(),
                     msg: to_binary(&expected_msg).unwrap(),
                     funds: vec![],
-                }));
+                }).into());
         }
     }
 
