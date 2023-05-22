@@ -68,7 +68,7 @@ use crate::contracts::Cw20Base;
             link: link.clone()
         }, abstract_core::objects::gov_type::GovernanceDetails::Monarchy { monarch: osmosis.sender().to_string() }).unwrap();
     
-        // We need to register the ibc client as a module of the manager
+        // We need to register the ibc client as a module of the manager (account specific)
         let osmo_client = IbcClient::new(IBC_CLIENT, osmosis.clone());
         osmo_abstr.account.manager.update_module_addresses(Some(vec![(IBC_CLIENT.to_string(), osmo_client.address().unwrap().to_string())]), None).unwrap();
 

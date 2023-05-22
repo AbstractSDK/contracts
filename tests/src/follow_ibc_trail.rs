@@ -1,3 +1,4 @@
+use futures::future::try_join_all;
 use cw_orch::daemon::DaemonAsync;
 use cw_orch::CosmTxResponse;
 
@@ -30,8 +31,6 @@ pub async fn get_channel(chain_id: String) -> Result<Channel>{
 
 
 // This was coded thanks to this wonderful guide : https://github.com/CosmWasm/cosmwasm/blob/main/IBC.md
-
-
 
 // type is from cosmos_sdk_proto::ibc::core::channel::v1::acknowledgement::Response
 #[cosmwasm_schema::cw_serde]
@@ -107,12 +106,12 @@ pub async fn follow_trail(channel1: Channel, chain1: String, tx_hash: String) ->
 
 
 
-    let chain_ids: Vec<String> = join_all(
+    let chain_ids: Vec<String> = try_join_all(
         connections.iter().map(|c| async{
             Ok::<_, anyhow::Error>(Ibc::new(channel1.clone()).connection_client(c.clone()).await?.chain_id)
         })
         .collect::<Vec<_>>()
-    ).await.into_iter().collect::<Result<Vec<_>>>()?;
+    ).await?;
 
     // here we don't really need the interchain infrastructure per se, but only the daemons associated for the chains corresponding to chain_id (TODO)
     let counter_party_grpc_channels: Vec<Channel> = 
@@ -121,7 +120,7 @@ pub async fn follow_trail(channel1: Channel, chain1: String, tx_hash: String) ->
         })
     ).await;
 
-    let received_txs: Vec<CosmTxResponse> = join_all(
+    let received_txs: Vec<CosmTxResponse> = try_join_all(
             events_strings.enumerate().map(|(i,event_query)| {
             let this_counter_part_channel = counter_party_grpc_channels[i].clone();
             let this_chain_id = chain_ids[i].clone();
@@ -153,10 +152,10 @@ pub async fn follow_trail(channel1: Channel, chain1: String, tx_hash: String) ->
             }
             Ok(received_tx.clone())
         }}).collect::<Vec<_>>()
-    ).await.into_iter().collect::<Result<Vec<_>>>()?;
+    ).await?;
 
 
-    let ack_txs: Vec<CosmTxResponse> = join_all(
+    let ack_txs: Vec<CosmTxResponse> = try_join_all(
         received_txs.iter().enumerate().map(|(i, received_tx)|{
             let this_connection = connections[i].clone();
             let this_dest_channel = dest_channels[i].clone();
@@ -245,28 +244,28 @@ pub async fn follow_trail(channel1: Channel, chain1: String, tx_hash: String) ->
             Ok(ack_tx.clone())
         }})
         .collect::<Vec<_>>()
-    ).await.into_iter().collect::<Result<Vec<_>>>()?;
+    ).await?;
     
     // All the tx hashes should now should also be analyzed for outgoing IBC transactions
-    join_all(
+    try_join_all(
         received_txs.iter().enumerate().map(|(i,tx)| {
             let counter_party_grpc = counter_party_grpc_channels[i].clone();
             let chain_id = chain_ids[i].clone();
             let hash = tx.txhash.clone();
-            follow_trail(counter_party_grpc, chain_id, hash)
+            tokio::spawn(follow_trail(counter_party_grpc, chain_id, hash))
         })
         .collect::<Vec<_>>()
-    ).await.into_iter().collect::<Result<Vec<_>>>()?;
+    ).await?.into_iter().collect::<Result<Vec<_>>>()?;
     
     
-    join_all(ack_txs.iter().map(|tx| {
+    try_join_all(ack_txs.iter().map(|tx| {
         let channel1 = channel1.clone();
         let chain1 = chain1.clone();
         let hash = tx.txhash.clone();
-        follow_trail(channel1, chain1, hash)
+        tokio::spawn(follow_trail(channel1, chain1, hash))
     
     }).collect::<Vec<_>>()
-    ).await.into_iter().collect::<Result<Vec<_>>>()?;
+    ).await?.into_iter().collect::<Result<Vec<_>>>()?;
 
     Ok(())
 }
