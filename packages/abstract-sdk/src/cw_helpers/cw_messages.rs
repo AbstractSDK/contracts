@@ -55,7 +55,6 @@ pub trait AbstractMessageMerge{
 }
 
 impl AbstractMessageMerge for Vec<AbstractMessage>{
-
 	fn merge(&self) -> AbstractSdkResult<Vec<CosmosMsg>> {
 		
 		let mut merged_proxy_messages = Vec::new();
@@ -78,22 +77,3 @@ impl AbstractMessageMerge for Vec<AbstractMessage>{
 	    Ok(merged_proxy_messages)
 	}
 }
-
-pub trait ConvertToAbstractMessage{
-	fn into_abstract_messages(self) -> AbstractSdkResult<Vec<AbstractMessage>>;
-}
-
-impl<T: Error> ConvertToAbstractMessage for Result<Vec<CosmosMsg>, T>{
-
-	fn into_abstract_messages(self) -> AbstractSdkResult<Vec<AbstractMessage>> {
-		
-		match self{
-			Ok(messages) => {
-				Ok(messages.iter().map(|msg| msg.clone().into()).collect())
-			},
-			Err(e) => Err(AbstractSdkError::generic_err(e.to_string()))
-		}
-	}
-}
-
-

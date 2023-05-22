@@ -2,7 +2,7 @@
 //! The Bank object handles asset transfers to and from the Account.
 
 use crate::{ans_resolve::Resolve, features::AbstractNameService, AbstractSdkResult, Execution};
-use crate::cw_helpers::cw_messages::{AbstractMessage, ConvertToAbstractMessage};
+use crate::cw_helpers::cw_messages::{AbstractMessage};
 use core::objects::{AnsAsset, AssetEntry};
 use cosmwasm_std::{Addr, BankMsg, Coin, CosmosMsg, Deps};
 use cw_asset::Asset;
@@ -102,9 +102,8 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
             .collect::<AbstractSdkResult<Vec<Asset>>>()?;
         transferable_funds
             .iter()
-            .map(|asset| asset.transfer_msg(recipient.clone()))
-            .collect::<Result<Vec<CosmosMsg>, _>>()
-            .into_abstract_messages()
+            .map(|asset| asset.transfer_msg(recipient.clone()).map(Into::into))
+            .collect::<Result<Vec<AbstractMessage>, _>>()
 
             .map_err(Into::into)
     }
