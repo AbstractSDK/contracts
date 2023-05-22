@@ -1,7 +1,7 @@
 #![allow(unused)]
 use crate::{cw_helpers::cw_messages::AbstractMessage, AbstractSdkResult, ModuleInterface};
 use abstract_core::objects::module::ModuleId;
-use cosmwasm_std::{wasm_execute, Deps, Empty};
+use cosmwasm_std::{wasm_execute, Deps, Empty, CosmosMsg};
 use serde::{de::DeserializeOwned, Serialize};
 
 use abstract_core::app as msg;
@@ -27,7 +27,7 @@ impl<'a, T: AppInterface> App<'a, T> {
         &self,
         app_id: ModuleId,
         message: impl Into<msg::ExecuteMsg<M, Empty>>,
-    ) -> AbstractSdkResult<AbstractMessage> {
+    ) -> AbstractSdkResult<CosmosMsg> {
         let modules = self.base.modules(self.deps);
         modules.assert_module_dependency(app_id)?;
         let app_msg: msg::ExecuteMsg<M, Empty> = message.into();
@@ -40,7 +40,7 @@ impl<'a, T: AppInterface> App<'a, T> {
         &self,
         app_id: ModuleId,
         query: msg::BaseExecuteMsg,
-    ) -> AbstractSdkResult<AbstractMessage> {
+    ) -> AbstractSdkResult<CosmosMsg> {
         let app_query: msg::ExecuteMsg<Empty, Empty> = query.into();
         let modules = self.base.modules(self.deps);
         let app_address = modules.module_address(app_id)?;
@@ -119,13 +119,12 @@ mod tests {
             let expected_msg: app::ExecuteMsg<_, Empty> =
                 app::ExecuteMsg::Module(MockModuleExecuteMsg {});
 
-            assert_that!(res).is_ok().is_equal_to::<AbstractMessage>(
+            assert_that!(res).is_ok().is_equal_to::<CosmosMsg>(
                 CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: TEST_MODULE_ADDRESS.into(),
                     msg: to_binary(&expected_msg).unwrap(),
                     funds: vec![],
-                })
-                .into(),
+                }),
             );
         }
     }
@@ -171,13 +170,12 @@ mod tests {
                     ans_host_address: Some("new_ans_addr".to_string()),
                 });
 
-            assert_that!(res).is_ok().is_equal_to::<AbstractMessage>(
+            assert_that!(res).is_ok().is_equal_to::<CosmosMsg>(
                 CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: TEST_MODULE_ADDRESS.into(),
                     msg: to_binary(&expected_msg).unwrap(),
                     funds: vec![],
-                })
-                .into(),
+                }),
             );
         }
     }

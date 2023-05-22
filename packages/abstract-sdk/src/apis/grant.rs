@@ -4,29 +4,27 @@
 
 use std::time::Duration;
 
-use crate::Execution;
+
+use crate::features::AccountIdentification;
 
 use cosmos_sdk_proto::{cosmos::base, cosmos::feegrant, traits::Message, Any};
-use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Deps, Timestamp};
+use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Timestamp, Deps};
 
 use crate::cw_helpers::cw_messages::AbstractMessage;
 use crate::AbstractSdkResult;
 
-pub trait GrantInterface: Execution {
-    fn grant<'a>(&'a self, deps: Deps<'a>) -> Grant<Self> {
-        Grant { base: self, deps }
+pub trait GrantInterface: AccountIdentification {
+    fn grant<'a>(&'a self, _deps: Deps<'a>) -> Grant {
+        Grant{}
     }
 }
 
-impl<T> GrantInterface for T where T: Execution {}
+impl<T> GrantInterface for T where T: AccountIdentification {}
 
 #[derive(Clone)]
-pub struct Grant<'a, T: GrantInterface> {
-    base: &'a T,
-    deps: Deps<'a>,
-}
+pub struct Grant {}
 
-impl<'a, T: GrantInterface> Grant<'a, T> {
+impl Grant {
     /// Implements Allowance with a one-time grant of coins
     /// that optionally expires. The grantee can use up to SpendLimit to cover fees.
     pub fn basic(
@@ -47,7 +45,7 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
             value: to_binary(&msg)?,
         };
 
-        self.base.executor(self.deps).execute(vec![msg])
+        Ok(msg.into())
     }
 
     /// Extends Allowance to allow for both a maximum cap,
@@ -71,7 +69,7 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
             value: to_binary(&msg)?,
         };
 
-        self.base.executor(self.deps).execute(vec![msg])
+        Ok(msg.into())
     }
 
     /// creates allowance only for BasicAllowance.
@@ -87,7 +85,7 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
             value: to_binary(&msg)?,
         };
 
-        self.base.executor(self.deps).execute(vec![msg])
+        Ok(msg.into())
     }
 
     /// Creates allowance only for PeriodicAllowance.
@@ -106,7 +104,7 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
             value: to_binary(&msg)?,
         };
 
-        self.base.executor(self.deps).execute(vec![msg])
+        Ok(msg.into())
     }
 
     /// Creates allowance only for BasicAllowance and PeriodicAllowance.
@@ -126,7 +124,7 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
             value: to_binary(&msg)?,
         };
 
-        self.base.executor(self.deps).execute(vec![msg])
+        Ok(msg.into())
     }
 
     /// Removes any existing Allowance from Granter to Grantee.
@@ -142,7 +140,7 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
             value: to_binary(&msg)?,
         };
 
-        self.base.executor(self.deps).execute(vec![msg])
+        Ok(msg.into())
     }
 }
 pub struct BasicAllowance {

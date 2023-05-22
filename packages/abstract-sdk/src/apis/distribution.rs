@@ -2,6 +2,7 @@
 //! Interacts with the distribution module of cosmos
 //!
 
+use crate::features::AccountIdentification;
 use cosmos_sdk_proto::{
     cosmos::{base, distribution},
     traits::Message,
@@ -9,22 +10,19 @@ use cosmos_sdk_proto::{
 use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Deps};
 
 use crate::cw_helpers::cw_messages::AbstractMessage;
-use crate::{AbstractSdkResult, Execution};
-pub trait DistributionInterface: Execution {
-    fn distribution<'a>(&'a self, deps: Deps<'a>) -> Distribution<Self> {
-        Distribution { base: self, deps }
+use crate::{AbstractSdkResult};
+pub trait DistributionInterface: AccountIdentification {
+    fn distribution<'a>(&'a self, _deps: Deps<'a>) -> Distribution {
+        Distribution { }
     }
 }
 
-impl<T> DistributionInterface for T where T: Execution {}
+impl<T> DistributionInterface for T where T: AccountIdentification {}
 
 #[derive(Clone)]
-pub struct Distribution<'a, T: DistributionInterface> {
-    base: &'a T,
-    deps: Deps<'a>,
-}
+pub struct Distribution {}
 
-impl<'a, T: DistributionInterface> Distribution<'a, T> {
+impl Distribution {
     /// sets the withdraw address for a delegator (or validator self-delegation).
     pub fn set_withdraw_address(
         &self,
@@ -42,7 +40,7 @@ impl<'a, T: DistributionInterface> Distribution<'a, T> {
             value: to_binary(&msg)?,
         };
 
-        self.base.executor(self.deps).execute(vec![msg])
+        Ok(msg.into())
     }
 
     /// represents delegation withdrawal to a delegator from a single validator.
@@ -62,7 +60,7 @@ impl<'a, T: DistributionInterface> Distribution<'a, T> {
             value: to_binary(&msg)?,
         };
 
-        self.base.executor(self.deps).execute(vec![msg])
+        Ok(msg.into())
     }
 
     /// withdraws the full commission to the validator address.
@@ -80,7 +78,7 @@ impl<'a, T: DistributionInterface> Distribution<'a, T> {
             value: to_binary(&msg)?,
         };
 
-        self.base.executor(self.deps).execute(vec![msg])
+        Ok(msg.into())
     }
 
     /// allows an account to directly fund the community pool.
@@ -106,7 +104,7 @@ impl<'a, T: DistributionInterface> Distribution<'a, T> {
             value: to_binary(&msg)?,
         };
 
-        self.base.executor(self.deps).execute(vec![msg])
+        Ok(msg.into())
     }
 }
 

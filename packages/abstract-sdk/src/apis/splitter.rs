@@ -1,5 +1,5 @@
 #![allow(unused)]
-use crate::cw_helpers::cw_messages::{AbstractMessage, AbstractMessageMerge};
+use crate::cw_helpers::cw_messages::{AbstractMessage};
 use crate::{AbstractSdkResult, TransferInterface};
 use abstract_core::objects::AnsAsset;
 use cosmwasm_std::{Addr, CosmosMsg, Deps, StdResult, Uint128};
@@ -38,14 +38,20 @@ impl<'a, T: SplitterInterface> Splitter<'a, T> {
 
         // Retrieve the bank API
         let bank = self.base.bank(self.deps);
-        let transfer_msgs: AbstractSdkResult<_> = receivers
+        receivers
             .iter()
             .map(|receiver| {
                 // Construct the transfer message
                 bank.transfer(vec![&receives_each], receiver)
             })
-            .collect();
-
-        transfer_msgs
+            .try_fold(Vec::new(), |mut acc, v| {
+                match v{
+                    Ok(vec)=>{
+                        acc.extend(vec);
+                        Ok(acc)
+                    },
+                    Err(e)=> Err(e)
+                }
+            })
     }
 }

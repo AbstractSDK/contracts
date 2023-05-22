@@ -2,14 +2,14 @@
 //! The IbcClient object provides helper function for ibc-related queries or actions.
 //!
 
-use crate::cw_helpers::cw_messages::AbstractMessage;
+
 use crate::{features::AccountIdentification, AbstractSdkResult};
 use abstract_core::{
     ibc_client::{CallbackInfo, ExecuteMsg as IbcClientMsg},
     ibc_host::HostAction,
     proxy::ExecuteMsg,
 };
-use cosmwasm_std::{wasm_execute, Coin, Deps};
+use cosmwasm_std::{wasm_execute, Coin, Deps, CosmosMsg};
 
 /// Interact with other chains over IBC.
 pub trait IbcInterface: AccountIdentification {
@@ -34,7 +34,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         action: HostAction,
         callback: Option<CallbackInfo>,
         retries: u8,
-    ) -> AbstractSdkResult<AbstractMessage> {
+    ) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
             self.base.proxy_address(self.deps)?.to_string(),
             &ExecuteMsg::IbcAction {
@@ -54,7 +54,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         &self,
         receiving_chain: String,
         funds: Vec<Coin>,
-    ) -> AbstractSdkResult<AbstractMessage> {
+    ) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
             self.base.proxy_address(self.deps)?.to_string(),
             &ExecuteMsg::IbcAction {
@@ -106,7 +106,7 @@ mod test {
             .unwrap(),
             funds: vec![],
         });
-        assert_that!(msg.unwrap()).is_equal_to::<AbstractMessage>(expected.into());
+        assert_that!(msg.unwrap()).is_equal_to::<CosmosMsg>(expected);
     }
 
     /// Tests that a host_action can be built with a callback with more retries
@@ -145,7 +145,7 @@ mod test {
             funds: vec![],
         });
 
-        assert_that!(actual.unwrap()).is_equal_to::<AbstractMessage>(expected.into());
+        assert_that!(actual.unwrap()).is_equal_to::<CosmosMsg>(expected);
     }
 
     /// Tests that the ics_20 transfer can be built and that the funds are passed into the sendFunds message not the execute message
@@ -172,6 +172,6 @@ mod test {
             // ensure empty
             funds: vec![],
         });
-        assert_that!(msg.unwrap()).is_equal_to::<AbstractMessage>(expected.into());
+        assert_that!(msg.unwrap()).is_equal_to::<CosmosMsg>(expected);
     }
 }

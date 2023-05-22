@@ -2,19 +2,20 @@
 //! The Bank object handles asset transfers to and from the Account.
 
 use crate::cw_helpers::cw_messages::AbstractMessage;
-use crate::{ans_resolve::Resolve, features::AbstractNameService, AbstractSdkResult, Execution};
+use crate::features::AccountIdentification;
+use crate::{ans_resolve::Resolve, features::AbstractNameService, AbstractSdkResult};
 use core::objects::{AnsAsset, AssetEntry};
 use cosmwasm_std::{Addr, BankMsg, Coin, CosmosMsg, Deps};
 use cw_asset::Asset;
 
 /// Query and Transfer assets from and to the Abstract Account.
-pub trait TransferInterface: AbstractNameService + Execution {
+pub trait TransferInterface: AbstractNameService + AccountIdentification {
     fn bank<'a>(&'a self, deps: Deps<'a>) -> Bank<Self> {
         Bank { base: self, deps }
     }
 }
 
-impl<T> TransferInterface for T where T: AbstractNameService + Execution {}
+impl<T> TransferInterface for T where T: AbstractNameService + AccountIdentification {}
 
 #[derive(Clone)]
 pub struct Bank<'a, T: TransferInterface> {
@@ -79,16 +80,17 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
         &self,
         funds: Vec<R>,
         recipient: &Addr,
-    ) -> AbstractSdkResult<AbstractMessage> {
+    ) -> AbstractSdkResult<Vec<AbstractMessage>> {
         let transferable_funds = funds
             .into_iter()
             .map(|asset| asset.transferable_asset(self.base, self.deps))
             .collect::<AbstractSdkResult<Vec<Asset>>>()?;
-        let transfer_msgs = transferable_funds
+        transferable_funds
             .iter()
-            .map(|asset| asset.transfer_msg(recipient.clone()))
-            .collect::<Result<Vec<CosmosMsg>, _>>();
-        self.base.executor(self.deps).execute(transfer_msgs?)
+            .map(|asset| asset.transfer_msg(recipient.clone()).map(Into::into))
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(Into::into)
+
     }
 
     /// Move funds from the contract into the Account.
@@ -104,18 +106,17 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
         transferable_funds
             .iter()
             .map(|asset| asset.transfer_msg(recipient.clone()).map(Into::into))
-            .collect::<Result<Vec<AbstractMessage>, _>>()
+            .collect::<Result<Vec<_>, _>>()
             .map_err(Into::into)
     }
 
     /// Deposit coins into the Account
-    pub fn deposit_coins(&self, coins: Vec<Coin>) -> AbstractSdkResult<AbstractMessage> {
+    pub fn deposit_coins(&self, coins: Vec<Coin>) -> AbstractSdkResult<CosmosMsg> {
         let recipient = self.base.proxy_address(self.deps)?.into_string();
         Ok(CosmosMsg::Bank(BankMsg::Send {
             to_address: recipient,
             amount: coins,
-        })
-        .into())
+        }))
     }
 }
 
@@ -178,7 +179,7 @@ mod test {
 
     mod transfer_coins {
         use super::*;
-        use core::proxy::ExecuteMsg::ModuleAction;
+        
 
         #[test]
         fn transfer_asset_to_sender() {
@@ -193,21 +194,12 @@ mod test {
 
             assert_that!(actual_res).is_ok();
 
-            let expected_msg: CosmosMsg = wasm_execute(
-                TEST_PROXY,
-                &ModuleAction {
-                    // actual assertion
-                    msgs: vec![CosmosMsg::Bank(BankMsg::Send {
-                        to_address: expected_recipient.to_string(),
-                        amount: coins,
-                    })],
-                },
-                vec![],
-            )
-            .unwrap()
-            .into();
+            let expected_msg = CosmosMsg::Bank(BankMsg::Send {
+                to_address: expected_recipient.to_string(),
+                amount: coins,
+            });
 
-            assert_that!(actual_res.unwrap().into()).is_equal_to(expected_msg);
+            assert_that!(actual_res.unwrap()[0].message()).is_equal_to::<CosmosMsg>(expected_msg);
         }
     }
 
@@ -233,7 +225,7 @@ mod test {
 
             assert_that!(actual_res)
                 .is_ok()
-                .is_equal_to::<AbstractMessage>(expected_msg.into());
+                .is_equal_to::<CosmosMsg>(expected_msg);
         }
     }
 
