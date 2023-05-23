@@ -27,6 +27,7 @@ pub struct ModuleRegistry<'a, T: ModuleRegistryInterface> {
 }
 
 impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
+    /// Raw query for a module reference
     pub fn query_module_reference_raw(
         &self,
         module_info: &ModuleInfo,

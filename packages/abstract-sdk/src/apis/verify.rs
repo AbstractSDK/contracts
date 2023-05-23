@@ -49,16 +49,19 @@ impl<'a, T: OsVerification> OsRegistry<'a, T> {
         }
     }
 
+    /// Get the proxy address for a given account id.
     pub fn proxy_address(&self, account_id: u32) -> AbstractSdkResult<Addr> {
         self.account_base(account_id)
             .map(|account_base| account_base.proxy)
     }
 
+    /// Get the manager address for a given account id.
     pub fn manager_address(&self, account_id: u32) -> AbstractSdkResult<Addr> {
         self.account_base(account_id)
             .map(|account_base| account_base.manager)
     }
 
+    /// Get the account base for a given account id.
     pub fn account_base(&self, account_id: u32) -> AbstractSdkResult<AccountBase> {
         let maybe_account = ACCOUNT_ADDRESSES.query(
             &self.deps.querier,

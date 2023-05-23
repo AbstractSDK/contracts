@@ -8,6 +8,20 @@ use cw_asset::Asset;
 
 /// Query and Transfer assets from and to the Abstract Account.
 pub trait TransferInterface: AbstractNameService + Execution {
+    /**
+    API for transferring funds to and from the account.
+
+    # Example
+    ```
+    use abstract_sdk::prelude::*;
+    # use cosmwasm_std::testing::mock_dependencies;
+    # use abstract_sdk::mock_module::MockModule;
+    # let module = MockModule::new();
+    # let deps = mock_dependencies();
+
+    let bank: Bank = module.bank(deps.as_ref());
+    ```
+*/
     fn bank<'a>(&'a self, deps: Deps<'a>) -> Bank<Self> {
         Bank { base: self, deps }
     }
@@ -15,6 +29,20 @@ pub trait TransferInterface: AbstractNameService + Execution {
 
 impl<T> TransferInterface for T where T: AbstractNameService + Execution {}
 
+/**
+    API for transferring funds to and from the account.
+
+    # Example
+    ```
+    use abstract_sdk::prelude::*;
+    # use cosmwasm_std::testing::mock_dependencies;
+    # use abstract_sdk::mock_module::MockModule;
+    # let module = MockModule::new();
+    # let deps = mock_dependencies();
+
+    let bank: Bank = module.bank(deps.as_ref());
+    ```
+*/
 #[derive(Clone)]
 pub struct Bank<'a, T: TransferInterface> {
     base: &'a T,

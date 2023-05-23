@@ -13,10 +13,12 @@ use abstract_core::objects::dependency::StaticDependency;
 use cosmwasm_std::Storage;
 use cw2::ContractVersion;
 
+/// Accessor trait for an object that wraps an [`AbstractContract`].
 pub trait Handler
 where
     Self: Sized + 'static,
 {
+    /// Error type for the contract
     type Error: From<AbstractSdkError>;
     /// Custom init message for the contract
     type CustomInitMsg;
