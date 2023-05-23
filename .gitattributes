@@ -1,2 +1,2 @@
-schema/*.json linguist-generated
-docs/book linguist-generated
+schema/*.json linguist-generated=true
+docs/book linguist-generated=true
