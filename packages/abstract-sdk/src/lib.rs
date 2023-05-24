@@ -20,8 +20,8 @@ pub mod prelude;
 pub use error::{AbstractSdkError, EndpointError};
 
 pub use crate::apis::{
-    adapter::*, app::*, bank::*, execution::*, ibc::*, modules::*, respond::*, accounting::*, verify::*,
-    version_registry::*,
+    accounting::*, adapter::*, app::*, bank::*, execution::*, ibc::*, modules::*, respond::*,
+    verify::*, version_registry::*,
 };
 
 #[cfg(feature = "stargate")]

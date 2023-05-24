@@ -133,7 +133,11 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     }
 
     /// Withdraw funds from the Account to this contract.
-    pub fn withdraw<R: Transferable>(&self,env: &Env ,funds: Vec<R>) -> AbstractSdkResult<Vec<CosmosMsg>> {
+    pub fn withdraw<R: Transferable>(
+        &self,
+        env: &Env,
+        funds: Vec<R>,
+    ) -> AbstractSdkResult<Vec<CosmosMsg>> {
         let recipient = &env.contract.address;
         let transferable_funds = funds
             .into_iter()

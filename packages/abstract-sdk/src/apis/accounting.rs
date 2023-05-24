@@ -40,19 +40,19 @@ impl<T> AccountingInterface for T where T: AbstractNameService + AccountIdentifi
 
 #[derive(Clone)]
 /**
-        API for querying the Account's asset values and accounting configuration.
+    API for querying the Account's asset values and accounting configuration.
 
-        # Example
-        ```
-        use abstract_sdk::prelude::*;
-        # use cosmwasm_std::testing::mock_dependencies;
-        # use abstract_sdk::mock_module::MockModule;
-        # let module = MockModule::new();
-        # let deps = mock_dependencies();
+    # Example
+    ```
+    use abstract_sdk::prelude::*;
+    # use cosmwasm_std::testing::mock_dependencies;
+    # use abstract_sdk::mock_module::MockModule;
+    # let module = MockModule::new();
+    # let deps = mock_dependencies();
 
-        let accountant: Accountant = module.accountant(deps.as_ref());
-        ```
-    */
+    let accountant: Accountant = module.accountant(deps.as_ref());
+    ```
+*/
 pub struct Accountant<'a, T: AccountingInterface> {
     base: &'a T,
     deps: Deps<'a>,
