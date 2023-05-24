@@ -8,9 +8,16 @@ description = "Abstract deployment helpers with cw-orchestrator"
 [features]
 default = ["integration"]
 daemon = ["cw-orch/daemon"]
-integration = ["dep:ans-host", "dep:module-factory", "dep:account-factory", "dep:version-control", "dep:proxy", "dep:manager"]
-build-script=[]
-node-tests=[]
+integration = [
+  "dep:ans-host",
+  "dep:module-factory",
+  "dep:account-factory",
+  "dep:version-control",
+  "dep:proxy",
+  "dep:manager",
+]
+build-script = []
+node-tests = []
 
 [dependencies]
 cosmwasm-std = { workspace = true }
