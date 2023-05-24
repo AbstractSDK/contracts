@@ -12,6 +12,20 @@ use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Deps, Timestamp};
 use crate::AbstractSdkResult;
 
 pub trait GrantInterface: Execution {
+    /**
+        API for accessing the Cosmos SDK FeeGrant module.
+
+        # Example
+        ```
+        use abstract_sdk::prelude::*;
+        # use cosmwasm_std::testing::mock_dependencies;
+        # use abstract_sdk::mock_module::MockModule;
+        # let module = MockModule::new();
+        # let deps = mock_dependencies();
+
+        let grant: Grant = module.grant(deps.as_ref());
+        ```
+    */
     fn grant<'a>(&'a self, deps: Deps<'a>) -> Grant<Self> {
         Grant { base: self, deps }
     }
@@ -19,6 +33,20 @@ pub trait GrantInterface: Execution {
 
 impl<T> GrantInterface for T where T: Execution {}
 
+/**
+    API for accessing the Cosmos SDK FeeGrant module.
+
+    # Example
+    ```
+    use abstract_sdk::prelude::*;
+    # use cosmwasm_std::testing::mock_dependencies;
+    # use abstract_sdk::mock_module::MockModule;
+    # let module = MockModule::new();
+    # let deps = mock_dependencies();
+
+    let grant: Grant = module.grant(deps.as_ref());
+    ```
+*/
 #[derive(Clone)]
 pub struct Grant<'a, T: GrantInterface> {
     base: &'a T,

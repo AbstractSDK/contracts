@@ -2,7 +2,7 @@
 //! The Vault object provides function for querying balances and asset values for the Account.
 
 use crate::{
-    cw_helpers::cosmwasm_std::wasm_smart_query,
+    cw_helpers::wasm_smart_query,
     features::{AbstractNameService, AccountIdentification},
     AbstractSdkResult,
 };
@@ -17,6 +17,20 @@ use abstract_core::{
 /// Retrieve asset-registration information from the Account.
 /// Query asset values and balances.
 pub trait VaultInterface: AbstractNameService + AccountIdentification {
+    /**
+        API for accessing the Cosmos SDK FeeGrant module.
+
+        # Example
+        ```
+        use abstract_sdk::prelude::*;
+        # use cosmwasm_std::testing::mock_dependencies;
+        # use abstract_sdk::mock_module::MockModule;
+        # let module = MockModule::new();
+        # let deps = mock_dependencies();
+
+        let grant: Vault = module.vault(deps.as_ref());
+        ```
+    */
     fn vault<'a>(&'a self, deps: Deps<'a>) -> Vault<Self> {
         Vault { base: self, deps }
     }
@@ -25,6 +39,20 @@ pub trait VaultInterface: AbstractNameService + AccountIdentification {
 impl<T> VaultInterface for T where T: AbstractNameService + AccountIdentification {}
 
 #[derive(Clone)]
+/**
+        API for accessing the Cosmos SDK FeeGrant module.
+
+        # Example
+        ```
+        use abstract_sdk::prelude::*;
+        # use cosmwasm_std::testing::mock_dependencies;
+        # use abstract_sdk::mock_module::MockModule;
+        # let module = MockModule::new();
+        # let deps = mock_dependencies();
+
+        let grant: Vault = module.vault(deps.as_ref());
+        ```
+    */
 pub struct Vault<'a, T: VaultInterface> {
     base: &'a T,
     deps: Deps<'a>,

@@ -1,5 +1,5 @@
 use crate::{
-    cw_helpers::cosmwasm_std::wasm_smart_query, features::AbstractRegistryAccess, AbstractSdkError,
+    cw_helpers::wasm_smart_query, features::AbstractRegistryAccess, AbstractSdkError,
     AbstractSdkResult,
 };
 use abstract_core::{
