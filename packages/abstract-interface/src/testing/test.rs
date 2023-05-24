@@ -1,14 +1,15 @@
-use abstract_core::ans_host::InstantiateMsg;
-use cw_orch::deploy::Deploy;
-use std::env::set_var;
-
-use crate::Abstract;
-use cw_orch::prelude::*;
-
 #[cfg(feature = "daemon")]
 #[test]
 #[serial_test::serial]
 fn test_deploy_abstract() {
+    use abstract_core::ans_host::InstantiateMsg;
+    use cw_orch::daemon::DaemonError;
+    use cw_orch::deploy::Deploy;
+    use std::env::set_var;
+
+    use crate::Abstract;
+    use cw_orch::prelude::*;
+
     set_var("TEST_MNEMONIC","extra infant liquid afraid lens legend frown horn flame vessel palm nuclear jazz build iron squeeze review stock they snake dawn metal outdoor muffin");
 
     let runtime = tokio::runtime::Runtime::new().unwrap();
@@ -25,8 +26,20 @@ fn test_deploy_abstract() {
     abstr.ans_host.wasm();
     // Now we upload abstract using the file loaded configuration
 
-    abstr
+    let error = abstr
         .ans_host
         .instantiate(&InstantiateMsg {}, None, None)
-        .unwrap();
+        .unwrap_err();
+
+    // We expect the error to be that the accout doesn't exist
+    match &error {
+        CwOrchError::DaemonError(DaemonError::Status(s)) => {
+            if s.message()
+                .ne("account juno1cjh5gskpmvd5nx2hdeupdz0wadm78mxltkpnwp not found")
+            {
+                panic!("Error not expected, {:?}", error);
+            }
+        }
+        _ => panic!("Error not expected, {:?}", error),
+    }
 }
