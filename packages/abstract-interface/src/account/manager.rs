@@ -26,7 +26,9 @@ impl<Chain: CwEnv> Uploadable for Manager<Chain> {
         )
     }
     fn wasm(&self) -> WasmPath {
-        artifacts_dir_from_workspace!().find_wasm_path("manager").unwrap()
+        artifacts_dir_from_workspace!()
+            .find_wasm_path("manager")
+            .unwrap()
     }
 }
 

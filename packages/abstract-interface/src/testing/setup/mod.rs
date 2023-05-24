@@ -2,7 +2,6 @@ use std::{env, fs, path::Path};
 
 use ctor::{ctor, dtor};
 
-
 // Config
 const JUNO_IMAGE: &str = "ghcr.io/cosmoscontracts/juno:v12.0.0";
 
@@ -40,7 +39,6 @@ pub mod state_file {
 }
 
 pub fn test_env_start() {
-
     // Set environment variables
     // this does not seems to be working in this case
     if env::var("RUST_LOG").is_err() {

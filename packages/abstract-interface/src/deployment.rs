@@ -84,7 +84,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         Ok(deployment)
     }
 
-    fn load_from(chain: &mut Chain) -> Result<Self, AbstractInterfaceError> {   
+    fn load_from(chain: &mut Chain) -> Result<Self, AbstractInterfaceError> {
         custom_state(chain);
         Ok(Self::new(chain.to_owned()))
     }
