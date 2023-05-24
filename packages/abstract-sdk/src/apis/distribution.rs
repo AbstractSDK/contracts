@@ -28,7 +28,7 @@ impl Distribution {
         &self,
         delegator: &Addr,
         withdraw: &Addr,
-    ) -> AbstractSdkResult<AbstractMessage> {
+    ) -> AbstractSdkResult<AccountAction> {
         let msg = distribution::v1beta1::MsgSetWithdrawAddress {
             delegator_address: delegator.into(),
             withdraw_address: withdraw.into(),
@@ -48,7 +48,7 @@ impl Distribution {
         &self,
         validator: &Addr,
         delegator: &Addr,
-    ) -> AbstractSdkResult<AbstractMessage> {
+    ) -> AbstractSdkResult<AccountAction> {
         let msg = distribution::v1beta1::MsgWithdrawDelegatorReward {
             validator_address: validator.into(),
             delegator_address: delegator.into(),
@@ -67,7 +67,7 @@ impl Distribution {
     pub fn withdraw_delegator_commission(
         &self,
         validator: &Addr,
-    ) -> AbstractSdkResult<AbstractMessage> {
+    ) -> AbstractSdkResult<AccountAction> {
         let msg = distribution::v1beta1::MsgWithdrawValidatorCommission {
             validator_address: validator.into(),
         }
@@ -86,7 +86,7 @@ impl Distribution {
         &self,
         amount: &[Coin],
         depositor: &Addr,
-    ) -> AbstractSdkResult<AbstractMessage> {
+    ) -> AbstractSdkResult<AccountAction> {
         let msg = distribution::v1beta1::MsgFundCommunityPool {
             amount: amount
                 .iter()

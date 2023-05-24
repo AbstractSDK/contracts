@@ -1,5 +1,5 @@
 #![allow(unused)]
-use crate::cw_helpers::cw_messages::AbstractMessage;
+use crate::cw_helpers::cw_messages::AccountAction;
 use crate::{AbstractSdkResult, TransferInterface};
 use abstract_core::objects::AnsAsset;
 use cosmwasm_std::{Addr, CosmosMsg, Deps, StdResult, Uint128};
@@ -27,7 +27,7 @@ impl<'a, T: SplitterInterface> Splitter<'a, T> {
         &self,
         asset: AnsAsset,
         receivers: &[Addr],
-    ) -> AbstractSdkResult<Vec<AbstractMessage>> {
+    ) -> AbstractSdkResult<AccountAction> {
         // split the asset between all receivers
         let receives_each = AnsAsset {
             amount: asset
@@ -44,9 +44,9 @@ impl<'a, T: SplitterInterface> Splitter<'a, T> {
                 // Construct the transfer message
                 bank.transfer(vec![&receives_each], receiver)
             })
-            .try_fold(Vec::new(), |mut acc, v| match v {
+            .try_fold(AccountAction::empty(), |mut acc, v| match v {
                 Ok(vec) => {
-                    acc.extend(vec);
+                    acc.extend(&vec);
                     Ok(acc)
                 }
                 Err(e) => Err(e),

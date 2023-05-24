@@ -158,7 +158,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         }
         self.executor(deps)
             .execute_with_response(
-                msgs.into_iter().map(Into::into).collect(),
+                msgs.into(),
                 "remove_adapter_from_dependencies",
             )
             .map_err(Into::into)

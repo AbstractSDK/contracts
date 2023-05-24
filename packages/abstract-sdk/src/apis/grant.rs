@@ -9,7 +9,7 @@ use crate::features::AccountIdentification;
 use cosmos_sdk_proto::{cosmos::base, cosmos::feegrant, traits::Message, Any};
 use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Deps, Timestamp};
 
-use crate::cw_helpers::cw_messages::AbstractMessage;
+use crate::cw_helpers::cw_messages::AccountAction;
 use crate::AbstractSdkResult;
 
 pub trait GrantInterface: AccountIdentification {
@@ -31,7 +31,7 @@ impl Grant {
         granter: &Addr,
         grantee: &Addr,
         basic: BasicAllowance,
-    ) -> AbstractSdkResult<AbstractMessage> {
+    ) -> AbstractSdkResult<AccountAction> {
         let msg = feegrant::v1beta1::MsgGrantAllowance {
             granter: granter.into(),
             grantee: grantee.into(),
@@ -55,7 +55,7 @@ impl Grant {
         grantee: &Addr,
         basic: Option<BasicAllowance>,
         periodic: PeriodicAllowance,
-    ) -> AbstractSdkResult<AbstractMessage> {
+    ) -> AbstractSdkResult<AccountAction> {
         let msg = feegrant::v1beta1::MsgGrantAllowance {
             granter: granter.into(),
             grantee: grantee.into(),
@@ -72,7 +72,7 @@ impl Grant {
     }
 
     /// creates allowance only for BasicAllowance.
-    pub fn allow_basic(&self, basic: BasicAllowance) -> AbstractSdkResult<AbstractMessage> {
+    pub fn allow_basic(&self, basic: BasicAllowance) -> AbstractSdkResult<AccountAction> {
         let msg = feegrant::v1beta1::AllowedMsgAllowance {
             allowance: Some(build_any_basic(basic)),
             allowed_messages: vec!["BasicAllowance".to_owned()],
@@ -91,7 +91,7 @@ impl Grant {
     pub fn allow_periodic(
         &self,
         periodic: PeriodicAllowance,
-    ) -> AbstractSdkResult<AbstractMessage> {
+    ) -> AbstractSdkResult<AccountAction> {
         let msg = feegrant::v1beta1::AllowedMsgAllowance {
             allowance: Some(build_any_periodic(periodic, None)),
             allowed_messages: vec!["PeriodicAllowance".to_owned()],
@@ -111,7 +111,7 @@ impl Grant {
         &self,
         basic: BasicAllowance,
         periodic: PeriodicAllowance,
-    ) -> AbstractSdkResult<AbstractMessage> {
+    ) -> AbstractSdkResult<AccountAction> {
         let msg = feegrant::v1beta1::AllowedMsgAllowance {
             allowance: Some(build_any_periodic(periodic, Some(basic))),
             allowed_messages: vec!["BasicAllowance".to_owned(), "PeriodicAllowance".to_owned()],
@@ -127,7 +127,7 @@ impl Grant {
     }
 
     /// Removes any existing Allowance from Granter to Grantee.
-    pub fn revoke_all(&self, granter: &Addr, grantee: &Addr) -> AbstractSdkResult<AbstractMessage> {
+    pub fn revoke_all(&self, granter: &Addr, grantee: &Addr) -> AbstractSdkResult<AccountAction> {
         let msg = feegrant::v1beta1::MsgRevokeAllowance {
             granter: granter.into(),
             grantee: grantee.into(),

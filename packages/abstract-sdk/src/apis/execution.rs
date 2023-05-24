@@ -3,7 +3,7 @@
 //!
 
 use crate::{
-    cw_helpers::cw_messages::AbstractMessage,
+    cw_helpers::cw_messages::AccountAction,
     features::{AccountIdentification, ModuleIdentification},
     AbstractSdkResult,
 };
@@ -29,11 +29,11 @@ pub struct Executor<'a, T: Execution> {
 impl<'a, T: Execution> Executor<'a, T> {
     /// Execute the msgs on the Account.
     /// These messages will be executed on the proxy contract and the sending module must be whitelisted.
-    pub fn execute(&self, msgs: Vec<AbstractMessage>) -> AbstractSdkResult<CosmosMsg> {
+    pub fn execute(&self, msgs: AccountAction) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
             self.base.proxy_address(self.deps)?.to_string(),
             &ExecuteMsg::ModuleAction {
-                msgs: msgs.iter().map(|m| m.message()).collect(),
+                msgs: msgs.messages(),
             },
             vec![],
         )?
@@ -45,7 +45,7 @@ impl<'a, T: Execution> Executor<'a, T> {
     /// The execution will be executed in a submessage and the reply will be sent to the provided `reply_on`.
     pub fn execute_with_reply(
         &self,
-        msgs: Vec<AbstractMessage>,
+        msgs: AccountAction,
         reply_on: ReplyOn,
         id: u64,
     ) -> AbstractSdkResult<SubMsg> {
@@ -64,7 +64,7 @@ impl<'a, T: Execution> Executor<'a, T> {
     /// Return a "standard" response for the executed messages. (with the provided action).
     pub fn execute_with_response(
         &self,
-        msgs: Vec<AbstractMessage>,
+        msgs: AccountAction,
         action: &str,
     ) -> AbstractSdkResult<Response> {
         let msg = self.execute(msgs)?;
@@ -103,13 +103,13 @@ mod test {
 
             let messages = vec![];
 
-            let actual_res = executor.execute(messages.clone());
+            let actual_res = executor.execute(messages.clone().into());
             assert_that!(actual_res).is_ok();
 
             let expected = CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: TEST_PROXY.to_string(),
                 msg: to_binary(&ExecuteMsg::ModuleAction {
-                    msgs: messages.iter().map(|m| m.message()).collect(),
+                    msgs: messages
                 })
                 .unwrap(),
                 funds: vec![],
@@ -124,15 +124,15 @@ mod test {
             let executor = stub.executor(deps.as_ref());
 
             // build a bank message
-            let messages = vec![mock_bank_send(coins(100, "juno")).into()];
+            let messages = vec![mock_bank_send(coins(100, "juno"))];
 
-            let actual_res = executor.execute(messages.clone());
+            let actual_res = executor.execute(messages.clone().into());
             assert_that!(actual_res).is_ok();
 
             let expected = CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: TEST_PROXY.to_string(),
                 msg: to_binary(&ExecuteMsg::ModuleAction {
-                    msgs: messages.iter().map(|m| m.message()).collect(),
+                    msgs: messages
                 })
                 .unwrap(),
                 // funds should be empty
@@ -157,7 +157,7 @@ mod test {
             let expected_reply_id = 10952;
 
             let actual_res = executor.execute_with_reply(
-                empty_msgs.clone(),
+                empty_msgs.clone().into(),
                 expected_reply_on.clone(),
                 expected_reply_id,
             );
@@ -168,7 +168,7 @@ mod test {
                 msg: CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: TEST_PROXY.to_string(),
                     msg: to_binary(&ExecuteMsg::ModuleAction {
-                        msgs: empty_msgs.iter().map(|m| m.message()).collect(),
+                        msgs: empty_msgs
                     })
                     .unwrap(),
                     funds: vec![],
@@ -186,13 +186,13 @@ mod test {
             let executor = stub.executor(deps.as_ref());
 
             // build a bank message
-            let messages = vec![mock_bank_send(coins(1, "denom")).into()];
+            let messages = vec![mock_bank_send(coins(1, "denom"))];
             // reply on never
             let expected_reply_on = ReplyOn::Never;
             let expected_reply_id = 1;
 
             let actual_res = executor.execute_with_reply(
-                messages.clone(),
+                messages.clone().into(),
                 expected_reply_on.clone(),
                 expected_reply_id,
             );
@@ -203,7 +203,7 @@ mod test {
                 msg: CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: TEST_PROXY.to_string(),
                     msg: to_binary(&ExecuteMsg::ModuleAction {
-                        msgs: messages.iter().map(|m| m.message()).collect(),
+                    msgs: messages
                     })
                     .unwrap(),
                     // funds should be empty
@@ -230,12 +230,12 @@ mod test {
             let empty_msgs = vec![];
             let expected_action = "THIS IS AN ACTION";
 
-            let actual_res = executor.execute_with_response(empty_msgs.clone(), expected_action);
+            let actual_res = executor.execute_with_response(empty_msgs.clone().into(), expected_action);
 
             let expected_msg = CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: TEST_PROXY.to_string(),
                 msg: to_binary(&ExecuteMsg::ModuleAction {
-                    msgs: empty_msgs.iter().map(|m| m.message()).collect(),
+                    msgs: empty_msgs
                 })
                 .unwrap(),
                 funds: vec![],
@@ -259,15 +259,15 @@ mod test {
             let executor = stub.executor(deps.as_ref());
 
             // build a bank message
-            let messages = vec![mock_bank_send(coins(1, "denom")).into()];
+            let messages = vec![mock_bank_send(coins(1, "denom"))];
             let expected_action = "provide liquidity";
 
-            let actual_res = executor.execute_with_response(messages.clone(), expected_action);
+            let actual_res = executor.execute_with_response(messages.clone().into(), expected_action);
 
             let expected_msg = CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: TEST_PROXY.to_string(),
                 msg: to_binary(&ExecuteMsg::ModuleAction {
-                    msgs: messages.iter().map(|m| m.message()).collect(),
+                    msgs: messages,
                 })
                 .unwrap(),
                 // funds should be empty

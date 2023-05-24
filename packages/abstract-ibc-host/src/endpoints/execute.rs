@@ -152,7 +152,7 @@ impl<
                 // Execute provided msgs on proxy.
                 self.executor(deps.as_ref())
                     .execute_with_response(
-                        msgs.into_iter().map(Into::into).collect(),
+                        msgs.into(),
                         "recover_account",
                     )
                     .map_err(Into::into)

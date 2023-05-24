@@ -1,7 +1,7 @@
 //! # Bank
 //! The Bank object handles asset transfers to and from the Account.
 
-use crate::cw_helpers::cw_messages::AbstractMessage;
+use crate::cw_helpers::cw_messages::AccountAction;
 use crate::features::AccountIdentification;
 use crate::{ans_resolve::Resolve, features::AbstractNameService, AbstractSdkResult};
 use core::objects::{AnsAsset, AssetEntry};
@@ -80,23 +80,24 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
         &self,
         funds: Vec<R>,
         recipient: &Addr,
-    ) -> AbstractSdkResult<Vec<AbstractMessage>> {
+    ) -> AbstractSdkResult<AccountAction> {
         let transferable_funds = funds
             .into_iter()
             .map(|asset| asset.transferable_asset(self.base, self.deps))
             .collect::<AbstractSdkResult<Vec<Asset>>>()?;
         transferable_funds
             .iter()
-            .map(|asset| asset.transfer_msg(recipient.clone()).map(Into::into))
+            .map(|asset| asset.transfer_msg(recipient.clone()))
             .collect::<Result<Vec<_>, _>>()
             .map_err(Into::into)
+            .map(Into::into)
     }
 
     /// Move funds from the contract into the Account.
     pub fn deposit<R: Transferable>(
         &self,
         funds: Vec<R>,
-    ) -> AbstractSdkResult<Vec<AbstractMessage>> {
+    ) -> AbstractSdkResult<AccountAction> {
         let recipient = self.base.proxy_address(self.deps)?;
         let transferable_funds = funds
             .into_iter()
@@ -104,9 +105,10 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
             .collect::<AbstractSdkResult<Vec<Asset>>>()?;
         transferable_funds
             .iter()
-            .map(|asset| asset.transfer_msg(recipient.clone()).map(Into::into))
+            .map(|asset| asset.transfer_msg(recipient.clone()))
             .collect::<Result<Vec<_>, _>>()
             .map_err(Into::into)
+            .map(Into::into)
     }
 
     /// Deposit coins into the Account
@@ -177,6 +179,8 @@ mod test {
     use speculoos::prelude::*;
 
     mod transfer_coins {
+        use crate::Execution;
+
         use super::*;
 
         #[test]
@@ -197,7 +201,7 @@ mod test {
                 amount: coins,
             });
 
-            assert_that!(actual_res.unwrap()[0].message()).is_equal_to::<CosmosMsg>(expected_msg);
+            assert_that!(actual_res.unwrap().execute(app.executor(deps.as_ref())).unwrap()).is_equal_to(expected_msg);
         }
     }
 
