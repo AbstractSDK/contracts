@@ -8,22 +8,23 @@ use abstract_core::{
 use cosmwasm_std::{Addr, Deps};
 
 /// Verify if an addresses is associated with an Abstract Account.
-pub trait OsVerification: AbstractRegistryAccess {
-    fn account_registry<'a>(&'a self, deps: Deps<'a>) -> OsRegistry<Self> {
-        OsRegistry { base: self, deps }
+pub trait AccountVerification: AbstractRegistryAccess {
+    /// Get the AccountBase for the current account.
+    fn account_registry<'a>(&'a self, deps: Deps<'a>) -> AccountRegistry<Self> {
+        AccountRegistry { base: self, deps }
     }
 }
 
-impl<T> OsVerification for T where T: AbstractRegistryAccess {}
+impl<T> AccountVerification for T where T: AbstractRegistryAccess {}
 
 /// Endpoint for Account address verification
 #[derive(Clone)]
-pub struct OsRegistry<'a, T: OsVerification> {
+pub struct AccountRegistry<'a, T: AccountVerification> {
     base: &'a T,
     deps: Deps<'a>,
 }
 
-impl<'a, T: OsVerification> OsRegistry<'a, T> {
+impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
     /// Verify if the provided manager address is indeed a user.
     pub fn assert_manager(&self, maybe_manager: &Addr) -> AbstractSdkResult<AccountBase> {
         let account_id = self.account_id(maybe_manager)?;
