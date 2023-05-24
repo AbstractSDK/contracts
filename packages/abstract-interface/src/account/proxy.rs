@@ -24,7 +24,7 @@ impl<Chain: CwEnv> Uploadable for Proxy<Chain> {
         )
     }
     fn wasm(&self) -> WasmPath {
-        ArtifactsDir::env().find_wasm_path("proxy").unwrap()
+        artifacts_dir_from_workspace!().find_wasm_path("proxy").unwrap()
     }
 }
 

@@ -28,9 +28,9 @@
         "abstract:version_control": 863
       }
     },
-    "uni-5": {
+    "uni-6": {
       "code_ids": {
-        "abstract:ans_host": 4022,
+        "abstract:ans-host": 4022,
         "abstract:manager": 4026,
         "abstract:dex": 4067,
         "abstract:module_factory": 4025,

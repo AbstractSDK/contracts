@@ -1,7 +1,7 @@
-use std::{env, fs, path::Path, thread::sleep, time::Duration};
+use std::{env, fs, path::Path};
 
-#[cfg(feature = "node-tests")]
 use ctor::{ctor, dtor};
+
 
 // Config
 const JUNO_IMAGE: &str = "ghcr.io/cosmoscontracts/juno:v12.0.0";
@@ -39,92 +39,7 @@ pub mod state_file {
     }
 }
 
-pub mod container {
-    use duct::cmd;
-
-    pub fn find(name: &String) -> bool {
-        let read = cmd!("docker", "container", "ls", "--all")
-            .pipe(cmd!("grep", name))
-            .pipe(cmd!("rev"))
-            .pipe(cmd!("cut", "-d", r#" "#, "-f1"))
-            .pipe(cmd!("rev"))
-            .read();
-
-        match read {
-            Ok(val) => {
-                log::info!("Container found: {}", name);
-                val == *name
-            }
-            Err(_) => false,
-        }
-    }
-
-    pub fn start(name: &String, image: &String) -> bool {
-        if self::find(name) {
-            return false;
-        }
-
-        // Start Docker with the appropriate ports and the provided environment variables and script
-        cmd!(
-            "docker",
-            "run",
-            "-d", // Run the container in detached mode
-            "--name",
-            name,
-            "-p",
-            "1317:1317",
-            "-p",
-            "26656:26656",
-            "-p",
-            "9090:9090",
-            "-e",
-            "STAKE_TOKEN=ujunox",
-            "-e",
-            "UNSAFE_CORS=true",
-            image,
-            "./setup_and_run.sh",
-            "juno16g2rahf5846rxzp3fwlswy08fz8ccuwk03k57y"
-        )
-        .read()
-        .is_ok()
-    }
-
-    pub fn stop(name: &String) -> bool {
-        if !self::find(name) {
-            return true;
-        }
-
-        log::info!("Stopping container: {}", name);
-
-        let res = cmd!("docker", "container", "stop", name)
-            .read()
-            .ok()
-            .unwrap();
-
-        res == *name
-    }
-
-    pub fn remove(name: &String) -> bool {
-        if !self::find(name) {
-            return true;
-        }
-
-        log::info!("Removing container: {}", name);
-
-        let res = cmd!("docker", "container", "rm", name).read().ok().unwrap();
-
-        res == *name
-    }
-
-    pub fn ensure_removal(name: &String) {
-        if self::stop(name) {
-            self::remove(name);
-        }
-    }
-}
-
-pub fn docker_container_start() {
-    log::info!("Running docker_container_start");
+pub fn test_env_start() {
 
     // Set environment variables
     // this does not seems to be working in this case
@@ -140,7 +55,6 @@ pub fn docker_container_start() {
     if env::var("JUNO_IMAGE").is_err() {
         env::set_var("JUNO_IMAGE", JUNO_IMAGE);
     }
-    let image = env::var("JUNO_IMAGE").unwrap();
 
     let temp_dir = env::temp_dir();
     let state_file = temp_dir.join("cw_orch_test.json");
@@ -160,28 +74,20 @@ pub fn docker_container_start() {
         "Using LOCAL_MNEMONIC: {}",
         env::var("LOCAL_MNEMONIC").unwrap()
     );
-
-    container::start(&container, &image);
-
-    // Wait for docker to start
-    sleep(Duration::from_secs(10));
 }
-
-pub fn docker_container_stop() {
-    log::info!("Running docker_container_stop");
-    container::ensure_removal(&env::var("CONTAINER_NAME").unwrap());
+pub fn test_env_stop() {
     let temp_dir = env::temp_dir();
     let expected_state_file = temp_dir.join("cw_orch_test_local.json");
     state_file::remove(expected_state_file.to_str().unwrap());
 }
 
-#[cfg_attr(feature = "node-tests", ctor)]
+#[ctor]
 fn common_start() {
     env_logger::init();
-    docker_container_start()
+    test_env_start()
 }
 
-#[cfg_attr(feature = "node-tests", dtor)]
+#[dtor]
 fn common_stop() {
-    docker_container_stop()
+    test_env_stop()
 }

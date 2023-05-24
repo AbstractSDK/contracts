@@ -23,7 +23,7 @@ impl<Chain: CwEnv> Uploadable for ModuleFactory<Chain> {
         )
     }
     fn wasm(&self) -> WasmPath {
-        ArtifactsDir::env()
+        artifacts_dir_from_workspace!()
             .find_wasm_path("module_factory")
             .unwrap()
     }
