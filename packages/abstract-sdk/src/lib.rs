@@ -20,7 +20,7 @@ pub mod prelude;
 pub use error::{AbstractSdkError, EndpointError};
 
 pub use crate::apis::{
-    adapter::*, app::*, bank::*, execution::*, ibc::*, modules::*, respond::*, vault::*, verify::*,
+    adapter::*, app::*, bank::*, execution::*, ibc::*, modules::*, respond::*, accounting::*, verify::*,
     version_registry::*,
 };
 

@@ -6,7 +6,7 @@ pub mod ibc;
 pub mod modules;
 pub mod respond;
 mod splitter;
-pub mod vault;
+pub mod accounting;
 pub mod verify;
 pub mod version_registry;
 

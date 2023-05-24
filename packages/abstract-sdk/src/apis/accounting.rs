@@ -1,5 +1,5 @@
-//! # Vault
-//! The Vault object provides function for querying balances and asset values for the Account.
+//! # Accountant
+//! The Accountant object provides function for querying balances and asset values for the Account.
 
 use crate::{
     cw_helpers::wasm_smart_query,
@@ -16,9 +16,9 @@ use abstract_core::{
 
 /// Retrieve asset-registration information from the Account.
 /// Query asset values and balances.
-pub trait VaultInterface: AbstractNameService + AccountIdentification {
+pub trait AccountingInterface: AbstractNameService + AccountIdentification {
     /**
-        API for accessing the Cosmos SDK FeeGrant module.
+        API for querying the Account's asset values and accounting configuration.
 
         # Example
         ```
@@ -28,19 +28,19 @@ pub trait VaultInterface: AbstractNameService + AccountIdentification {
         # let module = MockModule::new();
         # let deps = mock_dependencies();
 
-        let grant: Vault = module.vault(deps.as_ref());
+        let accountant: Accountant = module.accountant(deps.as_ref());
         ```
     */
-    fn vault<'a>(&'a self, deps: Deps<'a>) -> Vault<Self> {
-        Vault { base: self, deps }
+    fn accountant<'a>(&'a self, deps: Deps<'a>) -> Accountant<Self> {
+        Accountant { base: self, deps }
     }
 }
 
-impl<T> VaultInterface for T where T: AbstractNameService + AccountIdentification {}
+impl<T> AccountingInterface for T where T: AbstractNameService + AccountIdentification {}
 
 #[derive(Clone)]
 /**
-        API for accessing the Cosmos SDK FeeGrant module.
+        API for querying the Account's asset values and accounting configuration.
 
         # Example
         ```
@@ -50,15 +50,15 @@ impl<T> VaultInterface for T where T: AbstractNameService + AccountIdentificatio
         # let module = MockModule::new();
         # let deps = mock_dependencies();
 
-        let grant: Vault = module.vault(deps.as_ref());
+        let accountant: Accountant = module.accountant(deps.as_ref());
         ```
     */
-pub struct Vault<'a, T: VaultInterface> {
+pub struct Accountant<'a, T: AccountingInterface> {
     base: &'a T,
     deps: Deps<'a>,
 }
 
-impl<'a, T: VaultInterface> Vault<'a, T> {
+impl<'a, T: AccountingInterface> Accountant<'a, T> {
     /// Query the total value denominated in the base asset
     /// The provided address must implement the TotalValue Query
     pub fn query_total_value(&self) -> AbstractSdkResult<AccountValue> {

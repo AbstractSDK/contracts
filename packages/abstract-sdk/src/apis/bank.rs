@@ -146,8 +146,6 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
             .map_err(Into::into)
     }
 
-    
-
     /// Deposit coins into the Account
     pub fn deposit_coins(&self, coins: Vec<Coin>) -> AbstractSdkResult<CosmosMsg> {
         let recipient = self.base.proxy_address(self.deps)?.into_string();
