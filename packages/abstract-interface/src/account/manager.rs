@@ -33,9 +33,6 @@ impl<Chain: CwEnv> Uploadable for Manager<Chain> {
 }
 
 impl<Chain: CwEnv> Manager<Chain> {
-    pub fn new(name: &str, chain: Chain) -> Self {
-        Self(cw_orch::contract::Contract::new(name, chain))
-    }
 
     pub fn upgrade_module<M: Serialize>(
         &self,

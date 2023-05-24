@@ -31,9 +31,6 @@ impl<Chain: CwEnv> Uploadable for Proxy<Chain> {
 }
 
 impl<Chain: CwEnv> Proxy<Chain> {
-    pub fn new(name: &str, chain: Chain) -> Self {
-        Self(cw_orch::contract::Contract::new(name, chain))
-    }
 
     pub fn set_proxy_asset(
         &self,

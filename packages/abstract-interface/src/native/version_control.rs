@@ -43,9 +43,6 @@ impl<Chain: CwEnv> VersionControl<Chain>
 where
     TxResponse<Chain>: IndexResponse,
 {
-    pub fn new(name: &str, chain: Chain) -> Self {
-        Self(cw_orch::contract::Contract::new(name, chain))
-    }
 
     pub fn load(chain: Chain, address: &Addr) -> Self {
         Self(cw_orch::contract::Contract::new(VERSION_CONTROL, chain).with_address(Some(address)))

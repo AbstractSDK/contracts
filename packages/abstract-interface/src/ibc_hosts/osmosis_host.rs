@@ -7,7 +7,4 @@ use cw_orch::{interface, prelude::*};
 pub struct OsmosisHost<Chain>;
 
 impl<Chain: CwEnv> OsmosisHost<Chain> {
-    pub fn new(name: &str, chain: Chain) -> Self {
-        Self(cw_orch::contract::Contract::new(name, chain))
-    }
 }

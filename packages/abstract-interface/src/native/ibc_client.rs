@@ -8,8 +8,4 @@ pub use abstract_core::ibc_client::{
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct IbcClient<Chain>;
 
-impl<Chain: CwEnv> IbcClient<Chain> {
-    pub fn new(name: &str, chain: Chain) -> Self {
-        Self(cw_orch::contract::Contract::new(name, chain))
-    }
-}
+impl<Chain: CwEnv> IbcClient<Chain> {}

@@ -30,9 +30,6 @@ impl<Chain: CwEnv> Uploadable for ModuleFactory<Chain> {
 }
 
 impl<Chain: CwEnv> ModuleFactory<Chain> {
-    pub fn new(name: &str, chain: Chain) -> Self {
-        Self(cw_orch::contract::Contract::new(name, chain))
-    }
 
     pub fn change_ans_host_addr(
         &self,

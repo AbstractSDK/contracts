@@ -39,9 +39,6 @@ impl<Chain: CwEnv> AnsHost<Chain>
 where
     TxResponse<Chain>: IndexResponse,
 {
-    pub fn new(name: &str, chain: Chain) -> Self {
-        Self(cw_orch::contract::Contract::new(name, chain))
-    }
 
     pub fn load(chain: Chain, address: &Addr) -> Self {
         Self(cw_orch::contract::Contract::new(ANS_HOST, chain).with_address(Some(address)))
@@ -66,9 +63,9 @@ impl AnsHost<Daemon> {
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
-        let chain_id = self.get_chain().state().chain_id;
+        let chain_id = self.get_chain().state().chain_data.chain_name;
         info!("{}", chain_id);
-        let network_id = self.get_chain().state().network.id;
+        let network_id = self.get_chain().state().chain_data.chain_id.to_string();
         let maybe_assets = json
             .get(chain_id)
             .unwrap()
@@ -117,8 +114,8 @@ impl AnsHost<Daemon> {
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
-        let chain_id = self.get_chain().state().chain_id;
-        let network_id = self.get_chain().state().network.id;
+        let chain_id = self.get_chain().state().chain_data.chain_name;
+        let network_id = self.get_chain().state().chain_data.chain_id.to_string();
         let channels = json
             .get(chain_id)
             .unwrap()
@@ -149,8 +146,8 @@ impl AnsHost<Daemon> {
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
-        let chain_id = self.get_chain().state().chain_id;
-        let network_id = self.0.get_chain().state().network.id;
+        let chain_id = self.get_chain().state().chain_data.chain_name;
+        let network_id = self.get_chain().state().chain_data.chain_id.to_string();
         let contracts = json
             .get(chain_id)
             .unwrap()
@@ -194,8 +191,8 @@ impl AnsHost<Daemon> {
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
-        let chain_id = self.get_chain().state().chain_id;
-        let network_id = self.0.get_chain().state().network.id;
+        let chain_id = self.get_chain().state().chain_data.chain_name;
+        let network_id = self.get_chain().state().chain_data.chain_id.to_string();
         let pools = json
             .get(chain_id)
             .unwrap()

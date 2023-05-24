@@ -1,11 +1,11 @@
 use abstract_core::ans_host::InstantiateMsg;
-use cw_orch::daemon::sync::core::Daemon;
 use cw_orch::deploy::Deploy;
 use std::env::set_var;
 
 use crate::Abstract;
 use cw_orch::prelude::*;
 
+#[cfg(feature="daemon")]
 #[test]
 #[serial_test::serial]
 fn test_deploy_abstract() {

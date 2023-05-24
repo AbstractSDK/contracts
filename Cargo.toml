@@ -55,7 +55,7 @@ protobuf = { version = "2", features = ["with-bytes"] }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
-cw-orch = { package="cw-orch-publish-test", version = "0.11" }
+cw-orch = { git="https://github.com/AbstractSDK/cw-orchestrator/", branch="feature/add_custom_state_file" }
 tokio = { version = "1.4", features = ["full"] }
 abstract-adapter = { path = "packages/abstract-adapter" }
 abstract-app = { path = "packages/abstract-app" }

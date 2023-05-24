@@ -41,9 +41,6 @@ impl<Chain: CwEnv> Uploadable for AccountFactory<Chain> {
 }
 
 impl<Chain: CwEnv> AccountFactory<Chain> {
-    pub fn new(name: &str, chain: Chain) -> Self {
-        Self(cw_orch::contract::Contract::new(name, chain))
-    }
 
     pub fn create_new_account(
         &self,
