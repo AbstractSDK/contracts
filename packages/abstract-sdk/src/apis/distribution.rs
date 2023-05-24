@@ -24,7 +24,7 @@ pub trait DistributionInterface: Execution {
         # let module = MockModule::new();
         # let deps = mock_dependencies();
 
-        let distr: Distribution = module.distribution(deps.as_ref());
+        let distr: Distribution<MockModule>  = module.distribution(deps.as_ref());
         ```
     */
     fn distribution<'a>(&'a self, deps: Deps<'a>) -> Distribution<Self> {
@@ -45,7 +45,7 @@ impl<T> DistributionInterface for T where T: Execution {}
     # let module = MockModule::new();
     # let deps = mock_dependencies();
 
-    let distr: Distribution = module.distribution(deps.as_ref());
+    let distr: Distribution<MockModule>  = module.distribution(deps.as_ref());
     ```
 */
 #[derive(Clone)]

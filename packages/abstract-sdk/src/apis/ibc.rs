@@ -23,7 +23,7 @@ pub trait IbcInterface: AccountIdentification {
         # let module = MockModule::new();
         # let deps = mock_dependencies();
 
-        let ibc_client: IbcClient = module.ibc_client(deps.as_ref());
+        let ibc_client: IbcClient<MockModule>  = module.ibc_client(deps.as_ref());
         ```
     */
     fn ibc_client<'a>(&'a self, deps: Deps<'a>) -> IbcClient<Self> {
@@ -45,7 +45,7 @@ impl<T> IbcInterface for T where T: AccountIdentification {}
     # let module = MockModule::new();
     # let deps = mock_dependencies();
 
-    let ibc_client: IbcClient = module.ibc_client(deps.as_ref());
+    let ibc_client: IbcClient<MockModule>  = module.ibc_client(deps.as_ref());
     ```
 */
 pub struct IbcClient<'a, T: IbcInterface> {

@@ -28,7 +28,7 @@ pub trait AccountingInterface: AbstractNameService + AccountIdentification {
         # let module = MockModule::new();
         # let deps = mock_dependencies();
 
-        let accountant: Accountant = module.accountant(deps.as_ref());
+        let accountant: Accountant<MockModule>  = module.accountant(deps.as_ref());
         ```
     */
     fn accountant<'a>(&'a self, deps: Deps<'a>) -> Accountant<Self> {
@@ -50,7 +50,7 @@ impl<T> AccountingInterface for T where T: AbstractNameService + AccountIdentifi
     # let module = MockModule::new();
     # let deps = mock_dependencies();
 
-    let accountant: Accountant = module.accountant(deps.as_ref());
+    let accountant: Accountant<MockModule>  = module.accountant(deps.as_ref());
     ```
 */
 pub struct Accountant<'a, T: AccountingInterface> {

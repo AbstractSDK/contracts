@@ -23,7 +23,7 @@ pub trait ModuleInterface: AccountIdentification + Dependencies {
         # let module = MockModule::new();
         # let deps = mock_dependencies();
 
-        let modules: Modules = module.modules(deps.as_ref());
+        let modules: Modules<MockModule>  = module.modules(deps.as_ref());
         ```
     */
     fn modules<'a>(&'a self, deps: Deps<'a>) -> Modules<Self> {
@@ -44,7 +44,7 @@ impl<T> ModuleInterface for T where T: AccountIdentification + Dependencies {}
     # let module = MockModule::new();
     # let deps = mock_dependencies();
 
-    let modules: Modules = module.modules(deps.as_ref());
+    let modules: Modules<MockModule>  = module.modules(deps.as_ref());
     ```
 */
 #[derive(Clone)]

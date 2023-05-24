@@ -19,7 +19,7 @@ pub trait TransferInterface: AbstractNameService + Execution {
         # let module = MockModule::new();
         # let deps = mock_dependencies();
 
-        let bank: Bank = module.bank(deps.as_ref());
+        let bank: Bank<MockModule>  = module.bank(deps.as_ref());
         ```
     */
     fn bank<'a>(&'a self, deps: Deps<'a>) -> Bank<Self> {
@@ -40,7 +40,7 @@ impl<T> TransferInterface for T where T: AbstractNameService + Execution {}
     # let module = MockModule::new();
     # let deps = mock_dependencies();
 
-    let bank: Bank = module.bank(deps.as_ref());
+    let bank: Bank<MockModule>  = module.bank(deps.as_ref());
     ```
 */
 #[derive(Clone)]
