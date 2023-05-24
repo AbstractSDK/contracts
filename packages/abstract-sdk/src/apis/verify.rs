@@ -9,7 +9,20 @@ use cosmwasm_std::{Addr, Deps};
 
 /// Verify if an addresses is associated with an Abstract Account.
 pub trait AccountVerification: AbstractRegistryAccess {
-    /// Get the AccountBase for the current account.
+    /**
+        API for querying and verifying a sender's identity in the context of Abstract Accounts.
+
+        # Example
+        ```
+        use abstract_sdk::prelude::*;
+        # use cosmwasm_std::testing::mock_dependencies;
+        # use abstract_sdk::mock_module::MockModule;
+        # let module = MockModule::new();
+        # let deps = mock_dependencies();
+
+        let acc_registry: AccountRegistry<MockModule>  = module.account_registry(deps.as_ref());
+        ```
+    */
     fn account_registry<'a>(&'a self, deps: Deps<'a>) -> AccountRegistry<Self> {
         AccountRegistry { base: self, deps }
     }
@@ -17,7 +30,20 @@ pub trait AccountVerification: AbstractRegistryAccess {
 
 impl<T> AccountVerification for T where T: AbstractRegistryAccess {}
 
-/// Endpoint for Account address verification
+/**
+    API for querying and verifying a sender's identity in the context of Abstract Accounts.
+
+    # Example
+    ```
+    use abstract_sdk::prelude::*;
+    # use cosmwasm_std::testing::mock_dependencies;
+    # use abstract_sdk::mock_module::MockModule;
+    # let module = MockModule::new();
+    # let deps = mock_dependencies();
+
+    let acc_registry: AccountRegistry<MockModule>  = module.account_registry(deps.as_ref());
+    ```
+*/
 #[derive(Clone)]
 pub struct AccountRegistry<'a, T: AccountVerification> {
     base: &'a T,

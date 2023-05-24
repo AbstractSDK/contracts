@@ -13,6 +13,20 @@ use cosmwasm_std::Deps;
 
 /// Access the Abstract Version Control and access module information.
 pub trait ModuleRegistryInterface: AbstractRegistryAccess {
+    /**
+        API for querying module information from the Abstract version control contract.
+
+        # Example
+        ```
+        use abstract_sdk::prelude::*;
+        # use cosmwasm_std::testing::mock_dependencies;
+        # use abstract_sdk::mock_module::MockModule;
+        # let module = MockModule::new();
+        # let deps = mock_dependencies();
+
+        let mod_registry: ModuleRegistry<MockModule>  = module.module_registry(deps.as_ref());
+        ```
+    */
     fn module_registry<'a>(&'a self, deps: Deps<'a>) -> ModuleRegistry<Self> {
         ModuleRegistry { base: self, deps }
     }
@@ -21,6 +35,20 @@ pub trait ModuleRegistryInterface: AbstractRegistryAccess {
 impl<T> ModuleRegistryInterface for T where T: AbstractRegistryAccess {}
 
 #[derive(Clone)]
+/**
+    API for querying module information from the Abstract version control contract.
+
+    # Example
+    ```
+    use abstract_sdk::prelude::*;
+    # use cosmwasm_std::testing::mock_dependencies;
+    # use abstract_sdk::mock_module::MockModule;
+    # let module = MockModule::new();
+    # let deps = mock_dependencies();
+
+    let mod_registry: ModuleRegistry<MockModule>  = module.module_registry(deps.as_ref());
+    ```
+*/
 pub struct ModuleRegistry<'a, T: ModuleRegistryInterface> {
     base: &'a T,
     deps: Deps<'a>,
