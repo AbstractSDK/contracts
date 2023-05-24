@@ -64,9 +64,9 @@ impl AnsHost<Daemon> {
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
-        let chain_id = self.get_chain().state().chain_id.clone();
+        let chain_id = self.get_chain().state().chain_id;
         info!("{}", chain_id);
-        let network_id = self.get_chain().state().network.id.clone();
+        let network_id = self.get_chain().state().network.id;
         let maybe_assets = json
             .get(chain_id)
             .unwrap()
@@ -115,8 +115,8 @@ impl AnsHost<Daemon> {
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
-        let chain_id = self.get_chain().state().chain_id.clone();
-        let network_id = self.get_chain().state().network.id.clone();
+        let chain_id = self.get_chain().state().chain_id;
+        let network_id = self.get_chain().state().network.id;
         let channels = json
             .get(chain_id)
             .unwrap()
@@ -147,8 +147,8 @@ impl AnsHost<Daemon> {
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
-        let chain_id = self.get_chain().state().chain_id.clone();
-        let network_id = self.0.get_chain().state().network.id.clone();
+        let chain_id = self.get_chain().state().chain_id;
+        let network_id = self.0.get_chain().state().network.id;
         let contracts = json
             .get(chain_id)
             .unwrap()
@@ -192,8 +192,8 @@ impl AnsHost<Daemon> {
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
-        let chain_id = self.get_chain().state().chain_id.clone();
-        let network_id = self.0.get_chain().state().network.id.clone();
+        let chain_id = self.get_chain().state().chain_id;
+        let network_id = self.0.get_chain().state().network.id;
         let pools = json
             .get(chain_id)
             .unwrap()
