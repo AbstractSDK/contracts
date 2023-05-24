@@ -30,7 +30,6 @@ impl<Chain: CwEnv> Uploadable for ModuleFactory<Chain> {
 }
 
 impl<Chain: CwEnv> ModuleFactory<Chain> {
-
     pub fn change_ans_host_addr(
         &self,
         mem_addr: String,

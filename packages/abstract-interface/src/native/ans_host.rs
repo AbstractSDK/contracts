@@ -39,7 +39,6 @@ impl<Chain: CwEnv> AnsHost<Chain>
 where
     TxResponse<Chain>: IndexResponse,
 {
-
     pub fn load(chain: Chain, address: &Addr) -> Self {
         Self(cw_orch::contract::Contract::new(ANS_HOST, chain).with_address(Some(address)))
     }

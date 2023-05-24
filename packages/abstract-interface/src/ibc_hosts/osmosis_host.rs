@@ -6,5 +6,4 @@ use cw_orch::{interface, prelude::*};
 #[interface(InstantiateMsg, Empty, QueryMsg, MigrateMsg)]
 pub struct OsmosisHost<Chain>;
 
-impl<Chain: CwEnv> OsmosisHost<Chain> {
-}
+impl<Chain: CwEnv> OsmosisHost<Chain> {}

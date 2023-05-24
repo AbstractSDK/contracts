@@ -41,7 +41,6 @@ impl<Chain: CwEnv> Uploadable for AccountFactory<Chain> {
 }
 
 impl<Chain: CwEnv> AccountFactory<Chain> {
-
     pub fn create_new_account(
         &self,
         account_details: AccountDetails,

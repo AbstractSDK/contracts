@@ -31,7 +31,6 @@ impl<Chain: CwEnv> Uploadable for Proxy<Chain> {
 }
 
 impl<Chain: CwEnv> Proxy<Chain> {
-
     pub fn set_proxy_asset(
         &self,
         to_add: Vec<(AssetEntry, UncheckedPriceSource)>,

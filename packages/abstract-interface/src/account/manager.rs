@@ -33,7 +33,6 @@ impl<Chain: CwEnv> Uploadable for Manager<Chain> {
 }
 
 impl<Chain: CwEnv> Manager<Chain> {
-
     pub fn upgrade_module<M: Serialize>(
         &self,
         module_id: &str,

@@ -5,7 +5,7 @@ use std::env::set_var;
 use crate::Abstract;
 use cw_orch::prelude::*;
 
-#[cfg(feature="daemon")]
+#[cfg(feature = "daemon")]
 #[test]
 #[serial_test::serial]
 fn test_deploy_abstract() {
