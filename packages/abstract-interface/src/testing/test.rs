@@ -8,7 +8,6 @@ use crate::Abstract;
 use cw_orch::prelude::*;
 
 #[test]
-#[cfg(feature = "node-tests")]  
 #[serial_test::serial]
 fn test_deploy_abstract(){
     set_var("TEST_MNEMONIC","extra infant liquid afraid lens legend frown horn flame vessel palm nuclear jazz build iron squeeze review stock they snake dawn metal outdoor muffin");
