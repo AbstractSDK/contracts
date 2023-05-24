@@ -101,3 +101,6 @@ debug-assertions = false
 codegen-units = 1
 panic = 'abort'
 incremental = false
+
+[patch.crates-io]
+cw-orch = {path="../cw-orchestrator/cw-orch"}

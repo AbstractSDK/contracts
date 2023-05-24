@@ -6,16 +6,11 @@ license = { workspace = true }
 description = "Abstract deployment helpers with cw-orchestrator"
 
 [features]
-default = ["integration"]
+default = ["integration", "build-script", "node-tests"]
 daemon = ["cw-orch/daemon"]
-integration = [
-  "dep:ans-host",
-  "dep:module-factory",
-  "dep:account-factory",
-  "dep:version-control",
-  "dep:proxy",
-  "dep:manager",
-]
+integration = ["dep:ans-host", "dep:module-factory", "dep:account-factory", "dep:version-control", "dep:proxy", "dep:manager"]
+build-script=[]
+node-tests=[]
 
 [dependencies]
 cosmwasm-std = { workspace = true }
@@ -43,3 +38,14 @@ ans-host = { package = "abstract-ans-host", path = "../../contracts/native/ans-h
 version-control = { package = "abstract-version-control", path = "../../contracts/native/version-control", default-features = false, version = "0.15.0", optional = true }
 proxy = { package = "abstract-proxy", path = "../../contracts/account/proxy", default-features = false, version = "0.15.0", optional = true }
 manager = { package = "abstract-manager", path = "../../contracts/account/manager", default-features = false, version = "0.15.0", optional = true }
+ctor = "0.2.0"
+
+[build-dependencies]
+serde_json = "1.0.79"
+dotenv = "0.15.0"
+
+[dev-dependencies]
+serial_test = "2.0.0"
+env_logger = "0.10.0"
+uid = "0.1.7"
+duct = "0.13.6"

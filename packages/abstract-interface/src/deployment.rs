@@ -84,10 +84,13 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         Ok(deployment)
     }
 
-    fn load_from(chain: Chain) -> Result<Self, AbstractInterfaceError> {
-        Ok(Self::new(chain))
+    fn load_from(chain: &mut Chain) -> Result<Self, AbstractInterfaceError> {   
+        custom_state(chain);
+        Ok(Self::new(chain.to_owned()))
     }
 }
+
+include!(concat!(env!("OUT_DIR"), "/add_custom_state.rs"));
 
 impl<Chain: CwEnv> Abstract<Chain> {
     pub fn new(chain: Chain) -> Self {
