@@ -1,13 +1,12 @@
 #[cfg(feature = "daemon")]
 #[test]
-#[serial_test::serial]
 fn test_deploy_abstract() {
     use abstract_core::ans_host::InstantiateMsg;
     use cw_orch::daemon::DaemonError;
     use cw_orch::deploy::Deploy;
     use std::env::set_var;
 
-    use crate::Abstract;
+    use abstract_interface::Abstract;
     use cw_orch::prelude::*;
 
     set_var("TEST_MNEMONIC","extra infant liquid afraid lens legend frown horn flame vessel palm nuclear jazz build iron squeeze review stock they snake dawn metal outdoor muffin");
@@ -31,7 +30,7 @@ fn test_deploy_abstract() {
         .instantiate(&InstantiateMsg {}, None, None)
         .unwrap_err();
 
-    // We expect the error to be that the accout doesn't exist
+    // We expect the error to be that the account doesn't exist
     match &error {
         CwOrchError::DaemonError(DaemonError::Status(s)) => {
             if s.message()

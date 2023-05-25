@@ -1,6 +1,3 @@
-// Re-export boot
-pub extern crate cw_orch;
-
 pub mod idea_token;
 
 mod account;
@@ -28,6 +25,3 @@ pub use error::AbstractInterfaceError;
 pub use crate::deployers::*;
 
 pub use crate::deployment::*;
-
-#[cfg(test)]
-mod testing;

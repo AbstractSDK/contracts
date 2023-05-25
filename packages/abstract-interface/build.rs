@@ -1,13 +1,6 @@
-// use std::env;
-// use std::fs;
 use std::path::PathBuf;
-// use std::path::{Path};
-// const CRATE_PATH: &str = env!("CARGO_MANIFEST_DIR");
 
 fn main() {
-    // let out_dir = env::var_os("OUT_DIR").unwrap();
-    // let dest_path = Path::new(&out_dir).join("add_custom_state.rs");
-
     // This is where the custom state comes from, not possible to change that for now
     let state_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("daemon_state.json")
@@ -20,7 +13,7 @@ fn main() {
         .to_string();
 
     // First we load the daemon json file
-    // We verify that the daemon_file is actually present wher it should be located
+    // We verify that the daemon_file is actually present where it should be located
     assert!(
         std::fs::metadata(state_path.clone()).is_ok(),
         "File should be present at {}",
