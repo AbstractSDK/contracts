@@ -57,6 +57,9 @@ semver = "1.0"
 cw-semver = { version = "1.0" }
 cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator/" }
 tokio = { version = "1.4", features = ["full"] }
+
+## crates in order of publishing ## see docs/Publishing.md
+
 abstract-adapter = { path = "packages/abstract-adapter" }
 abstract-app = { path = "packages/abstract-app" }
 
