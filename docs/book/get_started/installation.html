@@ -149,7 +149,66 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="installation---how-to-get-started"><a class="header" href="#installation---how-to-get-started">Installation - How to get started</a></h1>
+                        <h1 id="setting-up-the-environment"><a class="header" href="#setting-up-the-environment">Setting up the environment</a></h1>
+<p>Before you get started with the Abstract SDK, you will need to set up your development environment. This guide will walk you through the process of setting up your environment and creating your first Abstract app module.</p>
+<h2 id="rust"><a class="header" href="#rust">Rust</a></h2>
+<p>To work with the SDK you will need the Rust programming language installed on your
+machine. If you don’t have it installed, you can find installation instructions on <a href="https://www.rust-lang.org/tools/install">the
+Rust website</a>.</p>
+<h2 id="wasm"><a class="header" href="#wasm">WASM</a></h2>
+<p>Additionally, you will need the Wasm compiler installed to build
+WASM binaries. To install it, run:</p>
+<pre><code class="language-shell">$ rustup target add wasm32-unknown-unknown
+&gt; installing wasm32-unknown-unknown
+</code></pre>
+<h2 id="git"><a class="header" href="#git">Git</a></h2>
+<p>You will also need git installed to clone our template repository. You can find instructions how to do so <a href="https://git-scm.com/book/en/v2/Getting-Started-Installing-Git">here</a>.</p>
+<h2 id="recommended-tools"><a class="header" href="#recommended-tools">Recommended tools</a></h2>
+<ul>
+<li><a href="https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer">Rust Analyzer:</a> Rust Analyzer is a language server that provides IDE support for Rust. If you use VS-Code it’s highly recommended.</li>
+<li><a href="https://docs.docker.com/desktop/">Docker:</a> Our testing infrastructure uses Docker to run the tests. If you want to run the tests locally, you will need to install Docker.</li>
+<li><a href="https://github.com/casey/just#installation">Just:</a> Just is a command runner that we use to improve the development flow. You can install it by following the instructions.</li>
+</ul>
+<h2 id="using-the-template"><a class="header" href="#using-the-template">Using the Template</a></h2>
+<p>Time to start building! We’ll get you set up with the Abstract App template which contains:</p>
+<ul>
+<li>A scaffold app module with:
+<ul>
+<li>A basic contract</li>
+<li>cw-orchestrator interface and deployment script</li>
+<li>Integration tests</li>
+</ul>
+</li>
+<li>A scaffold front-end with:
+<ul>
+<li>A basic UI</li>
+<li>A basic API client</li>
+</ul>
+</li>
+<li>A set of just commands that will boost your productivity.</li>
+</ul>
+<p>Go to <a href="https://github.com/AbstractSDK/app-template">our App Template on Github</a> and click on the “Use this template” button to create a new repository based on the template. You can name the repository whatever you want, but we recommend using the name of your module.</p>
+<p>Go ahead and read through the readme of the template repository. It contains instructions on how to set up your development environment and how the template is structured.</p>
+<h2 id="tools-used-in-the-template"><a class="header" href="#tools-used-in-the-template">Tools used in the template</a></h2>
+<p>The following Rust tools are used extensively in our template to improve your productivity.</p>
+<ul>
+<li><a href="https://taplo.tamasfe.dev/cli/installation/cargo.html">Taplo:</a> The CI shipped with the template will perform formatting checks. To ensure you pass the checks, you can install Taplo and use the <code>just format</code> command to format your code and toml files.</li>
+<li><a href="https://nexte.st/index.html">Nextest:</a> A better cargo test runner.</li>
+<li><a href="https://github.com/alopatindev/cargo-limit">Cargo Limit:</a> Prioritizes errors over warnings in compile output as well as some other small improvements.</li>
+<li><a href="https://crates.io/crates/cargo-watch">Cargo Watch:</a> Allows you to automatically re-run compilation when files change. This is useful when you are working on the contracts and want to fix compiler errors one by one.</li>
+</ul>
+<p>You can install them by running <code>just install-tools</code>. All of the tools are built from source by Cargo.</p>
+<h2 id="contract-layout"><a class="header" href="#contract-layout">Contract layout</a></h2>
+<p>The template contains a scaffold contract that you can use as a starting point for your own contract. The contract is located in the <code>src</code> directory and is structured as follows:</p>
+<ul>
+<li><code>contract.rs</code>: This file is the top-level file for your module. It contains the type definition of you module and the const builder that constructs your contract. It also contains a macro that exports your contract’s entry points. You can also specify the contract’s dependencies here.</li>
+<li><code>error.rs</code>: This file contains the error types that your contract can return.</li>
+<li><code>msg.rs</code>: This file contains the custom message types that your contract can receive. These messages also have <code>cw-orchestrator</code> macros attached to them which comes in useful when you are writing your integration tests.</li>
+<li><code>state.rs</code>: This file contains the state types that your contract will use to store state to the blockchain.</li>
+<li><code>interface.rs</code>: This file contains the interface that your contract will use to interact with the <code>cw-orchestrator</code> library.</li>
+<li><code>replies/</code>: This directory contains the reply handlers that your contract will use to handle replies.</li>
+<li><code>handlers/</code>: This directory contains the message handlers that your contract will use to handle the different messages it can receive.</li>
+</ul>
 
                     </main>
 
@@ -180,6 +239,22 @@
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 

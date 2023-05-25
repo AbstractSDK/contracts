@@ -214,6 +214,7 @@
 <h3 id="4-error-handling-and-atomic-transactions"><a class="header" href="#4-error-handling-and-atomic-transactions">4. Error Handling and Atomic Transactions</a></h3>
 <p>A top-level message in CosmWasm represents a transaction that encompasses multiple sub-messages. If any sub-message encounters an error, the entire transaction is rolled back, reverting all state changes made within that transaction. This ensures atomicity and prevents inconsistent states in the contract</p>
 <h2 id="relevance-to-the-abstract-account"><a class="header" href="#relevance-to-the-abstract-account">Relevance to the Abstract Account</a></h2>
+<p>TODO: We bring up modules here without any context. We might want to keep this a bit vague for now, i.e. don’t mention modules. </p>
 <p>In the context of Abstract, each installed (or enabled) module acting as an independent actor provides distinct benefits.</p>
 <h3 id="enhanced-security-through-state-isolation"><a class="header" href="#enhanced-security-through-state-isolation">Enhanced Security through State Isolation</a></h3>
 <p>Each module’s state is securely isolated, significantly reducing the potential attack surface for malicious actors. This is crucial in safeguarding against threats such as re-entrancy attacks, where an attacker might exploit state changes during the execution of a function. In addition, if a module interfacing with an external protocol experiences a compromise, only the assets directly interacting with that protocol may be at risk, leaving the rest secure. This containment, driven by the actor model, minimizes potential losses by restricting the impact of breaches to the affected modules alone.</p>
@@ -335,11 +336,84 @@ Suppose you are building a DeFi platform using Abstract and want to implement mu
 </li>
 </ol>
 <p>With this configuration, any proposal will require approval from stakeholders with a combined voting weight of at least 60% to be executed. This ensures a more democratic decision-making process and reduces the risk of a single stakeholder making unilateral decisions.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="getting-started-with-abstract"><a class="header" href="#getting-started-with-abstract">Getting Started With Abstract</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="installation---how-to-get-started"><a class="header" href="#installation---how-to-get-started">Installation - How to get started</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="abstract-sdk---how-to-get-started"><a class="header" href="#abstract-sdk---how-to-get-started">Abstract SDK - How to get started</a></h1>
+<p>So you want to build on Abstract? Let’s get your idea shipped!</p>
+<p>This tutorial will walk you through the process of setting up your development environment, creating an <a href="get_started/../sdk/modules.html">app module</a>, and deploying your first module to our on-chain store with <a href="https://github.com/AbstractSDK/cw-orchestrator">cw-orchestator</a>.</p>
+<h2 id="prerequisites"><a class="header" href="#prerequisites">Prerequisites</a></h2>
+<ol>
+<li>
+<p>A minimal understanding of Rust is expected. If you are new to Rust, you can find a great introduction to the language in the <a href="https://doc.rust-lang.org/book/">The Rust Book</a>.</p>
+</li>
+<li>
+<p>The Abstract SDK is built using the CosmWasm smart-contract framework. If you are new to CosmWasm, you can find a great introduction to the framework in the <a href="https://book.cosmwasm.com/">CosmWasm Book</a>.</p>
+</li>
+<li>
+<p>Abstract also makes extensive use of <a href="https://github.com/AbstractSDK/cw-orchestrator"><code>cw-orchestrator</code></a>, our CosmWasm scripting library. You can read its documentation <a href="https://orchestrator.abstract.money/">here</a>.</p>
+</li>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="setting-up-the-environment"><a class="header" href="#setting-up-the-environment">Setting up the environment</a></h1>
+<p>Before you get started with the Abstract SDK, you will need to set up your development environment. This guide will walk you through the process of setting up your environment and creating your first Abstract app module.</p>
+<h2 id="rust"><a class="header" href="#rust">Rust</a></h2>
+<p>To work with the SDK you will need the Rust programming language installed on your
+machine. If you don’t have it installed, you can find installation instructions on <a href="https://www.rust-lang.org/tools/install">the
+Rust website</a>.</p>
+<h2 id="wasm"><a class="header" href="#wasm">WASM</a></h2>
+<p>Additionally, you will need the Wasm compiler installed to build
+WASM binaries. To install it, run:</p>
+<pre><code class="language-shell">$ rustup target add wasm32-unknown-unknown
+&gt; installing wasm32-unknown-unknown
+</code></pre>
+<h2 id="git"><a class="header" href="#git">Git</a></h2>
+<p>You will also need git installed to clone our template repository. You can find instructions how to do so <a href="https://git-scm.com/book/en/v2/Getting-Started-Installing-Git">here</a>.</p>
+<h2 id="recommended-tools"><a class="header" href="#recommended-tools">Recommended tools</a></h2>
+<ul>
+<li><a href="https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer">Rust Analyzer:</a> Rust Analyzer is a language server that provides IDE support for Rust. If you use VS-Code it’s highly recommended.</li>
+<li><a href="https://docs.docker.com/desktop/">Docker:</a> Our testing infrastructure uses Docker to run the tests. If you want to run the tests locally, you will need to install Docker.</li>
+<li><a href="https://github.com/casey/just#installation">Just:</a> Just is a command runner that we use to improve the development flow. You can install it by following the instructions.</li>
+</ul>
+<h2 id="using-the-template"><a class="header" href="#using-the-template">Using the Template</a></h2>
+<p>Time to start building! We’ll get you set up with the Abstract App template which contains:</p>
+<ul>
+<li>A scaffold app module with:
+<ul>
+<li>A basic contract</li>
+<li>cw-orchestrator interface and deployment script</li>
+<li>Integration tests</li>
+</ul>
+</li>
+<li>A scaffold front-end with:
+<ul>
+<li>A basic UI</li>
+<li>A basic API client</li>
+</ul>
+</li>
+<li>A set of just commands that will boost your productivity.</li>
+</ul>
+<p>Go to <a href="https://github.com/AbstractSDK/app-template">our App Template on Github</a> and click on the “Use this template” button to create a new repository based on the template. You can name the repository whatever you want, but we recommend using the name of your module.</p>
+<p>Go ahead and read through the readme of the template repository. It contains instructions on how to set up your development environment and how the template is structured.</p>
+<h2 id="tools-used-in-the-template"><a class="header" href="#tools-used-in-the-template">Tools used in the template</a></h2>
+<p>The following Rust tools are used extensively in our template to improve your productivity.</p>
+<ul>
+<li><a href="https://taplo.tamasfe.dev/cli/installation/cargo.html">Taplo:</a> The CI shipped with the template will perform formatting checks. To ensure you pass the checks, you can install Taplo and use the <code>just format</code> command to format your code and toml files.</li>
+<li><a href="https://nexte.st/index.html">Nextest:</a> A better cargo test runner.</li>
+<li><a href="https://github.com/alopatindev/cargo-limit">Cargo Limit:</a> Prioritizes errors over warnings in compile output as well as some other small improvements.</li>
+<li><a href="https://crates.io/crates/cargo-watch">Cargo Watch:</a> Allows you to automatically re-run compilation when files change. This is useful when you are working on the contracts and want to fix compiler errors one by one.</li>
+</ul>
+<p>You can install them by running <code>just install-tools</code>. All of the tools are built from source by Cargo.</p>
+<h2 id="contract-layout"><a class="header" href="#contract-layout">Contract layout</a></h2>
+<p>The template contains a scaffold contract that you can use as a starting point for your own contract. The contract is located in the <code>src</code> directory and is structured as follows:</p>
+<ul>
+<li><code>contract.rs</code>: This file is the top-level file for your module. It contains the type definition of you module and the const builder that constructs your contract. It also contains a macro that exports your contract’s entry points. You can also specify the contract’s dependencies here.</li>
+<li><code>error.rs</code>: This file contains the error types that your contract can return.</li>
+<li><code>msg.rs</code>: This file contains the custom message types that your contract can receive. These messages also have <code>cw-orchestrator</code> macros attached to them which comes in useful when you are writing your integration tests.</li>
+<li><code>state.rs</code>: This file contains the state types that your contract will use to store state to the blockchain.</li>
+<li><code>interface.rs</code>: This file contains the interface that your contract will use to interact with the <code>cw-orchestrator</code> library.</li>
+<li><code>replies/</code>: This directory contains the reply handlers that your contract will use to handle replies.</li>
+<li><code>handlers/</code>: This directory contains the message handlers that your contract will use to handle the different messages it can receive.</li>
+</ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="account-creation"><a class="header" href="#account-creation">Account Creation</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="sdk"><a class="header" href="#sdk">SDK</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="module-creation"><a class="header" href="#module-creation">Module Creation</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="module-development"><a class="header" href="#module-development">Module Development</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ibc"><a class="header" href="#ibc">IBC</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="interchain-abstract-accounts"><a class="header" href="#interchain-abstract-accounts">Interchain Abstract Accounts</a></h1>
 <p>Interchain Abstract Accounts is Abstract’s solution to chain-agnostic accounts. It allows users to create an account on one chain and use it on any other chain that supports Abstract. This is achieved by using a combination of the <a href="https://ibcprotocol.org/">Inter-Blockchain Communication (IBC) protocol</a> and the <a href="ibc/../introduction/architecture.html">Abstract Accounts</a>.</p>
@@ -771,6 +845,22 @@ for public functions and methods.</li>
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 

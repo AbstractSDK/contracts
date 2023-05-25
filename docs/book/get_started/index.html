@@ -149,7 +149,21 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="getting-started-with-abstract"><a class="header" href="#getting-started-with-abstract">Getting Started With Abstract</a></h1>
+                        <h1 id="abstract-sdk---how-to-get-started"><a class="header" href="#abstract-sdk---how-to-get-started">Abstract SDK - How to get started</a></h1>
+<p>So you want to build on Abstract? Let’s get your idea shipped!</p>
+<p>This tutorial will walk you through the process of setting up your development environment, creating an <a href="../sdk/modules.html">app module</a>, and deploying your first module to our on-chain store with <a href="https://github.com/AbstractSDK/cw-orchestrator">cw-orchestator</a>.</p>
+<h2 id="prerequisites"><a class="header" href="#prerequisites">Prerequisites</a></h2>
+<ol>
+<li>
+<p>A minimal understanding of Rust is expected. If you are new to Rust, you can find a great introduction to the language in the <a href="https://doc.rust-lang.org/book/">The Rust Book</a>.</p>
+</li>
+<li>
+<p>The Abstract SDK is built using the CosmWasm smart-contract framework. If you are new to CosmWasm, you can find a great introduction to the framework in the <a href="https://book.cosmwasm.com/">CosmWasm Book</a>.</p>
+</li>
+<li>
+<p>Abstract also makes extensive use of <a href="https://github.com/AbstractSDK/cw-orchestrator"><code>cw-orchestrator</code></a>, our CosmWasm scripting library. You can read its documentation <a href="https://orchestrator.abstract.money/">here</a>.</p>
+</li>
+</ol>
 
                     </main>
 
@@ -180,6 +194,22 @@
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 
