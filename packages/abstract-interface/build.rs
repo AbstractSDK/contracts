@@ -1,6 +1,6 @@
 // use std::env;
 // use std::fs;
-use std::{path::PathBuf};
+use std::path::PathBuf;
 // use std::path::{Path};
 // const CRATE_PATH: &str = env!("CARGO_MANIFEST_DIR");
 
@@ -9,13 +9,23 @@ fn main() {
     // let dest_path = Path::new(&out_dir).join("add_custom_state.rs");
 
     // This is where the custom state comes from, not possible to change that for now
-    let state_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("daemon_state.json").display().to_string();
+    let state_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("daemon_state.json")
+        .display()
+        .to_string();
     // This is where the compiled wasm come from, not possible to change that for now
-    let artifacts_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("artifacts").display().to_string();
+    let artifacts_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("artifacts")
+        .display()
+        .to_string();
 
     // First we load the daemon json file
     // We verify that the daemon_file is actually present wher it should be located
-    assert!(std::fs::metadata(state_path.clone()).is_ok(), "File should be present at {}", state_path);
+    assert!(
+        std::fs::metadata(state_path.clone()).is_ok(),
+        "File should be present at {}",
+        state_path
+    );
 
     // Now, we output the json file so that it can be used in the daemon state. We want this load to be non-null when exporting the package
 
