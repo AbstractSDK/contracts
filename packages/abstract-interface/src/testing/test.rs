@@ -31,7 +31,6 @@ fn test_deploy_abstract() {
         .instantiate(&InstantiateMsg {}, None, None)
         .unwrap_err();
 
-    
     // We expect the error to be that the accout doesn't exist
     match &error {
         CwOrchError::DaemonError(DaemonError::Status(s)) => {
