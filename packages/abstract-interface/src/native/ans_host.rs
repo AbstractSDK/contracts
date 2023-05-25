@@ -9,7 +9,6 @@ use cosmwasm_std::Addr;
 use cw_asset::AssetInfoUnchecked;
 
 use cw_orch::{interface, prelude::*, state::ChainState};
-use log::info;
 use serde_json::from_reader;
 use std::{cmp::min, collections::HashSet, env, fs::File};
 
