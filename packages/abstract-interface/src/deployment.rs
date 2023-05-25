@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 use crate::{
     get_account_contracts, get_native_contracts, AbstractAccount, AbstractInterfaceError,
     AccountFactory, AnsHost, Manager, ModuleFactory, Proxy, VersionControl,
@@ -86,20 +84,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         Ok(deployment)
     }
 
-    /// Sets the custom state file path for exporting the state (used when exporting a crate)
-    /// TODO, we might want to enforce the projects to redefine this funciton ?
-    fn get_deployed_state_file(&self) -> Option<String> {
-        let crate_path = env!("CARGO_MANIFEST_DIR");
-
-        Some(
-            PathBuf::from(crate_path)
-                .join("daemon_state.json")
-                .display()
-                .to_string(),
-        )
-    }
-
-    fn get_contracts(&mut self) -> Vec<Box<&mut dyn ContractInstance<Chain>>> {
+    fn get_contracts_mut(&mut self) -> Vec<Box<&mut dyn ContractInstance<Chain>>> {
         vec![
             Box::new(&mut self.ans_host),
             Box::new(&mut self.version_control),
