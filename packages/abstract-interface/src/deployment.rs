@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use crate::{
     get_account_contracts, get_native_contracts, AbstractAccount, AbstractInterfaceError,
     AccountFactory, AnsHost, Manager, ModuleFactory, Proxy, VersionControl,
@@ -93,6 +95,17 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             Box::new(&mut self.account.manager),
             Box::new(&mut self.account.proxy),
         ]
+    }
+
+    fn deployed_state_file_path(&self) -> Option<String> {
+        let crate_path = env!("CARGO_MANIFEST_DIR");
+
+        Some(
+            PathBuf::from(crate_path)
+                .join("daemon_state.json")
+                .display()
+                .to_string(),
+        )
     }
 
     fn load_from(chain: Chain) -> Result<Self, Self::Error> {
