@@ -5,7 +5,8 @@ use abstract_testing::prelude::{TEST_MODULE_ID, TEST_PROXY};
 use cosmwasm_std::{Addr, Deps};
 
 use crate::features::{
-    AbstractNameService, AccountIdentification, Dependencies, ModuleIdentification, AbstractRegistryAccess,
+    AbstractNameService, AbstractRegistryAccess, AccountIdentification, Dependencies,
+    ModuleIdentification,
 };
 use crate::AbstractSdkResult;
 use abstract_core::objects::ans_host::AnsHost;
