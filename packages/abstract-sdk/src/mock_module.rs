@@ -5,7 +5,7 @@ use abstract_testing::prelude::{TEST_MODULE_ID, TEST_PROXY};
 use cosmwasm_std::{Addr, Deps};
 
 use crate::features::{
-    AbstractNameService, AccountIdentification, Dependencies, ModuleIdentification,
+    AbstractNameService, AccountIdentification, Dependencies, ModuleIdentification, AbstractRegistryAccess,
 };
 use crate::AbstractSdkResult;
 use abstract_core::objects::ans_host::AnsHost;
@@ -29,6 +29,12 @@ impl AbstractNameService for MockModule {
         Ok(AnsHost {
             address: Addr::unchecked("ans"),
         })
+    }
+}
+
+impl AbstractRegistryAccess for MockModule {
+    fn abstract_registry(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
+        Ok(Addr::unchecked("abstract_registry"))
     }
 }
 
