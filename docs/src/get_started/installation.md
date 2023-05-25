@@ -68,3 +68,7 @@ The template contains a scaffold contract that you can use as a starting point f
 - `interface.rs`: This file contains the interface that your contract will use to interact with the `cw-orchestrator` library.
 - `replies/`: This directory contains the reply handlers that your contract will use to handle replies.
 - `handlers/`: This directory contains the message handlers that your contract will use to handle the different messages it can receive.
+
+## Front-end layout
+
+TODO: 
