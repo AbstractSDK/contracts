@@ -14,13 +14,13 @@ fn test_deploy_abstract() {
 
     let runtime = tokio::runtime::Runtime::new().unwrap();
 
-    let mut daemon = Daemon::builder()
+    let daemon = Daemon::builder()
         .chain(networks::UNI_6)
         .handle(runtime.handle())
         .build()
         .unwrap();
 
-    let abstr = Abstract::load_from(&mut daemon).unwrap();
+    let abstr = Abstract::load_from(daemon).unwrap();
 
     // We test if the wasm file is present alright
     abstr.ans_host.wasm();
@@ -31,6 +31,7 @@ fn test_deploy_abstract() {
         .instantiate(&InstantiateMsg {}, None, None)
         .unwrap_err();
 
+    
     // We expect the error to be that the accout doesn't exist
     match &error {
         CwOrchError::DaemonError(DaemonError::Status(s)) => {

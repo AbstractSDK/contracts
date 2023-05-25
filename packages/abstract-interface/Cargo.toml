@@ -16,7 +16,6 @@ integration = [
   "dep:proxy",
   "dep:manager",
 ]
-build-script = []
 node-tests = []
 
 [dependencies]

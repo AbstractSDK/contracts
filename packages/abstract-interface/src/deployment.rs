@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use crate::{
     get_account_contracts, get_native_contracts, AbstractAccount, AbstractInterfaceError,
     AccountFactory, AnsHost, Manager, ModuleFactory, Proxy, VersionControl,
@@ -83,14 +85,35 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             })?;
         Ok(deployment)
     }
+    
+    /// Sets the custom state file path for exporting the state (used when exporting a crate)
+    /// TODO, we might want to enforce the projects to redefine this funciton ?
+    fn get_deployed_state_file(&self) -> Option<String>{
+        let crate_path = env!("CARGO_MANIFEST_DIR");
 
-    fn load_from(chain: &mut Chain) -> Result<Self, AbstractInterfaceError> {
-        custom_state(chain);
-        Ok(Self::new(chain.to_owned()))
+        Some(PathBuf::from(crate_path).join("daemon_state.json").display().to_string())
+    }
+
+    fn get_contracts(&mut self) -> Vec<Box<&mut dyn ContractInstance<Chain>>>{
+        vec![
+            Box::new(&mut self.ans_host),
+            Box::new(&mut self.version_control),
+            Box::new(&mut self.account_factory),
+            Box::new(&mut self.module_factory),
+            Box::new(&mut self.account.manager),
+            Box::new(&mut self.account.proxy),
+        ]
+    }
+
+    fn load_from(chain: Chain) -> Result<Self, Self::Error> {
+        let mut abstr = Self::new(chain);
+        // We register all the contracts default state
+        abstr.set_contracts_state();
+        Ok(abstr)
     }
 }
 
-include!(concat!(env!("OUT_DIR"), "/add_custom_state.rs"));
+
 
 impl<Chain: CwEnv> Abstract<Chain> {
     pub fn new(chain: Chain) -> Self {
