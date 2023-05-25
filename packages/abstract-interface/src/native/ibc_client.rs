@@ -7,5 +7,3 @@ pub use abstract_core::ibc_client::{
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct IbcClient<Chain>;
-
-impl<Chain: CwEnv> IbcClient<Chain> {}

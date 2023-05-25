@@ -15,7 +15,7 @@ fn test_deploy_abstract() {
     let runtime = tokio::runtime::Runtime::new().unwrap();
 
     let daemon = Daemon::builder()
-        .chain(networks::UNI_6)
+        .chain(networks::osmosis::OSMO_4)
         .handle(runtime.handle())
         .build()
         .unwrap();
@@ -35,7 +35,7 @@ fn test_deploy_abstract() {
     match &error {
         CwOrchError::DaemonError(DaemonError::Status(s)) => {
             if s.message()
-                .ne("account juno1cjh5gskpmvd5nx2hdeupdz0wadm78mxltkpnwp not found")
+                .ne("account osmo1cjh5gskpmvd5nx2hdeupdz0wadm78mxl4l3cl0 not found")
             {
                 panic!("Error not expected, {:?}", error);
             }
