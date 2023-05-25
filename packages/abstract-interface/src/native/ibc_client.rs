@@ -1,4 +1,4 @@
-use cw_orch::{interface};
+use cw_orch::interface;
 
 pub use abstract_core::ibc_client::{
     ExecuteMsg, ExecuteMsgFns as IbcClientExecFns, InstantiateMsg, MigrateMsg, QueryMsg,

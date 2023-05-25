@@ -16,7 +16,6 @@ fn main() {
         .unwrap_or_else(|_| panic!("File should be present at {}", state_path));
     // Now, we output the json file so that it can be used in the daemon state. We want this load to be non-null when exporting the package
 
-
     // This is useless for now, should we include that automatically ?
     // // This will be loaded from scripts out of the manifest dir
     // let absolute_state_path = PathBuf::from(CRATE_PATH).join(state_path);
