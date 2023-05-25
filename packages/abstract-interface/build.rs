@@ -1,12 +1,12 @@
-use std::env;
-use std::fs;
+// use std::env;
+// use std::fs;
 use std::fs::File;
-use std::path::{Path, PathBuf};
-const CRATE_PATH: &str = env!("CARGO_MANIFEST_DIR");
+// use std::path::{Path,PathBuf};
+// const CRATE_PATH: &str = env!("CARGO_MANIFEST_DIR");
 
 fn main() {
-    let out_dir = env::var_os("OUT_DIR").unwrap();
-    let dest_path = Path::new(&out_dir).join("add_custom_state.rs");
+    // let out_dir = env::var_os("OUT_DIR").unwrap();
+    // let dest_path = Path::new(&out_dir).join("add_custom_state.rs");
 
     let state_path = "daemon_state.json".to_string(); // This is where the custom state comes from, not possible to change that for now
 
