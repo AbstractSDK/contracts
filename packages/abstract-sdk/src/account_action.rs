@@ -8,6 +8,7 @@ use cosmwasm_std::CosmosMsg;
 pub struct AccountAction(Vec<CosmosMsg>);
 
 impl AccountAction {
+    /// Create a new empty AccountAction
     pub fn new() -> Self {
         Self(vec![])
     }
@@ -16,6 +17,7 @@ impl AccountAction {
     pub fn messages(&self) -> Vec<CosmosMsg> {
         self.0.clone()
     }
+    /// Merge two AccountActions into one.
     pub fn merge(&mut self, other: AccountAction) {
         self.0.extend(other.0)
     }

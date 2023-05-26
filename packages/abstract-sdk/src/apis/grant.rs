@@ -23,12 +23,11 @@ pub trait GrantInterface: AccountIdentification {
         # use cosmwasm_std::testing::mock_dependencies;
         # use abstract_sdk::mock_module::MockModule;
         # let module = MockModule::new();
-        # let deps = mock_dependencies();
 
         let grant: Grant = module.grant();
         ```
     */
-    fn grant<'a>(&'a self) -> Grant {
+    fn grant(&self) -> Grant {
         Grant {}
     }
 }
@@ -44,9 +43,8 @@ impl<T> GrantInterface for T where T: AccountIdentification {}
     # use cosmwasm_std::testing::mock_dependencies;
     # use abstract_sdk::mock_module::MockModule;
     # let module = MockModule::new();
-    # let deps = mock_dependencies();
 
-    let grant: Grant<MockModule>  = module.grant(deps.as_ref());
+    let grant: Grant  = module.grant();
     ```
 */
 #[derive(Clone)]
@@ -245,7 +243,7 @@ mod test {
     use super::*;
     use crate::mock_module::*;
 
-    use cosmwasm_std::{coins, testing::*};
+    use cosmwasm_std::coins;
 
     use speculoos::prelude::*;
 
@@ -255,7 +253,7 @@ mod test {
         #[test]
         fn basic_allowance() {
             let app = MockModule::new();
-            let deps = mock_dependencies();
+
             let grant = app.grant();
 
             let granter = Addr::unchecked("granter");
@@ -282,7 +280,7 @@ mod test {
         #[test]
         fn periodic_allowance() {
             let app = MockModule::new();
-            let deps = mock_dependencies();
+
             let grant = app.grant();
 
             let granter = Addr::unchecked("granter");
@@ -316,7 +314,7 @@ mod test {
         #[test]
         fn allow_basic() {
             let app = MockModule::new();
-            let deps = mock_dependencies();
+
             let grant = app.grant();
 
             let spend_limit = coins(100, "asset");
@@ -337,7 +335,7 @@ mod test {
         #[test]
         fn allow_periodic() {
             let app = MockModule::new();
-            let deps = mock_dependencies();
+
             let grant = app.grant();
 
             let period_spend_limit = vec![];
@@ -360,7 +358,7 @@ mod test {
         #[test]
         fn allow_both() {
             let app = MockModule::new();
-            let deps = mock_dependencies();
+
             let grant = app.grant();
 
             let spend_limit = coins(100, "asset");
@@ -391,7 +389,7 @@ mod test {
         #[test]
         fn revoke_all() {
             let app = MockModule::new();
-            let deps = mock_dependencies();
+
             let grant = app.grant();
 
             let granter = Addr::unchecked("granter");
