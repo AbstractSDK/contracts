@@ -12,7 +12,23 @@ use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, ReplyOn, Response, SubMsg};
 
 /// Execute an `AccountAction` on the Account.
 pub trait Execution: AccountIdentification + ModuleIdentification {
-    /// Create the executor environment from the smart contract dependencies
+    /**
+        API for executing [`AccountAction`]s on the Account.
+        Group your actions together in a single execute call if possible.
+
+        Executing [`CosmosMsg`] on the account is possible by creating an [`AccountAction`].
+
+        # Example
+        ```
+        use abstract_sdk::prelude::*;
+        # use cosmwasm_std::testing::mock_dependencies;
+        # use abstract_sdk::mock_module::MockModule;
+        # let module = MockModule::new();
+        # let deps = mock_dependencies();
+
+        let executor: Executor<MockModule>  = module.executor(deps.as_ref());
+        ```
+    */
     fn executor<'a>(&'a self, deps: Deps<'a>) -> Executor<Self> {
         Executor { base: self, deps }
     }
@@ -20,7 +36,23 @@ pub trait Execution: AccountIdentification + ModuleIdentification {
 
 impl<T> Execution for T where T: AccountIdentification + ModuleIdentification {}
 
-/// Struct that allows to execute messages inside a smart contract
+/**
+    API for executing [`AccountAction`]s on the Account.
+    Group your actions together in a single execute call if possible.
+
+    Executing [`CosmosMsg`] on the account is possible by creating an [`AccountAction`].
+
+    # Example
+    ```
+    use abstract_sdk::prelude::*;
+    # use cosmwasm_std::testing::mock_dependencies;
+    # use abstract_sdk::mock_module::MockModule;
+    # let module = MockModule::new();
+    # let deps = mock_dependencies();
+
+    let executor: Executor<MockModule>  = module.executor(deps.as_ref());
+    ```
+*/
 #[derive(Clone)]
 pub struct Executor<'a, T: Execution> {
     base: &'a T,

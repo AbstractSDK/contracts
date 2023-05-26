@@ -2,6 +2,8 @@ use cosmwasm_std::CosmosMsg;
 
 /// Encapsulates an action on the account.
 /// When a method returns an AccountAction, this means this message needs to be dispatched to the account using the [`Execution`] api.
+///
+/// If required you can create an AccountAction from a CosmosMsg using `AccountAction::from(msg)`.
 #[derive(Debug, PartialEq, Clone, Default)]
 pub struct AccountAction(Vec<CosmosMsg>);
 
