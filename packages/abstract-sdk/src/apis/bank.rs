@@ -144,7 +144,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
         &self,
         env: &Env,
         funds: Vec<R>,
-    ) -> AbstractSdkResult<Vec<CosmosMsg>> {
+    ) -> AbstractSdkResult<AccountAction> {
         let recipient = &env.contract.address;
         let transferable_funds = funds
             .into_iter()
@@ -154,7 +154,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
             .iter()
             .map(|asset| asset.transfer_msg(recipient.clone()))
             .collect::<Result<Vec<CosmosMsg>, _>>()
-            .map_err(Into::into)
+            .map_err(Into::into).map(Into::into)
     }
 
     /// Deposit coins into the Account
