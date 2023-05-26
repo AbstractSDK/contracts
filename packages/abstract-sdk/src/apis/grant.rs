@@ -9,8 +9,8 @@ use crate::features::AccountIdentification;
 use cosmos_sdk_proto::{cosmos::base, cosmos::feegrant, traits::Message, Any};
 use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Deps, Timestamp};
 
-use crate::cw_helpers::cw_messages::AccountAction;
 use crate::AbstractSdkResult;
+use crate::AccountAction;
 
 pub trait GrantInterface: AccountIdentification {
     fn grant<'a>(&'a self, _deps: Deps<'a>) -> Grant {

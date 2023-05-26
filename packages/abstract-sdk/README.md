@@ -34,7 +34,7 @@ The [`Bank`](https://docs.rs/abstract-sdk/latest/abstract_sdk/apis/bank) Adapter
 use abstract_sdk::{TransferInterface,AbstractSdkResult};
 use abstract_core::objects::AnsAsset;
 use cosmwasm_std::{Addr, CosmosMsg, Deps, StdResult, Uint128};
-use abstract_sdk::cw_helpers::cw_messages::AccountAction;
+use abstract_sdk::AccountAction;
 
 // Trait to retrieve the Splitter object
 // Depends on the ability to transfer funds

@@ -6,6 +6,7 @@ pub type AbstractSdkResult<T> = Result<T, crate::error::AbstractSdkError>;
 
 pub extern crate abstract_core as core;
 
+mod account_action;
 mod ans_resolve;
 mod apis;
 
@@ -21,6 +22,8 @@ pub use crate::apis::{
     adapter::*, app::*, bank::*, execution::*, ibc::*, modules::*, respond::*, vault::*, verify::*,
     version_registry::*,
 };
+
+pub use account_action::AccountAction;
 
 #[cfg(feature = "stargate")]
 pub use crate::apis::{distribution::*, grant::*};

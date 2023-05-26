@@ -1,5 +1,5 @@
 #![allow(unused)]
-use crate::cw_helpers::cw_messages::AccountAction;
+use crate::AccountAction;
 use crate::{AbstractSdkResult, TransferInterface};
 use abstract_core::objects::AnsAsset;
 use cosmwasm_std::{Addr, CosmosMsg, Deps, StdResult, Uint128};
