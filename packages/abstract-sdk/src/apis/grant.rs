@@ -7,19 +7,48 @@ use std::time::Duration;
 use crate::features::AccountIdentification;
 
 use cosmos_sdk_proto::{cosmos::base, cosmos::feegrant, traits::Message, Any};
-use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Deps, Timestamp};
+use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Timestamp};
 
 use crate::AbstractSdkResult;
 use crate::AccountAction;
 
+/// An interface to the CosmosSDK FeeGrant module which allows for granting fee expenditure rights.
 pub trait GrantInterface: AccountIdentification {
-    fn grant<'a>(&'a self, _deps: Deps<'a>) -> Grant {
+    /**
+        API for accessing the Cosmos SDK FeeGrant module.
+
+        # Example
+        ```
+        use abstract_sdk::prelude::*;
+        # use cosmwasm_std::testing::mock_dependencies;
+        # use abstract_sdk::mock_module::MockModule;
+        # let module = MockModule::new();
+        # let deps = mock_dependencies();
+
+        let grant: Grant = module.grant();
+        ```
+    */
+    fn grant<'a>(&'a self) -> Grant {
         Grant {}
     }
 }
 
 impl<T> GrantInterface for T where T: AccountIdentification {}
 
+/**
+    API for accessing the Cosmos SDK FeeGrant module.
+
+    # Example
+    ```
+    use abstract_sdk::prelude::*;
+    # use cosmwasm_std::testing::mock_dependencies;
+    # use abstract_sdk::mock_module::MockModule;
+    # let module = MockModule::new();
+    # let deps = mock_dependencies();
+
+    let grant: Grant<MockModule>  = module.grant(deps.as_ref());
+    ```
+*/
 #[derive(Clone)]
 pub struct Grant {}
 
@@ -139,15 +168,27 @@ impl Grant {
         Ok(msg.into())
     }
 }
+
+/// Details for a basic fee allowance grant
 pub struct BasicAllowance {
+    /// Maximum amount of tokens that can be spent
     pub spend_limit: Vec<Coin>,
+    /// When the grant expires
     pub expiration: Option<Timestamp>,
 }
 
+/// Details for a periodic fee allowance grant
 pub struct PeriodicAllowance {
+    /// period specifies the time duration in which period_spend_limit coins can
+    /// be spent before that allowance is reset
     pub period: Option<Duration>,
+    /// Maximum amount of tokens that can be spent per period
     pub period_spend_limit: Vec<Coin>,
+    /// period_can_spend is the number of coins left to be spent before the period_reset time
     pub period_can_spend: Vec<Coin>,
+    /// period_reset is the time at which this period resets and a new one begins,
+    /// it is calculated from the start time of the first transaction after the
+    /// last period ended
     pub period_reset: Option<Timestamp>,
 }
 
@@ -215,7 +256,7 @@ mod test {
         fn basic_allowance() {
             let app = MockModule::new();
             let deps = mock_dependencies();
-            let grant = app.grant(deps.as_ref());
+            let grant = app.grant();
 
             let granter = Addr::unchecked("granter");
             let grantee = Addr::unchecked("grantee");
@@ -242,7 +283,7 @@ mod test {
         fn periodic_allowance() {
             let app = MockModule::new();
             let deps = mock_dependencies();
-            let grant = app.grant(deps.as_ref());
+            let grant = app.grant();
 
             let granter = Addr::unchecked("granter");
             let grantee = Addr::unchecked("grantee");
@@ -276,7 +317,7 @@ mod test {
         fn allow_basic() {
             let app = MockModule::new();
             let deps = mock_dependencies();
-            let grant = app.grant(deps.as_ref());
+            let grant = app.grant();
 
             let spend_limit = coins(100, "asset");
             let expiration = Some(Timestamp::from_seconds(10));
@@ -297,7 +338,7 @@ mod test {
         fn allow_periodic() {
             let app = MockModule::new();
             let deps = mock_dependencies();
-            let grant = app.grant(deps.as_ref());
+            let grant = app.grant();
 
             let period_spend_limit = vec![];
             let period_can_spend = vec![];
@@ -320,7 +361,7 @@ mod test {
         fn allow_both() {
             let app = MockModule::new();
             let deps = mock_dependencies();
-            let grant = app.grant(deps.as_ref());
+            let grant = app.grant();
 
             let spend_limit = coins(100, "asset");
             let expiration = Some(Timestamp::from_seconds(10));
@@ -351,7 +392,7 @@ mod test {
         fn revoke_all() {
             let app = MockModule::new();
             let deps = mock_dependencies();
-            let grant = app.grant(deps.as_ref());
+            let grant = app.grant();
 
             let granter = Addr::unchecked("granter");
             let grantee = Addr::unchecked("grantee");

@@ -11,14 +11,47 @@ use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Deps};
 
 use crate::AbstractSdkResult;
 use crate::AccountAction;
+
+use crate::{AbstractSdkResult, Execution};
+
+/// Interact with the Cosmos SDK Distribution module.
+/// Requires `Stargate` feature.
 pub trait DistributionInterface: AccountIdentification {
-    fn distribution<'a>(&'a self, _deps: Deps<'a>) -> Distribution {
-        Distribution {}
+    /**
+        API for accessing the Cosmos SDK distribution module.
+
+        # Example
+        ```
+        use abstract_sdk::prelude::*;
+        # use cosmwasm_std::testing::mock_dependencies;
+        # use abstract_sdk::mock_module::MockModule;
+        # let module = MockModule::new();
+        # let deps = mock_dependencies();
+
+        let distr: Distribution<MockModule>  = module.distribution(deps.as_ref());
+        ```
+    */
+    fn distribution<'a>(&'a self, deps: Deps<'a>) -> Distribution<Self> {
+        Distribution { base: self, deps }
     }
 }
 
 impl<T> DistributionInterface for T where T: AccountIdentification {}
 
+/**
+    API for accessing the Cosmos SDK distribution module.
+
+    # Example
+    ```
+    use abstract_sdk::prelude::*;
+    # use cosmwasm_std::testing::mock_dependencies;
+    # use abstract_sdk::mock_module::MockModule;
+    # let module = MockModule::new();
+    # let deps = mock_dependencies();
+
+    let distr: Distribution<MockModule>  = module.distribution(deps.as_ref());
+    ```
+*/
 #[derive(Clone)]
 pub struct Distribution {}
 
