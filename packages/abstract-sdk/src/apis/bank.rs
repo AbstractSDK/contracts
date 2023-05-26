@@ -154,7 +154,8 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
             .iter()
             .map(|asset| asset.transfer_msg(recipient.clone()))
             .collect::<Result<Vec<CosmosMsg>, _>>()
-            .map_err(Into::into).map(Into::into)
+            .map_err(Into::into)
+            .map(Into::into)
     }
 
     /// Deposit coins into the Account
@@ -276,5 +277,28 @@ mod test {
         }
     }
 
-    // deposit must be tested via integration test
+    mod withdraw_coins {
+        use super::*;
+
+        #[test]
+        fn withdraw_coins() {
+            let app = MockModule::new();
+            let deps = mock_dependencies();
+            let expected_amount = 100u128;
+            let env = mock_env();
+
+            let bank = app.bank(deps.as_ref());
+            let coins = coins(expected_amount, "asset");
+            let actual_res = bank.withdraw(&env, coins.clone());
+
+            let expected_msg: CosmosMsg = CosmosMsg::Bank(BankMsg::Send {
+                to_address: env.contract.address.to_string(),
+                amount: coins,
+            });
+
+            assert_that!(actual_res)
+                .is_ok()
+                .is_equal_to::<CosmosMsg>(expected_msg);
+        }
+    }
 }
