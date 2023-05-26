@@ -31,10 +31,9 @@ allows you to retrieve the Adapter object.
 The [`Bank`](https://docs.rs/abstract-sdk/latest/abstract_sdk/apis/bank) Adapter allows developers to transfer assets from and to the Account through their module object. We now want to use this Adapter to create a `Splitter` API that splits the transfer of some amount of funds between a set of receivers.
 
 ```rust,no_run
-use abstract_sdk::{TransferInterface,AbstractSdkResult};
+use abstract_sdk::{TransferInterface,AbstractSdkResult, Execution, AccountAction};
 use abstract_core::objects::AnsAsset;
 use cosmwasm_std::{Addr, CosmosMsg, Deps, StdResult, Uint128};
-use abstract_sdk::AccountAction;
 
 // Trait to retrieve the Splitter object
 // Depends on the ability to transfer funds
@@ -66,16 +65,19 @@ impl<'a, T: SplitterInterface> Splitter<'a, T> {
 
         // Retrieve the bank API
         let bank = self.base.bank(self.deps);
-        let transfer_msgs: AbstractSdkResult<_> = receivers
+        receivers
             .iter()
             .map(|receiver| {
                 // Construct the transfer message
                 bank.transfer(vec![&receives_each], receiver)
             })
-            .collect::<AbstractSdkResult<Vec<_>>>()?
-            .merge();
-
-        transfer_msgs
+            .try_fold(AccountAction::new(), |mut acc, v| match v {
+                Ok(action) => {
+                    acc.merge(action);
+                    Ok(acc)
+                }
+                Err(e) => Err(e),
+            })
     }
 }
 ```
@@ -86,7 +88,7 @@ The API can then be used by any contract that implements its required traits, in
   # use abstract_sdk::features::{AccountIdentification, AbstractNameService, ModuleIdentification};
   # use cosmwasm_std::{StdResult, Deps, MessageInfo, CosmosMsg, Addr};
   # use abstract_sdk::feature_objects::AnsHost;
-  # use abstract_sdk::AbstractSdkResult;
+  # use abstract_sdk::{AbstractSdkResult};
   # pub struct MyContract {
   #     
   # }
@@ -106,11 +108,9 @@ The API can then be used by any contract that implements its required traits, in
   use abstract_sdk::TransferInterface;
 
   fn forward_deposit(deps: Deps, my_contract: MyContract, message_info: MessageInfo) -> AbstractSdkResult<CosmosMsg> {
-      let send_deposit_to_vault_action = my_contract.bank(deps).deposit_coins(message_info.funds)?;
+      let forward_deposit_msg = my_contract.bank(deps).deposit_coins(message_info.funds)?;
 
-      // now execute the msg
-      let exec_msg: CosmosMsg = my_contract.executor(deps.as_ref()).execute(send_deposit_to_vault_action)?;
-      Ok(exec_msg)
+      Ok(forward_deposit_msg)
   }
 ```
 

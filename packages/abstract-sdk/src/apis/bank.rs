@@ -45,9 +45,9 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     /// # use abstract_core::objects::AnsAsset;
     /// # use abstract_core::objects::ans_host::AnsHost;
     /// # use abstract_sdk::{
-    ///     features::{AccountIdentification, AbstractNameService, ModuleIdentification},
-    ///     TransferInterface, AbstractSdkResult,
-    /// };
+    /// #    features::{AccountIdentification, AbstractNameService, ModuleIdentification},
+    /// #    TransferInterface, AbstractSdkResult, Execution,
+    /// # };
     /// # struct MockModule;
     /// # impl AccountIdentification for MockModule {
     /// #    fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
@@ -68,7 +68,10 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     /// # }
     /// fn transfer_asset_to_sender(app: MockModule, deps: DepsMut, info: MessageInfo, requested_asset: AnsAsset) -> AbstractSdkResult<Response> {
     ///     let bank = app.bank(deps.as_ref());
-    ///     let transfer_msg = bank.transfer(vec![requested_asset.clone()], &info.sender)?;
+    ///     let executor = app.executor(deps.as_ref());    
+    ///     let transfer_action = bank.transfer(vec![requested_asset.clone()], &info.sender)?;
+    ///
+    ///     let transfer_msg = executor.execute(vec![transfer_action])?;
     ///
     ///     Ok(Response::new()
     ///         .add_message(transfer_msg)
