@@ -207,7 +207,7 @@ pub fn execute_send_funds(
     // let these messages be executed by proxy
     let proxy_msg = account_base
         .executor(deps.as_ref())
-        .execute(transfers.into())?;
+        .execute(vec![transfers.into()])?;
 
     Ok(IbcClientResponse::action("handle_send_funds").add_message(proxy_msg))
 }

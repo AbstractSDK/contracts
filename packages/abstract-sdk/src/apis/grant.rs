@@ -88,10 +88,7 @@ impl Grant {
     }
 
     /// Creates allowance only for PeriodicAllowance.
-    pub fn allow_periodic(
-        &self,
-        periodic: PeriodicAllowance,
-    ) -> AbstractSdkResult<AccountAction> {
+    pub fn allow_periodic(&self, periodic: PeriodicAllowance) -> AbstractSdkResult<AccountAction> {
         let msg = feegrant::v1beta1::AllowedMsgAllowance {
             allowance: Some(build_any_periodic(periodic, None)),
             allowed_messages: vec!["PeriodicAllowance".to_owned()],

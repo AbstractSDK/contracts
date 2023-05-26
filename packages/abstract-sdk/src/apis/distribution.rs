@@ -9,7 +9,7 @@ use cosmos_sdk_proto::{
 };
 use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Deps};
 
-use crate::cw_helpers::cw_messages::AbstractMessage;
+use crate::cw_helpers::cw_messages::AccountAction;
 use crate::AbstractSdkResult;
 pub trait DistributionInterface: AccountIdentification {
     fn distribution<'a>(&'a self, _deps: Deps<'a>) -> Distribution {

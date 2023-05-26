@@ -94,10 +94,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     }
 
     /// Move funds from the contract into the Account.
-    pub fn deposit<R: Transferable>(
-        &self,
-        funds: Vec<R>,
-    ) -> AbstractSdkResult<AccountAction> {
+    pub fn deposit<R: Transferable>(&self, funds: Vec<R>) -> AbstractSdkResult<AccountAction> {
         let recipient = self.base.proxy_address(self.deps)?;
         let transferable_funds = funds
             .into_iter()
@@ -179,8 +176,6 @@ mod test {
     use speculoos::prelude::*;
 
     mod transfer_coins {
-        use crate::Execution;
-
         use super::*;
 
         #[test]
@@ -201,7 +196,7 @@ mod test {
                 amount: coins,
             });
 
-            assert_that!(actual_res.unwrap().execute(app.executor(deps.as_ref())).unwrap()).is_equal_to(expected_msg);
+            assert_that!(actual_res.unwrap().messages()[0]).is_equal_to(&expected_msg);
         }
     }
 

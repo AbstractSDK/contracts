@@ -34,7 +34,7 @@ The [`Bank`](https://docs.rs/abstract-sdk/latest/abstract_sdk/apis/bank) Adapter
 use abstract_sdk::{TransferInterface,AbstractSdkResult};
 use abstract_core::objects::AnsAsset;
 use cosmwasm_std::{Addr, CosmosMsg, Deps, StdResult, Uint128};
-use abstract_sdk::cw_helpers::cw_messages::{AbstractMessage, AbstractMessageMerge};
+use abstract_sdk::cw_helpers::cw_messages::AccountAction;
 
 // Trait to retrieve the Splitter object
 // Depends on the ability to transfer funds
@@ -55,7 +55,7 @@ pub struct Splitter<'a, T: SplitterInterface> {
 
 impl<'a, T: SplitterInterface> Splitter<'a, T> {
     /// Split an asset to multiple users
-    pub fn split(&self, asset: AnsAsset, receivers: &[Addr]) -> AbstractSdkResult<Vec<CosmosMsg>> {
+    pub fn split(&self, asset: AnsAsset, receivers: &[Addr]) -> AbstractSdkResult<AccountAction> {
         // split the asset between all receivers
         let receives_each = AnsAsset {
             amount: asset
@@ -106,8 +106,11 @@ The API can then be used by any contract that implements its required traits, in
   use abstract_sdk::TransferInterface;
 
   fn forward_deposit(deps: Deps, my_contract: MyContract, message_info: MessageInfo) -> AbstractSdkResult<CosmosMsg> {
-      let send_deposit_to_vault_msg = my_contract.bank(deps).deposit_coins(message_info.funds)?;
-      Ok(send_deposit_to_vault_msg.into())
+      let send_deposit_to_vault_action = my_contract.bank(deps).deposit_coins(message_info.funds)?;
+
+      // now execute the msg
+      let exec_msg: CosmosMsg = my_contract.executor(deps.as_ref()).execute(send_deposit_to_vault_action)?;
+      Ok(exec_msg)
   }
 ```
 

@@ -23,11 +23,7 @@ pub struct Splitter<'a, T: SplitterInterface> {
 
 impl<'a, T: SplitterInterface> Splitter<'a, T> {
     /// Split an asset to multiple users
-    pub fn split(
-        &self,
-        asset: AnsAsset,
-        receivers: &[Addr],
-    ) -> AbstractSdkResult<AccountAction> {
+    pub fn split(&self, asset: AnsAsset, receivers: &[Addr]) -> AbstractSdkResult<AccountAction> {
         // split the asset between all receivers
         let receives_each = AnsAsset {
             amount: asset
@@ -44,9 +40,9 @@ impl<'a, T: SplitterInterface> Splitter<'a, T> {
                 // Construct the transfer message
                 bank.transfer(vec![&receives_each], receiver)
             })
-            .try_fold(AccountAction::empty(), |mut acc, v| match v {
-                Ok(vec) => {
-                    acc.extend(&vec);
+            .try_fold(AccountAction::new(), |mut acc, v| match v {
+                Ok(action) => {
+                    acc.merge(action);
                     Ok(acc)
                 }
                 Err(e) => Err(e),
