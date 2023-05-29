@@ -3,9 +3,6 @@ members = [
   "packages/*",
   "contracts/native/*",
   "contracts/account/*",
-  # "contracts/testing",
-  "contracts/token",
-  # "contracts/ibc-hosts/osmosis",
   "scripts",
 ]
 
