@@ -47,11 +47,6 @@ pub struct ModuleData {
 }
 // ANCHOR_END: metadata
 
-/// get_module_version can be use in migrate to read the previous version of this module
-pub fn get_module_data(store: &dyn Storage) -> StdResult<ModuleData> {
-    MODULE.load(store).map_err(Into::into)
-}
-
 /// set_module_version should be used in instantiate to store the original version, and after a successful
 /// migrate to update it
 pub fn set_module_data<T: Into<String>, U: Into<String>, M: Into<String>>(
