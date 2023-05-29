@@ -1,3 +1,5 @@
+use abstract_core::objects::module::assert_module_data_validity;
+
 use abstract_core::objects::module::{Module, ModuleVersion};
 use abstract_core::objects::module_version::MODULE;
 
@@ -136,58 +138,9 @@ pub fn register_contract(deps: DepsMut, result: SubMsgResult) -> ModuleFactoryRe
         })?;
     let module_address = deps.api.addr_validate(res.get_contract_address())?;
 
-    let cw_2_data = cw2::CONTRACT.query(&deps.querier, module_address.clone())?;
+    
 
-    // Assert that the contract name is equal to the module name
-    ensure_eq!(
-        module.info.id(),
-        cw_2_data.contract,
-        ModuleFactoryError::UnequalModuleData {
-            cw2: cw_2_data.contract,
-            module: module.info.id()
-        }
-    );
-
-    let ModuleVersion::Version(version) = &module.info.version else {
-        panic!("Module version is not versioned, context setting is wrong")
-    };
-
-    // Assert that the contract version is equal to the module version
-    ensure_eq!(
-        version,
-        &cw_2_data.version,
-        ModuleFactoryError::UnequalModuleData {
-            cw2: cw_2_data.version,
-            module: version.to_owned()
-        }
-    );
-
-    // if module is an app, assert the module data is well.
-    if let Module {
-        reference: ModuleReference::App(_),
-        ..
-    } = module
-    {
-        let module_data = MODULE.query(&deps.querier, module_address.clone())?;
-        // assert that the names are equal
-        ensure_eq!(
-            module_data.module,
-            cw_2_data.contract,
-            ModuleFactoryError::UnequalModuleData {
-                cw2: cw_2_data.contract,
-                module: module_data.module,
-            }
-        );
-        // assert that the versions are equal
-        ensure_eq!(
-            module_data.version,
-            cw_2_data.version,
-            ModuleFactoryError::UnequalModuleData {
-                cw2: cw_2_data.version,
-                module: module_data.version
-            }
-        );
-    }
+    assert_module_data_validity(&deps.querier, &module, Some(module_address.clone()))?;
 
     let register_msg: CosmosMsg<Empty> = wasm_execute(
         context.account_base.unwrap().manager.into_string(),

@@ -1,6 +1,7 @@
+use abstract_core::objects::module::{assert_module_data_validity, Module};
 use cosmwasm_std::{
-    ensure, Addr, Attribute, Deps, DepsMut, MessageInfo, Order, QuerierWrapper, Response,
-    StdResult, Storage,
+    ensure, ensure_eq, Addr, Attribute, Deps, DepsMut, MessageInfo, Order, QuerierWrapper,
+    Response, StdResult, Storage,
 };
 
 use abstract_sdk::{
@@ -79,6 +80,16 @@ pub fn propose_modules(
                 return Err(VCError::AdminMustBeNone);
             }
         }
+
+        // assert that it's data is equal to what it wants to be registered under.
+        assert_module_data_validity(
+            &deps.querier,
+            &Module {
+                info: module.clone(),
+                reference: mod_ref.clone(),
+            },
+            None,
+        )?;
 
         if config.is_testnet {
             REGISTERED_MODULES.save(deps.storage, &module, &mod_ref)?;
