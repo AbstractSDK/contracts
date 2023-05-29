@@ -8,8 +8,9 @@
   - [Actor Model](./sdk/actor_model.md)
   - [Account Abstraction](./sdk/account_abstraction.md)
   - [Architecture](./sdk/architecture.md)
-  - [Modules](./sdk/modules.md)
   - [Account Ownership](./sdk/ownership.md)
+  - [Modularity](./sdk/modularity.md)
+	  - [Module Types](module_types.md)
   - [Interchain Abstract Accounts]()
 
 - [Getting Started](./get_started/index.md)
