@@ -207,3 +207,5 @@ Theres is one additional contractor method available on the module builder and t
 The Abstract SDK allows you to easily construct modules by using our low-overhead smart-contract builder. By employing this pattern you re-use the base contract's code, allowing you to focus on the ideas that make your product unique.
 
 In the next section we'll cover how you can use the module object that we make available in the function handlers to write highly functional smart-contract code.
+
+Ever wanted to swap on any cosmos DEX with only one line of code? Look no further!
