@@ -12,6 +12,20 @@ use cosmwasm_std::{wasm_execute, Coin, CosmosMsg, Deps};
 
 /// Interact with other chains over IBC.
 pub trait IbcInterface: AccountIdentification {
+    /**
+        API for interacting with the Abstract IBC client.
+
+        # Example
+        ```
+        use abstract_sdk::prelude::*;
+        # use cosmwasm_std::testing::mock_dependencies;
+        # use abstract_sdk::mock_module::MockModule;
+        # let module = MockModule::new();
+        # let deps = mock_dependencies();
+
+        let ibc_client: IbcClient<MockModule>  = module.ibc_client(deps.as_ref());
+        ```
+    */
     fn ibc_client<'a>(&'a self, deps: Deps<'a>) -> IbcClient<Self> {
         IbcClient { base: self, deps }
     }
@@ -20,6 +34,20 @@ pub trait IbcInterface: AccountIdentification {
 impl<T> IbcInterface for T where T: AccountIdentification {}
 
 #[derive(Clone)]
+/**
+    API for interacting with the Abstract IBC client.
+
+    # Example
+    ```
+    use abstract_sdk::prelude::*;
+    # use cosmwasm_std::testing::mock_dependencies;
+    # use abstract_sdk::mock_module::MockModule;
+    # let module = MockModule::new();
+    # let deps = mock_dependencies();
+
+    let ibc_client: IbcClient<MockModule>  = module.ibc_client(deps.as_ref());
+    ```
+*/
 pub struct IbcClient<'a, T: IbcInterface> {
     base: &'a T,
     deps: Deps<'a>,
@@ -105,7 +133,7 @@ mod test {
             .unwrap(),
             funds: vec![],
         });
-        assert_that!(msg.unwrap()).is_equal_to(expected);
+        assert_that!(msg.unwrap()).is_equal_to::<CosmosMsg>(expected);
     }
 
     /// Tests that a host_action can be built with a callback with more retries
@@ -144,7 +172,7 @@ mod test {
             funds: vec![],
         });
 
-        assert_that!(actual.unwrap()).is_equal_to(expected);
+        assert_that!(actual.unwrap()).is_equal_to::<CosmosMsg>(expected);
     }
 
     /// Tests that the ics_20 transfer can be built and that the funds are passed into the sendFunds message not the execute message
@@ -171,6 +199,6 @@ mod test {
             // ensure empty
             funds: vec![],
         });
-        assert_that!(msg.unwrap()).is_equal_to(expected);
+        assert_that!(msg.unwrap()).is_equal_to::<CosmosMsg>(expected);
     }
 }

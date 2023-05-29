@@ -11,7 +11,7 @@ use abstract_core::{
 use abstract_sdk::{
     base::{ExecuteEndpoint, Handler, IbcCallbackEndpoint, ReceiveEndpoint},
     features::ModuleIdentification,
-    AbstractResponse, Execution, ModuleInterface, OsVerification,
+    AbstractResponse, AccountVerification, Execution, ModuleInterface,
 };
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdError};
 use schemars::JsonSchema;
@@ -157,7 +157,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
             );
         }
         self.executor(deps)
-            .execute_with_response(msgs, "remove_adapter_from_dependencies")
+            .execute_with_response(vec![msgs.into()], "remove_adapter_from_dependencies")
             .map_err(Into::into)
     }
 

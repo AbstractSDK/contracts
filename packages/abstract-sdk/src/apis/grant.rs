@@ -4,28 +4,53 @@
 
 use std::time::Duration;
 
-use crate::Execution;
+use crate::features::AccountIdentification;
 
 use cosmos_sdk_proto::{cosmos::base, cosmos::feegrant, traits::Message, Any};
-use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Deps, Timestamp};
+use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Timestamp};
 
 use crate::AbstractSdkResult;
+use crate::AccountAction;
 
-pub trait GrantInterface: Execution {
-    fn grant<'a>(&'a self, deps: Deps<'a>) -> Grant<Self> {
-        Grant { base: self, deps }
+/// An interface to the CosmosSDK FeeGrant module which allows for granting fee expenditure rights.
+pub trait GrantInterface: AccountIdentification {
+    /**
+        API for accessing the Cosmos SDK FeeGrant module.
+
+        # Example
+        ```
+        use abstract_sdk::prelude::*;
+        # use cosmwasm_std::testing::mock_dependencies;
+        # use abstract_sdk::mock_module::MockModule;
+        # let module = MockModule::new();
+
+        let grant: Grant = module.grant();
+        ```
+    */
+    fn grant(&self) -> Grant {
+        Grant {}
     }
 }
 
-impl<T> GrantInterface for T where T: Execution {}
+impl<T> GrantInterface for T where T: AccountIdentification {}
 
+/**
+    API for accessing the Cosmos SDK FeeGrant module.
+
+    # Example
+    ```
+    use abstract_sdk::prelude::*;
+    # use cosmwasm_std::testing::mock_dependencies;
+    # use abstract_sdk::mock_module::MockModule;
+    # let module = MockModule::new();
+
+    let grant: Grant  = module.grant();
+    ```
+*/
 #[derive(Clone)]
-pub struct Grant<'a, T: GrantInterface> {
-    base: &'a T,
-    deps: Deps<'a>,
-}
+pub struct Grant {}
 
-impl<'a, T: GrantInterface> Grant<'a, T> {
+impl Grant {
     /// Implements Allowance with a one-time grant of coins
     /// that optionally expires. The grantee can use up to SpendLimit to cover fees.
     pub fn basic(
@@ -33,7 +58,7 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
         granter: &Addr,
         grantee: &Addr,
         basic: BasicAllowance,
-    ) -> AbstractSdkResult<CosmosMsg> {
+    ) -> AbstractSdkResult<AccountAction> {
         let msg = feegrant::v1beta1::MsgGrantAllowance {
             granter: granter.into(),
             grantee: grantee.into(),
@@ -46,7 +71,7 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
             value: to_binary(&msg)?,
         };
 
-        self.base.executor(self.deps).execute(vec![msg])
+        Ok(msg.into())
     }
 
     /// Extends Allowance to allow for both a maximum cap,
@@ -57,7 +82,7 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
         grantee: &Addr,
         basic: Option<BasicAllowance>,
         periodic: PeriodicAllowance,
-    ) -> AbstractSdkResult<CosmosMsg> {
+    ) -> AbstractSdkResult<AccountAction> {
         let msg = feegrant::v1beta1::MsgGrantAllowance {
             granter: granter.into(),
             grantee: grantee.into(),
@@ -70,11 +95,11 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
             value: to_binary(&msg)?,
         };
 
-        self.base.executor(self.deps).execute(vec![msg])
+        Ok(msg.into())
     }
 
     /// creates allowance only for BasicAllowance.
-    pub fn allow_basic(&self, basic: BasicAllowance) -> AbstractSdkResult<CosmosMsg> {
+    pub fn allow_basic(&self, basic: BasicAllowance) -> AbstractSdkResult<AccountAction> {
         let msg = feegrant::v1beta1::AllowedMsgAllowance {
             allowance: Some(build_any_basic(basic)),
             allowed_messages: vec!["BasicAllowance".to_owned()],
@@ -86,11 +111,11 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
             value: to_binary(&msg)?,
         };
 
-        self.base.executor(self.deps).execute(vec![msg])
+        Ok(msg.into())
     }
 
     /// Creates allowance only for PeriodicAllowance.
-    pub fn allow_periodic(&self, periodic: PeriodicAllowance) -> AbstractSdkResult<CosmosMsg> {
+    pub fn allow_periodic(&self, periodic: PeriodicAllowance) -> AbstractSdkResult<AccountAction> {
         let msg = feegrant::v1beta1::AllowedMsgAllowance {
             allowance: Some(build_any_periodic(periodic, None)),
             allowed_messages: vec!["PeriodicAllowance".to_owned()],
@@ -102,7 +127,7 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
             value: to_binary(&msg)?,
         };
 
-        self.base.executor(self.deps).execute(vec![msg])
+        Ok(msg.into())
     }
 
     /// Creates allowance only for BasicAllowance and PeriodicAllowance.
@@ -110,7 +135,7 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
         &self,
         basic: BasicAllowance,
         periodic: PeriodicAllowance,
-    ) -> AbstractSdkResult<CosmosMsg> {
+    ) -> AbstractSdkResult<AccountAction> {
         let msg = feegrant::v1beta1::AllowedMsgAllowance {
             allowance: Some(build_any_periodic(periodic, Some(basic))),
             allowed_messages: vec!["BasicAllowance".to_owned(), "PeriodicAllowance".to_owned()],
@@ -122,11 +147,11 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
             value: to_binary(&msg)?,
         };
 
-        self.base.executor(self.deps).execute(vec![msg])
+        Ok(msg.into())
     }
 
     /// Removes any existing Allowance from Granter to Grantee.
-    pub fn revoke_all(&self, granter: &Addr, grantee: &Addr) -> AbstractSdkResult<CosmosMsg> {
+    pub fn revoke_all(&self, granter: &Addr, grantee: &Addr) -> AbstractSdkResult<AccountAction> {
         let msg = feegrant::v1beta1::MsgRevokeAllowance {
             granter: granter.into(),
             grantee: grantee.into(),
@@ -138,18 +163,30 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
             value: to_binary(&msg)?,
         };
 
-        self.base.executor(self.deps).execute(vec![msg])
+        Ok(msg.into())
     }
 }
+
+/// Details for a basic fee allowance grant
 pub struct BasicAllowance {
+    /// Maximum amount of tokens that can be spent
     pub spend_limit: Vec<Coin>,
+    /// When the grant expires
     pub expiration: Option<Timestamp>,
 }
 
+/// Details for a periodic fee allowance grant
 pub struct PeriodicAllowance {
+    /// period specifies the time duration in which period_spend_limit coins can
+    /// be spent before that allowance is reset
     pub period: Option<Duration>,
+    /// Maximum amount of tokens that can be spent per period
     pub period_spend_limit: Vec<Coin>,
+    /// period_can_spend is the number of coins left to be spent before the period_reset time
     pub period_can_spend: Vec<Coin>,
+    /// period_reset is the time at which this period resets and a new one begins,
+    /// it is calculated from the start time of the first transaction after the
+    /// last period ended
     pub period_reset: Option<Timestamp>,
 }
 
@@ -206,7 +243,7 @@ mod test {
     use super::*;
     use crate::mock_module::*;
 
-    use cosmwasm_std::{coins, testing::*};
+    use cosmwasm_std::coins;
 
     use speculoos::prelude::*;
 
@@ -216,8 +253,8 @@ mod test {
         #[test]
         fn basic_allowance() {
             let app = MockModule::new();
-            let deps = mock_dependencies();
-            let grant = app.grant(deps.as_ref());
+
+            let grant = app.grant();
 
             let granter = Addr::unchecked("granter");
             let grantee = Addr::unchecked("grantee");
@@ -243,8 +280,8 @@ mod test {
         #[test]
         fn periodic_allowance() {
             let app = MockModule::new();
-            let deps = mock_dependencies();
-            let grant = app.grant(deps.as_ref());
+
+            let grant = app.grant();
 
             let granter = Addr::unchecked("granter");
             let grantee = Addr::unchecked("grantee");
@@ -277,8 +314,8 @@ mod test {
         #[test]
         fn allow_basic() {
             let app = MockModule::new();
-            let deps = mock_dependencies();
-            let grant = app.grant(deps.as_ref());
+
+            let grant = app.grant();
 
             let spend_limit = coins(100, "asset");
             let expiration = Some(Timestamp::from_seconds(10));
@@ -298,8 +335,8 @@ mod test {
         #[test]
         fn allow_periodic() {
             let app = MockModule::new();
-            let deps = mock_dependencies();
-            let grant = app.grant(deps.as_ref());
+
+            let grant = app.grant();
 
             let period_spend_limit = vec![];
             let period_can_spend = vec![];
@@ -321,8 +358,8 @@ mod test {
         #[test]
         fn allow_both() {
             let app = MockModule::new();
-            let deps = mock_dependencies();
-            let grant = app.grant(deps.as_ref());
+
+            let grant = app.grant();
 
             let spend_limit = coins(100, "asset");
             let expiration = Some(Timestamp::from_seconds(10));
@@ -352,8 +389,8 @@ mod test {
         #[test]
         fn revoke_all() {
             let app = MockModule::new();
-            let deps = mock_dependencies();
-            let grant = app.grant(deps.as_ref());
+
+            let grant = app.grant();
 
             let granter = Addr::unchecked("granter");
             let grantee = Addr::unchecked("grantee");

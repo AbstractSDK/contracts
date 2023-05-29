@@ -15,7 +15,7 @@ use abstract_sdk::{
     },
     feature_objects::VersionControlContract,
     features::AccountIdentification,
-    Execution, OsVerification, Resolve,
+    AccountVerification, Execution, Resolve,
 };
 use cosmwasm_std::{
     to_binary, Coin, CosmosMsg, DepsMut, Env, IbcMsg, MessageInfo, StdError, Storage,
@@ -205,7 +205,9 @@ pub fn execute_send_funds(
     }
 
     // let these messages be executed by proxy
-    let proxy_msg = account_base.executor(deps.as_ref()).execute(transfers)?;
+    let proxy_msg = account_base
+        .executor(deps.as_ref())
+        .execute(vec![transfers.into()])?;
 
     Ok(IbcClientResponse::action("handle_send_funds").add_message(proxy_msg))
 }
