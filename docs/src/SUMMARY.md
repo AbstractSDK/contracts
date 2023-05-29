@@ -1,6 +1,9 @@
 # Summary
 
-[Introduction](intro.md)
+[Introduction](./intro.md)
+
+[About Abstract](./introduction/value_prop.md)
+[Use Cases](./introduction/use_cases.md)
 
 # Build With Abstract
 
@@ -26,10 +29,12 @@
 - [Interchain Abstract Accounts]()
 
 - [Getting Started](./get_started/index.md)
-  - [Installation - How to get started](./get_started/installation.md)
-  - [Account Creation](./get_started/account_creation.md)
+  - [Installation](./get_started/installation.md)
+  - [Module Builder](./get_started/module_builder.md)
   - [SDK](./get_started/sdk.md)
-  - [Module Development](./get_started/module_development.md)
+  - [Module Dependencies]()
+  - [Account Creation](./get_started/account_creation.md)
+  - [Module Deployment](./get_started/module_deployment.md)
     - [Using the Template]()
     - [Best Practices]()
     - [Quality Assurance]()
