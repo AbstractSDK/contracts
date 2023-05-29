@@ -1,5 +1,5 @@
 use abstract_core::objects::module::{Module, ModuleVersion};
-use abstract_core::objects::module_version::{MODULE};
+use abstract_core::objects::module_version::MODULE;
 
 use crate::contract::ModuleFactoryResponse;
 use crate::{
@@ -128,7 +128,6 @@ fn instantiate_contract(
 pub fn register_contract(deps: DepsMut, result: SubMsgResult) -> ModuleFactoryResult {
     let context: Context = CONTEXT.load(deps.storage)?;
     let module = context.module.unwrap();
-    let config = CONFIG.load(deps.storage)?;
 
     // Get address of the new contract
     let res: MsgInstantiateContractResponse =
@@ -164,36 +163,30 @@ pub fn register_contract(deps: DepsMut, result: SubMsgResult) -> ModuleFactoryRe
     );
 
     // if module is an app, assert the module data is well.
-    match module {
-        Module {
-            ref info,
-            reference: ModuleReference::App(_),
-        } => {
-            let module_data = MODULE.query(&deps.querier, module_address.clone())?;
-            // assert that the names are equal
-            ensure_eq!(
-                module_data.module,
-                cw_2_data.contract,
-                ModuleFactoryError::UnequalModuleData {
-                    cw2: cw_2_data.contract,
-                    module: module_data.module,
-                }
-            );
-            // assert that the versions are equal
-            ensure_eq!(
-                module_data.version,
-                cw_2_data.version,
-                ModuleFactoryError::UnequalModuleData {
-                    cw2: cw_2_data.version,
-                    module: module_data.version
-                }
-            );
-            let version_control = VersionControlContract::new(config.version_control_address);
-            version_control
-                .module_registry(deps.as_ref())
-                .query_module_reference_raw(&info)?;
-        }
-        _ => {}
+    if let Module {
+        reference: ModuleReference::App(_),
+        ..
+    } = module
+    {
+        let module_data = MODULE.query(&deps.querier, module_address.clone())?;
+        // assert that the names are equal
+        ensure_eq!(
+            module_data.module,
+            cw_2_data.contract,
+            ModuleFactoryError::UnequalModuleData {
+                cw2: cw_2_data.contract,
+                module: module_data.module,
+            }
+        );
+        // assert that the versions are equal
+        ensure_eq!(
+            module_data.version,
+            cw_2_data.version,
+            ModuleFactoryError::UnequalModuleData {
+                cw2: cw_2_data.version,
+                module: module_data.version
+            }
+        );
     }
 
     let register_msg: CosmosMsg<Empty> = wasm_execute(

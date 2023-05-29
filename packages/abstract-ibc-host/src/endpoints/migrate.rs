@@ -40,7 +40,7 @@ impl<
         let (name, version_string, metadata) = self.info();
         let version: Version =
             Version::parse(version_string).map_err(|e| StdError::generic_err(e.to_string()))?;
-        let storage_version: Version =     MODULE.load(deps.storage)?.version.parse().unwrap();
+        let storage_version: Version = MODULE.load(deps.storage)?.version.parse().unwrap();
         if storage_version < version {
             set_module_data(
                 deps.storage,
