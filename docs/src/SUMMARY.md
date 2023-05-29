@@ -1,6 +1,7 @@
 # Summary
 
-[Introduction](intro.md)
+[Introduction](./intro.md)
+[Value Proposition](./value_proposition.md)
 
 # Build With Abstract
 
