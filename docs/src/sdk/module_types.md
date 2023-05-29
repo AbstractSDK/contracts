@@ -5,8 +5,11 @@ Modules are classified in the following categories:
 - **App**: modules that add an additional functionality, exposing new entry-points for you or your users
 - **Adapter**: modules that act as a standard interface between your Account and external services
 - **Standalone**: modules not built within Abstract, but registered to your account so that the manager can execute commands on them
-- **Account Base**: modules that form the foundation for Accounts' smart-contract wallet implementations. 
-- **Native**: modules native to the Abstract platform, like [Version Control](../platform/version_control) and [Abstract Name Service](../platform/ans)
+
+
+	- [Version Control](../platform/version_control)
+	- [Abstract Name Service](../platform/ans)
+	- [Module Factory](../platform/module_factory)
 
 
 ## Adapters
@@ -53,8 +56,6 @@ flowchart LR
 
 ```
 <figcaption align = "center"><b>Two Accounts with the <code>abstract:etf</code> and <code>abstract:dex</code> modules installed</b></figcaption>
-
-
 ------
 TODO: below is not reviewed
 
