@@ -31,4 +31,10 @@ pub enum ModuleFactoryError {
 
     #[error("This module type can not be installed on your Account")]
     ModuleNotInstallable {},
+
+    #[error("The version or name of this module was not consistent between its stores (cw2 and abstract module data).")]
+    UnequalModuleData {
+        cw2: String,
+        module: String,
+    },
 }

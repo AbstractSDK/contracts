@@ -1,3 +1,6 @@
+use abstract_core::objects::module::{Module, ModuleVersion};
+use abstract_core::objects::module_version::{MODULE};
+
 use crate::contract::ModuleFactoryResponse;
 use crate::{
     contract::ModuleFactoryResult, error::ModuleFactoryError,
@@ -12,8 +15,8 @@ use abstract_sdk::{
     *,
 };
 use cosmwasm_std::{
-    wasm_execute, Addr, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo, ReplyOn, StdError,
-    StdResult, SubMsg, SubMsgResult, WasmMsg,
+    ensure_eq, wasm_execute, Addr, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo, ReplyOn,
+    StdError, StdResult, SubMsg, SubMsgResult, WasmMsg,
 };
 use protobuf::Message;
 
@@ -124,18 +127,80 @@ fn instantiate_contract(
 
 pub fn register_contract(deps: DepsMut, result: SubMsgResult) -> ModuleFactoryResult {
     let context: Context = CONTEXT.load(deps.storage)?;
-    // Get address of app contract
+    let module = context.module.unwrap();
+    let config = CONFIG.load(deps.storage)?;
+
+    // Get address of the new contract
     let res: MsgInstantiateContractResponse =
         Message::parse_from_bytes(result.unwrap().data.unwrap().as_slice()).map_err(|_| {
             StdError::parse_err("MsgInstantiateContractResponse", "failed to parse data")
         })?;
-    let module_address = res.get_contract_address();
+    let module_address = deps.api.addr_validate(res.get_contract_address())?;
+
+    let cw_2_data = cw2::CONTRACT.query(&deps.querier, module_address.clone())?;
+
+    // Assert that the contract name is equal to the module name
+    ensure_eq!(
+        module.info.id(),
+        cw_2_data.contract,
+        ModuleFactoryError::UnequalModuleData {
+            cw2: cw_2_data.contract,
+            module: module.info.id()
+        }
+    );
+
+    let ModuleVersion::Version(version) = &module.info.version else {
+        panic!("Module version is not versioned, context setting is wrong")
+    };
+
+    // Assert that the contract version is equal to the module version
+    ensure_eq!(
+        version,
+        &cw_2_data.version,
+        ModuleFactoryError::UnequalModuleData {
+            cw2: cw_2_data.version,
+            module: version.to_owned()
+        }
+    );
+
+    // if module is an app, assert the module data is well.
+    match module {
+        Module {
+            ref info,
+            reference: ModuleReference::App(_),
+        } => {
+            let module_data = MODULE.query(&deps.querier, module_address.clone())?;
+            // assert that the names are equal
+            ensure_eq!(
+                module_data.module,
+                cw_2_data.contract,
+                ModuleFactoryError::UnequalModuleData {
+                    cw2: cw_2_data.contract,
+                    module: module_data.module,
+                }
+            );
+            // assert that the versions are equal
+            ensure_eq!(
+                module_data.version,
+                cw_2_data.version,
+                ModuleFactoryError::UnequalModuleData {
+                    cw2: cw_2_data.version,
+                    module: module_data.version
+                }
+            );
+            let version_control = VersionControlContract::new(config.version_control_address);
+            version_control
+                .module_registry(deps.as_ref())
+                .query_module_reference_raw(&info)?;
+        }
+        _ => {}
+    }
 
     let register_msg: CosmosMsg<Empty> = wasm_execute(
         context.account_base.unwrap().manager.into_string(),
         &ManagerMsg::RegisterModule {
             module_addr: module_address.to_string(),
-            module: context.module.unwrap(),
+            module,
         },
         vec![],
     )?
