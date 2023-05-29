@@ -32,7 +32,7 @@ pub const MODULE: Item<ModuleData> = Item::new("module_data");
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ModuleData {
-    /// The name of the module, which should be composed of 
+    /// The name of the module, which should be composed of
     /// the publisher's namespace and module id. eg. `cw-plus:cw20-base`
     pub module: String,
     /// Semantic version of the module's crate on release.
@@ -41,7 +41,7 @@ pub struct ModuleData {
     /// List of modules that this module depends on
     /// along with its version requirements.
     pub dependencies: Vec<Dependency>,
-    /// URL to data that follows the Abstract metadata standard for 
+    /// URL to data that follows the Abstract metadata standard for
     /// resolving off-chain module information.
     pub metadata: Option<String>,
 }
