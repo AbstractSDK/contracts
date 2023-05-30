@@ -404,7 +404,7 @@ pub fn assert_module_data_validity(
         _ => {}
     }
 
-    let module_data = MODULE.query(querier, module_address.clone())?;
+    let module_data = MODULE.query(querier, module_address)?;
     // assert that the names are equal
     ensure_eq!(
         module_data.module,

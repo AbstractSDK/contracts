@@ -1,10 +1,5 @@
 use abstract_core::objects::module;
 
-use abstract_core::objects::module::assert_module_data_validity;
-
-use abstract_core::objects::module::{Module, ModuleVersion};
-use abstract_core::objects::module_version::MODULE;
-
 use crate::contract::ModuleFactoryResponse;
 use crate::{
     contract::ModuleFactoryResult, error::ModuleFactoryError,
@@ -19,8 +14,8 @@ use abstract_sdk::{
     *,
 };
 use cosmwasm_std::{
-    ensure_eq, wasm_execute, Addr, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo, ReplyOn,
-    StdError, StdResult, SubMsg, SubMsgResult, WasmMsg,
+    wasm_execute, Addr, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo, ReplyOn, StdError,
+    StdResult, SubMsg, SubMsgResult, WasmMsg,
 };
 use protobuf::Message;
 

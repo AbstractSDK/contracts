@@ -1,7 +1,7 @@
-use abstract_core::objects::module::{self, assert_module_data_validity, Module};
+use abstract_core::objects::module::{self, Module};
 use cosmwasm_std::{
-    ensure, ensure_eq, Addr, Attribute, Deps, DepsMut, MessageInfo, Order, QuerierWrapper,
-    Response, StdResult, Storage,
+    ensure, Addr, Attribute, Deps, DepsMut, MessageInfo, Order, QuerierWrapper, Response,
+    StdResult, Storage,
 };
 
 use abstract_sdk::{
