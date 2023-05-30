@@ -2,7 +2,7 @@ pub mod commands;
 pub mod contract;
 pub mod error;
 pub mod queries;
-
+mod util;
 #[cfg(test)]
 mod testing {
     use crate::contract;
