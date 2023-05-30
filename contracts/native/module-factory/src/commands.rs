@@ -1,3 +1,5 @@
+use abstract_core::objects::module;
+
 use abstract_core::objects::module::assert_module_data_validity;
 
 use abstract_core::objects::module::{Module, ModuleVersion};
@@ -137,10 +139,8 @@ pub fn register_contract(deps: DepsMut, result: SubMsgResult) -> ModuleFactoryRe
             StdError::parse_err("MsgInstantiateContractResponse", "failed to parse data")
         })?;
     let module_address = deps.api.addr_validate(res.get_contract_address())?;
-
-    
-
-    assert_module_data_validity(&deps.querier, &module, Some(module_address.clone()))?;
+    // assert the data after instantiation.
+    module::assert_module_data_validity(&deps.querier, &module, Some(module_address.clone()))?;
 
     let register_msg: CosmosMsg<Empty> = wasm_execute(
         context.account_base.unwrap().manager.into_string(),

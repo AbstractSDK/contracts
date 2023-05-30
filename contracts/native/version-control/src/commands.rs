@@ -1,4 +1,4 @@
-use abstract_core::objects::module::{assert_module_data_validity, Module};
+use abstract_core::objects::module::{assert_module_data_validity, Module, self};
 use cosmwasm_std::{
     ensure, ensure_eq, Addr, Attribute, Deps, DepsMut, MessageInfo, Order, QuerierWrapper,
     Response, StdResult, Storage,
@@ -81,8 +81,8 @@ pub fn propose_modules(
             }
         }
 
-        // assert that it's data is equal to what it wants to be registered under.
-        assert_module_data_validity(
+        // assert that its data is equal to what it wants to be registered under.
+        module::assert_module_data_validity(
             &deps.querier,
             &Module {
                 info: module.clone(),
