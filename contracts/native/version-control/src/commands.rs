@@ -764,6 +764,53 @@ mod test {
         }
     }
 
+    mod update_direct_registration {
+        use super::*;
+
+        #[test]
+        fn only_admin() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let msg = ExecuteMsg::UpdateConfig {
+                allow_direct_module_registration: Some(false),
+                namespace_limit: None,
+            };
+
+            let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(&VCError::Ownership(OwnershipError::NotOwner));
+
+            Ok(())
+        }
+
+        #[test]
+        fn updates_limit() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let msg = ExecuteMsg::UpdateConfig {
+                allow_direct_module_registration: Some(false),
+                namespace_limit: None,
+            };
+
+            let res = execute_as_admin(deps.as_mut(), msg);
+            assert_that!(&res).is_ok();
+
+            assert_that!(CONFIG.load(&deps.storage).unwrap().namespace_limit).is_equal_to(10);
+            assert_that!(
+                CONFIG
+                    .load(&deps.storage)
+                    .unwrap()
+                    .allow_direct_module_registration
+            )
+            .is_equal_to(false);
+
+            Ok(())
+        }
+    }
+
     mod remove_namespaces {
         use cosmwasm_std::attr;
 
