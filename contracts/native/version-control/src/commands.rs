@@ -1,8 +1,8 @@
-use cosmwasm_std::CosmosMsg;
 use abstract_core::objects::module::{self, Module};
+use cosmwasm_std::CosmosMsg;
 use cosmwasm_std::{
-    ensure, Addr, Attribute, Deps, DepsMut, MessageInfo, Order, QuerierWrapper, Response,
-    StdResult, Storage,BankMsg,StdError,Uint128
+    ensure, Addr, Attribute, BankMsg, Deps, DepsMut, MessageInfo, Order, QuerierWrapper, Response,
+    StdError, StdResult, Storage, Uint128,
 };
 
 use abstract_sdk::{
@@ -84,15 +84,15 @@ pub fn propose_modules(
         }
 
         if config.allow_direct_module_registration {
-        // assert that its data is equal to what it wants to be registered under.
-        module::assert_module_data_validity(
-            &deps.querier,
-            &Module {
-                info: module.clone(),
-                reference: mod_ref.clone(),
-            },
-            None,
-        )?;
+            // assert that its data is equal to what it wants to be registered under.
+            module::assert_module_data_validity(
+                &deps.querier,
+                &Module {
+                    info: module.clone(),
+                    reference: mod_ref.clone(),
+                },
+                None,
+            )?;
             REGISTERED_MODULES.save(deps.storage, &module, &mod_ref)?;
         } else {
             PENDING_MODULES.save(deps.storage, &module, &mod_ref)?;
@@ -236,24 +236,32 @@ pub fn claim_namespaces(
 
     let mut fee_messages = vec![];
     // We transfer the fee if necessary
-    if fee.amount != Uint128::zero(){
+    if fee.amount != Uint128::zero() {
         let admin_account = ACCOUNT_ADDRESSES.load(deps.storage, 0)?;
         let nb_namespaces: u128 = namespaces_to_claim.len().try_into().unwrap();
-        let necessary_fee = Asset{
+        let necessary_fee = Asset {
             amount: fee.amount * Uint128::from(nb_namespaces),
-            info: fee.info.clone()
+            info: fee.info.clone(),
         };
-        match &fee.info{
-            AssetInfoBase::Native(d)=> {
-                if msg_info.funds.len() != 1 || msg_info.funds[0].denom != d.clone() || necessary_fee.amount != msg_info.funds[0].amount {
-                    return Err(VCError::InvalidFeePayment { expected: necessary_fee, sent: msg_info.funds })
+        match &fee.info {
+            AssetInfoBase::Native(d) => {
+                if msg_info.funds.len() != 1
+                    || msg_info.funds[0].denom != d.clone()
+                    || necessary_fee.amount != msg_info.funds[0].amount
+                {
+                    return Err(VCError::InvalidFeePayment {
+                        expected: necessary_fee,
+                        sent: msg_info.funds,
+                    });
                 }
-                fee_messages.push(CosmosMsg::Bank(BankMsg::Send { to_address: admin_account.proxy.to_string(), amount: msg_info.funds}))
-            },
-            AssetInfoBase::Cw20(_) => {
-                fee_messages.push(necessary_fee.transfer_from_msg(msg_info.sender, admin_account.proxy)?)
+                fee_messages.push(CosmosMsg::Bank(BankMsg::Send {
+                    to_address: admin_account.proxy.to_string(),
+                    amount: msg_info.funds,
+                }))
             }
-            _ => return Err(VCError::Std(StdError::generic_err("Unreachable")))
+            AssetInfoBase::Cw20(_) => fee_messages
+                .push(necessary_fee.transfer_from_msg(msg_info.sender, admin_account.proxy)?),
+            _ => return Err(VCError::Std(StdError::generic_err("Unreachable"))),
         }
     }
 
@@ -274,7 +282,8 @@ pub fn claim_namespaces(
             ("account_id", &account_id.to_string()),
             ("namespaces", &namespaces_to_claim.join(",")),
         ],
-    ).add_messages(fee_messages))
+    )
+    .add_messages(fee_messages))
 }
 
 /// Remove namespaces
@@ -330,7 +339,7 @@ pub fn update_config(
     info: MessageInfo,
     allow_direct_module_registration: Option<bool>,
     namespace_limit: Option<u32>,
-    namespace_registration_fee: Option<Asset>
+    namespace_registration_fee: Option<Asset>,
 ) -> VCResult {
     cw_ownable::assert_owner(deps.storage, &info.sender)?;
     let mut config = CONFIG.load(deps.storage)?;
@@ -371,7 +380,7 @@ pub fn update_config(
         attributes.extend(vec![
             (
                 "previous_allow_direct_module_registration",
-                format!("{:?}",previous_fee),
+                format!("{:?}", previous_fee),
             ),
             ("allow_direct_module_registration", fee.to_string()),
         ])
@@ -426,7 +435,7 @@ pub fn set_factory(deps: DepsMut, info: MessageInfo, new_admin: String) -> VCRes
 #[cfg(test)]
 mod test {
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-    use cosmwasm_std::{from_binary, to_binary, Addr, Uint64, Coin};
+    use cosmwasm_std::{from_binary, to_binary, Addr, Coin, Uint64};
     use cw_controllers::AdminError;
     use cw_ownable::OwnershipError;
     use speculoos::prelude::*;
@@ -536,7 +545,12 @@ mod test {
         contract::execute(deps, mock_env(), mock_info(sender, &[]), msg)
     }
 
-    fn execute_as_with_funds(deps: DepsMut, sender: &str, msg: ExecuteMsg, funds: &[Coin]) -> VCResult {
+    fn execute_as_with_funds(
+        deps: DepsMut,
+        sender: &str,
+        msg: ExecuteMsg,
+        funds: &[Coin],
+    ) -> VCResult {
         contract::execute(deps, mock_env(), mock_info(sender, funds), msg)
     }
 
@@ -629,7 +643,7 @@ mod test {
     mod claim_namespaces {
         use super::*;
         use abstract_core::objects;
-        use cosmwasm_std::{coins, SubMsg, CosmosMsg};
+        use cosmwasm_std::{coins, CosmosMsg, SubMsg};
 
         use objects::ABSTRACT_ACCOUNT_ID;
 
@@ -660,16 +674,23 @@ mod test {
 
             mock_init_with_account(deps.as_mut(), true)?;
 
-            let one_namespace_fee = Asset{info: AssetInfoBase::Native("ujunox".to_string()), amount: 6u128.into()};
+            let one_namespace_fee = Asset {
+                info: AssetInfoBase::Native("ujunox".to_string()),
+                amount: 6u128.into(),
+            };
 
-            execute_as_admin(deps.as_mut(), ExecuteMsg::UpdateConfig { 
-                allow_direct_module_registration: None,
-                namespace_limit: None, 
-                namespace_registration_fee: Some(one_namespace_fee.clone()) 
-            }).unwrap();
+            execute_as_admin(
+                deps.as_mut(),
+                ExecuteMsg::UpdateConfig {
+                    allow_direct_module_registration: None,
+                    namespace_limit: None,
+                    namespace_registration_fee: Some(one_namespace_fee.clone()),
+                },
+            )
+            .unwrap();
 
             // We create a 0 admin account
-            const TEST_ADMIN_PROXY: &str =  "test-admin-proxy";
+            const TEST_ADMIN_PROXY: &str = "test-admin-proxy";
             execute_as(
                 deps.as_mut(),
                 TEST_ACCOUNT_FACTORY,
@@ -680,7 +701,8 @@ mod test {
                         proxy: Addr::unchecked(TEST_ADMIN_PROXY),
                     },
                 },
-            ).unwrap();
+            )
+            .unwrap();
 
             let new_namespace1 = Namespace::new("namespace1").unwrap();
             let new_namespace2 = Namespace::new("namespace2").unwrap();
@@ -690,20 +712,28 @@ mod test {
             };
             // Fail, no fee at all
             let res = execute_as(deps.as_mut(), TEST_OWNER, msg.clone());
-            assert_that!(&res).is_err()
-                .is_equal_to(&VCError::InvalidFeePayment { expected: Asset{
-                    info: one_namespace_fee.info.clone(),
-                    amount: one_namespace_fee.amount * Uint128::from(2u128)
-                }, sent: vec![] });
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(&VCError::InvalidFeePayment {
+                    expected: Asset {
+                        info: one_namespace_fee.info.clone(),
+                        amount: one_namespace_fee.amount * Uint128::from(2u128),
+                    },
+                    sent: vec![],
+                });
 
             // Fail, not enough fee
             let sent_coins = coins(5, "ujunox");
             let res = execute_as_with_funds(deps.as_mut(), TEST_OWNER, msg.clone(), &sent_coins);
-            assert_that!(&res).is_err()
-                .is_equal_to(&VCError::InvalidFeePayment { expected: Asset{
-                    info: one_namespace_fee.info.clone(),
-                    amount: one_namespace_fee.amount * Uint128::from(2u128)
-                }, sent: sent_coins});
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(&VCError::InvalidFeePayment {
+                    expected: Asset {
+                        info: one_namespace_fee.info.clone(),
+                        amount: one_namespace_fee.amount * Uint128::from(2u128),
+                    },
+                    sent: sent_coins,
+                });
 
             // Success
             let sent_coins = coins(12, "ujunox");
@@ -711,7 +741,10 @@ mod test {
             assert_that!(&res)
                 .is_ok()
                 .map(|res| &res.messages)
-                .is_equal_to(vec![SubMsg::new(CosmosMsg::Bank(BankMsg::Send { to_address: TEST_ADMIN_PROXY.to_string(), amount: sent_coins}))]);
+                .is_equal_to(vec![SubMsg::new(CosmosMsg::Bank(BankMsg::Send {
+                    to_address: TEST_ADMIN_PROXY.to_string(),
+                    amount: sent_coins,
+                }))]);
 
             Ok(())
         }
@@ -723,16 +756,23 @@ mod test {
 
             mock_init_with_account(deps.as_mut(), true)?;
 
-            let one_namespace_fee = Asset{info: AssetInfoBase::Cw20(Addr::unchecked("abstract_token")), amount: 6u128.into()};
+            let one_namespace_fee = Asset {
+                info: AssetInfoBase::Cw20(Addr::unchecked("abstract_token")),
+                amount: 6u128.into(),
+            };
 
-            execute_as_admin(deps.as_mut(), ExecuteMsg::UpdateConfig { 
-                allow_direct_module_registration: None,
-                namespace_limit: None, 
-                namespace_registration_fee: Some(one_namespace_fee.clone()) 
-            }).unwrap();
+            execute_as_admin(
+                deps.as_mut(),
+                ExecuteMsg::UpdateConfig {
+                    allow_direct_module_registration: None,
+                    namespace_limit: None,
+                    namespace_registration_fee: Some(one_namespace_fee.clone()),
+                },
+            )
+            .unwrap();
 
             // We create a 0 admin account
-            const TEST_ADMIN_PROXY: &str =  "test-admin-proxy";
+            const TEST_ADMIN_PROXY: &str = "test-admin-proxy";
             execute_as(
                 deps.as_mut(),
                 TEST_ACCOUNT_FACTORY,
@@ -743,7 +783,8 @@ mod test {
                         proxy: Addr::unchecked(TEST_ADMIN_PROXY),
                     },
                 },
-            ).unwrap();
+            )
+            .unwrap();
 
             let new_namespace1 = Namespace::new("namespace1").unwrap();
             let new_namespace2 = Namespace::new("namespace2").unwrap();
@@ -753,14 +794,16 @@ mod test {
             };
             // Success
             let res = execute_as(deps.as_mut(), TEST_OWNER, msg);
-            let expected_fee = Asset{
+            let expected_fee = Asset {
                 info: one_namespace_fee.info,
-                amount: one_namespace_fee.amount * Uint128::from(2u128)
+                amount: one_namespace_fee.amount * Uint128::from(2u128),
             };
             assert_that!(&res)
                 .is_ok()
                 .map(|res| &res.messages)
-                .is_equal_to(vec![SubMsg::new(expected_fee.transfer_from_msg(TEST_OWNER, TEST_ADMIN_PROXY)?)]);
+                .is_equal_to(vec![SubMsg::new(
+                    expected_fee.transfer_from_msg(TEST_OWNER, TEST_ADMIN_PROXY)?,
+                )]);
 
             Ok(())
         }
@@ -986,8 +1029,8 @@ mod test {
     }
 
     mod update_namespace_fee {
-        use cw_asset::{AssetInfoBase, Asset};
         use super::*;
+        use cw_asset::{Asset, AssetInfoBase};
 
         #[test]
         fn only_admin() -> VersionControlTestResult {
@@ -997,7 +1040,10 @@ mod test {
             let msg = ExecuteMsg::UpdateConfig {
                 allow_direct_module_registration: None,
                 namespace_limit: None,
-                namespace_registration_fee: Some(Asset { info: AssetInfoBase::Native("ujunox".to_string()), amount: Uint128::one() }),
+                namespace_registration_fee: Some(Asset {
+                    info: AssetInfoBase::Native("ujunox".to_string()),
+                    amount: Uint128::one(),
+                }),
             };
 
             let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
@@ -1013,7 +1059,10 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let new_fee = Asset { info: AssetInfoBase::Native("ujunox".to_string()), amount: Uint128::one() };
+            let new_fee = Asset {
+                info: AssetInfoBase::Native("ujunox".to_string()),
+                amount: Uint128::one(),
+            };
 
             let msg = ExecuteMsg::UpdateConfig {
                 allow_direct_module_registration: None,

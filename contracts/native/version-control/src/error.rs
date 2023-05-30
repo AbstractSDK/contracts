@@ -76,7 +76,7 @@ pub enum VCError {
     NoAction,
 
     #[error("Invalid fee payment sent. Expected {}, sent {:?}", expected, sent)]
-    InvalidFeePayment {expected: Asset, sent: Vec<Coin>}
+    InvalidFeePayment { expected: Asset, sent: Vec<Coin> },
 }
 
 impl From<cw_semver::Error> for VCError {
