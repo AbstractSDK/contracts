@@ -1,3 +1,4 @@
+use abstract_core::objects::module::{self, Module};
 use cosmwasm_std::{
     ensure, Addr, Attribute, Deps, DepsMut, MessageInfo, Order, QuerierWrapper, Response,
     StdResult, Storage,
@@ -81,6 +82,15 @@ pub fn propose_modules(
         }
 
         if config.allow_direct_module_registration {
+        // assert that its data is equal to what it wants to be registered under.
+        module::assert_module_data_validity(
+            &deps.querier,
+            &Module {
+                info: module.clone(),
+                reference: mod_ref.clone(),
+            },
+            None,
+        )?;
             REGISTERED_MODULES.save(deps.storage, &module, &mod_ref)?;
         } else {
             PENDING_MODULES.save(deps.storage, &module, &mod_ref)?;
