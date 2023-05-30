@@ -1,3 +1,4 @@
+use cosmwasm_std::Coin;
 use cosmwasm_std::{Addr, StdError};
 use cw_controllers::AdminError;
 use thiserror::Error;
@@ -5,6 +6,8 @@ use thiserror::Error;
 use abstract_core::objects::namespace::Namespace;
 use abstract_core::{objects::AccountId, AbstractError};
 use abstract_sdk::{core::objects::module::ModuleInfo, AbstractSdkError};
+
+use cw_asset::{Asset, AssetError};
 
 #[derive(Error, Debug, PartialEq)]
 pub enum VCError {
@@ -19,6 +22,9 @@ pub enum VCError {
 
     #[error("{0}")]
     Admin(#[from] AdminError),
+
+    #[error("{0}")]
+    Assets(#[from] AssetError),
 
     #[error("{0}")]
     Ownership(#[from] cw_ownable::OwnershipError),
@@ -68,6 +74,9 @@ pub enum VCError {
 
     #[error("No action specified")]
     NoAction,
+
+    #[error("Invalid fee payment sent. Expected {}, sent {:?}", expected, sent)]
+    InvalidFeePayment {expected: Asset, sent: Vec<Coin>}
 }
 
 impl From<cw_semver::Error> for VCError {

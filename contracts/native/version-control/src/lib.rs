@@ -23,6 +23,7 @@ mod testing {
             version_control::InstantiateMsg {
                 allow_direct_module_registration: Some(true),
                 namespace_limit: 10,
+                namespace_registration_fee: None
             },
         )
     }

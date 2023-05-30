@@ -15,6 +15,7 @@ pub type ModuleMapEntry = (ModuleInfo, ModuleReference);
 pub struct Config {
     pub allow_direct_module_registration: bool,
     pub namespace_limit: u32,
+    pub namespace_registration_fee: Asset
 }
 
 pub mod state {
@@ -63,6 +64,7 @@ pub fn namespaces_info<'a>() -> IndexedMap<'a, &'a Namespace, AccountId, Namespa
     IndexedMap::new("namespace", indexes)
 }
 
+use cw_asset::Asset;
 use crate::objects::{
     account_id::AccountId,
     module::{Module, ModuleInfo, ModuleStatus},
@@ -85,6 +87,7 @@ pub struct AccountBase {
 pub struct InstantiateMsg {
     pub allow_direct_module_registration: Option<bool>,
     pub namespace_limit: u32,
+    pub namespace_registration_fee: Option<Asset>
 }
 
 /// Version Control Execute Msg
@@ -128,6 +131,7 @@ pub enum ExecuteMsg {
     UpdateConfig {
         allow_direct_module_registration: Option<bool>,
         namespace_limit: Option<u32>,
+        namespace_registration_fee: Option<Asset>
     },
     /// Sets a new Factory
     SetFactory { new_factory: String },
