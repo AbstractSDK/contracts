@@ -245,9 +245,9 @@ pub fn claim_namespaces(
             info: fee.info,
         };
         fee_messages.extend(validate_sent_funds(
-            necessary_fee,
             env,
             msg_info,
+            necessary_fee,
             Some(admin_account.proxy),
         )?)
     }

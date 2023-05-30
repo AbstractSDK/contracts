@@ -2,10 +2,11 @@ use crate::{contract::VCResult, error::VCError};
 
 use cosmwasm_std::{Addr, BankMsg, CosmosMsg, Env, MessageInfo, StdError};
 use cw_asset::{Asset, AssetInfo};
+
 pub fn validate_sent_funds(
-    fee: Asset,
     env: Env,
     msg_info: MessageInfo,
+    fee: Asset,
     receiver: Option<Addr>,
 ) -> VCResult<Vec<CosmosMsg>> {
     let mut fee_messages = vec![];
