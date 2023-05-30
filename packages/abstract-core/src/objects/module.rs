@@ -358,9 +358,7 @@ pub fn assert_module_data_validity(
 ) -> AbstractResult<()> {
     // we retrieve the address information.
     let module_address = match &module_claim.reference.unwrap_addr() {
-        Ok(addr) => {
-            addr.to_owned()
-        }
+        Ok(addr) => addr.to_owned(),
         Err(..) => {
             // now we need to have a module address provided
             let Some(addr) = module_address else {
