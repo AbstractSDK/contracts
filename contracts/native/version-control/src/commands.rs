@@ -80,7 +80,7 @@ pub fn propose_modules(
             }
         }
 
-        if config.is_testnet {
+        if config.allow_direct_module_registration {
             REGISTERED_MODULES.save(deps.storage, &module, &mod_ref)?;
         } else {
             PENDING_MODULES.save(deps.storage, &module, &mod_ref)?;
@@ -289,27 +289,48 @@ pub fn remove_namespaces(
     ))
 }
 
-pub fn update_namespace_limit(deps: DepsMut, info: MessageInfo, new_limit: u32) -> VCResult {
+pub fn update_config(
+    deps: DepsMut,
+    info: MessageInfo,
+    allow_direct_module_registration: Option<bool>,
+    namespace_limit: Option<u32>,
+) -> VCResult {
     cw_ownable::assert_owner(deps.storage, &info.sender)?;
     let mut config = CONFIG.load(deps.storage)?;
-    let previous_limit = config.namespace_limit;
-    ensure!(
-        new_limit > previous_limit,
-        VCError::DecreaseNamespaceLimit {
-            limit: new_limit,
-            current: previous_limit,
-        }
-    );
-    config.namespace_limit = new_limit;
+
+    let mut attributes = vec![];
+
+    if let Some(new_limit) = namespace_limit {
+        let previous_limit = config.namespace_limit;
+        ensure!(
+            new_limit > previous_limit,
+            VCError::DecreaseNamespaceLimit {
+                limit: new_limit,
+                current: previous_limit,
+            }
+        );
+        config.namespace_limit = new_limit;
+        attributes.extend(vec![
+            ("previous_namespace_limit", previous_limit.to_string()),
+            ("namespace_limit", new_limit.to_string()),
+        ])
+    }
+
+    if let Some(allow) = allow_direct_module_registration {
+        let previous_allow = config.allow_direct_module_registration;
+        config.allow_direct_module_registration = allow;
+        attributes.extend(vec![
+            (
+                "previous_allow_direct_module_registration",
+                previous_allow.to_string(),
+            ),
+            ("allow_direct_module_registration", allow.to_string()),
+        ])
+    }
+
     CONFIG.save(deps.storage, &config)?;
 
-    Ok(VcResponse::new(
-        "update_namespace_limit",
-        vec![
-            ("previous_limit", previous_limit.to_string()),
-            ("limit", new_limit.to_string()),
-        ],
-    ))
+    Ok(VcResponse::new("update_config", attributes))
 }
 
 pub fn query_account_owner(
