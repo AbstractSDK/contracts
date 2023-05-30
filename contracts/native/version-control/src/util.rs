@@ -10,8 +10,8 @@ pub fn validate_sent_funds(
     receiver: Option<Addr>,
 ) -> VCResult<Vec<CosmosMsg>> {
     let mut fee_messages = vec![];
-    if fee.amount.is_zero(){
-    	return Ok(vec![])
+    if fee.amount.is_zero() {
+        return Ok(vec![]);
     }
     match &fee.info {
         AssetInfo::Native(d) => {

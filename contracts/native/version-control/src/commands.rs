@@ -234,7 +234,7 @@ pub fn claim_namespaces(
             current: existing_namespace_count,
         });
     }
-    if namespaces_to_claim.is_empty(){
+    if namespaces_to_claim.is_empty() {
         // Nothing to do if there is no namespace to claim
         return Err(VCError::NoAction);
     }
