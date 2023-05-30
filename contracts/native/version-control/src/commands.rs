@@ -234,10 +234,14 @@ pub fn claim_namespaces(
             current: existing_namespace_count,
         });
     }
+    if namespaces_to_claim.is_empty(){
+        // Nothing to do if there is no namespace to claim
+        return Err(VCError::NoAction);
+    }
 
     let mut fee_messages = vec![];
     // We transfer the namespace fee if necessary
-    if fee.amount != Uint128::zero() {
+    if !fee.amount.is_zero() {
         let admin_account = ACCOUNT_ADDRESSES.load(deps.storage, 0)?;
         let nb_namespaces: u128 = namespaces_to_claim.len().try_into().unwrap();
         let necessary_fee = Asset {
