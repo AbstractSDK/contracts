@@ -1,13 +1,5 @@
 [workspace]
-members = [
-  "packages/*",
-  "contracts/native/*",
-  "contracts/account/*",
-  # "contracts/testing",
-  "contracts/token",
-  # "contracts/ibc-hosts/osmosis",
-  "scripts",
-]
+members = ["packages/*", "contracts/native/*", "contracts/account/*", "scripts"]
 
 # Enable the version 2 feature resolver, which avoids unifying features for targets that are not being built
 #
@@ -55,7 +47,7 @@ protobuf = { version = "2", features = ["with-bytes"] }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator/" }
+cw-orch = { version = "0.12" }
 tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
