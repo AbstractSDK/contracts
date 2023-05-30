@@ -127,7 +127,7 @@ pub enum ExecuteMsg {
     /// 2. the number of namespaces an Account can claim
     UpdateConfig {
         allow_direct_module_registration: Option<bool>,
-        new_limit: Option<u32>,
+        namespace_limit: Option<u32>,
     },
     /// Sets a new Factory
     SetFactory { new_factory: String },

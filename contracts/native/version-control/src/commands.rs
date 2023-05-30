@@ -438,7 +438,7 @@ mod test {
             mock_env(),
             info,
             InstantiateMsg {
-                is_testnet: true,
+                allow_direct_module_registration: Some(true),
                 namespace_limit: 10,
             },
         )?;
@@ -451,14 +451,14 @@ mod test {
     }
 
     /// Initialize the version_control with admin as creator and test account
-    fn mock_init_with_account(mut deps: DepsMut, is_testnet: bool) -> VCResult {
+    fn mock_init_with_account(mut deps: DepsMut, direct_registration: bool) -> VCResult {
         let admin_info = mock_info(TEST_ADMIN, &[]);
         contract::instantiate(
             deps.branch(),
             mock_env(),
             admin_info,
             InstantiateMsg {
-                is_testnet,
+                allow_direct_module_registration: Some(direct_registration),
                 namespace_limit: 10,
             },
         )?;
@@ -711,7 +711,10 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let msg = ExecuteMsg::UpdateNamespaceLimit { new_limit: 100 };
+            let msg = ExecuteMsg::UpdateConfig {
+                allow_direct_module_registration: None,
+                namespace_limit: Some(100),
+            };
 
             let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
             assert_that!(&res)
@@ -726,7 +729,10 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let msg = ExecuteMsg::UpdateNamespaceLimit { new_limit: 100 };
+            let msg = ExecuteMsg::UpdateConfig {
+                allow_direct_module_registration: None,
+                namespace_limit: Some(100),
+            };
 
             let res = execute_as_admin(deps.as_mut(), msg);
             assert_that!(&res).is_ok();
@@ -741,7 +747,10 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let msg = ExecuteMsg::UpdateNamespaceLimit { new_limit: 0 };
+            let msg = ExecuteMsg::UpdateConfig {
+                allow_direct_module_registration: None,
+                namespace_limit: Some(0),
+            };
 
             let res = execute_as_admin(deps.as_mut(), msg);
             assert_that!(&res)
