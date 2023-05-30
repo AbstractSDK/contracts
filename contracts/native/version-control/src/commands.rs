@@ -1,6 +1,7 @@
 use abstract_core::objects::module::{self, Module};
 use cosmwasm_std::{
-    ensure, Addr, Attribute, Deps, DepsMut, MessageInfo, Order, QuerierWrapper, Response, StdResult, Storage, Uint128, Env
+    ensure, Addr, Attribute, Deps, DepsMut, Env, MessageInfo, Order, QuerierWrapper, Response,
+    StdResult, Storage, Uint128,
 };
 
 use abstract_sdk::{
@@ -20,7 +21,7 @@ use abstract_sdk::{
 use crate::contract::{VCResult, VcResponse, ABSTRACT_NAMESPACE};
 use crate::error::VCError;
 use crate::util::validate_sent_funds;
-use cw_asset::{Asset};
+use cw_asset::Asset;
 
 /// Add new Account to version control contract
 /// Only Factory can add Account
@@ -235,7 +236,7 @@ pub fn claim_namespaces(
     }
 
     let mut fee_messages = vec![];
-     // We transfer the namespace fee if necessary
+    // We transfer the namespace fee if necessary
     if fee.amount != Uint128::zero() {
         let admin_account = ACCOUNT_ADDRESSES.load(deps.storage, 0)?;
         let nb_namespaces: u128 = namespaces_to_claim.len().try_into().unwrap();
@@ -243,7 +244,12 @@ pub fn claim_namespaces(
             amount: fee.amount * Uint128::from(nb_namespaces),
             info: fee.info,
         };
-        fee_messages.extend(validate_sent_funds(necessary_fee, env, msg_info, Some(admin_account.proxy))?)
+        fee_messages.extend(validate_sent_funds(
+            necessary_fee,
+            env,
+            msg_info,
+            Some(admin_account.proxy),
+        )?)
     }
 
     for namespace in namespaces_to_claim.iter() {
@@ -624,10 +630,10 @@ mod test {
     mod claim_namespaces {
         use super::*;
         use abstract_core::objects;
-        use cosmwasm_std::{coins, CosmosMsg, SubMsg, BankMsg};
+        use cosmwasm_std::{coins, BankMsg, CosmosMsg, SubMsg};
 
+        use cw_asset::AssetInfo;
         use objects::ABSTRACT_ACCOUNT_ID;
-        use cw_asset::{AssetInfo};
 
         #[test]
         fn claim_namespaces_by_owner() -> VersionControlTestResult {

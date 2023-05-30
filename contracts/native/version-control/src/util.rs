@@ -1,10 +1,13 @@
+use crate::{contract::VCResult, error::VCError};
 
-use crate::{error::VCError, contract::VCResult};
-
+use cosmwasm_std::{Addr, BankMsg, CosmosMsg, Env, MessageInfo, StdError};
 use cw_asset::{Asset, AssetInfo};
-use cosmwasm_std::{ Addr, StdError, CosmosMsg, MessageInfo, BankMsg, Env};
-pub fn validate_sent_funds(fee: Asset, env: Env, msg_info: MessageInfo, receiver: Option<Addr>) -> VCResult<Vec<CosmosMsg>>{
-
+pub fn validate_sent_funds(
+    fee: Asset,
+    env: Env,
+    msg_info: MessageInfo,
+    receiver: Option<Addr>,
+) -> VCResult<Vec<CosmosMsg>> {
     let mut fee_messages = vec![];
     match &fee.info {
         AssetInfo::Native(d) => {
@@ -23,11 +26,10 @@ pub fn validate_sent_funds(fee: Asset, env: Env, msg_info: MessageInfo, receiver
             }))
         }
         AssetInfo::Cw20(_) => {
-        	if let Some(receiver) = receiver{
-        		fee_messages
-            		.push(fee.transfer_from_msg(msg_info.sender, receiver)?)
+            if let Some(receiver) = receiver {
+                fee_messages.push(fee.transfer_from_msg(msg_info.sender, receiver)?)
             }
-        },
+        }
         _ => return Err(VCError::Std(StdError::generic_err("Unreachable"))),
     }
 
