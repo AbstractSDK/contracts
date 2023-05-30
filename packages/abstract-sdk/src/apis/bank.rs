@@ -262,8 +262,7 @@ mod test {
                 amount: coins,
             });
 
-            assert_that!(actual_res)
-                .is_equal_to::<CosmosMsg>(expected_msg);
+            assert_that!(actual_res).is_equal_to::<CosmosMsg>(expected_msg);
         }
     }
 
