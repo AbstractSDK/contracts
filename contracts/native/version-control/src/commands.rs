@@ -242,7 +242,7 @@ pub fn claim_namespaces(
     let nb_namespaces: u128 = namespaces_to_claim.len().try_into().unwrap();
     let fee_to_charge = FixedFee::new(&fee)
         .quantity(nb_namespaces)
-        .charge(&msg_info)?;
+        .assert_payment(&msg_info)?;
 
     let mut fee_messages = vec![];
     if !fee_to_charge.amount.is_zero() {

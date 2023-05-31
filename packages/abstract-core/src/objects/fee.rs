@@ -91,7 +91,8 @@ impl FixedFee {
     }
 
     /// Validates that the sent funds correspond exactly to the fixed fee
-    pub fn charge(self, msg_info: &MessageInfo) -> AbstractResult<Coin> {
+    /// Returns the fee object (a.k.a. self) for later use (e.g. transferring the paid fee to another address)
+    pub fn assert_payment(self, msg_info: &MessageInfo) -> AbstractResult<Coin> {
         if self.fee.amount.is_zero() {
             return Ok(self.fee);
         }
@@ -110,7 +111,8 @@ impl FixedFee {
     /// Validates that the sent funds include at least the fixed fee
     /// This mutates the msg_info so that the rest of the message execution doesn't include those funds anymore.
     /// This acts as a toll on the sent funds
-    pub fn charge_mut(self, msg_info: &mut MessageInfo) -> AbstractResult<Coin> {
+    /// Returns the fee object (a.k.a. self) for later use (e.g. transferring the paid fee to another address)
+    pub fn charge(self, msg_info: &mut MessageInfo) -> AbstractResult<Coin> {
         if self.fee.amount.is_zero() {
             return Ok(self.fee);
         }
@@ -257,7 +259,7 @@ mod tests {
             let _api = MockApi::default();
             let fee = FixedFee::new(&coin(45, "ujunox"));
             let mut info = mock_info("anyone", &coins(47, "ujunox"));
-            fee.charge_mut(&mut info).unwrap();
+            fee.charge(&mut info).unwrap();
             assert_eq!(info.funds, coins(2, "ujunox"));
         }
     }
