@@ -1,6 +1,6 @@
 use abstract_core::objects::module::{self, Module};
 use cosmwasm_std::{
-    ensure, Addr, Attribute, Deps, DepsMut, Env, MessageInfo, Order, QuerierWrapper, Response,
+    ensure, Addr, Attribute, Coin, Deps, DepsMut, MessageInfo, Order, QuerierWrapper, Response,
     StdResult, Storage, Uint128,
 };
 
@@ -20,8 +20,7 @@ use abstract_sdk::{
 
 use crate::contract::{VCResult, VcResponse, ABSTRACT_NAMESPACE};
 use crate::error::VCError;
-use crate::util::validate_sent_funds;
-use cw_asset::Asset;
+use crate::util::validate_native_funds;
 
 /// Add new Account to version control contract
 /// Only Factory can add Account
@@ -201,7 +200,6 @@ pub fn yank_module(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -> 
 /// Only the Account Owner can do this
 pub fn claim_namespaces(
     deps: DepsMut,
-    env: Env,
     msg_info: MessageInfo,
     account_id: AccountId,
     namespaces_to_claim: Vec<String>,
@@ -244,12 +242,11 @@ pub fn claim_namespaces(
     if !fee.amount.is_zero() {
         let admin_account = ACCOUNT_ADDRESSES.load(deps.storage, 0)?;
         let nb_namespaces: u128 = namespaces_to_claim.len().try_into().unwrap();
-        let necessary_fee = Asset {
+        let necessary_fee = Coin {
             amount: fee.amount * Uint128::from(nb_namespaces),
-            info: fee.info,
+            denom: fee.denom,
         };
-        fee_messages.extend(validate_sent_funds(
-            env,
+        fee_messages.extend(validate_native_funds(
             msg_info,
             necessary_fee,
             Some(admin_account.proxy),
@@ -330,7 +327,7 @@ pub fn update_config(
     info: MessageInfo,
     allow_direct_module_registration: Option<bool>,
     namespace_limit: Option<u32>,
-    namespace_registration_fee: Option<Asset>,
+    namespace_registration_fee: Option<Coin>,
 ) -> VCResult {
     cw_ownable::assert_owner(deps.storage, &info.sender)?;
     let mut config = CONFIG.load(deps.storage)?;
@@ -636,7 +633,6 @@ mod test {
         use abstract_core::objects;
         use cosmwasm_std::{coins, BankMsg, CosmosMsg, SubMsg};
 
-        use cw_asset::AssetInfo;
         use objects::ABSTRACT_ACCOUNT_ID;
 
         #[test]
@@ -660,14 +656,14 @@ mod test {
         }
 
         #[test]
-        fn claim_namespaces_with_coin_fee() -> VersionControlTestResult {
+        fn claim_namespaces_with_fee() -> VersionControlTestResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_manager_querier().build();
 
             mock_init_with_account(deps.as_mut(), true)?;
 
-            let one_namespace_fee = Asset {
-                info: AssetInfo::Native("ujunox".to_string()),
+            let one_namespace_fee = Coin {
+                denom: "ujunox".to_string(),
                 amount: 6u128.into(),
             };
 
@@ -707,8 +703,8 @@ mod test {
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(&VCError::InvalidFeePayment {
-                    expected: Asset {
-                        info: one_namespace_fee.info.clone(),
+                    expected: Coin {
+                        denom: one_namespace_fee.denom.clone(),
                         amount: one_namespace_fee.amount * Uint128::from(2u128),
                     },
                     sent: vec![],
@@ -720,8 +716,8 @@ mod test {
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(&VCError::InvalidFeePayment {
-                    expected: Asset {
-                        info: one_namespace_fee.info.clone(),
+                    expected: Coin {
+                        denom: one_namespace_fee.denom.clone(),
                         amount: one_namespace_fee.amount * Uint128::from(2u128),
                     },
                     sent: sent_coins,
@@ -737,65 +733,6 @@ mod test {
                     to_address: TEST_ADMIN_PROXY.to_string(),
                     amount: sent_coins,
                 }))]);
-
-            Ok(())
-        }
-
-        #[test]
-        fn claim_namespaces_with_cw20_fee() -> VersionControlTestResult {
-            let mut deps = mock_dependencies();
-            deps.querier = mock_manager_querier().build();
-
-            mock_init_with_account(deps.as_mut(), true)?;
-
-            let one_namespace_fee = Asset {
-                info: AssetInfo::Cw20(Addr::unchecked("abstract_token")),
-                amount: 6u128.into(),
-            };
-
-            execute_as_admin(
-                deps.as_mut(),
-                ExecuteMsg::UpdateConfig {
-                    allow_direct_module_registration: None,
-                    namespace_limit: None,
-                    namespace_registration_fee: Some(one_namespace_fee.clone()),
-                },
-            )
-            .unwrap();
-
-            // We create a 0 admin account
-            const TEST_ADMIN_PROXY: &str = "test-admin-proxy";
-            execute_as(
-                deps.as_mut(),
-                TEST_ACCOUNT_FACTORY,
-                ExecuteMsg::AddAccount {
-                    account_id: 0,
-                    account_base: AccountBase {
-                        manager: Addr::unchecked(TEST_MANAGER),
-                        proxy: Addr::unchecked(TEST_ADMIN_PROXY),
-                    },
-                },
-            )
-            .unwrap();
-
-            let new_namespace1 = Namespace::new("namespace1").unwrap();
-            let new_namespace2 = Namespace::new("namespace2").unwrap();
-            let msg = ExecuteMsg::ClaimNamespaces {
-                account_id: TEST_ACCOUNT_ID,
-                namespaces: vec![new_namespace1.to_string(), new_namespace2.to_string()],
-            };
-            // Success
-            let res = execute_as(deps.as_mut(), TEST_OWNER, msg);
-            let expected_fee = Asset {
-                info: one_namespace_fee.info,
-                amount: one_namespace_fee.amount * Uint128::from(2u128),
-            };
-            assert_that!(&res)
-                .is_ok()
-                .map(|res| &res.messages)
-                .is_equal_to(vec![SubMsg::new(
-                    expected_fee.transfer_from_msg(TEST_OWNER, TEST_ADMIN_PROXY)?,
-                )]);
 
             Ok(())
         }
@@ -1022,7 +959,6 @@ mod test {
 
     mod update_namespace_fee {
         use super::*;
-        use cw_asset::{Asset, AssetInfo};
 
         #[test]
         fn only_admin() -> VersionControlTestResult {
@@ -1032,8 +968,8 @@ mod test {
             let msg = ExecuteMsg::UpdateConfig {
                 allow_direct_module_registration: None,
                 namespace_limit: None,
-                namespace_registration_fee: Some(Asset {
-                    info: AssetInfo::Native("ujunox".to_string()),
+                namespace_registration_fee: Some(Coin {
+                    denom: "ujunox".to_string(),
                     amount: Uint128::one(),
                 }),
             };
@@ -1051,8 +987,8 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let new_fee = Asset {
-                info: AssetInfo::Native("ujunox".to_string()),
+            let new_fee = Coin {
+                denom: "ujunox".to_string(),
                 amount: Uint128::one(),
             };
 

@@ -1,5 +1,5 @@
-use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, Uint128};
-use cw_asset::{Asset, AssetInfoBase};
+use cosmwasm_std::{to_binary, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, Uint128};
+
 use cw_semver::Version;
 
 use abstract_core::objects::namespace::Namespace;
@@ -53,8 +53,8 @@ pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: Instantiate
         &Config {
             allow_direct_module_registration: allow_direct_module_registration.unwrap_or(false),
             namespace_limit,
-            namespace_registration_fee: namespace_registration_fee.unwrap_or(Asset {
-                info: AssetInfoBase::Native("none".to_string()),
+            namespace_registration_fee: namespace_registration_fee.unwrap_or(Coin {
+                denom: "none".to_string(),
                 amount: Uint128::zero(),
             }),
         },
@@ -87,7 +87,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
         ExecuteMsg::ClaimNamespaces {
             account_id,
             namespaces,
-        } => claim_namespaces(deps, env, info, account_id, namespaces),
+        } => claim_namespaces(deps, info, account_id, namespaces),
         ExecuteMsg::RemoveNamespaces { namespaces } => remove_namespaces(deps, info, namespaces),
         ExecuteMsg::AddAccount {
             account_id,

@@ -31,8 +31,6 @@ abstract-sdk = { workspace = true }
 abstract-core = { workspace = true }
 abstract-macros = { workspace = true }
 cw-ownable = { workspace = true }
-cw-asset = { workspace = true }
-
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }
