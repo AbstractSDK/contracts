@@ -79,24 +79,21 @@ pub struct FixedFee {
 }
 
 impl FixedFee {
+    /// Creates a wrapped coin to allow charging a fee
     pub fn new(fee: &Coin) -> Self {
         FixedFee { fee: fee.clone() }
     }
     /// Allows to collect the fee multiple times
     /// E.g., for namespaces, you want to charge the number of claimed namespaces times the fee for 1 namespace
-    pub fn quantity(&self, qty: u128) -> Self {
-        Self {
-            fee: Coin {
-                denom: self.fee.denom.clone(),
-                amount: self.fee.amount * Uint128::from(qty),
-            },
-        }
+    pub fn quantity(mut self, qty: u128) -> Self {
+        self.fee.amount *= Uint128::from(qty);
+        self
     }
 
     /// Validates that the sent funds correspond exactly to the fixed fee
-    pub fn charge(&self, msg_info: &MessageInfo) -> AbstractResult<()> {
+    pub fn charge(self, msg_info: &MessageInfo) -> AbstractResult<Coin> {
         if self.fee.amount.is_zero() {
-            return Ok(());
+            return Ok(self.fee);
         }
         if msg_info.funds.len() != 1
             || msg_info.funds[0].denom != self.fee.denom
@@ -107,15 +104,15 @@ impl FixedFee {
                 self.fee, msg_info.funds
             )));
         }
-        Ok(())
+        Ok(self.fee)
     }
 
     /// Validates that the sent funds include at least the fixed fee
     /// This mutates the msg_info so that the rest of the message execution doesn't include those funds anymore.
     /// This acts as a toll on the sent funds
-    pub fn charge_mut(&self, msg_info: &mut MessageInfo) -> AbstractResult<()> {
+    pub fn charge_mut(self, msg_info: &mut MessageInfo) -> AbstractResult<Coin> {
         if self.fee.amount.is_zero() {
-            return Ok(());
+            return Ok(self.fee);
         }
         let original_funds = msg_info.funds.clone();
 
@@ -137,7 +134,7 @@ impl FixedFee {
         }
 
         funds_to_use.amount -= self.fee.amount;
-        Ok(())
+        Ok(self.fee)
     }
     pub fn fee(&self) -> Coin {
         self.fee.clone()

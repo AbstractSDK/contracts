@@ -240,17 +240,17 @@ pub fn claim_namespaces(
     }
 
     let nb_namespaces: u128 = namespaces_to_claim.len().try_into().unwrap();
-    FixedFee::new(&fee)
+    let fee_to_charge = FixedFee::new(&fee)
         .quantity(nb_namespaces)
         .charge(&msg_info)?;
 
     let mut fee_messages = vec![];
-    if !fee.amount.is_zero() {
+    if !fee_to_charge.amount.is_zero() {
         // We transfer the namespace fee if necessary
         let admin_account = ACCOUNT_ADDRESSES.load(deps.storage, 0)?;
         fee_messages.push(CosmosMsg::Bank(BankMsg::Send {
             to_address: admin_account.proxy.to_string(),
-            amount: msg_info.funds,
+            amount: msg_info.funds, // No funds should be left on the contract. We ensure that here
         }));
     }
 
