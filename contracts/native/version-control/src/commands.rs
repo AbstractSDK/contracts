@@ -1,7 +1,10 @@
-use abstract_core::objects::module::{self, Module};
+use abstract_core::objects::{
+    fee::FixedFee,
+    module::{self, Module},
+};
 use cosmwasm_std::{
     ensure, Addr, Attribute, BankMsg, Coin, CosmosMsg, Deps, DepsMut, MessageInfo, Order,
-    QuerierWrapper, Response, StdResult, Storage, Uint128,
+    QuerierWrapper, Response, StdResult, Storage,
 };
 
 use abstract_sdk::{
@@ -20,7 +23,6 @@ use abstract_sdk::{
 
 use crate::contract::{VCResult, VcResponse, ABSTRACT_NAMESPACE};
 use crate::error::VCError;
-use crate::util::validate_native_funds;
 
 /// Add new Account to version control contract
 /// Only Factory can add Account
@@ -242,11 +244,11 @@ pub fn claim_namespaces(
     if !fee.amount.is_zero() {
         let admin_account = ACCOUNT_ADDRESSES.load(deps.storage, 0)?;
         let nb_namespaces: u128 = namespaces_to_claim.len().try_into().unwrap();
-        let necessary_fee = Coin {
-            amount: fee.amount * Uint128::from(nb_namespaces),
-            denom: fee.denom,
-        };
-        validate_native_funds(msg_info.clone(), necessary_fee)?;
+
+        FixedFee::new(fee)
+            .quantity(nb_namespaces)
+            .charge(&msg_info)?;
+
         fee_messages.push(CosmosMsg::Bank(BankMsg::Send {
             to_address: admin_account.proxy.to_string(),
             amount: msg_info.funds,
@@ -630,8 +632,8 @@ mod test {
 
     mod claim_namespaces {
         use super::*;
-        use abstract_core::objects;
-        use cosmwasm_std::{coins, BankMsg, CosmosMsg, SubMsg};
+        use abstract_core::{objects, AbstractError};
+        use cosmwasm_std::{coins, BankMsg, CosmosMsg, SubMsg, Uint128};
 
         use objects::ABSTRACT_ACCOUNT_ID;
 
@@ -702,26 +704,28 @@ mod test {
             let res = execute_as(deps.as_mut(), TEST_OWNER, msg.clone());
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::InvalidFeePayment {
-                    expected: Coin {
+                .is_equal_to(VCError::Abstract(AbstractError::Fee(format!(
+                    "Invalid fee payment sent. Expected {}, sent {:?}",
+                    Coin {
                         denom: one_namespace_fee.denom.clone(),
                         amount: one_namespace_fee.amount * Uint128::from(2u128),
                     },
-                    sent: vec![],
-                });
+                    Vec::<Coin>::new()
+                ))));
 
             // Fail, not enough fee
             let sent_coins = coins(5, "ujunox");
             let res = execute_as_with_funds(deps.as_mut(), TEST_OWNER, msg.clone(), &sent_coins);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::InvalidFeePayment {
-                    expected: Coin {
+                .is_equal_to(VCError::Abstract(AbstractError::Fee(format!(
+                    "Invalid fee payment sent. Expected {}, sent {:?}",
+                    Coin {
                         denom: one_namespace_fee.denom.clone(),
                         amount: one_namespace_fee.amount * Uint128::from(2u128),
                     },
-                    sent: sent_coins,
-                });
+                    sent_coins
+                ))));
 
             // Success
             let sent_coins = coins(12, "ujunox");
@@ -959,6 +963,7 @@ mod test {
 
     mod update_namespace_fee {
         use super::*;
+        use cosmwasm_std::Uint128;
 
         #[test]
         fn only_admin() -> VersionControlTestResult {
