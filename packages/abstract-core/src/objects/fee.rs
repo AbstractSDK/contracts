@@ -79,8 +79,8 @@ pub struct FixedFee {
 }
 
 impl FixedFee {
-    pub fn new(fee: Coin) -> Self {
-        FixedFee { fee }
+    pub fn new(fee: &Coin) -> Self {
+        FixedFee { fee: fee.clone() }
     }
     /// Allows to collect the fee multiple times
     /// E.g., for namespaces, you want to charge the number of claimed namespaces times the fee for 1 namespace
@@ -93,7 +93,7 @@ impl FixedFee {
         }
     }
 
-    //
+    /// Validates that the sent funds correspond exactly to the fixed fee
     pub fn charge(&self, msg_info: &MessageInfo) -> AbstractResult<()> {
         if self.fee.amount.is_zero() {
             return Ok(());
@@ -110,6 +110,9 @@ impl FixedFee {
         Ok(())
     }
 
+    /// Validates that the sent funds include at least the fixed fee
+    /// This mutates the msg_info so that the rest of the message execution doesn't include those funds anymore.
+    /// This acts as a toll on the sent funds
     pub fn charge_mut(&self, msg_info: &mut MessageInfo) -> AbstractResult<()> {
         if self.fee.amount.is_zero() {
             return Ok(());
@@ -255,7 +258,7 @@ mod tests {
         #[test]
         fn test_loose_fee_validation() {
             let _api = MockApi::default();
-            let fee = FixedFee::new(coin(45, "ujunox"));
+            let fee = FixedFee::new(&coin(45, "ujunox"));
             let mut info = mock_info("anyone", &coins(47, "ujunox"));
             fee.charge_mut(&mut info).unwrap();
             assert_eq!(info.funds, coins(2, "ujunox"));

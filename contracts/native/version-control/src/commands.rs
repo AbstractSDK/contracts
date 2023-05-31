@@ -239,16 +239,15 @@ pub fn claim_namespaces(
         return Err(VCError::NoAction);
     }
 
+    let nb_namespaces: u128 = namespaces_to_claim.len().try_into().unwrap();
+    FixedFee::new(&fee)
+        .quantity(nb_namespaces)
+        .charge(&msg_info)?;
+
     let mut fee_messages = vec![];
-    // We transfer the namespace fee if necessary
     if !fee.amount.is_zero() {
+        // We transfer the namespace fee if necessary
         let admin_account = ACCOUNT_ADDRESSES.load(deps.storage, 0)?;
-        let nb_namespaces: u128 = namespaces_to_claim.len().try_into().unwrap();
-
-        FixedFee::new(fee)
-            .quantity(nb_namespaces)
-            .charge(&msg_info)?;
-
         fee_messages.push(CosmosMsg::Bank(BankMsg::Send {
             to_address: admin_account.proxy.to_string(),
             amount: msg_info.funds,
