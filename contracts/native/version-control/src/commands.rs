@@ -1,7 +1,7 @@
 use abstract_core::objects::module::{self, Module};
 use cosmwasm_std::{
-    ensure, Addr, Attribute, Coin, Deps, DepsMut, MessageInfo, Order, QuerierWrapper, Response,
-    StdResult, Storage, Uint128,
+    ensure, Addr, Attribute, BankMsg, Coin, CosmosMsg, Deps, DepsMut, MessageInfo, Order,
+    QuerierWrapper, Response, StdResult, Storage, Uint128,
 };
 
 use abstract_sdk::{
@@ -246,11 +246,11 @@ pub fn claim_namespaces(
             amount: fee.amount * Uint128::from(nb_namespaces),
             denom: fee.denom,
         };
-        fee_messages.extend(validate_native_funds(
-            msg_info,
-            necessary_fee,
-            Some(admin_account.proxy),
-        )?)
+        validate_native_funds(msg_info.clone(), necessary_fee)?;
+        fee_messages.push(CosmosMsg::Bank(BankMsg::Send {
+            to_address: admin_account.proxy.to_string(),
+            amount: msg_info.funds,
+        }));
     }
 
     for namespace in namespaces_to_claim.iter() {
