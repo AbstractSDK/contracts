@@ -55,11 +55,13 @@ impl<'a, T: SplitterInterface> Splitter<'a, T> {
 #[cfg(test)]
 mod test {
     use abstract_core::objects::AnsAsset;
-    use cosmwasm_std::{Uint128, Addr, testing::mock_dependencies, CosmosMsg, Response, StdError};
+    use cosmwasm_std::{testing::mock_dependencies, Addr, CosmosMsg, Response, StdError, Uint128};
 
-    use crate::{mock_module::MockModule, apis::splitter::SplitterInterface, Execution, AbstractSdkError};
+    use crate::{
+        apis::splitter::SplitterInterface, mock_module::MockModule, AbstractSdkError, Execution,
+    };
 
-    fn split() -> Result<Response, AbstractSdkError>{
+    fn split() -> Result<Response, AbstractSdkError> {
         let deps = mock_dependencies();
         let module = MockModule::new();
         // ANCHOR: usage
