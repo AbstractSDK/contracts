@@ -3,7 +3,7 @@ use crate::AccountAction;
 use crate::{AbstractSdkResult, TransferInterface};
 use abstract_core::objects::AnsAsset;
 use cosmwasm_std::{Addr, CosmosMsg, Deps, StdResult, Uint128};
-
+// ANCHOR: splitter
 // Trait to retrieve the Splitter object
 // Depends on the ability to transfer funds
 pub trait SplitterInterface: TransferInterface {
@@ -48,5 +48,38 @@ impl<'a, T: SplitterInterface> Splitter<'a, T> {
                 }
                 Err(e) => Err(e),
             })
+    }
+}
+// ANCHOR_END: splitter
+
+#[cfg(test)]
+mod test {
+    use abstract_core::objects::AnsAsset;
+    use cosmwasm_std::{Uint128, Addr, testing::mock_dependencies, CosmosMsg, Response, StdError};
+
+    use crate::{mock_module::MockModule, apis::splitter::SplitterInterface, Execution, AbstractSdkError};
+
+    fn split() -> Result<Response, AbstractSdkError>{
+        let deps = mock_dependencies();
+        let module = MockModule::new();
+        // ANCHOR: usage
+        let asset = AnsAsset {
+            amount: Uint128::from(100u128),
+            name: "usd".into(),
+        };
+
+        let receivers = vec![
+            Addr::unchecked("receiver1"),
+            Addr::unchecked("receiver2"),
+            Addr::unchecked("receiver3"),
+        ];
+
+        let split_funds = module.splitter(deps.as_ref()).split(asset, &receivers)?;
+        assert_eq!(split_funds.messages().len(), 3);
+
+        let msg: CosmosMsg = module.executor(deps.as_ref()).execute(vec![split_funds])?;
+
+        Ok(Response::new().add_message(msg))
+        // ANCHOR_END: usage
     }
 }

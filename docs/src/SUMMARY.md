@@ -42,7 +42,7 @@
 
 # Use Cases
 
-  - [Equilibrium]()
+  - [Equilibrium](./use_cases/equilibrium.md)
   - [4t2 Finance]()
 
 # Resources and Support
