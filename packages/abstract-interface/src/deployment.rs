@@ -11,7 +11,6 @@ use abstract_core::{
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 
-
 pub struct Abstract<Chain: CwEnv> {
     pub ans_host: AnsHost<Chain>,
     pub version_control: VersionControl<Chain>,
@@ -172,12 +171,24 @@ impl<Chain: CwEnv> Abstract<Chain> {
         Ok(())
     }
 
-    pub fn contracts(&self) -> Vec<(&cw_orch::contract::Contract<Chain>,String)> {
+    pub fn contracts(&self) -> Vec<(&cw_orch::contract::Contract<Chain>, String)> {
         vec![
-            (self.ans_host.as_instance(),ans_host::contract::CONTRACT_VERSION.to_string()),
-            (self.version_control.as_instance(),version_control::contract::CONTRACT_VERSION.to_string()),
-            (self.account_factory.as_instance(),account_factory::contract::CONTRACT_VERSION.to_string()),
-            (self.module_factory.as_instance(),module_factory::contract::CONTRACT_VERSION.to_string()),
+            (
+                self.ans_host.as_instance(),
+                ans_host::contract::CONTRACT_VERSION.to_string(),
+            ),
+            (
+                self.version_control.as_instance(),
+                version_control::contract::CONTRACT_VERSION.to_string(),
+            ),
+            (
+                self.account_factory.as_instance(),
+                account_factory::contract::CONTRACT_VERSION.to_string(),
+            ),
+            (
+                self.module_factory.as_instance(),
+                module_factory::contract::CONTRACT_VERSION.to_string(),
+            ),
         ]
     }
 }
