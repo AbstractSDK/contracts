@@ -38,7 +38,7 @@ Most of the APIs either return a `CosmosMsg` or an `AccountAction`. The `CosmosM
 
 #### Example
 
-The [`Bank`](https://docs.rs/abstract-sdk/latest/abstract_sdk/apis/bank) API allows developers to transfer assets from and to the Account through their module object. We now want to use this API to create a `Splitter` API that splits the transfer of some amount of funds between a set of receivers.
+The [`Bank`](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.Bank.html) API allows developers to transfer assets from and to the Account through their module object. We now want to use this API to create a `Splitter` API that splits the transfer of some amount of funds between a set of receivers.
 
 ```rust,ignore
 {{#include ../../../packages/abstract-sdk/src/apis/splitter.rs:splitter }}

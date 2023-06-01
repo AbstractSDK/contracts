@@ -25,4 +25,4 @@ git-repository-url = "https://github.com/AbstractSDK/contracts"
 git-repository-icon = "fa-github"
 edit-url-template = "https://github.com/AbstractSDK/contracts/edit/main/docs/{path}"
 
-[output.linkcheck]
+# [output.linkcheck]
