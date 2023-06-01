@@ -15,7 +15,8 @@ use cw_orch::interface;
 #[cfg(feature = "daemon")]
 use cw_orch::prelude::Daemon;
 use cw_orch::prelude::*;
-use semver::Version;
+
+type VersionString = String;
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct VersionControl<Chain>;
@@ -57,11 +58,10 @@ where
     pub fn register_base(
         &self,
         account: &AbstractAccount<Chain>,
-        version: &str,
     ) -> Result<(), crate::AbstractInterfaceError> {
         let manager = account.manager.as_instance();
         let manager_module = (
-            ModuleInfo::from_id(&manager.id, ModuleVersion::Version(version.to_string()))?,
+            ModuleInfo::from_id(&manager.id, ModuleVersion::Version(manager::contract::CONTRACT_VERSION.to_string()))?,
             ModuleReference::AccountBase(manager.code_id()?),
         );
         self.propose_modules(vec![manager_module])?;
@@ -70,7 +70,7 @@ where
 
         let proxy = account.proxy.as_instance();
         let proxy_module = (
-            ModuleInfo::from_id(&proxy.id, ModuleVersion::Version(version.to_string()))?,
+            ModuleInfo::from_id(&proxy.id, ModuleVersion::Version(proxy::contract::CONTRACT_VERSION.to_string()))?,
             ModuleReference::AccountBase(proxy.code_id()?),
         );
         self.propose_modules(vec![proxy_module])?;
@@ -82,10 +82,9 @@ where
     /// Register account modules
     pub fn register_account_mods(
         &self,
-        apps: Vec<&Contract<Chain>>,
-        version: &Version,
+        apps: Vec<(&Contract<Chain>,VersionString)>,
     ) -> Result<(), crate::AbstractInterfaceError> {
-        let to_register = self.contracts_into_module_entries(apps, version, |c| {
+        let to_register = self.contracts_into_module_entries(apps, |c| {
             ModuleReference::AccountBase(c.code_id().unwrap())
         })?;
         self.propose_modules(to_register)?;
@@ -95,10 +94,9 @@ where
     /// Register native modules
     pub fn register_natives(
         &self,
-        natives: Vec<&Contract<Chain>>,
-        version: &Version,
+        natives: Vec<(&Contract<Chain>,VersionString)>,
     ) -> Result<(), crate::AbstractInterfaceError> {
-        let to_register = self.contracts_into_module_entries(natives, version, |c| {
+        let to_register = self.contracts_into_module_entries(natives, |c| {
             ModuleReference::Native(c.address().unwrap())
         })?;
         self.propose_modules(to_register)?;
@@ -107,10 +105,9 @@ where
 
     pub fn register_apps(
         &self,
-        apps: Vec<&Contract<Chain>>,
-        version: &Version,
+        apps: Vec<(&Contract<Chain>,VersionString)>,
     ) -> Result<(), crate::AbstractInterfaceError> {
-        let to_register = self.contracts_into_module_entries(apps, version, |c| {
+        let to_register = self.contracts_into_module_entries(apps, |c| {
             ModuleReference::App(c.code_id().unwrap())
         })?;
         self.propose_modules(to_register)?;
@@ -119,10 +116,9 @@ where
 
     pub fn register_adapters(
         &self,
-        adapters: Vec<&Contract<Chain>>,
-        version: &Version,
+        adapters: Vec<(&Contract<Chain>,VersionString)>,
     ) -> Result<(), crate::AbstractInterfaceError> {
-        let to_register = self.contracts_into_module_entries(adapters, version, |c| {
+        let to_register = self.contracts_into_module_entries(adapters, |c| {
             ModuleReference::Adapter(c.address().unwrap())
         })?;
         self.propose_modules(to_register)?;
@@ -131,10 +127,9 @@ where
 
     pub fn register_standalones(
         &self,
-        standalones: Vec<&Contract<Chain>>,
-        version: &Version,
+        standalones: Vec<(&Contract<Chain>,VersionString)>,
     ) -> Result<(), crate::AbstractInterfaceError> {
-        let to_register = self.contracts_into_module_entries(standalones, version, |c| {
+        let to_register = self.contracts_into_module_entries(standalones, |c| {
             ModuleReference::Standalone(c.code_id().unwrap())
         })?;
         self.propose_modules(to_register)?;
@@ -143,8 +138,7 @@ where
 
     fn contracts_into_module_entries<RefFn>(
         &self,
-        modules: Vec<&Contract<Chain>>,
-        version: &Version,
+        modules: Vec<(&Contract<Chain>,VersionString)>,
         ref_fn: RefFn,
     ) -> Result<Vec<(ModuleInfo, ModuleReference)>, crate::AbstractInterfaceError>
     where
@@ -155,9 +149,9 @@ where
             crate::AbstractInterfaceError,
         > = modules
             .iter()
-            .map(|contract| {
+            .map(|(contract,version)| {
                 Ok((
-                    ModuleInfo::from_id(&contract.id, ModuleVersion::Version(version.to_string()))?,
+                    ModuleInfo::from_id(&contract.id, ModuleVersion::Version(version.to_owned()))?,
                     ref_fn(contract),
                 ))
             })

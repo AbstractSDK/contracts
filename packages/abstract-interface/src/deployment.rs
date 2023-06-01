@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use crate::{
     get_account_contracts, get_native_contracts, AbstractAccount, AbstractInterfaceError,
-    AccountFactory, AnsHost, Manager, ModuleFactory, Proxy, VersionControl, VERSION,
+    AccountFactory, AnsHost, Manager, ModuleFactory, Proxy, VersionControl,
 };
 use abstract_core::{
     objects::gov_type::GovernanceDetails, ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY,
@@ -10,7 +10,7 @@ use abstract_core::{
 };
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
-use semver::Version;
+
 
 pub struct Abstract<Chain: CwEnv> {
     pub ans_host: AnsHost<Chain>,
@@ -56,8 +56,6 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         // upload
         let mut deployment = Self::store_on(chain.clone())?;
 
-        let version: Version = VERSION.parse().unwrap();
-
         // ########### Instantiate ##############
         deployment.instantiate(&chain)?;
 
@@ -73,11 +71,11 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
 
         deployment
             .version_control
-            .register_base(&deployment.account, &version.to_string())?;
+            .register_base(&deployment.account)?;
 
         deployment
             .version_control
-            .register_natives(deployment.contracts(), &version)?;
+            .register_natives(deployment.contracts())?;
 
         // Create the first abstract account in integration environments
         #[cfg(feature = "integration")]
@@ -174,12 +172,12 @@ impl<Chain: CwEnv> Abstract<Chain> {
         Ok(())
     }
 
-    pub fn contracts(&self) -> Vec<&cw_orch::contract::Contract<Chain>> {
+    pub fn contracts(&self) -> Vec<(&cw_orch::contract::Contract<Chain>,String)> {
         vec![
-            self.ans_host.as_instance(),
-            self.version_control.as_instance(),
-            self.account_factory.as_instance(),
-            self.module_factory.as_instance(),
+            (self.ans_host.as_instance(),ans_host::contract::CONTRACT_VERSION.to_string()),
+            (self.version_control.as_instance(),version_control::contract::CONTRACT_VERSION.to_string()),
+            (self.account_factory.as_instance(),account_factory::contract::CONTRACT_VERSION.to_string()),
+            (self.module_factory.as_instance(),module_factory::contract::CONTRACT_VERSION.to_string()),
         ]
     }
 }
