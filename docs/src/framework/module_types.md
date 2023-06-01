@@ -1,6 +1,6 @@
 # Module Types
 
-Within Abstract, a _module_ is a contract that **adds functionality** to your Account. You can explore all the available modules on the modules tab of your Account, shown in fig. 1.
+Within Abstract, a _module_ is a contract that **adds functionality** to your Account. You can explore all the available modules on the modules tab of your Account through the [web-app](https://app.abstract.money/).
 
 Modules are classified in the following categories:
 
