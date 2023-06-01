@@ -4,10 +4,7 @@ use crate::{
     get_account_contracts, get_native_contracts, AbstractAccount, AbstractInterfaceError,
     AccountFactory, AnsHost, Manager, ModuleFactory, Proxy, VersionControl,
 };
-use abstract_core::{
-    objects::gov_type::GovernanceDetails, ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY,
-    PROXY, VERSION_CONTROL,
-};
+use abstract_core::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY, VERSION_CONTROL};
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 
@@ -77,6 +74,8 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             .register_natives(deployment.contracts())?;
 
         // Create the first abstract account in integration environments
+        #[cfg(feature = "integration")]
+        use abstract_core::objects::gov_type::GovernanceDetails;
         #[cfg(feature = "integration")]
         deployment
             .account_factory
