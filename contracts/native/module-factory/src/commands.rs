@@ -15,7 +15,7 @@ use abstract_sdk::{
 };
 use cosmwasm_std::{
     wasm_execute, Addr, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo, ReplyOn, StdError,
-    StdResult, SubMsg, SubMsgResult, WasmMsg,
+    StdResult, SubMsg, SubMsgResult, WasmMsg, BankMsg
 };
 use protobuf::Message;
 
@@ -51,6 +51,21 @@ pub fn execute_create_module(
     // }
     // .format()?;
 
+    // We validate the fee if it was required by the version control to install this module
+    let mut fee_msgs = vec![];
+    match new_module.monetization.clone(){
+        module::Monetization::InstallFee(f) => {
+            let fee = f.assert_payment(&info)?;
+            // We transfer that fee to the namespace owner if there is
+            let namespace_account = version_registry.query_namespace(new_module.info.namespace.clone())?;
+            fee_msgs.push(CosmosMsg::Bank(BankMsg::Send {
+                to_address: namespace_account.account_base.proxy.to_string(),
+                amount: vec![fee], 
+            }));
+        },
+        abstract_core::objects::module::Monetization::None => {}
+    };
+
     // Set context for after init
     CONTEXT.save(
         deps.storage,
@@ -60,7 +75,7 @@ pub fn execute_create_module(
         },
     )?;
     let block_height = env.block.height;
-    match &new_module.reference {
+    let resp = match &new_module.reference {
         ModuleReference::App(code_id) => instantiate_contract(
             block_height,
             *code_id,
@@ -94,7 +109,8 @@ pub fn execute_create_module(
             new_module.info,
         ),
         _ => Err(ModuleFactoryError::ModuleNotInstallable {}),
-    }
+    }?;
+    Ok(resp.add_messages(fee_msgs))
 }
 
 fn instantiate_contract(

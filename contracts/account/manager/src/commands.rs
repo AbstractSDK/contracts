@@ -105,7 +105,7 @@ pub fn install_module(
             .add_message(wasm_execute(
                 config.module_factory_address,
                 &ModuleFactoryMsg::InstallModule { module, init_msg },
-                vec![],
+                msg_info.funds, // We forward all the funds to the module_factory address for them to use in the install
             )?);
 
     Ok(response)
@@ -137,6 +137,7 @@ pub fn register_module(
         Module {
             reference: ModuleReference::App(_),
             info,
+            ..
         } => {
             let id = info.id();
             // assert version requirements
@@ -150,6 +151,7 @@ pub fn register_module(
         Module {
             reference: ModuleReference::Adapter(_),
             info,
+            ..
         } => {
             let id = info.id();
             // assert version requirements
@@ -625,6 +627,7 @@ fn query_module(
             Ok(Module {
                 info: module_info.clone(),
                 reference: version_registry.query_module_reference_raw(&module_info)?,
+                monetization: version_registry.query_module_monetization_raw(&module_info)?,
             })
         }
         ModuleVersion::Latest => {
@@ -1146,6 +1149,8 @@ mod tests {
     }
 
     mod register_module {
+        use abstract_core::objects::module::Monetization;
+
         use super::*;
 
         fn _execute_as_module_factory(deps: DepsMut, msg: ExecuteMsg) -> ManagerResult {
@@ -1164,6 +1169,7 @@ mod tests {
                 module: Module {
                     info: ModuleInfo::from_id_latest("test:module")?,
                     reference: ModuleReference::App(1),
+                    monetization: Monetization::None
                 },
             };
 

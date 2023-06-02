@@ -1,6 +1,7 @@
 #![allow(unused)]
 pub mod mock_modules;
 
+use abstract_core::objects::module::{ModuleVersion, Monetization, ModuleInfo};
 pub use abstract_testing::addresses::TEST_OWNER;
 
 pub const OWNER: &str = TEST_OWNER;
@@ -46,4 +47,19 @@ pub(crate) fn init_mock_adapter(
         .parse()?;
     staking_adapter.deploy(version, MockInitMsg)?;
     Ok(staking_adapter)
+}
+
+pub(crate) fn add_mock_adapter_install_fee(
+    chain: Mock,
+    deployment: &Abstract<Mock>,
+    monetization: Monetization,
+    version: Option<String>,
+) -> anyhow::Result<()> {
+     let version: Version = version
+        .unwrap_or_else(|| CONTRACT_VERSION.to_string())
+        .parse()?;
+    deployment
+        .version_control
+        .set_module_monetization(ModuleInfo::from_id(TEST_MODULE_ID, ModuleVersion::Version(version.to_string()))?, monetization)?;
+        Ok(())
 }

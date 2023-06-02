@@ -22,8 +22,7 @@ fn install_module_version(
     manager: &Manager<Mock>,
     abstr: &Abstract<Mock>,
     module: &str,
-    version: &str,
-) -> anyhow::Result<String> {
+    version: &str,) -> anyhow::Result<String> {
     manager.install_module_version(
         module,
         ModuleVersion::Version(version.to_string()),
@@ -33,6 +32,7 @@ fn install_module_version(
                 ans_host_address: abstr.ans_host.addr_str()?,
             },
         },
+        None,
     )?;
 
     Ok(manager.module_info(module)?.unwrap().address.to_string())

@@ -1,6 +1,7 @@
 use super::module_reference::ModuleReference;
 use crate::objects::module_version::MODULE;
 use crate::objects::namespace::Namespace;
+use crate::objects::fee::FixedFee;
 use crate::{error::AbstractError, AbstractResult};
 use cosmwasm_std::{ensure_eq, to_binary, Addr, Binary, QuerierWrapper, StdError, StdResult};
 use cw2::ContractVersion;
@@ -119,6 +120,10 @@ impl ModuleInfo {
                 Ok(())
             }
         }
+    }
+
+    pub fn full_name(self) -> (Namespace, String){
+        (self.namespace, self.name)
     }
 }
 
@@ -301,6 +306,7 @@ impl TryFrom<ContractVersion> for ModuleInfo {
 pub struct Module {
     pub info: ModuleInfo,
     pub reference: ModuleReference,
+    pub monetization: Monetization,
 }
 
 impl fmt::Display for Module {
@@ -309,14 +315,14 @@ impl fmt::Display for Module {
     }
 }
 
-impl From<(ModuleInfo, ModuleReference)> for Module {
-    fn from((info, reference): (ModuleInfo, ModuleReference)) -> Self {
-        Self { info, reference }
+impl From<(ModuleInfo, ModuleReference, Monetization)> for Module {
+    fn from((info, reference, monetization): (ModuleInfo, ModuleReference, Monetization)) -> Self {
+        Self { info, reference, monetization }
     }
 }
 
-#[cosmwasm_schema::cw_serde]
 
+#[cosmwasm_schema::cw_serde]
 pub struct ModuleInitMsg {
     pub fixed_init: Option<Binary>,
     pub owner_init: Option<Binary>,
@@ -425,6 +431,13 @@ pub fn assert_module_data_validity(
     );
 
     Ok(())
+}
+
+/// Module Monetization
+#[cosmwasm_schema::cw_serde]
+pub enum Monetization{
+    None,
+    InstallFee(FixedFee)
 }
 
 //--------------------------------------------------------------------------------------------------

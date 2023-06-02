@@ -2,7 +2,7 @@ use crate::contract::VCResult;
 use crate::error::VCError;
 use abstract_core::{
     objects::module::ModuleStatus,
-    version_control::{state::PENDING_MODULES, NamespaceFilter},
+    version_control::{state::{PENDING_MODULES, load_module_monetization}, NamespaceFilter, NamespaceResponse},
 };
 use abstract_sdk::core::{
     objects::{
@@ -65,8 +65,9 @@ pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<M
             )),
             Ok(mod_ref) => {
                 modules_response.modules.push(Module {
-                    info: module,
+                    info: module.clone(),
                     reference: mod_ref,
+                    monetization: load_module_monetization(deps, module.full_name()),
                 });
                 Ok(())
             }
@@ -131,7 +132,11 @@ pub fn handle_module_list_query(
         modules.retain(|(info, _)| info.version == version);
     }
 
-    let modules = modules.into_iter().map(Module::from).collect();
+    let modules = modules.into_iter().map(|(module_info, mod_ref)| Ok(Module{
+        info: module_info.clone(),
+        reference: mod_ref,
+        monetization: load_module_monetization(deps, module_info.full_name()),
+    })).collect::<Result<Vec<_>, StdError>>()?;
 
     Ok(ModulesListResponse { modules })
 }
@@ -154,6 +159,23 @@ pub fn handle_namespaces_query(
     }
 
     Ok(namespaces_response)
+}
+
+
+pub fn handle_namespace_query(
+    deps: Deps,
+    namespace: Namespace,
+) -> StdResult<NamespaceResponse> {
+
+    let account_id = namespaces_info().load(deps.storage, &namespace)?;
+    let account_base = ACCOUNT_ADDRESSES.load(deps.storage, account_id)?;
+
+    Ok(
+        NamespaceResponse{
+            account_id,
+            account_base
+        }
+    )
 }
 
 pub fn handle_namespace_list_query(
