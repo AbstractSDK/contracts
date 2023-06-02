@@ -3,7 +3,7 @@ use crate::error::VCError;
 use abstract_core::{
     objects::module::ModuleStatus,
     version_control::{
-        state::{load_module_monetization, PENDING_MODULES},
+        state::PENDING_MODULES,
         NamespaceFilter, NamespaceResponse,
     },
 };
@@ -70,7 +70,6 @@ pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<M
                 modules_response.modules.push(Module {
                     info: module.clone(),
                     reference: mod_ref,
-                    monetization: load_module_monetization(deps, module.full_name()),
                 });
                 Ok(())
             }
@@ -139,9 +138,8 @@ pub fn handle_module_list_query(
         .into_iter()
         .map(|(module_info, mod_ref)| {
             Ok(Module {
-                info: module_info.clone(),
+                info: module_info,
                 reference: mod_ref,
-                monetization: load_module_monetization(deps, module_info.full_name()),
             })
         })
         .collect::<Result<Vec<_>, StdError>>()?;

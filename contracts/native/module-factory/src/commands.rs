@@ -40,7 +40,8 @@ pub fn execute_create_module(
     // assert that sender is manager
     let account_base = account_registry.assert_manager(&info.sender)?;
 
-    let new_module = version_registry.query_module(module_info)?;
+    let new_module = version_registry.query_module(module_info.clone())?;
+    let new_module_monetization = version_registry.query_module_monetization_raw(&module_info)?;
 
     // TODO: check if this can be generalized for some contracts
     // aka have default values for each kind of module that only get overwritten if a specific init_msg is saved.
@@ -53,7 +54,7 @@ pub fn execute_create_module(
 
     // We validate the fee if it was required by the version control to install this module
     let mut fee_msgs = vec![];
-    match new_module.monetization.clone() {
+    match new_module_monetization {
         module::Monetization::InstallFee(f) => {
             let fee = f.assert_payment(&info)?;
             // We transfer that fee to the namespace owner if there is

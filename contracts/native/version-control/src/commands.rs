@@ -91,10 +91,6 @@ pub fn propose_modules(
                 &Module {
                     info: module.clone(),
                     reference: mod_ref.clone(),
-                    monetization: load_module_monetization(
-                        deps.as_ref(),
-                        module.clone().full_name(),
-                    ),
                 },
                 None,
             )?;

@@ -306,7 +306,6 @@ impl TryFrom<ContractVersion> for ModuleInfo {
 pub struct Module {
     pub info: ModuleInfo,
     pub reference: ModuleReference,
-    pub monetization: Monetization,
 }
 
 impl fmt::Display for Module {
@@ -315,15 +314,22 @@ impl fmt::Display for Module {
     }
 }
 
-impl From<(ModuleInfo, ModuleReference, Monetization)> for Module {
-    fn from((info, reference, monetization): (ModuleInfo, ModuleReference, Monetization)) -> Self {
+impl From<(ModuleInfo, ModuleReference)> for Module {
+    fn from((info, reference): (ModuleInfo, ModuleReference)) -> Self {
         Self {
             info,
             reference,
-            monetization,
         }
     }
 }
+
+#[cosmwasm_schema::cw_serde]
+pub struct AllModuleConfig {
+    pub info: ModuleInfo,
+    pub reference: ModuleReference,
+    pub monetization: Monetization
+}
+
 
 #[cosmwasm_schema::cw_serde]
 pub struct ModuleInitMsg {

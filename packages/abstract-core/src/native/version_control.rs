@@ -19,7 +19,7 @@ pub struct Config {
 }
 
 pub mod state {
-    use cosmwasm_std::Deps;
+    
     use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
 
@@ -46,13 +46,8 @@ pub mod state {
     pub const YANKED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("yanked_modules");
     // Modules Fee
     pub const MODULE_MONETIZATION: Map<(Namespace, String), Monetization> =
-        Map::new("yanked_modules");
+        Map::new("module_monetization");
 
-    pub fn load_module_monetization(deps: Deps, key: (Namespace, String)) -> Monetization {
-        MODULE_MONETIZATION
-            .load(deps.storage, key)
-            .unwrap_or(Monetization::None)
-    }
     /// Maps Account ID to the address of its core contracts
     pub const ACCOUNT_ADDRESSES: Map<AccountId, AccountBase> = Map::new("account");
 }

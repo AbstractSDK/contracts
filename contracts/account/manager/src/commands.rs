@@ -5,6 +5,7 @@ use crate::{
 };
 use crate::{validation, versioning};
 use abstract_core::objects::gov_type::GovernanceDetails;
+use abstract_core::objects::module::AllModuleConfig;
 use abstract_macros::abstract_response;
 use abstract_sdk::{
     core::{
@@ -604,13 +605,13 @@ fn query_module(
     deps: Deps,
     module_info: ModuleInfo,
     old_contract_cw2: Option<ContractVersion>,
-) -> Result<Module, ManagerError> {
+) -> Result<AllModuleConfig, ManagerError> {
     let config = CONFIG.load(deps.storage)?;
     // Construct feature object to access registry functions
     let version_control = VersionControlContract::new(config.version_control_address);
     let version_registry = version_control.module_registry(deps);
 
-    match &module_info.version {
+    let module = match &module_info.version {
         ModuleVersion::Version(new_version) => {
             let old_contract = old_contract_cw2.unwrap();
 
@@ -624,19 +625,23 @@ fn query_module(
                 ));
             }
 
-            Ok(Module {
+            Module {
                 info: module_info.clone(),
                 reference: version_registry.query_module_reference_raw(&module_info)?,
-                monetization: version_registry.query_module_monetization_raw(&module_info)?,
-            })
+            }
         }
         ModuleVersion::Latest => {
             // Query latest version of contract
             version_registry
-                .query_module(module_info)
-                .map_err(Into::into)
+                .query_module(module_info.clone())?
         }
-    }
+    };
+
+    Ok(AllModuleConfig{
+        info: module.info,
+        reference: module.reference,
+        monetization: version_registry.query_module_monetization_raw(&module_info)?,
+    })
 }
 
 fn self_upgrade_msg(
@@ -1149,7 +1154,7 @@ mod tests {
     }
 
     mod register_module {
-        use abstract_core::objects::module::Monetization;
+        
 
         use super::*;
 
@@ -1169,7 +1174,6 @@ mod tests {
                 module: Module {
                     info: ModuleInfo::from_id_latest("test:module")?,
                     reference: ModuleReference::App(1),
-                    monetization: Monetization::None,
                 },
             };
 
