@@ -2,10 +2,7 @@ use crate::contract::VCResult;
 use crate::error::VCError;
 use abstract_core::{
     objects::module::ModuleStatus,
-    version_control::{
-        state::PENDING_MODULES,
-        NamespaceFilter, NamespaceResponse,
-    },
+    version_control::{state::PENDING_MODULES, NamespaceFilter, NamespaceResponse},
 };
 use abstract_sdk::core::{
     objects::{

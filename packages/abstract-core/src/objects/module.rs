@@ -316,10 +316,7 @@ impl fmt::Display for Module {
 
 impl From<(ModuleInfo, ModuleReference)> for Module {
     fn from((info, reference): (ModuleInfo, ModuleReference)) -> Self {
-        Self {
-            info,
-            reference,
-        }
+        Self { info, reference }
     }
 }
 
@@ -327,9 +324,8 @@ impl From<(ModuleInfo, ModuleReference)> for Module {
 pub struct AllModuleConfig {
     pub info: ModuleInfo,
     pub reference: ModuleReference,
-    pub monetization: Monetization
+    pub monetization: Monetization,
 }
-
 
 #[cosmwasm_schema::cw_serde]
 pub struct ModuleInitMsg {

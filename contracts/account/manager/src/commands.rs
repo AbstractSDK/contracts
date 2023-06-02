@@ -632,12 +632,11 @@ fn query_module(
         }
         ModuleVersion::Latest => {
             // Query latest version of contract
-            version_registry
-                .query_module(module_info.clone())?
+            version_registry.query_module(module_info.clone())?
         }
     };
 
-    Ok(AllModuleConfig{
+    Ok(AllModuleConfig {
         info: module.info,
         reference: module.reference,
         monetization: version_registry.query_module_monetization_raw(&module_info)?,
@@ -1154,7 +1153,6 @@ mod tests {
     }
 
     mod register_module {
-        
 
         use super::*;
 

@@ -19,7 +19,7 @@ pub struct Config {
 }
 
 pub mod state {
-    
+
     use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
 
