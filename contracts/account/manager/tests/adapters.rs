@@ -81,7 +81,7 @@ fn installing_one_adapter_should_succeed() -> AResult {
 fn installing_one_adapter_without_fee_should_fail() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    chain.set_balance(&sender, coins(12,"ujunox"))?;
+    chain.set_balance(&sender, coins(12, "ujunox"))?;
     let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
     let account = create_default_account(&deployment.account_factory)?;
     init_mock_adapter(chain.clone(), &deployment, None)?;
@@ -109,7 +109,7 @@ fn installing_one_adapter_without_fee_should_fail() -> AResult {
 fn installing_one_adapter_with_fee_should_succeed() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    chain.set_balance(&sender, coins(45,"ujunox"))?;
+    chain.set_balance(&sender, coins(45, "ujunox"))?;
     let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
     let account = create_default_account(&deployment.account_factory)?;
     init_mock_adapter(chain.clone(), &deployment, None)?;
