@@ -101,7 +101,8 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
         Ok(modules.swap_remove(0))
     }
 
-    /// Smart query for a namespace
+    /// Queries the account that owns the namespace
+    /// Is also returns the base modules of that account (AccountBase)
     pub fn query_namespace(&self, namespace: Namespace) -> AbstractSdkResult<NamespaceResponse> {
         let registry_addr = self.base.abstract_registry(self.deps)?;
         let namespace_response: NamespaceResponse = self.deps.querier.query(&wasm_smart_query(
