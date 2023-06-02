@@ -27,6 +27,8 @@ The code above defines an Abstract app, which is a smart-contract that can be in
 
 The App object is made available within the customizable handlers. This object is highly programmable through the [abstract-sdk](./get_started/sdk.md), which is our Account Abstraction Toolbox. In a nutshell it allows you to perform complex multi-contract interactions with very minimal code while not compromising on the contract's programmability in any way.
 
+> Looking to get started? Check out the [Getting Started](./get_started/index.md) guide.
+
 ### Cw-Orchestrator
 
 [cw-orchestrator](https://github.com/AbstractSDK/cw-orchestrator) is the tool that makes developing with Abstract so pleasant. It's a smart-contract scripting library that allows you to re-use code for use in testing and deployments. It's also our primary tool for making Abstract's infrastructure highly available.
