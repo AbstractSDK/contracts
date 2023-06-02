@@ -1169,7 +1169,7 @@ mod tests {
                 module: Module {
                     info: ModuleInfo::from_id_latest("test:module")?,
                     reference: ModuleReference::App(1),
-                    monetization: Monetization::None
+                    monetization: Monetization::None,
                 },
             };
 

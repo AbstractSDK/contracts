@@ -14,8 +14,8 @@ use abstract_sdk::{
     *,
 };
 use cosmwasm_std::{
-    wasm_execute, Addr, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo, ReplyOn, StdError,
-    StdResult, SubMsg, SubMsgResult, WasmMsg, BankMsg
+    wasm_execute, Addr, BankMsg, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo, ReplyOn,
+    StdError, StdResult, SubMsg, SubMsgResult, WasmMsg,
 };
 use protobuf::Message;
 
@@ -53,16 +53,17 @@ pub fn execute_create_module(
 
     // We validate the fee if it was required by the version control to install this module
     let mut fee_msgs = vec![];
-    match new_module.monetization.clone(){
+    match new_module.monetization.clone() {
         module::Monetization::InstallFee(f) => {
             let fee = f.assert_payment(&info)?;
             // We transfer that fee to the namespace owner if there is
-            let namespace_account = version_registry.query_namespace(new_module.info.namespace.clone())?;
+            let namespace_account =
+                version_registry.query_namespace(new_module.info.namespace.clone())?;
             fee_msgs.push(CosmosMsg::Bank(BankMsg::Send {
                 to_address: namespace_account.account_base.proxy.to_string(),
-                amount: vec![fee], 
+                amount: vec![fee],
             }));
-        },
+        }
         abstract_core::objects::module::Monetization::None => {}
     };
 

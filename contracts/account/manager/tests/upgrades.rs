@@ -22,7 +22,8 @@ fn install_module_version(
     manager: &Manager<Mock>,
     abstr: &Abstract<Mock>,
     module: &str,
-    version: &str,) -> anyhow::Result<String> {
+    version: &str,
+) -> anyhow::Result<String> {
     manager.install_module_version(
         module,
         ModuleVersion::Version(version.to_string()),

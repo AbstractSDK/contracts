@@ -58,7 +58,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         &self,
         module_id: &str,
         init_msg: &TInitMsg,
-        funds: Option<&[Coin]>
+        funds: Option<&[Coin]>,
     ) -> Result<(), crate::AbstractInterfaceError> {
         self.manager.install_module(module_id, init_msg, funds)
     }

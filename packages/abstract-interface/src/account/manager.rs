@@ -49,7 +49,11 @@ impl<Chain: CwEnv> Manager<Chain> {
         Ok(())
     }
 
-    pub fn replace_api(&self, module_id: &str, funds: Option<&[Coin]>) -> Result<(), crate::AbstractInterfaceError> {
+    pub fn replace_api(
+        &self,
+        module_id: &str,
+        funds: Option<&[Coin]>,
+    ) -> Result<(), crate::AbstractInterfaceError> {
         // this should check if installed?
         self.uninstall_module(module_id.to_string())?;
 
@@ -60,7 +64,7 @@ impl<Chain: CwEnv> Manager<Chain> {
         &self,
         module_id: &str,
         init_msg: &TInitMsg,
-        funds: Option<&[Coin]>
+        funds: Option<&[Coin]>,
     ) -> Result<(), crate::AbstractInterfaceError> {
         self.install_module_version(module_id, ModuleVersion::Latest, init_msg, funds)
     }
@@ -70,7 +74,7 @@ impl<Chain: CwEnv> Manager<Chain> {
         module_id: &str,
         version: ModuleVersion,
         init_msg: &M,
-        funds: Option<&[Coin]>
+        funds: Option<&[Coin]>,
     ) -> Result<(), crate::AbstractInterfaceError> {
         self.execute(
             &ExecuteMsg::InstallModule {

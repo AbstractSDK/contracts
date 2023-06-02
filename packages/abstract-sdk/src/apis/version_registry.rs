@@ -5,9 +5,13 @@ use crate::{
 use abstract_core::{
     objects::{
         module::{Module, ModuleInfo, Monetization},
-        module_reference::ModuleReference, namespace::Namespace,
+        module_reference::ModuleReference,
+        namespace::Namespace,
     },
-    version_control::{state::{REGISTERED_MODULES, MODULE_MONETIZATION}, ModulesResponse, QueryMsg, NamespaceResponse},
+    version_control::{
+        state::{MODULE_MONETIZATION, REGISTERED_MODULES},
+        ModulesResponse, NamespaceResponse, QueryMsg,
+    },
 };
 use cosmwasm_std::Deps;
 
@@ -76,7 +80,11 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
     ) -> AbstractSdkResult<Monetization> {
         let registry_addr = self.base.abstract_registry(self.deps)?;
         Ok(MODULE_MONETIZATION
-            .query(&self.deps.querier, registry_addr, module_info.clone().full_name())
+            .query(
+                &self.deps.querier,
+                registry_addr,
+                module_info.clone().full_name(),
+            )
             .unwrap_or(Some(Monetization::None))
             .unwrap_or(Monetization::None))
     }
@@ -98,9 +106,7 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
         let registry_addr = self.base.abstract_registry(self.deps)?;
         let namespace_response: NamespaceResponse = self.deps.querier.query(&wasm_smart_query(
             registry_addr.into_string(),
-            &QueryMsg::Namespace {
-                namespace
-            },
+            &QueryMsg::Namespace { namespace },
         )?)?;
         Ok(namespace_response)
     }

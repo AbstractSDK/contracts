@@ -91,7 +91,10 @@ pub fn propose_modules(
                 &Module {
                     info: module.clone(),
                     reference: mod_ref.clone(),
-                    monetization: load_module_monetization(deps.as_ref(), module.clone().full_name()),
+                    monetization: load_module_monetization(
+                        deps.as_ref(),
+                        module.clone().full_name(),
+                    ),
                 },
                 None,
             )?;
@@ -200,7 +203,12 @@ pub fn yank_module(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -> 
 }
 
 /// Yank a module, preventing it from being used.
-pub fn set_module_monetization(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo, monetization: Monetization) -> VCResult {
+pub fn set_module_monetization(
+    deps: DepsMut,
+    msg_info: MessageInfo,
+    module: ModuleInfo,
+    monetization: Monetization,
+) -> VCResult {
     // validate the caller is the owner of the namespace
     validate_account_owner(deps.as_ref(), &module.namespace, &msg_info.sender)?;
 

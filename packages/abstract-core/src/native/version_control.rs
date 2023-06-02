@@ -24,9 +24,11 @@ pub mod state {
     use cw_storage_plus::{Item, Map};
 
     use crate::objects::{
-        namespace::Namespace,
-        account_id::AccountId, common_namespace::ADMIN_NAMESPACE, module::{ModuleInfo, Monetization},
+        account_id::AccountId,
+        common_namespace::ADMIN_NAMESPACE,
+        module::{ModuleInfo, Monetization},
         module_reference::ModuleReference,
+        namespace::Namespace,
     };
 
     use super::{AccountBase, Config};
@@ -43,10 +45,13 @@ pub mod state {
     // Yanked Modules
     pub const YANKED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("yanked_modules");
     // Modules Fee
-    pub const MODULE_MONETIZATION: Map<(Namespace, String), Monetization> = Map::new("yanked_modules");
+    pub const MODULE_MONETIZATION: Map<(Namespace, String), Monetization> =
+        Map::new("yanked_modules");
 
-    pub fn load_module_monetization(deps: Deps, key: (Namespace, String)) -> Monetization{
-        MODULE_MONETIZATION.load(deps.storage, key).unwrap_or(Monetization::None)
+    pub fn load_module_monetization(deps: Deps, key: (Namespace, String)) -> Monetization {
+        MODULE_MONETIZATION
+            .load(deps.storage, key)
+            .unwrap_or(Monetization::None)
     }
     /// Maps Account ID to the address of its core contracts
     pub const ACCOUNT_ADDRESSES: Map<AccountId, AccountBase> = Map::new("account");
@@ -112,10 +117,13 @@ pub enum ExecuteMsg {
     /// Namespaces need to be claimed by the Account before proposing modules
     /// Once proposed, the modules need to be approved by the Admin via [`ExecuteMsg::ApproveOrRejectModules`]
     ProposeModules { modules: Vec<ModuleMapEntry> },
-    /// Sets the monetization configuration for a module. 
+    /// Sets the monetization configuration for a module.
     /// The version doesn't matter here, but we keep it for compatibility purposes
     /// Only callable by namespace admin
-    SetModuleMonetization { module: ModuleInfo, monetization: Monetization },
+    SetModuleMonetization {
+        module: ModuleInfo,
+        monetization: Monetization,
+    },
     /// Approve or reject modules
     /// This takes the modules in the pending_modules map and
     /// moves them to the registered_modules map or yanked_modules map
@@ -225,8 +233,8 @@ pub struct ModulesListResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct NamespaceResponse {
-    pub account_id:AccountId,
-    pub account_base: AccountBase
+    pub account_id: AccountId,
+    pub account_base: AccountBase,
 }
 
 #[cosmwasm_schema::cw_serde]

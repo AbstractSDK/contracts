@@ -1,7 +1,7 @@
 use super::module_reference::ModuleReference;
+use crate::objects::fee::FixedFee;
 use crate::objects::module_version::MODULE;
 use crate::objects::namespace::Namespace;
-use crate::objects::fee::FixedFee;
 use crate::{error::AbstractError, AbstractResult};
 use cosmwasm_std::{ensure_eq, to_binary, Addr, Binary, QuerierWrapper, StdError, StdResult};
 use cw2::ContractVersion;
@@ -122,7 +122,7 @@ impl ModuleInfo {
         }
     }
 
-    pub fn full_name(self) -> (Namespace, String){
+    pub fn full_name(self) -> (Namespace, String) {
         (self.namespace, self.name)
     }
 }
@@ -317,10 +317,13 @@ impl fmt::Display for Module {
 
 impl From<(ModuleInfo, ModuleReference, Monetization)> for Module {
     fn from((info, reference, monetization): (ModuleInfo, ModuleReference, Monetization)) -> Self {
-        Self { info, reference, monetization }
+        Self {
+            info,
+            reference,
+            monetization,
+        }
     }
 }
-
 
 #[cosmwasm_schema::cw_serde]
 pub struct ModuleInitMsg {
@@ -435,9 +438,9 @@ pub fn assert_module_data_validity(
 
 /// Module Monetization
 #[cosmwasm_schema::cw_serde]
-pub enum Monetization{
+pub enum Monetization {
     None,
-    InstallFee(FixedFee)
+    InstallFee(FixedFee),
 }
 
 //--------------------------------------------------------------------------------------------------
