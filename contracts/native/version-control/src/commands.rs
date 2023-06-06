@@ -198,7 +198,7 @@ pub fn yank_module(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -> 
     ))
 }
 
-/// Yank a module, preventing it from being used.
+/// Set a module monetization allowing the namespace owner to charge for module installation/usage or else.
 pub fn set_module_monetization(
     deps: DepsMut,
     msg_info: MessageInfo,

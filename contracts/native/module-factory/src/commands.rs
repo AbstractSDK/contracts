@@ -65,7 +65,9 @@ pub fn execute_create_module(
                 amount: vec![fee],
             }));
         }
-        abstract_core::objects::module::Monetization::None => {}
+        abstract_core::objects::module::Monetization::None => {},
+        // The monetization must be known to the factory for a module to be installed
+        _ => return Err(ModuleFactoryError::ModuleNotInstallable {  })
     };
 
     // Set context for after init

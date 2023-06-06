@@ -321,7 +321,7 @@ impl From<(ModuleInfo, ModuleReference)> for Module {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct AllModuleConfig {
+pub struct ModuleConfiguration {
     pub info: ModuleInfo,
     pub reference: ModuleReference,
     pub monetization: Monetization,
@@ -440,6 +440,7 @@ pub fn assert_module_data_validity(
 
 /// Module Monetization
 #[cosmwasm_schema::cw_serde]
+#[non_exhaustive]
 pub enum Monetization {
     None,
     InstallFee(FixedFee),

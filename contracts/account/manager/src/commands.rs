@@ -5,7 +5,7 @@ use crate::{
 };
 use crate::{validation, versioning};
 use abstract_core::objects::gov_type::GovernanceDetails;
-use abstract_core::objects::module::AllModuleConfig;
+use abstract_core::objects::module::ModuleConfiguration;
 use abstract_macros::abstract_response;
 use abstract_sdk::{
     core::{
@@ -605,7 +605,7 @@ fn query_module(
     deps: Deps,
     module_info: ModuleInfo,
     old_contract_cw2: Option<ContractVersion>,
-) -> Result<AllModuleConfig, ManagerError> {
+) -> Result<ModuleConfiguration, ManagerError> {
     let config = CONFIG.load(deps.storage)?;
     // Construct feature object to access registry functions
     let version_control = VersionControlContract::new(config.version_control_address);
@@ -636,7 +636,7 @@ fn query_module(
         }
     };
 
-    Ok(AllModuleConfig {
+    Ok(ModuleConfiguration {
         info: module.info,
         reference: module.reference,
         monetization: version_registry.query_module_monetization_raw(&module_info)?,

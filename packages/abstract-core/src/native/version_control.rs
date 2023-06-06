@@ -189,7 +189,7 @@ pub enum QueryMsg {
     #[returns(NamespacesResponse)]
     Namespaces { accounts: Vec<AccountId> },
     /// Queries information about the namespace
-    /// Returns [`NamespacesResponse`]
+    /// Returns [`NamespaceResponse`]
     #[returns(NamespaceResponse)]
     Namespace { namespace: Namespace },
     /// Returns [`ConfigResponse`]
