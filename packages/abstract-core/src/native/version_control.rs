@@ -45,8 +45,7 @@ pub mod state {
     // Yanked Modules
     pub const YANKED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("yknd");
     // Modules Fee
-    pub const MODULE_MONETIZATION: Map<(Namespace, String), Monetization> =
-        Map::new("mod_m");
+    pub const MODULE_MONETIZATION: Map<(Namespace, String), Monetization> = Map::new("mod_m");
 
     /// Maps Account ID to the address of its core contracts
     pub const ACCOUNT_ADDRESSES: Map<AccountId, AccountBase> = Map::new("accs");
