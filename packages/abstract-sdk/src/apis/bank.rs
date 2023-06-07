@@ -125,7 +125,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     }
 
     /// Move funds from the contract into the Account.
-    pub fn deposit<R: Transferable>(&self, funds: Vec<R>) -> AbstractSdkResult<AccountAction> {
+    pub fn deposit<R: Transferable>(&self, funds: Vec<R>) -> AbstractSdkResult<Vec<CosmosMsg>> {
         let recipient = self.base.proxy_address(self.deps)?;
         let transferable_funds = funds
             .into_iter()
