@@ -255,7 +255,7 @@ mod test {
 
             let bank = app.bank(deps.as_ref());
             let coins = coins(expected_amount, "asset");
-            let actual_res = bank.deposit(coins.clone()).unwrap().messages()[0].clone();
+            let actual_res = bank.deposit(coins.clone()).unwrap()[0].clone();
 
             let expected_msg: CosmosMsg = CosmosMsg::Bank(BankMsg::Send {
                 to_address: TEST_PROXY.to_string(),
