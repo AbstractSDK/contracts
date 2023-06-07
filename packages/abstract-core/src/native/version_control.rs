@@ -34,22 +34,22 @@ pub mod state {
     use super::{AccountBase, Config};
 
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
-    pub const FACTORY: Admin = Admin::new("factory");
+    pub const FACTORY: Admin = Admin::new("fac");
 
-    pub const CONFIG: Item<Config> = Item::new("config");
+    pub const CONFIG: Item<Config> = Item::new("cfg");
 
     // Modules waiting for approvals
-    pub const PENDING_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("pending_modules");
+    pub const PENDING_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("pendm");
     // We can iterate over the map giving just the prefix to get all the versions
-    pub const REGISTERED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("module_lib");
+    pub const REGISTERED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("lib");
     // Yanked Modules
-    pub const YANKED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("yanked_modules");
+    pub const YANKED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("yknd");
     // Modules Fee
     pub const MODULE_MONETIZATION: Map<(Namespace, String), Monetization> =
-        Map::new("module_monetization");
+        Map::new("mod_m");
 
     /// Maps Account ID to the address of its core contracts
-    pub const ACCOUNT_ADDRESSES: Map<AccountId, AccountBase> = Map::new("account");
+    pub const ACCOUNT_ADDRESSES: Map<AccountId, AccountBase> = Map::new("accs");
 }
 
 /// Sub indexes for namespaces.
