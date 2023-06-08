@@ -636,12 +636,14 @@ fn query_module(
         }
     };
 
-    Ok(ModuleResponse{
-        module: Module{
+    Ok(ModuleResponse {
+        module: Module {
             info: module.info,
             reference: module.reference,
         },
-        config: ModuleConfiguration::new(version_registry.query_module_monetization_raw(&module_info)?),
+        config: ModuleConfiguration::new(
+            version_registry.query_module_monetization_raw(&module_info)?,
+        ),
     })
 }
 

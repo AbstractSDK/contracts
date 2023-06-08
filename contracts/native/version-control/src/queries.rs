@@ -2,7 +2,10 @@ use crate::contract::VCResult;
 use crate::error::VCError;
 use abstract_core::{
     objects::module::{ModuleStatus, Monetization},
-    version_control::{state::{PENDING_MODULES, MODULE_MONETIZATION}, NamespaceFilter, NamespaceResponse, ModuleConfiguration},
+    version_control::{
+        state::{MODULE_MONETIZATION, PENDING_MODULES},
+        ModuleConfiguration, NamespaceFilter, NamespaceResponse,
+    },
 };
 use abstract_sdk::core::{
     objects::{
@@ -14,7 +17,7 @@ use abstract_sdk::core::{
     version_control::{
         namespaces_info,
         state::{ACCOUNT_ADDRESSES, REGISTERED_MODULES, YANKED_MODULES},
-        AccountBaseResponse, ModuleFilter, ModulesListResponse, ModulesResponse, ModuleResponse,
+        AccountBaseResponse, ModuleFilter, ModuleResponse, ModulesListResponse, ModulesResponse,
         NamespaceListResponse,
     },
 };
@@ -65,11 +68,15 @@ pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<M
             )),
             Ok(mod_ref) => {
                 modules_response.modules.push(ModuleResponse {
-                    module: Module { 
+                    module: Module {
                         info: module.clone(),
-                        reference: mod_ref
+                        reference: mod_ref,
                     },
-                    config: ModuleConfiguration::new(MODULE_MONETIZATION.load(deps.storage, module.full_name().clone()).unwrap_or(Monetization::None))
+                    config: ModuleConfiguration::new(
+                        MODULE_MONETIZATION
+                            .load(deps.storage, module.full_name().clone())
+                            .unwrap_or(Monetization::None),
+                    ),
                 });
                 Ok(())
             }

@@ -223,20 +223,18 @@ pub struct ModulesResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct ModuleResponse {
     pub module: Module,
-    pub config: ModuleConfiguration
+    pub config: ModuleConfiguration,
 }
 
 #[non_exhaustive]
 #[cosmwasm_schema::cw_serde]
-pub struct ModuleConfiguration{
-    pub monetization: Monetization
+pub struct ModuleConfiguration {
+    pub monetization: Monetization,
 }
 
-impl ModuleConfiguration{
-    pub fn new(monetization: Monetization) -> Self{
-        Self{
-            monetization
-        }
+impl ModuleConfiguration {
+    pub fn new(monetization: Monetization) -> Self {
+        Self { monetization }
     }
 }
 
