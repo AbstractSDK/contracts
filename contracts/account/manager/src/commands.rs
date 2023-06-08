@@ -5,7 +5,7 @@ use crate::{
 };
 use crate::{validation, versioning};
 use abstract_core::objects::gov_type::GovernanceDetails;
-use abstract_core::objects::module::ModuleConfiguration;
+use abstract_core::version_control::{ModuleConfiguration, ModuleResponse};
 use abstract_macros::abstract_response;
 use abstract_sdk::{
     core::{
@@ -347,11 +347,11 @@ pub fn set_migrate_msgs_and_context(
     let old_module_cw2 = query_module_cw2(&deps.as_ref(), old_module_addr.clone())?;
     let requested_module = query_module(deps.as_ref(), module_info.clone(), Some(old_module_cw2))?;
 
-    let migrate_msgs = match requested_module.reference {
+    let migrate_msgs = match requested_module.module.reference {
         // upgrading an adapter is done by moving the authorized addresses to the new contract address and updating the permissions on the proxy.
         ModuleReference::Adapter(new_adapter_addr) => handle_adapter_migration(
             deps,
-            requested_module.info,
+            requested_module.module.info,
             old_module_addr,
             new_adapter_addr,
         )?,
@@ -359,7 +359,7 @@ pub fn set_migrate_msgs_and_context(
             deps,
             migrate_msg,
             old_module_addr,
-            requested_module.info,
+            requested_module.module.info,
             code_id,
         )?,
         ModuleReference::AccountBase(code_id) | ModuleReference::Standalone(code_id) => {
@@ -584,7 +584,7 @@ fn install_ibc_client(deps: DepsMut, proxy: Addr) -> Result<CosmosMsg, ManagerEr
     let ibc_client_module =
         query_module(deps.as_ref(), ModuleInfo::from_id_latest(IBC_CLIENT)?, None)?;
 
-    let ibc_client_addr = ibc_client_module.reference.unwrap_native()?;
+    let ibc_client_addr = ibc_client_module.module.reference.unwrap_native()?;
 
     ACCOUNT_MODULES.save(deps.storage, IBC_CLIENT, &ibc_client_addr)?;
 
@@ -605,7 +605,7 @@ fn query_module(
     deps: Deps,
     module_info: ModuleInfo,
     old_contract_cw2: Option<ContractVersion>,
-) -> Result<ModuleConfiguration, ManagerError> {
+) -> Result<ModuleResponse, ManagerError> {
     let config = CONFIG.load(deps.storage)?;
     // Construct feature object to access registry functions
     let version_control = VersionControlContract::new(config.version_control_address);
@@ -636,10 +636,12 @@ fn query_module(
         }
     };
 
-    Ok(ModuleConfiguration {
-        info: module.info,
-        reference: module.reference,
-        monetization: version_registry.query_module_monetization_raw(&module_info)?,
+    Ok(ModuleResponse{
+        module: Module{
+            info: module.info,
+            reference: module.reference,
+        },
+        config: ModuleConfiguration::new(version_registry.query_module_monetization_raw(&module_info)?),
     })
 }
 
@@ -651,7 +653,7 @@ fn self_upgrade_msg(
 ) -> ManagerResult<CosmosMsg> {
     let contract = get_contract_version(deps.storage)?;
     let module = query_module(deps.as_ref(), module_info.clone(), Some(contract))?;
-    if let ModuleReference::AccountBase(manager_code_id) = module.reference {
+    if let ModuleReference::AccountBase(manager_code_id) = module.module.reference {
         let migration_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Migrate {
             contract_addr: self_addr.to_string(),
             new_code_id: manager_code_id,

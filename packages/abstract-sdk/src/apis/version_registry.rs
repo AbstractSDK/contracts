@@ -98,7 +98,7 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
                 infos: vec![module_info],
             },
         )?)?;
-        Ok(modules.swap_remove(0))
+        Ok(modules.swap_remove(0).module)
     }
 
     /// Queries the account that owns the namespace

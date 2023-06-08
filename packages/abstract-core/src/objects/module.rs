@@ -321,13 +321,6 @@ impl From<(ModuleInfo, ModuleReference)> for Module {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct ModuleConfiguration {
-    pub info: ModuleInfo,
-    pub reference: ModuleReference,
-    pub monetization: Monetization,
-}
-
-#[cosmwasm_schema::cw_serde]
 pub struct ModuleInitMsg {
     pub fixed_init: Option<Binary>,
     pub owner_init: Option<Binary>,

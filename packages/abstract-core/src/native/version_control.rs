@@ -217,7 +217,27 @@ pub struct AccountBaseResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ModulesResponse {
-    pub modules: Vec<Module>,
+    pub modules: Vec<ModuleResponse>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct ModuleResponse {
+    pub module: Module,
+    pub config: ModuleConfiguration
+}
+
+#[non_exhaustive]
+#[cosmwasm_schema::cw_serde]
+pub struct ModuleConfiguration{
+    pub monetization: Monetization
+}
+
+impl ModuleConfiguration{
+    pub fn new(monetization: Monetization) -> Self{
+        Self{
+            monetization
+        }
+    }
 }
 
 #[cosmwasm_schema::cw_serde]
