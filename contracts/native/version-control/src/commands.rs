@@ -206,7 +206,14 @@ pub fn set_module_monetization(
     monetization: Monetization,
 ) -> VCResult {
     // validate the caller is the owner of the namespace
-    validate_account_owner(deps.as_ref(), &module.namespace, &msg_info.sender)?;
+
+    if module.namespace == Namespace::unchecked(ABSTRACT_NAMESPACE) {
+        // Only Admin can update abstract contracts
+        cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
+    } else {
+        // Only owner can add modules
+        validate_account_owner(deps.as_ref(), &module.namespace, &msg_info.sender)?;
+    }
 
     // We verify the module exists before updating the monetization
     REGISTERED_MODULES
@@ -1205,6 +1212,9 @@ mod test {
         use abstract_core::objects::module_reference::ModuleReference;
         use abstract_core::AbstractError;
         use abstract_testing::prelude::TEST_MODULE_ID;
+        use cosmwasm_std::coin;
+
+        use crate::contract::query;
 
         use super::*;
 
@@ -1662,6 +1672,48 @@ mod test {
                         actual: "empty".into(),
                     }));
             }
+
+            Ok(())
+        }
+
+        #[test]
+        fn add_module_monetization() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            deps.querier = mock_manager_querier().build();
+            mock_init_with_account(deps.as_mut(), true)?;
+            let mut new_module = test_module();
+            new_module.namespace = Namespace::new(ABSTRACT_NAMESPACE)?;
+            let msg = ExecuteMsg::ProposeModules {
+                modules: vec![(new_module.clone(), ModuleReference::App(0))],
+            };
+            let res = execute_as(deps.as_mut(), TEST_ADMIN, msg);
+            assert_that!(&res).is_ok();
+            let _module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
+
+            let monetization = Monetization::InstallFee(FixedFee::new(&coin(45, "ujuno")));
+            let monetization_module_msg = ExecuteMsg::SetModuleMonetization {
+                module: new_module.clone(),
+                monetization: monetization.clone(),
+            };
+            execute_as(deps.as_mut(), TEST_ADMIN, monetization_module_msg)?;
+
+            // We query the module to see if the monetization is attached ok
+            let query_msg = QueryMsg::Modules {
+                infos: vec![new_module.clone()],
+            };
+            let res = query(deps.as_ref(), mock_env(), query_msg)?;
+            let ser_res = from_binary::<ModulesResponse>(&res)?;
+            assert_that!(ser_res.modules).has_length(1);
+            assert_eq!(
+                ser_res.modules[0],
+                ModuleResponse {
+                    module: Module {
+                        info: new_module,
+                        reference: ModuleReference::App(0)
+                    },
+                    config: ModuleConfiguration::new(monetization)
+                }
+            );
 
             Ok(())
         }
