@@ -229,7 +229,6 @@ pub fn set_module_monetization(
     REGISTERED_MODULES
         .prefix(module.clone().full_name())
         .range(deps.storage, None, None, Order::Ascending)
-        .take(1)
         .next()
         .ok_or_else(|| VCError::ModuleNotFound(module.clone()))??;
 
