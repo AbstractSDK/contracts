@@ -217,8 +217,11 @@ pub fn set_module_monetization(
 
     // We verify the module exists before updating the monetization
     REGISTERED_MODULES
-        .may_load(deps.storage, &module)?
-        .ok_or_else(|| VCError::ModuleNotFound(module.clone()))?;
+        .prefix(module.clone().full_name())
+        .range(deps.storage, None, None, Order::Ascending)
+        .take(1)
+        .next()
+        .ok_or_else(|| VCError::ModuleNotFound(module.clone()))??;
 
     MODULE_MONETIZATION.save(deps.storage, module.clone().full_name(), &monetization)?;
 
