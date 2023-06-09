@@ -14,7 +14,7 @@
 use crate::{
     ibc_client::ExecuteMsg as IbcClientMsg,
     objects::{
-        core::AccountId,
+        account_id::AccountId,
         oracle::{AccountValue, Complexity},
         price_source::{PriceSource, UncheckedPriceSource},
         AssetEntry,
@@ -25,7 +25,7 @@ use cosmwasm_std::{CosmosMsg, Empty, Uint128};
 use cw_asset::{Asset, AssetInfo};
 
 pub mod state {
-    pub use crate::objects::core::ACCOUNT_ID;
+    pub use crate::objects::account_id::ACCOUNT_ID;
     use cw_controllers::Admin;
 
     use cosmwasm_std::Addr;
@@ -48,7 +48,7 @@ pub struct InstantiateMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
+#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
 pub enum ExecuteMsg {
     /// Sets the admin
     SetAdmin { admin: String },
@@ -71,7 +71,7 @@ pub struct MigrateMsg {}
 
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
-#[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
+#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 pub enum QueryMsg {
     /// Contains the enabled modules
     /// Returns [`ConfigResponse`]

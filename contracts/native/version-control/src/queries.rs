@@ -1,3 +1,4 @@
+use crate::contract::VCResult;
 use crate::error::VCError;
 use abstract_core::{
     objects::module::ModuleStatus,
@@ -17,23 +18,26 @@ use abstract_sdk::core::{
         NamespaceListResponse,
     },
 };
-use cosmwasm_std::{to_binary, Binary, Deps, Order, StdError, StdResult};
+use cosmwasm_std::{Deps, Order, StdError, StdResult};
 use cw_storage_plus::{Bound, Map};
 
 const DEFAULT_LIMIT: u8 = 10;
 const MAX_LIMIT: u8 = 20;
 
-pub fn handle_account_address_query(deps: Deps, account_id: AccountId) -> StdResult<Binary> {
+pub fn handle_account_address_query(
+    deps: Deps,
+    account_id: AccountId,
+) -> StdResult<AccountBaseResponse> {
     let account_address = ACCOUNT_ADDRESSES.load(deps.storage, account_id);
     match account_address {
         Err(_) => Err(StdError::generic_err(
             VCError::UnknownAccountId { id: account_id }.to_string(),
         )),
-        Ok(base) => to_binary(&AccountBaseResponse { account_base: base }),
+        Ok(base) => Ok(AccountBaseResponse { account_base: base }),
     }
 }
 
-pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<Binary> {
+pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<ModulesResponse> {
     let mut modules_response = ModulesResponse { modules: vec![] };
     for mut module in modules {
         let maybe_module_ref = if let ModuleVersion::Version(_) = module.version {
@@ -69,7 +73,7 @@ pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<B
         }?;
     }
 
-    to_binary(&modules_response)
+    Ok(modules_response)
 }
 
 pub fn handle_module_list_query(
@@ -77,7 +81,7 @@ pub fn handle_module_list_query(
     start_after: Option<ModuleInfo>,
     limit: Option<u8>,
     filter: Option<ModuleFilter>,
-) -> StdResult<Binary> {
+) -> VCResult<ModulesListResponse> {
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
 
     let ModuleFilter {
@@ -96,6 +100,7 @@ pub fn handle_module_list_query(
     let mut modules: Vec<(ModuleInfo, ModuleReference)> = vec![];
 
     if let Some(namespace_filter) = namespace_filter {
+        let namespace_filter = Namespace::new(namespace_filter)?;
         modules.extend(filter_modules_by_namespace(
             deps,
             start_after,
@@ -128,10 +133,13 @@ pub fn handle_module_list_query(
 
     let modules = modules.into_iter().map(Module::from).collect();
 
-    to_binary(&ModulesListResponse { modules })
+    Ok(ModulesListResponse { modules })
 }
 
-pub fn handle_namespaces_query(deps: Deps, accounts: Vec<AccountId>) -> StdResult<Binary> {
+pub fn handle_namespaces_query(
+    deps: Deps,
+    accounts: Vec<AccountId>,
+) -> StdResult<NamespaceListResponse> {
     let mut namespaces_response = NamespaceListResponse { namespaces: vec![] };
     for account_id in accounts {
         namespaces_response.namespaces.extend(
@@ -145,17 +153,16 @@ pub fn handle_namespaces_query(deps: Deps, accounts: Vec<AccountId>) -> StdResul
         );
     }
 
-    to_binary(&namespaces_response)
+    Ok(namespaces_response)
 }
 
 pub fn handle_namespace_list_query(
     deps: Deps,
-    start_after: Option<String>,
+    start_after: Option<Namespace>,
     limit: Option<u8>,
     filter: Option<NamespaceFilter>,
-) -> StdResult<Binary> {
-    let namespace = start_after.map(Namespace::from);
-    let start_bound = namespace.as_ref().map(Bound::exclusive);
+) -> StdResult<NamespaceListResponse> {
+    let start_bound = start_after.as_ref().map(Bound::exclusive);
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
 
     let NamespaceFilter { account_id } = filter.unwrap_or_default();
@@ -175,7 +182,7 @@ pub fn handle_namespace_list_query(
             .collect::<StdResult<Vec<_>>>()?
     };
 
-    to_binary(&NamespaceListResponse { namespaces })
+    Ok(NamespaceListResponse { namespaces })
 }
 
 /// Filter the modules with their primary key prefix (namespace)
@@ -183,7 +190,7 @@ fn filter_modules_by_namespace(
     deps: Deps,
     start_after: Option<ModuleInfo>,
     limit: usize,
-    namespace: &str,
+    namespace: Namespace,
     name: &Option<String>,
     mod_lib: &Map<&ModuleInfo, ModuleReference>,
 ) -> StdResult<Vec<(ModuleInfo, ModuleReference)>> {
@@ -192,11 +199,11 @@ fn filter_modules_by_namespace(
     // Filter by name using full prefix
     if let Some(name) = name {
         let start_bound: Option<Bound<String>> =
-            start_after.map(|token| Bound::exclusive(token.namespace));
+            start_after.map(|info| Bound::exclusive(info.version.to_string()));
 
         modules.extend(
             mod_lib
-                .prefix((namespace.to_owned(), name.clone()))
+                .prefix((namespace.clone(), name.clone()))
                 .range(deps.storage, start_bound, None, Order::Ascending)
                 .take(limit)
                 .collect::<StdResult<Vec<_>>>()?
@@ -204,7 +211,7 @@ fn filter_modules_by_namespace(
                 .map(|(version, reference)| {
                     (
                         ModuleInfo {
-                            namespace: namespace.to_owned(),
+                            namespace: namespace.clone(),
                             name: name.clone(),
                             version: ModuleVersion::Version(version),
                         },
@@ -215,11 +222,11 @@ fn filter_modules_by_namespace(
     } else {
         // Filter by just namespace using sub prefix
         let start_bound: Option<Bound<(String, String)>> =
-            start_after.map(|token| Bound::exclusive((token.namespace, token.name)));
+            start_after.map(|token| Bound::exclusive((token.name, token.version.to_string())));
 
         modules.extend(
             mod_lib
-                .sub_prefix(namespace.to_owned())
+                .sub_prefix(namespace.clone())
                 .range(deps.storage, start_bound, None, Order::Ascending)
                 .take(limit)
                 .collect::<StdResult<Vec<_>>>()?
@@ -227,7 +234,7 @@ fn filter_modules_by_namespace(
                 .map(|((name, version), reference)| {
                     (
                         ModuleInfo {
-                            namespace: namespace.to_owned(),
+                            namespace: namespace.clone(),
                             name,
                             version: ModuleVersion::Version(version),
                         },
@@ -245,9 +252,9 @@ mod test {
         test_account_base, TEST_ACCOUNT_FACTORY, TEST_ACCOUNT_ID, TEST_MANAGER,
         TEST_MODULE_FACTORY, TEST_VERSION_CONTROL,
     };
-    use abstract_testing::MockQuerierBuilder;
+    use abstract_testing::{MockQuerierBuilder, MockQuerierOwnership};
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-    use cosmwasm_std::{Addr, DepsMut, StdError, Uint64};
+    use cosmwasm_std::{to_binary, Addr, Binary, DepsMut, StdError, Uint64};
 
     use abstract_core::{manager, version_control::*};
 
@@ -262,7 +269,7 @@ mod test {
     const TEST_ADMIN: &str = "testadmin";
 
     const TEST_OTHER: &str = "testother";
-    const TEST_OTHER_ACCOUNT_ID: u32 = 1;
+    const TEST_OTHER_ACCOUNT_ID: u32 = 2;
     const TEST_OTHER_PROXY_ADDR: &str = "proxy1";
     const TEST_OTHER_MANAGER_ADDR: &str = "manager1";
 
@@ -272,7 +279,6 @@ mod test {
                 match from_binary(msg).unwrap() {
                     manager::QueryMsg::Config {} => {
                         let resp = manager::ConfigResponse {
-                            owner: TEST_ADMIN.to_owned(),
                             version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
                             module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
                             account_id: Uint64::from(TEST_ACCOUNT_ID), // mock value, not used
@@ -287,7 +293,6 @@ mod test {
                 match from_binary(msg).unwrap() {
                     manager::QueryMsg::Config {} => {
                         let resp = manager::ConfigResponse {
-                            owner: TEST_OTHER.to_owned(),
                             version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
                             module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
                             account_id: Uint64::from(TEST_OTHER_ACCOUNT_ID), // mock value, not used
@@ -298,6 +303,8 @@ mod test {
                     _ => panic!("unexpected message"),
                 }
             })
+            .with_owner(TEST_MANAGER, Some(TEST_ADMIN))
+            .with_owner(TEST_OTHER_MANAGER_ADDR, Some(TEST_OTHER))
     }
 
     fn mock_init(mut deps: DepsMut) -> VersionControlTestResult {
@@ -307,8 +314,9 @@ mod test {
             mock_env(),
             info,
             InstantiateMsg {
-                is_testnet: true,
-                namespaces_limit: 10,
+                allow_direct_module_registration: Some(true),
+                namespace_limit: 10,
+                namespace_registration_fee: None,
             },
         )?;
         execute_as_admin(
@@ -353,7 +361,7 @@ mod test {
         contract::execute(deps, mock_env(), mock_info(TEST_ADMIN, &[]), msg)
     }
 
-    fn query_helper(deps: Deps, msg: QueryMsg) -> StdResult<Binary> {
+    fn query_helper(deps: Deps, msg: QueryMsg) -> VCResult<Binary> {
         contract::query(deps, mock_env(), msg)
     }
 
@@ -374,7 +382,7 @@ mod test {
         }
 
         fn add_module(deps: DepsMut, new_module_info: ModuleInfo) {
-            let add_msg = ExecuteMsg::AddModules {
+            let add_msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module_info, ModuleReference::App(0))],
             };
 
@@ -437,7 +445,7 @@ mod test {
             let res = query_helper(deps.as_ref(), query_msg);
             assert_that!(res)
                 .is_err()
-                .matches(|e| matches!(e, StdError::GenericErr { .. }));
+                .matches(|e| matches!(e, VCError::Std(StdError::GenericErr { .. })));
             Ok(())
         }
 
@@ -464,7 +472,7 @@ mod test {
 
             let query_msg = QueryMsg::Modules {
                 infos: vec![ModuleInfo {
-                    namespace: "test".to_string(),
+                    namespace: Namespace::new("test")?,
                     name: "module".to_string(),
                     version: Latest {},
                 }],
@@ -491,12 +499,12 @@ mod test {
     }
 
     /// Add the provided modules to the version control
-    fn add_modules(deps: DepsMut, new_module_infos: Vec<ModuleInfo>) {
+    fn propose_modules(deps: DepsMut, new_module_infos: Vec<ModuleInfo>) {
         let modules = new_module_infos
             .into_iter()
             .map(|info| (info, ModuleReference::App(0)))
             .collect();
-        let add_msg = ExecuteMsg::AddModules { modules };
+        let add_msg = ExecuteMsg::ProposeModules { modules };
         let res = execute_as_admin(deps, add_msg);
         assert_that!(&res).is_ok();
     }
@@ -522,14 +530,14 @@ mod test {
             ModuleInfo::from_id("cw-plus:module2", ModuleVersion::Version("0.1.2".into())).unwrap(),
             ModuleInfo::from_id("cw-plus:module3", ModuleVersion::Version("0.1.2".into())).unwrap(),
         ];
-        add_modules(deps.branch(), cw_mods);
+        propose_modules(deps.branch(), cw_mods);
 
         let fortytwo_mods = vec![
             ModuleInfo::from_id("4t2:module1", ModuleVersion::Version("0.1.2".into())).unwrap(),
             ModuleInfo::from_id("4t2:module2", ModuleVersion::Version("0.1.2".into())).unwrap(),
             ModuleInfo::from_id("4t2:module3", ModuleVersion::Version("0.1.2".into())).unwrap(),
         ];
-        add_modules(deps, fortytwo_mods);
+        propose_modules(deps, fortytwo_mods);
     }
 
     mod modules {
@@ -541,7 +549,7 @@ mod test {
             deps.querier = mock_manager_querier().build();
             init_with_mods(deps.as_mut());
 
-            let namespace = "cw-plus".to_string();
+            let namespace = Namespace::new("cw-plus")?;
 
             let query_msg = QueryMsg::Modules {
                 infos: vec![
@@ -582,7 +590,7 @@ mod test {
 
             let query_msg = QueryMsg::Modules {
                 infos: vec![ModuleInfo {
-                    namespace: "not".to_string(),
+                    namespace: Namespace::new("not")?,
                     name: "found".to_string(),
                     version: ModuleVersion::Latest {},
                 }],
@@ -591,7 +599,7 @@ mod test {
             let res = query_helper(deps.as_ref(), query_msg);
             assert_that!(res)
                 .is_err()
-                .matches(|e| matches!(e, StdError::GenericErr { .. }));
+                .matches(|e| matches!(e, VCError::Std(StdError::GenericErr { .. })));
             Ok(())
         }
     }
@@ -627,7 +635,8 @@ mod test {
                 assert_that!(modules).has_length(3);
 
                 for entry in modules {
-                    assert_that!(entry.info.namespace).is_equal_to(filtered_namespace.clone());
+                    assert_that!(entry.info.namespace)
+                        .is_equal_to(Namespace::unchecked(filtered_namespace.clone()));
                 }
 
                 res
@@ -646,7 +655,7 @@ mod test {
                 ModuleInfo::from_id("cw-plus:module5", ModuleVersion::Version("0.1.2".into()))
                     .unwrap(),
             ];
-            add_modules(deps.as_mut(), cw_mods);
+            propose_modules(deps.as_mut(), cw_mods);
             yank_module(
                 deps.as_mut(),
                 ModuleInfo::from_id("cw-plus:module4", ModuleVersion::Version("0.1.2".into()))
@@ -672,7 +681,7 @@ mod test {
 
                 let yanked_module_names = ["module4".to_string(), "module5".to_string()];
                 for entry in modules {
-                    if entry.info.namespace == "cw-plus" {
+                    if entry.info.namespace == Namespace::unchecked("cw-plus") {
                         assert!(!yanked_module_names.iter().any(|e| e == &entry.info.name));
                     }
                 }
@@ -693,7 +702,7 @@ mod test {
                 ModuleInfo::from_id("cw-plus:module5", ModuleVersion::Version("0.1.2".into()))
                     .unwrap(),
             ];
-            add_modules(deps.as_mut(), cw_mods);
+            propose_modules(deps.as_mut(), cw_mods);
             yank_module(
                 deps.as_mut(),
                 ModuleInfo::from_id("cw-plus:module4", ModuleVersion::Version("0.1.2".into()))
@@ -725,7 +734,8 @@ mod test {
                 assert_that!(modules).has_length(2);
 
                 for entry in modules {
-                    assert_that!(entry.info.namespace).is_equal_to(filtered_namespace.clone());
+                    assert_that!(entry.info.namespace)
+                        .is_equal_to(Namespace::unchecked(filtered_namespace.clone()));
                 }
 
                 res
@@ -755,7 +765,7 @@ mod test {
                 ModuleInfo::from_id("snth:module3", ModuleVersion::Version("0.1.2".into()))
                     .unwrap(),
             ];
-            add_modules(deps.as_mut(), cw_mods);
+            propose_modules(deps.as_mut(), cw_mods);
 
             let filtered_namespace = "dne".to_string();
 
@@ -800,7 +810,8 @@ mod test {
                 assert_that!(modules).has_length(1);
 
                 let module = modules[0].clone();
-                assert_that!(module.info.namespace).is_equal_to(filtered_namespace.clone());
+                assert_that!(module.info.namespace)
+                    .is_equal_to(Namespace::unchecked(filtered_namespace.clone()));
                 assert_that!(module.info.name).is_equal_to(filtered_name.clone());
                 res
             });
@@ -815,7 +826,7 @@ mod test {
             let filtered_namespace = "cw-plus".to_string();
             let filtered_name = "module2".to_string();
 
-            add_modules(
+            propose_modules(
                 deps.as_mut(),
                 vec![ModuleInfo::from_id(
                     format!("{filtered_namespace}:{filtered_name}").as_str(),
@@ -839,7 +850,8 @@ mod test {
                 assert_that!(modules).has_length(2);
 
                 for module in modules {
-                    assert_that!(module.info.namespace).is_equal_to(filtered_namespace.clone());
+                    assert_that!(module.info.namespace)
+                        .is_equal_to(Namespace::unchecked(filtered_namespace.clone()));
                     assert_that!(module.info.name).is_equal_to(filtered_name.clone());
                 }
                 res
@@ -957,7 +969,8 @@ mod test {
                 assert_that!(modules).has_length(3);
 
                 for module in modules {
-                    assert_that!(module.info.namespace).is_equal_to(filtered_namespace.clone());
+                    assert_that!(module.info.namespace)
+                        .is_equal_to(Namespace::unchecked(filtered_namespace.clone()));
                     assert_that!(module.info.version.to_string())
                         .is_equal_to(filtered_version.clone());
                 }
@@ -1004,7 +1017,7 @@ mod test {
             assert_that!(res).is_ok().map(|res| {
                 let NamespaceListResponse { namespaces: resp } = from_binary(res).unwrap();
                 println!("{:?}", resp);
-                assert_that!(resp).has_length(5);
+                assert_that!(resp).has_length(6);
                 res
             });
 
@@ -1064,9 +1077,9 @@ mod test {
 
             assert_that!(res)
                 .is_err()
-                .is_equal_to(StdError::generic_err(
+                .is_equal_to(VCError::Std(StdError::generic_err(
                     VCError::UnknownAccountId { id: not_registered }.to_string(),
-                ));
+                )));
 
             Ok(())
         }

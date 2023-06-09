@@ -39,8 +39,8 @@ pub enum AbstractError {
     #[error("Cannot rename contract from {} to {}", from, to)]
     ContractNameMismatch { from: String, to: String },
 
-    #[error("API {0} not installed on Account")]
-    ApiNotInstalled(String),
+    #[error("Adapter {0} not installed on Account")]
+    AdapterNotInstalled(String),
 
     #[error("App {0} not installed on Account")]
     AppNotInstalled(String),
@@ -61,6 +61,9 @@ pub enum AbstractError {
     // deposit error
     #[error("deposit error: {0}")]
     Deposit(String),
+
+    #[error("The version or name of this module was not consistent between its stores (cw2: {cw2} and abstract module data: {module}).")]
+    UnequalModuleData { cw2: String, module: String },
 }
 
 impl From<SemverError> for AbstractError {

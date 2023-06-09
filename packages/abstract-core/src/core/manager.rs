@@ -17,11 +17,13 @@
 pub mod state {
     use std::collections::HashSet;
 
-    pub use crate::objects::core::ACCOUNT_ID;
+    pub use crate::objects::account_id::ACCOUNT_ID;
+    use crate::objects::common_namespace::OWNERSHIP_STORAGE_KEY;
     use crate::objects::{gov_type::GovernanceDetails, module::ModuleId};
     use cosmwasm_std::{Addr, Api};
     use cw_address_like::AddressLike;
     use cw_controllers::Admin;
+    use cw_ownable::Ownership;
     use cw_storage_plus::{Item, Map};
 
     pub type SuspensionStatus = bool;
@@ -77,8 +79,8 @@ pub mod state {
     pub const INFO: Item<AccountInfo<Addr>> = Item::new("\u{0}{4}info");
     /// Contract Admin
     pub const ACCOUNT_FACTORY: Admin = Admin::new("\u{0}{7}factory");
-    /// Account owner
-    pub const OWNER: Admin = Admin::new("owner");
+    /// Account owner - managed by cw-ownable
+    pub const OWNER: Item<Ownership<Addr>> = Item::new(OWNERSHIP_STORAGE_KEY);
     /// Enabled Abstract modules
     pub const ACCOUNT_MODULES: Map<ModuleId, Addr> = Map::new("modules");
     /// Stores the dependency relationship between modules
@@ -89,7 +91,7 @@ pub mod state {
 use self::state::AccountInfo;
 use crate::manager::state::SuspensionStatus;
 use crate::objects::{
-    core::AccountId,
+    account_id::AccountId,
     gov_type::GovernanceDetails,
     module::{Module, ModuleInfo},
 };
@@ -117,18 +119,28 @@ pub struct InstantiateMsg {
 #[cosmwasm_schema::cw_serde]
 pub struct CallbackMsg {}
 
-/// Manager Execute Msg
+/// Internal configuration actions accessible from the [`ExecuteMsg::UpdateInternalConfig`] message.
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
-pub enum ExecuteMsg {
-    /// Forward execution message to module
-    ExecOnModule { module_id: String, exec_msg: Binary },
-    /// Updates the `ACCOUNT_MODULES` map
+#[non_exhaustive]
+pub enum InternalConfigAction {
+    /// Updates the [`state::ACCOUNT_MODULES`] map
     /// Only callable by account factory or owner.
     UpdateModuleAddresses {
         to_add: Option<Vec<(String, String)>>,
         to_remove: Option<Vec<String>>,
     },
+}
+
+/// Manager execute messages
+#[cw_ownable::cw_ownable_execute]
+#[cosmwasm_schema::cw_serde]
+#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
+pub enum ExecuteMsg {
+    /// Forward execution message to module
+    ExecOnModule { module_id: String, exec_msg: Binary },
+    /// Update Abstract-specific configuration of the module.
+    /// Only callable by the account factory or owner.
+    UpdateInternalConfig(Binary),
     /// Install module using module factory, callable by Owner
     InstallModule {
         // Module information.
@@ -162,10 +174,11 @@ pub enum ExecuteMsg {
     Callback(CallbackMsg),
 }
 
-/// Manager Query Msg
+/// Manager query messages
+#[cw_ownable::cw_ownable_query]
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
-#[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
+#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 pub enum QueryMsg {
     /// Query the versions of modules installed on the account given their `ids`.
     /// Returns [`ModuleVersionsResponse`]
@@ -205,7 +218,6 @@ pub struct ModuleAddressesResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     pub account_id: Uint64,
-    pub owner: String,
     pub is_suspended: SuspensionStatus,
     pub version_control_address: Addr,
     pub module_factory_address: Addr,

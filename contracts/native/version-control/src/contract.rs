@@ -1,10 +1,13 @@
-use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{to_binary, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, Uint128};
+
 use cw_semver::Version;
 
-use abstract_core::objects::module_version::assert_cw_contract_upgrade;
+use abstract_core::objects::namespace::Namespace;
 use abstract_core::version_control::Config;
 use abstract_macros::abstract_response;
 use abstract_sdk::core::{
+    objects::{module_version::assert_cw_contract_upgrade, ABSTRACT_ACCOUNT_ID},
+    version_control::namespaces_info,
     version_control::{
         state::{CONFIG, FACTORY},
         ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
@@ -17,14 +20,14 @@ use crate::commands::*;
 use crate::error::VCError;
 use crate::queries;
 
-const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+pub(crate) use abstract_core::objects::namespace::ABSTRACT_NAMESPACE;
+
+pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub type VCResult<T = Response> = Result<T, VCError>;
 
 #[abstract_response(VERSION_CONTROL)]
 pub struct VcResponse;
-
-pub const ABSTRACT_NAMESPACE: &str = "abstract";
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VCResult {
@@ -40,20 +43,32 @@ pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: Instantiate
     cw2::set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
 
     let InstantiateMsg {
-        is_testnet,
-        namespaces_limit,
+        allow_direct_module_registration,
+        namespace_limit,
+        namespace_registration_fee,
     } = msg;
 
     CONFIG.save(
         deps.storage,
         &Config {
-            is_testnet,
-            namespaces_limit,
+            allow_direct_module_registration: allow_direct_module_registration.unwrap_or(false),
+            namespace_limit,
+            namespace_registration_fee: namespace_registration_fee.unwrap_or(Coin {
+                denom: "none".to_string(),
+                amount: Uint128::zero(),
+            }),
         },
     )?;
 
     // Set up the admin as the creator of the contract
     cw_ownable::initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
+
+    // Save the abstract namespace to the Abstract admin account
+    namespaces_info().save(
+        deps.storage,
+        &Namespace::new(ABSTRACT_NAMESPACE)?,
+        &ABSTRACT_ACCOUNT_ID,
+    )?;
 
     FACTORY.set(deps, None)?;
 
@@ -63,7 +78,7 @@ pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: Instantiate
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> VCResult {
     match msg {
-        ExecuteMsg::AddModules { modules } => add_modules(deps, info, modules),
+        ExecuteMsg::ProposeModules { modules } => propose_modules(deps, info, modules),
         ExecuteMsg::ApproveOrRejectModules { approves, rejects } => {
             approve_or_reject_modules(deps, info, approves, rejects)
         }
@@ -78,9 +93,17 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
             account_id,
             account_base: base,
         } => add_account(deps, info, account_id, base),
-        ExecuteMsg::UpdateNamespaceLimit { new_limit } => {
-            update_namespaces_limit(deps, info, new_limit)
-        }
+        ExecuteMsg::UpdateConfig {
+            allow_direct_module_registration,
+            namespace_limit,
+            namespace_registration_fee,
+        } => update_config(
+            deps,
+            info,
+            allow_direct_module_registration,
+            namespace_limit,
+            namespace_registration_fee,
+        ),
         ExecuteMsg::SetFactory { new_factory } => set_factory(deps, info, new_factory),
         ExecuteMsg::UpdateOwnership(action) => {
             execute_update_ownership!(VcResponse, deps, env, info, action)
@@ -89,13 +112,15 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> VCResult<Binary> {
     match msg {
         QueryMsg::AccountBase { account_id } => {
-            queries::handle_account_address_query(deps, account_id)
+            to_binary(&queries::handle_account_address_query(deps, account_id)?)
         }
-        QueryMsg::Modules { infos } => queries::handle_modules_query(deps, infos),
-        QueryMsg::Namespaces { accounts } => queries::handle_namespaces_query(deps, accounts),
+        QueryMsg::Modules { infos } => to_binary(&queries::handle_modules_query(deps, infos)?),
+        QueryMsg::Namespaces { accounts } => {
+            to_binary(&queries::handle_namespaces_query(deps, accounts)?)
+        }
         QueryMsg::Config {} => {
             let factory = FACTORY.get(deps)?.unwrap();
             to_binary(&ConfigResponse { factory })
@@ -104,23 +129,56 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             filter,
             start_after,
             limit,
-        } => queries::handle_module_list_query(deps, start_after, limit, filter),
+        } => to_binary(&queries::handle_module_list_query(
+            deps,
+            start_after,
+            limit,
+            filter,
+        )?),
         QueryMsg::NamespaceList {
             filter,
             start_after,
             limit,
-        } => queries::handle_namespace_list_query(deps, start_after, limit, filter),
-        QueryMsg::Ownership {} => query_ownership!(deps),
+        } => {
+            let start_after = start_after.map(Namespace::try_from).transpose()?;
+            to_binary(&queries::handle_namespace_list_query(
+                deps,
+                start_after,
+                limit,
+                filter,
+            )?)
+        }
+        QueryMsg::Ownership {} => to_binary(&query_ownership!(deps)?),
     }
+    .map_err(Into::into)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::contract;
-    use crate::test_common::*;
+    use crate::testing::*;
+    use abstract_core::objects::ABSTRACT_ACCOUNT_ID;
     use cosmwasm_std::testing::*;
     use speculoos::prelude::*;
+
+    mod instantiate {
+        use super::*;
+
+        #[test]
+        fn sets_abstract_namespace() -> VCResult<()> {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let account_id = namespaces_info().load(
+                deps.as_ref().storage,
+                &Namespace::try_from(ABSTRACT_NAMESPACE)?,
+            )?;
+            assert_that!(account_id).is_equal_to(ABSTRACT_ACCOUNT_ID);
+
+            Ok(())
+        }
+    }
 
     mod migrate {
         use super::*;

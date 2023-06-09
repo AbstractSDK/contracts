@@ -2,9 +2,8 @@ pub mod commands;
 pub mod contract;
 pub mod error;
 pub mod queries;
-
 #[cfg(test)]
-mod test_common {
+mod testing {
     use crate::contract;
     use crate::error::VCError;
     use abstract_core::version_control;
@@ -21,8 +20,9 @@ mod test_common {
             mock_env(),
             info,
             version_control::InstantiateMsg {
-                is_testnet: true,
-                namespaces_limit: 10,
+                allow_direct_module_registration: Some(true),
+                namespace_limit: 10,
+                namespace_registration_fee: None,
             },
         )
     }

@@ -10,7 +10,7 @@ use abstract_sdk::{
     core::{
         manager::state::DEPENDENTS,
         manager::state::{
-            AccountInfo, SuspensionStatus, ACCOUNT_MODULES, CONFIG, INFO, OWNER, SUSPENSION_STATUS,
+            AccountInfo, SuspensionStatus, ACCOUNT_MODULES, CONFIG, INFO, SUSPENSION_STATUS,
         },
         manager::{CallbackMsg, ExecuteMsg},
         module_factory::ExecuteMsg as ModuleFactoryMsg,
@@ -22,19 +22,21 @@ use abstract_sdk::{
         proxy::ExecuteMsg as ProxyMsg,
         IBC_CLIENT, MANAGER, PROXY,
     },
-    cw_helpers::cosmwasm_std::wasm_smart_query,
+    cw_helpers::wasm_smart_query,
     feature_objects::VersionControlContract,
     ModuleRegistryInterface,
 };
 
-use abstract_core::api::{
-    AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as ApiExecMsg,
-    QueryMsg as ApiQuery,
+use abstract_core::adapter::{
+    AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as AdapterExecMsg,
+    QueryMsg as AdapterQuery,
 };
-use abstract_sdk::cw_helpers::cosmwasm_std::AbstractAttributes;
+use abstract_core::manager::state::ACCOUNT_FACTORY;
+use abstract_core::manager::InternalConfigAction;
+use abstract_sdk::cw_helpers::AbstractAttributes;
 use cosmwasm_std::{
-    ensure, to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env,
-    MessageInfo, Response, StdResult, Storage, WasmMsg,
+    ensure, from_binary, to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty,
+    Env, MessageInfo, Response, StdError, StdResult, Storage, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
 use cw_storage_plus::Item;
@@ -86,7 +88,7 @@ pub fn install_module(
     init_msg: Option<Binary>,
 ) -> ManagerResult {
     // only owner can call this method
-    OWNER.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
 
     // Check if module is already enabled.
     if ACCOUNT_MODULES
@@ -122,7 +124,7 @@ pub fn register_module(
 
     // check if sender is module factory
     if msg_info.sender != config.module_factory_address {
-        return Err(ManagerError::CallerNotFactory {});
+        return Err(ManagerError::CallerNotModuleFactory {});
     }
 
     let mut response = update_module_addresses(
@@ -146,7 +148,7 @@ pub fn register_module(
             )?)
         }
         Module {
-            reference: ModuleReference::Api(_),
+            reference: ModuleReference::Adapter(_),
             info,
         } => {
             let id = info.id();
@@ -172,7 +174,7 @@ pub fn exec_on_module(
     exec_msg: Binary,
 ) -> ManagerResult {
     // only owner can forward messages to modules
-    OWNER.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
 
     let module_addr = load_module_addr(deps.storage, &module_id)?;
 
@@ -197,7 +199,7 @@ fn load_module_addr(storage: &dyn Storage, module_id: &String) -> Result<Addr, M
 /// Uninstall the module with the ID [`module_id`]
 pub fn uninstall_module(deps: DepsMut, msg_info: MessageInfo, module_id: String) -> ManagerResult {
     // only owner can uninstall modules
-    OWNER.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
 
     validation::validate_not_proxy(&module_id)?;
 
@@ -231,30 +233,40 @@ pub fn uninstall_module(deps: DepsMut, msg_info: MessageInfo, module_id: String)
 
 pub fn set_owner(
     deps: DepsMut,
+    env: Env,
     info: MessageInfo,
     new_owner: GovernanceDetails<String>,
 ) -> ManagerResult {
-    // assert that the caller is the current owner
-    OWNER.assert_admin(deps.as_ref(), &info.sender)?;
     // verify the provided governance details
     let verified_gov = new_owner.verify(deps.api)?;
     let new_owner_addr = verified_gov.owner_address();
 
     // Update the account information
     let mut acc_info = INFO.load(deps.storage)?;
+
+    // Check that there are changes
+    if acc_info.governance_details == verified_gov {
+        return Err(ManagerError::NoUpdates {});
+    }
+
     acc_info.governance_details = verified_gov.clone();
     INFO.save(deps.storage, &acc_info)?;
-    // Update the OWNER
-    let previous_owner = OWNER.get(deps.as_ref())?.unwrap();
-    OWNER.execute_update_admin::<Empty, Empty>(deps, info, Some(new_owner_addr.clone()))?;
-    Ok(ManagerResponse::new(
-        "update_owner",
-        vec![
-            ("previous_owner", previous_owner.to_string()),
-            ("new_owner", new_owner_addr.to_string()),
-            ("governance_type", verified_gov.to_string()),
-        ],
-    ))
+
+    // Update the Owner of the Account
+    let ownership = cw_ownable::update_ownership(
+        deps,
+        &env.block,
+        &info.sender,
+        cw_ownable::Action::TransferOwnership {
+            new_owner: new_owner_addr.into_string(),
+            expiry: None,
+        },
+    )?;
+
+    let mut attrs = vec![("governance_type", verified_gov.to_string()).into()];
+    attrs.extend(ownership.into_attributes());
+
+    Ok(ManagerResponse::new("update_owner", attrs))
 }
 
 /// Migrate modules through address updates or contract migrations
@@ -267,7 +279,7 @@ pub fn upgrade_modules(
     info: MessageInfo,
     modules: Vec<(ModuleInfo, Option<Binary>)>,
 ) -> ManagerResult {
-    OWNER.assert_admin(deps.as_ref(), &info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &info.sender)?;
     ensure!(!modules.is_empty(), ManagerError::NoUpdates {});
 
     let mut upgrade_msgs = vec![];
@@ -333,10 +345,13 @@ pub fn set_migrate_msgs_and_context(
     let requested_module = query_module(deps.as_ref(), module_info.clone(), Some(old_module_cw2))?;
 
     let migrate_msgs = match requested_module.reference {
-        // upgrading an api is done by moving the authorized addresses to the new contract address and updating the permissions on the proxy.
-        ModuleReference::Api(new_api_addr) => {
-            handle_api_migration(deps, requested_module.info, old_module_addr, new_api_addr)?
-        }
+        // upgrading an adapter is done by moving the authorized addresses to the new contract address and updating the permissions on the proxy.
+        ModuleReference::Adapter(new_adapter_addr) => handle_adapter_migration(
+            deps,
+            requested_module.info,
+            old_module_addr,
+            new_adapter_addr,
+        )?,
         ModuleReference::App(code_id) => handle_app_migration(
             deps,
             migrate_msg,
@@ -358,12 +373,12 @@ pub fn set_migrate_msgs_and_context(
     Ok(())
 }
 
-/// Handle API module migration and return the migration messages
-fn handle_api_migration(
+/// Handle Adapter module migration and return the migration messages
+fn handle_adapter_migration(
     mut deps: DepsMut,
     module_info: ModuleInfo,
-    old_api_addr: Addr,
-    new_api_addr: Addr,
+    old_adapter_addr: Addr,
+    new_adapter_addr: Addr,
 ) -> ManagerResult<Vec<CosmosMsg>> {
     let module_id = module_info.id();
     versioning::assert_migrate_requirements(
@@ -372,16 +387,16 @@ fn handle_api_migration(
         module_info.version.try_into()?,
     )?;
     let old_deps = versioning::load_module_dependencies(deps.as_ref(), &module_id)?;
-    // Update the address of the api internally
+    // Update the address of the adapter internally
     update_module_addresses(
         deps.branch(),
-        Some(vec![(module_id.clone(), new_api_addr.to_string())]),
+        Some(vec![(module_id.clone(), new_adapter_addr.to_string())]),
         None,
     )?;
 
     add_module_upgrade_to_context(deps.storage, &module_id, old_deps)?;
 
-    replace_api(deps, new_api_addr, old_api_addr)
+    replace_adapter(deps, new_adapter_addr, old_adapter_addr)
 }
 
 /// Handle app module migration and return the migration messages
@@ -436,21 +451,21 @@ fn build_module_migrate_msg(module_addr: Addr, new_code_id: u64, migrate_msg: Bi
     migration_msg
 }
 
-/// Replaces the current api with a different version
+/// Replaces the current adapter with a different version
 /// Also moves all the authorized address permissions to the new contract and removes them from the old
-pub fn replace_api(
+pub fn replace_adapter(
     deps: DepsMut,
-    new_api_addr: Addr,
-    old_api_addr: Addr,
+    new_adapter_addr: Addr,
+    old_adapter_addr: Addr,
 ) -> Result<Vec<CosmosMsg>, ManagerError> {
     let mut msgs = vec![];
-    // Makes sure we already have the api installed
+    // Makes sure we already have the adapter installed
     let proxy_addr = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
     let AuthorizedAddressesResponse {
         addresses: authorized_addresses,
     } = deps.querier.query(&wasm_smart_query(
-        old_api_addr.to_string(),
-        &<ApiQuery<Empty>>::Base(BaseQueryMsg::AuthorizedAddresses {
+        old_adapter_addr.to_string(),
+        &<AdapterQuery<Empty>>::Base(BaseQueryMsg::AuthorizedAddresses {
             proxy_address: proxy_addr.to_string(),
         }),
     )?)?;
@@ -459,32 +474,35 @@ pub fn replace_api(
         .map(|addr| addr.into_string())
         .collect();
     // Remove authorized addresses from old
-    msgs.push(configure_api(
-        &old_api_addr,
+    msgs.push(configure_adapter(
+        &old_adapter_addr,
         BaseExecuteMsg::UpdateAuthorizedAddresses {
             to_add: vec![],
             to_remove: authorized_to_migrate.clone(),
         },
     )?);
-    // Remove api as authorized address on dependencies
-    msgs.push(configure_api(&old_api_addr, BaseExecuteMsg::Remove {})?);
+    // Remove adapter as authorized address on dependencies
+    msgs.push(configure_adapter(
+        &old_adapter_addr,
+        BaseExecuteMsg::Remove {},
+    )?);
     // Add authorized addresses to new
-    msgs.push(configure_api(
-        &new_api_addr,
+    msgs.push(configure_adapter(
+        &new_adapter_addr,
         BaseExecuteMsg::UpdateAuthorizedAddresses {
             to_add: authorized_to_migrate,
             to_remove: vec![],
         },
     )?);
-    // Remove api permissions from proxy
+    // Remove adapter permissions from proxy
     msgs.push(remove_module_from_proxy(
         proxy_addr.to_string(),
-        old_api_addr.into_string(),
+        old_adapter_addr.into_string(),
     )?);
-    // Add new api to proxy
+    // Add new adapter to proxy
     msgs.push(add_module_to_proxy(
         proxy_addr.into_string(),
-        new_api_addr.into_string(),
+        new_adapter_addr.into_string(),
     )?);
 
     Ok(msgs)
@@ -498,7 +516,7 @@ pub fn update_info(
     description: Option<String>,
     link: Option<String>,
 ) -> ManagerResult {
-    OWNER.assert_admin(deps.as_ref(), &info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &info.sender)?;
     let mut info: AccountInfo = INFO.load(deps.storage)?;
     if let Some(name) = name {
         validate_name(&name)?;
@@ -520,7 +538,7 @@ pub fn update_suspension_status(
     response: Response,
 ) -> ManagerResult {
     // only owner can update suspension status
-    OWNER.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
 
     SUSPENSION_STATUS.save(deps.storage, &is_suspended)?;
 
@@ -534,7 +552,7 @@ pub fn update_ibc_status(
     response: Response,
 ) -> ManagerResult {
     // only owner can update IBC status
-    OWNER.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
     let proxy = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
 
     let maybe_client = ACCOUNT_MODULES.may_load(deps.storage, IBC_CLIENT)?;
@@ -667,9 +685,12 @@ fn remove_module_from_proxy(
 }
 
 #[inline(always)]
-fn configure_api(api_address: impl Into<String>, message: BaseExecuteMsg) -> StdResult<CosmosMsg> {
-    let api_msg: ApiExecMsg<Empty> = message.into();
-    Ok(wasm_execute(api_address, &api_msg, vec![])?.into())
+fn configure_adapter(
+    adapter_address: impl Into<String>,
+    message: BaseExecuteMsg,
+) -> StdResult<CosmosMsg> {
+    let adapter_msg: AdapterExecMsg<Empty> = message.into();
+    Ok(wasm_execute(adapter_address, &adapter_msg, vec![])?.into())
 }
 
 pub fn update_account_status(
@@ -688,8 +709,26 @@ pub fn update_account_status(
     Ok(response)
 }
 
+pub fn update_internal_config(deps: DepsMut, info: MessageInfo, config: Binary) -> ManagerResult {
+    let action: InternalConfigAction =
+        from_binary(&config).map_err(|error| ManagerError::InvalidConfigAction { error })?;
+    match action {
+        InternalConfigAction::UpdateModuleAddresses { to_add, to_remove } => {
+            // only Account Factory/Owner can add custom modules.
+            // required to add Proxy after init by Account Factory.
+            ACCOUNT_FACTORY
+                .assert_admin(deps.as_ref(), &info.sender)
+                .or_else(|_| cw_ownable::assert_owner(deps.storage, &info.sender))?;
+            update_module_addresses(deps, to_add, to_remove)
+        }
+        _ => Err(ManagerError::InvalidConfigAction {
+            error: StdError::generic_err("Unknown config action"),
+        }),
+    }
+}
+
 #[cfg(test)]
-mod test {
+mod tests {
     use abstract_testing::prelude::*;
     use cosmwasm_std::testing::{
         mock_dependencies, mock_env, mock_info, MockApi, MockQuerier, MockStorage,
@@ -743,18 +782,17 @@ mod test {
         let res = execute_as(deps.as_mut(), "not_owner", msg);
         assert_that(&res)
             .is_err()
-            .is_equal_to(ManagerError::Admin(AdminError::NotAdmin {}));
+            .is_equal_to(ManagerError::Ownership(OwnershipError::NotOwner));
 
         Ok(())
     }
 
-    use cw_controllers::AdminError;
+    use cw_ownable::OwnershipError;
 
     type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 
     mod set_owner_and_gov_type {
         use super::*;
-        use abstract_core::manager;
 
         #[test]
         fn only_owner() -> ManagerTestResult {
@@ -796,16 +834,19 @@ mod test {
             mock_init(deps.as_mut())?;
 
             let new_owner = "new_owner";
-            let msg = ExecuteMsg::SetOwner {
+            let set_owner_msg = ExecuteMsg::SetOwner {
                 owner: GovernanceDetails::Monarchy {
                     monarch: new_owner.to_string(),
                 },
             };
 
-            let res = execute_as_owner(deps.as_mut(), msg);
+            let res = execute_as_owner(deps.as_mut(), set_owner_msg);
             assert_that(&res).is_ok();
 
-            let actual_owner = manager::state::OWNER.get(deps.as_ref())?.unwrap();
+            let accept_msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership);
+            execute_as(deps.as_mut(), new_owner, accept_msg)?;
+
+            let actual_owner = cw_ownable::get_ownership(&deps.storage)?.owner.unwrap();
 
             assert_that(&actual_owner).is_equal_to(Addr::unchecked(new_owner));
 
@@ -835,6 +876,7 @@ mod test {
 
     mod update_module_addresses {
         use super::*;
+        use abstract_core::manager::InternalConfigAction;
 
         #[test]
         fn manual_adds_module_to_account_modules() -> ManagerTestResult {
@@ -924,10 +966,11 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let msg = ExecuteMsg::UpdateModuleAddresses {
+            let action = InternalConfigAction::UpdateModuleAddresses {
                 to_add: None,
                 to_remove: None,
             };
+            let msg = ExecuteMsg::UpdateInternalConfig(to_binary(&action).unwrap());
 
             let res = execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg.clone());
             assert_that(&res).is_ok();
@@ -938,7 +981,7 @@ mod test {
             let res = execute_as(deps.as_mut(), "not_account_factory", msg);
             assert_that(&res)
                 .is_err()
-                .is_equal_to(ManagerError::Admin(AdminError::NotAdmin {}));
+                .is_equal_to(ManagerError::Ownership(OwnershipError::NotOwner {}));
 
             Ok(())
         }
@@ -960,7 +1003,7 @@ mod test {
             let res = execute_as(deps.as_mut(), "not_owner", msg);
             assert_that(&res)
                 .is_err()
-                .is_equal_to(ManagerError::Admin(AdminError::NotAdmin {}));
+                .is_equal_to(ManagerError::Ownership(OwnershipError::NotOwner));
 
             Ok(())
         }
@@ -1127,7 +1170,7 @@ mod test {
             let res = execute_as(deps.as_mut(), "not_module_factory", msg);
             assert_that(&res)
                 .is_err()
-                .is_equal_to(ManagerError::CallerNotFactory {});
+                .is_equal_to(ManagerError::CallerNotModuleFactory {});
 
             Ok(())
         }
@@ -1467,12 +1510,7 @@ mod test {
                 is_suspended: Some(true),
             };
 
-            let res = execute_as(deps.as_mut(), "not owner", msg);
-            assert_that(&res)
-                .is_err()
-                .is_equal_to(ManagerError::Admin(AdminError::NotAdmin {}));
-
-            Ok(())
+            test_only_owner(msg)
         }
 
         #[test]
@@ -1539,6 +1577,57 @@ mod test {
         }
     }
 
+    mod update_internal_config {
+        use super::*;
+        use abstract_core::manager::InternalConfigAction::UpdateModuleAddresses;
+        use abstract_core::manager::QueryMsg;
+
+        #[test]
+        fn only_account_factory_or_owner() -> ManagerTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let msg = ExecuteMsg::UpdateInternalConfig(
+                to_binary(&UpdateModuleAddresses {
+                    to_add: None,
+                    to_remove: None,
+                })
+                .unwrap(),
+            );
+
+            let bad_sender = "not_account_factory";
+            let res = execute_as(deps.as_mut(), bad_sender, msg.clone());
+
+            assert_that(&res)
+                .is_err()
+                .is_equal_to(ManagerError::Ownership(OwnershipError::NotOwner {}));
+
+            let owner_res = execute_as_owner(deps.as_mut(), msg.clone());
+            assert_that(&owner_res).is_ok();
+
+            let factory_res = execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg);
+            assert_that(&factory_res).is_ok();
+
+            Ok(())
+        }
+
+        #[test]
+        fn should_return_err_unrecognized_action() -> ManagerTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let msg = ExecuteMsg::UpdateInternalConfig(to_binary(&QueryMsg::Config {}).unwrap());
+
+            let res = execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg);
+
+            assert_that(&res)
+                .is_err()
+                .matches(|e| matches!(e, ManagerError::InvalidConfigAction { .. }));
+
+            Ok(())
+        }
+    }
+
     mod add_module_upgrade_to_context {
         use super::*;
         use abstract_testing::prelude::TEST_MODULE_ID;
@@ -1558,6 +1647,66 @@ mod test {
 
             assert_that!(upgraded_modules).has_length(1);
             assert_eq!(upgraded_modules[0].0, TEST_MODULE_ID);
+
+            Ok(())
+        }
+    }
+
+    mod update_ownership {
+        use super::*;
+
+        #[test]
+        fn allows_ownership_acceptance() -> ManagerTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let pending_owner = "not_owner";
+            // mock pending owner
+            Item::new("ownership").save(
+                deps.as_mut().storage,
+                &cw_ownable::Ownership {
+                    owner: None,
+                    pending_expiry: None,
+                    pending_owner: Some(Addr::unchecked(pending_owner)),
+                },
+            )?;
+
+            let msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership {});
+
+            execute_as(deps.as_mut(), pending_owner, msg)?;
+
+            Ok(())
+        }
+
+        #[test]
+        fn allows_renouncing() -> ManagerTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::RenounceOwnership {});
+
+            execute_as_owner(deps.as_mut(), msg)?;
+
+            Ok(())
+        }
+
+        #[test]
+        fn disallows_ownership_transfer() -> ManagerTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let transfer_to = "not_owner";
+
+            let msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::TransferOwnership {
+                new_owner: transfer_to.to_string(),
+                expiry: None,
+            });
+
+            let res = execute_as_owner(deps.as_mut(), msg);
+
+            assert_that!(res)
+                .is_err()
+                .is_equal_to(ManagerError::MustUseSetOwner {});
 
             Ok(())
         }

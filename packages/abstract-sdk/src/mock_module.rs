@@ -1,9 +1,12 @@
+//! Mock module for API and feature testing
+
 use abstract_core::objects::dependency::StaticDependency;
 use abstract_testing::prelude::{TEST_MODULE_ID, TEST_PROXY};
 use cosmwasm_std::{Addr, Deps};
 
 use crate::features::{
-    AbstractNameService, AccountIdentification, Dependencies, ModuleIdentification,
+    AbstractNameService, AbstractRegistryAccess, AccountIdentification, Dependencies,
+    ModuleIdentification,
 };
 use crate::AbstractSdkResult;
 use abstract_core::objects::ans_host::AnsHost;
@@ -30,12 +33,19 @@ impl AbstractNameService for MockModule {
     }
 }
 
+impl AbstractRegistryAccess for MockModule {
+    fn abstract_registry(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
+        Ok(Addr::unchecked("abstract_registry"))
+    }
+}
+
 impl Dependencies for MockModule {
     fn dependencies(&self) -> &[StaticDependency] {
         &[TEST_MODULE_DEP]
     }
 }
 
+/// Dependency on the mock module
 pub const TEST_MODULE_DEP: StaticDependency = StaticDependency::new(TEST_MODULE_ID, &[">1.0.0"]);
 /// Nonexistent module
 pub const FAKE_MODULE_ID: ModuleId = "fake_module";
@@ -45,20 +55,23 @@ pub const FAKE_MODULE_ID: ModuleId = "fake_module";
 pub struct MockModule {}
 
 impl MockModule {
+    /// mock constructor
     pub const fn new() -> Self {
         Self {}
     }
 }
 
+/// Mock module execute message
 #[cosmwasm_schema::cw_serde]
 pub struct MockModuleExecuteMsg {}
 
+/// Mock module query message
 #[cosmwasm_schema::cw_serde]
 pub struct MockModuleQueryMsg {}
 
-impl abstract_core::api::ApiExecuteMsg for MockModuleExecuteMsg {}
+impl abstract_core::adapter::AdapterExecuteMsg for MockModuleExecuteMsg {}
 
-impl abstract_core::api::ApiQueryMsg for MockModuleQueryMsg {}
+impl abstract_core::adapter::AdapterQueryMsg for MockModuleQueryMsg {}
 
 impl abstract_core::app::AppExecuteMsg for MockModuleExecuteMsg {}
 

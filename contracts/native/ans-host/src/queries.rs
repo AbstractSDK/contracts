@@ -16,7 +16,7 @@ use abstract_core::{
         PoolReference, UniquePoolId,
     },
 };
-use abstract_sdk::cw_helpers::cw_storage_plus::load_many;
+use abstract_sdk::cw_helpers::load_many;
 use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdError, StdResult, Storage};
 use cw_asset::AssetInfoUnchecked;
 use cw_storage_plus::Bound;
@@ -1012,7 +1012,7 @@ mod test {
         // assert
         assert_eq!(&res_bar, &expected_bar);
         assert_eq!(&res_foo, &expected_foo);
-        assert!(&res_foo.pools.len() == &1usize);
+        assert!(res_foo.pools.len() == 1usize);
         assert_eq!(&res_foo_using_start_after, &expected_foo);
         assert_eq!(&res_all, &expected_all);
         Ok(())

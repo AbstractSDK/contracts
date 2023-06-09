@@ -1,12 +1,14 @@
 # Abstract 
 
-<a href="https://codecov.io/gh/Abstract-OS/contracts" > 
- <img src="https://codecov.io/gh/Abstract-OS/contracts/branch/main/graph/badge.svg?token=FOIDUFYSCY"/> 
+<a href="https://codecov.io/gh/AbstractSDK/contracts" > 
+ <img src="https://codecov.io/gh/AbstractSDK/contracts/branch/main/graph/badge.svg?token=FOIDUFYSCY"/> 
  </a>
 
-<!-- ![alt text](https://github.com/Abstract-OS/contracts/blob/main/architecture.png?raw=true) -->
+<!-- ![alt text](https://github.com/AbstractSDK/contracts/blob/main/architecture.png?raw=true) -->
 
-# Manual Schema Generation
+## Schemas
+
+### Manual Schema Generation
 
 To generate the schemas for all the packages in this ws, run the following command. You may have to install [cargo
 workspaces(https://github.com/pksunkara/cargo-workspaces):
@@ -21,9 +23,7 @@ When it is installed, run the following to generate schemas for each:
 cargo ws exec --no-bail cargo schema
 ```
 
-### Schemas
-
-To publish the schemas to the [schema repo](https://github.com/Abstract-OS/schemas), run the following command:
+To publish the schemas to the [schema repo](https://github.com/AbstractSDK/schemas), run the following command:
 
 ```shell
 cargo 
@@ -38,6 +38,22 @@ VERSION=0.4.0 \
 ## CI
 
 Read the [CI](./CI.md) document for more information.
+
+## Documentation
+
+The documentation is generated using [mdbook](https://rust-lang.github.io/mdBook/index.html).  
+You can install mdbook and the mermaid pre-processor by running `just install-docs`.
+
+Then you can edit the files in the `docs/src` folder and run
+
+```shell
+just serve-docs
+```
+
+This will serve you the documentation and automatically re-compiles it when you make changes.
+
+[Release Docs](https://docs.abstract.money)
+[Dev Docs](https://dev-docs.abstract.money)
 
 ## Formatting
 

@@ -6,7 +6,7 @@ use abstract_core::objects::oracle::Oracle;
 use abstract_macros::abstract_response;
 use abstract_sdk::{
     core::{
-        objects::core::ACCOUNT_ID,
+        objects::account_id::ACCOUNT_ID,
         proxy::{
             state::{State, ADMIN, ANS_HOST, STATE},
             AssetConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
@@ -18,7 +18,7 @@ use abstract_sdk::{
 use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response};
 use semver::Version;
 
-const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[abstract_response(PROXY)]
 pub struct ProxyResponse;

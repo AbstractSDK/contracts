@@ -12,7 +12,7 @@ pub mod state {
     use cw_storage_plus::Item;
     use serde::{Deserialize, Serialize};
 
-    use crate::objects::core::AccountId;
+    use crate::objects::{account_id::AccountId, module::Module};
 
     /// Account Factory configuration
     #[cosmwasm_schema::cw_serde]
@@ -26,7 +26,9 @@ pub mod state {
     /// Account Factory context for post-[`crate::abstract_manager`] [`crate::abstract_proxy`] creation
     #[derive(Serialize, Deserialize, Clone, Debug)]
     pub struct Context {
-        pub account_manager_address: Addr,
+        pub account_manager_address: Option<Addr>,
+        pub manager_module: Option<Module>,
+        pub proxy_module: Option<Module>,
     }
 
     pub const CONFIG: Item<Config> = Item::new("\u{0}{5}config");
@@ -36,7 +38,7 @@ pub mod state {
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
 
-use crate::objects::{core::AccountId, gov_type::GovernanceDetails};
+use crate::objects::{account_id::AccountId, gov_type::GovernanceDetails};
 
 /// Msg used on instantiation
 #[cosmwasm_schema::cw_serde]
@@ -52,7 +54,7 @@ pub struct InstantiateMsg {
 /// Account Factory execute messages
 #[cw_ownable::cw_ownable_execute]
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
+#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
 pub enum ExecuteMsg {
     /// Update config
     UpdateConfig {
@@ -81,7 +83,7 @@ pub enum ExecuteMsg {
 #[cw_ownable::cw_ownable_query]
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
-#[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
+#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 pub enum QueryMsg {
     #[returns(ConfigResponse)]
     Config {},

@@ -6,12 +6,10 @@
 //! Contract and asset addresses are stored on the ans_host contract and are retrievable trough smart or raw queries.
 
 use crate::objects::{
-    asset_entry::AssetEntry,
-    contract_entry::{ContractEntry, UncheckedContractEntry},
-    dex_asset_pairing::DexAssetPairing,
     pool_id::UncheckedPoolAddress,
     pool_reference::PoolReference,
-    ChannelEntry, PoolMetadata, PoolType, UncheckedChannelEntry, UniquePoolId,
+    AssetEntry, ChannelEntry, DexAssetPairing, PoolMetadata, PoolType, UncheckedChannelEntry,
+    UniquePoolId, {ContractEntry, UncheckedContractEntry},
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
@@ -41,8 +39,8 @@ pub mod state {
     use cw_storage_plus::{Item, Map};
 
     use crate::objects::{
-        asset_entry::AssetEntry, contract_entry::ContractEntry, pool_metadata::PoolMetadata,
-        pool_reference::PoolReference, ChannelEntry,
+        pool_metadata::PoolMetadata, pool_reference::PoolReference, AssetEntry, ChannelEntry,
+        ContractEntry,
     };
 
     /// Ans host configuration
@@ -52,7 +50,7 @@ pub mod state {
     }
 
     pub const CONFIG: Item<Config> = Item::new("config");
-
+    //// ANCHOR: ans_state
     /// Stores name and address of tokens and pairs
     /// LP token pairs are stored alphabetically
     pub const ASSET_ADDRESSES: Map<&AssetEntry, AssetInfo> = Map::new("assets");
@@ -73,6 +71,7 @@ pub mod state {
 
     /// Stores the metadata for the pools using the unique pool id as the key
     pub const POOL_METADATA: Map<UniquePoolId, PoolMetadata> = Map::new("pools");
+    //// ANCHOR_END: ans_state
 }
 
 /// AnsHost Instantiate msg
@@ -82,7 +81,7 @@ pub struct InstantiateMsg {}
 /// AnsHost Execute msg
 #[cw_ownable::cw_ownable_execute]
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
+#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
 pub enum ExecuteMsg {
     /// Updates the contract addressbook
     UpdateContractAddresses {
@@ -158,7 +157,7 @@ pub struct PoolMetadataFilter {
 #[cw_ownable::cw_ownable_query]
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
-#[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
+#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 pub enum QueryMsg {
     /// Query the config
     /// Returns [`ConfigResponse`]

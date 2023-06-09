@@ -1,6 +1,8 @@
 use super::module_reference::ModuleReference;
+use crate::objects::module_version::MODULE;
+use crate::objects::namespace::Namespace;
 use crate::{error::AbstractError, AbstractResult};
-use cosmwasm_std::{to_binary, Binary, StdError, StdResult};
+use cosmwasm_std::{ensure_eq, to_binary, Addr, Binary, QuerierWrapper, StdError, StdResult};
 use cw2::ContractVersion;
 use cw_semver::Version;
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
@@ -24,7 +26,7 @@ pub enum ModuleStatus {
 #[cosmwasm_schema::cw_serde]
 pub struct ModuleInfo {
     /// Namespace of the module
-    pub namespace: String,
+    pub namespace: Namespace,
     /// Name of the contract
     pub name: String,
     /// Version of the module
@@ -80,7 +82,7 @@ impl ModuleInfo {
             });
         }
         Ok(ModuleInfo {
-            namespace: split[0].to_lowercase(),
+            namespace: Namespace::try_from(split[0])?,
             name: split[1].to_lowercase(),
             version,
         })
@@ -90,7 +92,7 @@ impl ModuleInfo {
     }
 
     pub fn validate(&self) -> AbstractResult<()> {
-        validate_name(&self.namespace)?;
+        self.namespace.validate()?;
         validate_name(&self.name)?;
         self.version.validate().map_err(|e| {
             StdError::generic_err(format!("Invalid version for module {}: {}", self.id(), e))
@@ -121,13 +123,17 @@ impl ModuleInfo {
 }
 
 impl<'a> PrimaryKey<'a> for &ModuleInfo {
-    type Prefix = (String, String);
+    /// (namespace, name)
+    type Prefix = (Namespace, String);
 
-    type SubPrefix = String;
+    /// namespace
+    type SubPrefix = Namespace;
 
     /// Possibly change to ModuleVersion in future by implementing PrimaryKey
+    /// version
     type Suffix = String;
 
+    // (name, version)
     type SuperSuffix = (String, String);
 
     fn key(&self) -> Vec<cw_storage_plus::Key> {
@@ -175,7 +181,9 @@ impl KeyDeserialize for &ModuleInfo {
         let ver = name_ver.split_off(ver_len);
 
         Ok(ModuleInfo {
-            namespace: String::from_vec(prov_name_ver)?,
+            namespace: Namespace::try_from(String::from_vec(prov_name_ver)?).map_err(|e| {
+                StdError::generic_err(format!("Invalid namespace for module: {}", e))
+            })?,
             name: String::from_vec(name_ver)?,
             version: ModuleVersion::from_vec(ver)?,
         })
@@ -282,7 +290,7 @@ impl TryFrom<ContractVersion> for ModuleInfo {
             });
         }
         Ok(ModuleInfo {
-            namespace: split[0].to_lowercase(),
+            namespace: Namespace::try_from(split[0])?,
             name: split[1].to_lowercase(),
             version: ModuleVersion::Version(value.version),
         })
@@ -340,6 +348,85 @@ impl ModuleInitMsg {
     }
 }
 
+/// Assert that the provided module has the same data stored under the cw2 and module data keys.
+pub fn assert_module_data_validity(
+    querier: &QuerierWrapper,
+    // The module that it claims to be
+    module_claim: &Module,
+    // Optional address, if not set, skip code_id checks
+    module_address: Option<Addr>,
+) -> AbstractResult<()> {
+    // we retrieve the address information.
+    let module_address = match &module_claim.reference.unwrap_addr() {
+        Ok(addr) => addr.to_owned(),
+        Err(..) => {
+            // now we need to have a module address provided
+            let Some(addr) = module_address else {
+                // if no addr provided and module doesn't have it, just return
+                // this will be the case when registering a code-id on VC
+                return Ok(())
+            };
+            addr
+        }
+    };
+
+    // verify that the contract's data is equal to its registered data
+    let cw_2_data = cw2::CONTRACT.query(querier, module_address.clone())?;
+
+    // Assert that the contract name is equal to the module name
+    ensure_eq!(
+        module_claim.info.id(),
+        cw_2_data.contract,
+        AbstractError::UnequalModuleData {
+            cw2: cw_2_data.contract,
+            module: module_claim.info.id()
+        }
+    );
+
+    let ModuleVersion::Version(version) = &module_claim.info.version else {
+    panic!("Module version is not versioned, context setting is wrong")
+    };
+
+    // Assert that the contract version is equal to the module version
+    ensure_eq!(
+        version,
+        &cw_2_data.version,
+        AbstractError::UnequalModuleData {
+            cw2: cw_2_data.version,
+            module: version.to_owned()
+        }
+    );
+    // we're done if it's not an actual module
+    match module_claim.reference {
+        ModuleReference::AccountBase(_) => return Ok(()),
+        ModuleReference::Native(_) => return Ok(()),
+        ModuleReference::Standalone(_) => return Ok(()),
+        _ => {}
+    }
+
+    let module_data = MODULE.query(querier, module_address)?;
+    // assert that the names are equal
+    ensure_eq!(
+        module_data.module,
+        cw_2_data.contract,
+        AbstractError::UnequalModuleData {
+            cw2: cw_2_data.contract,
+            module: module_data.module,
+        }
+    );
+    // assert that the versions are equal
+    ensure_eq!(
+        module_data.version,
+        cw_2_data.version,
+        AbstractError::UnequalModuleData {
+            cw2: cw_2_data.version,
+            module: module_data.version
+        }
+    );
+
+    Ok(())
+}
+
 //--------------------------------------------------------------------------------------------------
 // Tests
 //--------------------------------------------------------------------------------------------------
@@ -356,7 +443,7 @@ mod test {
 
         fn mock_key() -> ModuleInfo {
             ModuleInfo {
-                namespace: "abstract".to_string(),
+                namespace: Namespace::new("abstract").unwrap(),
                 name: "rocket-ship".to_string(),
                 version: ModuleVersion::Version("1.9.9".into()),
             }
@@ -365,22 +452,22 @@ mod test {
         fn mock_keys() -> (ModuleInfo, ModuleInfo, ModuleInfo, ModuleInfo) {
             (
                 ModuleInfo {
-                    namespace: "abstract".to_string(),
+                    namespace: Namespace::new("abstract").unwrap(),
                     name: "boat".to_string(),
                     version: ModuleVersion::Version("1.9.9".into()),
                 },
                 ModuleInfo {
-                    namespace: "abstract".to_string(),
+                    namespace: Namespace::new("abstract").unwrap(),
                     name: "rocket-ship".to_string(),
                     version: ModuleVersion::Version("1.0.0".into()),
                 },
                 ModuleInfo {
-                    namespace: "abstract".to_string(),
+                    namespace: Namespace::new("abstract").unwrap(),
                     name: "rocket-ship".to_string(),
                     version: ModuleVersion::Version("2.0.0".into()),
                 },
                 ModuleInfo {
-                    namespace: "astroport".to_string(),
+                    namespace: Namespace::new("astroport").unwrap(),
                     name: "liquidity-pool".to_string(),
                     version: ModuleVersion::Version("10.5.7".into()),
                 },
@@ -410,7 +497,7 @@ mod test {
         fn storage_key_with_overlapping_name_namespace() {
             let mut deps = mock_dependencies();
             let info1 = ModuleInfo {
-                namespace: "abstract".to_string(),
+                namespace: Namespace::new("abstract").unwrap(),
                 name: "ans".to_string(),
                 version: ModuleVersion::Version("1.9.9".into()),
             };
@@ -418,7 +505,7 @@ mod test {
             let _key1 = (&info1).joined_key();
 
             let info2 = ModuleInfo {
-                namespace: "abs".to_string(),
+                namespace: Namespace::new("abs").unwrap(),
                 name: "tractans".to_string(),
                 version: ModuleVersion::Version("1.9.9".into()),
             };
@@ -482,7 +569,7 @@ mod test {
             map.save(deps.as_mut().storage, &key4, &13).unwrap();
 
             let items = map
-                .sub_prefix("abstract".to_string())
+                .sub_prefix(Namespace::new("abstract").unwrap())
                 .range(deps.as_ref().storage, None, None, Order::Ascending)
                 .map(|item| item.unwrap())
                 .collect::<Vec<_>>();
@@ -500,7 +587,7 @@ mod test {
             );
 
             let items = map
-                .sub_prefix("astroport".to_string())
+                .sub_prefix(Namespace::new("astroport").unwrap())
                 .range(deps.as_ref().storage, None, None, Order::Ascending)
                 .map(|item| item.unwrap())
                 .collect::<Vec<_>>();
@@ -527,7 +614,10 @@ mod test {
             map.save(deps.as_mut().storage, &key4, &13).unwrap();
 
             let items = map
-                .prefix(("abstract".to_string(), "rocket-ship".to_string()))
+                .prefix((
+                    Namespace::new("abstract").unwrap(),
+                    "rocket-ship".to_string(),
+                ))
                 .range(deps.as_ref().storage, None, None, Order::Ascending)
                 .map(|item| item.unwrap())
                 .collect::<Vec<_>>();
@@ -545,7 +635,7 @@ mod test {
         #[test]
         fn validate_with_empty_name() {
             let info = ModuleInfo {
-                namespace: "abstract".to_string(),
+                namespace: Namespace::try_from("abstract").unwrap(),
                 name: "".to_string(),
                 version: ModuleVersion::Version("1.9.9".into()),
             };
@@ -558,7 +648,7 @@ mod test {
         #[test]
         fn validate_with_empty_namespace() {
             let info = ModuleInfo {
-                namespace: "".to_string(),
+                namespace: Namespace::unchecked(""),
                 name: "ans".to_string(),
                 version: ModuleVersion::Version("1.9.9".into()),
             };
@@ -576,7 +666,7 @@ mod test {
         #[case("ans-host&")]
         fn validate_fails_with_non_alphanumeric(#[case] name: &str) {
             let info = ModuleInfo {
-                namespace: "abstract".to_string(),
+                namespace: Namespace::try_from("abstract").unwrap(),
                 name: name.to_string(),
                 version: ModuleVersion::Version("1.9.9".into()),
             };
@@ -591,7 +681,7 @@ mod test {
         #[case("bad-")]
         fn validate_with_bad_versions(#[case] version: &str) {
             let info = ModuleInfo {
-                namespace: "abstract".to_string(),
+                namespace: Namespace::try_from("abstract").unwrap(),
                 name: "ans".to_string(),
                 version: ModuleVersion::Version(version.into()),
             };
@@ -605,7 +695,7 @@ mod test {
         fn id() {
             let info = ModuleInfo {
                 name: "name".to_string(),
-                namespace: "namespace".to_string(),
+                namespace: Namespace::try_from("namespace").unwrap(),
                 version: ModuleVersion::Version("1.0.0".into()),
             };
 
@@ -618,7 +708,7 @@ mod test {
         fn id_with_version() {
             let info = ModuleInfo {
                 name: "name".to_string(),
-                namespace: "namespace".to_string(),
+                namespace: Namespace::try_from("namespace").unwrap(),
                 version: ModuleVersion::Version("1.0.0".into()),
             };
 

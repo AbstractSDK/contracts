@@ -1,14 +1,24 @@
+use abstract_core::objects::{
+    fee::FixedFee,
+    module::{self, Module},
+};
 use cosmwasm_std::{
-    ensure, Addr, Attribute, Deps, DepsMut, MessageInfo, Order, QuerierWrapper, Response,
-    StdResult, Storage,
+    ensure, Addr, Attribute, BankMsg, Coin, CosmosMsg, Deps, DepsMut, MessageInfo, Order,
+    QuerierWrapper, Response, StdResult, Storage,
 };
 
-use abstract_core::{objects::module::ModuleVersion, objects::AccountId, version_control::Config};
-use abstract_sdk::core::{
-    manager::{ConfigResponse as ManagerConfigResponse, QueryMsg as ManagerQueryMsg},
-    objects::{module::ModuleInfo, module_reference::ModuleReference, namespace::Namespace},
-    version_control::AccountBase,
-    version_control::{namespaces_info, state::*},
+use abstract_sdk::{
+    core::{
+        objects::{
+            common_namespace::OWNERSHIP_STORAGE_KEY,
+            module::{ModuleInfo, ModuleVersion},
+            module_reference::ModuleReference,
+            namespace::Namespace,
+            AccountId,
+        },
+        version_control::{namespaces_info, state::*, AccountBase, Config},
+    },
+    cw_helpers::wasm_raw_query,
 };
 
 use crate::contract::{VCResult, VcResponse, ABSTRACT_NAMESPACE};
@@ -37,7 +47,7 @@ pub fn add_account(
 }
 
 /// Here we can add logic to allow subscribers to claim a namespace and upload contracts to that namespace
-pub fn add_modules(
+pub fn propose_modules(
     deps: DepsMut,
     msg_info: MessageInfo,
     modules: Vec<(ModuleInfo, ModuleReference)>,
@@ -51,26 +61,46 @@ pub fn add_modules(
         {
             return Err(VCError::NotUpdateableModule(module));
         }
+
         module.validate()?;
+
         mod_ref.validate(deps.as_ref())?;
+
         // version must be set in order to add the new version
         module.assert_version_variant()?;
 
-        if module.namespace == ABSTRACT_NAMESPACE {
+        if module.namespace == Namespace::unchecked(ABSTRACT_NAMESPACE) {
             // Only Admin can update abstract contracts
             cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
         } else {
             // Only owner can add modules
             validate_account_owner(deps.as_ref(), &module.namespace, &msg_info.sender)?;
         }
-        if config.is_testnet {
+
+        // verify contract admin is None if module is Adapter
+        if let ModuleReference::Adapter(ref addr) = mod_ref {
+            if deps.querier.query_wasm_contract_info(addr)?.admin.is_some() {
+                return Err(VCError::AdminMustBeNone);
+            }
+        }
+
+        if config.allow_direct_module_registration {
+            // assert that its data is equal to what it wants to be registered under.
+            module::assert_module_data_validity(
+                &deps.querier,
+                &Module {
+                    info: module.clone(),
+                    reference: mod_ref.clone(),
+                },
+                None,
+            )?;
             REGISTERED_MODULES.save(deps.storage, &module, &mod_ref)?;
         } else {
             PENDING_MODULES.save(deps.storage, &module, &mod_ref)?;
         }
     }
 
-    Ok(VcResponse::action("add_modules"))
+    Ok(VcResponse::action("propose_modules"))
 }
 
 /// Approve and reject modules
@@ -178,16 +208,18 @@ pub fn claim_namespaces(
 ) -> VCResult {
     // verify account owner
     let account_base = ACCOUNT_ADDRESSES.load(deps.storage, account_id)?;
-    let account_owner = query_account_owner(&deps.querier, &account_base.manager)?;
+    let account_owner = query_account_owner(&deps.querier, &account_base.manager, account_id)?;
     if msg_info.sender != account_owner {
         return Err(VCError::AccountOwnerMismatch {
-            sender: msg_info.sender.into_string(),
+            sender: msg_info.sender,
             owner: account_owner,
         });
     }
 
     let Config {
-        namespaces_limit, ..
+        namespace_limit: namespaces_limit,
+        namespace_registration_fee: fee,
+        ..
     } = CONFIG.load(deps.storage)?;
     let limit = namespaces_limit as usize;
     let existing_namespace_count = namespaces_info()
@@ -202,17 +234,35 @@ pub fn claim_namespaces(
             current: existing_namespace_count,
         });
     }
+    if namespaces_to_claim.is_empty() {
+        // Nothing to do if there is no namespace to claim
+        return Err(VCError::NoAction);
+    }
+
+    let nb_namespaces: u128 = namespaces_to_claim.len().try_into().unwrap();
+    let fee_to_charge = FixedFee::new(&fee)
+        .quantity(nb_namespaces)
+        .assert_payment(&msg_info)?;
+
+    let mut fee_messages = vec![];
+    if !fee_to_charge.amount.is_zero() {
+        // We transfer the namespace fee if necessary
+        let admin_account = ACCOUNT_ADDRESSES.load(deps.storage, 0)?;
+        fee_messages.push(CosmosMsg::Bank(BankMsg::Send {
+            to_address: admin_account.proxy.to_string(),
+            amount: msg_info.funds, // No funds should be left on the contract. We ensure that here
+        }));
+    }
 
     for namespace in namespaces_to_claim.iter() {
-        let item = Namespace::from(namespace);
-        item.validate()?;
-        if let Some(id) = namespaces_info().may_load(deps.storage, &item)? {
+        let namespace = Namespace::try_from(namespace)?;
+        if let Some(id) = namespaces_info().may_load(deps.storage, &namespace)? {
             return Err(VCError::NamespaceOccupied {
                 namespace: namespace.to_string(),
                 id,
             });
         }
-        namespaces_info().save(deps.storage, &item, &account_id)?;
+        namespaces_info().save(deps.storage, &namespace, &account_id)?;
     }
 
     Ok(VcResponse::new(
@@ -221,7 +271,8 @@ pub fn claim_namespaces(
             ("account_id", &account_id.to_string()),
             ("namespaces", &namespaces_to_claim.join(",")),
         ],
-    ))
+    )
+    .add_messages(fee_messages))
 }
 
 /// Remove namespaces
@@ -235,23 +286,22 @@ pub fn remove_namespaces(
 
     let mut logs = vec![];
     for namespace in namespaces.iter() {
-        if !namespaces_info().has(deps.storage, &namespace.into()) {
-            return Err(VCError::UnknownNamespace {
-                namespace: namespace.to_string(),
-            });
+        let namespace = Namespace::try_from(namespace)?;
+        if !namespaces_info().has(deps.storage, &namespace) {
+            return Err(VCError::UnknownNamespace { namespace });
         }
         if !is_admin {
-            validate_account_owner(deps.as_ref(), namespace, &msg_info.sender)?;
+            validate_account_owner(deps.as_ref(), &namespace, &msg_info.sender)?;
         }
 
         for ((name, version), mod_ref) in REGISTERED_MODULES
-            .sub_prefix(namespace.to_owned())
+            .sub_prefix(namespace.clone())
             .range(deps.storage, None, None, Order::Ascending)
             .collect::<StdResult<Vec<_>>>()?
             .into_iter()
         {
             let module = ModuleInfo {
-                namespace: namespace.to_owned(),
+                namespace: namespace.clone(),
                 name,
                 version: ModuleVersion::Version(version),
             };
@@ -262,9 +312,9 @@ pub fn remove_namespaces(
         logs.push(format!(
             "({}, {})",
             namespace,
-            namespaces_info().load(deps.storage, &Namespace::from(namespace))?
+            namespaces_info().load(deps.storage, &namespace)?
         ));
-        namespaces_info().remove(deps.storage, &Namespace::from(namespace))?;
+        namespaces_info().remove(deps.storage, &namespace)?;
     }
 
     Ok(VcResponse::new(
@@ -273,48 +323,90 @@ pub fn remove_namespaces(
     ))
 }
 
-pub fn update_namespaces_limit(deps: DepsMut, info: MessageInfo, new_limit: u32) -> VCResult {
+pub fn update_config(
+    deps: DepsMut,
+    info: MessageInfo,
+    allow_direct_module_registration: Option<bool>,
+    namespace_limit: Option<u32>,
+    namespace_registration_fee: Option<Coin>,
+) -> VCResult {
     cw_ownable::assert_owner(deps.storage, &info.sender)?;
     let mut config = CONFIG.load(deps.storage)?;
-    let previous_limit = config.namespaces_limit;
-    if previous_limit > new_limit {
-        return Err(VCError::DecreaseNamespaceLimit {
-            limit: new_limit,
-            current: previous_limit,
-        });
+
+    let mut attributes = vec![];
+
+    if let Some(new_limit) = namespace_limit {
+        let previous_limit = config.namespace_limit;
+        ensure!(
+            new_limit > previous_limit,
+            VCError::DecreaseNamespaceLimit {
+                limit: new_limit,
+                current: previous_limit,
+            }
+        );
+        config.namespace_limit = new_limit;
+        attributes.extend(vec![
+            ("previous_namespace_limit", previous_limit.to_string()),
+            ("namespace_limit", new_limit.to_string()),
+        ])
     }
 
-    config.namespaces_limit = new_limit;
+    if let Some(allow) = allow_direct_module_registration {
+        let previous_allow = config.allow_direct_module_registration;
+        config.allow_direct_module_registration = allow;
+        attributes.extend(vec![
+            (
+                "previous_allow_direct_module_registration",
+                previous_allow.to_string(),
+            ),
+            ("allow_direct_module_registration", allow.to_string()),
+        ])
+    }
+
+    if let Some(fee) = namespace_registration_fee {
+        let previous_fee = config.namespace_registration_fee;
+        config.namespace_registration_fee = fee.clone();
+        attributes.extend(vec![
+            (
+                "previous_allow_direct_module_registration",
+                format!("{:?}", previous_fee),
+            ),
+            ("allow_direct_module_registration", fee.to_string()),
+        ])
+    }
+
     CONFIG.save(deps.storage, &config)?;
 
-    Ok(VcResponse::new(
-        "update_namespaces_limit",
-        vec![
-            ("previous_limit", previous_limit.to_string()),
-            ("limit", new_limit.to_string()),
-        ],
-    ))
+    Ok(VcResponse::new("update_config", attributes))
 }
 
-pub fn query_account_owner(querier: &QuerierWrapper, manager_addr: &Addr) -> StdResult<String> {
-    let ManagerConfigResponse { owner, .. } =
-        querier.query_wasm_smart(manager_addr, &ManagerQueryMsg::Config {})?;
-    Ok(owner)
+pub fn query_account_owner(
+    querier: &QuerierWrapper,
+    manager_addr: &Addr,
+    account_id: AccountId,
+) -> VCResult<Addr> {
+    let req = wasm_raw_query(manager_addr, OWNERSHIP_STORAGE_KEY)?;
+    let cw_ownable::Ownership { owner, .. } = querier.query(&req)?;
+
+    owner.ok_or(VCError::NoAccountOwner { account_id })
 }
 
-pub fn validate_account_owner(deps: Deps, namespace: &str, sender: &Addr) -> Result<(), VCError> {
+pub fn validate_account_owner(
+    deps: Deps,
+    namespace: &Namespace,
+    sender: &Addr,
+) -> Result<(), VCError> {
     let sender = sender.clone();
-    let namespace = Namespace::from(namespace);
     let account_id = namespaces_info()
-        .may_load(deps.storage, &namespace)?
+        .may_load(deps.storage, &namespace.clone())?
         .ok_or_else(|| VCError::UnknownNamespace {
-            namespace: namespace.to_string(),
+            namespace: namespace.to_owned(),
         })?;
     let account_base = ACCOUNT_ADDRESSES.load(deps.storage, account_id)?;
-    let account_owner = query_account_owner(&deps.querier, &account_base.manager)?;
+    let account_owner = query_account_owner(&deps.querier, &account_base.manager, account_id)?;
     if sender != account_owner {
         return Err(VCError::AccountOwnerMismatch {
-            sender: sender.into_string(),
+            sender,
             owner: account_owner,
         });
     }
@@ -332,11 +424,12 @@ pub fn set_factory(deps: DepsMut, info: MessageInfo, new_admin: String) -> VCRes
 #[cfg(test)]
 mod test {
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-    use cosmwasm_std::{from_binary, to_binary, Addr, Uint64};
+    use cosmwasm_std::{from_binary, to_binary, Addr, Coin, Uint64};
     use cw_controllers::AdminError;
     use cw_ownable::OwnershipError;
     use speculoos::prelude::*;
 
+    use abstract_core::manager::ConfigResponse as ManagerConfigResponse;
     use abstract_core::version_control::*;
     use abstract_testing::prelude::TEST_MODULE_ID;
     use abstract_testing::prelude::{
@@ -348,32 +441,40 @@ mod test {
     use crate::contract;
 
     use super::*;
-    use crate::test_common::*;
+    use crate::testing::*;
+    use abstract_core::manager::QueryMsg as ManagerQueryMsg;
+    use abstract_testing::prelude::*;
+    use abstract_testing::MockQuerierOwnership;
 
     type VersionControlTestResult = Result<(), VCError>;
 
     const TEST_OTHER: &str = "test-other";
-    const TEST_OWNER: &str = "test-owner";
-
-    const TEST_PROXY_ADDR: &str = "proxy";
-    const TEST_MANAGER_ADDR: &str = "manager";
 
     pub fn mock_manager_querier() -> MockQuerierBuilder {
-        MockQuerierBuilder::default().with_smart_handler(TEST_MANAGER_ADDR, |msg| {
-            match from_binary(msg).unwrap() {
-                ManagerQueryMsg::Config {} => {
-                    let resp = ManagerConfigResponse {
-                        owner: TEST_OWNER.to_owned(),
-                        version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
-                        module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
-                        account_id: Uint64::from(TEST_ACCOUNT_ID), // mock value, not used
-                        is_suspended: false,
-                    };
-                    Ok(to_binary(&resp).unwrap())
+        MockQuerierBuilder::default()
+            .with_smart_handler(TEST_MANAGER, |msg| {
+                match from_binary(msg).unwrap() {
+                    ManagerQueryMsg::Config {} => {
+                        let resp = ManagerConfigResponse {
+                            version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
+                            module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
+                            account_id: Uint64::from(TEST_ACCOUNT_ID), // mock value, not used
+                            is_suspended: false,
+                        };
+                        Ok(to_binary(&resp).unwrap())
+                    }
+                    ManagerQueryMsg::Ownership {} => {
+                        let resp = cw_ownable::Ownership {
+                            owner: Some(Addr::unchecked(TEST_OWNER)),
+                            pending_expiry: None,
+                            pending_owner: None,
+                        };
+                        Ok(to_binary(&resp).unwrap())
+                    }
+                    _ => panic!("unexpected message"),
                 }
-                _ => panic!("unexpected message"),
-            }
-        })
+            })
+            .with_owner(TEST_MANAGER, Some(TEST_OWNER))
     }
 
     /// Initialize the version_control with admin and updated account_factory
@@ -384,8 +485,9 @@ mod test {
             mock_env(),
             info,
             InstantiateMsg {
-                is_testnet: true,
-                namespaces_limit: 10,
+                allow_direct_module_registration: Some(true),
+                namespace_limit: 10,
+                namespace_registration_fee: None,
             },
         )?;
         execute_as_admin(
@@ -397,15 +499,16 @@ mod test {
     }
 
     /// Initialize the version_control with admin as creator and test account
-    fn mock_init_with_account(mut deps: DepsMut, is_testnet: bool) -> VCResult {
+    fn mock_init_with_account(mut deps: DepsMut, direct_registration: bool) -> VCResult {
         let admin_info = mock_info(TEST_ADMIN, &[]);
         contract::instantiate(
             deps.branch(),
             mock_env(),
             admin_info,
             InstantiateMsg {
-                is_testnet,
-                namespaces_limit: 10,
+                allow_direct_module_registration: Some(direct_registration),
+                namespace_limit: 10,
+                namespace_registration_fee: None,
             },
         )?;
         execute_as_admin(
@@ -420,8 +523,8 @@ mod test {
             ExecuteMsg::AddAccount {
                 account_id: TEST_ACCOUNT_ID,
                 account_base: AccountBase {
-                    manager: Addr::unchecked(TEST_MANAGER_ADDR),
-                    proxy: Addr::unchecked(TEST_PROXY_ADDR),
+                    manager: Addr::unchecked(TEST_MANAGER),
+                    proxy: Addr::unchecked(TEST_PROXY),
                 },
             },
         )
@@ -429,6 +532,15 @@ mod test {
 
     fn execute_as(deps: DepsMut, sender: &str, msg: ExecuteMsg) -> VCResult {
         contract::execute(deps, mock_env(), mock_info(sender, &[]), msg)
+    }
+
+    fn execute_as_with_funds(
+        deps: DepsMut,
+        sender: &str,
+        msg: ExecuteMsg,
+        funds: &[Coin],
+    ) -> VCResult {
+        contract::execute(deps, mock_env(), mock_info(sender, funds), msg)
     }
 
     fn execute_as_admin(deps: DepsMut, msg: ExecuteMsg) -> VCResult {
@@ -519,14 +631,18 @@ mod test {
 
     mod claim_namespaces {
         use super::*;
+        use abstract_core::{objects, AbstractError};
+        use cosmwasm_std::{coins, BankMsg, CosmosMsg, SubMsg, Uint128};
+
+        use objects::ABSTRACT_ACCOUNT_ID;
 
         #[test]
         fn claim_namespaces_by_owner() -> VersionControlTestResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), true)?;
-            let new_namespace1 = Namespace::from("namespace1");
-            let new_namespace2 = Namespace::from("namespace2");
+            let new_namespace1 = Namespace::new("namespace1").unwrap();
+            let new_namespace2 = Namespace::new("namespace2").unwrap();
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
                 namespaces: vec![new_namespace1.to_string(), new_namespace2.to_string()],
@@ -541,12 +657,96 @@ mod test {
         }
 
         #[test]
+        fn claim_namespaces_with_fee() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            deps.querier = mock_manager_querier().build();
+
+            mock_init_with_account(deps.as_mut(), true)?;
+
+            let one_namespace_fee = Coin {
+                denom: "ujunox".to_string(),
+                amount: 6u128.into(),
+            };
+
+            execute_as_admin(
+                deps.as_mut(),
+                ExecuteMsg::UpdateConfig {
+                    allow_direct_module_registration: None,
+                    namespace_limit: None,
+                    namespace_registration_fee: Some(one_namespace_fee.clone()),
+                },
+            )
+            .unwrap();
+
+            // We create a 0 admin account
+            const TEST_ADMIN_PROXY: &str = "test-admin-proxy";
+            execute_as(
+                deps.as_mut(),
+                TEST_ACCOUNT_FACTORY,
+                ExecuteMsg::AddAccount {
+                    account_id: 0,
+                    account_base: AccountBase {
+                        manager: Addr::unchecked(TEST_MANAGER),
+                        proxy: Addr::unchecked(TEST_ADMIN_PROXY),
+                    },
+                },
+            )
+            .unwrap();
+
+            let new_namespace1 = Namespace::new("namespace1").unwrap();
+            let new_namespace2 = Namespace::new("namespace2").unwrap();
+            let msg = ExecuteMsg::ClaimNamespaces {
+                account_id: TEST_ACCOUNT_ID,
+                namespaces: vec![new_namespace1.to_string(), new_namespace2.to_string()],
+            };
+            // Fail, no fee at all
+            let res = execute_as(deps.as_mut(), TEST_OWNER, msg.clone());
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(VCError::Abstract(AbstractError::Fee(format!(
+                    "Invalid fee payment sent. Expected {}, sent {:?}",
+                    Coin {
+                        denom: one_namespace_fee.denom.clone(),
+                        amount: one_namespace_fee.amount * Uint128::from(2u128),
+                    },
+                    Vec::<Coin>::new()
+                ))));
+
+            // Fail, not enough fee
+            let sent_coins = coins(5, "ujunox");
+            let res = execute_as_with_funds(deps.as_mut(), TEST_OWNER, msg.clone(), &sent_coins);
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(VCError::Abstract(AbstractError::Fee(format!(
+                    "Invalid fee payment sent. Expected {}, sent {:?}",
+                    Coin {
+                        denom: one_namespace_fee.denom.clone(),
+                        amount: one_namespace_fee.amount * Uint128::from(2u128),
+                    },
+                    sent_coins
+                ))));
+
+            // Success
+            let sent_coins = coins(12, "ujunox");
+            let res = execute_as_with_funds(deps.as_mut(), TEST_OWNER, msg, &sent_coins);
+            assert_that!(&res)
+                .is_ok()
+                .map(|res| &res.messages)
+                .is_equal_to(vec![SubMsg::new(CosmosMsg::Bank(BankMsg::Send {
+                    to_address: TEST_ADMIN_PROXY.to_string(),
+                    amount: sent_coins,
+                }))]);
+
+            Ok(())
+        }
+
+        #[test]
         fn claim_namespaces_not_owner() -> VersionControlTestResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), true)?;
-            let new_namespace1 = Namespace::from("namespace1");
-            let new_namespace2 = Namespace::from("namespace2");
+            let new_namespace1 = Namespace::new("namespace1").unwrap();
+            let new_namespace2 = Namespace::new("namespace2").unwrap();
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
                 namespaces: vec![new_namespace1.to_string(), new_namespace2.to_string()],
@@ -555,8 +755,8 @@ mod test {
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(&VCError::AccountOwnerMismatch {
-                    sender: TEST_OTHER.to_string(),
-                    owner: TEST_OWNER.to_string(),
+                    sender: Addr::unchecked(TEST_OTHER),
+                    owner: Addr::unchecked(TEST_OWNER),
                 });
             Ok(())
         }
@@ -566,8 +766,8 @@ mod test {
             let mut deps = mock_dependencies();
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), true)?;
-            let new_namespace1 = Namespace::from("namespace1");
-            let new_namespace2 = Namespace::from("namespace2");
+            let new_namespace1 = Namespace::new("namespace1")?;
+            let new_namespace2 = Namespace::new("namespace2")?;
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
                 namespaces: vec![new_namespace1.to_string(), new_namespace2.to_string()],
@@ -585,6 +785,235 @@ mod test {
                     namespace: new_namespace1.to_string(),
                     id: TEST_ACCOUNT_ID,
                 });
+            Ok(())
+        }
+
+        #[test]
+        fn cannot_claim_abstract() -> VCResult<()> {
+            let mut deps = mock_dependencies();
+            let account_1_manager = "manager2";
+            deps.querier = mock_manager_querier()
+                // add manager 2
+                .with_smart_handler(account_1_manager, |msg| match from_binary(msg).unwrap() {
+                    ManagerQueryMsg::Config {} => {
+                        let resp = ManagerConfigResponse {
+                            version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
+                            module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
+                            account_id: Uint64::one(),
+                            is_suspended: false,
+                        };
+                        Ok(to_binary(&resp).unwrap())
+                    }
+                    ManagerQueryMsg::Ownership {} => {
+                        let resp = cw_ownable::Ownership {
+                            owner: Some(Addr::unchecked(TEST_OWNER)),
+                            pending_expiry: None,
+                            pending_owner: None,
+                        };
+                        Ok(to_binary(&resp).unwrap())
+                    }
+                    _ => panic!("unexpected message"),
+                })
+                .with_owner(account_1_manager, Some(TEST_OWNER))
+                .build();
+            mock_init_with_account(deps.as_mut(), true)?;
+
+            // Add account 1
+            execute_as(
+                deps.as_mut(),
+                TEST_ACCOUNT_FACTORY,
+                ExecuteMsg::AddAccount {
+                    account_id: 1,
+                    account_base: AccountBase {
+                        manager: Addr::unchecked(account_1_manager),
+                        proxy: Addr::unchecked("proxy2"),
+                    },
+                },
+            )?;
+
+            // Attempt to claim the abstract namespace with account 1
+            let claim_abstract_msg = ExecuteMsg::ClaimNamespaces {
+                account_id: 1,
+                namespaces: vec![Namespace::try_from(ABSTRACT_NAMESPACE)?.to_string()],
+            };
+            let res = execute_as(deps.as_mut(), TEST_OWNER, claim_abstract_msg);
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(VCError::NamespaceOccupied {
+                    namespace: Namespace::try_from("abstract")?.to_string(),
+                    id: ABSTRACT_ACCOUNT_ID,
+                });
+            Ok(())
+        }
+    }
+
+    mod update_namespace_limit {
+        use super::*;
+
+        #[test]
+        fn only_admin() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let msg = ExecuteMsg::UpdateConfig {
+                allow_direct_module_registration: None,
+                namespace_limit: Some(100),
+                namespace_registration_fee: None,
+            };
+
+            let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(&VCError::Ownership(OwnershipError::NotOwner));
+
+            Ok(())
+        }
+
+        #[test]
+        fn updates_limit() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let msg = ExecuteMsg::UpdateConfig {
+                allow_direct_module_registration: None,
+                namespace_limit: Some(100),
+                namespace_registration_fee: None,
+            };
+
+            let res = execute_as_admin(deps.as_mut(), msg);
+            assert_that!(&res).is_ok();
+
+            assert_that!(CONFIG.load(&deps.storage).unwrap().namespace_limit).is_equal_to(100);
+
+            Ok(())
+        }
+
+        #[test]
+        fn no_decrease() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let msg = ExecuteMsg::UpdateConfig {
+                allow_direct_module_registration: None,
+                namespace_limit: Some(0),
+                namespace_registration_fee: None,
+            };
+
+            let res = execute_as_admin(deps.as_mut(), msg);
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(VCError::DecreaseNamespaceLimit {
+                    current: 10,
+                    limit: 0,
+                });
+
+            Ok(())
+        }
+    }
+
+    mod update_direct_registration {
+        use super::*;
+
+        #[test]
+        fn only_admin() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let msg = ExecuteMsg::UpdateConfig {
+                allow_direct_module_registration: Some(false),
+                namespace_limit: None,
+                namespace_registration_fee: None,
+            };
+
+            let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(&VCError::Ownership(OwnershipError::NotOwner));
+
+            Ok(())
+        }
+
+        #[test]
+        fn updates_limit() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let msg = ExecuteMsg::UpdateConfig {
+                allow_direct_module_registration: Some(false),
+                namespace_limit: None,
+                namespace_registration_fee: None,
+            };
+
+            let res = execute_as_admin(deps.as_mut(), msg);
+            assert_that!(&res).is_ok();
+
+            assert_that!(CONFIG.load(&deps.storage).unwrap().namespace_limit).is_equal_to(10);
+            assert_that!(
+                CONFIG
+                    .load(&deps.storage)
+                    .unwrap()
+                    .allow_direct_module_registration
+            )
+            .is_equal_to(false);
+
+            Ok(())
+        }
+    }
+
+    mod update_namespace_fee {
+        use super::*;
+        use cosmwasm_std::Uint128;
+
+        #[test]
+        fn only_admin() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let msg = ExecuteMsg::UpdateConfig {
+                allow_direct_module_registration: None,
+                namespace_limit: None,
+                namespace_registration_fee: Some(Coin {
+                    denom: "ujunox".to_string(),
+                    amount: Uint128::one(),
+                }),
+            };
+
+            let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(&VCError::Ownership(OwnershipError::NotOwner));
+
+            Ok(())
+        }
+
+        #[test]
+        fn updates_limit() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let new_fee = Coin {
+                denom: "ujunox".to_string(),
+                amount: Uint128::one(),
+            };
+
+            let msg = ExecuteMsg::UpdateConfig {
+                allow_direct_module_registration: None,
+                namespace_limit: None,
+                namespace_registration_fee: Some(new_fee.clone()),
+            };
+
+            let res = execute_as_admin(deps.as_mut(), msg);
+            assert_that!(&res).is_ok();
+
+            assert_that!(CONFIG.load(&deps.storage).unwrap().namespace_limit).is_equal_to(10);
+            assert_that!(
+                CONFIG
+                    .load(&deps.storage)
+                    .unwrap()
+                    .namespace_registration_fee
+            )
+            .is_equal_to(new_fee);
+
             Ok(())
         }
     }
@@ -606,9 +1035,9 @@ mod test {
             let mut deps = mock_dependencies();
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), true)?;
-            let new_namespace1 = Namespace::from("namespace1");
-            let new_namespace2 = Namespace::from("namespace2");
-            let new_namespace3 = Namespace::from("namespace3");
+            let new_namespace1 = Namespace::new("namespace1").unwrap();
+            let new_namespace2 = Namespace::new("namespace2").unwrap();
+            let new_namespace3 = Namespace::new("namespace3").unwrap();
 
             // add namespaces
             let msg = ExecuteMsg::ClaimNamespaces {
@@ -659,8 +1088,8 @@ mod test {
             let mut deps = mock_dependencies();
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), true)?;
-            let new_namespace1 = Namespace::from("namespace1");
-            let new_namespace2 = Namespace::from("namespace2");
+            let new_namespace1 = Namespace::new("namespace1")?;
+            let new_namespace2 = Namespace::new("namespace2")?;
 
             // add namespaces
             let msg = ExecuteMsg::ClaimNamespaces {
@@ -677,8 +1106,8 @@ mod test {
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(&VCError::AccountOwnerMismatch {
-                    sender: TEST_OTHER.to_string(),
-                    owner: TEST_OWNER.to_string(),
+                    sender: Addr::unchecked(TEST_OTHER),
+                    owner: Addr::unchecked(TEST_OWNER),
                 });
             Ok(())
         }
@@ -688,7 +1117,7 @@ mod test {
             let mut deps = mock_dependencies();
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), true)?;
-            let new_namespace1 = Namespace::from("namespace1");
+            let new_namespace1 = Namespace::new("namespace1")?;
 
             // remove as owner
             let msg = ExecuteMsg::RemoveNamespaces {
@@ -698,7 +1127,7 @@ mod test {
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(&VCError::UnknownNamespace {
-                    namespace: new_namespace1.to_string(),
+                    namespace: new_namespace1.clone(),
                 });
 
             // remove as admin
@@ -706,7 +1135,7 @@ mod test {
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(&VCError::UnknownNamespace {
-                    namespace: new_namespace1.to_string(),
+                    namespace: new_namespace1,
                 });
 
             Ok(())
@@ -719,8 +1148,8 @@ mod test {
             mock_init_with_account(deps.as_mut(), true)?;
 
             // add namespaces
-            let new_namespace1 = Namespace::from("namespace1");
-            let new_namespace2 = Namespace::from("namespace2");
+            let new_namespace1 = Namespace::new("namespace1")?;
+            let new_namespace2 = Namespace::new("namespace2")?;
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
                 namespaces: vec![new_namespace1.to_string(), new_namespace2.to_string()],
@@ -729,8 +1158,8 @@ mod test {
 
             // first add module
             let mut new_module = test_module();
-            new_module.namespace = new_namespace1.to_string();
-            let msg = ExecuteMsg::AddModules {
+            new_module.namespace = new_namespace1.clone();
+            let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
@@ -749,7 +1178,7 @@ mod test {
         }
     }
 
-    mod add_modules {
+    mod propose_modules {
         use abstract_core::objects::module_reference::ModuleReference;
         use abstract_core::AbstractError;
         use abstract_testing::prelude::TEST_MODULE_ID;
@@ -769,8 +1198,8 @@ mod test {
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), true)?;
             let mut new_module = test_module();
-            new_module.namespace = ABSTRACT_NAMESPACE.to_owned();
-            let msg = ExecuteMsg::AddModules {
+            new_module.namespace = Namespace::new(ABSTRACT_NAMESPACE)?;
+            let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
             let res = execute_as(deps.as_mut(), TEST_ADMIN, msg);
@@ -786,7 +1215,8 @@ mod test {
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), true)?;
             let new_module = test_module();
-            let msg = ExecuteMsg::AddModules {
+
+            let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
 
@@ -804,7 +1234,7 @@ mod test {
                 TEST_OWNER,
                 ExecuteMsg::ClaimNamespaces {
                     account_id: TEST_ACCOUNT_ID,
-                    namespaces: vec![new_module.namespace.clone()],
+                    namespaces: vec![new_module.namespace.to_string()],
                 },
             )?;
 
@@ -817,12 +1247,58 @@ mod test {
         }
 
         #[test]
+        fn try_add_module_to_approval_with_admin() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            let contract_addr = Addr::unchecked("contract");
+            // create mock with ContractInfo response for contract with admin set
+            deps.querier = mock_manager_querier()
+                .with_contract_admin(&contract_addr, Addr::unchecked("admin"))
+                .build();
+
+            mock_init_with_account(deps.as_mut(), false)?;
+            let new_module = test_module();
+
+            let mod_ref = ModuleReference::Adapter(contract_addr);
+
+            let msg = ExecuteMsg::ProposeModules {
+                modules: vec![(new_module.clone(), mod_ref)],
+            };
+
+            // try while no namespace
+            let res = execute_as(deps.as_mut(), TEST_OWNER, msg.clone());
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(&VCError::UnknownNamespace {
+                    namespace: new_module.namespace.clone(),
+                });
+
+            // add namespaces
+            execute_as(
+                deps.as_mut(),
+                TEST_OWNER,
+                ExecuteMsg::ClaimNamespaces {
+                    account_id: TEST_ACCOUNT_ID,
+                    namespaces: vec![new_module.namespace.to_string()],
+                },
+            )?;
+
+            // assert we got admin must be none error
+            let res = execute_as(deps.as_mut(), TEST_OWNER, msg);
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(&VCError::AdminMustBeNone);
+
+            Ok(())
+        }
+
+        #[test]
         fn add_module_to_approval() -> VersionControlTestResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), false)?;
             let new_module = test_module();
-            let msg = ExecuteMsg::AddModules {
+
+            let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
 
@@ -840,7 +1316,7 @@ mod test {
                 TEST_OWNER,
                 ExecuteMsg::ClaimNamespaces {
                     account_id: TEST_ACCOUNT_ID,
-                    namespaces: vec![new_module.namespace.clone()],
+                    namespaces: vec![new_module.namespace.to_string()],
                 },
             )?;
 
@@ -865,14 +1341,14 @@ mod test {
                 TEST_OWNER,
                 ExecuteMsg::ClaimNamespaces {
                     account_id: TEST_ACCOUNT_ID,
-                    namespaces: vec![new_module.namespace.clone()],
+                    namespaces: vec![new_module.namespace.to_string()],
                 },
             )?;
             // add modules
             execute_as(
                 deps.as_mut(),
                 TEST_OWNER,
-                ExecuteMsg::AddModules {
+                ExecuteMsg::ProposeModules {
                     modules: vec![(new_module.clone(), ModuleReference::App(0))],
                 },
             )?;
@@ -912,14 +1388,14 @@ mod test {
                 TEST_OWNER,
                 ExecuteMsg::ClaimNamespaces {
                     account_id: TEST_ACCOUNT_ID,
-                    namespaces: vec![new_module.namespace.clone()],
+                    namespaces: vec![new_module.namespace.to_string()],
                 },
             )?;
             // add modules
             execute_as(
                 deps.as_mut(),
                 TEST_OWNER,
-                ExecuteMsg::AddModules {
+                ExecuteMsg::ProposeModules {
                     modules: vec![(new_module.clone(), ModuleReference::App(0))],
                 },
             )?;
@@ -956,12 +1432,12 @@ mod test {
             // add namespaces
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
-                namespaces: vec![rm_module.namespace.clone()],
+                namespaces: vec![rm_module.namespace.to_string()],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
 
             // first add module
-            let msg = ExecuteMsg::AddModules {
+            let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(rm_module.clone(), ModuleReference::App(0))],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
@@ -996,12 +1472,12 @@ mod test {
             // add namespaces as the account owner
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
-                namespaces: vec![rm_module.namespace.clone()],
+                namespaces: vec![rm_module.namespace.to_string()],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
 
             // first add module as the account owner
-            let add_modules_msg = ExecuteMsg::AddModules {
+            let add_modules_msg = ExecuteMsg::ProposeModules {
                 modules: vec![(rm_module.clone(), ModuleReference::App(0))],
             };
             execute_as(deps.as_mut(), TEST_OWNER, add_modules_msg)?;
@@ -1015,8 +1491,8 @@ mod test {
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(&VCError::AccountOwnerMismatch {
-                    sender: TEST_OTHER.to_string(),
-                    owner: TEST_OWNER.to_string(),
+                    sender: Addr::unchecked(TEST_OTHER),
+                    owner: Addr::unchecked(TEST_OWNER),
                 });
 
             Ok(())
@@ -1032,12 +1508,12 @@ mod test {
             // add namespaces as the owner
             let msg = ExecuteMsg::ClaimNamespaces {
                 account_id: TEST_ACCOUNT_ID,
-                namespaces: vec![rm_module.namespace.clone()],
+                namespaces: vec![rm_module.namespace.to_string()],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
 
             // first add module as the owner
-            let add_modules_msg = ExecuteMsg::AddModules {
+            let add_modules_msg = ExecuteMsg::ProposeModules {
                 modules: vec![(rm_module.clone(), ModuleReference::App(0))],
             };
             execute_as(deps.as_mut(), TEST_OWNER, add_modules_msg)?;
@@ -1075,7 +1551,7 @@ mod test {
                 TEST_MODULE_ID,
                 ModuleVersion::Version("non_compliant_version".into()),
             )?;
-            let msg = ExecuteMsg::AddModules {
+            let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(bad_version_module, ModuleReference::App(0))],
             };
             let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
@@ -1084,7 +1560,7 @@ mod test {
                 .matches(|e| e.to_string().contains("Invalid version"));
 
             let latest_version_module = ModuleInfo::from_id(TEST_MODULE_ID, ModuleVersion::Latest)?;
-            let msg = ExecuteMsg::AddModules {
+            let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(latest_version_module, ModuleReference::App(0))],
             };
             let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
@@ -1103,7 +1579,9 @@ mod test {
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), true)?;
             let new_module = ModuleInfo::from_id(&abstract_contract_id, TEST_VERSION.into())?;
-            let msg = ExecuteMsg::AddModules {
+
+            // let mod_ref = ModuleReference::
+            let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
 
@@ -1128,27 +1606,27 @@ mod test {
                 ModuleInfo {
                     name: "test-module".to_string(),
                     version: ModuleVersion::Version("0.0.1".to_string()),
-                    namespace: "".to_string(),
+                    namespace: Namespace::unchecked(""),
                 },
                 ModuleInfo {
                     name: "test-module".to_string(),
                     version: ModuleVersion::Version("0.0.1".to_string()),
-                    namespace: "".to_string(),
+                    namespace: Namespace::unchecked(""),
                 },
                 ModuleInfo {
                     name: "".to_string(),
                     version: ModuleVersion::Version("0.0.1".to_string()),
-                    namespace: "test".to_string(),
+                    namespace: Namespace::unchecked("test"),
                 },
                 ModuleInfo {
                     name: "test-module".to_string(),
                     version: ModuleVersion::Version("aoeu".to_string()),
-                    namespace: "".to_string(),
+                    namespace: Namespace::unchecked(""),
                 },
             ];
 
             for bad_module in bad_modules {
-                let msg = ExecuteMsg::AddModules {
+                let msg = ExecuteMsg::ProposeModules {
                     modules: vec![(bad_module.clone(), ModuleReference::App(0))],
                 };
                 let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
@@ -1187,8 +1665,8 @@ mod test {
 
             // add a module as the owner
             let mut new_module = ModuleInfo::from_id(TEST_MODULE_ID, TEST_VERSION.into())?;
-            new_module.namespace = TEST_NAMESPACE.to_string();
-            let msg = ExecuteMsg::AddModules {
+            new_module.namespace = Namespace::new(TEST_NAMESPACE)?;
+            let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
@@ -1215,7 +1693,7 @@ mod test {
 
             // add a module as the owner
             let new_module = ModuleInfo::from_id(TEST_MODULE_ID, TEST_VERSION.into())?;
-            let msg = ExecuteMsg::AddModules {
+            let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
@@ -1292,8 +1770,8 @@ mod test {
             mock_init_with_factory(deps.as_mut())?;
 
             let test_core: AccountBase = AccountBase {
-                manager: Addr::unchecked(TEST_MANAGER_ADDR),
-                proxy: Addr::unchecked(TEST_PROXY_ADDR),
+                manager: Addr::unchecked(TEST_MANAGER),
+                proxy: Addr::unchecked(TEST_PROXY),
             };
             let msg = ExecuteMsg::AddAccount {
                 account_id: 0,
@@ -1367,6 +1845,55 @@ mod test {
             execute_as_admin(deps.as_mut(), msg)?;
             let new_factory = FACTORY.query_admin(deps.as_ref())?.admin;
             assert_that!(new_factory).is_equal_to(&Some(TEST_ACCOUNT_FACTORY.into()));
+            Ok(())
+        }
+    }
+
+    mod query_account_owner {
+        use super::*;
+
+        #[test]
+        fn returns_account_owner() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            deps.querier = AbstractMockQuerierBuilder::default()
+                .account(TEST_MANAGER, TEST_PROXY, 0)
+                .build();
+            mock_init_with_account(deps.as_mut(), true)?;
+
+            let account_owner =
+                query_account_owner(&deps.as_ref().querier, &Addr::unchecked(TEST_MANAGER), 0)?;
+
+            assert_that!(account_owner).is_equal_to(Addr::unchecked(TEST_OWNER));
+            Ok(())
+        }
+
+        #[test]
+        fn no_owner_returns_err() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            deps.querier = MockQuerierBuilder::default()
+                .with_contract_item(
+                    TEST_MANAGER,
+                    cw_storage_plus::Item::<cw_ownable::Ownership<Addr>>::new(
+                        OWNERSHIP_STORAGE_KEY,
+                    ),
+                    &cw_ownable::Ownership {
+                        owner: None,
+                        pending_owner: None,
+                        pending_expiry: None,
+                    },
+                )
+                .build();
+            mock_init_with_account(deps.as_mut(), true)?;
+
+            let account_id = 0;
+            let res = query_account_owner(
+                &deps.as_ref().querier,
+                &Addr::unchecked(TEST_MANAGER),
+                account_id,
+            );
+            assert_that!(res)
+                .is_err()
+                .is_equal_to(&VCError::NoAccountOwner { account_id });
             Ok(())
         }
     }

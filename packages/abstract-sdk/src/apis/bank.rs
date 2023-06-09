@@ -1,20 +1,50 @@
 //! # Bank
 //! The Bank object handles asset transfers to and from the Account.
 
-use crate::{ans_resolve::Resolve, features::AbstractNameService, AbstractSdkResult, Execution};
+use crate::features::AccountIdentification;
+use crate::AccountAction;
+use crate::{ans_resolve::Resolve, features::AbstractNameService, AbstractSdkResult};
 use core::objects::{AnsAsset, AssetEntry};
-use cosmwasm_std::{Addr, BankMsg, Coin, CosmosMsg, Deps};
+use cosmwasm_std::{Addr, Coin, CosmosMsg, Deps, Env};
 use cw_asset::Asset;
 
 /// Query and Transfer assets from and to the Abstract Account.
-pub trait TransferInterface: AbstractNameService + Execution {
+pub trait TransferInterface: AbstractNameService + AccountIdentification {
+    /**
+        API for transferring funds to and from the account.
+
+        # Example
+        ```
+        use abstract_sdk::prelude::*;
+        # use cosmwasm_std::testing::mock_dependencies;
+        # use abstract_sdk::mock_module::MockModule;
+        # let module = MockModule::new();
+        # let deps = mock_dependencies();
+
+        let bank: Bank<MockModule>  = module.bank(deps.as_ref());
+        ```
+    */
     fn bank<'a>(&'a self, deps: Deps<'a>) -> Bank<Self> {
         Bank { base: self, deps }
     }
 }
 
-impl<T> TransferInterface for T where T: AbstractNameService + Execution {}
+impl<T> TransferInterface for T where T: AbstractNameService + AccountIdentification {}
 
+/**
+    API for transferring funds to and from the account.
+
+    # Example
+    ```
+    use abstract_sdk::prelude::*;
+    # use cosmwasm_std::testing::mock_dependencies;
+    # use abstract_sdk::mock_module::MockModule;
+    # let module = MockModule::new();
+    # let deps = mock_dependencies();
+
+    let bank: Bank<MockModule>  = module.bank(deps.as_ref());
+    ```
+*/
 #[derive(Clone)]
 pub struct Bank<'a, T: TransferInterface> {
     base: &'a T,
@@ -22,14 +52,14 @@ pub struct Bank<'a, T: TransferInterface> {
 }
 
 impl<'a, T: TransferInterface> Bank<'a, T> {
-    /// Get the balances of the provided **assets**.
+    /// Get the balances of the provided assets.
     pub fn balances(&self, assets: &[AssetEntry]) -> AbstractSdkResult<Vec<Asset>> {
         assets
             .iter()
             .map(|asset| self.balance(asset))
             .collect::<AbstractSdkResult<Vec<Asset>>>()
     }
-    /// Get the balance of the provided **asset**.
+    /// Get the balance of the provided asset.
     pub fn balance(&self, asset: &AssetEntry) -> AbstractSdkResult<Asset> {
         let resolved_info = asset.resolve(&self.deps.querier, &self.base.ans_host(self.deps)?)?;
         let balance =
@@ -37,17 +67,15 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
         Ok(Asset::new(resolved_info, balance))
     }
 
-    /// Transfer the provided **funds** from the Account' vault to the **recipient**.
-    /// The caller must be a whitelisted module or authorized address.
-    /// ```rust
+    /// Transfer the provided funds from the Account to the recipient.
+    /// ```
     /// # use cosmwasm_std::{Addr, Response, Deps, DepsMut, MessageInfo};
     /// # use abstract_core::objects::AnsAsset;
     /// # use abstract_core::objects::ans_host::AnsHost;
     /// # use abstract_sdk::{
-    ///     features::{AccountIdentification, AbstractNameService, ModuleIdentification},
-    ///     TransferInterface, AbstractSdkResult,
-    /// };
-    /// #
+    /// #    features::{AccountIdentification, AbstractNameService, ModuleIdentification},
+    /// #    TransferInterface, AbstractSdkResult, Execution,
+    /// # };
     /// # struct MockModule;
     /// # impl AccountIdentification for MockModule {
     /// #    fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
@@ -68,7 +96,10 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     /// # }
     /// fn transfer_asset_to_sender(app: MockModule, deps: DepsMut, info: MessageInfo, requested_asset: AnsAsset) -> AbstractSdkResult<Response> {
     ///     let bank = app.bank(deps.as_ref());
-    ///     let transfer_msg = bank.transfer(vec![requested_asset.clone()], &info.sender)?;
+    ///     let executor = app.executor(deps.as_ref());    
+    ///     let transfer_action = bank.transfer(vec![requested_asset.clone()], &info.sender)?;
+    ///
+    ///     let transfer_msg = executor.execute(vec![transfer_action])?;
     ///
     ///     Ok(Response::new()
     ///         .add_message(transfer_msg)
@@ -80,19 +111,20 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
         &self,
         funds: Vec<R>,
         recipient: &Addr,
-    ) -> AbstractSdkResult<CosmosMsg> {
+    ) -> AbstractSdkResult<AccountAction> {
         let transferable_funds = funds
             .into_iter()
             .map(|asset| asset.transferable_asset(self.base, self.deps))
             .collect::<AbstractSdkResult<Vec<Asset>>>()?;
-        let transfer_msgs = transferable_funds
+        transferable_funds
             .iter()
             .map(|asset| asset.transfer_msg(recipient.clone()))
-            .collect::<Result<Vec<CosmosMsg>, _>>();
-        self.base.executor(self.deps).execute(transfer_msgs?)
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(Into::into)
+            .map(Into::into)
     }
 
-    /// Transfer the **funds** (deposit) into the Account from the current contract.
+    /// Move funds from the contract into the Account.
     pub fn deposit<R: Transferable>(&self, funds: Vec<R>) -> AbstractSdkResult<Vec<CosmosMsg>> {
         let recipient = self.base.proxy_address(self.deps)?;
         let transferable_funds = funds
@@ -102,22 +134,34 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
         transferable_funds
             .iter()
             .map(|asset| asset.transfer_msg(recipient.clone()))
-            .collect::<Result<Vec<CosmosMsg>, _>>()
+            .collect::<Result<Vec<_>, _>>()
             .map_err(Into::into)
+            .map(Into::into)
     }
 
-    /// Deposit coins into the Account
-    pub fn deposit_coins(&self, coins: Vec<Coin>) -> AbstractSdkResult<CosmosMsg> {
-        let recipient = self.base.proxy_address(self.deps)?.into_string();
-        Ok(CosmosMsg::Bank(BankMsg::Send {
-            to_address: recipient,
-            amount: coins,
-        }))
+    /// Withdraw funds from the Account to this contract.
+    pub fn withdraw<R: Transferable>(
+        &self,
+        env: &Env,
+        funds: Vec<R>,
+    ) -> AbstractSdkResult<AccountAction> {
+        let recipient = &env.contract.address;
+        let transferable_funds = funds
+            .into_iter()
+            .map(|asset| asset.transferable_asset(self.base, self.deps))
+            .collect::<AbstractSdkResult<Vec<Asset>>>()?;
+        transferable_funds
+            .iter()
+            .map(|asset| asset.transfer_msg(recipient.clone()))
+            .collect::<Result<Vec<CosmosMsg>, _>>()
+            .map_err(Into::into)
+            .map(Into::into)
     }
 }
 
-/// Transfer an asset into an actual transferable asset.
+/// Turn an object that represents an asset into the blockchain representation of an asset, i.e. [`Asset`].
 pub trait Transferable {
+    /// Turn an object that represents an asset into the blockchain representation of an asset, i.e. [`Asset`].
     fn transferable_asset<T: AbstractNameService>(
         self,
         base: &T,
@@ -175,7 +219,6 @@ mod test {
 
     mod transfer_coins {
         use super::*;
-        use core::proxy::ExecuteMsg::ModuleAction;
 
         #[test]
         fn transfer_asset_to_sender() {
@@ -190,47 +233,59 @@ mod test {
 
             assert_that!(actual_res).is_ok();
 
-            let expected_msg: CosmosMsg = wasm_execute(
-                TEST_PROXY,
-                &ModuleAction {
-                    // actual assertion
-                    msgs: vec![CosmosMsg::Bank(BankMsg::Send {
-                        to_address: expected_recipient.to_string(),
-                        amount: coins,
-                    })],
-                },
-                vec![],
-            )
-            .unwrap()
-            .into();
+            let expected_msg = CosmosMsg::Bank(BankMsg::Send {
+                to_address: expected_recipient.to_string(),
+                amount: coins,
+            });
 
-            assert_that!(actual_res.unwrap()).is_equal_to(expected_msg);
+            assert_that!(actual_res.unwrap().messages()[0]).is_equal_to(&expected_msg);
         }
     }
 
     // transfer must be tested via integration test
 
-    mod deposit_coins {
+    mod deposit {
         use super::*;
 
         #[test]
-        fn deposit_coins() {
+        fn deposit() {
             let app = MockModule::new();
             let deps = mock_dependencies();
             let expected_amount = 100u128;
 
             let bank = app.bank(deps.as_ref());
             let coins = coins(expected_amount, "asset");
-            let actual_res = bank.deposit_coins(coins.clone());
+            let actual_res = bank.deposit(coins.clone()).unwrap()[0].clone();
 
             let expected_msg: CosmosMsg = CosmosMsg::Bank(BankMsg::Send {
                 to_address: TEST_PROXY.to_string(),
                 amount: coins,
             });
 
-            assert_that!(actual_res).is_ok().is_equal_to(expected_msg);
+            assert_that!(actual_res).is_equal_to::<CosmosMsg>(expected_msg);
         }
     }
 
-    // deposit must be tested via integration test
+    mod withdraw_coins {
+        use super::*;
+
+        #[test]
+        fn withdraw_coins() {
+            let app = MockModule::new();
+            let deps = mock_dependencies();
+            let expected_amount = 100u128;
+            let env = mock_env();
+
+            let bank = app.bank(deps.as_ref());
+            let coins = coins(expected_amount, "asset");
+            let actual_res = bank.withdraw(&env, coins.clone());
+
+            let expected_msg: CosmosMsg = CosmosMsg::Bank(BankMsg::Send {
+                to_address: env.contract.address.to_string(),
+                amount: coins,
+            });
+
+            assert_that!(actual_res.unwrap().messages()[0]).is_equal_to::<CosmosMsg>(expected_msg);
+        }
+    }
 }

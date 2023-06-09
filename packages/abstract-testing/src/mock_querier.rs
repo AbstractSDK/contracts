@@ -2,10 +2,12 @@ use crate::addresses::{
     test_account_base, TEST_ACCOUNT_ID, TEST_MANAGER, TEST_MODULE_ADDRESS, TEST_MODULE_ID,
     TEST_MODULE_RESPONSE, TEST_PROXY, TEST_VERSION_CONTROL,
 };
+use abstract_core::objects::common_namespace::OWNERSHIP_STORAGE_KEY;
 use abstract_core::{
     manager::state::{ACCOUNT_ID, ACCOUNT_MODULES},
     version_control::state::ACCOUNT_ADDRESSES,
 };
+use cosmwasm_std::ContractInfoResponse;
 use cosmwasm_std::{
     from_binary, testing::MockQuerier, to_binary, Addr, Binary, ContractResult, Empty,
     QuerierWrapper, SystemResult, WasmQuery,
@@ -17,11 +19,12 @@ use std::{collections::HashMap, ops::Deref};
 
 type BinaryQueryResult = Result<Binary, String>;
 type ContractAddr = String;
+type AdminAddr = String;
 type FallbackHandler = dyn for<'a> Fn(&'a str, &'a Binary) -> BinaryQueryResult;
 type SmartHandler = dyn for<'a> Fn(&'a Binary) -> BinaryQueryResult;
 type RawHandler = dyn for<'a> Fn(&'a str) -> BinaryQueryResult;
 
-/// [`MockQuerierBuilder`] is a helper to build a [`MockQuerier`].  
+/// [`MockQuerierBuilder`] is a helper to build a [`MockQuerier`].
 /// Usage:
 /// ```rust
 /// use cosmwasm_std::{from_binary, to_binary};
@@ -46,6 +49,7 @@ pub struct MockQuerierBuilder {
     smart_handlers: HashMap<ContractAddr, Box<SmartHandler>>,
     raw_handlers: HashMap<ContractAddr, Box<RawHandler>>,
     raw_mappings: HashMap<ContractAddr, HashMap<Binary, Binary>>,
+    contract_admin: HashMap<ContractAddr, AdminAddr>,
 }
 
 impl Default for MockQuerierBuilder {
@@ -71,6 +75,7 @@ impl Default for MockQuerierBuilder {
             smart_handlers: HashMap::default(),
             raw_handlers: HashMap::default(),
             raw_mappings: HashMap::default(),
+            contract_admin: HashMap::default(),
         }
     }
 }
@@ -124,7 +129,7 @@ impl MockQuerierBuilder {
     ///        _ => panic!("unexpected message"),
     ///    };
     ///
-    ///   Ok(to_binary(&msg).unwrap())
+    ///   Ok(to_binary(&res).unwrap())
     /// }).build();
     /// ```
     pub fn with_smart_handler<SH: 'static>(mut self, contract: &str, handler: SH) -> Self
@@ -269,6 +274,12 @@ impl MockQuerierBuilder {
             },
         )
     }
+    /// set the SDK-level contract admin for a contract.
+    pub fn with_contract_admin(mut self, contract: impl ToString, admin: impl ToString) -> Self {
+        self.contract_admin
+            .insert(contract.to_string(), admin.to_string());
+        self
+    }
 
     /// Build the [`MockQuerier`].
     pub fn build(mut self) -> MockQuerier {
@@ -301,7 +312,11 @@ impl MockQuerierBuilder {
                     };
                     res
                 }
-                // TODO: contract info
+                WasmQuery::ContractInfo { contract_addr } => {
+                    let mut info = ContractInfoResponse::default();
+                    info.admin = self.contract_admin.get(contract_addr).cloned();
+                    Ok(to_binary(&info).unwrap())
+                }
                 unexpected => panic!("Unexpected query: {unexpected:?}"),
             };
 
@@ -311,6 +326,26 @@ impl MockQuerierBuilder {
             }
         });
         self.base
+    }
+}
+
+pub trait MockQuerierOwnership {
+    /// Add the [`cw_ownable::Ownership`] to the querier.
+    fn with_owner(self, contract: &str, owner: Option<impl ToString>) -> Self;
+}
+
+impl MockQuerierOwnership for MockQuerierBuilder {
+    fn with_owner(mut self, contract: &str, owner: Option<impl ToString>) -> Self {
+        self = self.with_contract_item(
+            contract,
+            Item::new(OWNERSHIP_STORAGE_KEY),
+            &cw_ownable::Ownership {
+                owner: owner.map(|o| Addr::unchecked(o.to_string())),
+                pending_owner: None,
+                pending_expiry: None,
+            },
+        );
+        self
     }
 }
 

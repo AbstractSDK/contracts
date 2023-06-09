@@ -1,18 +1,19 @@
 mod common;
-use abstract_boot::*;
 use abstract_core::{manager::ManagerModuleInfo, PROXY};
+use abstract_interface::*;
 use abstract_manager::contract::CONTRACT_VERSION;
-use abstract_testing::prelude::TEST_VERSION;
-use boot_core::{instantiate_default_mock_env, ContractInstance, Deploy};
+use abstract_testing::prelude::TEST_ACCOUNT_ID;
 use common::{create_default_account, AResult, TEST_COIN};
 use cosmwasm_std::{Addr, Coin, CosmosMsg};
+use cw_orch::deploy::Deploy;
+use cw_orch::prelude::*;
 use speculoos::prelude::*;
 
 #[test]
 fn instantiate() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
-    let (_state, chain) = instantiate_default_mock_env(&sender)?;
-    let deployment = Abstract::deploy_on(chain, TEST_VERSION.parse().unwrap())?;
+    let chain = Mock::new(&sender);
+    let deployment = Abstract::deploy_on(chain, Empty {})?;
     let account = create_default_account(&deployment.account_factory)?;
 
     let modules = account.manager.module_infos(None, None)?.module_infos;
@@ -30,10 +31,9 @@ fn instantiate() -> AResult {
 
     // assert manager config
     assert_that!(account.manager.config()?).is_equal_to(abstract_core::manager::ConfigResponse {
-        owner: sender.to_string(),
         version_control_address: deployment.version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
-        account_id: 0u32.into(),
+        account_id: TEST_ACCOUNT_ID.into(),
         is_suspended: false,
     });
     Ok(())
@@ -42,8 +42,8 @@ fn instantiate() -> AResult {
 #[test]
 fn exec_through_manager() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
-    let (_state, chain) = instantiate_default_mock_env(&sender)?;
-    let deployment = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse().unwrap())?;
+    let chain = Mock::new(&sender);
+    let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
     let account = create_default_account(&deployment.account_factory)?;
 
     // mint coins to proxy address

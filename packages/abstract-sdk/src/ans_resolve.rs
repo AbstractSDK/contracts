@@ -2,6 +2,7 @@
 //! An entry (value) in the ans_host key-value store.
 
 use crate::AbstractSdkResult;
+use abstract_core::objects::AnsEntryConvertor;
 use core::objects::{
     ans_host::AnsHost, pool_metadata::ResolvedPoolMetadata, AnsAsset, AssetEntry, ChannelEntry,
     ContractEntry, DexAssetPairing, LpToken, PoolMetadata, PoolReference, UniquePoolId,
@@ -11,7 +12,9 @@ use cw_asset::{Asset, AssetInfo};
 
 /// Resolve an [`AbstractNameService`](crate::features::AbstractNameService) entry into its value.
 pub trait Resolve {
+    /// Result of resolving an entry.
     type Output;
+    /// Resolve an entry into its value.
     fn resolve(
         &self,
         querier: &QuerierWrapper,
@@ -50,8 +53,9 @@ impl Resolve for LpToken {
         querier: &QuerierWrapper,
         ans_host: &AnsHost,
     ) -> AbstractSdkResult<Self::Output> {
+        let asset_entry = AnsEntryConvertor::new(self.clone()).asset_entry();
         ans_host
-            .query_asset(querier, &self.to_owned().into())
+            .query_asset(querier, &asset_entry)
             .map_err(Into::into)
     }
 }
@@ -334,12 +338,13 @@ mod tests {
             let assets = vec!["atom", "juno"];
 
             let test_lp_token = LpToken::new("junoswap", assets);
+            let asset_entry = AnsEntryConvertor::new(test_lp_token.clone()).asset_entry();
             let expected_value = AssetInfo::cw20(lp_token_address);
             let querier = MockQuerierBuilder::default()
                 .with_contract_map_entry(
                     TEST_ANS_HOST,
                     ASSET_ADDRESSES,
-                    (&test_lp_token.clone().into(), expected_value.clone()),
+                    (&asset_entry, expected_value.clone()),
                 )
                 .build();
 
@@ -379,7 +384,7 @@ mod tests {
 
             let dex = "junoswap";
             let pool_type = PoolType::ConstantProduct;
-            let test_pool_metadata = PoolMetadata::new(dex.clone(), pool_type.clone(), assets);
+            let test_pool_metadata = PoolMetadata::new(dex, pool_type.clone(), assets);
             let querier = AbstractMockQuerierBuilder::default()
                 .assets(
                     resolved_assets
@@ -428,11 +433,8 @@ mod tests {
             let _pool_address = Addr::unchecked("result");
             let assets = vec!["atom", "juno"];
             let dex = "boogerswap";
-            let pairing = DexAssetPairing::new(
-                AssetEntry::new(assets[0].clone()),
-                AssetEntry::new(assets[1].clone()),
-                dex.clone(),
-            );
+            let pairing =
+                DexAssetPairing::new(AssetEntry::new(assets[0]), AssetEntry::new(assets[1]), dex);
 
             let unique_pool_id: UniquePoolId = 1u64.into();
             let pool_address: PoolAddress = Addr::unchecked("pool_address").into();

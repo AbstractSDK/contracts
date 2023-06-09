@@ -7,6 +7,7 @@ use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Item;
 
 pub type ModuleId = &'static str;
+/// Version of the contract in str format.
 pub type VersionString = &'static str;
 pub type ModuleMetadata = Option<&'static str>;
 
@@ -18,29 +19,53 @@ pub trait MessageTypes {
     type ReceiveMsg;
     type SudoMsg;
 }
+// ANCHOR: init
+/// Function signature for an instantiate handler.
+pub type InstantiateHandlerFn<Module, CustomInitMsg, Error> =
+    fn(DepsMut, Env, MessageInfo, Module, CustomInitMsg) -> Result<Response, Error>;
+// ANCHOR_END: init
 
-pub type InstantiateHandlerFn<Module, InitMsg, Error> =
-    fn(DepsMut, Env, MessageInfo, Module, InitMsg) -> Result<Response, Error>;
+// ANCHOR: exec
+/// Function signature for an execute handler.
+pub type ExecuteHandlerFn<Module, CustomExecMsg, Error> =
+    fn(DepsMut, Env, MessageInfo, Module, CustomExecMsg) -> Result<Response, Error>;
+// ANCHOR_END: exec
 
-pub type ExecuteHandlerFn<Module, RequestMsg, Error> =
-    fn(DepsMut, Env, MessageInfo, Module, RequestMsg) -> Result<Response, Error>;
+// ANCHOR: query
+/// Function signature for a query handler.
+pub type QueryHandlerFn<Module, CustomQueryMsg, Error> =
+    fn(Deps, Env, &Module, CustomQueryMsg) -> Result<Binary, Error>;
+// ANCHOR_END: query
 
-pub type QueryHandlerFn<Module, QueryMsg, Error> =
-    fn(Deps, Env, &Module, QueryMsg) -> Result<Binary, Error>;
-
+type CallbackId = String;
+// ANCHOR: ibc
+/// Function signature for an IBC callback handler.
 pub type IbcCallbackHandlerFn<Module, Error> =
-    fn(DepsMut, Env, MessageInfo, Module, String, StdAck) -> Result<Response, Error>;
+    fn(DepsMut, Env, MessageInfo, Module, CallbackId, StdAck) -> Result<Response, Error>;
+// ANCHOR_END: ibc
 
-pub type MigrateHandlerFn<Module, MigrateMsg, Error> =
-    fn(DepsMut, Env, Module, MigrateMsg) -> Result<Response, Error>;
+// ANCHOR: mig
+/// Function signature for a migrate handler.
+pub type MigrateHandlerFn<Module, CustomMigrateMsg, Error> =
+    fn(DepsMut, Env, Module, CustomMigrateMsg) -> Result<Response, Error>;
+// ANCHOR_END: mig
 
-pub type ReceiveHandlerFn<App, Msg, Error> =
-    fn(DepsMut, Env, MessageInfo, App, Msg) -> Result<Response, Error>;
+// ANCHOR: rec
+/// Function signature for a receive handler.
+pub type ReceiveHandlerFn<Module, ReceiveMsg, Error> =
+    fn(DepsMut, Env, MessageInfo, Module, ReceiveMsg) -> Result<Response, Error>;
+// ANCHOR_END: rec
 
-pub type SudoHandlerFn<Module, SudoMsg, Error> =
-    fn(DepsMut, Env, Module, SudoMsg) -> Result<Response, Error>;
+// ANCHOR: sudo
+/// Function signature for a sudo handler.
+pub type SudoHandlerFn<Module, CustomSudoMsg, Error> =
+    fn(DepsMut, Env, Module, CustomSudoMsg) -> Result<Response, Error>;
+// ANCHOR_END: sudo
 
+// ANCHOR: reply
+/// Function signature for a reply handler.
 pub type ReplyHandlerFn<Module, Error> = fn(DepsMut, Env, Module, Reply) -> Result<Response, Error>;
+// ANCHOR_END: reply
 
 /// There can be two locations where reply handlers are added.
 /// 1. Base implementation of the contract.
@@ -83,6 +108,7 @@ impl<Module, Error: From<AbstractSdkError>> AbstractContract<Module, Error>
 where
     Module: Handler,
 {
+    /// Creates a new customizable abstract contract.
     pub const fn new(name: ModuleId, version: VersionString, metadata: ModuleMetadata) -> Self {
         Self {
             info: (name, version, metadata),
@@ -98,10 +124,11 @@ where
             query_handler: None,
         }
     }
-
+    /// Gets the cw2 version of the contract.
     pub fn version(&self, store: &dyn Storage) -> AbstractSdkResult<ContractVersion> {
         self.version.load(store).map_err(Into::into)
     }
+    /// Gets the static info of the contract.
     pub fn info(&self) -> (ModuleId, VersionString, ModuleMetadata) {
         self.info
     }
@@ -110,7 +137,7 @@ where
         self.dependencies = dependencies;
         self
     }
-
+    /// Add reply handlers to the contract.
     pub const fn with_replies(
         mut self,
         reply_handlers: [&'static [(u64, ReplyHandlerFn<Module, Error>)]; MAX_REPLY_COUNT],
@@ -128,6 +155,7 @@ where
         self
     }
 
+    /// Add instantiate handler to the contract.
     pub const fn with_instantiate(
         mut self,
         instantiate_handler: InstantiateHandlerFn<
@@ -140,6 +168,7 @@ where
         self
     }
 
+    /// Add query handler to the contract.
     pub const fn with_migrate(
         mut self,
         migrate_handler: MigrateHandlerFn<Module, <Module as Handler>::CustomMigrateMsg, Error>,
@@ -148,6 +177,7 @@ where
         self
     }
 
+    /// Add sudo handler to the contract.
     pub const fn with_sudo(
         mut self,
         sudo_handler: SudoHandlerFn<Module, <Module as Handler>::SudoMsg, Error>,
@@ -156,6 +186,7 @@ where
         self
     }
 
+    /// Add receive handler to the contract.
     pub const fn with_receive(
         mut self,
         receive_handler: ReceiveHandlerFn<Module, <Module as Handler>::ReceiveMsg, Error>,
@@ -164,6 +195,7 @@ where
         self
     }
 
+    /// Add execute handler to the contract.
     pub const fn with_execute(
         mut self,
         execute_handler: ExecuteHandlerFn<Module, <Module as Handler>::CustomExecMsg, Error>,
@@ -172,6 +204,7 @@ where
         self
     }
 
+    /// Add query handler to the contract.
     pub const fn with_query(
         mut self,
         query_handler: QueryHandlerFn<Module, <Module as Handler>::CustomQueryMsg, Error>,

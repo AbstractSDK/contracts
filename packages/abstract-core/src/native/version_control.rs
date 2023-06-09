@@ -13,8 +13,9 @@ pub type ModuleMapEntry = (ModuleInfo, ModuleReference);
 /// Contains configuration info of version control.
 #[cosmwasm_schema::cw_serde]
 pub struct Config {
-    pub is_testnet: bool,
-    pub namespaces_limit: u32,
+    pub allow_direct_module_registration: bool,
+    pub namespace_limit: u32,
+    pub namespace_registration_fee: cosmwasm_std::Coin,
 }
 
 pub mod state {
@@ -22,7 +23,7 @@ pub mod state {
     use cw_storage_plus::{Item, Map};
 
     use crate::objects::{
-        common_namespace::ADMIN_NAMESPACE, core::AccountId, module::ModuleInfo,
+        account_id::AccountId, common_namespace::ADMIN_NAMESPACE, module::ModuleInfo,
         module_reference::ModuleReference,
     };
 
@@ -64,13 +65,14 @@ pub fn namespaces_info<'a>() -> IndexedMap<'a, &'a Namespace, AccountId, Namespa
 }
 
 use crate::objects::{
-    core::AccountId,
+    account_id::AccountId,
     module::{Module, ModuleInfo, ModuleStatus},
     module_reference::ModuleReference,
     namespace::Namespace,
 };
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, Coin};
+
 use cw_storage_plus::{Index, IndexList, IndexedMap, MultiIndex};
 
 /// Contains the minimal Abstract Account contract addresses.
@@ -83,23 +85,28 @@ pub struct AccountBase {
 /// Version Control Instantiate Msg
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
-    pub is_testnet: bool,
-    pub namespaces_limit: u32,
+    pub allow_direct_module_registration: Option<bool>,
+    pub namespace_limit: u32,
+    pub namespace_registration_fee: Option<Coin>,
 }
 
 /// Version Control Execute Msg
 #[cw_ownable::cw_ownable_execute]
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
+#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
 pub enum ExecuteMsg {
     /// Remove some version of a module
     RemoveModule { module: ModuleInfo },
     /// Yank a version of a module so that it may not be installed
     /// Only callable by Admin
     YankModule { module: ModuleInfo },
-    /// Add new modules
-    AddModules { modules: Vec<ModuleMapEntry> },
+    /// Propose new modules to the version registry
+    /// Namespaces need to be claimed by the Account before proposing modules
+    /// Once proposed, the modules need to be approved by the Admin via [`ExecuteMsg::ApproveOrRejectModules`]
+    ProposeModules { modules: Vec<ModuleMapEntry> },
     /// Approve or reject modules
+    /// This takes the modules in the pending_modules map and
+    /// moves them to the registered_modules map or yanked_modules map
     ApproveOrRejectModules {
         approves: Vec<ModuleInfo>,
         rejects: Vec<ModuleInfo>,
@@ -118,8 +125,14 @@ pub enum ExecuteMsg {
         account_id: AccountId,
         account_base: AccountBase,
     },
-    /// Updates the number of namespaces an Account can claim
-    UpdateNamespaceLimit { new_limit: u32 },
+    /// Updates configuration of the VC contract. Available Config :
+    /// 1. Whether the contract allows direct module registration
+    /// 2. the number of namespaces an Account can claim
+    UpdateConfig {
+        allow_direct_module_registration: Option<bool>,
+        namespace_limit: Option<u32>,
+        namespace_registration_fee: Option<Coin>,
+    },
     /// Sets a new Factory
     SetFactory { new_factory: String },
 }
@@ -145,7 +158,7 @@ pub struct NamespaceFilter {
 #[cw_ownable::cw_ownable_query]
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
-#[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
+#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 pub enum QueryMsg {
     /// Query Core of an Account
     /// Returns [`AccountBaseResponse`]

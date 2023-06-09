@@ -8,27 +8,54 @@ use abstract_core::{
 use cosmwasm_std::{Addr, Deps};
 
 /// Verify if an addresses is associated with an Abstract Account.
-pub trait OsVerification: AbstractRegistryAccess {
-    fn account_registry<'a>(&'a self, deps: Deps<'a>) -> OsRegistry<Self> {
-        OsRegistry { base: self, deps }
+pub trait AccountVerification: AbstractRegistryAccess {
+    /**
+        API for querying and verifying a sender's identity in the context of Abstract Accounts.
+
+        # Example
+        ```
+        use abstract_sdk::prelude::*;
+        # use cosmwasm_std::testing::mock_dependencies;
+        # use abstract_sdk::mock_module::MockModule;
+        # let module = MockModule::new();
+        # let deps = mock_dependencies();
+
+        let acc_registry: AccountRegistry<MockModule>  = module.account_registry(deps.as_ref());
+        ```
+    */
+    fn account_registry<'a>(&'a self, deps: Deps<'a>) -> AccountRegistry<Self> {
+        AccountRegistry { base: self, deps }
     }
 }
 
-impl<T> OsVerification for T where T: AbstractRegistryAccess {}
+impl<T> AccountVerification for T where T: AbstractRegistryAccess {}
 
-/// Endpoint for Account address verification
+/**
+    API for querying and verifying a sender's identity in the context of Abstract Accounts.
+
+    # Example
+    ```
+    use abstract_sdk::prelude::*;
+    # use cosmwasm_std::testing::mock_dependencies;
+    # use abstract_sdk::mock_module::MockModule;
+    # let module = MockModule::new();
+    # let deps = mock_dependencies();
+
+    let acc_registry: AccountRegistry<MockModule>  = module.account_registry(deps.as_ref());
+    ```
+*/
 #[derive(Clone)]
-pub struct OsRegistry<'a, T: OsVerification> {
+pub struct AccountRegistry<'a, T: AccountVerification> {
     base: &'a T,
     deps: Deps<'a>,
 }
 
-impl<'a, T: OsVerification> OsRegistry<'a, T> {
+impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
     /// Verify if the provided manager address is indeed a user.
     pub fn assert_manager(&self, maybe_manager: &Addr) -> AbstractSdkResult<AccountBase> {
         let account_id = self.account_id(maybe_manager)?;
         let account_base = self.account_base(account_id)?;
-        if &account_base.manager != maybe_manager {
+        if account_base.manager.ne(maybe_manager) {
             Err(AbstractSdkError::NotManager(
                 maybe_manager.clone(),
                 account_id,
@@ -42,23 +69,26 @@ impl<'a, T: OsVerification> OsRegistry<'a, T> {
     pub fn assert_proxy(&self, maybe_proxy: &Addr) -> AbstractSdkResult<AccountBase> {
         let account_id = self.account_id(maybe_proxy)?;
         let account_base = self.account_base(account_id)?;
-        if &account_base.proxy != maybe_proxy {
+        if account_base.proxy.ne(maybe_proxy) {
             Err(AbstractSdkError::NotProxy(maybe_proxy.clone(), account_id))
         } else {
             Ok(account_base)
         }
     }
 
+    /// Get the proxy address for a given account id.
     pub fn proxy_address(&self, account_id: u32) -> AbstractSdkResult<Addr> {
         self.account_base(account_id)
             .map(|account_base| account_base.proxy)
     }
 
+    /// Get the manager address for a given account id.
     pub fn manager_address(&self, account_id: u32) -> AbstractSdkResult<Addr> {
         self.account_base(account_id)
             .map(|account_base| account_base.manager)
     }
 
+    /// Get the account base for a given account id.
     pub fn account_base(&self, account_id: u32) -> AbstractSdkResult<AccountBase> {
         let maybe_account = ACCOUNT_ADDRESSES.query(
             &self.deps.querier,
@@ -111,9 +141,9 @@ mod test {
                 // Setup the addresses as if the Account was registered
                 .account("not_manager", "not_proxy", TEST_ACCOUNT_ID)
                 // update the proxy to be proxy of a different Account
-                .account(TEST_MANAGER, TEST_PROXY, 1)
+                .account(TEST_MANAGER, TEST_PROXY, 2)
                 .builder()
-                .with_contract_item("not_proxy", ACCOUNT_ID, &1)
+                .with_contract_item("not_proxy", ACCOUNT_ID, &2)
                 .build();
 
             let binding = MockBinding;
@@ -146,7 +176,10 @@ mod test {
             assert_that!(res)
                 .is_err()
                 .matches(|e| matches!(e, AbstractSdkError::UnknownAccountId { .. }))
-                .matches(|e| e.to_string().contains("Unknown Account id 0"));
+                .matches(|e| {
+                    e.to_string()
+                        .contains(format!("Unknown Account id {}", TEST_ACCOUNT_ID).as_str())
+                });
         }
 
         #[test]

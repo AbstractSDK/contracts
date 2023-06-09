@@ -9,7 +9,7 @@ use cosmwasm_std::{
 use abstract_sdk::{execute_update_ownership, query_ownership};
 use semver::Version;
 
-const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[abstract_response(ACCOUNT_FACTORY)]
 pub struct AccountFactoryResponse;
@@ -65,7 +65,7 @@ pub fn execute(
             description,
         } => {
             let gov_details = governance.verify(deps.api)?;
-            commands::execute_create_account(deps, env, gov_details, name, description, link)
+            commands::execute_create_account(deps, env, info, gov_details, name, description, link)
         }
         ExecuteMsg::UpdateOwnership(action) => {
             execute_update_ownership!(AccountFactoryResponse, deps, env, info, action)
