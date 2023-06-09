@@ -172,6 +172,16 @@ pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -
     REGISTERED_MODULES.remove(deps.storage, &module);
     YANKED_MODULES.remove(deps.storage, &module);
 
+    // If this module has no more versions, we also remove the monetization
+    if REGISTERED_MODULES
+        .prefix(module.clone().full_name())
+        .range(deps.storage, None, None, Order::Ascending)
+        .next()
+        .is_none()
+    {
+        MODULE_MONETIZATION.remove(deps.storage, module.clone().full_name());
+    }
+
     Ok(VcResponse::new(
         "remove_module",
         vec![("module", &module.to_string())],
