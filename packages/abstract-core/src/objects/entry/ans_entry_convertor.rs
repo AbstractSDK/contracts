@@ -43,6 +43,12 @@ impl AnsEntryConvertor<PoolMetadata> {
     }
 }
 
+impl AnsEntryConvertor<PoolMetadata> {
+    pub fn lp_token_asset(self) -> AssetEntry {
+        AnsEntryConvertor::new(self.lp_token()).asset_entry()
+    }
+}
+
 impl AnsEntryConvertor<AssetEntry> {
     /// Try from an asset entry that should be formatted as "dex_name/asset1,asset2"
     pub fn lp_token(self) -> AbstractResult<LpToken> {
