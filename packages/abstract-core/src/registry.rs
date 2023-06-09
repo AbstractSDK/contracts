@@ -23,7 +23,7 @@ pub const OSMOSIS: &[&str] = &["osmosis", "osmo"];
 pub const TERRA: &[&str] = &["phoenix", "pisco"];
 pub const KUJIRA: &[&str] = &["kaiyo", "harpoon"];
 pub const ARCHWAY: &[&str] = &["constantine"];
-
+pub const LOCAL_CHAIN: &[&str] = &["cosmos-testnet"];
 /// Useful when deploying version control
 #[allow(unused)]
 pub static NATIVE_CONTRACTS: &[&str] = &[
