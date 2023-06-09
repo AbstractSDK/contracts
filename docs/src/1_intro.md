@@ -9,7 +9,7 @@
 
 </div>
 
-## What is Abstract?
+## What Is The Abstract Platform?
 
 The Abstract platform is a combination of CosmWasm tooling, on-chain smart-contract infrastructure and front-end libraries. It's designed to be modular, allowing developers to choose the components they need to build their applications. While Abstract tries to simplify a lot of the development experience, it is inherently a power-tool, allowing you to get more done with less effort.
 
@@ -31,9 +31,9 @@ The App object is made available within the customizable handlers. This object i
 
 ### Cw-Orchestrator
 
-[cw-orchestrator](https://github.com/AbstractSDK/cw-orchestrator) is the tool that makes developing with Abstract so pleasant. It's a smart-contract scripting library that allows you to re-use code for use in testing and deployments. It's also our primary tool for making Abstract's infrastructure highly available.
+[cw-orchestrator](https://github.com/AbstractSDK/cw-orchestrator) is a smart-contract scripting library that allows you to re-use code for use in testing and deployments. It is also our primary tool for making Abstract's infrastructure highly available allowing us to make developing with Abstract a pleasant experience.
 
-Here's a snippet that sets up the complete Abstract framework on a cw-multi-test environment, and deploys the previously shown App contract to the framework.
+Here's a snippet that sets up the complete Abstract framework on a cw-multi-test environment and deploys the previously shown App contract to the framework.
 
 ```rust,no_run
 // Create a sender and instantiate the mock environment
@@ -63,7 +63,7 @@ abstr_deployment
 contract.deploy(APP_VERSION.parse()?)?;
 ```
 
-Using cw-orchestrator reduces your testing setup and complexity and improves both the code's readability and maintainability. Because of its design it allows us to share our contracts with any developer that wants to use them with a few lines of code. This greatly reduces the friction of using our code and it allows you to provide the same experience to developers that might want to use your code, giving you an edge over other options.
+Using cw-orchestrator for your testing and deployment needs reduces your testing setup and complexity and improves both the code's readability and maintainability. Because of its design it allows us to share our contracts with any developer that wants to use them with a few lines of code. This greatly reduces the friction of using our code and it allows you to provide the same experience to developers that might want to use your code, giving you an edge over other options.
 
 ## Abstract.js
 
