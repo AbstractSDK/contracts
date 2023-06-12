@@ -5,7 +5,7 @@
 
 <div align="center">
 
-### Welcome to Abstract, the interchain CosmWasm development platform. We're building the tools and infrastructure that are required to truly innovate in the Cosmos ecosystem.
+### Welcome to Abstract, the interchain CosmWasm development platform. We are building tools and infrastructure for the next generation of smart-contract applications.
 
 </div>
 
@@ -66,6 +66,8 @@ contract.deploy(APP_VERSION.parse()?)?;
 Using cw-orchestrator for your testing and deployment needs reduces your testing setup and complexity and improves both the code's readability and maintainability. Because of its design it allows us to share our contracts with any developer that wants to use them with a few lines of code. This greatly reduces the friction of using our code and it allows you to provide the same experience to developers that might want to use your code, giving you an edge over other options.
 
 ## Abstract.js
+
+Abstract.js is the Javascript package for interacting with the on-chain Abstract framework.
 
 <!-- ## Features
 
