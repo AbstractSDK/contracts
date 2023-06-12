@@ -45,7 +45,7 @@ pub mod state {
     // Yanked Modules
     pub const YANKED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("yknd");
     // Modules Fee
-    pub const MODULE_MONETIZATION: Map<(Namespace, String), Monetization> = Map::new("mod_m");
+    pub const MODULE_MONETIZATION: Map<(&Namespace, &str), Monetization> = Map::new("mod_m");
 
     /// Maps Account ID to the address of its core contracts
     pub const ACCOUNT_ADDRESSES: Map<AccountId, AccountBase> = Map::new("accs");
@@ -115,7 +115,8 @@ pub enum ExecuteMsg {
     /// The version doesn't matter here, but we keep it for compatibility purposes
     /// Only callable by namespace admin
     SetModuleMonetization {
-        module: ModuleInfo,
+        module_name: String,
+        namespace: Namespace,
         monetization: Monetization,
     },
     /// Approve or reject modules

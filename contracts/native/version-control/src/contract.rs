@@ -85,9 +85,10 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
         ExecuteMsg::RemoveModule { module } => remove_module(deps, info, module),
         ExecuteMsg::YankModule { module } => yank_module(deps, info, module),
         ExecuteMsg::SetModuleMonetization {
-            module,
+            module_name,
+            namespace,
             monetization,
-        } => set_module_monetization(deps, info, module, monetization),
+        } => set_module_monetization(deps, info, module_name, namespace, monetization),
         ExecuteMsg::ClaimNamespaces {
             account_id,
             namespaces,

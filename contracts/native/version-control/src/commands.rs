@@ -174,12 +174,12 @@ pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -
 
     // If this module has no more versions, we also remove the monetization
     if REGISTERED_MODULES
-        .prefix(module.clone().full_name())
+        .prefix((module.namespace.clone(), module.name.clone()))
         .range(deps.storage, None, None, Order::Ascending)
         .next()
         .is_none()
     {
-        MODULE_MONETIZATION.remove(deps.storage, module.clone().full_name());
+        MODULE_MONETIZATION.remove(deps.storage, (&module.namespace, &module.name));
     }
 
     Ok(VcResponse::new(
@@ -212,31 +212,41 @@ pub fn yank_module(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -> 
 pub fn set_module_monetization(
     deps: DepsMut,
     msg_info: MessageInfo,
-    module: ModuleInfo,
+    module_name: String,
+    namespace: Namespace,
     monetization: Monetization,
 ) -> VCResult {
     // validate the caller is the owner of the namespace
 
-    if module.namespace == Namespace::unchecked(ABSTRACT_NAMESPACE) {
+    if namespace == Namespace::unchecked(ABSTRACT_NAMESPACE) {
         // Only Admin can update abstract contracts
         cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
     } else {
         // Only owner can add modules
-        validate_account_owner(deps.as_ref(), &module.namespace, &msg_info.sender)?;
+        validate_account_owner(deps.as_ref(), &namespace, &msg_info.sender)?;
     }
 
     // We verify the module exists before updating the monetization
     REGISTERED_MODULES
-        .prefix(module.clone().full_name())
+        .prefix((namespace.clone(), module_name.clone()))
         .range(deps.storage, None, None, Order::Ascending)
         .next()
-        .ok_or_else(|| VCError::ModuleNotFound(module.clone()))??;
+        .ok_or_else(|| {
+            VCError::ModuleNotFound(ModuleInfo {
+                namespace: namespace.clone(),
+                name: module_name.clone(),
+                version: ModuleVersion::Latest,
+            })
+        })??;
 
-    MODULE_MONETIZATION.save(deps.storage, module.clone().full_name(), &monetization)?;
+    MODULE_MONETIZATION.save(deps.storage, (&namespace, &module_name), &monetization)?;
 
     Ok(VcResponse::new(
-        "set_monetisation",
-        vec![("module", &module.to_string())],
+        "set_monetization",
+        vec![
+            ("namespace", &namespace.to_string()),
+            ("module_name", &module_name),
+        ],
     ))
 }
 
@@ -1704,7 +1714,8 @@ mod test {
 
             let monetization = Monetization::InstallFee(FixedFee::new(&coin(45, "ujuno")));
             let monetization_module_msg = ExecuteMsg::SetModuleMonetization {
-                module: new_module.clone(),
+                module_name: new_module.name.clone(),
+                namespace: new_module.namespace.clone(),
                 monetization: monetization.clone(),
             };
             execute_as(deps.as_mut(), TEST_ADMIN, monetization_module_msg)?;

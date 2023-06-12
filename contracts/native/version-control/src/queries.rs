@@ -74,7 +74,7 @@ pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<M
                     },
                     config: ModuleConfiguration::new(
                         MODULE_MONETIZATION
-                            .load(deps.storage, module.full_name().clone())
+                            .load(deps.storage, (&module.namespace, &module.name))
                             .unwrap_or(Monetization::None),
                     ),
                 });

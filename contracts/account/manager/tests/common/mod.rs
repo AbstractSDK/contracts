@@ -2,6 +2,7 @@
 pub mod mock_modules;
 
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion, Monetization};
+use abstract_core::objects::namespace::Namespace;
 pub use abstract_testing::addresses::TEST_OWNER;
 
 pub const OWNER: &str = TEST_OWNER;
@@ -16,6 +17,7 @@ use abstract_interface::{
     Abstract, AccountFactory, AnsHost, Manager, ModuleFactory, Proxy, VCExecFns, VersionControl,
 };
 use abstract_interface::{AbstractAccount, AdapterDeployer};
+use abstract_testing::prelude::{TEST_MODULE_NAME, TEST_NAMESPACE};
 use cosmwasm_std::Addr;
 use cw_orch::prelude::*;
 use semver::Version;
@@ -59,8 +61,9 @@ pub(crate) fn add_mock_adapter_install_fee(
         .unwrap_or_else(|| CONTRACT_VERSION.to_string())
         .parse()?;
     deployment.version_control.set_module_monetization(
-        ModuleInfo::from_id(TEST_MODULE_ID, ModuleVersion::Version(version.to_string()))?,
+        TEST_MODULE_NAME.to_string(),
         monetization,
+        Namespace::new(TEST_NAMESPACE).unwrap(),
     )?;
     Ok(())
 }

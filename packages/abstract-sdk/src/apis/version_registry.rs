@@ -83,7 +83,7 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
             .query(
                 &self.deps.querier,
                 registry_addr,
-                module_info.clone().full_name(),
+                (&module_info.namespace, &module_info.name),
             )
             .unwrap_or(Some(Monetization::None))
             .unwrap_or(Monetization::None))

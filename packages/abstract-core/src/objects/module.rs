@@ -121,10 +121,6 @@ impl ModuleInfo {
             }
         }
     }
-
-    pub fn full_name(self) -> (Namespace, String) {
-        (self.namespace, self.name)
-    }
 }
 
 impl<'a> PrimaryKey<'a> for &ModuleInfo {
