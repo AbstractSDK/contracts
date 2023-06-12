@@ -43,7 +43,7 @@ pub enum ProxyError {
     BadUpdate(String),
 
     #[error(
-        "Treasury balance too low, {} requested but it only has {}",
+        "Account balance too low, {} requested but it only has {}",
         requested,
         balance
     )]
@@ -51,4 +51,7 @@ pub enum ProxyError {
         balance: Uint128,
         requested: Uint128,
     },
+
+    #[error("Contract got an unexpected Reply")]
+    UnexpectedReply(),
 }

@@ -6,7 +6,10 @@ use abstract_core::objects::module::{ModuleInfo, ModuleVersion};
 use abstract_core::{adapter::BaseQueryMsgFns, *};
 use abstract_interface::*;
 use abstract_testing::prelude::{OWNER, TEST_ACCOUNT_ID, TEST_MODULE_ID, TEST_VERSION};
-use common::{create_default_account, init_mock_adapter, AResult, TEST_COIN};
+use common::{
+    create_default_account, init_mock_adapter, install_adapter, uninstall_module, AResult,
+    TEST_COIN,
+};
 use cosmwasm_std::{Addr, Coin, Empty};
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
@@ -14,19 +17,6 @@ use cw_orch::prelude::*;
 use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};
 
 use crate::common::mock_modules::{BootMockAdapter1V1, BootMockAdapter1V2, V1, V2};
-
-fn install_adapter(manager: &Manager<Mock>, adapter_id: &str) -> AResult {
-    manager
-        .install_module(adapter_id, &Empty {})
-        .map_err(Into::into)
-}
-
-pub(crate) fn uninstall_module(manager: &Manager<Mock>, module_id: &str) -> AResult {
-    manager
-        .uninstall_module(module_id.to_string())
-        .map_err(Into::<CwOrchError>::into)?;
-    Ok(())
-}
 
 #[test]
 fn installing_one_adapter_should_succeed() -> AResult {
