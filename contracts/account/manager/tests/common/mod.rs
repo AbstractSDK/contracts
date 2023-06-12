@@ -69,13 +69,13 @@ pub(crate) fn add_mock_adapter_install_fee(
     Ok(())
 }
 
-fn install_adapter(manager: &Manager<Mock>, adapter_id: &str) -> AResult {
+pub fn install_adapter(manager: &Manager<Mock>, adapter_id: &str) -> AResult {
     manager
         .install_module(adapter_id, &Empty {}, None)
         .map_err(Into::into)
 }
 
-fn install_adapter_with_funds(
+pub fn install_adapter_with_funds(
     manager: &Manager<Mock>,
     adapter_id: &str,
     funds: &[Coin],
@@ -85,7 +85,7 @@ fn install_adapter_with_funds(
         .map_err(Into::into)
 }
 
-pub(crate) fn uninstall_module(manager: &Manager<Mock>, module_id: &str) -> AResult {
+pub fn uninstall_module(manager: &Manager<Mock>, module_id: &str) -> AResult {
     manager
         .uninstall_module(module_id.to_string())
         .map_err(Into::<CwOrchError>::into)?;

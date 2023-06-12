@@ -7,12 +7,9 @@ use abstract_core::objects::module::{ModuleInfo, ModuleVersion, Monetization};
 use abstract_core::{adapter::BaseQueryMsgFns, *};
 use abstract_interface::*;
 use abstract_testing::prelude::{OWNER, TEST_ACCOUNT_ID, TEST_MODULE_ID, TEST_VERSION};
-use common::{
-    create_default_account, init_mock_adapter, install_adapter, uninstall_module, AResult, add_mock_adapter_install_fee,
-    TEST_COIN,
-};
+use common::*;
+use cosmwasm_std::{coin, coins};
 use cosmwasm_std::{Addr, Coin, Empty};
-use cosmwasm_std::{coin, coins, Addr, Coin, Empty};
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 // use cw_multi_test::StakingInfo;
