@@ -1,6 +1,8 @@
 #![allow(unused)]
 pub mod mock_modules;
 
+use abstract_core::objects::module::{ModuleInfo, ModuleVersion, Monetization};
+use abstract_core::objects::namespace::Namespace;
 pub use abstract_testing::addresses::TEST_OWNER;
 
 pub const OWNER: &str = TEST_OWNER;
@@ -16,6 +18,7 @@ use abstract_interface::{
     VersionControl,
 };
 use abstract_interface::{AbstractAccount, AdapterDeployer};
+use abstract_testing::prelude::{TEST_MODULE_NAME, TEST_NAMESPACE};
 use cosmwasm_std::Addr;
 use cw_orch::prelude::*;
 use semver::Version;
@@ -49,13 +52,40 @@ pub(crate) fn init_mock_adapter(
     Ok(staking_adapter)
 }
 
-pub fn install_adapter(manager: &Manager<Mock>, adapter_id: &str) -> AResult {
+pub(crate) fn add_mock_adapter_install_fee(
+    chain: Mock,
+    deployment: &Abstract<Mock>,
+    monetization: Monetization,
+    version: Option<String>,
+) -> anyhow::Result<()> {
+    let version: Version = version
+        .unwrap_or_else(|| CONTRACT_VERSION.to_string())
+        .parse()?;
+    deployment.version_control.set_module_monetization(
+        TEST_MODULE_NAME.to_string(),
+        monetization,
+        Namespace::new(TEST_NAMESPACE).unwrap(),
+    )?;
+    Ok(())
+}
+
+fn install_adapter(manager: &Manager<Mock>, adapter_id: &str) -> AResult {
     manager
-        .install_module(adapter_id, &Empty {})
+        .install_module(adapter_id, &Empty {}, None)
         .map_err(Into::into)
 }
 
-pub fn uninstall_module(manager: &Manager<Mock>, module_id: &str) -> AResult {
+fn install_adapter_with_funds(
+    manager: &Manager<Mock>,
+    adapter_id: &str,
+    funds: &[Coin],
+) -> AResult {
+    manager
+        .install_module(adapter_id, &Empty {}, Some(funds))
+        .map_err(Into::into)
+}
+
+pub(crate) fn uninstall_module(manager: &Manager<Mock>, module_id: &str) -> AResult {
     manager
         .uninstall_module(module_id.to_string())
         .map_err(Into::<CwOrchError>::into)?;
