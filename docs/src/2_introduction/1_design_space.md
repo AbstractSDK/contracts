@@ -35,7 +35,7 @@ By self-hosted applications we mean applications that are **fully** owned by the
 flowchart LR
     subgraph Developers [fas:fa-users-cog Developers]
             direction RL
-            A[Smart Contracts]
+            A[App]
     end
 
     subgraph Acc1 [fas:fa-user User's Account]
