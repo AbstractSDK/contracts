@@ -1,14 +1,14 @@
 //! # Bank
 //! The Bank object handles asset transfers to and from the Account.
 
-use cosmwasm_std::to_binary;
-use serde::Serialize;
 use crate::features::AccountIdentification;
 use crate::AccountAction;
 use crate::{ans_resolve::Resolve, features::AbstractNameService, AbstractSdkResult};
 use core::objects::{AnsAsset, AssetEntry};
+use cosmwasm_std::to_binary;
 use cosmwasm_std::{Addr, Coin, CosmosMsg, Deps, Env};
 use cw_asset::Asset;
+use serde::Serialize;
 
 /// Query and Transfer assets from and to the Abstract Account.
 pub trait TransferInterface: AbstractNameService + AccountIdentification {
@@ -156,7 +156,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
         &self,
         funds: R,
         recipient: &Addr,
-        message: &M
+        message: &M,
     ) -> AbstractSdkResult<AccountAction> {
         let transferable_funds = funds.transferable_asset(self.base, self.deps)?;
 
@@ -312,15 +312,20 @@ mod test {
             let expected_recipient = Addr::unchecked("recipient");
 
             let bank = app.bank(deps.as_ref());
-            let hook_msg = Empty{};
+            let hook_msg = Empty {};
             let asset = Addr::unchecked("asset");
             let coin = Asset::cw20(asset.clone(), expected_amount);
             let actual_res = bank.send(coin, &expected_recipient, &hook_msg);
 
-            let expected_msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Execute { 
-                contract_addr: asset.to_string(), 
-                msg: to_binary(&Cw20ExecuteMsg::Send { contract: expected_recipient.to_string(), amount: expected_amount.into(), msg: to_binary(&hook_msg).unwrap() }).unwrap(), 
-                funds: vec![]
+            let expected_msg: CosmosMsg = CosmosMsg::Wasm(WasmMsg::Execute {
+                contract_addr: asset.to_string(),
+                msg: to_binary(&Cw20ExecuteMsg::Send {
+                    contract: expected_recipient.to_string(),
+                    amount: expected_amount.into(),
+                    msg: to_binary(&hook_msg).unwrap(),
+                })
+                .unwrap(),
+                funds: vec![],
             });
 
             assert_that!(actual_res.unwrap().messages()[0]).is_equal_to::<CosmosMsg>(expected_msg);
@@ -335,12 +340,14 @@ mod test {
 
             let bank = app.bank(deps.as_ref());
             let coin = coin(expected_amount, "asset");
-            let hook_msg = Empty{};
+            let hook_msg = Empty {};
             let actual_res = bank.send(coin, &expected_recipient, &hook_msg);
 
-            assert_that!(actual_res.unwrap_err()).is_equal_to::<AbstractSdkError>(AbstractSdkError::Asset(AssetError::UnavailableMethodForNative {
-                method: "send".into(),
-            }));
+            assert_that!(actual_res.unwrap_err()).is_equal_to::<AbstractSdkError>(
+                AbstractSdkError::Asset(AssetError::UnavailableMethodForNative {
+                    method: "send".into(),
+                }),
+            );
         }
     }
 }
