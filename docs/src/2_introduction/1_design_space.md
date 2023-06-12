@@ -33,22 +33,22 @@ By self-hosted applications we mean applications that are **fully** owned by the
 
 ```mermaid
 flowchart LR
-    subgraph Developers [fa:fa-users-cog "Developers"]
+    subgraph Developers [fas:fa-users-cog Developers]
             direction RL
-            A[Application]
+            A[Smart Contracts]
     end
 
-    subgraph Acc1 [fa:fa-user User's Account]
+    subgraph Acc1 [fas:fa-user User's Account]
         direction TB
         Ap1[App]-->A1[Account]
     end
 
-    subgraph Acc2 [fa:fa-user User's Account]
+    subgraph Acc2 [fas:fa-user User's Account]
         direction TB
         Ap2[App]-->A2[Account]
     end
 
-    subgraph Acc3 [fa:fa-user User's Account]
+    subgraph Acc3 [fas:fa-user User's Account]
         direction TB
         Ap3[App]-->A3[Account]
     end
