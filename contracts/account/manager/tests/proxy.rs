@@ -140,7 +140,7 @@ fn with_response_data() -> AResult {
         .expect("test module installed");
     // proxy should be final executor because of the reply
     let resp = account.manager.exec_on_module(
-        cosmwasm_std::to_binary(&abstract_core::proxy::ExecuteMsg::ModuleActionResponse {
+        cosmwasm_std::to_binary(&abstract_core::proxy::ExecuteMsg::ModuleActionWithData {
             // execute a message on the adapter, which sets some data in its response
             msg: wasm_execute(
                 adapter_addr.address,

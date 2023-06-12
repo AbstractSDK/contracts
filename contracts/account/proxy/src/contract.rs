@@ -60,7 +60,7 @@ pub fn instantiate(
 pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> ProxyResult {
     match msg {
         ExecuteMsg::ModuleAction { msgs } => execute_module_action(deps, info, msgs),
-        ExecuteMsg::ModuleActionResponse { msg } => execute_module_action_response(deps, info, msg),
+        ExecuteMsg::ModuleActionWithData { msg } => execute_module_action_response(deps, info, msg),
         ExecuteMsg::IbcAction { msgs } => execute_ibc_action(deps, info, msgs),
         ExecuteMsg::SetAdmin { admin } => set_admin(deps, info, &admin),
         ExecuteMsg::AddModule { module } => add_module(deps, info, module),
