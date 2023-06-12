@@ -15,7 +15,7 @@ The Abstract platform is a combination of CosmWasm tooling, on-chain smart-contr
 
 ### The Abstract SDK
 
-The Abstract SDK is a modular smart-contract framework designed to enhance the development of CosmWasm dApps. It's built on top of CosmWasm; a battle-tested WASM-based smart-contract framework.
+The Abstract SDK is a modular smart-contract framework designed to enhance the development of CosmWasm dApps. It's built on top of CosmWasm; a battle-tested WASM-based smart-contract framework, written in Rust.
 
 Here's a small snippet of code to give you an idea of what using the Abstract SDK looks like:
 
@@ -25,9 +25,9 @@ Here's a small snippet of code to give you an idea of what using the Abstract SD
 
 The code above defines an Abstract app, which is a smart-contract that can be installed on any Abstract Account. The app has a unique ID and a version, both are used to offer the app on the Abstract App store, allowing other users to install the app on their account.
 
-The App object is made available within the customizable handlers. This object is highly programmable through the [abstract-sdk](./get_started/sdk.md), which is our Account Abstraction Toolbox. In a nutshell it allows you to perform complex multi-contract interactions with very minimal code while not compromising on the contract's programmability in any way.
+The customizable handlers allow for full developer freedom and have an App object available within them. This object is highly programmable through the [abstract-sdk](./get_started/sdk.md), which is our Account Abstraction Toolbox. In a nutshell it allows you to perform complex multi-contract interactions with very minimal code while not compromising on the contract's programmability in any way.
 
-> Looking to get started? Check out the [Getting Started](./get_started/index.md) guide.
+> Looking to get started? Check out the [Getting Started](./3_get_started/1_index.md) guide.
 
 ### Cw-Orchestrator
 

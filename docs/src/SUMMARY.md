@@ -4,6 +4,7 @@
 
 # Build With Abstract
 
+- [Abstract Design Space](./2_introduction/1_design_space.md)
 - [Getting Started](./3_get_started/1_index.md)
   - [Installation](./3_get_started/2_installation.md)
   - [Module Builder](./3_get_started/3_module_builder.md)
