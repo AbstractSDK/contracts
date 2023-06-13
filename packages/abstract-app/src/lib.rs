@@ -2,6 +2,7 @@ mod endpoints;
 pub mod error;
 pub mod features;
 pub(crate) mod handler;
+pub mod msgs;
 #[cfg(feature = "schema")]
 pub mod schema;
 pub mod state;
