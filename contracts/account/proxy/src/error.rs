@@ -2,6 +2,7 @@ use abstract_core::AbstractError;
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::{StdError, Uint128};
 use cw_asset::AssetError;
+use cw_utils::ParseReplyError;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
@@ -20,6 +21,9 @@ pub enum ProxyError {
 
     #[error(transparent)]
     Admin(#[from] ::cw_controllers::AdminError),
+
+    #[error("{0}")]
+    Parse(#[from] ParseReplyError),
 
     #[error("Module with address {0} is already whitelisted")]
     AlreadyWhitelisted(String),
