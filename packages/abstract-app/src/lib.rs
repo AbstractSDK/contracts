@@ -12,7 +12,6 @@ pub use error::AppError;
 pub type AppResult<C = Empty> = Result<Response<C>, AppError>;
 mod interface;
 
-
 use cosmwasm_std::{Empty, Response};
 #[cfg(feature = "test-utils")]
 pub mod mock {

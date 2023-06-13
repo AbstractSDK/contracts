@@ -1,6 +1,3 @@
-
-
-
 #[macro_export]
 /// Creates the interface for working with the app wth cw-orch
 macro_rules! create_interface {
@@ -98,6 +95,6 @@ macro_rules! create_interface {
 			impl<Chain: ::cw_orch::prelude::CwEnv> ::abstract_interface::AppDeployer<Chain> for $app_type<Chain> {}
 	    }
 
-		
+
     };
 }
