@@ -152,6 +152,10 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     }
 
     /// Move cw20 assets from the Account to a recipient with the possibility using the cw20 send/receive hook
+    ///
+    /// Note:  **Native coins are NOT and will NEVER be supported by this method**.
+    ///
+    /// In order to send funds with your message, you need to construct the message yourself
     pub fn send<R: Transferable, M: Serialize>(
         &self,
         funds: R,
