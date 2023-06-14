@@ -74,7 +74,9 @@ macro_rules! create_interface {
 
 			impl <Chain: ::cw_orch::prelude::CwEnv> ::cw_orch::prelude::Uploadable for $app_type<Chain> {
 			    fn wasm(&self) -> ::cw_orch::prelude::WasmPath {
-			        ::cw_orch::prelude::ArtifactsDir::auto(Some(env!("CARGO_MANIFEST_DIR").to_string())).find_wasm_path(env!("CARGO_CRATE_NAME")).unwrap()
+			    	let wasm_name = env!("CARGO_CRATE_NAME").replace('-', "_");
+			        ::cw_orch::prelude::ArtifactsDir::auto(Some(env!("CARGO_MANIFEST_DIR").to_string()))
+			        	.find_wasm_path(&wasm_name).unwrap()
 			    }
 
 			    fn wrapper(
