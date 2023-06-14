@@ -80,6 +80,10 @@ pub const COUNTER_APP: CounterApp = CounterApp::new(COUNTER_ID, APP_VERSION, Non
 abstract_app::export_endpoints!(COUNTER_APP, CounterApp);
 // ANCHOR_END: export
 
+// ANCHOR: interface
+abstract_app::create_interface!(COUNTER_APP, CounterApp);
+// ANCHOR_END: interface
+
 mod handlers {
     #![allow(non_upper_case_globals)]
     use abstract_sdk::base::*;
