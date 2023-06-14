@@ -89,7 +89,8 @@ macro_rules! create_interface {
 			                _wrapper_fns::query,
 			            )
 			            .with_reply(_wrapper_fns::reply)
-			            .with_migrate(_wrapper_fns::migrate),
+			            .with_migrate(_wrapper_fns::migrate)
+						.with_sudo(_wrapper_fns::sudo),
 			        )
 			    }
 			}
