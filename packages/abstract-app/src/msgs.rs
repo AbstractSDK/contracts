@@ -5,7 +5,8 @@
 macro_rules! app_messages {
     ($app_type:ty, $app_execute_msg: ty, $app_query_msg: ty) => {
         /// Abstract App instantiate msg
-        pub type InstantiateMsg = <$app_type as ::abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg;
+        pub type InstantiateMsg =
+            <$app_type as ::abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg;
         pub type ExecuteMsg = <$app_type as ::abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg;
         pub type QueryMsg = <$app_type as ::abstract_sdk::base::QueryEndpoint>::QueryMsg;
         pub type MigrateMsg = <$app_type as ::abstract_sdk::base::MigrateEndpoint>::MigrateMsg;

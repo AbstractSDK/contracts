@@ -11,12 +11,8 @@ pub struct CounterInitMsg;
 #[cosmwasm_schema::cw_serde]
 pub struct CounterExecMsg;
 
-impl app::AppExecuteMsg for CounterExecMsg {}
-
 #[cosmwasm_schema::cw_serde]
 pub struct CounterQueryMsg;
-
-impl app::AppQueryMsg for CounterQueryMsg {}
 
 #[cosmwasm_schema::cw_serde]
 pub struct CounterMigrateMsg;
@@ -26,6 +22,8 @@ pub struct CounterReceiveMsg;
 
 #[cosmwasm_schema::cw_serde]
 pub struct CounterSudoMsg;
+
+abstract_app::app_messages!(CounterApp, CounterExecMsg, CounterQueryMsg);
 
 use abstract_app::{AppContract, AppError};
 
