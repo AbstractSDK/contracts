@@ -1,18 +1,18 @@
-# The Abstract SDK Design Space
+# Abstract SDK: A New Realm in Smart-Contract Development
 
-The first step to using a tool is learning its purpose and capabilities. Working with the Abstract SDK is no different. This page will help you understand the design space that the Abstract SDK operates in, which will help you reason about how to use the SDK effectively.
+If you're well-versed with smart-contracts, you'll find Abstract SDK as a more advanced, adaptable, and efficient tool. It brings you an extensive design space that transcends traditional smart-contract capabilities, introducing superior code reusability and an unmatched software distribution process.
 
-## Design Space
+## Advancing with Abstract SDK
 
-The Abstract SDK design space is a superset of the classical smart-contract design space, meaning that any application built with stand-alone smart-contracts can be implemented with the SDK as well. However, Abstract's design space is unique in that it allows for a level of code re-usability that would not be possible with stand-alone smart-contracts. By thinking about on-chain functionality in a functional sense, we created a system where application development can be done in a more conceptual way.
+Abstract SDK broadens your design space beyond traditional smart-contract development. Here, any application possible with stand-alone smart contracts can also be crafted using the SDK. However, we go a step beyond: the Abstract SDK promotes a level of code reusability unseen in the stand-alone smart-contract world. This functional perspective allows you to envision on-chain functionality and develop applications conceptually.
 
-Additionally the SDK allows for software distribution that is unparalleled in the smart-contract space. With the Abstract SDK you can write your code once, deploy it to any blockchain that supports CosmWasm and let other developers **and users** use it within minutes. This opens up the possibility of creating a marketplace for smart-contracts, where developers can sell their code to other developers and users in a permissionless way.
+But the innovation doesn't stop here. With Abstract SDK, you code once, deploy it to any CosmWasm-supported blockchain, and watch other developers and users employ it in no time. The result? A revolutionary marketplace for smart-contracts where developers can vend their code to peers and users without permission constraints.
 
-This section will give you a high-level overview of the different approaches and how they can be used to build your application.
+## Design Spaces Explained
 
-### Hosted Applications
+### Traditional: Hosted Applications
 
-Hosted applications are traditionally applications that are built using stand-alone smart-contracts. Examples of these types of applications are dexes, lending markets, yield aggregators, etc. What makes these applications *hosted* is that they are deployed by the maintainers of the application and often require the user to transfer funds to the application's smart-contract in order to use it.
+Traditionally applications have been created by composing "stand-alone" smart contracts. Each smart-contract designed to fulfill a different role in the application's logic. We call these applications __hosted applications__ since they're deployed and controlled by the  code maintainers, and to use them, users transfer funds to the application's smart contract. Dexes, lending markets, yield aggregators are all examples of hosted applications.
 
 ```mermaid
 flowchart LR
@@ -27,9 +27,9 @@ flowchart LR
 
 ```
 
-### Self-Hosted Applications
+### Innovative: Self-Hosted Applications
 
-By self-hosted applications we mean applications that are **fully** owned by the user. This means that the user does not have to transfer funds to the application's smart-contract in order to use it. Instead the user can deploy the application's smart-contract to their own account and use it from there. This is a novel concept that is only possible with the Abstract SDK.
+Self-hosted applications, on the other hand, represent a novel concept only achievable with the Abstract SDK. Here, __users own their applications__ and don't need to transfer funds to the application's smart contract. Instead, they deploy the smart contract to their account, which grants the application rights to access those funds. Each application is a new instantiation of a smart-contract that is owned and configurable by the user. The user can thus update the application's code, parameters, and permissions at any time, without relying on the application's maintainers.
 
 ```mermaid
 flowchart LR
@@ -60,7 +60,7 @@ flowchart LR
     A==>Store[fa:fa-store App Store]
 ```
 
-This two main benefits:
+This approach offers two significant benefits:
 
-- **Sovereignty:** There are less trust assumptions that the user has to make. The user does not have to trust the application's maintainers to not steal their funds.
-- **Customizability:** The user can customize the application to their liking. Applications that take this design in mind can provide novel customization options that would not be possible with hosted applications.
+- __Sovereignty:__ Users have more control over their funds as they don't need to trust application maintainers.
+- __Customizability:__ Users can tailor their application, leading to novel customization options unavailable with hosted applications.
