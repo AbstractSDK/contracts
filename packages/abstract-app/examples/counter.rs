@@ -114,7 +114,7 @@ mod handlers {
         deps: DepsMut,
         _env: Env,
         info: MessageInfo,
-        app: CounterApp,
+        app: CounterApp, // <-- Notice how the `CounterApp` is available here
         msg: CounterExecMsg,
     ) -> CounterResult {
         match msg {
