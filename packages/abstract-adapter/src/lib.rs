@@ -36,6 +36,8 @@ pub mod mock {
     use cw_orch::prelude::*;
     use thiserror::Error;
 
+    use abstract_interface::AdapterDeployer;
+
     pub const TEST_METADATA: &str = "test_metadata";
     pub const TEST_AUTHORIZED_ADDRESS: &str = "test_authorized_address";
 
