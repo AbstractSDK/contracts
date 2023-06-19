@@ -1,7 +1,7 @@
 #[macro_export]
 /// Groups code that is needed on every app.
-/// This registers the types for safety when using Messages. 
-/// Example generated code : 
+/// This registers the types for safety when using Messages.
+/// Example generated code :
 /// pub type InstantiateMsg =
 ///     <App as abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg;
 /// pub type ExecuteMsg = <App as abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg;
@@ -10,7 +10,7 @@
 /// This allows users to directly import the right message types when using the module as a library
 
 /// This is also used to indicate that The Query And Execute messages or used as app messages
-/// Example generated code: 
+/// Example generated code:
 /// impl abstract_core::app::AppExecuteMsg for AppExecuteMsg {}
 /// impl abstract_core::app::AppQueryMsg for AppQueryMsg {}
 /// This is internal to abstract and allows the Query and Execute Msgs to be used as app entry_point messages
