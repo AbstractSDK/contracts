@@ -40,7 +40,7 @@ All these fields are used in a custom `ModuleData` store as well, along with the
 
 ### Handlers
 
-The app can then be customized by adding whatever handler functions you need. These functions are executed whenever a specific endpoint is called on the module. A special feature about the functions is that we insert the instance of your app into the function's attributes. This enables you to access the module struct in your code. You will learn why this is such a powerful feature in our section on the [Abstract SDK](./4_sdk.md).
+The app can then be customized by adding whatever handler functions you need. These functions are executed whenever a specific endpoint is called on the module. A special feature about the functions is that we insert the instance of your module into the function's attributes. This enables you to access the module struct in your code. You will learn why this is such a powerful feature in our section on the [Abstract SDK](./4_sdk.md).
 
 Here's an example of a module with some handlers set:
 
@@ -54,9 +54,22 @@ These handlers are functions that allow you to customize the smart-contract's be
 {{#include ../../../packages/abstract-app/examples/counter.rs:execute}}
 ```
 
-Let's go through all the available customizable handlers, the function signatures they require and how/when they get called.
+```admonish info
+You can find more application code to read in our [💥 Awesome Abstract repository 💥](https://github.com/AbstractSDK/awesome-abstract).
+```
 
-The `base` fields and variants mentioned in the messages below are defined by [the base module type](../4_framework/7_module_types.md) that you chose to use. In this example we're working with an [`App`](../4_framework/7_module_types.md#apps).
+The available handlers are:
+
+- `with_execute`: Called when the App's `ExecuteMsg` is called on the instantiate entry point.
+- `with_instantiate`: Called when the App's `InstantiateMsg` is called on the instantiate entry point.
+- `with_query`: Called when the App's `QueryMsg::Module` is called on the query entry point.
+- `with_migrate`: Called when the App's `MigrateMsg` is called on the migrate entry point.
+- `with_replies`: Called when the App's reply entry point is called. Matches the function's associated reply-id.
+- `with_sudo`: Called when the App's `SudoMsg` is called on the sudo entry point.
+- `with_receive`: Called when the App's `ExecuteMsg::Receive` variant is called on the execute entry point.
+- `with_ibc_callbacks`: Called when the App's `ExecuteMsg::IbcCallback` is called on the execute entry point. Matches the callback's callback ID to its associated function.
+
+Below we detail each one more closely. The `base` fields and variants mentioned in the messages below are defined by [the base module type](../4_framework/7_module_types.md) that you chose to use. In this page we're working with an [`App`](../4_framework/7_module_types.md#apps).
 
 ### Instantiate
 
