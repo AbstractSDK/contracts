@@ -1,6 +1,6 @@
 /// ANCHOR: ans
-use crate::{ans_resolve::Resolve, AbstractSdkResult};
-use abstract_core::objects::ans_host::AnsHost;
+use crate::{ans_resolve::Resolve, AbstractSdkResult, cw_helpers::wasm_smart_query};
+use abstract_core::{objects::{ans_host::AnsHost, DexAssetPairing}, ans_host::{AssetPairingMapEntry, QueryMsg, AssetPairingFilter, PoolAddressListResponse}};
 use cosmwasm_std::Deps;
 
 /// Accessor to the Abstract Name Service.
@@ -32,5 +32,11 @@ impl<'a, T: AbstractNameService> AbstractNameServiceClient<'a, T> {
     }
     pub fn host(&self) -> &AnsHost {
         &self.host
+    }
+    /// Smart-query the available trading pools.
+    pub fn pool_list(&self, filter: Option<AssetPairingFilter>, page_limit: Option<u8>, start_after: Option<DexAssetPairing> ) -> AbstractSdkResult<Vec<AssetPairingMapEntry>> {
+        let query = wasm_smart_query(&self.host.address, &QueryMsg::PoolList { filter, start_after, limit: page_limit })?;
+        let resp: PoolAddressListResponse = self.deps.querier.query(&query)?;
+        Ok(resp.pools)
     }
 }
