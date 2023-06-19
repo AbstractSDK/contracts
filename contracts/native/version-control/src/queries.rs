@@ -717,7 +717,9 @@ mod test {
                 let yanked_module_names = ["module4".to_string(), "module5".to_string()];
                 for entry in modules {
                     if entry.module.info.namespace == Namespace::unchecked("cw-plus") {
-                        assert!(!yanked_module_names.iter().any(|e| e == &entry.module.info.name));
+                        assert!(!yanked_module_names
+                            .iter()
+                            .any(|e| e == &entry.module.info.name));
                     }
                 }
 
