@@ -23,7 +23,7 @@ pub struct CounterReceiveMsg;
 #[cosmwasm_schema::cw_serde]
 pub struct CounterSudoMsg;
 
-abstract_app::app_messages!(CounterApp, CounterExecMsg, CounterQueryMsg);
+abstract_app::app_msg_types!(CounterApp, CounterExecMsg, CounterQueryMsg);
 
 use abstract_app::{AppContract, AppError};
 
