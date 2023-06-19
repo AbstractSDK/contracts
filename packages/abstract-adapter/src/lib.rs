@@ -25,7 +25,6 @@ pub mod mock {
         adapter::{self, *},
         objects::dependency::StaticDependency,
     };
-    use abstract_interface::AdapterDeployer;
     use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
     use abstract_testing::prelude::{
         TEST_ADMIN, TEST_ANS_HOST, TEST_MODULE_ID, TEST_VERSION, TEST_VERSION_CONTROL,
