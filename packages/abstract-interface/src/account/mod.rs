@@ -14,6 +14,7 @@
 mod manager;
 mod proxy;
 
+use cosmwasm_std::Uint64;
 use std::collections::HashSet;
 
 use abstract_core::{manager::ManagerModuleInfo, objects::AccountId};
@@ -111,5 +112,11 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         assert_eq!(actual_proxy_whitelist, expected_whitelisted_addrs);
 
         Ok(proxy_whitelist)
+    }
+
+    /// Gets the account ID from the manager account
+    pub fn account_id(&self) -> Result<AccountId, crate::AbstractInterfaceError>{
+        let account_id: u64 = self.manager.config()?.account_id.into();
+        Ok(account_id.try_into().unwrap())
     }
 }
