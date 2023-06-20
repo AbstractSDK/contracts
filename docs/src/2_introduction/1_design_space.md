@@ -1,12 +1,10 @@
-# Abstract SDK: A New Approach to Smart-Contract Development
+# Expanding The Smart-Contract Design Space
 
 If you are well-versed with smart-contracts, you will find that the Abstract SDK is a tool that gives you more leverage. Enabling you to get things done faster and better. It does this by giving you an extensive design space that transcends traditional smart-contract capabilities, introducing superior code reusability and an unmatched software distribution process.
 
-## Advancing with Abstract SDK
+## Designing with Abstract
 
-Abstract SDK broadens your design space beyond traditional smart-contract application architectures. While applications built with stand-alone smart contracts can also be crafted using the SDK, the Abstract SDK promotes a level of code reusability unseen in the stand-alone smart-contract world. It is through this code reusability that novel applications can be constructed with little effort.
-
-But the innovation doesn't stop here. With Abstract SDK, you write once, deploy to any CosmWasm-supported blockchain, and watch other developers and users employ it in no time. The result? A marketplace for smart-contracts where developers can vend their code to peers and users.
+The Abstract SDK broadens your design space beyond traditional smart-contract application architectures. While applications built with stand-alone smart contracts can also be crafted using the SDK, the Abstract SDK promotes a level of code reusability incomparable to stand-alone smart-contract development. It is through this code reusability that novel applications can be constructed with little effort.
 
 ## Design Spaces Explained
 
