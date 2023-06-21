@@ -8,8 +8,19 @@ mod reply;
 mod sudo;
 
 #[macro_export]
-/// Exports all entrypoints
-/// Disable export with "library" feature
+/// Exports all entry-points, should be enabled by default.
+/// - instantiate
+/// - execute
+/// - query
+/// - migrate
+/// - reply
+/// - sudo
+/// 
+/// ## Usage
+/// 
+/// ```ignore
+/// abstract_app::export_endpoints!(MY_APP, MyApp);
+/// ```
 macro_rules! export_endpoints {
     ($app_const:expr, $app_type:ty) => {
         /// Instantiate entrypoint
