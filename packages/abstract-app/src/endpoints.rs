@@ -15,9 +15,12 @@ mod sudo;
 /// - migrate
 /// - reply
 /// - sudo
-/// 
+///
 /// ## Usage
-/// 
+/// Requires two arguments:
+/// 1. The App constant.
+/// 2. The App type.
+///
 /// ```ignore
 /// abstract_app::export_endpoints!(MY_APP, MyApp);
 /// ```
