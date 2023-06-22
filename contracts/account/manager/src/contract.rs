@@ -11,8 +11,8 @@ use abstract_sdk::core::{
         state::{AccountInfo, Config, ACCOUNT_FACTORY, CONFIG, INFO, SUSPENSION_STATUS},
         CallbackMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     },
-    objects::validation::{validate_name, validate_link, validate_description},
     objects::module_version::assert_contract_upgrade,
+    objects::validation::{validate_description, validate_link, validate_name},
     proxy::state::ACCOUNT_ID,
     MANAGER,
 };

@@ -26,7 +26,7 @@ pub mod state {
     use crate::objects::{
         account_id::AccountId,
         common_namespace::ADMIN_NAMESPACE,
-        module::{ModuleInfo, Monetization, ModuleMetadata},
+        module::{ModuleInfo, ModuleMetadata, Monetization},
         module_reference::ModuleReference,
         namespace::Namespace,
     };
@@ -75,12 +75,12 @@ pub fn namespaces_info<'a>() -> IndexedMap<'a, &'a Namespace, AccountId, Namespa
 
 use crate::objects::{
     account_id::AccountId,
-    module::{Module, ModuleInfo, ModuleStatus, Monetization, ModuleMetadata},
+    module::{Module, ModuleInfo, ModuleMetadata, ModuleStatus, Monetization},
     module_reference::ModuleReference,
     namespace::Namespace,
 };
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Coin, Storage, Order};
+use cosmwasm_std::{Addr, Coin, Order, Storage};
 use state::MODULE_MONETIZATION;
 
 use cw_storage_plus::{Index, IndexList, IndexedMap, MultiIndex};
@@ -243,33 +243,35 @@ pub struct ModuleResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct ModuleConfiguration {
     pub monetization: Monetization,
-    pub metadata: ModuleMetadata
+    pub metadata: ModuleMetadata,
 }
 
 impl ModuleConfiguration {
     pub fn new(monetization: Monetization, metadata: ModuleMetadata) -> Self {
-        Self { monetization, metadata }
+        Self {
+            monetization,
+            metadata,
+        }
     }
 
-    fn metadata_from_storage(storage: &dyn Storage, module: &ModuleInfo) -> ModuleMetadata{
-
+    fn metadata_from_storage(storage: &dyn Storage, module: &ModuleInfo) -> ModuleMetadata {
         // First we return the result if the metadata is stored for the current module
         let potential_metadata = MODULE_METADATA.load(storage, module);
-        if let Ok(metadata) = potential_metadata{
-            return metadata
+        if let Ok(metadata) = potential_metadata {
+            return metadata;
         }
 
         // Else we return the latest metadata version registered with the same module
         let potential_metadata = MODULE_METADATA
             .prefix((module.namespace.clone(), module.name.clone()))
-            .range(storage, None, None, Order::Descending).next();
-        if let Some(Ok((_key, metadata))) = potential_metadata{
-            return metadata
+            .range(storage, None, None, Order::Descending)
+            .next();
+        if let Some(Ok((_key, metadata))) = potential_metadata {
+            return metadata;
         }
 
         "".to_string()
     }
-
 
     pub fn from_storage(storage: &dyn Storage, module: &ModuleInfo) -> Self {
         let monetization = MODULE_MONETIZATION
@@ -278,9 +280,9 @@ impl ModuleConfiguration {
 
         let metadata = ModuleConfiguration::metadata_from_storage(storage, module);
 
-        Self { 
+        Self {
             monetization,
-            metadata
+            metadata,
         }
     }
 }

@@ -3,6 +3,4 @@ pub mod verifiers;
 
 pub use error::ValidationError;
 
-pub use verifiers::{
-	validate_link, validate_name, validate_description
-};
+pub use verifiers::{validate_description, validate_link, validate_name};

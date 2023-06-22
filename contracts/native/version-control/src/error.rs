@@ -5,7 +5,9 @@ use thiserror::Error;
 
 use abstract_core::objects::namespace::Namespace;
 use abstract_core::{objects::AccountId, AbstractError};
-use abstract_sdk::{core::objects::module::ModuleInfo, AbstractSdkError, core::objects::validation::ValidationError};
+use abstract_sdk::{
+    core::objects::module::ModuleInfo, core::objects::validation::ValidationError, AbstractSdkError,
+};
 
 #[derive(Error, Debug, PartialEq)]
 pub enum VCError {

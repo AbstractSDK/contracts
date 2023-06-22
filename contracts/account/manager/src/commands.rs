@@ -1,9 +1,7 @@
-use crate::{
-    contract::ManagerResult, error::ManagerError, queries::query_module_cw2,
-};
+use crate::{contract::ManagerResult, error::ManagerError, queries::query_module_cw2};
 use crate::{validation, versioning};
 use abstract_core::objects::gov_type::GovernanceDetails;
-use abstract_core::version_control::{ModuleResponse};
+use abstract_core::version_control::ModuleResponse;
 use abstract_macros::abstract_response;
 use abstract_sdk::{
     core::{
@@ -640,7 +638,10 @@ fn query_module(
             info: module.info,
             reference: module.reference,
         },
-        config: version_control.module_registry(deps).query_all_module_config(module_info)?.config
+        config: version_control
+            .module_registry(deps)
+            .query_all_module_config(module_info)?
+            .config,
     })
 }
 
@@ -1337,9 +1338,12 @@ mod tests {
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
-            assert_that(&res)
-                .is_err()
-                .matches(|e| matches!(e, ManagerError::Validation(ValidationError::TitleInvalidShort(_))));
+            assert_that(&res).is_err().matches(|e| {
+                matches!(
+                    e,
+                    ManagerError::Validation(ValidationError::TitleInvalidShort(_))
+                )
+            });
 
             let msg = ExecuteMsg::UpdateInfo {
                 name: Some("a".repeat(65)),
@@ -1348,9 +1352,12 @@ mod tests {
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
-            assert_that(&res)
-                .is_err()
-                .matches(|e| matches!(e, ManagerError::Validation(ValidationError::TitleInvalidLong(_))));
+            assert_that(&res).is_err().matches(|e| {
+                matches!(
+                    e,
+                    ManagerError::Validation(ValidationError::TitleInvalidLong(_))
+                )
+            });
 
             Ok(())
         }
@@ -1367,9 +1374,12 @@ mod tests {
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
-            assert_that(&res)
-                .is_err()
-                .matches(|e| matches!(e, ManagerError::Validation(ValidationError::LinkInvalidShort(_))));
+            assert_that(&res).is_err().matches(|e| {
+                matches!(
+                    e,
+                    ManagerError::Validation(ValidationError::LinkInvalidShort(_))
+                )
+            });
 
             let msg = ExecuteMsg::UpdateInfo {
                 name: None,
@@ -1378,9 +1388,12 @@ mod tests {
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
-            assert_that(&res)
-                .is_err()
-                .matches(|e| matches!(e, ManagerError::Validation(ValidationError::LinkInvalidLong(_))));
+            assert_that(&res).is_err().matches(|e| {
+                matches!(
+                    e,
+                    ManagerError::Validation(ValidationError::LinkInvalidLong(_))
+                )
+            });
 
             Ok(())
         }

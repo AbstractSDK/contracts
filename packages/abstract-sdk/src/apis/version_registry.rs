@@ -9,8 +9,7 @@ use abstract_core::{
         namespace::Namespace,
     },
     version_control::{
-        state::{REGISTERED_MODULES},
-        ModuleResponse, ModulesResponse, NamespaceResponse, QueryMsg,
+        state::REGISTERED_MODULES, ModuleResponse, ModulesResponse, NamespaceResponse, QueryMsg,
     },
 };
 use cosmwasm_std::Deps;

@@ -1,6 +1,7 @@
 use abstract_core::objects::{
     fee::FixedFee,
-    module::{self, Module, Monetization, ModuleMetadata}, validation::validate_link,
+    module::{self, Module, ModuleMetadata, Monetization},
+    validation::validate_link,
 };
 use cosmwasm_std::{
     ensure, Addr, Attribute, BankMsg, Coin, CosmosMsg, Deps, DepsMut, MessageInfo, Order,
@@ -269,8 +270,8 @@ pub fn set_module_metadata(
     }
 
     // We verify the module exists before updating the monetization
-    if !REGISTERED_MODULES.has(deps.storage, &module){
-        return Err(VCError::ModuleNotFound(module))
+    if !REGISTERED_MODULES.has(deps.storage, &module) {
+        return Err(VCError::ModuleNotFound(module));
     }
 
     // We verify the metadata is a URL
@@ -280,10 +281,7 @@ pub fn set_module_metadata(
 
     Ok(VcResponse::new(
         "set_metadata",
-        vec![
-            ("module", &module.to_string()),
-            ("metadata", &metadata)
-        ],
+        vec![("module", &module.to_string()), ("metadata", &metadata)],
     ))
 }
 
@@ -1795,7 +1793,10 @@ mod test {
 
             let monetization = Monetization::None;
             let metadata = "ipfs://YRUI243876FJHKHV3IY".to_string();
-            let metadata_module_msg = ExecuteMsg::SetModuleMetadata { module: new_module.clone(), metadata: metadata.clone(), };
+            let metadata_module_msg = ExecuteMsg::SetModuleMetadata {
+                module: new_module.clone(),
+                metadata: metadata.clone(),
+            };
             execute_as(deps.as_mut(), TEST_ADMIN, metadata_module_msg)?;
 
             // We query the module to see if the monetization is attached ok
