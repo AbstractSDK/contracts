@@ -1,4 +1,3 @@
-use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_interface::Abstract;
 
 use clap::Parser;
@@ -21,15 +20,10 @@ fn migrate(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
             .handle(rt.handle())
             .chain(network)
             .build()?;
-        let sender = chain.sender();
-        let deployment = Abstract::deploy_on(chain, Empty {})?;
 
-        // Create the Abstract Account because it's needed for the fees for the dex module
-        deployment
-            .account_factory
-            .create_default_account(GovernanceDetails::Monarchy {
-                monarch: sender.to_string(),
-            })?;
+        let deployment = Abstract::load_from(chain)?;
+
+        deployment.migrate()?;
     }
     Ok(())
 }
