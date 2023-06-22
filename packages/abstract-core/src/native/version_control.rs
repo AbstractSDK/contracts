@@ -26,7 +26,7 @@ pub mod state {
     use crate::objects::{
         account_id::AccountId,
         common_namespace::ADMIN_NAMESPACE,
-        module::{ModuleInfo, Monetization},
+        module::{ModuleInfo, Monetization, ModuleMetadata},
         module_reference::ModuleReference,
         namespace::Namespace,
     };
@@ -46,6 +46,8 @@ pub mod state {
     pub const YANKED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("yknd");
     // Modules Fee
     pub const MODULE_MONETIZATION: Map<(&Namespace, &str), Monetization> = Map::new("mod_m");
+    // Modules Metadata
+    pub const MODULE_METADATA: Map<&ModuleInfo, ModuleMetadata> = Map::new("mod_meta");
 
     /// Maps Account ID to the address of its core contracts
     pub const ACCOUNT_ADDRESSES: Map<AccountId, AccountBase> = Map::new("accs");
@@ -73,14 +75,17 @@ pub fn namespaces_info<'a>() -> IndexedMap<'a, &'a Namespace, AccountId, Namespa
 
 use crate::objects::{
     account_id::AccountId,
-    module::{Module, ModuleInfo, ModuleStatus, Monetization},
+    module::{Module, ModuleInfo, ModuleStatus, Monetization, ModuleMetadata},
     module_reference::ModuleReference,
     namespace::Namespace,
 };
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Coin};
+use cosmwasm_std::{Addr, Coin, Storage, Order};
+use state::MODULE_MONETIZATION;
 
 use cw_storage_plus::{Index, IndexList, IndexedMap, MultiIndex};
+
+use self::state::MODULE_METADATA;
 
 /// Contains the minimal Abstract Account contract addresses.
 #[cosmwasm_schema::cw_serde]
@@ -118,6 +123,13 @@ pub enum ExecuteMsg {
         module_name: String,
         namespace: Namespace,
         monetization: Monetization,
+    },
+    /// Sets the metadata configuration for a module.
+    /// This is an optional field for a module and default to ""
+    /// Only callable by namespace admin
+    SetModuleMetadata {
+        module: ModuleInfo,
+        metadata: ModuleMetadata,
     },
     /// Approve or reject modules
     /// This takes the modules in the pending_modules map and
@@ -231,11 +243,45 @@ pub struct ModuleResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct ModuleConfiguration {
     pub monetization: Monetization,
+    pub metadata: ModuleMetadata
 }
 
 impl ModuleConfiguration {
-    pub fn new(monetization: Monetization) -> Self {
-        Self { monetization }
+    pub fn new(monetization: Monetization, metadata: ModuleMetadata) -> Self {
+        Self { monetization, metadata }
+    }
+
+    fn metadata_from_storage(storage: &dyn Storage, module: &ModuleInfo) -> ModuleMetadata{
+
+        // First we return the result if the metadata is stored for the current module
+        let potential_metadata = MODULE_METADATA.load(storage, module);
+        if let Ok(metadata) = potential_metadata{
+            return metadata
+        }
+
+        // Else we return the latest metadata version registered with the same module
+        let potential_metadata = MODULE_METADATA
+            .prefix((module.namespace.clone(), module.name.clone()))
+            .range(storage, None, None, Order::Descending).next();
+        if let Some(Ok((_key, metadata))) = potential_metadata{
+            return metadata
+        }
+
+        "".to_string()
+    }
+
+
+    pub fn from_storage(storage: &dyn Storage, module: &ModuleInfo) -> Self {
+        let monetization = MODULE_MONETIZATION
+            .load(storage, (&module.namespace, &module.name))
+            .unwrap_or(Monetization::None);
+
+        let metadata = ModuleConfiguration::metadata_from_storage(storage, module);
+
+        Self { 
+            monetization,
+            metadata
+        }
     }
 }
 

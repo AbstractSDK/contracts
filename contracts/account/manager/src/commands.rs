@@ -1,11 +1,9 @@
-use crate::validation::{validate_description, validate_link};
 use crate::{
     contract::ManagerResult, error::ManagerError, queries::query_module_cw2,
-    validation::validate_name,
 };
 use crate::{validation, versioning};
 use abstract_core::objects::gov_type::GovernanceDetails;
-use abstract_core::version_control::{ModuleConfiguration, ModuleResponse};
+use abstract_core::version_control::{ModuleResponse};
 use abstract_macros::abstract_response;
 use abstract_sdk::{
     core::{
@@ -19,6 +17,7 @@ use abstract_sdk::{
             dependency::Dependency,
             module::{Module, ModuleInfo, ModuleVersion},
             module_reference::ModuleReference,
+            validation::{validate_description, validate_link, validate_name},
         },
         proxy::ExecuteMsg as ProxyMsg,
         IBC_CLIENT, MANAGER, PROXY,
@@ -641,9 +640,7 @@ fn query_module(
             info: module.info,
             reference: module.reference,
         },
-        config: ModuleConfiguration::new(
-            version_registry.query_module_monetization_raw(&module_info)?,
-        ),
+        config: version_control.module_registry(deps).query_all_module_config(module_info)?.config
     })
 }
 
@@ -1248,6 +1245,8 @@ mod tests {
     }
 
     mod update_info {
+        use abstract_core::objects::validation::ValidationError;
+
         use super::*;
 
         #[test]
@@ -1340,7 +1339,7 @@ mod tests {
             let res = execute_as_owner(deps.as_mut(), msg);
             assert_that(&res)
                 .is_err()
-                .matches(|e| matches!(e, ManagerError::TitleInvalidShort(_)));
+                .matches(|e| matches!(e, ManagerError::Validation(ValidationError::TitleInvalidShort(_))));
 
             let msg = ExecuteMsg::UpdateInfo {
                 name: Some("a".repeat(65)),
@@ -1351,7 +1350,7 @@ mod tests {
             let res = execute_as_owner(deps.as_mut(), msg);
             assert_that(&res)
                 .is_err()
-                .matches(|e| matches!(e, ManagerError::TitleInvalidLong(_)));
+                .matches(|e| matches!(e, ManagerError::Validation(ValidationError::TitleInvalidLong(_))));
 
             Ok(())
         }
@@ -1370,7 +1369,7 @@ mod tests {
             let res = execute_as_owner(deps.as_mut(), msg);
             assert_that(&res)
                 .is_err()
-                .matches(|e| matches!(e, ManagerError::LinkInvalidShort(_)));
+                .matches(|e| matches!(e, ManagerError::Validation(ValidationError::LinkInvalidShort(_))));
 
             let msg = ExecuteMsg::UpdateInfo {
                 name: None,
@@ -1381,7 +1380,7 @@ mod tests {
             let res = execute_as_owner(deps.as_mut(), msg);
             assert_that(&res)
                 .is_err()
-                .matches(|e| matches!(e, ManagerError::LinkInvalidLong(_)));
+                .matches(|e| matches!(e, ManagerError::Validation(ValidationError::LinkInvalidLong(_))));
 
             Ok(())
         }
