@@ -75,7 +75,7 @@ pub fn namespaces_info<'a>() -> IndexedMap<'a, &'a Namespace, AccountId, Namespa
 
 use crate::objects::{
     account_id::AccountId,
-    module::{Module, ModuleInfo, ModuleMetadata, ModuleStatus, Monetization},
+    module::{Module, ModuleInfo, ModuleMetadata, ModuleStatus, ModuleVersion, Monetization},
     module_reference::ModuleReference,
     namespace::Namespace,
 };
@@ -125,8 +125,8 @@ pub enum ExecuteMsg {
         monetization: Monetization,
     },
     /// Sets the metadata configuration for a module.
-    /// This is an optional field for a module and default to ""
     /// Only callable by namespace admin
+    /// Using Version::Latest in the [`module`] variable sets the default metadata for the module
     SetModuleMetadata {
         module: ModuleInfo,
         metadata: ModuleMetadata,
@@ -254,10 +254,27 @@ impl ModuleConfiguration {
         }
     }
 
+    /// Loads metadata from storage for a given module
+    /// This function has the following behavior
+    /// 1. If available loads the metadata for the current module version
+    /// 2. OR, if available, loads the metadata for the latest version of the module
+    /// 3. OR, if available, loads the last metadata stored on the contract
+    /// 4. OR, returns empty metadata
     fn metadata_from_storage(storage: &dyn Storage, module: &ModuleInfo) -> ModuleMetadata {
         // First we return the result if the metadata is stored for the current module
-        let potential_metadata = MODULE_METADATA.load(storage, module);
-        if let Ok(metadata) = potential_metadata {
+        if let Ok(metadata) = MODULE_METADATA.load(storage, module) {
+            return metadata;
+        }
+
+        // Else if Version::Latest is specified, we load this description
+        if let Ok(metadata) = MODULE_METADATA.load(
+            storage,
+            &ModuleInfo {
+                namespace: module.namespace.clone(),
+                name: module.name.clone(),
+                version: ModuleVersion::Latest,
+            },
+        ) {
             return metadata;
         }
 
@@ -270,6 +287,7 @@ impl ModuleConfiguration {
             return metadata;
         }
 
+        // Else, no metadata
         "".to_string()
     }
 

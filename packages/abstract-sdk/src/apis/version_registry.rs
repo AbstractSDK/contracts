@@ -74,14 +74,7 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
 
     /// Smart query for a module
     pub fn query_module(&self, module_info: ModuleInfo) -> AbstractSdkResult<Module> {
-        let registry_addr = self.base.abstract_registry(self.deps)?;
-        let ModulesResponse { mut modules } = self.deps.querier.query(&wasm_smart_query(
-            registry_addr.into_string(),
-            &QueryMsg::Modules {
-                infos: vec![module_info],
-            },
-        )?)?;
-        Ok(modules.swap_remove(0).module)
+        Ok(self.query_all_module_config(module_info)?.module)
     }
 
     /// Smart query for a module and its configuration
