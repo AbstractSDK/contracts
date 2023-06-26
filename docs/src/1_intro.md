@@ -1,29 +1,33 @@
-# The Abstract Development Platform
-
+<!-- # The Abstract Development Platform -->
 <!-- This page is a high-level overview of the Abstract Platform, not the SDK or any of our actual products. Hence we should stick to a vocabulary that is familiar to the reader. -->
 ![SDK Background](https://github.com/AbstractSDK/assets/blob/mainline/twitter_cover-1.png?raw=true)
-
+<!-- 
 <div align="center">
 
-### Welcome to Abstract, the interchain CosmWasm development platform. </br>We are building tools and infrastructure for composable smart-contract applications.
+### Welcome to Abstract, the interchain CosmWasm development platform. </br>We are building tools and infrastructure for composable smart-contract applications. 
 
-</div>
-
+</div> -->
 ## What Is The Abstract Platform?
 
-The Abstract platform is a combination of CosmWasm tooling, on-chain smart-contract infrastructure and front-end libraries, all centered around the idea of [Account Abstraction](./3_framework/3_account_abstraction.md). It's designed to be composable, allowing developers to re-use the components they need to build their applications. While Abstract aims to simplify the development experience, it functions as a powerful tool, enabling you to innovate with less effort.
+The Abstract platform provides a combination of [CosmWasm][1]-oriented products.
+
+- On-chain smart-contract infrastructure ([Abstract SDK](#the-abstract-sdk))
+- Tooling ([cw-orchestrator](#cw-orchestrator))
+- Front-end libraries ([Abstract.js](#abstractjs))
+
+Our products are designed to be composable, allowing developers to re-use the components they need to build their applications. While Abstract aims to simplify the development experience, it functions as a powerful tool, enabling you to innovate with less effort.
 
 ```admonish info
-In this introductory page we'll introduce you to the Abstract platform and its components. You can skip the introduction and go straight to the [Getting Started](./4_get_started/1_index.md) guide if you're already familiar with the platform.
+In this page you are introduced to the Abstract platform and its components. You can skip the introduction and go straight to the [Getting Started](./4_get_started/1_index.md) guide if you're already familiar with the platform.
 ```
 
 ### The Abstract SDK
 
-The Abstract SDK is a modular smart-contract framework designed to enhance the development of decentralized applications. It is built on top of CosmWasm; a battle-tested WASM-based smart-contract framework, written in Rust. There are two main components to the Abstract SDK:
+The Abstract SDK is a modular smart-contract framework designed to enhance the development of decentralized applications. The SDK is built on top of [CosmWasm][1]: a battle-tested WASM-based smart-contract framework, written in [Rust][2]. The Abstract SDK is comprised of two main components:
 
 #### Abstract Accounts
 
-An Abstract Account is a smart-contract wallet developed by Abstract. That means that it is a smart-contract that can hold tokens and interact with other smart-contracts. Its ownership structure can be customized to fit the needs of users or applications. It is designed to be highly programmable, allowing developers to build and distribute complex applications on top of it.
+An Abstract Account is a smart-contract wallet developed by Abstract. That means that the smart-contract is capable of holding tokens and interacting with other smart-contracts. The contract's ownership structure is customizable to fit the needs of users or applications. It is designed to be highly programmable, allowing developers to build and distribute complex applications on top of it.
 
 #### Abstract Apps
 
@@ -80,6 +84,9 @@ Using cw-orchestrator for your smart-contract interactions reduces your testing/
 ## Abstract.js
 
 Abstract.js is the Javascript package for interacting with the on-chain Abstract framework. More documentation will be added soon.
+
+[1]: https://cosmwasm.com/
+[2]: https://www.rust-lang.org/
 
 <!-- ## Features
 
