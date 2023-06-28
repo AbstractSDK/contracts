@@ -35,15 +35,26 @@ impl AnsEntryConvertor<LpToken> {
 }
 
 impl AnsEntryConvertor<PoolMetadata> {
+    /// Get the [`LpToken`] struct for this pool.
     pub fn lp_token(self) -> LpToken {
         LpToken {
             dex: self.entry.dex,
             assets: self.entry.assets,
         }
     }
-
+    /// Get the LP token Asset for this pool.
     pub fn lp_token_asset(self) -> AssetEntry {
         AnsEntryConvertor::new(self.lp_token()).asset_entry()
+    }
+    /// Get an [`DexAssetPairing`] for this pool.
+    pub fn dex_asset_pairing(self) -> AbstractResult<DexAssetPairing> {
+        let mut assets = self.entry.assets;
+
+        Ok(DexAssetPairing::new(
+            assets.pop().unwrap(),
+            assets.pop().unwrap(),
+            self.entry.dex.as_str(),
+        ))
     }
 }
 
