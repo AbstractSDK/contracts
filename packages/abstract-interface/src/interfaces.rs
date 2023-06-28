@@ -1,6 +1,4 @@
-use crate::{
-    AccountFactory, AnsHost, IbcClient, Manager, ModuleFactory, Proxy, VersionControl,
-};
+use crate::{AccountFactory, AnsHost, IbcClient, Manager, ModuleFactory, Proxy, VersionControl};
 use abstract_core::{
     objects::AccountId, ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, MANAGER, MODULE_FACTORY, PROXY,
     VERSION_CONTROL,
@@ -42,7 +40,6 @@ pub fn get_account_contracts<Chain: CwEnv>(
 where
     <Chain as cw_orch::environment::TxHandler>::Response: IndexResponse,
 {
-
     let chain = version_control.get_chain().clone();
     if let Some(account_id) = account_id {
         let account_base = version_control.get_account(account_id).unwrap();
