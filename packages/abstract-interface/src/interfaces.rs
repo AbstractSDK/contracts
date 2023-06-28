@@ -1,11 +1,11 @@
 use crate::{
-    Abstract, AccountFactory, AnsHost, IbcClient, Manager, ModuleFactory, Proxy, VersionControl,
+    AccountFactory, AnsHost, IbcClient, Manager, ModuleFactory, Proxy, VersionControl,
 };
 use abstract_core::{
     objects::AccountId, ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, MANAGER, MODULE_FACTORY, PROXY,
     VERSION_CONTROL,
 };
-use cw_orch::deploy::Deploy;
+
 use cw_orch::prelude::*;
 
 #[allow(clippy::type_complexity)]
@@ -36,15 +36,16 @@ where
 }
 
 pub fn get_account_contracts<Chain: CwEnv>(
-    chain: Chain,
+    version_control: &VersionControl<Chain>,
     account_id: Option<AccountId>,
 ) -> (Manager<Chain>, Proxy<Chain>)
 where
     <Chain as cw_orch::environment::TxHandler>::Response: IndexResponse,
 {
+
+    let chain = version_control.get_chain().clone();
     if let Some(account_id) = account_id {
-        let abs = Abstract::load_from(chain.clone()).unwrap();
-        let account_base = abs.version_control.get_account(account_id).unwrap();
+        let account_base = version_control.get_account(account_id).unwrap();
         chain.state().set_address(MANAGER, &account_base.manager);
         chain.state().set_address(PROXY, &account_base.proxy);
         let manager = Manager::new(MANAGER, chain.clone());
