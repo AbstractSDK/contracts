@@ -44,7 +44,6 @@ pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: Instantiate
 
     let InstantiateMsg {
         allow_direct_module_registration,
-        namespace_limit,
         namespace_registration_fee,
     } = msg;
 
@@ -52,7 +51,6 @@ pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: Instantiate
         deps.storage,
         &Config {
             allow_direct_module_registration: allow_direct_module_registration.unwrap_or(false),
-            namespace_limit,
             namespace_registration_fee: namespace_registration_fee.unwrap_or(Coin {
                 denom: "none".to_string(),
                 amount: Uint128::zero(),
@@ -89,10 +87,10 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
             namespace,
             monetization,
         } => set_module_monetization(deps, info, module_name, namespace, monetization),
-        ExecuteMsg::ClaimNamespaces {
+        ExecuteMsg::ClaimNamespace {
+            namespace,
             account_id,
-            namespaces,
-        } => claim_namespaces(deps, info, account_id, namespaces),
+        } => claim_namespace(deps, info, account_id, namespace),
         ExecuteMsg::RemoveNamespaces { namespaces } => remove_namespaces(deps, info, namespaces),
         ExecuteMsg::AddAccount {
             account_id,
@@ -100,13 +98,11 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
         } => add_account(deps, info, account_id, base),
         ExecuteMsg::UpdateConfig {
             allow_direct_module_registration,
-            namespace_limit,
             namespace_registration_fee,
         } => update_config(
             deps,
             info,
             allow_direct_module_registration,
-            namespace_limit,
             namespace_registration_fee,
         ),
         ExecuteMsg::SetFactory { new_factory } => set_factory(deps, info, new_factory),
