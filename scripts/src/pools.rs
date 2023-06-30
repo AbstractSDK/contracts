@@ -48,19 +48,15 @@ pub fn update_pools(ans_host: &AnsHost<Daemon>) -> Result<(), AbstractInterfaceE
     Ok(())
 }
 
-
 pub type ScrapedEntries = (
-        HashMap<PoolAddressBase<std::string::String>, PoolMetadata>,
-        HashSet<String>,
-    );
+    HashMap<PoolAddressBase<std::string::String>, PoolMetadata>,
+    HashSet<String>,
+);
 
 fn get_scraped_entries(
     chain_name: &String,
     chain_id: &String,
-) -> Result<
-    ScrapedEntries,
-    AbstractInterfaceError,
-> {
+) -> Result<ScrapedEntries, AbstractInterfaceError> {
     let raw_scraped_entries = crate::get_scraped_json_data("pools");
     println!(
         "scraped_entries: {:?}",
