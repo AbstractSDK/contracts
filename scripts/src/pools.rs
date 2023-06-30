@@ -19,10 +19,6 @@ pub fn get_scraped_entries(
     chain_id: &String,
 ) -> Result<ScrapedEntries, AbstractInterfaceError> {
     let raw_scraped_entries = crate::get_scraped_json_data("pools");
-    println!(
-        "scraped_entries: {:?}",
-        raw_scraped_entries[chain_name][chain_id]
-    );
 
     let binding = raw_scraped_entries[chain_name][chain_id].clone();
     let parsed_scraped_entries: &Vec<Value> = binding.as_array().unwrap();
@@ -95,7 +91,7 @@ pub fn update(
     ),
 ) -> Result<(), AbstractInterfaceError> {
     println!("Removing {} pools", diff.0.len());
-    println!("Removing pools: {:?}", diff);
+    println!("Removing pools: {:?}", diff.0);
     println!("Adding {} pools", diff.1.len());
     println!("Adding pools: {:?}", diff.1);
 
@@ -132,18 +128,19 @@ pub fn update_dexes(
 
     let to_add: Vec<_> = diff.1.into_keys().collect();
     let to_remove: Vec<_> = diff.0.into_iter().collect();
-
-    // add the pools
+    /*
+    // add the dexes
     ans_host.execute_chunked(&to_add, 25, |chunk| ExecuteMsg::UpdateDexes {
         to_add: chunk.to_vec(),
         to_remove: vec![],
     })?;
 
-    // remove the pools
+    // remove the dexes
     ans_host.execute_chunked(&to_remove, 25, |chunk| ExecuteMsg::UpdateDexes {
         to_add: vec![],
         to_remove: chunk.to_vec(),
     })?;
+    */
 
     Ok(())
 }
