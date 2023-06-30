@@ -4,7 +4,7 @@
  <img src="https://codecov.io/gh/AbstractSDK/contracts/branch/main/graph/badge.svg?token=FOIDUFYSCY"/> 
  </a>
 
-To learn more about Abstract, go to [The Abstract Book](https://docs.abstract.money/).
+To learn more abouTTTt Abstract, go to [The Abstract Book](https://docs.abstract.money/).
 
 ## Schemas
 
