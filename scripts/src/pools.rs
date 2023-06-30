@@ -134,21 +134,15 @@ pub fn update_dexes(
     let to_remove: Vec<_> = diff.0.into_iter().collect();
 
     // add the pools
-    ans_host.execute_chunked(
-        &to_add,
-        25,
-        |chunk| ExecuteMsg::UpdateDexes {
-            to_add: chunk.to_vec(),
-            to_remove: vec![],
-        },
-    )?;
+    ans_host.execute_chunked(&to_add, 25, |chunk| ExecuteMsg::UpdateDexes {
+        to_add: chunk.to_vec(),
+        to_remove: vec![],
+    })?;
 
     // remove the pools
-    ans_host.execute_chunked(&to_remove, 25, |chunk| {
-        ExecuteMsg::UpdateDexes {
-            to_add: vec![],
-            to_remove: chunk.to_vec(),
-        }
+    ans_host.execute_chunked(&to_remove, 25, |chunk| ExecuteMsg::UpdateDexes {
+        to_add: vec![],
+        to_remove: chunk.to_vec(),
     })?;
 
     Ok(())

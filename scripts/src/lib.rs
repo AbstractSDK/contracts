@@ -69,7 +69,6 @@ pub fn get_scraped_entries(ans_host: &AnsHost<Daemon>) -> Result<AnsData, Abstra
     let assets = crate::assets::get_scraped_entries(chain_name, &chain_id)?;
     let (pools, dexes) = crate::pools::get_scraped_entries(chain_name, &chain_id)?;
 
-
     log::info!("Dexes scraped {:?}", dexes);
 
     Ok(AnsData {
@@ -105,8 +104,12 @@ pub fn diff(
 ) -> Result<AnsDataDiff, AbstractInterfaceError> {
     let contracts = crate::hashmap_diff::diff(scraped_entry.contracts, on_chain_entry.contracts)?;
     let assets = crate::hashmap_diff::diff(scraped_entry.assets, on_chain_entry.assets)?;
-    let dexes = crate::hashmap_diff::diff(scraped_entry.dexes.clone(), on_chain_entry.dexes.clone())?;
-    log::info!("Diff dexes {:?}", (dexes.clone(), scraped_entry.dexes, on_chain_entry.dexes));
+    let dexes =
+        crate::hashmap_diff::diff(scraped_entry.dexes.clone(), on_chain_entry.dexes.clone())?;
+    log::info!(
+        "Diff dexes {:?}",
+        (dexes.clone(), scraped_entry.dexes, on_chain_entry.dexes)
+    );
 
     // For pools, we diff only the metadata and then get the uniquepoolid to attach to the address
     let pools = crate::hashmap_diff::diff(
