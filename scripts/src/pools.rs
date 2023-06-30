@@ -128,7 +128,7 @@ pub fn update_dexes(
 
     let to_add: Vec<_> = diff.1.into_keys().collect();
     let to_remove: Vec<_> = diff.0.into_iter().collect();
-    /*
+    
     // add the dexes
     ans_host.execute_chunked(&to_add, 25, |chunk| ExecuteMsg::UpdateDexes {
         to_add: chunk.to_vec(),
@@ -140,7 +140,7 @@ pub fn update_dexes(
         to_add: vec![],
         to_remove: chunk.to_vec(),
     })?;
-    */
+    
 
     Ok(())
 }
