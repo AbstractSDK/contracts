@@ -129,8 +129,8 @@ pub fn update_dexes(
     println!("Removing dexes: {:?}", diff.0);
     println!("Adding {} dexes", diff.1.len());
     println!("Adding dexes: {:?}", diff.1);
-
-    let to_add: Vec<_> = diff.1.into_iter().map(|(k, _)| k).collect();
+    
+    let to_add: Vec<_> = diff.1.into_keys().collect();
     let to_remove: Vec<_> = diff.0.into_iter().collect();
 
     // add the pools
