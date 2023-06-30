@@ -256,7 +256,17 @@ mod test {
                 amount: coins,
             });
 
-            assert_that!(response.messages[0].msg).is_equal_to(&wasm_execute(TEST_PROXY, &ExecuteMsg::ModuleAction { msgs: vec![expected_msg] } , vec![]).unwrap().into());
+            assert_that!(response.messages[0].msg).is_equal_to(
+                &wasm_execute(
+                    TEST_PROXY,
+                    &ExecuteMsg::ModuleAction {
+                        msgs: vec![expected_msg],
+                    },
+                    vec![],
+                )
+                .unwrap()
+                .into(),
+            );
         }
     }
 
