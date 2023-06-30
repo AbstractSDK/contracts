@@ -123,7 +123,7 @@ fn get_contracts_changes(
             contracts_to_add.push(((*entry).to_owned(), val.to_owned()))
         }
     }
-    return (contracts_to_remove, contracts_to_add);
+    (contracts_to_remove, contracts_to_add)
 }
 
 // fn update_channels(ans: &AnsHost<Daemon>) -> Result<(), crate::CwOrchError> {

@@ -17,6 +17,6 @@ pub fn get_scraped_json_data(suffix: &str) -> Value {
     rt.block_on(async {
         let response = client.get(&url).send().await.unwrap();
         let json: Value = response.json().await.unwrap();
-        return json;
+        json
     })
 }

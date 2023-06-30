@@ -48,14 +48,17 @@ pub fn update_pools(ans_host: &AnsHost<Daemon>) -> Result<(), AbstractInterfaceE
     Ok(())
 }
 
+
+pub type ScrapedEntries = (
+        HashMap<PoolAddressBase<std::string::String>, PoolMetadata>,
+        HashSet<String>,
+    );
+
 fn get_scraped_entries(
     chain_name: &String,
     chain_id: &String,
 ) -> Result<
-    (
-        HashMap<PoolAddressBase<std::string::String>, PoolMetadata>,
-        HashSet<String>,
-    ),
+    ScrapedEntries,
     AbstractInterfaceError,
 > {
     let raw_scraped_entries = crate::get_scraped_json_data("pools");
@@ -183,7 +186,7 @@ fn get_pools_changes(
         //     pools_to_remove.push(**entry)
         // }
     }
-    return (pools_to_remove, pools_to_add);
+    (pools_to_remove, pools_to_add)
 }
 // fn update_pools(ans: &AnsHost<Daemon>) -> Result<(), crate::CwOrchError> {
 //     let path = env::var("ANS_HOST_POOLS").unwrap();

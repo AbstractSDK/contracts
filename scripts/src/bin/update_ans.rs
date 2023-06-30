@@ -23,8 +23,8 @@ fn update_ans(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
         let deployment = Abstract::load_from(chain)?;
         // Take the assets, contracts, and pools from resources and upload them to the ans host
         let ans_host = deployment.ans_host;
-        ans_helper::assets::update_assets(&ans_host)?;
-        ans_helper::contracts::update_contracts(&ans_host)?;
+        // ans_helper::assets::update_assets(&ans_host)?;
+        // ans_helper::contracts::update_contracts(&ans_host)?;
         ans_helper::pools::update_pools(&ans_host)?;
     }
     Ok(())

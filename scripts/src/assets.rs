@@ -119,7 +119,7 @@ fn get_assets_changes(
             }
         }
     }
-    return (assets_to_remove, assets_to_add);
+    (assets_to_remove, assets_to_add)
 }
 
 // fn update_channels(ans: &AnsHost<Daemon>) -> Result<(), crate::CwOrchError> {
