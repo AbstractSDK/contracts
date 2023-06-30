@@ -31,6 +31,10 @@
     }
   },
   "juno": {
+    "juno-1": {
+      "code_ids": {},
+      "default": {}
+    },
     "uni-5": {
       "code_ids": {
         "abstract:ans_host": 3627,
