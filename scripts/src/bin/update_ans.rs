@@ -23,9 +23,17 @@ fn update_ans(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
         let deployment = Abstract::load_from(chain)?;
         // Take the assets, contracts, and pools from resources and upload them to the ans host
         let ans_host = deployment.ans_host;
-        // ans_helper::assets::update_assets(&ans_host)?;
-        // ans_helper::contracts::update_contracts(&ans_host)?;
-        ans_helper::pools::update_pools(&ans_host)?;
+
+        // First we get all values
+        let scraped_entries = ans_helper::get_scraped_entries(&ans_host)?;
+        let on_chain_entries = ans_helper::get_on_chain_entries(&ans_host)?;
+
+        // Then we create a diff between the 2 objects
+        let diff = ans_helper::diff(on_chain_entries, scraped_entries)?;
+
+        // Finally we upload on-chain
+        ans_helper::update(&ans_host, diff)?;
+
     }
     Ok(())
 }

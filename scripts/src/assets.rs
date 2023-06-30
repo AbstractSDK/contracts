@@ -1,14 +1,18 @@
+
+use cw_asset::AssetInfoBase;
+use crate::EntryDif;
+
 use cw_orch::prelude::*;
 
 use abstract_core::ans_host::*;
 use abstract_interface::{AbstractInterfaceError, AnsHost};
-use cw_asset::{AssetInfo, AssetInfoUnchecked};
-use cw_orch::state::ChainState;
+
+
 
 use serde_json::{from_value, Value};
-use std::collections::{HashMap, HashSet};
-use std::str::FromStr;
+use std::collections::{HashMap};
 
+/*
 pub fn update_assets(ans_host: &AnsHost<Daemon>) -> Result<(), AbstractInterfaceError> {
     let chain_name = &ans_host.get_chain().state().chain_data.chain_name;
     let chain_id = ans_host.get_chain().state().chain_data.chain_id.to_string();
@@ -44,11 +48,12 @@ pub fn update_assets(ans_host: &AnsHost<Daemon>) -> Result<(), AbstractInterface
 
     Ok(())
 }
+*/
 
-fn get_scraped_entries(
+pub fn get_scraped_entries(
     chain_name: &String,
     chain_id: &String,
-) -> Result<HashMap<String, String>, AbstractInterfaceError> {
+) -> Result<HashMap<String, AssetInfoBase<String>>, AbstractInterfaceError> {
     let raw_scraped_entries = crate::get_scraped_json_data("assets");
     println!(
         "scraped_entries: {:?}",
@@ -58,20 +63,20 @@ fn get_scraped_entries(
     let parsed_scraped_entries: Vec<Vec<Value>> =
         from_value(raw_scraped_entries[chain_name][chain_id].clone()).unwrap();
 
-    let scraped_entries_vec: Vec<(String, String)> = parsed_scraped_entries
+    let scraped_entries_vec: Vec<(String, AssetInfoBase<String>)> = parsed_scraped_entries
         .into_iter()
         .map(|v| {
-            let asset_info: AssetInfo = from_value(v[1].clone()).unwrap();
-            (v[0].as_str().unwrap().to_owned(), asset_info.to_string())
+            let asset_info: AssetInfoBase<String> = from_value(v[1].clone()).unwrap();
+            (v[0].as_str().unwrap().to_owned(), asset_info)
         })
         .collect();
 
     Ok(scraped_entries_vec.into_iter().collect())
 }
 
-fn get_on_chain_entries(
+pub fn get_on_chain_entries(
     ans_host: &AnsHost<Daemon>,
-) -> Result<HashMap<String, String>, AbstractInterfaceError> {
+) -> Result<HashMap<String, AssetInfoBase<String>>, AbstractInterfaceError> {
     let mut on_chain_entries = HashMap::new();
     let mut last_asset = None;
     loop {
@@ -83,43 +88,41 @@ fn get_on_chain_entries(
         on_chain_entries.extend(
             assets
                 .into_iter()
-                .map(|(a, b)| (a.to_string(), b.to_string())),
+                .map(|(a, b)| (a.to_string(), b.into())),
         );
     }
 
     Ok(on_chain_entries)
 }
 
-fn get_union_keys<'a>(
-    scraped_entries: &'a HashMap<String, String>,
-    on_chain_entries: &'a HashMap<String, String>,
-) -> Vec<&'a String> {
-    let on_chain_binding = on_chain_entries.keys().collect::<HashSet<_>>();
-    let scraped_binding = scraped_entries.keys().collect::<HashSet<_>>();
+pub fn update(ans_host: &AnsHost<Daemon>, diff: EntryDif<String, AssetInfoBase<String>>) -> Result<(), AbstractInterfaceError> {
+   
+    println!("Removing {} assets", diff.0.len());
+    println!("Removing assets: {:?}", diff);
+    println!("Adding {} assets", diff.1.len());
+    println!("Adding assets: {:?}", diff.1);
 
-    on_chain_binding.union(&scraped_binding).cloned().collect()
-}
+    let to_add: Vec<_> = diff.1.into_iter().collect();
+    let to_remove: Vec<_> = diff.0.into_iter().collect();
 
-fn get_assets_changes(
-    union_keys: &Vec<&String>,
-    scraped_entries: &HashMap<String, String>,
-    on_chain_entries: &HashMap<String, String>,
-) -> (Vec<String>, Vec<(String, cw_asset::AssetInfoBase<String>)>) {
-    let mut assets_to_remove: Vec<String> = vec![];
-    let mut assets_to_add: Vec<(String, cw_asset::AssetInfoBase<String>)> = vec![];
 
-    for entry in union_keys {
-        if !scraped_entries.contains_key(entry.as_str()) {
-            assets_to_remove.push((*entry).to_string())
+    // add the assets
+    ans_host.execute_chunked(&to_add, 25, |chunk| {
+        ExecuteMsg::UpdateAssetAddresses {
+            to_add: chunk.to_vec(),
+            to_remove: vec![],
         }
+    })?;
 
-        if !on_chain_entries.contains_key(*entry) {
-            if let Ok(info) = AssetInfoUnchecked::from_str(scraped_entries.get(*entry).unwrap()) {
-                assets_to_add.push(((*entry).to_owned(), info))
-            }
+    // remove the assets
+    ans_host.execute_chunked(&to_remove, 25, |chunk| {
+        ExecuteMsg::UpdateAssetAddresses {
+            to_add: vec![],
+            to_remove: chunk.to_vec(),
         }
-    }
-    (assets_to_remove, assets_to_add)
+    })?;
+
+    Ok(())
 }
 
 // fn update_channels(ans: &AnsHost<Daemon>) -> Result<(), crate::CwOrchError> {

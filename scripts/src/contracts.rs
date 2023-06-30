@@ -1,51 +1,18 @@
+use crate::EntryDif;
 use cw_orch::prelude::*;
 
 use abstract_core::ans_host::*;
 use abstract_core::objects::UncheckedContractEntry;
 use abstract_interface::{AbstractInterfaceError, AnsHost};
 
-use cw_orch::state::ChainState;
+
 
 use serde_json::Value;
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap};
 
-pub fn update_contracts(ans_host: &AnsHost<Daemon>) -> Result<(), AbstractInterfaceError> {
-    let chain_name = &ans_host.get_chain().state().chain_data.chain_name;
-    let chain_id = ans_host.get_chain().state().chain_data.chain_id.to_string();
 
-    let scraped_entries = get_scraped_entries(chain_name, &chain_id)?;
-    let on_chain_entries = get_on_chain_entries(ans_host)?;
 
-    let union_keys = get_union_keys(&scraped_entries, &on_chain_entries);
-
-    let (contracts_to_remove, contracts_to_add) =
-        get_contracts_changes(&union_keys, &scraped_entries, &on_chain_entries);
-
-    println!("Removing {} contracts", contracts_to_remove.len());
-    println!("Removing contracts: {:?}", contracts_to_remove);
-    println!("Adding {} contracts", contracts_to_add.len());
-    println!("Adding contracts: {:?}", contracts_to_add);
-
-    // add the contracts
-    ans_host.execute_chunked(&contracts_to_add, 25, |chunk| {
-        ExecuteMsg::UpdateContractAddresses {
-            to_add: chunk.to_vec(),
-            to_remove: vec![],
-        }
-    })?;
-
-    // remove the contracts
-    ans_host.execute_chunked(&contracts_to_remove, 25, |chunk| {
-        ExecuteMsg::UpdateContractAddresses {
-            to_add: vec![],
-            to_remove: chunk.to_vec(),
-        }
-    })?;
-
-    Ok(())
-}
-
-fn get_scraped_entries(
+pub fn get_scraped_entries(
     chain_name: &String,
     chain_id: &String,
 ) -> Result<HashMap<UncheckedContractEntry, String>, AbstractInterfaceError> {
@@ -70,7 +37,7 @@ fn get_scraped_entries(
     Ok(scraped_entries_vec.into_iter().collect())
 }
 
-fn get_on_chain_entries(
+pub fn get_on_chain_entries(
     ans_host: &AnsHost<Daemon>,
 ) -> Result<HashMap<UncheckedContractEntry, String>, AbstractInterfaceError> {
     let mut on_chain_entries = HashMap::new();
@@ -91,39 +58,33 @@ fn get_on_chain_entries(
     Ok(on_chain_entries)
 }
 
-fn get_union_keys<'a>(
-    scraped_entries: &'a HashMap<UncheckedContractEntry, String>,
-    on_chain_entries: &'a HashMap<UncheckedContractEntry, String>,
-) -> Vec<&'a UncheckedContractEntry> {
-    let on_chain_binding = on_chain_entries.keys().collect::<HashSet<_>>();
-    let scraped_binding = scraped_entries.keys().collect::<HashSet<_>>();
+pub fn update(ans_host: &AnsHost<Daemon>, diff: EntryDif<UncheckedContractEntry, String>) -> Result<(), AbstractInterfaceError> {
+   
+    println!("Removing {} contracts", diff.0.len());
+    println!("Removing contracts: {:?}", diff);
+    println!("Adding {} contracts", diff.1.len());
+    println!("Adding contracts: {:?}", diff.1);
 
-    on_chain_binding.union(&scraped_binding).cloned().collect()
-}
+    let to_add: Vec<_> = diff.1.into_iter().collect();
+    let to_remove: Vec<_> = diff.0.into_iter().collect();
 
-fn get_contracts_changes(
-    union_keys: &Vec<&UncheckedContractEntry>,
-    scraped_entries: &HashMap<UncheckedContractEntry, String>,
-    on_chain_entries: &HashMap<UncheckedContractEntry, String>,
-) -> (
-    Vec<UncheckedContractEntry>,
-    Vec<(UncheckedContractEntry, String)>,
-) {
-    let mut contracts_to_remove: Vec<UncheckedContractEntry> = vec![];
-    let mut contracts_to_add: Vec<(UncheckedContractEntry, String)> = vec![];
-
-    for entry in union_keys {
-        if !scraped_entries.contains_key(entry) {
-            contracts_to_remove.push((*entry).clone())
+    // add the contracts
+    ans_host.execute_chunked(&to_add, 25, |chunk| {
+        ExecuteMsg::UpdateContractAddresses {
+            to_add: chunk.to_vec(),
+            to_remove: vec![],
         }
+    })?;
 
-        if !on_chain_entries.contains_key(*entry) {
-            let val = scraped_entries.get(*entry).unwrap();
-
-            contracts_to_add.push(((*entry).to_owned(), val.to_owned()))
+    // remove the contracts
+    ans_host.execute_chunked(&to_remove, 25, |chunk| {
+        ExecuteMsg::UpdateContractAddresses {
+            to_add: vec![],
+            to_remove: chunk.to_vec(),
         }
-    }
-    (contracts_to_remove, contracts_to_add)
+    })?;
+
+    Ok(())
 }
 
 // fn update_channels(ans: &AnsHost<Daemon>) -> Result<(), crate::CwOrchError> {
