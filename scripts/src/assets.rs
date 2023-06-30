@@ -50,11 +50,7 @@ pub fn update(
     ans_host: &AnsHost<Daemon>,
     diff: EntryDif<String, AssetInfoBase<String>>,
 ) -> Result<(), AbstractInterfaceError> {
-    println!("Removing {} assets", diff.0.len());
-    println!("Removing assets: {:?}", diff.0);
-    println!("Adding {} assets", diff.1.len());
-    println!("Adding assets: {:?}", diff.1);
-
+    
     let to_add: Vec<_> = diff.1.into_iter().collect();
     let to_remove: Vec<_> = diff.0.into_iter().collect();
 

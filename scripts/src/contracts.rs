@@ -13,10 +13,6 @@ pub fn get_scraped_entries(
     chain_id: &String,
 ) -> Result<HashMap<UncheckedContractEntry, String>, AbstractInterfaceError> {
     let raw_scraped_entries = crate::get_scraped_json_data("contracts");
-    println!(
-        "scraped_entries: {:?}",
-        raw_scraped_entries[chain_name][chain_id]
-    );
 
     let binding = raw_scraped_entries[chain_name][chain_id].clone();
     let parsed_scraped_entries: &Vec<Value> = binding.as_array().unwrap();
@@ -58,11 +54,7 @@ pub fn update(
     ans_host: &AnsHost<Daemon>,
     diff: EntryDif<UncheckedContractEntry, String>,
 ) -> Result<(), AbstractInterfaceError> {
-    println!("Removing {} contracts", diff.0.len());
-    println!("Removing contracts: {:?}", diff.0);
-    println!("Adding {} contracts", diff.1.len());
-    println!("Adding contracts: {:?}", diff.1);
-
+    
     let to_add: Vec<_> = diff.1.into_iter().collect();
     let to_remove: Vec<_> = diff.0.into_iter().collect();
 
