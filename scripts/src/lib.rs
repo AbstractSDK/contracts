@@ -1,21 +1,21 @@
 pub mod assets;
 pub mod contracts;
-pub mod pools;
 pub mod hashmap_diff;
+pub mod pools;
 
-use cw_asset::AssetInfoBase;
 use abstract_core::objects::UniquePoolId;
-use std::collections::HashSet;
+use cw_asset::AssetInfoBase;
 use std::collections::HashMap;
+use std::collections::HashSet;
 
 use abstract_core::objects::UncheckedContractEntry;
 use cw_orch::prelude::ContractInstance;
 use cw_orch::state::ChainState;
 
-use abstract_interface::AnsHost;
-use cw_orch::daemon::Daemon;
 use abstract_core::objects::pool_id::UncheckedPoolAddress;
 use abstract_core::objects::PoolMetadata;
+use abstract_interface::AnsHost;
+use cw_orch::daemon::Daemon;
 
 use abstract_interface::AbstractInterfaceError;
 
@@ -47,7 +47,6 @@ pub struct AnsData {
     pub pools: HashMap<UncheckedPoolAddress, (UniquePoolId, PoolMetadata)>,
 }
 
-
 pub type EntryDif<K, V> = (HashSet<K>, HashMap<K, V>);
 
 #[derive(Default)]
@@ -56,12 +55,13 @@ pub struct AnsDataDiff {
     pub assets: EntryDif<String, AssetInfoBase<String>>,
     // pub channels: Vec<(ChannelEntry, String)>,
     pub dexes: EntryDif<String, ()>,
-    pub pools: (HashSet<UniquePoolId>, HashMap<UncheckedPoolAddress, PoolMetadata>)
+    pub pools: (
+        HashSet<UniquePoolId>,
+        HashMap<UncheckedPoolAddress, PoolMetadata>,
+    ),
 }
 
-
-pub fn get_scraped_entries(ans_host: &AnsHost<Daemon>) -> Result<AnsData, AbstractInterfaceError>{
-
+pub fn get_scraped_entries(ans_host: &AnsHost<Daemon>) -> Result<AnsData, AbstractInterfaceError> {
     let chain_name = &ans_host.get_chain().state().chain_data.chain_name;
     let chain_id = ans_host.get_chain().state().chain_data.chain_id.to_string();
 
@@ -69,47 +69,64 @@ pub fn get_scraped_entries(ans_host: &AnsHost<Daemon>) -> Result<AnsData, Abstra
     let assets = crate::assets::get_scraped_entries(chain_name, &chain_id)?;
     let (pools, dexes) = crate::pools::get_scraped_entries(chain_name, &chain_id)?;
 
-    Ok(AnsData{
+    Ok(AnsData {
         contracts: contracts.into_iter().collect(),
         assets,
         dexes: dexes.into_iter().map(|v| (v, ())).collect(),
-        pools: pools.into_iter().map(|(a, m)| (a,(UniquePoolId::new(0), m))).collect(),
+        pools: pools
+            .into_iter()
+            .map(|(a, m)| (a, (UniquePoolId::new(0), m)))
+            .collect(),
     })
 }
 
-pub fn get_on_chain_entries(ans_host: &AnsHost<Daemon>) -> Result<AnsData, AbstractInterfaceError>{
-
+pub fn get_on_chain_entries(ans_host: &AnsHost<Daemon>) -> Result<AnsData, AbstractInterfaceError> {
     let contracts = crate::contracts::get_on_chain_entries(ans_host)?;
     let assets = crate::assets::get_on_chain_entries(ans_host)?;
     let pools = crate::pools::get_on_chain_entries(ans_host)?;
     let dexes = crate::pools::get_on_chain_dexes(ans_host)?;
 
-    Ok(AnsData{
+    Ok(AnsData {
         contracts,
         assets,
         dexes: dexes.into_iter().map(|v| (v, ())).collect(),
         // For pools, we create a dummy unique ID for on-chain entities
-        pools
+        pools,
     })
 }
 
-pub fn diff(scraped_entry: AnsData, on_chain_entry: AnsData) -> Result<AnsDataDiff, AbstractInterfaceError>{
+pub fn diff(
+    scraped_entry: AnsData,
+    on_chain_entry: AnsData,
+) -> Result<AnsDataDiff, AbstractInterfaceError> {
     let contracts = crate::hashmap_diff::diff(scraped_entry.contracts, on_chain_entry.contracts)?;
     let assets = crate::hashmap_diff::diff(scraped_entry.assets, on_chain_entry.assets)?;
     let dexes = crate::hashmap_diff::diff(scraped_entry.dexes, on_chain_entry.dexes)?;
 
     // For pools, we diff only the metadata and then get the uniquepoolid to attach to the address
     let pools = crate::hashmap_diff::diff(
-        scraped_entry.pools.iter().map(|(a, (_u, m))| (a.clone(), m.clone())).collect(), 
-        on_chain_entry.pools.iter().map(|(a, (_u, m))| (a.clone(), m.clone())).collect(), 
+        scraped_entry
+            .pools
+            .iter()
+            .map(|(a, (_u, m))| (a.clone(), m.clone()))
+            .collect(),
+        on_chain_entry
+            .pools
+            .iter()
+            .map(|(a, (_u, m))| (a.clone(), m.clone()))
+            .collect(),
     )?;
 
     let pool_return = (
-        pools.0.iter().map(|k| on_chain_entry.pools.get(k).unwrap().0 ).collect(),
-        pools.1
+        pools
+            .0
+            .iter()
+            .map(|k| on_chain_entry.pools.get(k).unwrap().0)
+            .collect(),
+        pools.1,
     );
 
-    Ok(AnsDataDiff{
+    Ok(AnsDataDiff {
         contracts,
         assets,
         pools: pool_return,
@@ -117,9 +134,7 @@ pub fn diff(scraped_entry: AnsData, on_chain_entry: AnsData) -> Result<AnsDataDi
     })
 }
 
-
-pub fn update(ans_host: &AnsHost<Daemon>, diff: AnsDataDiff) -> Result<(), AbstractInterfaceError>{
-
+pub fn update(ans_host: &AnsHost<Daemon>, diff: AnsDataDiff) -> Result<(), AbstractInterfaceError> {
     contracts::update(ans_host, diff.contracts)?;
     assets::update(ans_host, diff.assets)?;
     pools::update_dexes(ans_host, diff.dexes)?;

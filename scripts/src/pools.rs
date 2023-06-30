@@ -3,10 +3,8 @@ use cw_orch::prelude::*;
 
 use abstract_core::ans_host::*;
 use abstract_core::objects::pool_id::{PoolAddressBase, UncheckedPoolAddress};
-use abstract_core::objects::{PoolMetadata, UniquePoolId, DexAssetPairing};
+use abstract_core::objects::{DexAssetPairing, PoolMetadata, UniquePoolId};
 use abstract_interface::{AbstractInterfaceError, AnsHost};
-
-
 
 use serde_json::Value;
 use std::collections::{HashMap, HashSet};
@@ -47,7 +45,8 @@ pub fn get_scraped_entries(
 
 pub fn get_on_chain_entries(
     ans_host: &AnsHost<Daemon>,
-) -> Result<HashMap<PoolAddressBase<String>, (UniquePoolId, PoolMetadata)>, AbstractInterfaceError> {
+) -> Result<HashMap<PoolAddressBase<String>, (UniquePoolId, PoolMetadata)>, AbstractInterfaceError>
+{
     let mut on_chain_entries = HashMap::new();
     let mut last_pool = None;
     loop {
@@ -57,17 +56,23 @@ pub fn get_on_chain_entries(
             break;
         }
 
-        let addresses: Vec<_> = ans_host.pools(metadatas.iter().map(|(_, m)| DexAssetPairing::new(
-            m.assets[0].clone(),
-            m.assets[1].clone(),
-            &m.dex
-        ) ).collect())?.pools;
+        let addresses: Vec<_> = ans_host
+            .pools(
+                metadatas
+                    .iter()
+                    .map(|(_, m)| {
+                        DexAssetPairing::new(m.assets[0].clone(), m.assets[1].clone(), &m.dex)
+                    })
+                    .collect(),
+            )?
+            .pools;
 
-        let metadata_to_save: HashMap::<_, _> = metadatas.iter().zip(addresses.iter()).map(|(m, a)|{
-             (a.1[0].pool_address.clone().into(), (m.clone()))
-        }).collect();
+        let metadata_to_save: HashMap<_, _> = metadatas
+            .iter()
+            .zip(addresses.iter())
+            .map(|(m, a)| (a.1[0].pool_address.clone().into(), (m.clone())))
+            .collect();
 
-    
         last_pool = metadatas.last().map(|l| l.0);
         on_chain_entries.extend(metadata_to_save);
     }
@@ -82,8 +87,13 @@ pub fn get_on_chain_dexes(
     Ok(dexes)
 }
 
-pub fn update(ans_host: &AnsHost<Daemon>, diff: (HashSet<UniquePoolId>, HashMap<UncheckedPoolAddress, PoolMetadata>)) -> Result<(), AbstractInterfaceError> {
-   
+pub fn update(
+    ans_host: &AnsHost<Daemon>,
+    diff: (
+        HashSet<UniquePoolId>,
+        HashMap<UncheckedPoolAddress, PoolMetadata>,
+    ),
+) -> Result<(), AbstractInterfaceError> {
     println!("Removing {} pools", diff.0.len());
     println!("Removing pools: {:?}", diff);
     println!("Adding {} pools", diff.1.len());
@@ -101,21 +111,20 @@ pub fn update(ans_host: &AnsHost<Daemon>, diff: (HashSet<UniquePoolId>, HashMap<
     })?;
 
     // remove the pools
-    ans_host.execute_chunked(
-        &to_remove.into_iter().collect::<Vec<_>>(),
-        25,
-        |chunk| ExecuteMsg::UpdatePools {
+    ans_host.execute_chunked(&to_remove.into_iter().collect::<Vec<_>>(), 25, |chunk| {
+        ExecuteMsg::UpdatePools {
             to_add: vec![],
             to_remove: chunk.to_vec(),
-        },
-    )?;
+        }
+    })?;
 
     Ok(())
 }
 
-
-pub fn update_dexes(ans_host: &AnsHost<Daemon>, diff: EntryDif<String, ()>) -> Result<(), AbstractInterfaceError> {
-   
+pub fn update_dexes(
+    ans_host: &AnsHost<Daemon>,
+    diff: EntryDif<String, ()>,
+) -> Result<(), AbstractInterfaceError> {
     println!("Removing {} pools", diff.0.len());
     println!("Removing pools: {:?}", diff);
     println!("Adding {} pools", diff.1.len());
@@ -125,22 +134,22 @@ pub fn update_dexes(ans_host: &AnsHost<Daemon>, diff: EntryDif<String, ()>) -> R
     let to_remove: Vec<_> = diff.0.into_iter().collect();
 
     // add the pools
-    ans_host.execute_chunked(&to_add.into_iter().map(|(k, _)| k).collect::<Vec<_>>(), 25, |chunk| {
-        ExecuteMsg::UpdateDexes {
+    ans_host.execute_chunked(
+        &to_add.into_iter().map(|(k, _)| k).collect::<Vec<_>>(),
+        25,
+        |chunk| ExecuteMsg::UpdateDexes {
             to_add: chunk.to_vec(),
             to_remove: vec![],
-        }
-    })?;
-
-    // remove the pools
-    ans_host.execute_chunked(
-        &to_remove.into_iter().collect::<Vec<_>>(),
-        25,
-        |chunk| ExecuteMsg::UpdateDexes{
-            to_add: vec![],
-            to_remove: chunk.to_vec(),
         },
     )?;
+
+    // remove the pools
+    ans_host.execute_chunked(&to_remove.into_iter().collect::<Vec<_>>(), 25, |chunk| {
+        ExecuteMsg::UpdateDexes {
+            to_add: vec![],
+            to_remove: chunk.to_vec(),
+        }
+    })?;
 
     Ok(())
 }

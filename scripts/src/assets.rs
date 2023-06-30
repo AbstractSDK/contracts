@@ -1,16 +1,13 @@
-
-use cw_asset::AssetInfoBase;
 use crate::EntryDif;
+use cw_asset::AssetInfoBase;
 
 use cw_orch::prelude::*;
 
 use abstract_core::ans_host::*;
 use abstract_interface::{AbstractInterfaceError, AnsHost};
 
-
-
 use serde_json::{from_value, Value};
-use std::collections::{HashMap};
+use std::collections::HashMap;
 
 /*
 pub fn update_assets(ans_host: &AnsHost<Daemon>) -> Result<(), AbstractInterfaceError> {
@@ -85,18 +82,16 @@ pub fn get_on_chain_entries(
             break;
         }
         last_asset = assets.last().map(|(entry, _)| entry.to_string());
-        on_chain_entries.extend(
-            assets
-                .into_iter()
-                .map(|(a, b)| (a.to_string(), b.into())),
-        );
+        on_chain_entries.extend(assets.into_iter().map(|(a, b)| (a.to_string(), b.into())));
     }
 
     Ok(on_chain_entries)
 }
 
-pub fn update(ans_host: &AnsHost<Daemon>, diff: EntryDif<String, AssetInfoBase<String>>) -> Result<(), AbstractInterfaceError> {
-   
+pub fn update(
+    ans_host: &AnsHost<Daemon>,
+    diff: EntryDif<String, AssetInfoBase<String>>,
+) -> Result<(), AbstractInterfaceError> {
     println!("Removing {} assets", diff.0.len());
     println!("Removing assets: {:?}", diff);
     println!("Adding {} assets", diff.1.len());
@@ -105,21 +100,16 @@ pub fn update(ans_host: &AnsHost<Daemon>, diff: EntryDif<String, AssetInfoBase<S
     let to_add: Vec<_> = diff.1.into_iter().collect();
     let to_remove: Vec<_> = diff.0.into_iter().collect();
 
-
     // add the assets
-    ans_host.execute_chunked(&to_add, 25, |chunk| {
-        ExecuteMsg::UpdateAssetAddresses {
-            to_add: chunk.to_vec(),
-            to_remove: vec![],
-        }
+    ans_host.execute_chunked(&to_add, 25, |chunk| ExecuteMsg::UpdateAssetAddresses {
+        to_add: chunk.to_vec(),
+        to_remove: vec![],
     })?;
 
     // remove the assets
-    ans_host.execute_chunked(&to_remove, 25, |chunk| {
-        ExecuteMsg::UpdateAssetAddresses {
-            to_add: vec![],
-            to_remove: chunk.to_vec(),
-        }
+    ans_host.execute_chunked(&to_remove, 25, |chunk| ExecuteMsg::UpdateAssetAddresses {
+        to_add: vec![],
+        to_remove: chunk.to_vec(),
     })?;
 
     Ok(())

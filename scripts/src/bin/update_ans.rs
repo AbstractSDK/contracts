@@ -33,7 +33,6 @@ fn update_ans(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
 
         // Finally we upload on-chain
         ans_helper::update(&ans_host, diff)?;
-
     }
     Ok(())
 }

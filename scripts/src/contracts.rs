@@ -5,12 +5,8 @@ use abstract_core::ans_host::*;
 use abstract_core::objects::UncheckedContractEntry;
 use abstract_interface::{AbstractInterfaceError, AnsHost};
 
-
-
 use serde_json::Value;
-use std::collections::{HashMap};
-
-
+use std::collections::HashMap;
 
 pub fn get_scraped_entries(
     chain_name: &String,
@@ -58,8 +54,10 @@ pub fn get_on_chain_entries(
     Ok(on_chain_entries)
 }
 
-pub fn update(ans_host: &AnsHost<Daemon>, diff: EntryDif<UncheckedContractEntry, String>) -> Result<(), AbstractInterfaceError> {
-   
+pub fn update(
+    ans_host: &AnsHost<Daemon>,
+    diff: EntryDif<UncheckedContractEntry, String>,
+) -> Result<(), AbstractInterfaceError> {
     println!("Removing {} contracts", diff.0.len());
     println!("Removing contracts: {:?}", diff);
     println!("Adding {} contracts", diff.1.len());
@@ -69,11 +67,9 @@ pub fn update(ans_host: &AnsHost<Daemon>, diff: EntryDif<UncheckedContractEntry,
     let to_remove: Vec<_> = diff.0.into_iter().collect();
 
     // add the contracts
-    ans_host.execute_chunked(&to_add, 25, |chunk| {
-        ExecuteMsg::UpdateContractAddresses {
-            to_add: chunk.to_vec(),
-            to_remove: vec![],
-        }
+    ans_host.execute_chunked(&to_add, 25, |chunk| ExecuteMsg::UpdateContractAddresses {
+        to_add: chunk.to_vec(),
+        to_remove: vec![],
     })?;
 
     // remove the contracts
