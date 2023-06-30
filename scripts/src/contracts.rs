@@ -59,7 +59,7 @@ pub fn update(
     diff: EntryDif<UncheckedContractEntry, String>,
 ) -> Result<(), AbstractInterfaceError> {
     println!("Removing {} contracts", diff.0.len());
-    println!("Removing contracts: {:?}", diff);
+    println!("Removing contracts: {:?}", diff.0);
     println!("Adding {} contracts", diff.1.len());
     println!("Adding contracts: {:?}", diff.1);
 

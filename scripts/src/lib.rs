@@ -43,7 +43,7 @@ pub struct AnsData {
     pub contracts: HashMap<UncheckedContractEntry, String>,
     pub assets: HashMap<String, AssetInfoBase<String>>,
     // pub channels: Vec<(ChannelEntry, String)>,
-    pub dexes: HashMap<String, ()>, // We use this structure to work more easily with hash_map_diff::diff
+    pub dexes: HashMap<String, String>, // We use this structure to work more easily with hash_map_diff::diff
     pub pools: HashMap<UncheckedPoolAddress, (UniquePoolId, PoolMetadata)>,
 }
 
@@ -54,7 +54,7 @@ pub struct AnsDataDiff {
     pub contracts: EntryDif<UncheckedContractEntry, String>,
     pub assets: EntryDif<String, AssetInfoBase<String>>,
     // pub channels: Vec<(ChannelEntry, String)>,
-    pub dexes: EntryDif<String, ()>,
+    pub dexes: EntryDif<String, String>,
     pub pools: (
         HashSet<UniquePoolId>,
         HashMap<UncheckedPoolAddress, PoolMetadata>,
@@ -69,10 +69,13 @@ pub fn get_scraped_entries(ans_host: &AnsHost<Daemon>) -> Result<AnsData, Abstra
     let assets = crate::assets::get_scraped_entries(chain_name, &chain_id)?;
     let (pools, dexes) = crate::pools::get_scraped_entries(chain_name, &chain_id)?;
 
+
+    log::info!("Dexes scraped {:?}", dexes);
+
     Ok(AnsData {
         contracts: contracts.into_iter().collect(),
         assets,
-        dexes: dexes.into_iter().map(|v| (v, ())).collect(),
+        dexes: dexes.into_iter().map(|v| (v.clone(), v)).collect(),
         pools: pools
             .into_iter()
             .map(|(a, m)| (a, (UniquePoolId::new(0), m)))
@@ -86,10 +89,11 @@ pub fn get_on_chain_entries(ans_host: &AnsHost<Daemon>) -> Result<AnsData, Abstr
     let pools = crate::pools::get_on_chain_entries(ans_host)?;
     let dexes = crate::pools::get_on_chain_dexes(ans_host)?;
 
+    log::info!("Dexes on chain {:?}", dexes);
     Ok(AnsData {
         contracts,
         assets,
-        dexes: dexes.into_iter().map(|v| (v, ())).collect(),
+        dexes: dexes.into_iter().map(|v| (v.clone(), v)).collect(),
         // For pools, we create a dummy unique ID for on-chain entities
         pools,
     })
@@ -101,7 +105,8 @@ pub fn diff(
 ) -> Result<AnsDataDiff, AbstractInterfaceError> {
     let contracts = crate::hashmap_diff::diff(scraped_entry.contracts, on_chain_entry.contracts)?;
     let assets = crate::hashmap_diff::diff(scraped_entry.assets, on_chain_entry.assets)?;
-    let dexes = crate::hashmap_diff::diff(scraped_entry.dexes, on_chain_entry.dexes)?;
+    let dexes = crate::hashmap_diff::diff(scraped_entry.dexes.clone(), on_chain_entry.dexes.clone())?;
+    log::info!("Diff dexes {:?}", (dexes.clone(), scraped_entry.dexes, on_chain_entry.dexes));
 
     // For pools, we diff only the metadata and then get the uniquepoolid to attach to the address
     let pools = crate::hashmap_diff::diff(

@@ -29,7 +29,7 @@ fn update_ans(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
         let on_chain_entries = ans_helper::get_on_chain_entries(&ans_host)?;
 
         // Then we create a diff between the 2 objects
-        let diff = ans_helper::diff(on_chain_entries, scraped_entries)?;
+        let diff = ans_helper::diff(scraped_entries, on_chain_entries)?;
 
         // Finally we upload on-chain
         ans_helper::update(&ans_host, diff)?;

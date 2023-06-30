@@ -123,19 +123,19 @@ pub fn update(
 
 pub fn update_dexes(
     ans_host: &AnsHost<Daemon>,
-    diff: EntryDif<String, ()>,
+    diff: EntryDif<String, String>,
 ) -> Result<(), AbstractInterfaceError> {
-    println!("Removing {} pools", diff.0.len());
-    println!("Removing pools: {:?}", diff);
-    println!("Adding {} pools", diff.1.len());
-    println!("Adding pools: {:?}", diff.1);
+    println!("Removing {} dexes", diff.0.len());
+    println!("Removing dexes: {:?}", diff.0);
+    println!("Adding {} dexes", diff.1.len());
+    println!("Adding dexes: {:?}", diff.1);
 
-    let to_add: Vec<_> = diff.1.into_iter().collect();
+    let to_add: Vec<_> = diff.1.into_iter().map(|(k, _)| k).collect();
     let to_remove: Vec<_> = diff.0.into_iter().collect();
 
     // add the pools
     ans_host.execute_chunked(
-        &to_add.into_iter().map(|(k, _)| k).collect::<Vec<_>>(),
+        &to_add,
         25,
         |chunk| ExecuteMsg::UpdateDexes {
             to_add: chunk.to_vec(),
@@ -144,7 +144,7 @@ pub fn update_dexes(
     )?;
 
     // remove the pools
-    ans_host.execute_chunked(&to_remove.into_iter().collect::<Vec<_>>(), 25, |chunk| {
+    ans_host.execute_chunked(&to_remove, 25, |chunk| {
         ExecuteMsg::UpdateDexes {
             to_add: vec![],
             to_remove: chunk.to_vec(),

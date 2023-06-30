@@ -93,7 +93,7 @@ pub fn update(
     diff: EntryDif<String, AssetInfoBase<String>>,
 ) -> Result<(), AbstractInterfaceError> {
     println!("Removing {} assets", diff.0.len());
-    println!("Removing assets: {:?}", diff);
+    println!("Removing assets: {:?}", diff.0);
     println!("Adding {} assets", diff.1.len());
     println!("Adding assets: {:?}", diff.1);
 
