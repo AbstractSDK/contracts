@@ -14,7 +14,6 @@ pub type ModuleMapEntry = (ModuleInfo, ModuleReference);
 #[cosmwasm_schema::cw_serde]
 pub struct Config {
     pub allow_direct_module_registration_and_updates: bool,
-    pub namespace_limit: u32,
     pub namespace_registration_fee: cosmwasm_std::Coin,
 }
 
@@ -101,7 +100,6 @@ pub struct InstantiateMsg {
     /// Also allows them to change the module reference of an existing module
     /// SHOULD ONLY BE `true` FOR TESTING
     pub allow_direct_module_registration_and_updates: Option<bool>,
-    pub namespace_limit: u32,
     pub namespace_registration_fee: Option<Coin>,
 }
 
@@ -142,9 +140,9 @@ pub enum ExecuteMsg {
         rejects: Vec<ModuleInfo>,
     },
     /// Claim namespaces
-    ClaimNamespaces {
+    ClaimNamespace {
         account_id: AccountId,
-        namespaces: Vec<String>,
+        namespace: String,
     },
     /// Remove namespace claims
     /// Only admin or root user can call this
@@ -160,7 +158,6 @@ pub enum ExecuteMsg {
     /// 2. the number of namespaces an Account can claim
     UpdateConfig {
         allow_direct_module_registration_and_updates: Option<bool>,
-        namespace_limit: Option<u32>,
         namespace_registration_fee: Option<Coin>,
     },
     /// Sets a new Factory
@@ -175,13 +172,6 @@ pub struct ModuleFilter {
     pub name: Option<String>,
     pub version: Option<String>,
     pub status: Option<ModuleStatus>,
-}
-
-/// A NamespaceFilter for [`Namespaces`].
-#[derive(Default)]
-#[cosmwasm_schema::cw_serde]
-pub struct NamespaceFilter {
-    pub account_id: Option<AccountId>,
 }
 
 /// Version Control Query Msg
@@ -220,7 +210,6 @@ pub enum QueryMsg {
     /// Returns [`NamespaceListResponse`]
     #[returns(NamespaceListResponse)]
     NamespaceList {
-        filter: Option<NamespaceFilter>,
         start_after: Option<String>,
         limit: Option<u8>,
     },
