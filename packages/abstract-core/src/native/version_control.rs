@@ -159,12 +159,6 @@ pub struct ModuleFilter {
     pub status: Option<ModuleStatus>,
 }
 
-/// A NamespaceFilter for [`Namespaces`].
-/// Stub
-#[derive(Default)]
-#[cosmwasm_schema::cw_serde]
-pub struct NamespaceFilter {}
-
 /// Version Control Query Msg
 #[cw_ownable::cw_ownable_query]
 #[cosmwasm_schema::cw_serde]
@@ -201,7 +195,6 @@ pub enum QueryMsg {
     /// Returns [`NamespaceListResponse`]
     #[returns(NamespaceListResponse)]
     NamespaceList {
-        filter: Option<NamespaceFilter>,
         start_after: Option<String>,
         limit: Option<u8>,
     },

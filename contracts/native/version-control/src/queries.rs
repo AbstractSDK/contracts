@@ -4,7 +4,7 @@ use abstract_core::{
     objects::module::{ModuleStatus, Monetization},
     version_control::{
         state::{MODULE_MONETIZATION, PENDING_MODULES},
-        ModuleConfiguration, NamespaceFilter, NamespaceResponse,
+        ModuleConfiguration, NamespaceResponse,
     },
 };
 use abstract_sdk::core::{
@@ -195,7 +195,6 @@ pub fn handle_namespace_list_query(
     deps: Deps,
     start_after: Option<Namespace>,
     limit: Option<u8>,
-    _filter: Option<NamespaceFilter>,
 ) -> StdResult<NamespaceListResponse> {
     let start_bound = start_after.as_ref().map(Bound::exclusive);
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;

@@ -139,17 +139,12 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> VCResult<Binary> {
             limit,
             filter,
         )?),
-        QueryMsg::NamespaceList {
-            filter,
-            start_after,
-            limit,
-        } => {
+        QueryMsg::NamespaceList { start_after, limit } => {
             let start_after = start_after.map(Namespace::try_from).transpose()?;
             to_binary(&queries::handle_namespace_list_query(
                 deps,
                 start_after,
                 limit,
-                filter,
             )?)
         }
         QueryMsg::Ownership {} => to_binary(&query_ownership!(deps)?),
