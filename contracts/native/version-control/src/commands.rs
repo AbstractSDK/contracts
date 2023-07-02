@@ -953,7 +953,7 @@ mod test {
                 CONFIG
                     .load(&deps.storage)
                     .unwrap()
-                    .allow_direct_module_registration
+                    .allow_direct_module_registration_and_updates
             )
             .is_equal_to(false);
             assert_that!(
@@ -994,7 +994,7 @@ mod test {
         }
 
         #[test]
-        fn updates_limit() -> VersionControlTestResult {
+        fn updates_fee() -> VersionControlTestResult {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
@@ -1005,14 +1005,12 @@ mod test {
 
             let msg = ExecuteMsg::UpdateConfig {
                 allow_direct_module_registration_and_updates: None,
-                namespace_limit: None,
                 namespace_registration_fee: Some(new_fee.clone()),
             };
 
             let res = execute_as_admin(deps.as_mut(), msg);
             assert_that!(&res).is_ok();
 
-            assert_that!(CONFIG.load(&deps.storage).unwrap().namespace_limit).is_equal_to(10);
             assert_that!(
                 CONFIG
                     .load(&deps.storage)
@@ -1266,9 +1264,9 @@ mod test {
             execute_as(
                 deps.as_mut(),
                 TEST_OWNER,
-                ExecuteMsg::ClaimNamespaces {
+                ExecuteMsg::ClaimNamespace {
                     account_id: TEST_ACCOUNT_ID,
-                    namespaces: vec![new_module.namespace.to_string()],
+                    namespace: new_module.namespace.to_string(),
                 },
             )?;
 
@@ -1306,9 +1304,9 @@ mod test {
             execute_as(
                 deps.as_mut(),
                 TEST_OWNER,
-                ExecuteMsg::ClaimNamespaces {
+                ExecuteMsg::ClaimNamespace {
                     account_id: TEST_ACCOUNT_ID,
-                    namespaces: vec![new_module.namespace.to_string()],
+                    namespace: new_module.namespace.to_string(),
                 },
             )?;
 
