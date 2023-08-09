@@ -29,8 +29,9 @@ There are two ways to resolve your entry into its matching value.
 Both App and Adapter objects implement the `AbstractNameService` trait which allows you to resolve entries.
 
 ```rust,ignore
+let ans = module.name_service(deps);
 let juno_name = AssetEntry::new("juno");
-let juno_asset_info = module.name_service(deps).query(&juno_name)?;
+let juno_asset_info = ans.query(&juno_name)?;
 ```
 
 ### `Resolve` Trait
