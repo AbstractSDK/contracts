@@ -1,10 +1,10 @@
 # Abstract 
 
+> **This repository moved to the [Abstract Monorepo](https://github.com/AbstractSDK/abstract).**
+
 <a href="https://codecov.io/gh/AbstractSDK/contracts" > 
  <img src="https://codecov.io/gh/AbstractSDK/contracts/branch/main/graph/badge.svg?token=FOIDUFYSCY"/> 
  </a>
-
-> ** This repository moved to the [Abstract Monorepo](https://github.com/AbstractSDK/abstract).
 
 To learn more about Abstract, go to [The Abstract Book](https://docs.abstract.money/).
 
