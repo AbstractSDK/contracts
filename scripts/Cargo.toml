@@ -4,7 +4,8 @@ version = { workspace = true }
 edition = { workspace = true }
 
 [lib]
-
+name = "ans_helper"
+path = "src/lib.rs"
 
 [dependencies]
 cosmwasm-std = { workspace = true }
@@ -26,7 +27,7 @@ tokio = { workspace = true }
 log = "0.4.14"
 anyhow = { workspace = true }
 serde_json = "1.0.79"
-reqwest = { version = "0.11.9" }
+reqwest = "0.11.9"
 dotenv = "0.15.0"
 env_logger = "0.10.0"
 
